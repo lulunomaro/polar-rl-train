@@ -1,0 +1,20 @@
+--- mod4/route_isaac.py.bak_pre_retry
++++ mod4/route_isaac.py
+@@ -266,17 +266,6 @@
+         except Exception as exc:
+             print("[arena] friction patch failed: %r" % (exc,), flush=True)
+         env._mod4_arena_friction_done = True
+-    _gf = os.environ.get("RM_GUIDE_FRICTION", "")
+-    if _gf and not getattr(env, "_mod4_guide_friction_done", False):
+-        try:
+-            import mod4_task
+-            mod4_task.set_guide_roller_friction(env, friction=float(_gf))
+-            _tm = os.environ.get("RM_TIRE_ADD_MM", "")
+-            if _tm:
+-                mod4_task.set_tyre_deflection(env, add_m=float(_tm) / 1000.0)
+-        except Exception as exc:
+-            print("[guide] roller friction patch failed: %r" % (exc,), flush=True)
+-        env._mod4_guide_friction_done = True
+     _publish_route_identity(env, rc, env_ids, ids)
+     _reset_jump(env, env_ids)
+     env._mod4_route_ready = True

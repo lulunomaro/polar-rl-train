@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "role": "checkpoint_1850_comparison",
+  "source_checkpoint": "model_1850.pt",
+  "source_checkpoint_sha256": "fc6b5afc029a0f7964df59fadf42a99484d95236c92f9e27456cb8fac2d9a196",
+  "source_iteration": 1850,
+  "onnx_sha256": "c8ce7ac1e5f0d25f475f873ffd9f5c6abf9975993651599578cc9fea1c780ade",
+  "onnx_opset": 18,
+  "onnxruntime_max_abs_error": 2.384185791015625e-06,
+  "input": {
+    "name": "observation",
+    "shape": [
+      "batch",
+      35
+    ],
+    "dtype": "float32"
+  },
+  "output": {
+    "name": "action",
+    "shape": [
+      "batch",
+      6
+    ],
+    "dtype": "float32",
+    "clamp": [
+      -6.0,
+      6.0
+    ]
+  },
+  "observation_layout": [
+    {
+      "slice": [
+        0,
+        3
+      ],
+      "name": "command_vx_vy_wz",
+      "scale": 1.0
+    },
+    {
+      "slice": [
+        3,
+        4
+      ],
+      "name": "height_command_m",
+      "scale": 5.0
+    },
+    {
+      "slice": [
+        4,
+        7
+      ],
+      "name": "base_angular_velocity_body_rad_s",
+      "scale": 0.5
+    },
+    {
+      "slice": [
+        7,
+        10
+      ],
+      "name": "projected_gravity_body",
+      "scale": 1.0
+    },
+    {
+      "slice": [
+        10,
+        14
+      ],
+      "name": "leg_position_relative_rad",
+      "scale": 1.0
+    },
+    {
+      "slice": [
+        14,
+        16
+      ],
+      "name": "reserved_wheel_position",
+      "constant": 0.0
+    },
+    {
+      "slice": [
+        16,
+        20
+      ],
+      "name": "leg_velocity_rad_s",
+      "scale": 0.1
+    },
+    {
+      "slice": [
+        20,
+        22
+      ],
+      "name": "wheel_velocity_rad_s",
+      "scale": 0.1
+    },
+    {
+      "slice": [
+        22,
+        28
+      ],
+      "name": "last_applied_action",
+      "scale": 1.0
+    },
+    {
+      "slice": [
+        28,
+        35
+      ],
+      "name": "mode",
+      "labels": [
+        "normal",
+        "stair",
+        "slope",
+        "recover",
+        "jump",
+        "height",
+        "state_time"
+      ]
+    }
+  ],
+  "leg_state_order": [
+    "left_crank",
+    "left_hip",
+    "right_crank",
+    "right_hip"
+  ],
+  "action_order": [
+    "left_crank",
+    "left_hip",
+    "right_crank",
+    "right_hip",
+    "left_wheel_spin",
+    "right_wheel_spin"
+  ],
+  "deterministic": true
+}

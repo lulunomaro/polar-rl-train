@@ -1,0 +1,25 @@
+--- mod4/mod4_curriculum.py.bak_pre_tunnelwin
++++ mod4/mod4_curriculum.py
+@@ -40,6 +40,7 @@
+ 
+ from __future__ import annotations
+ 
++LENGTH_LIMITED_KINDS = ("tunnel_cross",)
+ import os
+ 
+ # Order must match route_isaac's route-kind table (the ids published by _publish_route_identity).
+@@ -248,6 +249,14 @@
+     if st is None:
+         return
+     scale = [_level_to_speed_scale(l) for l in st["level"]]
++    # audit 46: for a LENGTH/TIME-limited route, lowering the speed makes completion strictly
++    # harder (2.0 m at 0.05 m/s needs 40 s).  Never scale such a kind below 1.0 -- its level
++    # may still move the other dimensions, but the speed must not push the goal further away.
++    # Measured: tunnel_cross demoted 4->3->2 while route_success stayed 0.0.
++    for _k in LENGTH_LIMITED_KINDS:
++        _i = ROUTE_KINDS.index(_k) if _k in ROUTE_KINDS else None
++        if _i is not None and scale[_i] < 1.0:
++            scale[_i] = 1.0
+     base = getattr(env, "_mod4_route_speed_base", None)
+     if base is None:
+         # remember the delivered upper bound once, so repeated level changes do not compound

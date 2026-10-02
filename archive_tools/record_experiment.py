@@ -33,6 +33,7 @@ def main():
     for value in a.files:
         file=(ROOT/value).resolve()
         if not file.is_relative_to(ROOT) or not file.is_file():raise ValueError('File must be inside this repository')
+        if file.name.startswith(('.env','id_rsa','id_ed25519')):raise ValueError('Credential paths cannot be recorded')
         if file.suffix.lower() in ('.pt','.pth','.onnx','.npz','.npy','.pem','.key'):raise ValueError('Index external artifacts instead of committing them')
         raw=file.read_bytes()
         if len(raw)>50_000_000:raise ValueError('Large artifact must be indexed externally')

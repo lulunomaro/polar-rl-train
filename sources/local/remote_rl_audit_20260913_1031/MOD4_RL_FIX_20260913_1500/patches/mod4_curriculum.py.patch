@@ -1,0 +1,76 @@
+--- a/isaac/mod4/mod4_curriculum.py
++++ b/isaac/mod4/mod4_curriculum.py
+@@ -119,57 +119,23 @@
+ 
+ 
+ def accumulate_route_stats(env, env_ids=None):
+-    # `env_ids` is POSITIONAL-MANDATORY for an Isaac Lab step EventTerm: the manager rejects a
+-    # step term whose first two parameters are not (env, env_ids) -- documented in
+-    # skills_isaac.update_jump_state.  Violating it raised this at startup:
+-    #   TypeError: accumulate_route_stats() takes 1 positional argument but 2 were given
+-    # The statistics are per route KIND (not per env), so the value is accepted and ignored.
+-    """Step event: add this control step's per-route attempts/successes to the open window.
+-
+-    Reads the same tensors the rewards use: `env._mod4_route_progress["success"]` (a one-shot
+-    flag on the step a route goal is reached) and the route ids published by `route_isaac`.
+-    """
+-    if os.environ.get("RM_ROUTE_CURRICULUM", "0").strip() != "1":
+-        return
+-    ids = getattr(env, "_mod4_route_ids", None)
+-    if ids is None:
+-        return
+-    batch = getattr(env, "_mod4_route_progress", None) or {}
+-    succ = batch.get("success")
+-    if succ is None:
+-        return
++    """Called AFTER termination/reward, BEFORE reset: count completed episodes by kind."""
++    if os.environ.get("RM_ROUTE_CURRICULUM", "0").strip() != "1":
++        return
++    import torch
++    from repair_contracts import episode_counts
++    rc = getattr(env, "_mod4_routes", None)
++    if rc is None:
++        raise RuntimeError("route curriculum needs route controller")
+     st = _state(env)
+-    # VECTORISED, NO PER-STEP GPU->CPU SYNC.  The first version did
+-    #     ids.detach().to("cpu").tolist()  +  a Python loop
+-    # on EVERY control step, and with RM_ROUTE_CURRICULUM=1 the runs died at the first step with
+-    # `CUDA error: device-side assert` in the PhysX contact view (measured 2026-09-13; with the
+-    # curriculum OFF the same configuration trains normally -- 30/30 iterations, no errors).
+-    # The project had ALREADY documented this trap in `mode_onehot`: "the earlier list
+-    # comprehension walked 1024 route ids per control step (a GPU->CPU sync plus 1024 Python int()
+-    # calls at 50 Hz) and the audit asked for a vectorised implementation".  Rebuild it that way.
+-    import torch as _torch
+-    if not isinstance(ids, _torch.Tensor) or not isinstance(succ, _torch.Tensor):
+-        # stray non-tensor path (unit tests / probes): fall back to the scalar loop
+-        ids_l = list(ids) if not hasattr(ids, "detach") else ids.detach().to("cpu").tolist()
+-        succ_l = list(succ) if not hasattr(succ, "detach") else succ.detach().to("cpu").tolist()
+-        for i, s in zip(ids_l, succ_l):
+-            k = int(i)
+-            if 0 <= k < K:
+-                st["attempts"][k] += 1.0
+-                if float(s) > 0.5:
+-                    st["successes"][k] += 1.0
+-        return
+-    ids_i = ids.long().clamp(0, K - 1)
+-    att = _torch.bincount(ids_i, minlength=K)[:K].to(_torch.float32)
+-    suc = _torch.bincount(ids_i, weights=(succ > 0.5).to(_torch.float32),
+-                          minlength=K)[:K].to(_torch.float32)
+-    if not isinstance(st["attempts"], _torch.Tensor):
+-        # first device accumulation: migrate the python-list counters to tensors ONCE
+-        st["attempts"] = att.clone()
+-        st["successes"] = suc.clone()
+-    else:
+-        st["attempts"] = st["attempts"] + att
+-        st["successes"] = st["successes"] + suc
++    attempts, successes = episode_counts(
++        rc.ids, [r["kind"] for r in rc.routes], list(ROUTE_KINDS),
++        env.reset_buf, rc.finished, env.reset_terminated)
++    for key, value in (("attempts", attempts), ("successes", successes)):
++        prior = st[key]
++        if not isinstance(prior, torch.Tensor):
++            prior = torch.as_tensor(prior, dtype=value.dtype, device=value.device)
++        st[key] = prior + value
+ 
+ 
+ def route_difficulty_schedule(env, env_ids=None) -> dict:

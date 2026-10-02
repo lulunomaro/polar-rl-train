@@ -1,0 +1,108 @@
+--- a/isaac/mod4/mod4_sequence_model.py
++++ b/isaac/mod4/mod4_sequence_model.py
+@@ -17,15 +17,15 @@
+     `self.obs_dim` is resolved, so overriding it is enough to make the head consume
+     `frame + latent` dimensions.
+ 
+-History ordering (verified, not assumed)
+-----------------------------------------
+-Isaac Lab flattens a history term as `circular_buffer.buffer.reshape(num_envs, -1)`, and that
+-property documents/returns **"[batch_size, max_length, ...] with most recent entry at the end"**
+-(`isaaclab_experimental/utils/buffers/circular_buffer.py`, `buffer` property).  So the LAST
+-`frame_dim` entries of the model input are the CURRENT frame -- exactly the convention the
+-reference uses ("newest appended at the END") and exactly what its MuJoCo runners replicate.
+-The deployment side must therefore keep a FIFO of length `history_length * frame_dim`, seeded by
+-repeating the first observation, newest frame last.
++History ordering (corrected against the installed ObservationManager)
++----------------------------------------------------------------------
++Isaac keeps history PER TERM, then concatenates terms. The 175 numbers are
++[commands history, height history, ..., mode history]. Taking the last 35
++does not give the current frame. latest_indices gathers each term's newest
++sample. The encoder retains the term-major 175-D input; export uses the same
++gather. Previously trained sequence checkpoints have different semantics and
++must not be silently reused under this layout. A plain 35-D policy is the
++controlled warm-start baseline. Shape equality alone is insufficient.
+ 
+ What is deliberately NOT copied
+ -------------------------------
+@@ -52,6 +52,7 @@
+ import torch.nn as nn
+ from rsl_rl.models import MLPModel
+ from rsl_rl.modules import MLP
++from repair_contracts import latest_term_indices
+ 
+ # v2 fix (2026-09-13): these were hard-coded, but the dimensions CANNOT travel through
+ # RslRlMLPModelCfg (it has no passthrough for custom kwargs -- passing frame_dim raised
+@@ -84,22 +85,16 @@
+         if self._enable_encoder and self.obs_dim > self.frame_dim:
+             self.encoder = MLP(self.obs_dim, self.latent_dim, self.encoder_hidden_dims,
+                                self._activation)
+-            # v2 fix (audit 63): ZERO-INIT the encoder's output layer.  Without this the
+-            # random encoder's latent leaks into the pretrained actor as soon as the MLP's
+-            # new columns start learning, and every skill regresses (measured: all 8 route
+-            # kinds pinned at curriculum level 0 after one phase, in BOTH the full-DR and
+-            # the mild-DR run).  With the output layer zeroed the latent is exactly 0 at
+-            # step 0 -- the actor reproduces the checkpoint -- and the encoder earns its
+-            # influence gradually.
+-            import torch as _torch
+-            _last = self.encoder[-1]
+-            if hasattr(_last, "weight"):
+-                _torch.nn.init.zeros_(_last.weight)
+-            if getattr(_last, "bias", None) is not None:
+-                _torch.nn.init.zeros_(_last.bias)
++            # Zero the NEW ACTOR INPUT COLUMNS during 35->38 warm start only.
++            # Zeroing the encoder output as well makes both sides' gradients zero.
+         else:
+             # no history (or the critic set): degrade to a plain MLP rather than crash
+             self.encoder = None
++        if self.encoder is not None and self.obs_dim % self.frame_dim:
++            raise ValueError("history width does not match frame contract")
++        self.register_buffer("latest_indices", latest_term_indices(
++            self.obs_dim // self.frame_dim if self.encoder is not None else 1,
++            self.frame_dim), persistent=False)
+ 
+     @property
+     def has_encoder(self) -> bool:
+@@ -116,7 +111,7 @@
+         x = super().get_latent(obs, masks, hidden_state)
+         if self.encoder is None:
+             return x
+-        current = x[..., -self.frame_dim:]          # newest frame is LAST (see module docstring)
++        current = x.index_select(-1, self.latest_indices)
+         return torch.cat([current, self.encoder(x)], dim=-1)
+ 
+     # --- export -------------------------------------------------------------------------
+@@ -133,6 +128,7 @@
+     def __init__(self, model: LatentEncoderModel) -> None:
+         super().__init__()
+         self.frame_dim = model.frame_dim
++        self.register_buffer("latest_indices", model.latest_indices.detach().clone(), persistent=False)
+         self.obs_normalizer = copy.deepcopy(model.obs_normalizer)
+         self.mlp = copy.deepcopy(model.mlp)
+         self.encoder = copy.deepcopy(model.encoder) if model.encoder is not None else None
+@@ -145,7 +141,7 @@
+         x = self.obs_normalizer(x)
+         if self.encoder is None:
+             return self.deterministic_output(self.mlp(x))
+-        latent = torch.cat([x[..., -self.frame_dim:], self.encoder(x)], dim=-1)
++        latent = torch.cat([x.index_select(-1, self.latest_indices), self.encoder(x)], dim=-1)
+         return self.deterministic_output(self.mlp(latent))
+ 
+     @torch.jit.export
+@@ -162,6 +158,7 @@
+         super().__init__()
+         self.verbose = verbose
+         self.frame_dim = model.frame_dim
++        self.register_buffer("latest_indices", model.latest_indices.detach().clone(), persistent=False)
+         self.obs_normalizer = copy.deepcopy(model.obs_normalizer)
+         self.mlp = copy.deepcopy(model.mlp)
+         self.encoder = copy.deepcopy(model.encoder) if model.encoder is not None else None
+@@ -175,7 +172,7 @@
+         x = self.obs_normalizer(x)
+         if self.encoder is None:
+             return self.deterministic_output(self.mlp(x))
+-        latent = torch.cat([x[..., -self.frame_dim:], self.encoder(x)], dim=-1)
++        latent = torch.cat([x.index_select(-1, self.latest_indices), self.encoder(x)], dim=-1)
+         return self.deterministic_output(self.mlp(latent))
+ 
+     def get_dummy_inputs(self) -> tuple[torch.Tensor]:

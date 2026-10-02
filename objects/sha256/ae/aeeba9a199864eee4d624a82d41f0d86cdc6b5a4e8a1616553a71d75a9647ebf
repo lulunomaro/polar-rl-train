@@ -1,0 +1,23 @@
+[v3] chain v3 start checkpoint=logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt from=smoke envs=1024 iters=400 dry_run=0
+[v3] frozen 13 files -> logs/isaac_mod4/chain_v3_20260913_101837_frozen.txt
+[v3] tuning file migration/linux/tunnel_tuning.env:
+[v3]   # MOD4 tunnel-plant tuning for the v3 chain (2026-09-13)
+[v3]   # Plant: rolling-idler USD (8 passive revolute rollers) built by
+[v3]   #   incoming/mod4_rolling_20260913/tools/build_rolling_rollers_usd.py
+[v3]   # Controller: verified MuJoCo tunnel test = KP=320/KD=10/KI=90; Isaac runs a pure PD that needs
+[v3]   # more stiffness (probe_crouch_kp: kp=60 -> envelope 273.7 mm, kp=2500 -> 246.0 mm vs 247.2 mm).
+[v3]   # Action range: the crouch needs crank -0.595844 rad, which a 0.5 rad/unit action CANNOT reach
+[v3]   # (tanh <= 1) -- that is why Episode_Reward/tunnel_height stayed exactly 0 in every run.
+[v3]   # RM_CRANK_ACTION_SCALE=0.75 puts the crouch at 79 % of the crank range.
+[v3]   # DEPLOYMENT: the exported ONNX inherits this scale; contract_rm2025_later.json leg/crank action
+[v3]   # scale must be updated to the same numbers before hardware use.
+[v3]   RM_MOD4_USD=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd
+[v3]   RM_LEG_KP=2500
+[v3]   RM_LEG_KD=10
+[v3]   RM_LEG_KI=0
+[v3]   RM_LEG_ACTION_SCALE=0.5
+[v3]   RM_CRANK_ACTION_SCALE=0.75
+[v3]   RM_CROUCH_POSE_W=1.0[v3] === phase smoke envs=64 iters=250
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,tunnel_cross:2,slope_spin:2,jump_in_place:1,fly_jump:2
+[launch] plant=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd sha256=7b4d853563551755cb15f542a6cee28ae0119111cefee51da0b0d47b21b7ed55
+[launch] pid=917971 log=logs/isaac_mod4/stage_mixed_fixedplant_20260913_101837.log

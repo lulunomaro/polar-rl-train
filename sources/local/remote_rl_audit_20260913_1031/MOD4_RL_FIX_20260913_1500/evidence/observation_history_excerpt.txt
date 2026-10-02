@@ -1,0 +1,27 @@
+            # Update the history buffer if observation term has history enabled
+            if term_cfg.history_length > 0:
+                circular_buffer = self._group_obs_term_history_buffer[group_name][term_name]
+                if update_history:
+                    circular_buffer.append(obs)
+                elif circular_buffer._buffer is None:
+                    # because circular buffer only exits after the simulation steps,
+                    # this guards history buffer from corruption by external calls before simulation start
+                    circular_buffer = CircularBuffer(
+                        max_len=circular_buffer.max_length,
+                        batch_size=circular_buffer.batch_size,
+                        device=circular_buffer.device,
+                    )
+                    circular_buffer.append(obs)
+
+                if term_cfg.flatten_history_dim:
+                    group_obs[term_name] = circular_buffer.buffer.reshape(self._env.num_envs, -1)
+                else:
+                    group_obs[term_name] = circular_buffer.buffer
+            else:
+                group_obs[term_name] = obs
+
+        # concatenate all observations in the group together
+        if self._group_obs_concatenate[group_name]:
+            # set the concatenate dimension, account for the batch dimension if positive dimension is given
+            return torch.cat(list(group_obs.values()), dim=self._group_obs_concatenate_dim[group_name])
+        else:

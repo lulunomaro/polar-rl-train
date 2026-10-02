@@ -1,0 +1,219 @@
+--- a/isaac/mod4/mod4_env.py
++++ b/isaac/mod4/mod4_env.py
+@@ -1,82 +1,147 @@
+-"""MOD4 environment: ``ManagerBasedRLEnv`` plus the per-step event hook this Isaac build lacks.
++"""MOD4 phase-correct environment bound to the audited Isaac Lab step implementation.
+ 
+-Isaac Lab 3.0.0-beta2's ``ManagerBasedRLEnv`` only applies the event modes
+-``prestartup`` / ``startup`` / ``interval`` / ``reset`` -- there is no ``"step"`` mode anywhere
+-in the package, so every term registered with ``mode="step"`` was silently dead.  In MOD4 that
+-meant four things never ran:
+-
+-* ``gas_spring_preload``: the delivered MJCF gas springs are PRELOADED
+-  (``springref`` / ``target_position_m`` = 0.2206 m, ~770 N of leg extension).  Without it the
+-  legs carry no preload and the root sags 0.34 -> 0.20 m within half a second
+-  (``probe_gas_preload.py`` A/B), which also destroys the meaning of "crouch below the 250 mm
+-  beam" -- the robot is already low.
+-* ``air_state``: sets ``env._mod4_just_landed``, which ``landing_recovery`` reads.  Never
+-  updated => the landing reward was identically zero in every log line.
+-* ``push_wrench``: the SCUT sustained-disturbance randomisation (10 N / 1 N.m, 0.1-0.3 s every
+-  5-10 s).
+-* ``leg_effort_noise`` / ``wheel_effort_noise``: per-step actuator gain noise (+-3% / +-2%).
+-
+-Calling ``event_manager.apply(mode="step")`` once per control step -- before ``super().step()``
+-so the writes land in the same physics write as the actions -- restores exactly the semantics
+-the task config intended.  Nothing else changes.
++The physics/renderer/recorder/reset flow is copied from the installed base step;
++only explicit phase hooks are inserted. No package/site runtime is modified.
+ """
+ from __future__ import annotations
++import os, hashlib, inspect, textwrap
++import torch
++from isaaclab.envs import ManagerBasedRLEnv
++from repair_step import RepairStepMixin
+ 
+-import os
++class Mod4Env(RepairStepMixin, ManagerBasedRLEnv):
++    def __init__(self, cfg, *args, **kwargs):
++        actual = hashlib.sha256(textwrap.dedent(
++            inspect.getsource(ManagerBasedRLEnv.step)).strip().encode()).hexdigest()
++        if actual != "4ea2b2fcce5f071eac641fedaf8b247d24cdbd2b7de2d969b700a8a761f92651":
++            raise RuntimeError("Isaac base step changed: review the version-bound repair loop")
++        if float(os.environ.get("RM_JUMP_SCRIPT_PROB", "0")) != 0:
++            raise ValueError("scripted action replacement is incompatible with this PPO training path")
++        self._repair_configure(cfg)
++        super().__init__(cfg, *args, **kwargs)
+ 
+-import torch
++    def _reset_idx(self, env_ids):
++        super()._reset_idx(env_ids)
++        self._repair_reset_buffers(env_ids)
++        self._repair_publish_reference()
+ 
+-from isaaclab.envs import ManagerBasedRLEnv
++    def step(self, action: torch.Tensor) -> VecEnvStepReturn:
++        """Execute one time-step of the environment's dynamics and reset terminated environments.
+ 
++        Unlike the :class:`ManagerBasedEnv.step` class, the function performs the following operations:
+ 
+-def _scripted_jump_actions(env, action):
+-    """Structured exploration for the jump skill (audit P2 / SCUT's phase-based state machine).
++        1. Process the actions.
++        2. Perform physics stepping.
++        3. Perform rendering if gui is enabled.
++        4. Update the environment counters and compute the rewards and terminations.
++        5. Reset the environments that terminated.
++        6. Compute the observations.
++        7. Return the observations, rewards, resets and extras.
+ 
+-    Measured 2026-09-11 21:30: a crouch-and-release is a *coordinated, sustained* action pattern
+-    that per-joint Gaussian noise (sigma ~0.28) essentially never samples.  With
+-    RM_JUMP_SCRIPT_PROB > 0 a jump-route environment occasionally replays the exact pattern
+-    `probe_jump_reward.py --sweep` measured to produce a clean 4.6 cm hop (+0.6 on all four leg
+-    joints for RM_JUMP_SCRIPT_HOLD steps, then -0.6 for RM_JUMP_SCRIPT_RELEASE, then a cooldown),
+-    so PPO can learn FROM a hop instead of waiting for one to appear at random.
++        Rendering can be controlled per-step via :attr:`render_enabled`.
+ 
+-    This only injects exploration -- it changes no reward and no dynamics, and it is off by
+-    default (RM_JUMP_SCRIPT_PROB=0).  The manifest records the value that was used.
+-    """
+-    prob = float(os.environ.get("RM_JUMP_SCRIPT_PROB", "0.0"))
+-    is_jump = getattr(env, "_mod4_is_jump", None)
+-    if prob <= 0.0 or is_jump is None:
+-        return action
+-    n, dev = env.num_envs, env.device
+-    hold = int(os.environ.get("RM_JUMP_SCRIPT_HOLD", "40"))
+-    rel = int(os.environ.get("RM_JUMP_SCRIPT_RELEASE", "3"))
+-    cool = int(os.environ.get("RM_JUMP_SCRIPT_COOLDOWN", "40"))
+-    amp = float(os.environ.get("RM_JUMP_SCRIPT_AMP", "0.6"))
+-    if not hasattr(env, "_mod4_script_phase"):
+-        env._mod4_script_phase = torch.zeros(n, dtype=torch.long, device=dev)
+-        env._mod4_script_t = torch.zeros(n, dtype=torch.long, device=dev)
+-    phase, t = env._mod4_script_phase, env._mod4_script_t
+-    start = (phase == 0) & (torch.rand(n, device=dev) < prob) & is_jump.to(dev).bool()
+-    t = torch.where(start, torch.zeros_like(t), t + 1)
+-    phase = torch.where(start, torch.ones_like(phase), phase)
+-    phase = torch.where((phase == 1) & (t >= hold + rel + cool),
+-                        torch.zeros_like(phase), phase)
+-    in_hold = (phase == 1) & (t < hold)
+-    in_rel = (phase == 1) & (t >= hold) & (t < hold + rel)
+-    env._mod4_script_phase, env._mod4_script_t = phase, t
+-    leg = torch.where(in_hold, torch.full_like(t, 0).float() + amp,
+-                      torch.where(in_rel, torch.full_like(t, 0).float() - amp,
+-                                  torch.zeros_like(t).float()))
+-    mask = (in_hold | in_rel).unsqueeze(1)
+-    out = action.clone()
+-    out[:, :4] = torch.where(mask, leg.unsqueeze(1), out[:, :4])
+-    return out
++        When ``render_enabled`` is False:
+ 
++        - The Kit app loop (``app.update()``) is **skipped**, which also disables
++          camera/RTX sensor rendering and GUI viewport updates.  Kit bundles these
++          operations together, so they cannot be separated.
++        - Standalone visualizers (Newton, Rerun, Viser) **continue to update**
++          normally because their ``step()`` methods are independent of the Kit
++          app loop.
++        - Post-reset re-renders for RTX sensors are also skipped.
+ 
+-class Mod4Env(ManagerBasedRLEnv):
+-    """ManagerBasedRLEnv that actually applies the ``"step"`` event mode."""
++        Args:
++            action: The actions to apply on the environment. Shape is (num_envs, action_dim).
+ 
+-    def step(self, action):
+-        action = _scripted_jump_actions(self, action)
+-        if "step" in self.event_manager.available_modes:
+-            self.event_manager.apply(mode="step", dt=self.step_dt)
+-        return super().step(action)
++        Returns:
++            A tuple containing the observations, rewards, resets (terminated and truncated) and extras.
++        """
++        self._repair_before_physics()
++        # process actions
++        self.action_manager.process_action(action.to(self.device))
++
++        self.recorder_manager.record_pre_step()
++
++        # check if we need to do rendering within the physics loop
++        # note: uses cached property to avoid settings lookup every step
++        is_rendering = self.sim.is_rendering
++
++        # perform physics stepping
++        if self._physics_handles_decimation:
++            self._sim_step_counter += self.cfg.decimation
++            self.action_manager.apply_action()
++            self.scene.write_data_to_sim()
++            self.sim.step(render=False)
++            self.recorder_manager.record_post_physics_decimation_step()
++            # render only when a render_interval boundary falls within this decimation block,
++            # mirroring the per-sub-step check in the else branch.
++            if self._sim_step_counter % self.cfg.sim.render_interval == 0 and is_rendering:
++                self.sim.render(skip_app_pumping=not self.render_enabled)
++            self.scene.update(dt=self.step_dt)
++        else:
++            for _ in range(self.cfg.decimation):
++                self._sim_step_counter += 1
++                # set actions into buffers
++                self.action_manager.apply_action()
++                # set actions into simulator
++                self.scene.write_data_to_sim()
++                # simulate
++                self.sim.step(render=False)
++                self.recorder_manager.record_post_physics_decimation_step()
++                # render between steps only if the GUI or an RTX sensor needs it.
++                # When render_enabled is False, Kit visualizer (camera/GUI) is skipped
++                # but standalone visualizers (Newton, Rerun, Viser) still update.
++                if self._sim_step_counter % self.cfg.sim.render_interval == 0 and is_rendering:
++                    self.sim.render(skip_app_pumping=not self.render_enabled)
++                # update buffers at sim dt
++                self.scene.update(dt=self.physics_dt)
++
++        # post-step:
++        # -- update env counters (used for curriculum generation)
++        self.episode_length_buf += 1  # step in current episode (per env)
++        self.common_step_counter += 1  # total step (common for all envs)
++        self._repair_after_physics()
++        # -- check terminations
++        self.reset_buf = self.termination_manager.compute()
++        self.reset_terminated = self.termination_manager.terminated
++        self.reset_time_outs = self.termination_manager.time_outs
++        # -- reward computation
++        self.reward_buf = self.reward_manager.compute(dt=self.step_dt)
++
++        terminal_snapshot = self._repair_after_reward()
++
++        if len(self.recorder_manager.active_terms) > 0:
++            # update observations for recording if needed
++            self.obs_buf = self.observation_manager.compute()
++            self.recorder_manager.record_post_step()
++
++        # -- reset envs that terminated/timed-out and log the episode information
++        reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1).int()
++        if len(reset_env_ids) > 0:
++            # trigger recorder terms for pre-reset calls
++            self.recorder_manager.record_pre_reset(reset_env_ids)
++
++            self._reset_idx(reset_env_ids)
++
++            # if sensors are added to the scene, make sure we render to reflect changes in reset
++            if self.render_enabled and is_rendering and self.has_rtx_sensors and self.cfg.num_rerenders_on_reset > 0:
++                for _ in range(self.cfg.num_rerenders_on_reset):
++                    self.sim.render()
++
++            # trigger recorder terms for post-reset calls
++            self.recorder_manager.record_post_reset(reset_env_ids)
++
++        # -- update command
++        self.command_manager.compute(dt=self.step_dt)
++        # -- step interval events
++        if "interval" in self.event_manager.available_modes:
++            self.event_manager.apply(mode="interval", dt=self.step_dt)
++        self._repair_publish_reference()
++        self.extras["repair_terminal_episodes"] = terminal_snapshot
++        # -- compute observations
++        # note: done after reset to get the correct observations for reset envs
++        self.obs_buf = self.observation_manager.compute(update_history=True)
++
++        # return observations, rewards, resets and extras
++        return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
++

@@ -1,0 +1,12 @@
+--- a/isaac/mod4/route_isaac.py
++++ b/isaac/mod4/route_isaac.py
+@@ -218,7 +218,8 @@
+     # manages ~0.06 m/s, so a full route inside one 20 s episode is tight.  RM_TUNNEL_LEAD_M
+     # moves the tunnel spawns toward their goal (0 = the delivered spawn, unchanged) so a stage
+     # can start close and push the start line back as the skill appears.
+-    lead = float(os.environ.get("RM_TUNNEL_LEAD_M", "0") or 0.0)
++    # Spawn shortening and the pre-crouch trigger are distinct controls.
++    lead = float(os.environ.get("RM_TUNNEL_SPAWN_LEAD_M", "0") or 0.0)
+     local = rc.starts[ids].clone()
+     if lead > 0.0:
+         is_tunnel = torch.tensor([r["kind"] == "tunnel_cross" for r in rc.routes],

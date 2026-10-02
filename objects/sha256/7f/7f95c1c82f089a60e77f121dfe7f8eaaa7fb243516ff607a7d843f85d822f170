@@ -1,0 +1,115 @@
+--- a/isaac/mod4/train_mod4_ppo.py
++++ b/isaac/mod4/train_mod4_ppo.py
+@@ -120,59 +120,44 @@
+ 
+ 
+ def _partial_warm_start(path: str, frame_dim: int, out_dim: int) -> str:
+-    """Pad the actor's first layer when the observation layout grew (v2 item 1).
+-
+-    Verified on a real checkpoint: with the encoder enabled the actor gains 6 `encoder.*`
+-    parameters and `mlp.0.weight` goes (256,35) -> (256,38), so `strict=True` (the default of
+-    `runner.load` -> `PPO.load` -> `load_state_dict`) refuses to load.  Padding with zeros makes
+-    the extra latent columns contribute nothing at step 0, i.e. the actor really does continue
+-    from the old policy, and only the new dimensions start from scratch.
+-
+-    Returns the path to a rewritten copy (or `path` unchanged when nothing needed padding).
+-    """
++    """Allow exactly the known frame->frame+latent upgrade. Never hide load errors."""
++    import tempfile
+     if os.environ.get("RM_PARTIAL_WARMSTART", "1").strip() != "1":
+         return path
+-    try:
+-        import tempfile
+-        ck = torch.load(path, map_location="cpu", weights_only=False)
+-        sd = ck.get("actor_state_dict") or {}
+-        w = sd.get("mlp.0.weight")
+-        if w is None or int(w.shape[1]) >= int(out_dim):
+-            return path
+-        pad = int(out_dim) - int(w.shape[1])
+-        sd["mlp.0.weight"] = torch.cat(
+-            [w, torch.zeros(w.shape[0], pad, dtype=w.dtype, device=w.device)], dim=1)
+-        # the optimizer's parameter set no longer matches the model; a stale one is worse than none
+-        dropped = ck.pop("optimizer_state_dict", None) is not None
+-        out = os.path.join(tempfile.gettempdir(),
+-                           "partial_warmstart_%dto%d.pt" % (int(w.shape[1]), int(out_dim)))
+-        torch.save(ck, out)
+-        print("[mod4-isaac] partial warm start: mlp.0.weight %d -> %d (new columns ZEROED, "
+-              "optimizer state %s)" % (int(w.shape[1]), int(out_dim),
+-                                       "dropped" if dropped else "absent"), flush=True)
+-        return out
+-    except Exception as exc:
+-        print("[mod4-isaac] partial warm start skipped (%r); loading as-is" % (exc,), flush=True)
++    ck = torch.load(path, map_location="cpu", weights_only=False)
++    sd = ck.get("actor_state_dict") or {}
++    w = sd.get("mlp.0.weight")
++    if w is None:
++        raise ValueError("checkpoint has no actor first layer")
++    if w.ndim != 2:
++        raise ValueError("checkpoint actor first layer must be a matrix")
++    if int(w.shape[1]) == int(out_dim):
+         return path
++    if int(w.shape[1]) != int(frame_dim) or out_dim <= frame_dim:
++        raise ValueError("unsupported warm-start input layout")
++    if any(k.startswith("encoder.") for k in sd):
++        raise ValueError("encoder checkpoint cannot be treated as a plain-policy upgrade")
++    sd["mlp.0.weight"] = torch.cat([w, w.new_zeros(w.shape[0], out_dim-frame_dim)], dim=1)
++    ck.pop("optimizer_state_dict", None)
++    fd, out = tempfile.mkstemp(prefix="mod4_partial_", suffix=".pt")
++    os.close(fd)
++    torch.save(ck, out)
++    print("[repair] warm-start copy: " + out, flush=True)
++    return out
+ 
+ 
+ def _load_partial(runner, path: str, actor_dim: int) -> None:
+-    """Load `path` into `runner`, tolerating ONLY the v2 encoder additions."""
+-    import torch as _t
+-    ck = _t.load(path, map_location="cpu", weights_only=False)
+-    want = set(runner.alg.actor.state_dict().keys())
+-    have = set((ck.get("actor_state_dict") or {}).keys())
+-    unexpected = sorted(have - want)
+-    missing = sorted(want - have)
+-    ok_unexpected = [k for k in unexpected if k.startswith("encoder.")]
+-    bad = [k for k in unexpected if not k.startswith("encoder.")]
+-    if bad:
+-        raise RuntimeError("warm start refused: unexpected actor keys %s" % bad)
+-    if os.environ.get("RM_PARTIAL_WARMSTART", "1").strip() == "1":
+-        print("[mod4-isaac] warm start: %d encoder key(s) fresh, %d key(s) missing (fresh)"
+-              % (len(ok_unexpected), len(missing)), flush=True)
++    """Only a COMPLETE new encoder may be absent; actor head and critic must match."""
++    from repair_contracts import validate_warmstart
++    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
++    partial = os.environ.get("RM_PARTIAL_WARMSTART", "1").strip() == "1"
++    missing = validate_warmstart(runner.alg.actor.state_dict(),
++                                runner.alg.critic.state_dict(), checkpoint, partial)
++    if missing:
++        print("[repair] deliberate encoder initialization: " + ", ".join(missing), flush=True)
++    if partial:
+         runner.load(path, load_cfg={"actor": True, "critic": True,
+-                                    "optimizer": False, "iteration": False}, strict=False)
++                    "optimizer": False, "iteration": False}, strict=not missing)
+     else:
+         runner.load(path, strict=True)
+ 
+@@ -323,6 +308,8 @@
+         # `encoder.*` parameters, so a strict load refuses every existing checkpoint.
+         # This pads the first layer with zeros and skips the (now mismatched)
+         # optimizer state; see _partial_warm_start.
++        from repair_contracts import assert_checkpoint_semantics
++        assert_checkpoint_semantics(args.init_checkpoint)
+         warm = _partial_warm_start(warm, 35, 35 + SEQ_LATENT if SEQ_ENCODER else 35)
+         _load_partial(runner, warm, 35)
+         print("[mod4-isaac] warm start from " + args.init_checkpoint
+@@ -398,6 +385,12 @@
+         return dict(sorted(out.items()))
+ 
+     manifest = {
++        "observation_semantics": "mod4_term_major_latest_gather_v1" if SEQ_ENCODER else "mod4_plain_frame35_v1",
++        "effective_values_verified": False,
++        "effective_note": "legacy regex source hints; runtime_contract below records selected resolved values",
++        "runtime_contract": {"sequence_encoder": SEQ_ENCODER, "history_length": SEQ_HISTORY,
++            "latent_width": SEQ_LATENT, "step_dt": env.step_dt,
++            "repair_sources": {p.name: _sha256(p) for p in Path(__file__).parent.glob("repair_*.py")}},
+         "run_name": args.run_name,
+         "num_envs": args.num_envs,
+         "terrain": os.environ.get("RM_MOD4_TERRAIN", "flat"),

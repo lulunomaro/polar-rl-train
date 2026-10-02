@@ -1,0 +1,63 @@
+--- a/isaac/mod4/skills_isaac.py
++++ b/isaac/mod4/skills_isaac.py
+@@ -87,7 +87,8 @@
+ # (eval of model_10550: 22 s window, underpass_seen 0/32).  The physics therefore demands a
+ # DYNAMIC crossing: drive in at speed, squat late, coast through on the guide rollers.  0.40 m
+ # leaves room to drop while still carrying momentum.
+-TUNNEL_PRECROUCH_LEAD_M = float(os.environ.get("RM_TUNNEL_LEAD_M", "0.40"))
++TUNNEL_PRECROUCH_LEAD_M = float(os.environ.get("RM_TUNNEL_PRECROUCH_LEAD_M",
++    os.environ.get("RM_TUNNEL_LEAD_M", "0.40")))
+ # 2026-09-12: the idler-friction finding (docs/TUNNEL_IDLER_FRICTION_FINDING_20260912.md)
+ # shows the crossing is a momentum problem: with the roller-floor pair at ~0.02 a
+ # 0.60 m/s entry coasts >0.5 m, but only if the squat starts LATE.  0.40 m of lead burns
+@@ -172,14 +173,12 @@
+ def _crouch_drive(env) -> torch.Tensor:
+     """v2 (audit section 15): 1.0 when the robot is actually creeping, 0 when it stands still.
+ 
+-    Multiplies the crouch-pose reward so a stationary crouch scores 0 and the only term left in
+-    the crouch zones is `tunnel_stall` (-0.5/step at vx = 0).  Sitting still therefore becomes
+-    net-NEGATIVE BY CONSTRUCTION, whatever RM_CROUCH_POSE_W is set to -- unlike tuning weights
+-    against a reward that keeps paying.  RM_TUNNEL_CROUCH_MOVE_GATE=0 restores the legacy reward.
++    A stationary/backward-moving crouch gets no pose credit. Other reward terms still
++    contribute: this alone does not prove that the TOTAL return for stalling is negative.
+     """
+     if not CROUCH_MOVE_GATE:
+         return 1.0
+-    return (_robot(env).data.root_lin_vel_b[:, 0].abs()
++    return (_robot(env).data.root_lin_vel_b[:, 0].clamp(min=0.0)
+             / max(1e-6, CROUCH_MOVE_VMIN)).clamp(0.0, 1.0)
+ 
+ 
+@@ -417,26 +416,18 @@
+     if hasattr(f, "torch"):
+         f = f.torch
+     mag = f.norm(dim=-1).amax(dim=1)
+-    # Goal §2: subtract the 8 named guide-roller colliders, so "rollers carrying the crouch" is
+-    # NOT mistaken for a belly landing.  Falls back to the pose-aware threshold only when the
+-    # guide sensor is unavailable.
+-    guide = env.scene.sensors.get(guide_cfg.name) if guide_cfg is not None else None
+-    if guide is not None:
+-        gf = guide.data.net_forces_w
+-        if hasattr(gf, "torch"):
+-            gf = gf.torch
+-        mag = (mag - gf.norm(dim=-1).amax(dim=1)).clamp(min=0.0)
+-        low_pose_factor = 1.0        # no longer needed: the roller load is measured, not masked
++    # Rolling USD: chassis and the eight passive rollers are DIFFERENT rigid bodies.
++    # Their contact sensors do not aggregate child-body loads. Subtracting force norms
++    # hides a real chassis collision whenever a roller carries a larger load.
++    # Keep the signature for config compatibility; no guide-load subtraction/discount.
++    low_pose_factor = 1.0
+     root_z = _robot(env).data.root_pos_w[:, 2]
+     # audit item 6: measure from the LOCAL terrain.  An absolute z gate says "belly down"
+     # for a robot standing correctly in the 0.156 m deep dog-hole and misses a real belly
+     # landing on the central island.
+     ground = getattr(env, "_mod4_ground_z", None)
+     z = root_z if ground is None else root_z - ground
+-    # audit item 3 (2026-09-12): the eight guide rollers belong to the chassis body, so at the
+-    # dog-hole crouch (root ~0.178 m) their legitimate ground load (~88 N measured) tripped the
+-    # 50 N belly rule.  While the pose command IS the deep crouch the threshold is raised, so
+-    # only a real belly slam (>250 N by default) still terminates.
++    # This remains a low-root/contact heuristic; it is not a filtered ground-only sensor.
+     thr = torch.full_like(mag, float(threshold))
+     h = getattr(env, "_mod4_height_cmd", None)
+     if h is not None:

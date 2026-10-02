@@ -1,0 +1,46 @@
+# Wait for v17a (by watching its log for V17A_EXIT), then export / gate / verify / video,
+# then seed and launch v17b = the same plant plus the 0-4 ms actuator-delay DR.  One
+# variable group per run, as this project requires.
+import glob, os, re, subprocess, sys, time
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+R = 'D:/claude2/fangzhen'
+PY = os.path.join(R, '.venv-train/Scripts/python.exe')
+TRAIN = os.path.join(R, 'train'
+LOG = os.path.join(R, 'docs/_cc_v17a.log')
+ENV = dict(os.environ)
+ENV.update(dict(TMP='D:\\tmp', TEMP='D:\\tmp', TMPDIR='D:\\tmp',
+                PYTHONIOENCODING='utf-8',
+                RM_MOTOR='dm8009', CC_MOTOR='dm8009',
+                RM_WHEEL_SCALE='55.0', RM_WZ_MAX='14.0',
+                RM_DELAY_MIN_LAG='0', RM_DELAY_MAX_LAG='0',
+                RM_DELAY_HOLD_PROB='0.0',
+                RM_GYRO_WIDE_W='1.5', RM_GYRO_BAND='6.0',
+                RM_SKILL_SPLIT='1', RM_SKILL_GYRO_FRAC='0.25',
+                RM_SKILL_WZ_LOCO='2.0', RM_TERRAIN_CAP_H='0.20',
+                RM_FLAT_PROP='0.45', RM_RISE_MIN='0.06',
+                RM_RISE_MAX='0.16', RM_JUMP_P='0.25'))
+KEEP = re.compile('wrote|metadata contract|action sample|OK:|DRIFT|ACTION ORDER|ALL CHECKS|FAIL|cmd wz|rev/s|peak|SUMMARY|target rise|RESULT|BALANCED|TOPPLED|in sync|Traceback|rror')
+
+
+def run(tag, args, cwd=TRAIN, tail=22):
+    print('=== ' + tag + ' ===', flush=True)
+    p = subprocess.run([PY] + args, cwd=cwd, capture_output=True, text=True,
+                       encoding='utf-8', errors='replace', env=ENV)
+    out = (p.stdout or ) + (p.stderr or )
+    keep = [l for l in out.splitlines() if KEEP.search(l)]
+    for l in (keep or out.splitlines())[-tail:]:
+        print('   ' + l[:170], flush=True)
+    print('   rc=%d' % p.returncode, flush=True)
+    return p.returncode
+
+
+print('waiting for v17a ...', flush=True)
+while True:
+    try:
+        tail = io.open(LOG, encoding='utf-8', errors='replace').read()[-4000:]
+    except Exception:
+        tail = ''
+    if 'V17A_EXIT' in tail:
+        break
+    time.sleep(60)
+print('v17a finished at ' + time.strftime('%H:%M:%S'), flush=True)

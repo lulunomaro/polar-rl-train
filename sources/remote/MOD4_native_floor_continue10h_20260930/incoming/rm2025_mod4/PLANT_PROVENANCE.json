@@ -1,0 +1,71 @@
+{
+  "_comment": "Provenance pin for the plant in this directory. scripts/check_model_identity.py refuses to train when the XML hash or any number below disagrees with the compiled training model. Written 2026-09-10 when the MOD4 chassis delivery replaced the 0910 RM2025 file. Everything under incoming/rm2025_fixed is DEPRECATED (0908/0910) and must never be selected again.",
+  "version": "mod4",
+  "delivered": "2026-09-10",
+  "source_archive": "chassis_mod4_mjcf_usd_20260910.zip",
+  "source_path": "chassis_mod4_mjcf_usd_20260910/chassis_mod4/robot_hifi.xml",
+  "source_cad": "底盘_MOD4.STEP (277 CAD parts kept as visuals)",
+  "xml_sha256": "e91ce28470a38d5ee4f5959d35c096578bf08e06d9cebe0bde9a5647c362d2c8",
+  "superseded": [
+    {
+      "version": "0910",
+      "file": "incoming/rm2025_fixed/robot_hifi_0910.xml",
+      "status": "DEPRECATED - renamed on 2026-09-10 so nothing can pick it up by default",
+      "xml_sha256": "d9e24a52504e98fcbe0ac58775ea7c186343057b1e29bd43abbad91ce41381fa"
+    },
+    {
+      "version": "0908",
+      "file": "incoming/rm2025_fixed/robot_hifi_0908.xml",
+      "status": "DEPRECATED",
+      "xml_sha256": "f71360ff0bd4c491d90e69f1512245a558c3f68f02488ba0475a8ae510ed5bbf"
+    }
+  ],
+  "solver": {
+    "timestep_s": 0.0005,
+    "iterations": 100,
+    "ls_iterations": 50,
+    "tolerance": 1e-10,
+    "integrator": "implicitfast",
+    "cone": "elliptic",
+    "note": "0910 used iterations=80; MOD4 ships 100. The identity gate reads this from the compiled model, so the training plant must keep 100."
+  },
+  "topology": {
+    "nq": 29, "nv": 28, "nu": 6, "nbody": 24, "neq": 10,
+    "note": "same closed-chain topology as 0908/0910 (6 connect + 4 joint-coupling), equality rank 16, independent velocity DOF 12"
+  },
+  "wheel": {
+    "model": "DM3519 + replacement 15.8:1 gearbox",
+    "peak_torque_nm": 5.775909774436091,
+    "envelope_intercept_nm": 28.18532894736838,
+    "no_load_speed_rad_s": 55.3557,
+    "armature_kg_m2": 0.00099856,
+    "status": "MDCF ctrlrange/forcerange carry +-5.77590977444; envelope still an estimate, rotor inertia unmeasured"
+  },
+  "gas_spring": {
+    "stiffness_n_m": 3500.0,
+    "springref_m": 0.22063944109012937,
+    "status": "700 N candidate per side, NOT verified against the MOD4 hardware; fast-compression/temperature/friction uncalibrated"
+  },
+  "masses_kg": {
+    "total": 14.200141,
+    "chassis": 10.232699,
+    "wheel_each": 0.342602,
+    "shin_each": 0.853956,
+    "thigh_each": 0.379411,
+    "status": "CAD volume x assumed densities and motor mass estimates - not a weighing result"
+  },
+  "geometry": {
+    "thigh_hip_to_knee_m": 0.215671,
+    "shin_knee_to_wheel_m": 0.258813,
+    "tire_track_m": 0.4376,
+    "tire_radius_m": 0.0625,
+    "tire_width_m": 0.02,
+    "leg_symmetry": "55 hinge-anchor pair distances identical left vs right (measured 2026-09-10)"
+  },
+  "joint_conventions_that_changed_vs_0910": {
+    "hip_range_rad": [-0.5, 0.5],
+    "knee_range_rad": [-0.541447, 0.339259],
+    "gas_slide_range_m": [-0.021652, 0.016727],
+    "note": "MOD4 re-zeroed the model at a closed, collision-free middle posture. Every policy trained on 0908/0910 must be retrained: the same action vector means a different joint target."
+  }
+}

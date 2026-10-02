@@ -1,0 +1,215 @@
+<mujoco model="rm_vehicle_cc">
+  <compiler angle="radian" meshdir="meshes_cc/" autolimits="true" balanceinertia="true" inertiafromgeom="false"/>
+  <option timestep="0.001" iterations="100" ls_iterations="50" integrator="Euler" solver="Newton" tolerance="1e-8"/>
+  <default><geom condim="3" friction="1.2 0.01 0.001" margin="0"/>
+    <default class="motor"><joint damping="0.0" frictionloss="1.5" armature="0.0158"/></default></default>
+  <asset>
+    <mesh name="base_frame_00" file="base_frame_00.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_frame_01" file="base_frame_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_frame_02" file="base_frame_02.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_frame_03" file="base_frame_03.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_frame_04" file="base_frame_04.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_00" file="base_armor_00.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_01" file="base_armor_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_02" file="base_armor_02.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_03" file="base_armor_03.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_04" file="base_armor_04.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_armor_05" file="base_armor_05.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_motor_00" file="base_motor_00.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_motor_01" file="base_motor_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_motor_02" file="base_motor_02.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_gimbal_00" file="base_gimbal_00.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_gimbal_01" file="base_gimbal_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_gimbal_02" file="base_gimbal_02.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_gimbal_03" file="base_gimbal_03.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_gimbal_04" file="base_gimbal_04.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_elec_00" file="base_elec_00.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="base_elec_01" file="base_elec_01.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front1_l" file="crank_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front1_r" file="crank_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front2_l" file="link2_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front2_r" file="link2_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front3_l" file="link3_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front3_r" file="link3_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front4_l" file="link4_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="front4_r" file="link4_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="rear2_l" file="shank_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="rear2_r" file="shank_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="spring1_l" file="spring1_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="spring1_r" file="spring1_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="spring2_l" file="spring2_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="spring2_r" file="spring2_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="rear1_l" file="thigh_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="rear1_r" file="thigh_r.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="wheel_l" file="wheel_l.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="wheel_r" file="wheel_r.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+  <worldbody>
+    <body name="base_link" pos="0 0 0">
+      <freejoint name="floating_base"/>
+      <site name="imu" pos="0 0 0.3" size="0.01"/>
+      <inertial pos="-2.417e-05 0.000875233 0.239139" mass="16.9648" fullinertia="0.577644 0.535195 0.61447 0.00528661 -0.00211345 -0.0027821"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_frame_00" rgba="0.42 0.44 0.48 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_frame_01" rgba="0.42 0.44 0.48 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_frame_02" rgba="0.42 0.44 0.48 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_frame_03" rgba="0.42 0.44 0.48 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_frame_04" rgba="0.42 0.44 0.48 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_00" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_01" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_02" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_03" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_04" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_armor_05" rgba="0.17 0.18 0.20 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_motor_00" rgba="0.09 0.09 0.11 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_motor_01" rgba="0.09 0.09 0.11 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_motor_02" rgba="0.09 0.09 0.11 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_gimbal_00" rgba="0.63 0.65 0.69 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_gimbal_01" rgba="0.63 0.65 0.69 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_gimbal_02" rgba="0.63 0.65 0.69 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_gimbal_03" rgba="0.63 0.65 0.69 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_gimbal_04" rgba="0.63 0.65 0.69 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_elec_00" rgba="0.11 0.34 0.17 1"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="base_elec_01" rgba="0.11 0.34 0.17 1"/>
+      <geom name="base_col" type="box" size="0.357 0.196 0.1145" pos="0 0 0.1685" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+      <body name="left_rear1" pos="0 -0.22385 0.2121">
+        <joint name="left_rear1_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.0158" damping="0" frictionloss="0"/>
+        <inertial pos="-0.053968 0.000558201 -0.0255954" mass="0.5307" fullinertia="0.00127954 0.00400362 0.00296287 -4.58869e-05 -0.000417224 -0.000207231"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="rear1_l" rgba="0.24 0.25 0.29 1"/>
+        <geom name="left_rear1_col" type="capsule" size="0.045" fromto="0 0 0 -0.2007 0 -0.0618" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+        <body name="left_rear2" pos="-0.2007 0 -0.0618">
+          <joint name="left_rear2_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.923 1.411" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="0.0653153 -0.0130932 -0.037625" mass="0.3834" fullinertia="0.0017292 0.00450229 0.00287925 0.000184428 0.00155528 -0.000147352"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="rear2_l" rgba="0.24 0.25 0.29 1"/>
+          <geom name="left_rear2_col" type="capsule" size="0.032" fromto="0 0 0 0.1999 0 -0.1502" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="left_wheel" pos="0.1999 -0.0464 -0.1502">
+            <joint name="left_wheel_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.001" damping="0" frictionloss="0.023"/>
+            <inertial pos="-9.40355e-06 0.0054693 2.79405e-05" mass="0.3655" fullinertia="0.000366355 0.000616894 0.000366527 -1.59151e-07 1.49786e-07 -2.73497e-07"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="wheel_l" rgba="0.06 0.06 0.07 1"/>
+            <geom name="left_wheel_col" type="cylinder" size="0.073 0.013" pos="0 0 0" quat="0.5 -0.5 0.5 0.5" condim="6" priority="1" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          </body>
+        </body>
+        <body name="left_spring1" pos="0.0006 0 -0.051">
+          <joint name="left_spring1_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.114 0.297" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="-0.0728119 -0.00382859 -0.0200295" mass="0.0047" fullinertia="4.35382e-07 5.93268e-06 5.51844e-06 6.97367e-23 -1.50905e-06 2.25897e-22"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="spring1_l" rgba="0.72 0.13 0.10 1"/>
+          <geom name="left_spring1_col" type="capsule" size="0.014" fromto="0 0 0 -0.08305 0 -0.0228" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="left_spring2" pos="-0.1661 0 -0.0456">
+            <joint name="left_spring2_joint" type="slide" pos="0 0 0" axis="-0.96432 0 -0.264738" range="-0.03 0.085" stiffness="6000" springref="0.0583333" damping="150" frictionloss="15" armature="0.01"/>
+            <inertial pos="0.0681239 -0.00382859 0.0186632" mass="0.0141" fullinertia="1.53781e-06 1.77674e-05 1.65445e-05 8.66446e-13 -4.45516e-06 6.57442e-12"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="spring2_l" rgba="0.72 0.13 0.10 1"/>
+            <geom name="left_spring2_col" type="capsule" size="0.017" fromto="0.08305 0 0.0228 0 0 0" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          </body>
+        </body>
+      </body>
+      <body name="left_front1" pos="0 -0.22385 0.2121">
+        <joint name="left_front1_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.0158" damping="0" frictionloss="1.5"/>
+        <inertial pos="0.0372919 0.00746769 -0.0138517" mass="0.1530" fullinertia="0.000121238 0.000435334 0.000371084 -1.26592e-05 0.000108156 7.35184e-06"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front1_l" rgba="0.24 0.25 0.29 1"/>
+        <geom name="left_front1_col" type="capsule" size="0.028" fromto="0 0 0 0.1097 0 -0.0348" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+        <body name="left_front2" pos="0.1097 0 -0.0348">
+          <joint name="left_front2_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-1.411 0.923" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="-0.0518928 -0.00644959 -0.0450045" mass="0.0198" fullinertia="1.68522e-05 4.66491e-05 3.00107e-05 1.01267e-08 -2.14263e-05 -1.3703e-08"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front2_l" rgba="0.24 0.25 0.29 1"/>
+          <geom name="left_front2_col" type="capsule" size="0.018" fromto="0 0 0 -0.1102 0 -0.0814" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="left_front3" pos="-0.1102 0 -0.0814">
+            <joint name="left_front3_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.214 1.154" damping="0.05" armature="0.01" frictionloss="0.2"/>
+            <inertial pos="-0.0789306 -0.0154386 0.0634694" mass="0.0330" fullinertia="6.6798e-05 0.000144965 7.85123e-05 2.33588e-08 6.98479e-05 -2.68074e-08"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front3_l" rgba="0.24 0.25 0.29 1"/>
+            <geom name="left_front3_col" type="capsule" size="0.018" fromto="-0.1095 0 0.0823 -0.1508 0 0.135" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+            <body name="left_front4" pos="-0.1508 0 0.135">
+              <joint name="left_front4_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-1.411 0.923" damping="0.05" armature="0.01" frictionloss="0.2"/>
+              <inertial pos="-0.0453509 -0.0059466 -0.0139255" mass="0.0135" fullinertia="1.96908e-06 1.68924e-05 1.50689e-05 -7.64653e-19 -4.45507e-06 -4.77577e-20"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front4_l" rgba="0.24 0.25 0.29 1"/>
+              <geom name="left_front4_col" type="capsule" size="0.014" fromto="0 0 0 -0.0907 0 -0.0279" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="right_rear1" pos="0 0.22385 0.2121">
+        <joint name="right_rear1_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.0158" damping="0" frictionloss="0"/>
+        <inertial pos="-0.053968 0.000558201 -0.0255954" mass="0.5307" fullinertia="0.00127954 0.00400362 0.00296287 -4.58869e-05 -0.000417224 -0.000207231"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="rear1_r" rgba="0.24 0.25 0.29 1"/>
+        <geom name="right_rear1_col" type="capsule" size="0.045" fromto="0 0 0 -0.2007 0 -0.0618" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+        <body name="right_rear2" pos="-0.2007 0 -0.0618">
+          <joint name="right_rear2_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.923 1.411" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="0.0653153 -0.0130932 -0.037625" mass="0.3834" fullinertia="0.0017292 0.00450229 0.00287925 0.000184428 0.00155528 -0.000147352"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="rear2_r" rgba="0.24 0.25 0.29 1"/>
+          <geom name="right_rear2_col" type="capsule" size="0.032" fromto="0 0 0 0.1999 0 -0.1502" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="right_wheel" pos="0.1999 0.0464 -0.1502">
+            <joint name="right_wheel_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.001" damping="0" frictionloss="0.023"/>
+            <inertial pos="-9.40355e-06 0.0054693 2.79405e-05" mass="0.3655" fullinertia="0.000366355 0.000616894 0.000366527 -1.59151e-07 1.49786e-07 -2.73497e-07"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="wheel_r" rgba="0.06 0.06 0.07 1"/>
+            <geom name="right_wheel_col" type="cylinder" size="0.073 0.013" pos="0 0 0" quat="0.5 -0.5 0.5 0.5" condim="6" priority="1" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          </body>
+        </body>
+        <body name="right_spring1" pos="0.0006 0 -0.051">
+          <joint name="right_spring1_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.114 0.297" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="-0.0728119 -0.00382859 -0.0200295" mass="0.0047" fullinertia="4.35382e-07 5.93268e-06 5.51844e-06 6.97367e-23 -1.50905e-06 2.25897e-22"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="spring1_r" rgba="0.72 0.13 0.10 1"/>
+          <geom name="right_spring1_col" type="capsule" size="0.014" fromto="0 0 0 -0.08305 0 -0.0228" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="right_spring2" pos="-0.1661 0 -0.0456">
+            <joint name="right_spring2_joint" type="slide" pos="0 0 0" axis="-0.96432 0 -0.264738" range="-0.03 0.085" stiffness="6000" springref="0.0583333" damping="150" frictionloss="15" armature="0.01"/>
+            <inertial pos="0.0681239 -0.00382859 0.0186632" mass="0.0141" fullinertia="1.53781e-06 1.77674e-05 1.65445e-05 8.66446e-13 -4.45516e-06 6.57442e-12"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="spring2_r" rgba="0.72 0.13 0.10 1"/>
+            <geom name="right_spring2_col" type="capsule" size="0.017" fromto="0.08305 0 0.0228 0 0 0" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          </body>
+        </body>
+      </body>
+      <body name="right_front1" pos="0 0.22385 0.2121">
+        <joint name="right_front1_joint" type="hinge" pos="0 0 0" axis="0 1 0" class="motor" armature="0.0158" damping="0" frictionloss="1.5"/>
+        <inertial pos="0.0372919 0.00746769 -0.0138517" mass="0.1530" fullinertia="0.000121238 0.000435334 0.000371084 -1.26592e-05 0.000108156 7.35184e-06"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front1_r" rgba="0.24 0.25 0.29 1"/>
+        <geom name="right_front1_col" type="capsule" size="0.028" fromto="0 0 0 0.1097 0 -0.0348" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+        <body name="right_front2" pos="0.1097 0 -0.0348">
+          <joint name="right_front2_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-1.411 0.923" damping="0.05" armature="0.01" frictionloss="0.2"/>
+          <inertial pos="-0.0518928 -0.00644959 -0.0450045" mass="0.0198" fullinertia="1.68522e-05 4.66491e-05 3.00107e-05 1.01267e-08 -2.14263e-05 -1.3703e-08"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front2_r" rgba="0.24 0.25 0.29 1"/>
+          <geom name="right_front2_col" type="capsule" size="0.018" fromto="0 0 0 -0.1102 0 -0.0814" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+          <body name="right_front3" pos="-0.1102 0 -0.0814">
+            <joint name="right_front3_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-0.214 1.154" damping="0.05" armature="0.01" frictionloss="0.2"/>
+            <inertial pos="-0.0789306 -0.0154386 0.0634694" mass="0.0330" fullinertia="6.6798e-05 0.000144965 7.85123e-05 2.33588e-08 6.98479e-05 -2.68074e-08"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front3_r" rgba="0.24 0.25 0.29 1"/>
+            <geom name="right_front3_col" type="capsule" size="0.018" fromto="-0.1095 0 0.0823 -0.1508 0 0.135" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+            <body name="right_front4" pos="-0.1508 0 0.135">
+              <joint name="right_front4_joint" type="hinge" pos="0 0 0" axis="0 1 0"  range="-1.411 0.923" damping="0.05" armature="0.01" frictionloss="0.2"/>
+              <inertial pos="-0.0453509 -0.0059466 -0.0139255" mass="0.0135" fullinertia="1.96908e-06 1.68924e-05 1.50689e-05 -7.64653e-19 -4.45507e-06 -4.77577e-20"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" mesh="front4_r" rgba="0.24 0.25 0.29 1"/>
+              <geom name="right_front4_col" type="capsule" size="0.014" fromto="0 0 0 -0.0907 0 -0.0279" contype="0" conaffinity="1" group="3" density="0" rgba="0 0.5 0.1 0.12"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <connect body1="left_front3" body2="left_rear1" anchor="-0.1095 0 0.0823" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+    <connect body1="left_front4" body2="left_rear2" anchor="-0.0907 0 -0.0279" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+    <connect body1="left_spring2" body2="left_rear2" anchor="0 0 0" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+    <connect body1="right_front3" body2="right_rear1" anchor="-0.1095 0 0.0823" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+    <connect body1="right_front4" body2="right_rear2" anchor="-0.0907 0 -0.0279" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+    <connect body1="right_spring2" body2="right_rear2" anchor="0 0 0" solref="0.002 1" solimp="0.99 0.999 1e-05 0.5 2"/>
+  </equality>
+  <tendon>
+    <fixed name="left_kite_delta" range="-1.588 2.601" solreflimit="0.002 1">
+      <joint joint="left_rear1_joint" coef="1"/>
+      <joint joint="left_front1_joint" coef="-1"/>
+    </fixed>
+    <fixed name="right_kite_delta" range="-1.588 2.601" solreflimit="0.002 1">
+      <joint joint="right_rear1_joint" coef="1"/>
+      <joint joint="right_front1_joint" coef="-1"/>
+    </fixed>
+  </tendon>
+  <actuator>
+    <motor name="left_front1_ctrl" joint="left_front1_joint" gear="1" forcerange="-40 40" ctrlrange="-40 40"/>
+    <motor name="left_rear1_ctrl" joint="left_rear1_joint" gear="1" forcerange="-40 40" ctrlrange="-40 40"/>
+    <motor name="left_wheel_ctrl" joint="left_wheel_joint" gear="1" forcerange="-6.4188 6.4188" ctrlrange="-6.4188 6.4188"/>
+    <motor name="right_front1_ctrl" joint="right_front1_joint" gear="1" forcerange="-40 40" ctrlrange="-40 40"/>
+    <motor name="right_rear1_ctrl" joint="right_rear1_joint" gear="1" forcerange="-40 40" ctrlrange="-40 40"/>
+    <motor name="right_wheel_ctrl" joint="right_wheel_joint" gear="1" forcerange="-6.4188 6.4188" ctrlrange="-6.4188 6.4188"/>
+  </actuator>
+  <sensor>
+    <framequat name="imu" objtype="site" objname="imu"/>
+    <gyro name="gyro" site="imu"/>
+    <accelerometer name="accelerometer" site="imu"/>
+  </sensor>
+</mujoco>

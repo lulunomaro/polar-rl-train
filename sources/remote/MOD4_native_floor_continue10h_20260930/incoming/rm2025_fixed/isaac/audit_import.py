@@ -1,0 +1,162 @@
+"""Fail closed on altered/missing USD topology. Also usable without Isaac.
+
+Static USD inspection cannot prove a PhysX solver created the constraints.
+RuntimeGuard additionally checks their motion at every physics step.
+"""
+from pathlib import Path
+import argparse, json
+import numpy as np
+from pxr import Usd, UsdGeom, UsdPhysics, Gf
+
+HERE=Path(__file__).resolve().parent
+CONTRACT=json.loads((HERE/'import_contract.json').read_text())
+
+def audit_stage(stage,root='/Robot',require_physx=False):
+    c=CONTRACT; errors=[]
+    def check(ok,why):
+        if not ok:errors.append(why)
+    def at(path):
+        p=stage.GetPrimAtPath(root+path)
+        return p if p and p.IsActive() else Usd.Prim()
+    def near(a,b,label,tol=2e-6):
+        check(a is not None and np.allclose(a,b,rtol=2e-5,atol=tol),label)
+    def targets(prim,name):return [str(p) for p in prim.GetRelationship(name).GetTargets()] if prim else []
+    def value(prim,name):return prim.GetAttribute(name).Get() if prim else None
+    check(bool(at('')),'robot root missing')
+    check(abs(UsdGeom.GetStageMetersPerUnit(stage)-1)<1e-12,'stage is not in meters')
+    check(UsdGeom.GetStageUpAxis(stage)=='Z','stage is not Z-up')
+    roots=[];actual_bodies=[];actual_joints=[];visuals=0;colliders=0
+    if at(''):
+        for prim in Usd.PrimRange(at('')):
+            if prim.HasAPI(UsdPhysics.ArticulationRootAPI):roots.append(prim)
+            if prim.HasAPI(UsdPhysics.RigidBodyAPI):actual_bodies.append(prim.GetName())
+            if prim.IsA(UsdPhysics.Joint):actual_joints.append(prim.GetName())
+            if prim.HasAPI(UsdPhysics.CollisionAPI):colliders+=1
+            elif prim.IsA(UsdGeom.Mesh):visuals+=1
+    check(len(roots)==1,'expected one articulation root')
+    check(set(actual_bodies)==set(c['bodies']),'rigid-body set changed')
+    check(set(actual_joints)==set(c['joints'])|set(c['closures']),'joint set changed')
+    check(visuals==c['visual_instance_count'],'HiFi visual instance count changed')
+    check(colliders==c['collision_primitive_count'],'collision primitive count changed')
+    for name,exp in c['bodies'].items():
+        p=at('/links/'+name);check(bool(p),'missing body '+name)
+        if not p:continue
+        rel,_=UsdGeom.XformCache().ComputeRelativeTransform(p,at(''))
+        near(rel.ExtractTranslation(),exp['neutral_position_m'],name+' neutral position')
+        q=rel.ExtractRotationQuat()
+        check(abs(np.dot(np.r_[q.GetReal(),list(q.GetImaginary())],exp['neutral_quat_wxyz']))>1-1e-5,name+' neutral orientation')
+        near(value(p,'physics:mass'),exp['mass_kg'],name+' mass')
+        near(value(p,'physics:centerOfMass'),exp['com_m'],name+' center of mass')
+        near(value(p,'physics:diagonalInertia'),exp['diagonal_inertia_kg_m2'],name+' inertia',1e-9)
+        q=value(p,'physics:principalAxes')
+        if q is not None:
+            actual=np.r_[q.GetReal(),list(q.GetImaginary())];expected=exp['principal_axes_wxyz']
+            check(abs(np.dot(actual,expected))>1-1e-5,name+' inertia orientation')
+        else:check(False,name+' missing inertia orientation')
+    for name,exp in c['geometry'].items():
+        p=at('/links/'+exp['body']+'/'+name)
+        check(bool(p),name+' missing/reparented geometry')
+        if not p:continue
+        near(value(p,'xformOp:translate'),exp['position_m'],name+' geometry position')
+        if exp['visual']:check(not p.HasAPI(UsdPhysics.CollisionAPI),name+' visual was made a collider')
+        else:
+            check(p.HasAPI(UsdPhysics.CollisionAPI),name+' missing CollisionAPI')
+            check(value(p,'physics:collisionEnabled') is not False,name+' disabled collision')
+            if exp['type'] in [2,3,5]:near(value(p,'radius'),exp['size'][0],name+' collision radius')
+            if exp['type'] in [3,5]:near(value(p,'height'),exp['size'][1]*2,name+' collision height')
+            if exp['type']==6:near(value(p,'xformOp:scale'),exp['size'],name+' collision box scale')
+    for name,exp in c['joints'].items():
+        p=at('/joints/'+name);check(bool(p),'missing joint '+name)
+        if not p:continue
+        cls=UsdPhysics.PrismaticJoint if exp['type']=='slide' else UsdPhysics.RevoluteJoint
+        check(p.IsA(cls),name+' joint type')
+        check(value(p,'physics:jointEnabled') is not False,name+' disabled joint')
+        check(value(p,'physics:axis')=='X',name+' joint axis')
+        for k,body in [('body0','parent'),('body1','child')]:
+            check(targets(p,'physics:'+k)==[root+'/links/'+exp[body]],name+' '+k+' topology')
+        for i in [0,1]:
+            near(value(p,'physics:localPos'+str(i)),exp['local_pos'+str(i)],name+' anchor '+str(i))
+            q=value(p,'physics:localRot'+str(i))
+            if q is not None:check(abs(np.dot(np.r_[q.GetReal(),list(q.GetImaginary())],exp['local_rot'+str(i)]))>1-1e-5,name+' axis frame '+str(i))
+            else:check(False,name+' missing frame')
+        if exp['limits_si'] is not None:
+            factor=1 if exp['type']=='slide' else 180/np.pi
+            near(value(p,'physics:lowerLimit'),exp['limits_si'][0]*factor,name+' lower limit')
+            near(value(p,'physics:upperLimit'),exp['limits_si'][1]*factor,name+' upper limit')
+        axis='transX' if exp['type']=='slide' else 'rotX'
+        near(value(p,'physxJointAxis:'+axis+':armature'),exp['armature'],name+' armature',1e-9)
+    for name,exp in c['closures'].items():
+        p=at('/closures/'+name);check(bool(p),'MISSING CLOSURE '+name)
+        if not p:continue
+        check(p.IsA(UsdPhysics.SphericalJoint),name+' must be a spherical point closure')
+        check(value(p,'physics:excludeFromArticulation') is True,name+' must be outside articulation')
+        for i in [0,1]:
+            check(targets(p,'physics:body'+str(i))==[root+'/links/'+exp['body'+str(i)]],name+' body pair')
+            near(value(p,'physics:localPos'+str(i)),exp['anchor'+str(i)+'_m'],name+' closure anchor')
+        check(value(p,'physics:jointEnabled') is not False,name+' closure disabled')
+        try:
+            cache=UsdGeom.XformCache()
+            anchors=[]
+            for i in [0,1]:
+                body=at('/links/'+exp['body'+str(i)])
+                anchors.append(np.array(cache.GetLocalToWorldTransform(body).Transform(Gf.Vec3d(*exp['anchor'+str(i)+'_m']))))
+            check(np.linalg.norm(anchors[0]-anchors[1])<2e-6,name+' anchors do not meet in the authored neutral pose')
+        except Exception:check(False,name+' cannot evaluate neutral anchors')
+    for name,exp in c['mimics'].items():
+        p=at('/joints/'+name)
+        # GetAppliedSchemas omits unregistered PhysX schemas in plain usd-core.
+        raw=p.GetMetadata('apiSchemas') if p else None
+        check(raw is not None and 'PhysxMimicJointAPI:rotX' in raw.GetAppliedItems(),name+' MISSING MIMIC API')
+        check(targets(p,'physxMimicJoint:rotX:referenceJoint')==[root+'/joints/'+exp['reference_joint']],name+' mimic reference')
+        for k in ['gearing','offset']:near(value(p,'physxMimicJoint:rotX:'+k),exp[k],name+' mimic '+k)
+        if require_physx:check('PhysxMimicJointAPI:rotX' in p.GetAppliedSchemas(),name+' PhysX mimic schema is not registered in this Isaac installation')
+    for a,b in c['filters']:
+        check(root+'/links/'+b in targets(at('/links/'+a),'physics:filteredPairs'),a+' / '+b+' collision filter missing')
+    for name,exp in c['gas_springs'].items():
+        p=at('/joints/'+name)
+        for usd,key in [('stiffness','stiffness_n_m'),('damping','damping_n_s_m'),('targetPosition','target_position_m')]:
+            near(value(p,'drive:linear:physics:'+usd),exp[key],name+' gas spring '+key)
+    for name,effort in zip(c['actuated_joint_names'],c['effort_limits_nm']):
+        near(value(at('/joints/'+name),'drive:angular:physics:maxForce'),effort,name+' effort limit')
+    if errors:raise RuntimeError('Unsafe robot import; training must not start:\n- '+'\n- '.join(errors))
+    return {'status':'PASS_STATIC_ONLY','bodies':len(actual_bodies),'joints':len(c['joints']),'closures':6,'mimics':4,
+        'hifi_visuals':visuals,'collision_primitives':colliders,'physx_schema_registration_checked':require_physx}
+
+class RuntimeGuard:
+    """Checks actual body poses/velocities, not merely authored USD declarations."""
+    def __init__(self,robot,closure_tolerance=.002,mimic_tolerance=.01):
+        import torch
+        self.torch=torch;self.robot=robot;self.c=CONTRACT;self.closure_tolerance=closure_tolerance;self.mimic_tolerance=mimic_tolerance
+        if set(self.c['joints'])!=set(robot.joint_names):raise RuntimeError('Articulation runtime joint set differs from contract')
+        missing=set(self.c['bodies'])-set(robot.body_names)
+        if missing:raise RuntimeError('Runtime is missing bodies: '+str(sorted(missing)))
+        self.pairs=[]
+        for name,v in self.c['closures'].items():
+            self.pairs.append((name,robot.body_names.index(v['body0']),robot.body_names.index(v['body1']),
+                torch.tensor(v['anchor0_m'],device=robot.device),torch.tensor(v['anchor1_m'],device=robot.device)))
+        self.mimics=[(robot.joint_names.index(a),robot.joint_names.index(v['reference_joint'])) for a,v in self.c['mimics'].items()]
+        self.max_closure=0.;self.max_mimic=0.
+    def check(self):
+        t=self.torch;r=self.robot
+        pos=r.data.body_pos_w;quat=r.data.body_quat_w
+        def rotate(q,v):
+            v=v.expand(q.shape[0],3);u=q[:,1:];uv=t.cross(u,v,dim=-1)
+            return v+2*(q[:,:1]*uv+t.cross(u,uv,dim=-1))
+        for x in [pos,quat,r.data.joint_pos,r.data.joint_vel]:
+            if not t.isfinite(x).all():raise FloatingPointError('Non-finite PhysX state')
+        if (r.data.joint_vel.abs()>1000).any():raise FloatingPointError('PhysX generalized speed exceeds acceptance envelope')
+        for name,a,b,pa,pb in self.pairs:
+            err=(pos[:,a]+rotate(quat[:,a],pa)-pos[:,b]-rotate(quat[:,b],pb)).norm(dim=-1).max().item()
+            self.max_closure=max(self.max_closure,err)
+            if err>self.closure_tolerance:raise RuntimeError(f'{name} separated by {err:.6g} m; constraint missing or unstable')
+        for a,b in self.mimics:
+            err=(r.data.joint_pos[:,a]-r.data.joint_pos[:,b]).abs().max().item();self.max_mimic=max(self.max_mimic,err)
+            if err>self.mimic_tolerance:raise RuntimeError(f'Chain coupling failed: {r.joint_names[a]}, {err:.6g} rad')
+        # The knee bounds include a two-degree reserve inside the CAD-safe range.
+        for name in ['left_knee','right_knee']:
+            lo,hi=self.c['joints'][name]['limits_si'];q=r.data.joint_pos[:,r.joint_names.index(name)]
+            if ((q<lo-.03)|(q>hi+.03)).any():raise RuntimeError(name+' consumed the stop safety reserve')
+
+if __name__=='__main__':
+    ap=argparse.ArgumentParser();ap.add_argument('usd',nargs='?',default=str(HERE/'robot_closed.usda'));ap.add_argument('--root',default='/Robot');ap.add_argument('--require-physx',action='store_true')
+    args=ap.parse_args();print(json.dumps(audit_stage(Usd.Stage.Open(args.usd),args.root,args.require_physx),indent=2))

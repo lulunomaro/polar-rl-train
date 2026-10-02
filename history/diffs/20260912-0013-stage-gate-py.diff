@@ -1,0 +1,37 @@
+--- mod4/stage_gate.py.bak_pre_rates
++++ mod4/stage_gate.py
+@@ -47,12 +47,17 @@
+     "tunnel": {
+         "kinds": ["tunnel_cross"],
+         "log": {},
+-        "eval": {"complete_rate": (0.6, ">="), "underpass_seen": (0.8, ">=")},
++        # 2026-09-12: these carried COUNTS (bucket_by_route sums per env); a count >= 0.8
++        # passes with one environment.  The evaluator now publishes the rates, and the
++        # delivered roof must not be scraped at all (fail/tunnel_roof_hit terminations).
++        "eval": {"complete_rate": (0.6, ">="), "underpass_seen_rate": (0.8, ">="),
++                 "roof_hit_terminations": (0.0, "<=")},
+     },
+     "fly": {
+         "kinds": ["fly_jump"],
+         "log": {},
+-        "eval": {"complete_rate": (0.5, ">="), "air_after_launch": (0.6, ">=")},
++        # 2026-09-12: air_after_launch used to be a count -- compare the rate instead.
++        "eval": {"complete_rate": (0.5, ">="), "air_after_launch_rate": (0.6, ">=")},
+     },
+     "spin": {
+         "kinds": ["slope_spin"],
+@@ -115,6 +120,14 @@
+             print("[gate]   EVAL %-46s MISSING" % kind)
+             continue
+         for key, spec in stage["eval"].items():
++            if key.endswith("_rate") and key not in rec:
++                # older report: derive the rate from the count (the goal bars are rates)
++                base = key[: -len("_rate")]
++                if base in rec:
++                    rec[key] = float(rec[base]) / max(1, int(rec.get("envs", 0)))
++            elif key == "roof_hit_terminations" and key not in rec:
++                # older report: the counter lives under fail/<termination term>
++                rec[key] = float(rec.get("fail/tunnel_roof_hit", float("nan")))
+             val = float(rec.get(key, float("nan")))
+             ok = val == val and cmp(val, spec)
+             fails += [] if ok else ["%s/%s=%.4f %s %.4f" % (kind, key, val, spec[1], spec[0])]

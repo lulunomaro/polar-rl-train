@@ -1,0 +1,390 @@
+diff --git a/README.md b/README.md
+index e2fef90..f4e075c 100644
+--- a/README.md
++++ b/README.md
+@@ -14,14 +14,15 @@ policies/
+   POLICY.json        # optional but recommended
+ ```
+ 
+-The supplied MOD4 adapter requires this exact policy contract:
++The supplied MOD4 adapter accepts the original policy and the sequence policy contracts:
+ 
+-- input: `observation`, shape `[batch, 35]`, float32;
+-- output: `action`, shape `[batch, 6]`, float32;
++- original: `observation` `[batch,35]` -> `action` `[batch,6]`;
++- sequence: `obs_history` `[batch,175]` -> `actions` `[batch,6]`;
++- the sequence input is five 35-D frames flattened in Isaac Lab's **term-major** order;
+ - action order: left crank, left hip, right crank, right hip, left wheel, right wheel;
+ - MJCF: 6 actuators and at least 10 equality constraints, with the body, joint, actuator, sensor, and closure-site names used by `sim_runtime.py`.
+ 
+-It fails before launch when the ONNX shape, node names, hash metadata, actuator count, or equality count does not match. A validation PASS proves interface and topology compatibility; it does not prove policy quality or sim-to-real robustness.
++It fails before launch when the ONNX shape, node names, history semantics, hash metadata, actuator count, or equality count does not match. Policy switching resets and reseeds the history buffer so observations from different contracts are never mixed. A validation PASS proves interface and topology compatibility; it does not prove policy quality or sim-to-real robustness.
+ 
+ ## Windows use
+ 
+@@ -60,4 +61,3 @@ python smoke_test.py
+ ```
+ 
+ `robustness_test.py` runs the project-specific randomized route suite. Review its assumptions before applying it to another robot or observation contract.
+-
+diff --git a/drive_wasd.py b/drive_wasd.py
+index 9b98dc3..31efea4 100644
+--- a/drive_wasd.py
++++ b/drive_wasd.py
+@@ -60,7 +60,7 @@ Space、Tab、数字键和 F1..F8 保留给 MuJoCo Viewer，不再触发车辆
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_general_16295.onnx")
++    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_extended_800.onnx")
+     parser.add_argument("--model", type=Path, default=ROOT / "model" / "rm_training_arena.xml")
+     parser.add_argument("--yaw-assist", type=float, default=80.0,
+                         help="MuJoCo yaw-rate feedback gain; use 0 for the raw ONNX policy")
+@@ -70,6 +70,7 @@ def main():
+     model_xml = args.model.resolve()
+     requested_policy = args.policy.resolve()
+     policy_candidates = [requested_policy,
++                         ROOT / "policies" / "mod4_extended_800.onnx",
+                          ROOT / "policies" / "mod4_general_16295.onnx",
+                          ROOT / "policies" / "mod4_tunnel_399_ab_only.onnx"]
+     policies = []
+@@ -137,9 +138,7 @@ def main():
+             print(f"已传送：{label}", flush=True)
+         elif key in CONTROL_KEYS["next_policy"]:
+             selected = (selected + 1) % len(policies)
+-            from policy_runtime import OnnxPolicy
+-            sim.policy = OnnxPolicy(policies[selected])
+-            sim.last_action[:] = 0.0
++            sim.set_policy(policies[selected])
+             print("当前策略：" + policies[selected].name, flush=True)
+         elif key in CONTROL_KEYS["help"]:
+             print(HELP, flush=True)
+diff --git a/launcher.ps1 b/launcher.ps1
+index efd16c9..79f0163 100644
+--- a/launcher.ps1
++++ b/launcher.ps1
+@@ -54,7 +54,7 @@ $Title.AutoSize = $true
+ $Form.Controls.Add($Title)
+ 
+ $Intro = New-Object Windows.Forms.Label
+-$Intro.Text = "导入训练导出的 ONNX，检查 35 -> 6 接口与闭链模型，然后一键驾驶查看。"
++$Intro.Text = "导入训练导出的 ONNX，检查单帧/五帧历史接口与闭链模型，然后一键驾驶查看。"
+ $Intro.Location = New-Object Drawing.Point(20, 53)
+ $Intro.AutoSize = $true
+ $Form.Controls.Add($Intro)
+@@ -176,7 +176,7 @@ function Refresh-Policies([string]$SelectPath = "") {
+     }
+   }
+   if ($chosen -lt 0) {
+-    $preferred = "policies\mod4_general_16295.onnx"
++    $preferred = "policies\mod4_extended_800.onnx"
+     $chosen = $PolicyBox.Items.IndexOf($preferred)
+   }
+   if ($chosen -lt 0) { $chosen = 0 }
+@@ -193,12 +193,12 @@ function Inspect-Selected {
+     $policy = Get-SelectedPolicy
+     $report = Invoke-Backend @("inspect", "--policy", $policy, "--model", $Model)
+     $meta = $report.policy.metadata
+-    $source = if ($meta.source_checkpoint) { $meta.source_checkpoint } else { "旁置 JSON 未提供" }
+-    $iteration = if ($null -ne $meta.source_iteration) { $meta.source_iteration } else { "旁置 JSON 未提供" }
++    $source = if ($meta.source_checkpoint) { $meta.source_checkpoint } elseif ($meta.checkpoint) { $meta.checkpoint } else { "旁置 JSON 未提供" }
++    $iteration = if ($null -ne $meta.source_iteration) { $meta.source_iteration } elseif ($meta.checkpoint -match 'model_(\d+)\.pt$') { $Matches[1] } else { "旁置 JSON 未提供" }
+     $Details.Text = "PASS：策略接口和 MuJoCo 机构契约均通过`r`n" +
+       "ONNX: $($report.policy.path)`r`n" +
+       "SHA256: $($report.policy.sha256)`r`n" +
+-      "接口: observation [batch,35] -> action [batch,6]`r`n" +
++      "接口: $($report.policy.input.name) [batch,$($report.policy.input.shape[-1])] -> $($report.policy.output.name) [batch,6]`r`n" +
+       "零观测动作: $($report.policy.zero_action -join ', ')`r`n" +
+       "源检查点: $source`r`n训练迭代: $iteration`r`n" +
+       "MJCF: nq=$($report.model.nq) nv=$($report.model.nv) nu=$($report.model.nu) bodies=$($report.model.bodies) geoms=$($report.model.geoms) equalities=$($report.model.equalities)`r`n`r`n" +
+diff --git a/launcher.py b/launcher.py
+index 6ba8a76..1f0e881 100644
+--- a/launcher.py
++++ b/launcher.py
+@@ -16,7 +16,10 @@ ROOT = Path(__file__).resolve().parent
+ POLICY_DIR = ROOT / "policies"
+ IMPORTED_DIR = POLICY_DIR / "imported"
+ DEFAULT_MODEL = ROOT / "model" / "rm_training_arena.xml"
+-EXPECTED_INPUT = 35
++EXPECTED_INPUTS = {
++    35: ("observation", "action", "mod4_plain_frame35_v1"),
++    175: ("obs_history", "actions", "mod4_term_major_latest_gather_v1"),
++}
+ EXPECTED_OUTPUT = 6
+ 
+ 
+@@ -29,7 +32,8 @@ def sha256(path: Path) -> str:
+ 
+ 
+ def adjacent_metadata(path: Path) -> Path | None:
+-    candidates = [path.with_suffix(".json"), path.with_name(path.stem + "_metadata.json")]
++    candidates = [path.with_suffix(".json"), path.with_name(path.stem + ".contract.json"),
++                  path.with_name(path.stem + "_metadata.json")]
+     return next((item for item in candidates if item.is_file()), None)
+ 
+ 
+@@ -41,11 +45,14 @@ def validate_policy(path: Path) -> dict:
+     if len(session.get_inputs()) != 1 or len(session.get_outputs()) != 1:
+         raise ValueError("策略必须恰好有一个输入和一个输出")
+     inp, out = session.get_inputs()[0], session.get_outputs()[0]
+-    if inp.name != "observation" or out.name != "action":
+-        raise ValueError(f"节点名不匹配：输入 {inp.name!r}，输出 {out.name!r}；要求 observation/action")
+-    if inp.shape[-1] != EXPECTED_INPUT or out.shape[-1] != EXPECTED_OUTPUT:
+-        raise ValueError(f"维度不匹配：{inp.shape} -> {out.shape}；要求 [batch,35] -> [batch,6]")
+-    output = session.run([out.name], {inp.name: np.zeros((1, EXPECTED_INPUT), np.float32)})[0]
++    input_width = int(inp.shape[-1])
++    if input_width not in EXPECTED_INPUTS or out.shape[-1] != EXPECTED_OUTPUT:
++        raise ValueError(f"维度不匹配：{inp.shape} -> {out.shape}；支持 35→6 或 175→6")
++    expected_input_name, expected_output_name, semantics = EXPECTED_INPUTS[input_width]
++    if inp.name != expected_input_name or out.name != expected_output_name:
++        raise ValueError(f"节点名不匹配：输入 {inp.name!r}，输出 {out.name!r}；"
++                         f"该维度要求 {expected_input_name}/{expected_output_name}")
++    output = session.run([out.name], {inp.name: np.zeros((1, input_width), np.float32)})[0]
+     if output.shape != (1, EXPECTED_OUTPUT) or not np.isfinite(output).all():
+         raise ValueError(f"零观测推理输出异常：shape={output.shape}, finite={np.isfinite(output).all()}")
+     actual_hash = sha256(path)
+@@ -53,10 +60,15 @@ def validate_policy(path: Path) -> dict:
+     metadata = {}
+     if metadata_path:
+         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+-        declared_input = metadata.get("input", {}).get("shape", [None, None])[-1]
+-        declared_output = metadata.get("output", {}).get("shape", [None, None])[-1]
+-        if declared_input not in (None, EXPECTED_INPUT) or declared_output not in (None, EXPECTED_OUTPUT):
++        declared_input = metadata.get("input_width", metadata.get("input", {}).get("shape", [None, None])[-1])
++        declared_output = metadata.get("output_width", metadata.get("output", {}).get("shape", [None, None])[-1])
++        if declared_input not in (None, input_width) or declared_output not in (None, EXPECTED_OUTPUT):
+             raise ValueError("旁置 JSON 声明的输入/输出维度与 ONNX 不一致")
++        declared_semantics = metadata.get("observation_semantics")
++        if declared_semantics and declared_semantics != semantics:
++            raise ValueError("旁置 JSON 的 observation_semantics 与 ONNX 接口不一致")
++        if input_width == 175 and (metadata.get("frame_width"), metadata.get("history_length")) != (35, 5):
++            raise ValueError("175 维策略必须声明 frame_width=35、history_length=5")
+         declared_hash = metadata.get("onnx_sha256")
+         if declared_hash and declared_hash.lower() != actual_hash:
+             raise ValueError("旁置 JSON 的 onnx_sha256 与文件内容不一致")
+@@ -64,6 +76,7 @@ def validate_policy(path: Path) -> dict:
+         "path": str(path), "sha256": actual_hash,
+         "input": {"name": inp.name, "shape": inp.shape},
+         "output": {"name": out.name, "shape": out.shape},
++        "observation_semantics": semantics,
+         "zero_action": np.asarray(output[0], dtype=float).round(5).tolist(),
+         "metadata_path": str(metadata_path.resolve()) if metadata_path else None,
+         "metadata": metadata,
+diff --git a/policy_runtime.py b/policy_runtime.py
+index cb9d9a3..066248e 100644
+--- a/policy_runtime.py
++++ b/policy_runtime.py
+@@ -13,12 +13,22 @@ class OnnxPolicy:
+         self.session = ort.InferenceSession(str(self.path), providers=["CPUExecutionProvider"])
+         inp = self.session.get_inputs()[0]
+         out = self.session.get_outputs()[0]
+-        if inp.name != "observation" or out.name != "action":
++        self.input_name = inp.name
++        self.output_name = out.name
++        self.input_width = int(inp.shape[-1])
++        self.output_width = int(out.shape[-1])
++        expected_names = {
++            35: ("observation", "action"),
++            175: ("obs_history", "actions"),
++        }
++        if self.input_width not in expected_names:
++            raise ValueError(f"unexpected ONNX shapes: {inp.shape}, {out.shape}")
++        if (self.input_name, self.output_name) != expected_names[self.input_width]:
+             raise ValueError(f"unexpected ONNX names: {inp.name!r}, {out.name!r}")
+-        if inp.shape[-1] != 35 or out.shape[-1] != 6:
++        if self.output_width != 6:
+             raise ValueError(f"unexpected ONNX shapes: {inp.shape}, {out.shape}")
+ 
+     def __call__(self, observation: np.ndarray) -> np.ndarray:
+-        x = np.asarray(observation, dtype=np.float32).reshape(-1, 35)
+-        y = self.session.run(["action"], {"observation": x})[0]
++        x = np.asarray(observation, dtype=np.float32).reshape(-1, self.input_width)
++        y = self.session.run([self.output_name], {self.input_name: x})[0]
+         return np.asarray(y[0], dtype=np.float64)
+diff --git a/robustness_test.py b/robustness_test.py
+index 664210d..d1df38f 100644
+--- a/robustness_test.py
++++ b/robustness_test.py
+@@ -126,7 +126,7 @@ def run_episode(sim, name, spec, seed, randomized):
+ 
+ def main():
+     parser = argparse.ArgumentParser()
+-    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_general_16295.onnx")
++    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_extended_800.onnx")
+     parser.add_argument("--random-seeds", type=int, default=5)
+     parser.add_argument("--yaw-assist", type=float, default=0.0,
+                         help="extra differential-wheel yaw feedback gain; 0 tests the raw policy adapter")
+diff --git a/sim_runtime.py b/sim_runtime.py
+index 9f11bfa..70717dc 100644
+--- a/sim_runtime.py
++++ b/sim_runtime.py
+@@ -18,6 +18,26 @@ WHEEL_ORDER = ACTION_ORDER[4:]
+ ACTUATOR_ORDER = ("left_hip_motor", "left_crank_motor", "left_wheel_spin_motor",
+                   "right_hip_motor", "right_crank_motor", "right_wheel_spin_motor")
+ MODE_NAMES = ("normal", "stair", "slope", "recover", "jump", "height", "state_time")
++POLICY_TERM_DIMS = (3, 1, 3, 3, 4, 2, 4, 2, 6, 7)
++POLICY_FRAME_DIM = sum(POLICY_TERM_DIMS)
++
++
++def pack_term_major_history(frames) -> np.ndarray:
++    """Match Isaac Lab's per-term history flattening exactly.
++
++    Each term stores its own oldest-to-newest FIFO, so a five-frame policy input is
++    ``term0[t-4:t], term1[t-4:t], ...`` rather than five complete frames.
++    """
++    items = [np.asarray(frame, dtype=np.float32).reshape(POLICY_FRAME_DIM) for frame in frames]
++    if not items:
++        raise ValueError("observation history is empty")
++    chunks = []
++    start = 0
++    for width in POLICY_TERM_DIMS:
++        stop = start + width
++        chunks.extend(frame[start:stop] for frame in items)
++        start = stop
++    return np.concatenate(chunks).astype(np.float32, copy=False)
+ 
+ 
+ @dataclass
+@@ -63,6 +83,11 @@ class Mod4Sim:
+         self.model = mujoco.MjModel.from_xml_path(str(self.xml_path))
+         self.data = mujoco.MjData(self.model)
+         self.policy = OnnxPolicy(policy_path)
++        if self.policy.input_width % POLICY_FRAME_DIM:
++            raise ValueError("policy input is not an integer number of 35-D frames")
++        self.history_length = self.policy.input_width // POLICY_FRAME_DIM
++        if self.history_length not in (1, 5):
++            raise ValueError(f"unsupported policy history length: {self.history_length}")
+         self.cfg = config or RuntimeConfig()
+         self.command = UserCommand()
+         self.last_action = np.zeros(6, dtype=np.float64)
+@@ -72,6 +97,7 @@ class Mod4Sim:
+         self.max_abs_torque = np.zeros(6, dtype=np.float64)
+         self._push_remaining = 0
+         self._push_force = np.zeros(3)
++        self._observation_history = []
+ 
+         expected_dt = 1.0 / self.cfg.policy_hz
+         self.decimation = int(round(expected_dt / self.model.opt.timestep))
+@@ -137,6 +163,29 @@ class Mod4Sim:
+         self.max_abs_torque[:] = 0.0
+         self.command = UserCommand()
+         mujoco.mj_forward(self.model, self.data)
++        self._seed_observation_history(self.observation_frame())
++
++    def set_policy(self, policy_path: str | Path):
++        """Switch policies without mixing histories from different contracts."""
++        policy = OnnxPolicy(policy_path)
++        if policy.input_width % POLICY_FRAME_DIM:
++            raise ValueError("policy input is not an integer number of 35-D frames")
++        history_length = policy.input_width // POLICY_FRAME_DIM
++        if history_length not in (1, 5):
++            raise ValueError(f"unsupported policy history length: {history_length}")
++        self.policy = policy
++        self.history_length = history_length
++        self.last_action[:] = 0.0
++        self._seed_observation_history(self.observation_frame())
++
++    def _seed_observation_history(self, frame):
++        frame = np.asarray(frame, dtype=np.float32).reshape(POLICY_FRAME_DIM)
++        self._observation_history = [frame.copy() for _ in range(self.history_length)]
++
++    def _append_observation(self, frame):
++        frame = np.asarray(frame, dtype=np.float32).reshape(POLICY_FRAME_DIM)
++        self._observation_history.append(frame.copy())
++        del self._observation_history[:-self.history_length]
+ 
+     def restore_nominal_parameters(self):
+         self.model.body_mass[:] = self._initial_body_mass
+@@ -186,7 +235,7 @@ class Mod4Sim:
+             mode, height = 1, 0.32
+         return mode, height
+ 
+-    def observation(self):
++    def observation_frame(self):
+         if self.command.auto_mode:
+             mode, height = self._auto_task()
+         else:
+@@ -215,6 +264,16 @@ class Mod4Sim:
+             raise FloatingPointError(f"bad observation: shape={obs.shape}, finite={np.isfinite(obs).all()}")
+         return obs
+ 
++    def observation(self):
++        if not self._observation_history:
++            self._seed_observation_history(self.observation_frame())
++        if self.history_length == 1:
++            return self._observation_history[-1].copy()
++        obs = pack_term_major_history(self._observation_history)
++        if obs.shape != (self.policy.input_width,) or not np.isfinite(obs).all():
++            raise FloatingPointError(f"bad policy observation: shape={obs.shape}")
++        return obs
++
+     @staticmethod
+     def _dc_clip(raw, speed, effort, stall, no_load):
+         max_effort = np.minimum(effort, stall * (1.0 - speed / no_load))
+@@ -257,6 +316,7 @@ class Mod4Sim:
+         return tau
+ 
+     def step_control(self, observation_noise=0.0, action_delay=None):
++        self._append_observation(self.observation_frame())
+         obs = self.observation()
+         if observation_noise:
+             obs = obs + np.random.normal(0.0, observation_noise, obs.shape).astype(np.float32)
+diff --git a/smoke_test.py b/smoke_test.py
+index 06279b4..d6dac7b 100644
+--- a/smoke_test.py
++++ b/smoke_test.py
+@@ -11,7 +11,7 @@ import numpy as np
+ 
+ ROOT = Path(__file__).resolve().parent
+ sys.path.insert(0, str(ROOT))
+-from sim_runtime import Mod4Sim  # noqa: E402
++from sim_runtime import Mod4Sim, POLICY_TERM_DIMS, pack_term_major_history  # noqa: E402
+ from launcher import validate_model, validate_policy  # noqa: E402
+ from drive_wasd import CONTROL_KEYS, MUJOCO_DIRECT_RESERVED_KEYS  # noqa: E402
+ 
+@@ -25,12 +25,15 @@ def sha256(path):
+ 
+ 
+ def main():
+-    policy = ROOT / "policies" / "mod4_general_16295.onnx"
++    policy = ROOT / "policies" / "mod4_extended_800.onnx"
++    if not policy.exists():
++        policy = ROOT / "policies" / "mod4_general_16295.onnx"
+     meta = json.loads(policy.with_suffix(".json").read_text(encoding="utf-8"))
+     assert sha256(policy) == meta["onnx_sha256"]
+     policy_contract = validate_policy(policy)
+     full_model_contract = validate_model(ROOT / "model" / "rm_training_arena.xml")
+-    assert policy_contract["input"]["shape"][-1] == 35
++    input_width = int(policy_contract["input"]["shape"][-1])
++    assert input_width in (35, 175)
+     assert policy_contract["output"]["shape"][-1] == 6
+     assert full_model_contract["nu"] == 6 and full_model_contract["equalities"] == 10
+     drive_keys = {key for values in CONTROL_KEYS.values() for key in values}
+@@ -38,7 +41,16 @@ def main():
+     xml = ROOT / "model" / "rm_training_arena_headless.xml"
+     sim = Mod4Sim(xml, policy)
+     assert (sim.model.nq, sim.model.nv, sim.model.nu, sim.model.neq) == (37, 36, 6, 10)
+-    assert sim.observation().shape == (35,)
++    assert sim.observation_frame().shape == (35,)
++    assert sim.observation().shape == (input_width,)
++    frames = [np.arange(35, dtype=np.float32) + 100 * i for i in range(5)]
++    packed = pack_term_major_history(frames)
++    cursor = frame_cursor = 0
++    for width in POLICY_TERM_DIMS:
++        for frame in frames:
++            assert np.array_equal(packed[cursor:cursor + width], frame[frame_cursor:frame_cursor + width])
++            cursor += width
++        frame_cursor += width
+     sim.command.vx = .4
+     for _ in range(300):
+         action = sim.step_control()
+@@ -49,7 +61,8 @@ def main():
+     assert sim.max_mimic_error < .01
+     report = {
+         "status": "PASS", "onnx_sha256": sha256(policy),
+-        "launcher_contract": {"input_dim": 35, "output_dim": 6,
++        "launcher_contract": {"input_dim": input_width, "output_dim": 6,
++                              "observation_semantics": policy_contract["observation_semantics"],
+                               "full_model_equalities": full_model_contract["equalities"],
+                               "viewer_key_conflicts": 0},
+         "model": {"nq": sim.model.nq, "nv": sim.model.nv, "nu": sim.model.nu,

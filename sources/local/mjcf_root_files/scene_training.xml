@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="RoboMaster short-link six-bar wheel-leg chassis">
+  <compiler angle="radian" meshdir="assets" autolimits="true" inertiafromgeom="false" balanceinertia="false" />
+  <option timestep="0.0005" integrator="implicitfast" solver="Newton" iterations="80" tolerance="1e-10" cone="elliptic" gravity="0 0 -9.81">
+    <flag multiccd="enable" />
+  </option>
+  <size njmax="4096" nconmax="512" />
+  <default>
+    <joint damping=".04" armature=".0004" frictionloss=".005" solreflimit=".006 1" solimplimit=".95 .99 .001" />
+    <geom friction="0.8 .003 .0001" solref=".0025 1" solimp=".95 .99 .001" margin=".001" condim="3" />
+    <default class="visual">
+      <geom type="mesh" contype="0" conaffinity="0" group="2" density="0" />
+    </default>
+    <default class="collision">
+      <geom contype="2" conaffinity="3" group="3" rgba=".25 .55 .8 .25" density="0" />
+    </default>
+  </default>
+  <statistic center="0 0 .25" extent="1.2" />
+  <visual>
+    <global offwidth="1600" offheight="1000" azimuth="135" elevation="-18" />
+    <quality shadowsize="2048" />
+  </visual>
+  <asset>
+    <texture name="floor_tex" type="2d" builtin="checker" rgb1=".20 .25 .28" rgb2=".25 .30 .33" width="512" height="512" />
+    <material name="floor_mat" texture="floor_tex" texrepeat="5 5" reflectance=".05" />
+  </asset>
+  <worldbody>
+    <light pos="0 -1 2" dir="0 0 -1" ambient=".35 .35 .35" diffuse=".8 .8 .8" />
+    <light pos="1 1 2" dir="-1 -1 -2" diffuse=".6 .6 .6" />
+    <geom name="ground" type="plane" size="10 10 .1" material="floor_mat" contype="1" conaffinity="2" condim="3" />
+    <body name="chassis" pos="0 0 0.4105097183">
+      <freejoint name="floating_base" />
+      <geom name="chassis_core" type="box" class="collision" pos="0 0 -.070" size=".190 .142 .065" />
+      <geom name="chassis_front" type="box" class="collision" pos=".239 0 -.061" size=".037 .126 .065" />
+      <geom name="chassis_rear" type="box" class="collision" pos="-.252 0 -.060" size=".042 .126 .068" />
+      <geom name="chassis_belly" type="box" class="collision" pos="0 0 -.157" size=".078 .14 .020" />
+      <site name="imu" pos="0 0 0" size=".003" rgba="1 .35 .1 1" group="4" />
+      <camera name="follow" pos="1.0 -1.2 .65" xyaxes=".768 .64 0 -.28 .336 .899" mode="trackcom" />
+      <body name="left_thigh" pos="0 0.19 0">
+        <joint name="left_hip" axis="0 1 0" type="hinge" armature=".025" damping=".2" frictionloss=".06" limited="false" />
+        <body name="left_rocker" pos="-0.08781395349 0 -0.07882074329">
+          <joint name="left_rocker_pin" axis="0 1 0" type="hinge" />
+          <body name="left_distal" pos="-0.02311711398 0 0.05946460327">
+            <joint name="left_distal_pin" axis="0 1 0" type="hinge" />
+            <site name="left_distal_a" pos="-0.0691306767 0 -0.06369418764" size=".003" rgba="1 .35 .1 1" group="4" />
+            <geom name="left_distal_collision" type="capsule" class="collision" fromto="0 0 0 -0.0691306767 0 -0.06369418764" size="0.004" />
+            <inertial pos="-0.03439385195 -0.001957024003 -0.03168909324" mass="0.01697719045" fullinertia="7.302707232e-06 1.576217522e-05 8.564785636e-06 -9.753714724e-09 -7.695893459e-06 -8.98667517e-09" />
+          </body>
+          <site name="left_proximal_b" pos="0.0758154147 0 -0.08646978023" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="left_rocker_lower_collision" type="capsule" class="collision" fromto="0.0758154147 0 -0.08646978023 0 0 0" size="0.006" />
+          <geom name="left_rocker_upper_collision" type="capsule" class="collision" fromto="0 0 0 -0.02311711398 0 0.05946460327" size="0.006" />
+          <inertial pos="0.01766990372 0.005698173265 -0.0119106048" mass="0.04853163384" fullinertia="0.0001157555151 0.0001752427324 6.020963422e-05 -3.445848953e-07 7.934628484e-05 2.322714698e-07" />
+        </body>
+        <body name="left_shin" pos="-0.16 0 -0.1436140662">
+          <joint name="left_knee" axis="0 1 0" type="hinge" range="-.65 .65" damping=".08" />
+          <body name="left_wheel" pos="0.16 0.04585399552 -0.2023956521">
+            <joint name="left_wheel_spin" axis="0 1 0" type="hinge" armature=".003" damping=".015" frictionloss=".01" limited="false" />
+            <geom name="left_tire" type="cylinder" class="collision" size=".0625 .010" quat=".7071067812 .7071067812 0 0" friction="0.9 .003 .0001" condim="4" />
+            <site name="left_wheel_center" pos="0 0 0" size=".003" rgba="1 .35 .1 1" group="4" />
+            <inertial pos="2.206568261e-15 0 0" mass="0.1187981088" fullinertia="0.00018239008 0.0003564414822 0.00018239008 4.492314467e-19 -1.312088435e-20 -1.687666153e-20" />
+          </body>
+          <site name="left_distal_b" pos="-0.02006174416 0 0.0605637385" size=".003" rgba="1 .35 .1 1" group="4" />
+          <site name="left_gas_mount" pos="0.03100775194 0 -0.03922396359" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="left_shin_collision" type="capsule" class="collision" fromto="0 0 0 0.16 0 -0.2023956521" size="0.015" />
+          <geom name="left_shin_tip_collision" type="capsule" class="collision" fromto="0 0 0 -0.02006174416 0 0.0605637385" size="0.01" />
+          <inertial pos="0.1317462933 0.02231672084 -0.1660590109" mass="0.9550791854" fullinertia="0.005778019488 0.009023156109 0.003718254646 -0.0003546882838 0.003950487163 0.0004566554638" />
+        </body>
+        <body name="left_gas_inner" pos="0.0127988069 0 -0.04209739353">
+          <joint name="left_gas_pin" axis="0 1 0" type="hinge" armature=".00005" damping=".005" />
+          <body name="left_gas_barrel" pos="-0.141791055 0 -0.1407406362">
+            <joint name="left_gas_slide" axis="-0.7097308137 0 -0.7044729747" type="slide" armature=".002" damping="3" stiffness="200.0" springref="1.0" range="-0.08478145547 0.01521854453" frictionloss="0" />
+            <site name="left_gas_end" pos="0 0 0" size=".003" rgba="1 .35 .1 1" group="4" />
+            <inertial pos="0.03355393523 -0.005647076945 0.03330536044" mass="0.06272286395" fullinertia="4.689729783e-05 9.279620173e-05 4.757291752e-05 1.113850902e-07 -4.542982016e-05 1.105599254e-07" />
+          </body>
+          <inertial pos="-0.03282600497 -0.005700001562 -0.03258282284" mass="0.03622781097" fullinertia="2.549615937e-05 5.115463515e-05 2.587339747e-05 9.46108888e-20 -2.536613316e-05 9.903978814e-20" />
+        </body>
+        <geom name="left_thigh_collision" type="capsule" class="collision" fromto="0 0 0 -0.16 0 -0.1436140662" size="0.016" />
+        <inertial pos="-0.1109589535 -0.007888731208 -0.09737354884" mass="0.4807766244" fullinertia="0.001744811978 0.003825894059 0.002126650744 1.909849705e-05 -0.001783722162 1.475829923e-05" />
+      </body>
+      <body name="left_input" pos="0 0.19 0">
+        <joint name="left_crank" axis="0 1 0" type="hinge" armature=".025" damping=".2" frictionloss=".06" limited="false" />
+        <body name="left_coupler" pos="0.06037498495 0 -0.07592009742">
+          <joint name="left_coupler_pin" axis="0 1 0" type="hinge" />
+          <site name="left_proximal_a" pos="-0.07237352374 0 -0.0893704261" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="left_coupler_collision" type="capsule" class="collision" fromto="0 0 0 -0.07237352374 0 -0.0893704261" size="0.004" />
+          <inertial pos="-0.03505053756 -0.0011770235 -0.04560534469" mass="0.01634401696" fullinertia="1.336742318e-05 2.212716459e-05 8.82932643e-06 4.267134005e-10 -1.067700567e-05 -3.455589702e-10" />
+        </body>
+        <geom name="left_input_collision" type="capsule" class="collision" fromto="0 0 0 0.06037498495 0 -0.07592009742" size="0.01" />
+        <inertial pos="0.008446448211 -0.00618794923 -0.01062120631" mass="0.1270294493" fullinertia="0.000124941164 0.000164958798 0.0001002337464 -1.555966172e-05 5.345238553e-05 1.956590192e-05" />
+      </body>
+      <body name="left_drive_hip" pos="0.08802509567 0.1664584198 -0.03999999997">
+        <joint name="left_drive_hip_spin" axis="0 1 0" type="hinge" armature=".0001" damping=".005" frictionloss="0" />
+        <inertial pos="0 0 0" mass="0.03300408884" fullinertia="9.299412252e-06 1.757792112e-05 9.323868908e-06 1.608046518e-20 -2.767856463e-08 -7.052554118e-22" />
+      </body>
+      <body name="left_drive_input" pos="-0.08712999893 0.1617017184 -0.03999999997">
+        <joint name="left_drive_input_spin" axis="0 1 0" type="hinge" armature=".0001" damping=".005" frictionloss="0" />
+        <inertial pos="0 0 0" mass="0.02222600601" fullinertia="7.282543056e-06 1.452231295e-05 7.321101097e-06 1.751651609e-20 7.102496236e-10 3.7599927e-22" />
+      </body>
+      <geom name="left_side_armor" type="box" class="collision" pos="0 0.272 -0.039" size=".075 .018 .061" />
+      <body name="right_thigh" pos="0 -0.19 0">
+        <joint name="right_hip" axis="0 1 0" type="hinge" armature=".025" damping=".2" frictionloss=".06" limited="false" />
+        <body name="right_rocker" pos="-0.08781395349 0 -0.07882074329">
+          <joint name="right_rocker_pin" axis="0 1 0" type="hinge" />
+          <body name="right_distal" pos="-0.02311711398 0 0.05946460327">
+            <joint name="right_distal_pin" axis="0 1 0" type="hinge" />
+            <site name="right_distal_a" pos="-0.0691306767 0 -0.06369418764" size=".003" rgba="1 .35 .1 1" group="4" />
+            <geom name="right_distal_collision" type="capsule" class="collision" fromto="0 0 0 -0.0691306767 0 -0.06369418764" size="0.004" />
+            <inertial pos="-0.03439385195 0.001957020879 -0.03168909324" mass="0.01697719045" fullinertia="7.302707232e-06 1.576217522e-05 8.564785636e-06 9.753714724e-09 -7.695893459e-06 8.98667517e-09" />
+          </body>
+          <site name="right_proximal_b" pos="0.0758154147 0 -0.08646978023" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="right_rocker_lower_collision" type="capsule" class="collision" fromto="0.0758154147 0 -0.08646978023 0 0 0" size="0.006" />
+          <geom name="right_rocker_upper_collision" type="capsule" class="collision" fromto="0 0 0 -0.02311711398 0 0.05946460327" size="0.006" />
+          <inertial pos="0.01766990372 -0.005698176388 -0.0119106048" mass="0.04853163384" fullinertia="0.0001157555151 0.0001752427324 6.020963422e-05 3.445848953e-07 7.934628484e-05 -2.322714698e-07" />
+        </body>
+        <body name="right_shin" pos="-0.16 0 -0.1436140662">
+          <joint name="right_knee" axis="0 1 0" type="hinge" range="-.65 .65" damping=".08" />
+          <body name="right_wheel" pos="0.16 -0.04585399864 -0.2023956521">
+            <joint name="right_wheel_spin" axis="0 1 0" type="hinge" armature=".003" damping=".015" frictionloss=".01" limited="false" />
+            <geom name="right_tire" type="cylinder" class="collision" size=".0625 .010" quat=".7071067812 .7071067812 0 0" friction="0.9 .003 .0001" condim="4" />
+            <site name="right_wheel_center" pos="0 0 0" size=".003" rgba="1 .35 .1 1" group="4" />
+            <inertial pos="6.938893904e-17 0 -1.110223025e-16" mass="0.1187981088" fullinertia="0.00018239008 0.0003564414822 0.00018239008 6.553670598e-20 -4.580912671e-20 -9.919449016e-20" />
+          </body>
+          <site name="right_distal_b" pos="-0.02006174416 0 0.0605637385" size=".003" rgba="1 .35 .1 1" group="4" />
+          <site name="right_gas_mount" pos="0.03100775194 0 -0.03922396359" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="right_shin_collision" type="capsule" class="collision" fromto="0 0 0 0.16 0 -0.2023956521" size="0.015" />
+          <geom name="right_shin_tip_collision" type="capsule" class="collision" fromto="0 0 0 -0.02006174416 0 0.0605637385" size="0.01" />
+          <inertial pos="0.1317451355 -0.02231672396 -0.1660599262" mass="0.9550791854" fullinertia="0.005778043927 0.009023157149 0.003718231248 0.0003547032304 0.003950480954 -0.0004566436481" />
+        </body>
+        <body name="right_gas_inner" pos="0.0127988069 0 -0.04209739353">
+          <joint name="right_gas_pin" axis="0 1 0" type="hinge" armature=".00005" damping=".005" />
+          <body name="right_gas_barrel" pos="-0.141791055 0 -0.1407406362">
+            <joint name="right_gas_slide" axis="-0.7097308137 0 -0.7044729747" type="slide" armature=".002" damping="3" stiffness="200.0" springref="1.0" range="-0.08478145547 0.01521854453" frictionloss="0" />
+            <site name="right_gas_end" pos="0 0 0" size=".003" rgba="1 .35 .1 1" group="4" />
+            <inertial pos="0.03355393523 0.005752923055 0.03330536044" mass="0.06272286395" fullinertia="4.689729783e-05 9.279620173e-05 4.757291752e-05 1.113850902e-07 -4.542982016e-05 1.105599254e-07" />
+          </body>
+          <inertial pos="-0.03282600497 0.005699998438 -0.03258282284" mass="0.03622781097" fullinertia="2.549615937e-05 5.115463515e-05 2.587339747e-05 2.139985745e-17 -2.536613316e-05 2.124141637e-17" />
+        </body>
+        <geom name="right_thigh_collision" type="capsule" class="collision" fromto="0 0 0 -0.16 0 -0.1436140662" size="0.016" />
+        <inertial pos="-0.1109589535 0.007888728084 -0.09737354884" mass="0.4807766244" fullinertia="0.001744811978 0.003825894059 0.002126650744 -1.909849705e-05 -0.001783722162 -1.475829923e-05" />
+      </body>
+      <body name="right_input" pos="0 -0.19 0">
+        <joint name="right_crank" axis="0 1 0" type="hinge" armature=".025" damping=".2" frictionloss=".06" limited="false" />
+        <body name="right_coupler" pos="0.06037498495 0 -0.07592009742">
+          <joint name="right_coupler_pin" axis="0 1 0" type="hinge" />
+          <site name="right_proximal_a" pos="-0.07237352374 0 -0.0893704261" size=".003" rgba="1 .35 .1 1" group="4" />
+          <geom name="right_coupler_collision" type="capsule" class="collision" fromto="0 0 0 -0.07237352374 0 -0.0893704261" size="0.004" />
+          <inertial pos="-0.03505053756 0.001177020376 -0.04560534469" mass="0.01634401696" fullinertia="1.336742318e-05 2.212716459e-05 8.82932643e-06 -4.267134005e-10 -1.067700567e-05 3.455589703e-10" />
+        </body>
+        <geom name="right_input_collision" type="capsule" class="collision" fromto="0 0 0 0.06037498495 0 -0.07592009742" size="0.01" />
+        <inertial pos="0.008446448211 0.006187946107 -0.01062120631" mass="0.1270294493" fullinertia="0.000124941164 0.000164958798 0.0001002337464 1.555966172e-05 5.345238553e-05 -1.956590192e-05" />
+      </body>
+      <body name="right_drive_hip" pos="0.08802509567 -0.1664584229 -0.03999999997">
+        <joint name="right_drive_hip_spin" axis="0 1 0" type="hinge" armature=".0001" damping=".005" frictionloss="0" />
+        <inertial pos="0 0 0" mass="0.03300408884" fullinertia="9.287274026e-06 1.757792112e-05 9.336007134e-06 -1.901439811e-21 1.79417391e-08 -6.0150456e-22" />
+      </body>
+      <body name="right_drive_input" pos="-0.08802509352 -0.1617017215 -0.03999999997">
+        <joint name="right_drive_input_spin" axis="0 1 0" type="hinge" armature=".0001" damping=".005" frictionloss="0" />
+        <inertial pos="0 0 0" mass="0.02222600601" fullinertia="7.282571988e-06 1.452231295e-05 7.321072166e-06 -4.856245578e-22 -1.2724656e-09 -1.852249067e-22" />
+      </body>
+      <geom name="right_side_armor" type="box" class="collision" pos="0 -0.272 -0.039" size=".075 .018 .061" />
+      <inertial pos="-0.01101547105 0.0003660030793 -0.05226011368" mass="12.13007636" fullinertia="0.2017153296 0.2017214829 0.356715185 -1.544944539e-06 0.002113673341 -0.0002087337678" />
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="left_proximal_closure" site1="left_proximal_a" site2="left_proximal_b" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <connect name="left_distal_closure" site1="left_distal_a" site2="left_distal_b" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <connect name="left_gas_closure" site1="left_gas_end" site2="left_gas_mount" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <joint name="left_drive_hip_chain" joint1="left_drive_hip_spin" joint2="left_hip" polycoef="0 1 0 0 0" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <joint name="left_drive_input_chain" joint1="left_drive_input_spin" joint2="left_crank" polycoef="0 1 0 0 0" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <connect name="right_proximal_closure" site1="right_proximal_a" site2="right_proximal_b" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <connect name="right_distal_closure" site1="right_distal_a" site2="right_distal_b" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <connect name="right_gas_closure" site1="right_gas_end" site2="right_gas_mount" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <joint name="right_drive_hip_chain" joint1="right_drive_hip_spin" joint2="right_hip" polycoef="0 1 0 0 0" solref=".0011 1" solimp=".9999 .99999 .0001" />
+    <joint name="right_drive_input_chain" joint1="right_drive_input_spin" joint2="right_crank" polycoef="0 1 0 0 0" solref=".0011 1" solimp=".9999 .99999 .0001" />
+  </equality>
+  <tendon>
+    <fixed name="left_input_difference" limited="true" range="-.60 .60" solreflimit=".006 1">
+      <joint joint="left_crank" coef="1" />
+      <joint joint="left_hip" coef="-1" />
+    </fixed>
+    <fixed name="right_input_difference" limited="true" range="-.60 .60" solreflimit=".006 1">
+      <joint joint="right_crank" coef="1" />
+      <joint joint="right_hip" coef="-1" />
+    </fixed>
+  </tendon>
+  <actuator>
+    <motor name="left_hip_motor" joint="left_hip" gear="1" ctrllimited="true" ctrlrange="-25 25" forcelimited="true" forcerange="-25 25" />
+    <motor name="left_crank_motor" joint="left_crank" gear="1" ctrllimited="true" ctrlrange="-25 25" forcelimited="true" forcerange="-25 25" />
+    <motor name="left_wheel_spin_motor" joint="left_wheel_spin" gear="1" ctrllimited="true" ctrlrange="-6 6" forcelimited="true" forcerange="-6 6" />
+    <motor name="right_hip_motor" joint="right_hip" gear="1" ctrllimited="true" ctrlrange="-25 25" forcelimited="true" forcerange="-25 25" />
+    <motor name="right_crank_motor" joint="right_crank" gear="1" ctrllimited="true" ctrlrange="-25 25" forcelimited="true" forcerange="-25 25" />
+    <motor name="right_wheel_spin_motor" joint="right_wheel_spin" gear="1" ctrllimited="true" ctrlrange="-6 6" forcelimited="true" forcerange="-6 6" />
+  </actuator>
+  <contact>
+    <exclude body1="left_thigh" body2="left_input" />
+    <exclude body1="left_thigh" body2="left_coupler" />
+    <exclude body1="left_thigh" body2="left_rocker" />
+    <exclude body1="left_thigh" body2="left_distal" />
+    <exclude body1="left_thigh" body2="left_shin" />
+    <exclude body1="left_input" body2="left_coupler" />
+    <exclude body1="left_input" body2="left_rocker" />
+    <exclude body1="left_input" body2="left_distal" />
+    <exclude body1="left_input" body2="left_shin" />
+    <exclude body1="left_coupler" body2="left_rocker" />
+    <exclude body1="left_coupler" body2="left_distal" />
+    <exclude body1="left_coupler" body2="left_shin" />
+    <exclude body1="left_rocker" body2="left_distal" />
+    <exclude body1="left_rocker" body2="left_shin" />
+    <exclude body1="left_distal" body2="left_shin" />
+    <exclude body1="right_thigh" body2="right_input" />
+    <exclude body1="right_thigh" body2="right_coupler" />
+    <exclude body1="right_thigh" body2="right_rocker" />
+    <exclude body1="right_thigh" body2="right_distal" />
+    <exclude body1="right_thigh" body2="right_shin" />
+    <exclude body1="right_input" body2="right_coupler" />
+    <exclude body1="right_input" body2="right_rocker" />
+    <exclude body1="right_input" body2="right_distal" />
+    <exclude body1="right_input" body2="right_shin" />
+    <exclude body1="right_coupler" body2="right_rocker" />
+    <exclude body1="right_coupler" body2="right_distal" />
+    <exclude body1="right_coupler" body2="right_shin" />
+    <exclude body1="right_rocker" body2="right_distal" />
+    <exclude body1="right_rocker" body2="right_shin" />
+    <exclude body1="right_distal" body2="right_shin" />
+  </contact>
+  <sensor>
+    <framequat name="base_orientation" objtype="site" objname="imu" />
+    <gyro name="base_gyro" site="imu" />
+    <accelerometer name="base_acceleration" site="imu" />
+    <velocimeter name="base_local_velocity" site="imu" />
+    <jointpos name="left_hip_pos" joint="left_hip" />
+    <jointvel name="left_hip_vel" joint="left_hip" />
+    <jointpos name="left_crank_pos" joint="left_crank" />
+    <jointvel name="left_crank_vel" joint="left_crank" />
+    <jointpos name="left_knee_pos" joint="left_knee" />
+    <jointvel name="left_knee_vel" joint="left_knee" />
+    <jointpos name="left_wheel_spin_pos" joint="left_wheel_spin" />
+    <jointvel name="left_wheel_spin_vel" joint="left_wheel_spin" />
+    <jointpos name="right_hip_pos" joint="right_hip" />
+    <jointvel name="right_hip_vel" joint="right_hip" />
+    <jointpos name="right_crank_pos" joint="right_crank" />
+    <jointvel name="right_crank_vel" joint="right_crank" />
+    <jointpos name="right_knee_pos" joint="right_knee" />
+    <jointvel name="right_knee_vel" joint="right_knee" />
+    <jointpos name="right_wheel_spin_pos" joint="right_wheel_spin" />
+    <jointvel name="right_wheel_spin_vel" joint="right_wheel_spin" />
+  </sensor>
+</mujoco>

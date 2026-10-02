@@ -1,0 +1,65 @@
+--- mod4/train_mod4_ppo.py.bak_pre_seqencoder
++++ mod4/train_mod4_ppo.py
+@@ -56,6 +56,13 @@
+ # std ~1.0 for 100 iterations while episodes lasted 11-15 steps (the mjlab run of the same plant
+ # sits at std 0.05 / 23-89 steps).  Override with RM_INIT_STD.
+ RM_INIT_STD = float(os.environ.get("RM_INIT_STD", "0.3"))
++# 2026-09-29 PPO 对齐华南虎 agents/rsl_rl_ppo_cfg.py：std 1.0 / [512,256,128] /
++# value_loss 2.0 / adaptive LR(KL 0.01)。全部可由 RM_* 覆盖，默认值与旧行为一致。
++RM_HIDDEN_DIMS = [int(x) for x in os.environ.get("RM_HIDDEN_DIMS", "256,128,64").split(",")]
++RM_VALUE_LOSS_COEF = float(os.environ.get("RM_VALUE_LOSS_COEF", "1.0"))
++RM_SCHEDULE = os.environ.get("RM_SCHEDULE", "fixed")
++RM_ENTROPY_COEF = float(os.environ.get("RM_ENTROPY_COEF", "0.005"))
++RM_DESIRED_KL = float(os.environ.get("RM_DESIRED_KL", "0.01"))
+ launcher = AppLauncher(args)
+ app = launcher.app
+ 
+@@ -65,8 +72,8 @@
+ import torch  # noqa: E402
+ from isaaclab.envs import ManagerBasedRLEnv  # noqa: E402
+ from isaaclab_rl.rsl_rl import (  # noqa: E402
+-    RslRlMLPModelCfg, RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg,
+-    RslRlPpoAlgorithmCfg, RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)
++    RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg,
++    RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)
+ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+ 
+ from mod4_env import Mod4Env  # noqa: E402
+@@ -139,19 +146,6 @@
+     return env
+ 
+ 
+-# v2 item 1: actor history + latent encoder (see isaac/mod4/mod4_sequence_model.py).
+-# RM_SEQ_ENCODER=1 turns it on; the actor model then consumes history*35 inputs and
+-# feeds [newest frame | latent] to its MLP.  The critic always stays a plain MLP over
+-# the privileged observation set.
+-SEQ_ENCODER = os.environ.get("RM_SEQ_ENCODER", "0").strip() == "1"
+-SEQ_HISTORY = int(os.environ.get("RM_SEQ_HISTORY", "5")) if SEQ_ENCODER else 0
+-SEQ_LATENT = int(os.environ.get("RM_SEQ_LATENT", "3"))
+-SEQ_ENCODER_HIDDEN = [int(v) for v in
+-                      os.environ.get("RM_SEQ_ENCODER_HIDDEN", "128,64").split(",")]
+-SEQ_ACTOR_CLASS = ("mod4_sequence_model:LatentEncoderModel" if SEQ_ENCODER
+-                   else "MLPModel")
+-
+-
+ def runner_config() -> RslRlOnPolicyRunnerCfg:
+     return RslRlOnPolicyRunnerCfg(
+         seed=args.seed,
+@@ -166,12 +160,12 @@
+         clip_actions=6.0,
+         check_for_nan=True,
+         policy=RslRlPpoActorCriticCfg(
+-            init_noise_std=RM_INIT_STD, actor_hidden_dims=[256, 128, 64],
+-            critic_hidden_dims=[256, 128, 64], activation="elu"),
++            init_noise_std=RM_INIT_STD, actor_hidden_dims=RM_HIDDEN_DIMS,
++            critic_hidden_dims=RM_HIDDEN_DIMS, activation="elu"),
+         algorithm=RslRlPpoAlgorithmCfg(
+-            value_loss_coef=1.0, use_clipped_value_loss=True, clip_param=0.2,
+-            entropy_coef=0.005, num_learning_epochs=5, num_mini_batches=4,
+-            learning_rate=args.learning_rate, schedule="fixed", gamma=0.99,
++            value_loss_coef=RM_VALUE_LOSS_COEF, use_clipped_value_loss=True, clip_param=0.2,
++            entropy_coef=RM_ENTROPY_COEF, num_learning_epochs=5, num_mini_batches=4,
++            learning_rate=args.learning_rate, schedule=RM_SCHEDULE, gamma=0.99,
+             lam=0.95, desired_kl=0.01, max_grad_norm=1.0),
+     )
+ 

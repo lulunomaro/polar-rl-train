@@ -1,0 +1,857 @@
+--- mod4/mod4_task.py.bak_pre_launchready
++++ mod4/mod4_task.py
+@@ -99,11 +99,7 @@
+               next((p for p in _ASSET_CANDIDATES if (p / "robot.usd").is_file()),
+                    _ASSET_CANDIDATES[0]))
+ MOD4 = MOD4_ISAAC.parent
+-# 2026-09-12: RM_MOD4_USD may point at a FILE, not only at a directory holding
+-# `robot.usd`.  Derived assets (idler friction / tyre compliance) live next to the
+-# delivered one, so the directory-only reading made every A/B a silent no-op.
+-USD_FILE = (Path(_ENV_USD).resolve() if _ENV_USD else (MOD4_ISAAC / "robot.usd"))
+-USD_PATH = str(USD_FILE)
++USD_PATH = str(MOD4_ISAAC / "robot.usd")
+ CONTRACT = json.loads((MOD4_ISAAC / "import_contract.json").read_text(encoding="utf8"))
+ DELIVERY_CONTRACT = json.loads(
+     (ROOT / "train" / "deploy" / "contract_rm2025_later.json").read_text(encoding="utf8"))
+@@ -120,21 +116,10 @@
+ PASSIVE_JOINTS = [n for n in CONTRACT["joints"]
+                   if n not in ACTUATED + GAS_JOINTS]
+ 
+-# 2026-09-13 controller knobs: the verified MuJoCo tunnel test uses KP=320 /
+-# KD=10 / KI=90 on the leg position loop.  Delivered defaults keep the old behaviour.
+-LEG_KP = float(os.environ.get("RM_LEG_KP", str(DELIVERY_CONTRACT["leg_kp"])))  # 60.0
+-LEG_KD = float(os.environ.get("RM_LEG_KD", str(DELIVERY_CONTRACT["leg_kd"])))  # 2.0
+-LEG_KI = float(os.environ.get("RM_LEG_KI", "0"))              # 0 = pure PD (delivered)
+-LEG_KI_CLIP = float(os.environ.get("RM_LEG_KI_CLIP", "0.35"))  # rad of error integral
++LEG_KP = float(DELIVERY_CONTRACT["leg_kp"])                  # 60.0
++LEG_KD = float(DELIVERY_CONTRACT["leg_kd"])                  # 2.0
+ WHEEL_KD = float(DELIVERY_CONTRACT["wheel_kd"])              # 0.6
+-# 2026-09-13: the crouch needs crank -0.595844 rad, which a 0.5 rad/unit action cannot
+-# reach (tanh output is bounded by 1.0).  Both channels are runtime knobs now.
+-LEG_ACTION_SCALE = float(os.environ.get("RM_LEG_ACTION_SCALE",
+-                                       str(DELIVERY_CONTRACT["leg_action_scale"])))  # 0.5 rad
+-CRANK_ACTION_SCALE = float(os.environ.get("RM_CRANK_ACTION_SCALE",
+-                                         str(LEG_ACTION_SCALE)))
+-LEG_SCALE_DICT = {"left_hip": LEG_ACTION_SCALE, "right_hip": LEG_ACTION_SCALE,
+-                  "left_crank": CRANK_ACTION_SCALE, "right_crank": CRANK_ACTION_SCALE}
++LEG_ACTION_SCALE = float(DELIVERY_CONTRACT["leg_action_scale"])      # 0.5 rad
+ WHEEL_ACTION_SCALE = float(DELIVERY_CONTRACT["wheel_action_scale"])  # 10.0 rad/s
+ LEG_EFFORT = float(CONTRACT["leg_motor"]["peak_torque_nm"])          # 40.0
+ LEG_STALL = float(DELIVERY_CONTRACT["leg_voltage_line_intercept"])   # 53.3333
+@@ -157,11 +142,7 @@
+ # and the delay-line reset was skipped with them (ghost samples from the previous episode).
+ DR_OFF = os.environ.get("RM_DR_OFF", "").strip() == "1"
+ 
+-# v2 (2026-09-12): +/-10% torque, matching the reference's logged training runs
+-# (their live source is +/-5%; the 47 run snapshots are +/-10%).  Their torque DR is a
+-# motor-strength multiplier applied before a fixed URDF clip, which is what
+-# resample_effort_scale does here.
+-EFFORT_LEG = (_f("RM_EFFORT_LEG_MIN", 0.90), _f("RM_EFFORT_LEG_MAX", 1.10))
++EFFORT_LEG = (_f("RM_EFFORT_LEG_MIN", 0.75), _f("RM_EFFORT_LEG_MAX", 1.25))
+ EFFORT_WHEEL = (_f("RM_EFFORT_WHEEL_MIN", 0.90), _f("RM_EFFORT_WHEEL_MAX", 1.10))
+ EFFORT_NOISE = 0.0 if DR_OFF else _f("RM_EFFORT_NOISE", 0.03)
+ EFFORT_NOISE_WHEEL = 0.0 if DR_OFF else _f("RM_EFFORT_NOISE_WHEEL", 0.02)
+@@ -173,17 +154,86 @@
+ OBS_DELAY_MAX = 0 if DR_OFF else int(_f("RM_OBS_DELAY_MAX_LAG", 2))
+ ACTION_DELAY_MIN = 0 if DR_OFF else int(_f("RM_ACTION_DELAY_MIN_LAG", 0))
+ ACTION_DELAY_MAX = 0 if DR_OFF else int(_f("RM_ACTION_DELAY_MAX_LAG", 2))
+-# v2 (2026-09-12): sub-control-step action delay, in MILLISECONDS.  The reference
+-# realizes [0,10] ms as an integer FIFO of SIM steps (5 ms) advanced inside the
+-# decimation loop; our physics step is 0.5 ms, so the same idea gives 0-5 ms exactly.
+-# 0 disables ms-mode and leaves the control-step queue above as the only delay.
+-ACTION_DELAY_MS_MIN = 0.0 if DR_OFF else _f("RM_ACTION_DELAY_MS_MIN", 0.0)
+-ACTION_DELAY_MS_MAX = 0.0 if DR_OFF else _f("RM_ACTION_DELAY_MS_MAX", 5.0)
+-_ACTION_DELAY_SUBSTEPS = min(
+-    int(round(ACTION_DELAY_MS_MAX / (PHYSICS_DT * 1000.0))), max(0, DECIMATION - 1))
+ DELAY_HOLD_PROB = _f("RM_OBS_DELAY_HOLD_PROB", 0.75)
+ DELAY_PERIOD = int(_f("RM_OBS_DELAY_UPDATE_PERIOD", 10))
+ HEIGHT_RANGE = (_f("RM_HEIGHT_MIN", 0.18), _f("RM_HEIGHT_MAX", 0.34))
++# Dense penalty for sitting below the commanded height on flat ground (2026-09-28).
++# The Gaussian height reward alone let the policy drift down until the 0.10 m low_base
++# cut-off: half the episodes ended by sinking with attitude intact.  This term makes
++# every centimetre below the command cost something, every step.
++W_HEIGHT_DEFICIT = _f("RM_W_HEIGHT_DEFICIT", -12.0)
++# Symmetric linear height-tracking weight (2026-09-28): the Gaussian kernel is flat beyond
++# ~6 cm, so a policy standing 9-12 cm off receives essentially no gradient.
++W_HEIGHT_LINEAR = _f("RM_W_HEIGHT_LINEAR", -1.0)
++# SCUT-style height kernels: one wide (sigma 0.02) + one tight (sigma 0.005).
++HEIGHT_SIGMA = _f("RM_HEIGHT_SIGMA", 0.02)
++HEIGHT_TIGHT_SIGMA = _f("RM_HEIGHT_TIGHT_SIGMA", 0.005)
++W_HEIGHT_TIGHT = _f("RM_W_HEIGHT_TIGHT", 0.5)
++# Flat-orientation weight (2026-09-28): measured tilt 9-11 deg against an 8 deg gate.
++W_FLAT_ORIENT = _f("RM_W_FLAT_ORIENT", -1.5)
++# ---- 2026-09-28 SCUT 对齐（证据与推导见 docs/MOD4_REWARD_FIX_SCUT_PARITY_20260928.md）----
++# 平地策略收敛成"站着不动"（探针：指令 0.30/0.60/1.00 m/s -> 实际速度 0.00），原因有三：
++#   1. 速度项只有 exp 宽核（std 0.7071），不动也能拿 1.38/2.0；
++#   2. 角速度项权重 5.0 而 wz 指令恒为 0 -> 站着白拿 ~5.0；
++#   3. 指令下限 0.0，等于允许"站着"这个答案。
++# 华南虎自己的平地任务：exp 核之外再挂一个平方误差罚，且指令下限 0.30（从不命令站立）。
++# 下面三个旋钮把结构补齐；默认值保持原行为，只有显式打开才变。
++W_TRACK_ANG = _f("RM_W_TRACK_ANG", 5.0)              # SCUT 平地走路 run 用 1.0
++W_RUN_VEL_ERROR = _f("RM_W_RUN_VEL_ERROR", 0.0)      # SCUT 平地走路 run 用 -1.0（稠密 (m/s)^2）
++W_HEIGHT_L2 = _f("RM_W_HEIGHT_L2", 0.0)              # SCUT track_height_square = -1.0（双向）
++HEIGHT_L2_CLAMP = _f("RM_HEIGHT_L2_CLAMP", 0.15)     # SCUT height_err_constraint = 0.15 m
++# ---- 2026-09-28 华南虎门控 + 双轮接地高度项（出处：华南虎官方仓库 wheelbipe25_v3）----------
++# 病灶：四件套之后策略学会"趴/蹦着把速度做满"（探针 model_1850：0.6/1.0 m/s 档车高只有
++# 0.096/0.120 m，1.0 档双轮接地 23%，导轮接触 0% —— 低空蹦跳，不是滚）。
++# 华南虎同一问题的两件工具：
++#   1) vel_height_gate —— 高度没跟住时把速度/角速度奖励（含误差罚）整体乘 0~1 的门控；
++#      原文注释 "避免 policy 为了追速度牺牲高度"（linear_band: ±5cm=1, ≥10cm=0）。
++#   2) track_height_exp_both_wheels_contact（权重 0.3）—— 高度奖励只在双轮同时接地时发放。
++VEL_HEIGHT_GATE_MODE = os.environ.get("RM_VEL_HEIGHT_GATE", "off").strip().lower()
++VEL_HEIGHT_GATE_FULL = _f("RM_VEL_HEIGHT_GATE_FULL", 0.05)
++VEL_HEIGHT_GATE_ZERO = _f("RM_VEL_HEIGHT_GATE_ZERO", 0.10)
++VEL_HEIGHT_GATE_SIGMA = _f("RM_VEL_HEIGHT_GATE_SIGMA", HEIGHT_SIGMA)
++W_HEIGHT_BOTH_WHEELS = _f("RM_W_HEIGHT_BOTH_WHEELS", 0.0)
++# ---- 2026-09-29 全面对齐华南虎 wheelbipe25_v3 平地任务（出处：refs/wheeled-legged_RL-main）----
++# 25_v3 平地奖励表（env_cfg.py rewards OrderedDict + env.py 公式，sigma 见 cfg）：
++#   track_lin_vel_xy +1.0(σ0.25) / _tight +0.2(σ0.01) / _huge_gap -1.0(err²>0.5) / _square -1.0((0.25err)²)
++#   track_ang_vel_z +0.5(σ0.25) / _square -1.0((0.25err)²)
++#   track_height_exp +0.7(σ0.01) / _tight +0.3(σ0.001) / _both_wheels +0.3(σ0.1) / _square -1.0((5err)²)
++#   lin_vel_z -0.5 / ang_vel_xy -0.05 / action_rate -0.01 / action_smoothness -0.05
++#   joint_torque -1e-5 / wheel_power -1e-4 / flat_orientation_* -1.0 / no_fork -1.0 / no_fork_z -2.0
++#   ** 没有 alive / 没有 termination 罚 / 没有 wheel_contact **
++SCUT_LIN_W = _f("RM_SCUT_LIN_W", 1.0)
++SCUT_LIN_SIGMA = _f("RM_SCUT_LIN_SIGMA", 0.25)
++SCUT_LIN_TIGHT_W = _f("RM_SCUT_LIN_TIGHT_W", 0.2)
++SCUT_LIN_TIGHT_SIGMA = _f("RM_SCUT_LIN_TIGHT_SIGMA", 0.01)
++SCUT_LIN_GAP_W = _f("RM_SCUT_LIN_GAP_W", -1.0)
++SCUT_LIN_GAP = _f("RM_SCUT_LIN_GAP", 0.5)
++SCUT_LIN_SQ_W = _f("RM_SCUT_LIN_SQ_W", -1.0)
++SCUT_LIN_SQ_SIGMA = _f("RM_SCUT_LIN_SQ_SIGMA", 0.25)
++SCUT_ANG_W = _f("RM_SCUT_ANG_W", 0.5)
++SCUT_ANG_SIGMA = _f("RM_SCUT_ANG_SIGMA", 0.25)
++SCUT_ANG_SQ_W = _f("RM_SCUT_ANG_SQ_W", -1.0)
++SCUT_ANG_SQ_SIGMA = _f("RM_SCUT_ANG_SQ_SIGMA", 0.25)
++SCUT_H_W = _f("RM_SCUT_H_W", 0.7)
++SCUT_H_SIGMA = _f("RM_SCUT_H_SIGMA", 0.01)
++SCUT_H_TIGHT_W = _f("RM_SCUT_H_TIGHT_W", 0.3)
++SCUT_H_TIGHT_SIGMA = _f("RM_SCUT_H_TIGHT_SIGMA", 0.001)
++SCUT_H_SOFT_SIGMA = _f("RM_SCUT_H_SOFT_SIGMA", 0.1)
++SCUT_H_SQ_W = _f("RM_SCUT_H_SQ_W", -1.0)
++SCUT_H_SQ_SIGMA = _f("RM_SCUT_H_SQ_SIGMA", 5.0)
++SCUT_ALIVE_W = _f("RM_SCUT_ALIVE_W", 0.0)          # 华南虎平地：没有 alive
++SCUT_TERM_W = _f("RM_SCUT_TERM_W", 0.0)            # 华南虎平地：没有 termination 罚
++SCUT_WHEEL_CONTACT_W = _f("RM_SCUT_WHEEL_CONTACT_W", 0.0)
++SCUT_ORIENT_W = _f("RM_SCUT_ORIENT_W", -1.0)
++SCUT_LINVELZ_W = _f("RM_SCUT_LINVELZ_W", -0.5)
++SCUT_ACTION_RATE_W = _f("RM_SCUT_ACTION_RATE_W", -0.01)
++SCUT_ACTION_ACC_W = _f("RM_SCUT_ACTION_ACC_W", -0.05)
++SCUT_TORQUE_W = _f("RM_SCUT_TORQUE_W", -1.0e-5)
++SCUT_POWER_W = _f("RM_SCUT_POWER_W", -1.0e-4)
++SCUT_BASE_CONTACT_W = _f("RM_SCUT_BASE_CONTACT_W", -2.0)
++RANDOM_START = os.environ.get("RM_RANDOM_START", "0").strip() not in ("", "0", "off")
++RANDOM_START_LEG = _f("RM_RANDOM_START_LEG", 0.25)
++RANDOM_START_WHEEL_VEL = _f("RM_RANDOM_START_WHEEL_VEL", 25.0)
+ CMD_VX = (_f("RM_CMD_VX_MIN", -1.5), _f("RM_CMD_VX_MAX", 2.8))
+ # 小陀螺 target is 2 rev/s = 12.57 rad/s; the window is opened further by the gyro_window
+ # curriculum below, starting at +/-2 rad/s.
+@@ -209,12 +259,6 @@
+         # ActuatorBase keeps the environment count and device private.
+         self.episode_scale = torch.ones(self._num_envs, 1, device=self._device)
+         self.step_scale = torch.ones(self._num_envs, 1, device=self._device)
+-        # integral action of the leg position loop (see migration/linux/patch_leg_pi.py)
+-        self.integral_gain = float(getattr(cfg, "integral_gain", 0.0))
+-        self.integral_clip = float(getattr(cfg, "integral_clip", 0.35))
+-        self._integral = torch.zeros(self._num_envs, self.num_joints,
+-                                     device=self._device)
+-        self._physics_dt = float(CONTRACT["physics_dt_s"])
+ 
+     def _ids(self, env_ids):
+         # The event manager calls step/reset terms with env_ids=None for "all environments";
+@@ -240,27 +284,10 @@
+         scaled = super()._clip_effort(effort) * self.episode_scale * self.step_scale
+         return scaled
+ 
+-    def compute(self, control_action, joint_pos, joint_vel):
+-        """PD effort from the base class + an integral term (verified MuJoCo controller)."""
+-        out = super().compute(control_action, joint_pos, joint_vel)
+-        if self.integral_gain > 0.0 and control_action.joint_positions is not None:
+-            err = control_action.joint_positions - joint_pos
+-            self._integral = (self._integral + err * self._physics_dt).clamp(
+-                -self.integral_clip, self.integral_clip)
+-            out.joint_efforts = self._clip_effort(
+-                out.joint_efforts + self.integral_gain * self._integral)
+-        return out
+-
+-    def reset_integral(self, env_ids=None) -> None:
+-        ids = self._ids(env_ids)
+-        self._integral[ids] = 0.0
+-
+ 
+ @configclass
+ class Mod4DCMotorCfg(DCMotorCfg):
+     class_type: type = Mod4DCMotor
+-    integral_gain: float = 0.0     # N m / rad of accumulated position error
+-    integral_clip: float = 0.35    # rad; caps the integral torque at gain*clip
+ 
+ 
+ # --- mass / inertia randomization ------------------------------------------------------
+@@ -357,7 +384,6 @@
+         soft_joint_pos_limit_factor=1.0,
+         actuators={
+             "legs": Mod4DCMotorCfg(
+-                integral_gain=LEG_KI, integral_clip=LEG_KI_CLIP,
+                 joint_names_expr=LEG_ORDER, effort_limit=LEG_EFFORT,
+                 velocity_limit=LEG_NO_LOAD, saturation_effort=LEG_STALL,
+                 stiffness=LEG_KP, damping=leg_damping, armature=leg_armature,
+@@ -526,19 +552,175 @@
+ 
+ 
+ def height_track(env, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+-                 std: float = 0.06) -> torch.Tensor:
+-    """Exponential height-tracking reward against the live height command."""
++                 sigma: float = 0.02) -> torch.Tensor:
++    """Exponential height-tracking reward against the live height command.
++
++    2026-09-28: aligned with SCUT (`exp(-err^2 / sigma)`, sigma 0.005/0.01/0.025) after
++    measuring that our old `exp(-(err/0.06)^2)` was flat beyond ~6 cm -- the probe showed the
++    policy wandering 6-12 cm off the command with almost no gradient to correct it.
++    """
+     robot = env.scene[asset_cfg.name]
+     target = height_cmd(env)[:, 0]
+     # audit item 6: height is measured from the LOCAL terrain, not from world z=0 -- on the
+     # dog-hole floor (-0.156 m) or the central island an absolute height reward is meaningless.
+     ground = getattr(env, "_mod4_ground_z", None)
+     z = robot.data.root_pos_w[:, 2] if ground is None else robot.data.root_pos_w[:, 2] - ground
+-    value = torch.exp(-torch.square(z - target) / std ** 2)
++    value = torch.exp(-torch.square(z - target) / sigma)
+     # audit item 7: hold the last grounded value while a jump route is in the air.  Without
+     # this the term pays 0.000 for the whole flight (the command window is 0.18-0.34 m), which
+     # is one of the three reasons standing still out-scored jumping.
+     return skills.jump_freeze_height(env, value)
++
++
++def flat_height_deficit(env) -> torch.Tensor:
++    """Dense low-height cost on flat ground: clamp(command - root_height, 0, 0.25).
++
++    Applied on every flat sample (standing and moving); returns zero on field/arena terrain
++    where the height command is route-driven and the local ground height varies.
++    """
++    if TERRAIN != "flat":
++        return torch.zeros(env.num_envs, device=env.device)
++    deficit = (height_cmd(env)[:, 0] - root_height_above_ground(env)).clamp(0.0, 0.25)
++    return deficit
++
++
++def flat_height_error_l1(env) -> torch.Tensor:
++    """Symmetric linear height error on flat ground: |command - root_height|, clamped 0.25 m.
++
++    Unlike the Gaussian height reward this keeps a constant slope for large errors, and unlike
++    the one-sided deficit it also charges the robot for standing too tall.
++    """
++    if TERRAIN != "flat":
++        return torch.zeros(env.num_envs, device=env.device)
++    return (height_cmd(env)[:, 0] - root_height_above_ground(env)).abs().clamp(0.0, 0.25)
++
++
++def flat_height_error_l2(env) -> torch.Tensor:
++    """Two-sided squared height error, normalised to 1.0 at +-HEIGHT_L2_CLAMP (SCUT parity).
++
++    2026-09-28 probe on model_1750: with 0.6 / 1.0 m/s commands the chassis sat at 0.39 / 0.45 m
++    against a 0.245 m command while pumping +-6.5 cm (height std) -- the one-sided deficit term
++    cannot charge that at all, and the L1 term saturates at 0.25 m (worth only -0.25 with
++    weight -1.0).  SCUT's `track_height_square` (-1.0) is the two-sided term that makes
++    "pump the legs, fly the body" unprofitable; the clamp mirrors their height_err_constraint
++    of 0.15 m so the penalty is bounded and does not swamp the reward near a fall.
++    """
++    if TERRAIN != "flat":
++        return torch.zeros(env.num_envs, device=env.device)
++    err = (height_cmd(env)[:, 0] - root_height_above_ground(env)).clamp(-HEIGHT_L2_CLAMP, HEIGHT_L2_CLAMP)
++    return (err / HEIGHT_L2_CLAMP).square()
++
++
++def vel_height_gate(env) -> torch.Tensor:
++    """SCUT `vel_height_gate`: 1.0 while the commanded height is tracked, 0 when it is not.
++
++    出处：华南虎官方仓库 `wheeled-legged_RL / wheelbipe25_v3/env.py`，源码注释
++    "速度高度门控：高度没跟住时降低速度/角速度 tracking 奖励，避免 policy 为了追速度牺牲高度"。
++    linear_band 模式与该仓库一致：|err| <= FULL 时为 1，线性衰减到 ZERO 处为 0；
++    exp 模式为 exp(-err^2/sigma)。`RM_VEL_HEIGHT_GATE=off`（默认）时不改变任何行为。
++    """
++    mode = VEL_HEIGHT_GATE_MODE
++    if mode in ("", "off", "0", "none"):
++        return torch.ones(env.num_envs, device=env.device)
++    err = (height_cmd(env)[:, 0] - root_height_above_ground(env)).abs()
++    if mode == "exp":
++        return torch.exp(-torch.square(err) / max(VEL_HEIGHT_GATE_SIGMA, 1.0e-6))
++    band = VEL_HEIGHT_GATE_ZERO - VEL_HEIGHT_GATE_FULL
++    if band <= 0.0:
++        return (err <= VEL_HEIGHT_GATE_FULL).float()
++    return ((VEL_HEIGHT_GATE_ZERO - err) / band).clamp(0.0, 1.0)
++
++
++def track_lin_vel_gated(env, command_name: str = "twist",
++                        std: float = 0.7071067811865476) -> torch.Tensor:
++    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)
++
++
++def track_ang_vel_gated(env, command_name: str = "twist",
++                        std: float = 1.4142135623730951) -> torch.Tensor:
++    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)
++
++
++def run_velocity_error_gated(env, command_name: str = "twist") -> torch.Tensor:
++    return skills.run_velocity_error_l2(env, command_name=command_name) * vel_height_gate(env)
++
++
++def height_track_both_wheels(env, sigma: float = HEIGHT_SIGMA,
++                             sensor_cfg: SceneEntityCfg = SceneEntityCfg("wheel_contact"),
++                             threshold: float = 1.0) -> torch.Tensor:
++    """SCUT `track_height_exp_both_wheels_contact`: height credit only with both wheels loaded.
++
++    出处：华南虎官方仓库 wheelbipe25_v3（`rew_track_height_exp_both_wheels_contact =
++    rew_track_height_exp_soft * both_wheels_contact`，权重 0.3）。低空蹦跳时双轮同时接地比例
++    很低（我们 model_1850 在 1.0 m/s 档只有 23%），这一项让"蹦"拿不到高度分。
++    """
++    value = height_track(env, sigma=sigma)
++    f = env.scene.sensors[sensor_cfg.name].data.net_forces_w
++    if hasattr(f, "torch"):
++        f = f.torch
++    both = (f.norm(dim=-1) > threshold).all(dim=1).float()
++    return value * both
++
++
++def _lin_vel_err_xy(env, command_name: str = "twist") -> torch.Tensor:
++    cmd = env.command_manager.get_command(command_name)[:, :2]
++    return cmd - env.scene["robot"].data.root_lin_vel_b[:, :2]
++
++
++def track_lin_vel_huge_gap(env, command_name: str = "twist", gap: float = 0.5) -> torch.Tensor:
++    """SCUT `track_lin_vel_xy_huge_gap`: err^2 超阈值就 0/1 硬罚（权重 -1.0），不打门控。"""
++    return (_lin_vel_err_xy(env, command_name).square().sum(dim=1) > gap).float()
++
++
++def track_lin_vel_square(env, command_name: str = "twist", sigma: float = 0.25) -> torch.Tensor:
++    """SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2，权重 -1.0。"""
++    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()
++
++
++def track_ang_vel_square(env, command_name: str = "twist", sigma: float = 0.25) -> torch.Tensor:
++    cmd = env.command_manager.get_command(command_name)
++    err = cmd[:, 2] - env.scene["robot"].data.root_ang_vel_b[:, 2]
++    return (sigma * err).square()
++
++
++def track_lin_vel_square_gated(env, command_name: str = "twist", sigma: float = 0.25) -> torch.Tensor:
++    return track_lin_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)
++
++
++def track_ang_vel_square_gated(env, command_name: str = "twist", sigma: float = 0.25) -> torch.Tensor:
++    return track_ang_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)
++
++
++def height_square_scut(env, sigma: float = 5.0) -> torch.Tensor:
++    """SCUT `track_height_square`: (sigma * Δh)^2（双向，未归一化），权重 -1.0。"""
++    if TERRAIN != "flat":
++        return torch.zeros(env.num_envs, device=env.device)
++    err = height_cmd(env)[:, 0] - root_height_above_ground(env)
++    return (sigma * err).square()
++
++
++def randomize_leg_start(env, env_ids,
++                        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> None:
++    """SCUT `use_leg_random_start`: 复位时把腿关节位姿随机化（防止锁死单一站姿）。"""
++    if not RANDOM_START:
++        return
++    robot = env.scene[asset_cfg.name]
++    ids, _ = robot.find_joints(LEG_ORDER, preserve_order=True)
++    pos = robot.data.joint_pos[env_ids][:, ids].clone()
++    pos = pos + torch.empty_like(pos).uniform_(-RANDOM_START_LEG, RANDOM_START_LEG)
++    robot.write_joint_state_to_sim(pos, torch.zeros_like(pos), ids, env_ids)
++
++
++def randomize_wheel_vel(env, env_ids,
++                        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> None:
++    """SCUT `use_joint_vel_random_start` 的轮速部分：复位时给轮子一个随机初速度。"""
++    if not RANDOM_START:
++        return
++    robot = env.scene[asset_cfg.name]
++    ids, _ = robot.find_joints(WHEEL_ORDER, preserve_order=True)
++    vel = torch.empty((len(env_ids), len(ids)), device=env.device).uniform_(
++        -RANDOM_START_WHEEL_VEL, RANDOM_START_WHEEL_VEL)
++    robot.write_joint_velocity_to_sim(vel, ids, env_ids)
+ 
+ 
+ # --- closed-chain runtime gate ------------------------------------------------------
+@@ -727,16 +909,8 @@
+         self._hold_prob, self._period = float(hold_prob), max(1, int(period))
+         self._lag = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+         self._age = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+-        if _ACTION_DELAY_SUBSTEPS > 0:
+-            # v2 ms-mode supersedes the control-step queue: their sum would be a double
+-            # delay.  Set RM_ACTION_DELAY_MS_MAX=0 to get the old mechanism back.
+-            self._min_lag = self._max_lag = 0
+         self._hist = torch.zeros(self._max_lag + 1, self.num_envs, self.action_dim,
+                                  device=self.device)
+-        # v2: sub-control-step hold state (milliseconds -> physics substeps)
+-        self._sub_k = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+-        self._prev_target = None
+-        self._sub = 0
+         self._resample_lag(torch.arange(self.num_envs, device=self.device))
+ 
+     def _resample_lag(self, env_ids) -> None:
+@@ -744,11 +918,6 @@
+         self._lag[env_ids] = torch.randint(self._min_lag, self._max_lag + 1, (n,),
+                                            device=self.device)
+         self._age[env_ids] = 0
+-        if _ACTION_DELAY_SUBSTEPS > 0:
+-            _lo = int(round(ACTION_DELAY_MS_MIN / (PHYSICS_DT * 1000.0)))
+-            self._sub_k[env_ids] = torch.randint(
+-                min(_lo, _ACTION_DELAY_SUBSTEPS), _ACTION_DELAY_SUBSTEPS + 1, (n,),
+-                device=self.device)
+ 
+     def reset(self, env_ids=None):
+         super().reset(env_ids)
+@@ -758,17 +927,8 @@
+         # P0-3 (audit 2026-09-11): drop the previous episode's actions from the delay
+         # line, otherwise the first steps of a new episode replay them.
+         self._hist[:, env_ids] = 0.0
+-        # v2: the substep hold must not carry across an episode either.
+-        self._sub = 0
+-        self._prev_target = None
+ 
+     def process_actions(self, actions: torch.Tensor):
+-        # v2: `_processed_actions` still holds the PREVIOUS control step's target at
+-        # this point (the subclass diff-clamp mutates it in place), so snapshot it for
+-        # the substep hold and restart the substep counter.
+-        if _ACTION_DELAY_SUBSTEPS > 0:
+-            self._prev_target = self._processed_actions.clone()
+-            self._sub = 0
+         if self._max_lag <= 0:
+             # audit item 8: no action delay configured (RM_DR_OFF=1) -> bypass the queue.
+             super().process_actions(actions)
+@@ -787,28 +947,6 @@
+         idx = self._lag.clamp(max=self._hist.shape[0] - 1)
+         delayed_actions = self._hist[idx, torch.arange(self.num_envs, device=self.device)]
+         super().process_actions(delayed_actions)
+-
+-
+-    def apply_actions(self):
+-        """v2: hold the previous target for the first `k` physics substeps of the window.
+-
+-        Called once per physics substep (`manager_based_rl_env.py:214-217`).  `processed_actions`
+-        is a read-only property over `_processed_actions` (`action_manager.py:87`,
+-        `joint_actions.py:128`), so the old target is swapped in through the backing field and
+-        restored immediately afterwards.
+-        """
+-        if _ACTION_DELAY_SUBSTEPS <= 0 or self._prev_target is None:
+-            super().apply_actions()
+-            return
+-        cur = self._processed_actions
+-        hold = (self._sub < self._sub_k).unsqueeze(-1)
+-        if bool(hold.any()):
+-            self._processed_actions = torch.where(hold, self._prev_target, cur)
+-            super().apply_actions()
+-            self._processed_actions = cur
+-        else:
+-            super().apply_actions()
+-        self._sub += 1
+ 
+ 
+ class DelayedJointPositionAction(_DelayMixin, mdp_actions.JointPositionAction):
+@@ -1000,14 +1138,12 @@
+     guide_contact = ContactSensorCfg(
+         # The eight rollers were reparented into their own fixed body (`guide_rollers`) by
+         # tools/add_guide_roller_body.py so a ContactSensor can report them (goal §2).
+-        prim_path="{ENV_REGEX_NS}/Robot/links/guide_roller_[0-9]+", update_period=0.0,
+-        # 2026-09-13: the eight idlers are now separate passive-jointed bodies
+-        # (incoming/mod4_rolling_20260913); the old single-body path matched nothing.
++        prim_path="{ENV_REGEX_NS}/Robot/links/guide_roller_.*", update_period=0.0,
+         history_length=3, track_air_time=False, debug_vis=False)
+     # Wheel contact is what tells the flight-jump rewards apart from "standing still": both
+     # wheels off the ground is the only definition of airborne we use.
+     wheel_contact = ContactSensorCfg(
+-        prim_path="{ENV_REGEX_NS}/Robot/links/.*wheel", update_period=0.0,
++        prim_path="{ENV_REGEX_NS}/Robot/links/(left|right)_wheel", update_period=0.0,
+         history_length=3, track_air_time=False, debug_vis=False)
+ 
+     if TERRAIN == "field" and MAP_MODE != "rmuc2026":
+@@ -1085,13 +1221,6 @@
+         def __post_init__(self):
+             self.enable_corruption = True
+             self.concatenate_terms = True
+-            # v2 item 1: the ACTOR sees a 5-frame history (35 -> 175) which the
+-            # encoder in isaac/mod4/mod4_sequence_model.py compresses to a 3-D latent.
+-            # Group-level history_length overrides every term in the group, and
+-            # flatten_history_dim defaults to True; the newest frame ends up LAST
+-            # (CircularBuffer.buffer: "most recent entry at the end").
+-            # The critic group is intentionally left without history.
+-            self.history_length = SEQ_HISTORY if SEQ_HISTORY > 0 else None
+ 
+     @configclass
+     class CriticCfg(ObsGroup):
+@@ -1135,7 +1264,7 @@
+     """6-D policy action: four leg position targets, then two wheel velocity targets."""
+ 
+     legs = DelayedJointPositionActionCfg(
+-        asset_name="robot", joint_names=LEG_ORDER, scale=LEG_SCALE_DICT,
++        asset_name="robot", joint_names=LEG_ORDER, scale=LEG_ACTION_SCALE,
+         use_default_offset=True, preserve_order=True)
+     wheels = DelayedJointVelocityActionCfg(
+         asset_name="robot", joint_names=WHEEL_ORDER, scale=WHEEL_ACTION_SCALE,
+@@ -1144,16 +1273,22 @@
+ 
+ @configclass
+ class CommandsCfg:
++    """速度指令：对齐华南虎平地任务（航向指令 50%、重采样 1–8 s、10% 站立环境）。"""
++
+     twist = mdp_commands.UniformVelocityCommandCfg(
+         asset_name="robot",
+-        resampling_time_range=(4.0, 8.0),
+-        heading_command=False,
+-        rel_standing_envs=0.05,
+-        rel_heading_envs=0.0,
++        resampling_time_range=(1.0, 8.0),
++        heading_command=bool(int(os.environ.get("RM_HEADING_CMD", "1"))),
++        heading_control_stiffness=float(os.environ.get("RM_HEADING_STIFFNESS", "1.0")),
++        rel_standing_envs=float(os.environ.get("RM_REL_STANDING", "0.1")),
++        rel_heading_envs=float(os.environ.get("RM_REL_HEADING", "0.5")),
+         debug_vis=False,
+         ranges=mdp_commands.UniformVelocityCommandCfg.Ranges(
+-            lin_vel_x=CMD_VX, lin_vel_y=(0.0, 0.0), ang_vel_z=CMD_WZ,
+-            heading=(0.0, 0.0)),
++            lin_vel_x=(_f("RM_CMD_VX_MIN", -1.2), _f("RM_CMD_VX_MAX", 1.2)),
++            lin_vel_y=(0.0, 0.0),
++            ang_vel_z=(0.0, 0.0),
++            heading=(-math.pi, math.pi),
++        ),
+     )
+ 
+ 
+@@ -1198,110 +1333,6 @@
+     print("[arena] friction set on %d material prims (%.2f/%.2f)" % (n, static, dynamic), flush=True)
+ 
+ 
+-def _roller_materials(env, prim_filter: str = "guide_wheel_"):
+-    """Materials actually bound (for physics) to the roller colliders, de-duplicated."""
+-    from pxr import UsdPhysics, UsdShade
+-    stage = env.sim.stage
+-    out = {}
+-    for prim in stage.Traverse():
+-        path = prim.GetPath().pathString
+-        if prim_filter not in path:
+-            continue
+-        if not (prim.HasAPI(UsdPhysics.CollisionAPI) or prim.HasAPI("PhysicsCollisionAPI")):
+-            continue
+-        # 2026-09-12: ComputeBoundMaterial() raises in the installed pxr build
+-        # ("not enough values to unpack (expected 3, got 2)"), which is why the roller friction
+-        # patch reported "on 0 material(s)" and never touched a contact.  Read the binding
+-        # relationship directly; the delivered USD stores material:binding:physics.
+-        mat = None
+-        for _rel_name in ("material:binding:physics", "material:binding"):
+-            _rel = prim.GetRelationship(_rel_name)
+-            if not _rel:
+-                continue
+-            for _tgt in _rel.GetTargets():
+-                _cand = UsdShade.Material(stage.GetPrimAtPath(_tgt))
+-                if _cand and _cand.GetPrim().IsValid():
+-                    mat = _cand
+-                    break
+-            if mat is not None:
+-                break
+-        if mat is None:
+-            try:
+-                mat, _rel, _prim = UsdShade.MaterialBindingAPI(prim).ComputeBoundMaterial("physics")
+-            except Exception:
+-                mat = None
+-        if mat and mat.GetPrim().IsValid():
+-            out[str(mat.GetPath())] = mat
+-    return out
+-
+-
+-def set_guide_roller_friction(env, env_ids=None, friction: float = 0.02,
+-                              prim_filter: str = "guide_wheel_", combine: str = "min") -> None:
+-    """One-shot: make the eight guide rollers behave like free-spinning idlers (goal 2).
+-
+-    2026-09-12: the rollers ship at 0.15 friction against a 0.9 floor, and PhysX averages the
+-    pair to ~0.525 -- 3.5x the intended value.  The delivered crouch rests on those rollers with
+-    the drive tyres ~0.9 mm in the air, so that average is what decides whether the dog-hole
+-    route can be entered at all (measured: a 0.60 m/s entry stops in 31 mm, 18/18 tunnel
+-    episodes time out 0.35 m before the mouth).  Idler wheels roll, so the pair must use the
+-    roller's own friction: set the value and force `frictionCombineMode = min`.
+-    """
+-    from pxr import PhysxSchema, Sdf
+-    mats = _roller_materials(env, prim_filter)
+-    n = 0
+-    for _path, mat in mats.items():
+-        prim = mat.GetPrim()
+-        try:
+-            api = PhysxSchema.PhysxMaterialAPI.Apply(prim)
+-            api.CreateFrictionCombineModeAttr(combine)
+-        except Exception as exc:                       # pragma: no cover - optional schema
+-            print("[guide] combine-mode set failed: %r" % (exc,), flush=True)
+-        for attr, val in (("physics:staticFriction", float(friction)),
+-                          ("physics:dynamicFriction", float(friction))):
+-            a = prim.GetAttribute(attr)
+-            if not a:
+-                a = prim.CreateAttribute(attr, Sdf.ValueTypeNames.Float)
+-            a.Set(float(val))
+-        n += 1
+-    env._mod4_guide_materials = n
+-    print("[guide] roller friction -> %.4f (combine=%s) on %d material(s) matching '%s'"
+-          % (friction, combine, n, prim_filter), flush=True)
+-    if n == 0:
+-        print("[guide] WARNING: no roller material found -- friction unchanged", flush=True)
+-
+-
+-def set_tyre_deflection(env, env_ids=None, add_m: float = 0.0,
+-                        prim_filter: str = "_tire") -> None:
+-    """Optional: grow the tyre colliders by `add_m` so the drive wheel reaches the floor in the
+-    delivered crouch (measured gap 0.9 mm).  OFF unless RM_TIRE_ADD_MM is exported."""
+-    from pxr import Gf, Usd, UsdGeom
+-    if add_m <= 0.0:
+-        return
+-    stage = env.sim.stage
+-    scaled = {}
+-    for prim in stage.Traverse():
+-        path = prim.GetPath().pathString
+-        if prim_filter not in path or not prim.HasAPI("PhysicsCollisionAPI"):
+-            continue
+-        r = prim.GetAttribute("radius")
+-        radius = float(r.Get()) if r and r.Get() is not None else None
+-        if not radius:
+-            continue
+-        s = (radius + float(add_m)) / radius
+-        xf = UsdGeom.Xformable(prim)
+-        op = None
+-        for o in xf.GetOrderedXformOps():
+-            if o.GetOpType() == UsdGeom.XformOp.TypeScale:
+-                op = o
+-        if op is None:
+-            op = xf.AddScaleOp()
+-        op.Set(Gf.Vec3f(s, s, 1.0))
+-        scaled[path] = round(s, 4)
+-    env._mod4_tyre_scaled = scaled
+-    print("[guide] tyre deflection +%.4f m applied to %d collider(s)" % (add_m, len(scaled)),
+-          flush=True)
+-
+-
+ def ground_height(env) -> torch.Tensor:
+     """[N] height of the terrain directly under each robot (audit item 6).
+ 
+@@ -1411,6 +1442,10 @@
+     """SCUT randomization list, term for term (see the module docstring)."""
+ 
+     reset_scene = EventTerm(func=mdp_events.reset_scene_to_default, mode="reset")
++    # 2026-09-29 华南虎 `use_leg_random_start` / `use_joint_vel_random_start`：
++    # 复位时随机腿姿与轮速，防止策略锁死在单一姿态（站着/趴着）。
++    randomize_leg_start = EventTerm(func=randomize_leg_start, mode="reset")
++    randomize_wheel_vel = EventTerm(func=randomize_wheel_vel, mode="reset")
+     # audit item 8: the delay-line reset has to run in BOTH stages.  It used to sit inside the
+     # `if not DR_OFF` block, so the nominal stage kept replaying the previous episode's samples
+     # (a "ghost observation" on the first steps after every reset).
+@@ -1461,10 +1496,7 @@
+             params={"asset_cfg": SceneEntityCfg("robot",
+                                                 joint_names=LEG_ORDER + WHEEL_ORDER),
+                     "stiffness_distribution_params": (0.9, 1.1),
+-                    # v2: was (0.8, 1.2) = +/-20%; the user asked for +/-10% and the
+-                    # reference's logged runs randomise Kp and Kd with the SAME +/-10%
+-                    # (drawn independently, per env x joint).
+-                    "damping_distribution_params": (0.9, 1.1),
++                    "damping_distribution_params": (0.8, 1.2),
+                     "operation": "scale", "distribution": "uniform"})
+         leg_joint_params = EventTerm(
+             func=mdp_events.randomize_joint_parameters, mode="reset",
+@@ -1586,78 +1618,56 @@
+                     "undulation_entry": FIELD_INFO.get("undulation_entry")})
+ 
+ 
+-# --- v2 (2026-09-12): per-term reward clipping + unified tracking sigma ---------------------
+-# Reference: clamp `raw * weight` to +/-clip_single_reward (see the module docstring of
+-# migration/linux/patch_reward_clip_and_sigma.py).  Their plane config uses 1, jump uses 2.5.
+-REWARD_CLIP = float(os.environ.get("RM_REWARD_CLIP", "2.5"))
+-REWARD_CLIP_MODE = os.environ.get("RM_REWARD_CLIP_MODE", "safe").strip().lower()
+-REWARD_CLIP_REPORT = []          # [("clip"|"skip", [(term_name, weight), ...]), ...]
+-# tracking sigma: reference `exp(-err^2/sigma)`, sigma 0.25 <=> Isaac `exp(-(err/std)^2)`, std 0.5.
+-# Previous values were std 0.7071 (lin) / 1.4142 (ang).  NB the comment further down warns about
+-# Isaac's stock *std* 0.25 -- that is a std, not this sigma; 0.5 is the reference's effective std.
+-TRACK_SIGMA = float(os.environ.get("RM_TRACK_SIGMA", "0.5"))
+-
+-
+-def _clip_reward_term(fn, weight, clip):
+-    """Return `clamp(fn(env, **kw) * weight, +/-clip) / weight` (manager re-applies weight*dt)."""
+-    def _wrapped(env, **kwargs):
+-        return torch.clamp(fn(env, **kwargs) * weight, -clip, clip) / weight
+-    return _wrapped
+-
+-
+ @configclass
+ class RewardsCfg:
+-    # Kernel widths and weights copied from the team's validated mjlab config (rmvehicle
+-    # env_cfgs: track_lin_vel std 0.7071 w 2.0, track_ang_vel std 1.4142 w 2.5).  Isaac's
+-    # stock std=0.25 makes both rewards identically zero once the command exceeds what the
+-    # robot can hold, which is exactly the bootstrap the flat run needs.
+-    track_lin_vel = RewTerm(func=mdp_rewards.track_lin_vel_xy_exp, weight=2.0,
+-                            params={"command_name": "twist", "std": TRACK_SIGMA})
+-    # 2026-09-11 16:35: with the window parked at +-4.5 rad/s the policy still held only ~1.4,
+-    # because yaw tracking is worth ~2-5% of the total reward (alive 1.0 + height 1.0 +
+-    # track_lin_vel 2.0 + wheel_contact 0.8 dominate).  Weight raised so the spin is worth
+-    # sacrificing some of the rest while the gyro curriculum is active.
+-    # 16:35 raised this to 5.0 so the spin would matter, but it then dominated every OTHER
+-    # route too (measured 20:52: 4.30 of 7.15 positive reward on the straight run route, where
+-    # the yaw command is ~0).  The kernel is now scaled per route inside skills_isaac.
+-    track_ang_vel = RewTerm(func=skills.track_ang_vel_route_scaled, weight=5.0,
+-                            params={"command_name": "twist", "std": TRACK_SIGMA})
+-    height = RewTerm(func=height_track, weight=1.0, params={"std": 0.06})
+-    # audit item 7: the flat penalty on vertical speed is one of the three terms that made
+-    # standing cheaper than jumping.  The exempt version is identical outside a jump route.
+-    lin_vel_z = RewTerm(func=skills.lin_vel_z_l2_jump_exempt, weight=-0.6)
+-    # audit item 7: the "stay stable" family is what a crouch-and-release pays for.  The
+-    # exempt variants are byte-for-byte the stock terms outside a jump attempt.
++    # ================= 2026-09-29 华南虎平地配方（逐条对齐，出处见模块常量注释） =========
++    # 速度跟踪：exp(σ0.25) + tight(σ0.01) + huge_gap 硬罚 + square 罚；exp/soft/square 走门控
++    track_lin_vel = RewTerm(func=track_lin_vel_gated, weight=SCUT_LIN_W,
++                            params={"command_name": "twist", "std": SCUT_LIN_SIGMA})
++    track_lin_vel_tight = RewTerm(func=track_lin_vel_gated, weight=SCUT_LIN_TIGHT_W,
++                                  params={"command_name": "twist", "std": SCUT_LIN_TIGHT_SIGMA})
++    track_lin_vel_huge_gap = RewTerm(func=track_lin_vel_huge_gap, weight=SCUT_LIN_GAP_W,
++                                     params={"command_name": "twist", "gap": SCUT_LIN_GAP})
++    track_lin_vel_square = RewTerm(func=track_lin_vel_square_gated, weight=SCUT_LIN_SQ_W,
++                                   params={"command_name": "twist", "sigma": SCUT_LIN_SQ_SIGMA})
++    run_velocity_error = RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)
++    # 角速度跟踪：exp(σ0.25, w0.5) + square 罚（航向指令由 command 项生成）
++    track_ang_vel = RewTerm(func=track_ang_vel_gated, weight=SCUT_ANG_W,
++                            params={"command_name": "twist", "std": SCUT_ANG_SIGMA})
++    track_ang_vel_square = RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W,
++                                   params={"command_name": "twist", "sigma": SCUT_ANG_SQ_SIGMA})
++    # 高度：exp(σ0.01,w0.7) + tight(σ0.001,w0.3) + both_wheels(σ0.1,w0.3) + square((5Δh)²,w−1)
++    height = RewTerm(func=height_track, weight=SCUT_H_W, params={"sigma": SCUT_H_SIGMA})
++    height_tight = RewTerm(func=height_track, weight=SCUT_H_TIGHT_W,
++                           params={"sigma": SCUT_H_TIGHT_SIGMA})
++    height_both_wheels = RewTerm(func=height_track_both_wheels, weight=W_HEIGHT_BOTH_WHEELS,
++                                 params={"sigma": SCUT_H_SOFT_SIGMA})
++    height_square = RewTerm(func=height_square_scut, weight=SCUT_H_SQ_W,
++                            params={"sigma": SCUT_H_SQ_SIGMA})
++    # 平滑/约束（取华南虎平地表的数值）
++    lin_vel_z = RewTerm(func=skills.lin_vel_z_l2_jump_exempt, weight=SCUT_LINVELZ_W)
+     ang_vel_xy = RewTerm(func=skills.ang_vel_xy_jump_exempt, weight=-0.05)
+-    flat_orientation = RewTerm(func=skills.flat_orientation_jump_exempt, weight=-1.5)
+-    action_rate = RewTerm(func=skills.action_rate_jump_exempt, weight=-0.1)
+-    # MOTOR joints only: the stock term also squares the gas-spring drive force (~720 N each)
+-    # and that made the penalty -21.9/step -- see skills_isaac.joint_torques_l2_motors.
+-    torques = RewTerm(func=skills.joint_torques_l2_motors, weight=-2.0e-5,
++    flat_orientation = RewTerm(func=skills.flat_orientation_jump_exempt, weight=SCUT_ORIENT_W)
++    action_rate = RewTerm(func=skills.action_rate_jump_exempt, weight=SCUT_ACTION_RATE_W)
++    action_acc = RewTerm(func=skills.action_acc_l2, weight=SCUT_ACTION_ACC_W)
++    torques = RewTerm(func=skills.joint_torques_l2_motors, weight=SCUT_TORQUE_W,
+                       params={"joint_names": LEG_ORDER + WHEEL_ORDER})
+-    # --- SCUT / rmvehicle suite, ported 2026-09-11.  mjlab documented that without the
+-    # action_l2 + termination pair the per-step return of an untrained policy is negative,
+-    # so "die fast" beats learning to stand (env_cfgs.py note, 2026-09-10; the same
+-    # signature -- episode length 64 -> 43 -> 23, bad_orientation 99% -- appeared in our
+-    # Isaac runs on 2026-09-11).  `wheel_contact` is the matching positive term: keep the
+-    # wheels on the ground.
+-    action_l2_leg = RewTerm(func=skills.action_l2_jump_exempt, weight=-0.1,
+-                            params={"action_slice": (0, 4)})
+-    action_l2_wheel = RewTerm(func=skills.action_l2, weight=-0.02,
+-                              params={"action_slice": (4, 6)})
+-    action_acc = RewTerm(func=skills.action_acc_l2, weight=-0.02)
+-    wheel_contact = RewTerm(func=skills.wheel_contact_fraction_jump_exempt, weight=0.8,
+-                            params={"sensor_cfg": SceneEntityCfg("wheel_contact")})
++    joint_power = RewTerm(func=skills.joint_power_motors, weight=SCUT_POWER_W,
++                          params={"joint_names": LEG_ORDER + WHEEL_ORDER})
++    dof_pos_limits = RewTerm(func=mdp_rewards.joint_pos_limits, weight=-5.0)
++    # 我们没有华南虎的 no_fork 几何，用既有的腿对称项顶上（同为 −0.2 量级）
+     leg_symmetry = RewTerm(func=skills.leg_symmetry, weight=-0.2,
+                            params={"leg_joint_names": LEG_ORDER})
+-    joint_power = RewTerm(func=skills.joint_power_motors, weight=-2.0e-4,
+-                            params={"joint_names": LEG_ORDER + WHEEL_ORDER})
+-    dof_pos_limits = RewTerm(func=mdp_rewards.joint_pos_limits, weight=-5.0)
+-    termination = RewTerm(func=skills.is_terminated, weight=-20.0)
+-    alive = RewTerm(func=mdp_rewards.is_alive, weight=1.0)
+-    base_contact = RewTerm(
+-        func=skills.chassis_ground_penalty, weight=-10.0,
+-        params={"sensor_cfg": SceneEntityCfg("chassis_contact"), "threshold": 50.0})
++    # 华南虎平地：无 alive、无 termination 罚、无 wheel_contact；贴地算 undesired_contact(−2)
++    alive = RewTerm(func=mdp_rewards.is_alive, weight=SCUT_ALIVE_W)
++    termination = RewTerm(func=skills.is_terminated, weight=SCUT_TERM_W)
++    wheel_contact = RewTerm(func=skills.wheel_contact_fraction_jump_exempt, weight=SCUT_WHEEL_CONTACT_W,
++                            params={"sensor_cfg": SceneEntityCfg("wheel_contact")})
++    base_contact = RewTerm(func=skills.chassis_ground_penalty, weight=SCUT_BASE_CONTACT_W,
++                           params={"sensor_cfg": SceneEntityCfg("chassis_contact"), "threshold": 50.0})
++    # 旧的"防下沉"三件套对齐后关闭（华南虎改用 height_square 双向罚）
++    height_deficit = RewTerm(func=flat_height_deficit, weight=W_HEIGHT_DEFICIT)
++    height_error_l1 = RewTerm(func=flat_height_error_l1, weight=W_HEIGHT_LINEAR)
+ 
+     # --- skills: 小陀螺 / 过洞 / 飞坡 --------------------------------------------------
+     # Ported from train/rmvehicle/src/rmvehicle/mdp/skills.py; see skills_isaac.py.  Only
+@@ -1676,10 +1686,6 @@
+         # term's 6 cm kernel let the first fixed-plant run enter 66 mm too tall and jam at the
+         # mouth (probe_tunnel_traj.py).
+         tunnel_height = RewTerm(func=skills.tunnel_height_track, weight=1.5)
+-        tunnel_height = RewTerm(func=skills.tunnel_height_track, weight=1.5)
+-        # verified crouch pose (hip/crank) inside the crouch zones; weight 0 by default
+-        crouch_pose = RewTerm(func=skills.tunnel_crouch_pose,
+-                              weight=float(os.environ.get("RM_CROUCH_POSE_W", "1.0")))
+         # ... and a small penalty for standing still inside the crouch zones, so "hold the
+         # crouch and time out" stops being an optimum (measured 2026-09-12).
+         tunnel_stall = RewTerm(func=skills.tunnel_stall, weight=1.0)
+@@ -1725,35 +1731,6 @@
+             params={"max_tilt_deg": 30.0})
+ 
+ 
+-
+-    def __post_init__(self):
+-        """v2 item 3: clamp every eligible term so one term cannot dominate the return.
+-
+-        `safe` (default) clips only terms with |weight| <= REWARD_CLIP.  A term with a larger
+-        |weight| saturates immediately, and `route_success` -- whose func rescales by 1/dt on
+-        purpose -- would drop from 20 to 0.025 on the success step.  Skipped terms are recorded
+-        in REWARD_CLIP_REPORT so the launcher can print them as acceptance evidence.
+-        """
+-        clipped, skipped = [], []
+-        if REWARD_CLIP_MODE != "off" and REWARD_CLIP > 0.0:
+-            for _name in sorted(vars(self)):
+-                _term = getattr(self, _name)
+-                if not isinstance(_term, RewTerm) or float(_term.weight) == 0.0:
+-                    continue
+-                _w = float(_term.weight)
+-                if REWARD_CLIP_MODE == "safe" and abs(_w) > REWARD_CLIP:
+-                    skipped.append((_name, _w))
+-                    continue
+-                _term.func = _clip_reward_term(_term.func, _w, REWARD_CLIP)
+-                clipped.append((_name, _w))
+-        REWARD_CLIP_REPORT[:] = [("mode", REWARD_CLIP_MODE), ("clip", REWARD_CLIP),
+-                                 ("clipped", clipped), ("skipped", skipped)]
+-        print("[reward-clip] mode=%s clip=%.2f clipped=%d skipped=%d"
+-              % (REWARD_CLIP_MODE, REWARD_CLIP, len(clipped), len(skipped)), flush=True)
+-        for _n, _w in skipped:
+-            print("[reward-clip]   SKIPPED (|weight| %.3g > %.3g): %s" % (_w, REWARD_CLIP, _n),
+-                  flush=True)
+-
+ @configclass
+ class TerminationsCfg:
+     time_out = DoneTerm(func=mdp_term.time_out, time_out=True)
+@@ -1772,7 +1749,12 @@
+     mimic = DoneTerm(func=mimic_broken, params={"threshold": 0.05})
+     # audit item 5/6: relative to the LOCAL floor -- the dog-hole floor is 0.156 m below the
+     # highway, so an absolute 0.10 m gate terminated a robot standing correctly inside it.
+-    low_base = DoneTerm(func=low_base_relative, params={"minimum_height": 0.10})
++    # 2026-09-28: low_base used to END the episode below 0.10 m.  Combined with the new dense
++    # height-deficit penalty that made "sink until the episode ends" the cheapest way to stop
++    # paying it (measured: low_base 56% -> 78%, episodes 1400 -> 650).  The penalty must be
++    # inescapable, so the term is disabled here (threshold unreachable) and the robot keeps
++    # paying the deficit until it stands back up or the episode times out.
++    low_base = DoneTerm(func=low_base_relative, params={"minimum_height": -1.0})
+     if MAP_MODE == "rmuc2026":
+         # The delivered hole is 247.2 mm; if the CAD skin would be 2 mm inside the roof the
+         # real robot has already crashed, so the episode ends (same geometry as the reward).
+@@ -1839,8 +1821,7 @@
+         "policy_action_order": ACTION_ORDER,
+         "policy_hz": POLICY_HZ, "physics_dt": PHYSICS_DT, "decimation": DECIMATION,
+         "leg_kp": LEG_KP, "leg_kd": LEG_KD, "wheel_kd": WHEEL_KD,
+-        "leg_action_scale": LEG_ACTION_SCALE, "crank_action_scale": CRANK_ACTION_SCALE,
+-        "wheel_action_scale": WHEEL_ACTION_SCALE,
++        "leg_action_scale": LEG_ACTION_SCALE, "wheel_action_scale": WHEEL_ACTION_SCALE,
+         "leg_effort": LEG_EFFORT, "leg_stall": LEG_STALL, "leg_no_load": LEG_NO_LOAD,
+         "wheel_effort": WHEEL_EFFORT, "wheel_stall": WHEEL_STALL,
+         "wheel_no_load": WHEEL_NO_LOAD,
+@@ -1848,7 +1829,6 @@
+                          "step_noise": (EFFORT_NOISE, EFFORT_NOISE_WHEEL)},
+         "obs_delay_lag": (OBS_DELAY_MIN, OBS_DELAY_MAX),
+         "action_delay_lag": (ACTION_DELAY_MIN, ACTION_DELAY_MAX),
+-        "action_delay_substeps": (_ACTION_DELAY_SUBSTEPS, ACTION_DELAY_MS_MAX),
+         "height_range": HEIGHT_RANGE, "cmd_vx": CMD_VX, "cmd_wz": CMD_WZ,
+         # audit items 7/8/9: the switches that change the TASK, not just the plant.
+         "map": MAP_MODE or "legacy",

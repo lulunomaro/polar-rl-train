@@ -1,0 +1,68 @@
+D:\claude2\fangzhen\isaac\mod4\train_mod4_ppo.py:6: SyntaxWarning: invalid escape sequence '\S'
+  .venv-isaaclab\Scripts\python.exe isaac\mod4\train_mod4_ppo.py --num_envs 32 --dry_run 200
+[ISAACLAB] AppLauncher initialization complete
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 42
+	Physics step-size     : 0.0005
+	Rendering step-size   : 0.01
+	Environment step-size : 0.01
+[INFO]: libcarb.so unavailable �� Fabric notice suspension disabled (Linux x86_64 only)
+[INFO]: Registered backend 'physx' for factory Articulation.
+[INFO]: Registered backend 'physx' for factory FrameView.
+[INFO]: Registered backend 'physx' for factory ContactSensor.
+[INFO]: Physics scene prim path: /physicsScene
+[INFO]: Time taken for scene creation Last: 0.255415 s, Mean: 0.255415 s, Std: 0.000000 s, N: 1
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 16
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : []
+	Replicate physics     : True
+[INFO]: Time taken for simulation start Last: 0.751972 s, Mean: 0.751972 s, Std: 0.000000 s, N: 1
+[INFO]: SimulationContext cleared
+Traceback (most recent call last):
+  File "D:\claude2\fangzhen\isaac\mod4\train_mod4_ppo.py", line 155, in <module>
+    main()
+  File "D:\claude2\fangzhen\isaac\mod4\train_mod4_ppo.py", line 123, in main
+    env = build_env()
+          ^^^^^^^^^^^
+  File "D:\claude2\fangzhen\isaac\mod4\train_mod4_ppo.py", line 62, in build_env
+    return ManagerBasedRLEnv(cfg=cfg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_rl_env.py", line 88, in __init__
+    super().__init__(cfg=cfg)
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_env.py", line 125, in __init__
+    self._init_sim()
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_env.py", line 219, in _init_sim
+    self.sim.reset()
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/sim/simulation_context.py", line 720, in reset
+    self.physics_manager.reset(soft)
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/physics/physx_manager.py", line 326, in reset
+    cls.raise_callback_exception_if_any()
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/physics/physx_manager.py", line 473, in raise_callback_exception_if_any
+    raise exc
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/physics/physics_manager.py", line 406, in safe_callback_invoke
+    fn(*args)
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/asset_base.py", line 364, in _invoke
+    getattr(obj_ref, callback_name)(event)
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/asset_base.py", line 404, in _initialize_callback
+    self._initialize_impl()
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/assets/articulation/articulation.py", line 3811, in _initialize_impl
+    self._process_actuators_cfg()
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/assets/articulation/articulation.py", line 4053, in _process_actuators_cfg
+    self._create_lab_actuator(actuator_name, actuator_cfg)
+  File "d:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_physx/isaaclab_physx/assets/articulation/articulation.py", line 4110, in _create_lab_actuator
+    actuator: ActuatorBase = actuator_cfg.class_type(
+                             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\isaac\mod4\mod4_task.py", line 138, in __init__
+    self.episode_scale = torch.ones(self.num_envs, 1, device=self.device)
+                                    ^^^^^^^^^^^^^
+AttributeError: 'Mod4DCMotor' object has no attribute 'num_envs'. Did you mean: '_num_envs'?
+
+Loading user config located at: 'd:/claude2/fangzhen/.venv-isaaclab/lib/site-packages/isaacsim/kit/data/Kit/IsaacLab/3.0/user.config.json'
+2026-09-10T13:59:36Z [0ms] [Warning] [omni.ext.plugin] [ext: isaaclab_visualizers] Extensions config 'extension.toml' doesn't exist 'd:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_visualizers' or 'd:/claude2/fangzhen/third_party/isaaclab-3.0.0-beta2.patch1/source/isaaclab_visualizers/config'
+2026-09-10T13:59:37Z [145ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-10T13:59:40Z [3,568ms] [Warning] [omni.physx.plugin] Detected an articulation at /World/envs/env_0/Robot/links/chassis with more than 4 velocity iterations being added to a TGS scene.The related behavior changed recently, please consult the changelog. This warning will only print once.
+2026-09-10T13:59:40Z [3,852ms] [Warning] [usdrt.population.plugin] Last global time was not created. Did you call setEnableUsdNoticeHandling?
+2026-09-10T13:59:41Z [4,191ms] [Warning] [omni.usd] Unexpected reference count of 2 for UsdStage 'anon:0000023600E19120:World0.usd' while being closed in UsdContext (this may indicate it is still resident in memory).

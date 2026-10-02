@@ -1,0 +1,68 @@
+{
+  "project": "MOD4 native flat-floor repair after confirmed contact artifact",
+  "date": "2026-09-30",
+  "read_first": "FINDINGS.md",
+  "source_task_read_only": "/home/egde/rl_candidates/MOD4_contact_integrated_repair_20260930",
+  "training_state": "finished; original budget expired; no new training started",
+  "automation_mod4_10": "deleted after final evaluation",
+  "warm_start": {
+    "checkpoint": "/home/egde/rl_candidates/MOD4_contact_integrated_repair_20260930/logs/2026-09-30_10-45-56_scut_straight_1.5m_repair/model_8648.pt",
+    "sha256": "343c56615e7ee6708a6a6a8057cb30877f5ea83d9a2249e079a991db522196d2",
+    "restore": ["actor", "critic", "optimizer", "std", "iteration"]
+  },
+  "confirmed": [
+    "model8350 seed20260927 env14 failure reproduced exactly at14.83s",
+    "Unfiltered raw contacts identify the ground as the5.0685s downward-force partner",
+    "Floor-only200m box and native Plane counterfactuals both remove the reproduced failure",
+    "80env15s native-plane probes complete with frozen8350 and latest8648 weights",
+    "No production source, robot USD, reward weights, actuator or spring changes in diagnosis",
+    "Patch applies and parses in an inactive copy; Windows CRLF normalized safely"
+  ],
+  "not_yet_verified": [
+    "Native plane20000env runtime/memory/PPO preflight",
+    "More seeds and longer rollouts on repaired floor",
+    "2m/s constant and abrupt commands plus braking robustness",
+    "Calibrated300-700N force-stroke DR",
+    "V14 Rough v1/v0 terrain adaptation",
+    "Contact-manifold slip metric"
+  ],
+  "sequence": [
+    {
+      "id": 1,
+      "task": "Prepare a separate complete inactive task copy, preserving immutable asset references and all old checkpoints. Audit copied absolute paths. Do not run an old one-time handover supervisor.",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "task": "Apply apply_native_floor_fix.py --task-root <new copied task>. It refuses original task and mismatched source hashes. Verify native Plane collider atz0, friction.9/.9, robot/action/closure/spring mapping unchanged.",
+      "status": "candidate implemented and isolated runtime verified; not deployed to production"
+    },
+    {
+      "id": 3,
+      "task": "20000env short physics/contact/memory preflight without PPO; raw ground normals must point upward while loaded. Distinguish legitimate small penetrations from false underside contacts. Preserve substep unloading/load/impulse and geometry/slip diagnostics.",
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "task": "Obtain a new explicit training-time budget before PPO. Within that budget do a short full-checkpoint PPO preflight, then restore original8648 weights, discarding preflight weights. Continue20000env24steps solver16/4 root.25m +/-1.5m/s10%stand DRoff. Create a bounded fresh supervisor and fresh status/TUI target.",
+      "status": "pending user training budget; do not silently extend old deadline"
+    },
+    {
+      "id": 5,
+      "task": "Same-seed and multiseed longer deterministic speed/brake/height/tilt/action/closure tests, per-environment worst values. Keep legacy endpoint, eager5ms and integrated mean gates separate. Do not claim graduation by changing contact statistics.",
+      "status": "15s two frozen checkpoints complete; longer/multiseed pending"
+    },
+    {
+      "id": 6,
+      "task": "Once physical stability is demonstrated, resume documented SCUT speed curriculum to2m/s, then verified mild DR and V14 Rough v1. Keep actual hardware spring force-stroke calibration distinct from upstream240N constant-force model.",
+      "status": "pending"
+    }
+  ],
+  "do_not_deploy": [
+    "200m box to20000env: coverage inadequate",
+    "Post-shock35rad/s wheel cap: removes overspeed but leaves large tilt",
+    "Filtered-force zero results as evidence of no contact",
+    "Blind increase of motor effort, spring, solver iterations or reward penalties",
+    "From-scratch retraining or overwrite of old policies"
+  ]
+}

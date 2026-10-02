@@ -1,0 +1,78 @@
+{
+  "active_root": "/home/egde/rl_candidates/MOD4_scut_speed_repair10h_20260930",
+  "deadline_epoch": 1790750033.1554604,
+  "restart_warning": "supervise_repair.main has one-shot adoption; do not blindly rerun; inspect live pids and newest full checkpoint first",
+  "tasks": [
+    {
+      "id": "budget",
+      "state": "done",
+      "evidence": "budget_extension_20260930.json",
+      "description": "Additional 36000s; deadline 2026-09-30 14:33:53 Beijing"
+    },
+    {
+      "id": "straight_course",
+      "state": "deployed",
+      "evidence": "REPAIR_READY.json",
+      "description": "Explicitly disable gyro curriculum; assert runtime yaw zero; resume6050"
+    },
+    {
+      "id": "nominal_1p5",
+      "state": "training",
+      "description": "Continue same checkpoint lineage, paired hourly evaluations; no reset on single fluctuation"
+    },
+    {
+      "id": "contact_true_mesh",
+      "state": "done",
+      "evidence": "reports/contact_actual_mesh_5925.json",
+      "description": "2kHz actual mesh support, impulses, unloading, approximate slip"
+    },
+    {
+      "id": "contact_mesh_ab",
+      "state": "completed_not_deployed",
+      "evidence": "reports/wheel_mesh_ab_comparison.json",
+      "description": "Same frozen5925 seed,5s twoenv/group,32facets did not consistently improve contact; do not deploy"
+    },
+    {
+      "id": "contact_leg_hold",
+      "state": "completed_not_deployed",
+      "evidence": "reports/leg_hold_comparison.json",
+      "description": "Same5925 seed5s,hold leg target after1s,physics pass but1.5contact did not improve and some height oscillations grew; do not freeze production legs"
+    },
+    {
+      "id": "speed2",
+      "state": "gated",
+      "description": "Two consecutive1.5 passes plus2m extrapolation safety; supervisor save-boundary promotion"
+    },
+    {
+      "id": "mild_dr",
+      "state": "not_deployed",
+      "description": "Mass+inertia and motor scale readback, friction shape/material audit, paired>=2seeds,20k capacity and2PPO smoke before save-boundary activation; correct scale-vs-clipping metric"
+    },
+    {
+      "id": "spring_dr300_700",
+      "state": "needs_force_stroke_calibration",
+      "description": "Do not equate 3500N/m preload with SCUT240N constant force or calibrated300-700N"
+    },
+    {
+      "id": "rough_v1",
+      "state": "not_implemented_in_current_run",
+      "description": "Adapt SCUT runfield branch terrain, legal closed-loop resets, actions, sensors, curriculum; isolated short acceptance before training"
+    },
+    {
+      "id": "spin_rough_v0",
+      "state": "later_branch",
+      "description": "Dedicated yaw and translation+rotation acceptance; do not confuse previous hidden range with achieved ability"
+    },
+    {
+      "id": "sim2sim",
+      "state": "pending_for_new_policy",
+      "description": "Export with obs/action/timing/actuator contract; deterministic MuJoCo nominal then perturbations"
+    },
+    {
+      "id": "final",
+      "state": "scheduled",
+      "description": "At absolute deadline save stop, final nominal eval and honest report; remove hourly automation after final results"
+    }
+  ],
+  "next_diagnostic": "Correlate 2kHz contact impulse/gap and actual wheel/leg action/torque; single-variable same-policy contact solver or PD A/B only in isolated cfg; no blind topology/spring/reward edits"
+}

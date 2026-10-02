@@ -1,0 +1,51 @@
+{
+  "user_authorization": "2026-10-02 用户授权自主补齐 sim2real DR；更早自主推进课程授权仍有效",
+  "candidate_root": "/home/egde/rl_candidates/MOD4_sim2real_sensor_dr_20261002",
+  "old_production_root_before_receipt": "/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002",
+  "canonical_budget": "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json",
+  "authorized_total_seconds": 180000,
+  "budget_added_this_task": false,
+  "completed": [
+    "独立 actor 传感器噪声、编码器/gyro持久偏置与共享0–10ms感知延迟",
+    "名义样本干净、critic/物理root/q精确不变实际GPU回读",
+    "因果缓存/复位不串回合/独立RNG/单位重力CPU验证",
+    "安全保存交接与同一账本、两规模PPO预检、45分钟试训和回滚监督器实现",
+    "每2小时自动化更新候选/旧生产双root状态与证据要求",
+    "成熟14817两seed sensor off/on站跑/自转配对通过（3份off证据复用）",
+    "15150最新4档配对发现+1.5组75%及25.76度短倾角，安全拒绝，旧生产自动继续",
+    "完整15400 CPU68浮点张量有限且生产源码全部指纹匹配",
+    "原sensor_v1输出精确保持及相同RNG的noise-only/delay-only受控诊断已启动，尚未出结果",
+    "同15150/seed20261002两份15秒消融完成，noise-only64训练样本全过且峰6.283deg，delay-only有29.541deg/20ms卸载严重样本，保留原87.5%组准入true",
+    "15583第二次4档技能与flat通过，原父正在已有多seed复核，暂时无PPO属于正常冻结"
+  ],
+  "pending_until_actual_receipt": [
+    "噪声偏置无延迟档同最新正式策略两seed站跑/当前cap自转配对与实际参数回读；等待已有生产多seed评测，不重复 probe",
+    "选定保守首档后两seed同权重站跑/自转与实际感知参数回读",
+    "最新正式权重新唯一输出复核后安全保存交接、128/20k PPO预检",
+    "45分钟试训及多seed回归，真正部署后替换Rich"
+  ],
+  "receipt_for_production": "reports/SENSOR_PRODUCTION_STARTED.json",
+  "receipt_for_trial_acceptance": "reports/SENSOR_TRIAL_ACCEPTED.json",
+  "entry": "isaac/mod4/supervise_sensor_dr.py",
+  "active_log": "supervisor_sensor_dr_retry1.log",
+  "rerun_rule": "旧sensor一轮接管已因最新4档回归拒绝并恢复旧父；当前只冻结消融。不能盲重跑旧main/复用旧latest4输出/重复结清15150尾段；后续须安全新唯一接管入口和新源冻结。",
+  "next_after_sensor_and_4rad_stable": "优先实际接入低速自转世界净移速0.15→0.3→0.5m/s与显式启停反向；已有数学/SDK候选非训练毕业。保留纯转/站跑，多周期真实净进度验收后再加地形。高速原地与低速边转边移分别验收。",
+  "not_implemented": [
+    "真实动作/总线时间延迟随机化（本档只有传感器延迟）",
+    "实物测量标定后的噪声/延迟范围",
+    "COM/PD/云台质量惯量和反作用适配",
+    "完整Rough地面/closed-chain reset/scan/airborne SDK接入",
+    "实物300–700N气弹簧曲线与DR"
+  ],
+  "certified_sim2real": false,
+  "poll_interval_hours": 2,
+  "healthy_notification": "quiet",
+  "current_production_root": "/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002",
+  "current_candidate_state": "ablations_completed_choose_noise_only_delay_has_29p54deg_outlier",
+  "latest_handoff": "SENSOR_REJECTION_AND_ABLATION_20261003.md",
+  "current_candidate_worker": null,
+  "current_candidate_status": "reports/sensor_ablation_model15150_20261003/status.json",
+  "current_candidate_log": "supervisor_sensor_ablation_20261003.log",
+  "next_selected_profile": "sensor_noise_v1",
+  "delay_admission_warning": "原delay-only admission true是组80%门槛结果，不表示29.54deg样本安全；10ms档单独适应，当前不部署"
+}

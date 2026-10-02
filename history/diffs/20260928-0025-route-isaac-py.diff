@@ -1,0 +1,83 @@
+--- mod4/route_isaac.py.bak_20260928_212138_pre4090
++++ mod4/route_isaac.py
+@@ -266,50 +266,13 @@
+         except Exception as exc:
+             print("[arena] friction patch failed: %r" % (exc,), flush=True)
+         env._mod4_arena_friction_done = True
+-    _gf = os.environ.get("RM_GUIDE_FRICTION", "")
+-    if _gf:
+-        _apply_guide_friction(env)
+     _publish_route_identity(env, rc, env_ids, ids)
+     _reset_jump(env, env_ids)
+     env._mod4_route_ready = True
+ 
+ 
+-def _apply_guide_friction(env) -> None:
+-    """Idempotent, retried version of the guide-roller friction fix (goal 2).
+-
+-    Measured 2026-09-12 18:31 (docs/probe_inertia_fric002.log): the original one-shot ran before
+-    the robot prims existed, matched 0 materials and marked itself done, so RM_GUIDE_FRICTION had
+-    no effect at all.  This runs again from the per-step route event until the roller materials
+-    are really there, and only then stops.
+-    """
+-    if getattr(env, "_mod4_guide_friction_done", False):
+-        return
+-    gf = os.environ.get("RM_GUIDE_FRICTION", "")
+-    if not gf:
+-        return
+-    tries = getattr(env, "_mod4_guide_tries", 0)
+-    env._mod4_guide_tries = tries + 1
+-    if tries % 25 != 0:                      # throttled: the robot may not exist for 1-2 steps
+-        return
+-    try:
+-        import mod4_task
+-        mod4_task.set_guide_roller_friction(env, friction=float(gf))
+-        if getattr(env, "_mod4_guide_materials", 0) <= 0:
+-            return                           # prims not in the stage yet -- keep retrying
+-        _tm = os.environ.get("RM_TIRE_ADD_MM", "")
+-        if _tm:
+-            mod4_task.set_tyre_deflection(env, add_m=float(_tm) / 1000.0)
+-    except Exception as exc:
+-        print("[guide] roller friction patch failed: %r" % (exc,), flush=True)
+-        return
+-    print("[guide] guide-roller friction applied after %d step-event tries" % (tries + 1,),
+-          flush=True)
+-    env._mod4_guide_friction_done = True
+-
+-
+ def route_commands(env, env_ids=None) -> None:
+     """EventTerm (mode='step'): route velocity command + progress/success bookkeeping."""
+-    _apply_guide_friction(env)      # 2026-09-12: retried here, the prims exist by now
+     if not getattr(env, "_mod4_route_ready", False):
+         return
+     rc = route_controller(env)
+@@ -330,15 +293,6 @@
+     cmd = out["command"] if isinstance(out, dict) else out
+     progress = {k: v for k, v in out.items() if k != "command"} if isinstance(out, dict) else {}
+     term = env.command_manager.get_term("twist")
+-    # v2 fix (2026-09-13, §36.2): deliberately NO per-step command scaling here.  Every form of it
+-    # (torch.tensor(list) per step, then clone) either allocated or launched a CUDA kernel inside a
+-    # step event and broke the PhysX contact view once the curriculum was enabled.  The curriculum
+-    # now scales the route controller's SPEED TABLE on the host instead -- see
+-    # mod4_curriculum._apply_speeds_to_routes.  This function is back to its original form.
+-    # v2 fix (2026-09-13): write the scaled vx STRAIGHT into the destination with `out=`.
+-    # Every earlier form allocated or launched a kernel per control step (torch.tensor(list),
+-    # torch.cat, then cmd.clone()) and each one kept the CUDA device-side assert alive while the
+-    # curriculum was enabled.  `torch.mul(..., out=dest)` does neither.
+     term.command[:, 0] = cmd[:, 0]
+     term.command[:, 1] = cmd[:, 1]
+     term.command[:, 2] = cmd[:, 2]
+@@ -346,13 +300,6 @@
+         term.time_left[:] = 1.0e9
+     if hasattr(term, "is_standing_env"):
+         term.is_standing_env[:] = False
+-    # v2 item 4: narrow/widen the FORWARD speed command with the route's difficulty level.
+-    # Reads the table the curriculum publishes; absent -> exact old behaviour.
+-    # ONLY channel 0 (vx) is scaled.  The first version multiplied all three channels, which
+-    # also scaled the yaw command: a spin route at level 0 would have had to cover 2*pi in
+-    # 1.67x the time, i.e. the curriculum could have broken the one subject that passes
+-    # (measured 2026-09-13: slope_spin 0.703 against a 0.60 bar).  The curriculum is a
+-    # SPEED curriculum for translation routes; the spin keeps its own difficulty settings.
+     env._mod4_route_progress = progress
+ 
+ 

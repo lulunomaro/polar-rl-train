@@ -1,0 +1,1406 @@
+diff --git a/ONNX_MuJoCo_Launcher.bat b/ONNX_MuJoCo_Launcher.bat
+new file mode 100644
+index 0000000..4b8de9a
+--- /dev/null
++++ b/ONNX_MuJoCo_Launcher.bat
+@@ -0,0 +1,8 @@
++@echo off
++setlocal
++cd /d "%~dp0"
++if "%~1"=="" (
++  start "MOD4 ONNX Launcher" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0launcher.ps1"
++) else (
++  start "MOD4 ONNX Launcher" powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0launcher.ps1" -IncomingOnnx "%~1"
++)
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..e2fef90
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,63 @@
++# MOD4 ONNX to MuJoCo Launcher
++
++Windows launcher and runtime adapter for importing a RoboMaster MOD4 policy exported from Isaac Lab and driving it in MuJoCo.
++
++This public repository contains source code only. Robot meshes, MJCF models, ONNX checkpoints, training reports, and remote `.pt` checkpoints are deliberately excluded. Put an authorized delivery in this layout before running:
++
++```text
++model/
++  rm_training_arena.xml
++  rm_training_arena_headless.xml
++  assets/*.stl
++policies/
++  POLICY.onnx
++  POLICY.json        # optional but recommended
++```
++
++The supplied MOD4 adapter requires this exact policy contract:
++
++- input: `observation`, shape `[batch, 35]`, float32;
++- output: `action`, shape `[batch, 6]`, float32;
++- action order: left crank, left hip, right crank, right hip, left wheel, right wheel;
++- MJCF: 6 actuators and at least 10 equality constraints, with the body, joint, actuator, sensor, and closure-site names used by `sim_runtime.py`.
++
++It fails before launch when the ONNX shape, node names, hash metadata, actuator count, or equality count does not match. A validation PASS proves interface and topology compatibility; it does not prove policy quality or sim-to-real robustness.
++
++## Windows use
++
++1. Install Python 3, then double-click `install_runtime.bat`.
++2. Double-click `ONNX_MuJoCo_Launcher.bat` or `启动器.bat`.
++3. Import an ONNX, select a test location, and start MuJoCo.
++
++The launcher copies imported policies to `policies/imported/`; that directory is ignored by Git.
++
++## Controls without MuJoCo conflicts
++
++| Key | Vehicle command |
++|---|---|
++| W / S | Increase / decrease forward speed |
++| A / D | Increase left / right yaw-rate command |
++| X | Stop velocity commands |
++| Q / E | Lower / raise body-height command |
++| T | Toggle automatic terrain mode |
++| V | Cycle manual task mode |
++| F | Cycle test location |
++| C | Cycle policy |
++| Y | Toggle MuJoCo yaw assist |
++| P | Apply lateral test push |
++| R | Reset at current test location |
++| H | Print help |
++
++MuJoCo keeps `Space`, `Tab`, digits, and `F1` through `F8` for pause, UI panels, visibility groups, help, profiler, sensors, fullscreen, frames, and labels. The smoke test asserts that vehicle keys do not intersect those direct Viewer bindings.
++
++## Validation
++
++After adding the authorized model and policy files:
++
++```powershell
++python launcher.py inspect --policy policies/POLICY.onnx --model model/rm_training_arena.xml
++python smoke_test.py
++```
++
++`robustness_test.py` runs the project-specific randomized route suite. Review its assumptions before applying it to another robot or observation contract.
++
+diff --git a/drive_wasd.py b/drive_wasd.py
+new file mode 100644
+index 0000000..9b98dc3
+--- /dev/null
++++ b/drive_wasd.py
+@@ -0,0 +1,181 @@
++"""Interactive MuJoCo viewer for the exported MOD4 ONNX policy."""
++from __future__ import annotations
++
++import argparse
++from pathlib import Path
++import sys
++import time
++
++import mujoco
++import mujoco.viewer
++
++ROOT = Path(__file__).resolve().parent
++sys.path.insert(0, str(ROOT))
++from sim_runtime import MODE_NAMES, Mod4Sim, RuntimeConfig  # noqa: E402
++
++
++SPAWNS = (
++    ("平地/狗洞", -4.0, 0.0, 0.0, 0.0),
++    ("二级台阶", -2.8, -2.5, 0.0, 0.0),
++    ("25度斜坡", -3.0, 2.5, 0.0, 0.0),
++    ("狗洞入口", 0.25, 0.0, 0.0, 0.0),
++    ("起伏路", -5.3, 4.8, 0.0, 0.0),
++    ("飞坡", -4.3, -4.8, 0.0, 0.18),
++    ("中心岛", 3.4, 3.1, 0.0, 0.0),
++    ("416mm挡墙", 3.4, -3.0, 0.0, 0.0),
++)
++
++# MuJoCo Simulate reserves Space, Tab, digits 0..5 and F1..F7.  Keep every
++# policy-control key away from that set so one keypress has exactly one effect.
++CONTROL_KEYS = {
++    "forward": (ord("W"), ord("w")), "reverse": (ord("S"), ord("s")),
++    "left": (ord("A"), ord("a")), "right": (ord("D"), ord("d")),
++    "stop": (ord("X"), ord("x")), "lower": (ord("Q"), ord("q")),
++    "raise": (ord("E"), ord("e")), "auto": (ord("T"), ord("t")),
++    "next_mode": (ord("V"), ord("v")), "push": (ord("P"), ord("p")),
++    "reset": (ord("R"), ord("r")), "yaw_assist": (ord("Y"), ord("y")),
++    "next_spawn": (ord("F"), ord("f")), "next_policy": (ord("C"), ord("c")),
++    "help": (ord("H"), ord("h")),
++}
++MUJOCO_DIRECT_RESERVED_KEYS = {32, 258, *range(ord("0"), ord("6") + 1), *range(290, 298)}
++assert not ({key for values in CONTROL_KEYS.values() for key in values} & MUJOCO_DIRECT_RESERVED_KEYS)
++
++
++HELP = """
++MOD4 ONNX / MuJoCo 键盘：
++  W/S  前进速度 +/−0.20 m/s       A/D  转向速度 +/−0.50 rad/s
++  X    急停速度指令               Q/E  车身高度 −/+ 10 mm
++  T    自动地形模式开关           V    循环手选任务模式
++  P    给车身一个 10 N 侧推       R    在当前测试点复位
++  Y    开/关 MuJoCo 航向辅助（默认开；补偿 Isaac→MuJoCo 的偏航漂移）
++  F    循环传送：平地、台阶、斜坡、狗洞、起伏路、飞坡、中心岛、挡墙
++  C    循环切换当前策略与包内对照策略
++  H    再显示本帮助               关闭窗口退出 MuJoCo
++
++Space、Tab、数字键和 F1..F8 保留给 MuJoCo Viewer，不再触发车辆命令。
++
++黄色=平地/狗洞，蓝色=台阶，绿色=斜坡，紫色=起伏路，橙色=飞坡。
++"""
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_general_16295.onnx")
++    parser.add_argument("--model", type=Path, default=ROOT / "model" / "rm_training_arena.xml")
++    parser.add_argument("--yaw-assist", type=float, default=80.0,
++                        help="MuJoCo yaw-rate feedback gain; use 0 for the raw ONNX policy")
++    parser.add_argument("--spawn", choices=[f"f{i}" for i in range(1, 9)], default="f1",
++                        help="initial test location")
++    args = parser.parse_args()
++    model_xml = args.model.resolve()
++    requested_policy = args.policy.resolve()
++    policy_candidates = [requested_policy,
++                         ROOT / "policies" / "mod4_general_16295.onnx",
++                         ROOT / "policies" / "mod4_tunnel_399_ab_only.onnx"]
++    policies = []
++    seen = set()
++    for path in policy_candidates:
++        path = path.resolve()
++        if path.exists() and path not in seen:
++            policies.append(path)
++            seen.add(path)
++    selected = 0
++    sim = Mod4Sim(model_xml, requested_policy, RuntimeConfig(yaw_assist_gain=args.yaw_assist))
++    current_spawn_index = int(args.spawn[1:]) - 1
++    current_spawn = SPAWNS[current_spawn_index]
++    label, x, y, yaw, ground = current_spawn
++    sim.reset(x, y, yaw, ground)
++    print(HELP, flush=True)
++    print(f"当前策略：{requested_policy.name}", flush=True)
++    print(f"模型：{model_xml.name}；初始位置：{label}", flush=True)
++
++    def status(prefix=""):
++        mode = MODE_NAMES[sim._auto_task()[0]] if sim.command.auto_mode else MODE_NAMES[sim.command.mode]
++        print(f"{prefix} vx={sim.command.vx:+.2f} m/s  wz={sim.command.wz:+.2f} rad/s  "
++              f"height={sim.command.height:.3f} m  mode={mode}  auto={sim.command.auto_mode}  "
++              f"yaw_assist={sim.cfg.yaw_assist_gain:g}", flush=True)
++
++    def key_callback(key):
++        nonlocal selected, current_spawn, current_spawn_index
++        if key in CONTROL_KEYS["forward"]:
++            sim.command.vx += .20
++        elif key in CONTROL_KEYS["reverse"]:
++            sim.command.vx -= .20
++        elif key in CONTROL_KEYS["left"]:
++            sim.command.wz += .50
++        elif key in CONTROL_KEYS["right"]:
++            sim.command.wz -= .50
++        elif key in CONTROL_KEYS["stop"]:
++            sim.command.vx = sim.command.wz = 0.0
++        elif key in CONTROL_KEYS["lower"]:
++            sim.command.height -= .01
++            sim.command.auto_mode = False
++        elif key in CONTROL_KEYS["raise"]:
++            sim.command.height += .01
++            sim.command.auto_mode = False
++        elif key in CONTROL_KEYS["auto"]:
++            sim.command.auto_mode = not sim.command.auto_mode
++        elif key in CONTROL_KEYS["next_mode"]:
++            sim.command.mode = (sim.command.mode + 1) % len(MODE_NAMES)
++            sim.command.auto_mode = False
++            print("手动任务模式：" + MODE_NAMES[sim.command.mode], flush=True)
++        elif key in CONTROL_KEYS["push"]:
++            sim.push((0.0, 10.0, 0.0), .20)
++            print("已施加 10 N、0.20 s 横向扰动", flush=True)
++        elif key in CONTROL_KEYS["yaw_assist"]:
++            sim.cfg.yaw_assist_gain = 0.0 if sim.cfg.yaw_assist_gain else 80.0
++            print(f"MuJoCo 航向辅助：{'开' if sim.cfg.yaw_assist_gain else '关'}", flush=True)
++        elif key in CONTROL_KEYS["reset"]:
++            label, x, y, yaw, ground = current_spawn
++            sim.reset(x, y, yaw, ground)
++            print(f"已复位：{label}", flush=True)
++        elif key in CONTROL_KEYS["next_spawn"]:
++            current_spawn_index = (current_spawn_index + 1) % len(SPAWNS)
++            current_spawn = SPAWNS[current_spawn_index]
++            label, x, y, yaw, ground = current_spawn
++            sim.reset(x, y, yaw, ground)
++            print(f"已传送：{label}", flush=True)
++        elif key in CONTROL_KEYS["next_policy"]:
++            selected = (selected + 1) % len(policies)
++            from policy_runtime import OnnxPolicy
++            sim.policy = OnnxPolicy(policies[selected])
++            sim.last_action[:] = 0.0
++            print("当前策略：" + policies[selected].name, flush=True)
++        elif key in CONTROL_KEYS["help"]:
++            print(HELP, flush=True)
++        else:
++            # Leave MuJoCo Viewer shortcuts entirely to the Viewer.
++            return
++        sim.command.clamp()
++        status()
++
++    with mujoco.viewer.launch_passive(sim.model, sim.data, key_callback=key_callback,
++                                      show_left_ui=True, show_right_ui=False) as viewer:
++        viewer.cam.type = mujoco.mjtCamera.mjCAMERA_TRACKING
++        viewer.cam.trackbodyid = sim.chassis_id
++        viewer.cam.distance = 2.2
++        viewer.cam.azimuth = 145
++        viewer.cam.elevation = -22
++        next_tick = time.perf_counter()
++        next_report = next_tick + 2.0
++        while viewer.is_running():
++            sim.step_control()
++            viewer.sync()
++            next_tick += 1.0 / sim.cfg.policy_hz
++            delay = next_tick - time.perf_counter()
++            if delay > 0:
++                time.sleep(delay)
++            else:
++                next_tick = time.perf_counter()
++            if time.perf_counter() >= next_report:
++                h = sim.health()
++                print(f"t={h['time_s']:6.1f}s  xyz=({h['base_xyz'][0]:+.2f},"
++                      f"{h['base_xyz'][1]:+.2f},{h['base_xyz'][2]:.2f})  "
++                      f"upright={h['upright_cos']:.3f}  closure={h['closure_error_m']*1000:.3f}mm  "
++                      f"peak_tau={max(h['max_abs_torque_nm_actuator_order']):.2f}Nm",
++                      flush=True)
++                next_report += 2.0
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/install_runtime.bat b/install_runtime.bat
+new file mode 100644
+index 0000000..709d948
+--- /dev/null
++++ b/install_runtime.bat
+@@ -0,0 +1,14 @@
++@echo off
++setlocal
++cd /d "%~dp0"
++if not exist ".runtime\Scripts\python.exe" py -3 -m venv .runtime
++if errorlevel 1 goto :failed
++.runtime\Scripts\python.exe -m pip install -r requirements.txt
++if errorlevel 1 goto :failed
++echo Runtime ready. Double-click ONNX_MuJoCo_Launcher.bat.
++pause
++exit /b 0
++:failed
++echo Installation failed. Check Python 3 and network access.
++pause
++exit /b 1
+diff --git a/launcher.ps1 b/launcher.ps1
+new file mode 100644
+index 0000000..efd16c9
+--- /dev/null
++++ b/launcher.ps1
+@@ -0,0 +1,293 @@
++﻿param([string]$IncomingOnnx = "")
++
++$ErrorActionPreference = "Stop"
++[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
++Add-Type -AssemblyName System.Windows.Forms
++Add-Type -AssemblyName System.Drawing
++
++$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
++$RuntimePython = Join-Path $Root ".runtime\Scripts\python.exe"
++$WorkspacePython = [IO.Path]::GetFullPath((Join-Path $Root "..\.venv\Scripts\python.exe"))
++if (Test-Path -LiteralPath $RuntimePython) { $Python = $RuntimePython }
++elseif (Test-Path -LiteralPath $WorkspacePython) { $Python = $WorkspacePython }
++else { $Python = "python.exe" }
++$Backend = Join-Path $Root "launcher.py"
++$Driver = Join-Path $Root "drive_wasd.py"
++$Model = Join-Path $Root "model\rm_training_arena.xml"
++$Imported = Join-Path $Root "policies\imported"
++
++$SpawnCodes = [ordered]@{
++  "平地 / 狗洞通道（位置 1）" = "f1"
++  "二级台阶（位置 2）" = "f2"
++  "25 度斜坡（位置 3）" = "f3"
++  "247.2 mm 狗洞入口（位置 4）" = "f4"
++  "起伏路（位置 5）" = "f5"
++  "飞坡（位置 6）" = "f6"
++  "中心岛与 50 mm 挡圈（位置 7）" = "f7"
++  "416 mm 挡墙（位置 8）" = "f8"
++}
++$script:PolicyMap = @{}
++$script:Simulation = $null
++
++function Invoke-Backend([string[]]$Arguments) {
++  $raw = & $Python $Backend @Arguments 2>&1 | Out-String
++  if ($LASTEXITCODE -ne 0) {
++    try { $parsed = $raw | ConvertFrom-Json; throw $parsed.error }
++    catch [System.Management.Automation.RuntimeException] { throw $_ }
++    catch { throw $raw.Trim() }
++  }
++  return ($raw | ConvertFrom-Json)
++}
++
++$Form = New-Object Windows.Forms.Form
++$Form.Text = "MOD4 ONNX -> MuJoCo 一键启动器"
++$Form.StartPosition = "CenterScreen"
++$Form.Size = New-Object Drawing.Size(900, 650)
++$Form.MinimumSize = New-Object Drawing.Size(760, 560)
++$Form.Font = New-Object Drawing.Font("Microsoft YaHei UI", 10)
++
++$Title = New-Object Windows.Forms.Label
++$Title.Text = "MOD4 ONNX -> MuJoCo"
++$Title.Font = New-Object Drawing.Font("Microsoft YaHei UI", 18, [Drawing.FontStyle]::Bold)
++$Title.Location = New-Object Drawing.Point(18, 15)
++$Title.AutoSize = $true
++$Form.Controls.Add($Title)
++
++$Intro = New-Object Windows.Forms.Label
++$Intro.Text = "导入训练导出的 ONNX，检查 35 -> 6 接口与闭链模型，然后一键驾驶查看。"
++$Intro.Location = New-Object Drawing.Point(20, 53)
++$Intro.AutoSize = $true
++$Form.Controls.Add($Intro)
++
++$PolicyLabel = New-Object Windows.Forms.Label
++$PolicyLabel.Text = "策略："
++$PolicyLabel.Location = New-Object Drawing.Point(20, 88)
++$PolicyLabel.AutoSize = $true
++$Form.Controls.Add($PolicyLabel)
++
++$PolicyBox = New-Object Windows.Forms.ComboBox
++$PolicyBox.DropDownStyle = "DropDownList"
++$PolicyBox.Location = New-Object Drawing.Point(75, 84)
++$PolicyBox.Size = New-Object Drawing.Size(575, 30)
++$PolicyBox.Anchor = "Top,Left,Right"
++$Form.Controls.Add($PolicyBox)
++
++$ImportButton = New-Object Windows.Forms.Button
++$ImportButton.Text = "导入 ONNX..."
++$ImportButton.Location = New-Object Drawing.Point(665, 82)
++$ImportButton.Size = New-Object Drawing.Size(105, 32)
++$ImportButton.Anchor = "Top,Right"
++$Form.Controls.Add($ImportButton)
++
++$RefreshButton = New-Object Windows.Forms.Button
++$RefreshButton.Text = "刷新"
++$RefreshButton.Location = New-Object Drawing.Point(780, 82)
++$RefreshButton.Size = New-Object Drawing.Size(85, 32)
++$RefreshButton.Anchor = "Top,Right"
++$Form.Controls.Add($RefreshButton)
++
++$SpawnLabel = New-Object Windows.Forms.Label
++$SpawnLabel.Text = "初始场地："
++$SpawnLabel.Location = New-Object Drawing.Point(20, 135)
++$SpawnLabel.AutoSize = $true
++$Form.Controls.Add($SpawnLabel)
++
++$SpawnBox = New-Object Windows.Forms.ComboBox
++$SpawnBox.DropDownStyle = "DropDownList"
++$SpawnBox.Location = New-Object Drawing.Point(105, 131)
++$SpawnBox.Size = New-Object Drawing.Size(310, 30)
++[void]$SpawnBox.Items.AddRange([string[]]$SpawnCodes.Keys)
++$SpawnBox.SelectedIndex = 0
++$Form.Controls.Add($SpawnBox)
++
++$AssistBox = New-Object Windows.Forms.CheckBox
++$AssistBox.Text = "开启航向辅助（便于 MuJoCo 手动驾驶）"
++$AssistBox.Location = New-Object Drawing.Point(445, 133)
++$AssistBox.Size = New-Object Drawing.Size(355, 28)
++$AssistBox.Checked = $true
++$Form.Controls.Add($AssistBox)
++
++$CheckButton = New-Object Windows.Forms.Button
++$CheckButton.Text = "检查 ONNX 与模型"
++$CheckButton.Location = New-Object Drawing.Point(20, 178)
++$CheckButton.Size = New-Object Drawing.Size(160, 38)
++$Form.Controls.Add($CheckButton)
++
++$StartButton = New-Object Windows.Forms.Button
++$StartButton.Text = "> 一键启动 MuJoCo"
++$StartButton.Location = New-Object Drawing.Point(192, 178)
++$StartButton.Size = New-Object Drawing.Size(185, 38)
++$StartButton.BackColor = [Drawing.Color]::FromArgb(210, 242, 214)
++$Form.Controls.Add($StartButton)
++
++$StopButton = New-Object Windows.Forms.Button
++$StopButton.Text = "停止仿真"
++$StopButton.Location = New-Object Drawing.Point(389, 178)
++$StopButton.Size = New-Object Drawing.Size(110, 38)
++$StopButton.Enabled = $false
++$Form.Controls.Add($StopButton)
++
++$FolderButton = New-Object Windows.Forms.Button
++$FolderButton.Text = "打开导入目录"
++$FolderButton.Location = New-Object Drawing.Point(735, 178)
++$FolderButton.Size = New-Object Drawing.Size(130, 38)
++$FolderButton.Anchor = "Top,Right"
++$Form.Controls.Add($FolderButton)
++
++$Status = New-Object Windows.Forms.Label
++$Status.Text = "尚未检查"
++$Status.Font = New-Object Drawing.Font("Microsoft YaHei UI", 10, [Drawing.FontStyle]::Bold)
++$Status.Location = New-Object Drawing.Point(20, 232)
++$Status.Size = New-Object Drawing.Size(845, 28)
++$Status.Anchor = "Top,Left,Right"
++$Form.Controls.Add($Status)
++
++$Details = New-Object Windows.Forms.TextBox
++$Details.Location = New-Object Drawing.Point(20, 263)
++$Details.Size = New-Object Drawing.Size(845, 245)
++$Details.Multiline = $true
++$Details.ReadOnly = $true
++$Details.ScrollBars = "Vertical"
++$Details.Font = New-Object Drawing.Font("Consolas", 10)
++$Details.Anchor = "Top,Bottom,Left,Right"
++$Form.Controls.Add($Details)
++
++$Help = New-Object Windows.Forms.Label
++$Help.Text = "操控：W/S 前后，A/D 转向，X 停车，Q/E 高度，F 循环场地，V 循环模式，Y 辅助，C 对比策略。"
++$Help.Location = New-Object Drawing.Point(20, 520)
++$Help.Size = New-Object Drawing.Size(845, 45)
++$Help.Anchor = "Bottom,Left,Right"
++$Form.Controls.Add($Help)
++
++function Refresh-Policies([string]$SelectPath = "") {
++  $PolicyBox.Items.Clear()
++  $script:PolicyMap = @{}
++  $files = Get-ChildItem -LiteralPath (Join-Path $Root "policies") -Filter "*.onnx" -File -Recurse | Sort-Object LastWriteTime -Descending
++  foreach ($file in $files) {
++    $relative = $file.FullName.Substring($Root.Length + 1)
++    $script:PolicyMap[$relative] = $file.FullName
++    [void]$PolicyBox.Items.Add($relative)
++  }
++  if ($PolicyBox.Items.Count -eq 0) { return }
++  $chosen = -1
++  if ($SelectPath) {
++    for ($i = 0; $i -lt $PolicyBox.Items.Count; $i++) {
++      if ([IO.Path]::GetFullPath($script:PolicyMap[$PolicyBox.Items[$i]]) -eq [IO.Path]::GetFullPath($SelectPath)) { $chosen = $i; break }
++    }
++  }
++  if ($chosen -lt 0) {
++    $preferred = "policies\mod4_general_16295.onnx"
++    $chosen = $PolicyBox.Items.IndexOf($preferred)
++  }
++  if ($chosen -lt 0) { $chosen = 0 }
++  $PolicyBox.SelectedIndex = $chosen
++}
++
++function Get-SelectedPolicy {
++  if ($PolicyBox.SelectedIndex -lt 0) { throw "请先导入或选择一个 ONNX。" }
++  return $script:PolicyMap[[string]$PolicyBox.SelectedItem]
++}
++
++function Inspect-Selected {
++  try {
++    $policy = Get-SelectedPolicy
++    $report = Invoke-Backend @("inspect", "--policy", $policy, "--model", $Model)
++    $meta = $report.policy.metadata
++    $source = if ($meta.source_checkpoint) { $meta.source_checkpoint } else { "旁置 JSON 未提供" }
++    $iteration = if ($null -ne $meta.source_iteration) { $meta.source_iteration } else { "旁置 JSON 未提供" }
++    $Details.Text = "PASS：策略接口和 MuJoCo 机构契约均通过`r`n" +
++      "ONNX: $($report.policy.path)`r`n" +
++      "SHA256: $($report.policy.sha256)`r`n" +
++      "接口: observation [batch,35] -> action [batch,6]`r`n" +
++      "零观测动作: $($report.policy.zero_action -join ', ')`r`n" +
++      "源检查点: $source`r`n训练迭代: $iteration`r`n" +
++      "MJCF: nq=$($report.model.nq) nv=$($report.model.nv) nu=$($report.model.nu) bodies=$($report.model.bodies) geoms=$($report.model.geoms) equalities=$($report.model.equalities)`r`n`r`n" +
++      "说明：PASS 只证明 ONNX 接口和机构能够运行。训练是否成熟，请在各场地查看直立、闭链误差、峰值力矩和是否通过。"
++    $Status.Text = "可以启动；策略能力仍需在场地中实测"
++    $Status.ForeColor = [Drawing.Color]::DarkGreen
++    return $true
++  } catch {
++    $Details.Text = "FAIL：$($_.Exception.Message)"
++    $Status.Text = "校验失败，未启动"
++    $Status.ForeColor = [Drawing.Color]::DarkRed
++    [Windows.Forms.MessageBox]::Show($_.Exception.Message, "检查失败", "OK", "Error") | Out-Null
++    return $false
++  }
++}
++
++function Import-Onnx([string]$Source) {
++  try {
++    $report = Invoke-Backend @("import", "--source", $Source)
++    Refresh-Policies $report.destination
++    [void](Inspect-Selected)
++    $Status.Text = "已导入：$($report.destination)"
++  } catch {
++    [Windows.Forms.MessageBox]::Show($_.Exception.Message, "导入失败", "OK", "Error") | Out-Null
++  }
++}
++
++$RefreshButton.Add_Click({ Refresh-Policies; [void](Inspect-Selected) })
++$PolicyBox.Add_SelectedIndexChanged({ if ($PolicyBox.SelectedIndex -ge 0) { [void](Inspect-Selected) } })
++$CheckButton.Add_Click({ [void](Inspect-Selected) })
++$ImportButton.Add_Click({
++  $dialog = New-Object Windows.Forms.OpenFileDialog
++  $dialog.Title = "选择训练导出的 ONNX"
++  $dialog.Filter = "ONNX policy (*.onnx)|*.onnx"
++  if ($dialog.ShowDialog() -eq "OK") { Import-Onnx $dialog.FileName }
++})
++$FolderButton.Add_Click({ New-Item -ItemType Directory -Force -Path $Imported | Out-Null; Start-Process explorer.exe -ArgumentList $Imported })
++
++$StartButton.Add_Click({
++  if (-not (Inspect-Selected)) { return }
++  if ($script:Simulation -and -not $script:Simulation.HasExited) {
++    [Windows.Forms.MessageBox]::Show("MuJoCo 已经在运行。", "提示", "OK", "Information") | Out-Null
++    return
++  }
++  $policy = Get-SelectedPolicy
++  $spawn = $SpawnCodes[[string]$SpawnBox.SelectedItem]
++  $yaw = if ($AssistBox.Checked) { "80" } else { "0" }
++  $psi = New-Object Diagnostics.ProcessStartInfo
++  $psi.FileName = $Python
++  $psi.WorkingDirectory = $Root
++  $psi.UseShellExecute = $true
++  $psi.Arguments = '"' + $Driver + '" --policy "' + $policy + '" --model "' + $Model + '" --spawn ' + $spawn + ' --yaw-assist ' + $yaw
++  try {
++    $script:Simulation = [Diagnostics.Process]::Start($psi)
++    $StartButton.Enabled = $false
++    $StopButton.Enabled = $true
++    $Status.Text = "MuJoCo 运行中：$([IO.Path]::GetFileName($policy))"
++    $Status.ForeColor = [Drawing.Color]::DarkBlue
++  } catch {
++    [Windows.Forms.MessageBox]::Show($_.Exception.Message, "启动失败", "OK", "Error") | Out-Null
++  }
++})
++
++$StopButton.Add_Click({
++  if ($script:Simulation -and -not $script:Simulation.HasExited) { $script:Simulation.Kill() }
++  $StartButton.Enabled = $true
++  $StopButton.Enabled = $false
++  $Status.Text = "仿真已停止"
++})
++
++$Timer = New-Object Windows.Forms.Timer
++$Timer.Interval = 500
++$Timer.Add_Tick({
++  if ($script:Simulation -and $script:Simulation.HasExited) {
++    $code = $script:Simulation.ExitCode
++    $script:Simulation = $null
++    $StartButton.Enabled = $true
++    $StopButton.Enabled = $false
++    $Status.Text = if ($code -eq 0) { "仿真已关闭" } else { "仿真异常退出，代码 $code" }
++  }
++})
++$Timer.Start()
++
++Refresh-Policies
++if ($PolicyBox.Items.Count -gt 0) {
++  [void](Inspect-Selected)
++} else {
++  $Status.Text = "请先导入授权的 MOD4 ONNX，并放入对应的 MJCF/mesh 资产"
++  $Details.Text = "源码仓库不包含机器人模型和训练策略。将完整交付资产放入 model/ 与 policies/ 后即可检查和启动。"
++}
++if ($IncomingOnnx -and (Test-Path -LiteralPath $IncomingOnnx)) { Import-Onnx $IncomingOnnx }
++[void]$Form.ShowDialog()
+diff --git a/launcher.py b/launcher.py
+new file mode 100644
+index 0000000..6ba8a76
+--- /dev/null
++++ b/launcher.py
+@@ -0,0 +1,132 @@
++"""Backend used by the native Windows ONNX/MuJoCo launcher."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import shutil
++
++import mujoco
++import numpy as np
++import onnxruntime as ort
++
++
++ROOT = Path(__file__).resolve().parent
++POLICY_DIR = ROOT / "policies"
++IMPORTED_DIR = POLICY_DIR / "imported"
++DEFAULT_MODEL = ROOT / "model" / "rm_training_arena.xml"
++EXPECTED_INPUT = 35
++EXPECTED_OUTPUT = 6
++
++
++def sha256(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as stream:
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++def adjacent_metadata(path: Path) -> Path | None:
++    candidates = [path.with_suffix(".json"), path.with_name(path.stem + "_metadata.json")]
++    return next((item for item in candidates if item.is_file()), None)
++
++
++def validate_policy(path: Path) -> dict:
++    path = path.expanduser().resolve()
++    if not path.is_file() or path.suffix.lower() != ".onnx":
++        raise ValueError("请选择有效的 .onnx 文件")
++    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
++    if len(session.get_inputs()) != 1 or len(session.get_outputs()) != 1:
++        raise ValueError("策略必须恰好有一个输入和一个输出")
++    inp, out = session.get_inputs()[0], session.get_outputs()[0]
++    if inp.name != "observation" or out.name != "action":
++        raise ValueError(f"节点名不匹配：输入 {inp.name!r}，输出 {out.name!r}；要求 observation/action")
++    if inp.shape[-1] != EXPECTED_INPUT or out.shape[-1] != EXPECTED_OUTPUT:
++        raise ValueError(f"维度不匹配：{inp.shape} -> {out.shape}；要求 [batch,35] -> [batch,6]")
++    output = session.run([out.name], {inp.name: np.zeros((1, EXPECTED_INPUT), np.float32)})[0]
++    if output.shape != (1, EXPECTED_OUTPUT) or not np.isfinite(output).all():
++        raise ValueError(f"零观测推理输出异常：shape={output.shape}, finite={np.isfinite(output).all()}")
++    actual_hash = sha256(path)
++    metadata_path = adjacent_metadata(path)
++    metadata = {}
++    if metadata_path:
++        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
++        declared_input = metadata.get("input", {}).get("shape", [None, None])[-1]
++        declared_output = metadata.get("output", {}).get("shape", [None, None])[-1]
++        if declared_input not in (None, EXPECTED_INPUT) or declared_output not in (None, EXPECTED_OUTPUT):
++            raise ValueError("旁置 JSON 声明的输入/输出维度与 ONNX 不一致")
++        declared_hash = metadata.get("onnx_sha256")
++        if declared_hash and declared_hash.lower() != actual_hash:
++            raise ValueError("旁置 JSON 的 onnx_sha256 与文件内容不一致")
++    return {
++        "path": str(path), "sha256": actual_hash,
++        "input": {"name": inp.name, "shape": inp.shape},
++        "output": {"name": out.name, "shape": out.shape},
++        "zero_action": np.asarray(output[0], dtype=float).round(5).tolist(),
++        "metadata_path": str(metadata_path.resolve()) if metadata_path else None,
++        "metadata": metadata,
++    }
++
++
++def validate_model(path: Path = DEFAULT_MODEL) -> dict:
++    path = path.expanduser().resolve()
++    if not path.is_file():
++        raise ValueError(f"找不到 MJCF：{path}")
++    model = mujoco.MjModel.from_xml_path(str(path))
++    if model.nu != 6:
++        raise ValueError(f"MJCF 执行器数量为 {model.nu}，训练契约要求 6")
++    if model.neq < 10:
++        raise ValueError(f"MJCF 等式约束只有 {model.neq}，闭链/耦合约束不完整")
++    return {"path": str(path), "nq": model.nq, "nv": model.nv, "nu": model.nu,
++            "bodies": model.nbody, "geoms": model.ngeom, "equalities": model.neq}
++
++
++def import_policy(source: Path) -> dict:
++    source = source.expanduser().resolve()
++    report = validate_policy(source)
++    IMPORTED_DIR.mkdir(parents=True, exist_ok=True)
++    try:
++        already_local = source.is_relative_to(POLICY_DIR.resolve())
++    except AttributeError:
++        already_local = str(source).lower().startswith(str(POLICY_DIR.resolve()).lower())
++    if already_local:
++        destination = source
++    else:
++        destination = IMPORTED_DIR / source.name
++        if destination.exists() and sha256(destination) != report["sha256"]:
++            destination = IMPORTED_DIR / f"{source.stem}_{report['sha256'][:8]}.onnx"
++        if not destination.exists():
++            shutil.copy2(source, destination)
++        metadata = adjacent_metadata(source)
++        if metadata:
++            shutil.copy2(metadata, destination.with_suffix(".json"))
++    return {"destination": str(destination.resolve()), "validation": validate_policy(destination)}
++
++
++def emit(payload: dict, code: int = 0):
++    print(json.dumps(payload, ensure_ascii=False, indent=2))
++    raise SystemExit(code)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    sub = parser.add_subparsers(dest="command", required=True)
++    inspect_parser = sub.add_parser("inspect", help="validate one ONNX and the MJCF contract")
++    inspect_parser.add_argument("--policy", type=Path, required=True)
++    inspect_parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
++    import_parser = sub.add_parser("import", help="validate and copy an ONNX into policies/imported")
++    import_parser.add_argument("--source", type=Path, required=True)
++    args = parser.parse_args()
++    try:
++        if args.command == "inspect":
++            emit({"status": "PASS", "policy": validate_policy(args.policy),
++                  "model": validate_model(args.model)})
++        emit({"status": "PASS", **import_policy(args.source)})
++    except Exception as exc:
++        emit({"status": "FAIL", "error": f"{type(exc).__name__}: {exc}"}, 1)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/policy_runtime.py b/policy_runtime.py
+new file mode 100644
+index 0000000..cb9d9a3
+--- /dev/null
++++ b/policy_runtime.py
+@@ -0,0 +1,24 @@
++"""Small ONNX runtime wrapper shared by the viewer and robustness runner."""
++from __future__ import annotations
++
++from pathlib import Path
++
++import numpy as np
++import onnxruntime as ort
++
++
++class OnnxPolicy:
++    def __init__(self, path: str | Path):
++        self.path = Path(path).resolve()
++        self.session = ort.InferenceSession(str(self.path), providers=["CPUExecutionProvider"])
++        inp = self.session.get_inputs()[0]
++        out = self.session.get_outputs()[0]
++        if inp.name != "observation" or out.name != "action":
++            raise ValueError(f"unexpected ONNX names: {inp.name!r}, {out.name!r}")
++        if inp.shape[-1] != 35 or out.shape[-1] != 6:
++            raise ValueError(f"unexpected ONNX shapes: {inp.shape}, {out.shape}")
++
++    def __call__(self, observation: np.ndarray) -> np.ndarray:
++        x = np.asarray(observation, dtype=np.float32).reshape(-1, 35)
++        y = self.session.run(["action"], {"observation": x})[0]
++        return np.asarray(y[0], dtype=np.float64)
+diff --git a/requirements.txt b/requirements.txt
+new file mode 100644
+index 0000000..18781df
+--- /dev/null
++++ b/requirements.txt
+@@ -0,0 +1,3 @@
++mujoco>=3.4
++numpy>=1.26
++onnxruntime>=1.20
+diff --git a/robustness_test.py b/robustness_test.py
+new file mode 100644
+index 0000000..664210d
+--- /dev/null
++++ b/robustness_test.py
+@@ -0,0 +1,197 @@
++"""Repeatable, per-episode MuJoCo robustness and sim-to-sim test."""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import math
++from pathlib import Path
++import sys
++import time
++
++import mujoco
++import numpy as np
++
++ROOT = Path(__file__).resolve().parent
++sys.path.insert(0, str(ROOT))
++from sim_runtime import ActionDelay, Mod4Sim, RuntimeConfig  # noqa: E402
++
++
++SCENARIOS = {
++    "flat_forward": {"spawn": (-4.0, 0.0, 0.0, 0.0), "cmd": (.60, 0.0), "seconds": 6.0},
++    "flat_reverse": {"spawn": (-2.5, 1.1, math.pi, 0.0), "cmd": (-.40, 0.0), "seconds": 5.0},
++    "turn": {"spawn": (-4.0, 1.8, 0.0, 0.0), "cmd": (0.0, 1.5), "seconds": 5.0,
++             "auto_mode": False, "mode": 3, "height": .32},
++    "rough": {"spawn": (-5.3, 4.8, 0.0, 0.0), "cmd": (.60, 0.0), "seconds": 7.0},
++    "stairs": {"spawn": (-2.8, -2.5, 0.0, 0.0), "cmd": (.45, 0.0), "seconds": 7.0},
++    "tunnel": {"spawn": (.25, 0.0, 0.0, 0.0), "cmd": (.35, 0.0), "seconds": 8.0},
++}
++
++
++def sha256(path):
++    h = hashlib.sha256()
++    with open(path, "rb") as f:
++        for b in iter(lambda: f.read(1024 * 1024), b""):
++            h.update(b)
++    return h.hexdigest()
++
++
++def yaw_from_quat(q):
++    w, x, y, z = q
++    return math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
++
++
++def angle_delta(a, b):
++    return math.atan2(math.sin(a - b), math.cos(a - b))
++
++
++def contact_with(sim, geom_name):
++    gid = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_GEOM, geom_name)
++    if gid < 0:
++        return False
++    return any(sim.data.contact[i].geom1 == gid or sim.data.contact[i].geom2 == gid
++               for i in range(sim.data.ncon))
++
++
++def run_episode(sim, name, spec, seed, randomized):
++    rng = np.random.default_rng(seed)
++    np.random.seed(seed)
++    x, y, yaw, ground = spec["spawn"]
++    sim.restore_nominal_parameters()
++    params = sim.randomize(rng, mild=True) if randomized else {
++        "mass_scale": 1.0, "inertia_scale": 1.0, "friction_scale": 1.0}
++    # mj_setConst(), required after changing body inertias, also refreshes data from qpos0.
++    # Apply the scenario pose afterwards so every randomized episode starts in the right lane.
++    sim.reset(x, y, yaw, ground)
++    sim.command.vx, sim.command.wz = spec["cmd"]
++    sim.command.auto_mode = bool(spec.get("auto_mode", True))
++    sim.command.mode = int(spec.get("mode", 0))
++    sim.command.height = float(spec.get("height", .34))
++    delay_steps = int(rng.integers(0, 3)) if randomized else 0
++    delay = ActionDelay(delay_steps)
++    obs_noise = float(rng.uniform(0.0, 0.01)) if randomized else 0.0
++    steps = int(round(spec["seconds"] * sim.cfg.policy_hz))
++    start_pos = sim.base_position.copy()
++    start_yaw = yaw_from_quat(sim.data.qpos[3:7])
++    roof_hits = 0
++    integrated_yaw = 0.0
++    finite = True
++    try:
++        for i in range(steps):
++            if randomized and i == int(2.0 * sim.cfg.policy_hz):
++                sign = -1.0 if seed % 2 else 1.0
++                sim.push((0.0, sign * 10.0, 0.0), float(rng.uniform(.10, .30)))
++            sim.step_control(obs_noise, delay)
++            roof_hits += int(contact_with(sim, "tunnel_roof"))
++            integrated_yaw += float(sim.data.sensor("base_gyro").data[2]) / sim.cfg.policy_hz
++    except FloatingPointError:
++        finite = False
++    end_pos = sim.base_position.copy()
++    end_yaw = yaw_from_quat(sim.data.qpos[3:7])
++    health = sim.health()
++    dx_world, dy_world = end_pos[0] - start_pos[0], end_pos[1] - start_pos[1]
++    forward = math.cos(start_yaw) * dx_world + math.sin(start_yaw) * dy_world
++    lateral = -math.sin(start_yaw) * dx_world + math.cos(start_yaw) * dy_world
++    yaw_change = angle_delta(end_yaw, start_yaw)
++    plant_ok = finite and sim.max_closure_error < .002 and sim.max_mimic_error < .01
++    upright = health["upright_cos"] > .50 and end_pos[2] > .075
++    if name == "flat_forward":
++        task_ok = forward > 1.0 and abs(lateral) < 1.5
++    elif name == "flat_reverse":
++        task_ok = forward < -.55
++    elif name == "turn":
++        task_ok = abs(integrated_yaw) > 1.2 and float(np.linalg.norm(end_pos[:2] - start_pos[:2])) < 1.0
++    elif name == "rough":
++        task_ok = end_pos[0] > -1.0 and abs(end_pos[1] - 4.8) < .70
++    elif name == "stairs":
++        task_ok = end_pos[0] > 0.0 and abs(end_pos[1] + 2.5) < .70
++    elif name == "tunnel":
++        task_ok = end_pos[0] > 1.95 and abs(end_pos[1]) < .40 and roof_hits == 0
++    else:
++        task_ok = False
++    return {
++        "scenario": name, "seed": seed, "randomized": randomized, **params,
++        "action_delay_steps": delay_steps, "observation_noise_std": obs_noise,
++        "finite": finite, "plant_ok": plant_ok, "upright": upright, "task_ok": task_ok,
++        "forward_displacement_m": forward, "lateral_displacement_m": lateral,
++        "yaw_change_rad_wrapped": yaw_change, "integrated_yaw_rad": integrated_yaw,
++        "roof_contact_control_steps": roof_hits,
++        "final_base_xyz": end_pos.tolist(), "final_upright_cos": health["upright_cos"],
++        "max_closure_error_m": sim.max_closure_error,
++        "max_mimic_error_rad": sim.max_mimic_error,
++        "final_mimic_error_rad": health["mimic_error_rad"],
++        "max_abs_torque_nm_actuator_order": health["max_abs_torque_nm_actuator_order"],
++    }
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--policy", type=Path, default=ROOT / "policies" / "mod4_general_16295.onnx")
++    parser.add_argument("--random-seeds", type=int, default=5)
++    parser.add_argument("--yaw-assist", type=float, default=0.0,
++                        help="extra differential-wheel yaw feedback gain; 0 tests the raw policy adapter")
++    parser.add_argument("--output", type=Path, default=ROOT / "reports" / "robustness_report.json")
++    args = parser.parse_args()
++    xml = ROOT / "model" / "rm_training_arena_headless.xml"
++    sim = Mod4Sim(xml, args.policy, RuntimeConfig(yaw_assist_gain=args.yaw_assist))
++    started = time.perf_counter()
++    episodes = []
++    for name, spec in SCENARIOS.items():
++        episodes.append(run_episode(sim, name, spec, 20260913, False))
++        for j in range(args.random_seeds):
++            episodes.append(run_episode(sim, name, spec, 1000 * list(SCENARIOS).index(name) + j, True))
++        print(name, sum(e["task_ok"] for e in episodes if e["scenario"] == name), "/",
++              sum(e["scenario"] == name for e in episodes), flush=True)
++    summary = {}
++    for name in SCENARIOS:
++        rows = [e for e in episodes if e["scenario"] == name]
++        rr = [e for e in rows if e["randomized"]]
++        summary[name] = {
++            "nominal_task_ok": rows[0]["task_ok"],
++            "randomized_task_success_rate": sum(e["task_ok"] for e in rr) / len(rr),
++            "randomized_upright_rate": sum(e["upright"] for e in rr) / len(rr),
++            "randomized_plant_ok_rate": sum(e["plant_ok"] for e in rr) / len(rr),
++            "worst_closure_error_m": max(e["max_closure_error_m"] for e in rows),
++            "max_abs_lateral_displacement_m": max(abs(e["lateral_displacement_m"]) for e in rows),
++        }
++    randomized_rows = [e for e in episodes if e["randomized"]]
++    report = {
++        "status": "MEASURED_SIM_TO_SIM_ONLY",
++        "policy": str(args.policy.resolve()), "policy_sha256": sha256(args.policy),
++        "mjcf": str(xml.resolve()), "mjcf_sha256": sha256(xml),
++        "test_contract": {
++            "nominal_episodes_per_scenario": 1,
++            "randomized_episodes_per_scenario": args.random_seeds,
++            "yaw_assist_gain": args.yaw_assist,
++            "randomization": "mass/inertia +/-10%, friction x0.8..1.2, damping x0.85..1.2, observation noise 0..0.01, action delay 0..2 control steps, lateral 10 N push for 0.1..0.3 s",
++            "plant_gate": "finite AND closure<2mm AND mimic<0.01rad",
++            "scope": "MuJoCo sim-to-sim stress test; it does not certify real-robot robustness",
++        },
++        "overall_randomized": {
++            "episodes": len(randomized_rows),
++            "plant_ok_rate": sum(e["plant_ok"] for e in randomized_rows) / len(randomized_rows),
++            "upright_rate": sum(e["upright"] for e in randomized_rows) / len(randomized_rows),
++            "task_success_rate": sum(e["task_ok"] for e in randomized_rows) / len(randomized_rows),
++            "worst_closure_error_m": max(e["max_closure_error_m"] for e in randomized_rows),
++        },
++        "by_scenario": summary, "episodes": episodes,
++        "elapsed_s": time.perf_counter() - started,
++    }
++    args.output.parent.mkdir(parents=True, exist_ok=True)
++    def _json_default(value):
++        if isinstance(value, np.bool_):
++            return bool(value)
++        if isinstance(value, np.integer):
++            return int(value)
++        if isinstance(value, np.floating):
++            return float(value)
++        raise TypeError(type(value).__name__)
++
++    args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False,
++                                      default=_json_default) + "\n", encoding="utf-8")
++    print(json.dumps(report["overall_randomized"], indent=2, ensure_ascii=False))
++    print(args.output.resolve())
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/run_robustness.bat b/run_robustness.bat
+new file mode 100644
+index 0000000..bc473ff
+--- /dev/null
++++ b/run_robustness.bat
+@@ -0,0 +1,8 @@
++@echo off
++setlocal
++cd /d "%~dp0"
++if exist ".runtime\Scripts\python.exe" set "PYTHON=.runtime\Scripts\python.exe"
++if not defined PYTHON if exist "..\.venv\Scripts\python.exe" set "PYTHON=..\.venv\Scripts\python.exe"
++if not defined PYTHON set "PYTHON=python"
++"%PYTHON%" robustness_test.py --random-seeds 5
++pause
+diff --git a/run_smoke_test.bat b/run_smoke_test.bat
+new file mode 100644
+index 0000000..f75cc9f
+--- /dev/null
++++ b/run_smoke_test.bat
+@@ -0,0 +1,8 @@
++@echo off
++setlocal
++cd /d "%~dp0"
++if exist ".runtime\Scripts\python.exe" set "PYTHON=.runtime\Scripts\python.exe"
++if not defined PYTHON if exist "..\.venv\Scripts\python.exe" set "PYTHON=..\.venv\Scripts\python.exe"
++if not defined PYTHON set "PYTHON=python"
++"%PYTHON%" smoke_test.py
++pause
+diff --git a/run_wasd.bat b/run_wasd.bat
+new file mode 100644
+index 0000000..f13817d
+--- /dev/null
++++ b/run_wasd.bat
+@@ -0,0 +1,8 @@
++@echo off
++setlocal
++cd /d "%~dp0"
++if exist ".runtime\Scripts\python.exe" set "PYTHON=.runtime\Scripts\python.exe"
++if not defined PYTHON if exist "..\.venv\Scripts\python.exe" set "PYTHON=..\.venv\Scripts\python.exe"
++if not defined PYTHON set "PYTHON=python"
++"%PYTHON%" drive_wasd.py
++if errorlevel 1 pause
+diff --git a/sim_runtime.py b/sim_runtime.py
+new file mode 100644
+index 0000000..9f11bfa
+--- /dev/null
++++ b/sim_runtime.py
+@@ -0,0 +1,315 @@
++"""Isaac-policy to MuJoCo adapter for the closed-chain MOD4 chassis."""
++from __future__ import annotations
++
++from dataclasses import dataclass
++from pathlib import Path
++import math
++
++import mujoco
++import numpy as np
++
++from policy_runtime import OnnxPolicy
++
++
++ACTION_ORDER = ("left_crank", "left_hip", "right_crank", "right_hip",
++                "left_wheel_spin", "right_wheel_spin")
++LEG_ORDER = ACTION_ORDER[:4]
++WHEEL_ORDER = ACTION_ORDER[4:]
++ACTUATOR_ORDER = ("left_hip_motor", "left_crank_motor", "left_wheel_spin_motor",
++                  "right_hip_motor", "right_crank_motor", "right_wheel_spin_motor")
++MODE_NAMES = ("normal", "stair", "slope", "recover", "jump", "height", "state_time")
++
++
++@dataclass
++class RuntimeConfig:
++    leg_kp: float = 2500.0
++    leg_kd: float = 10.0
++    wheel_kd: float = 0.6
++    crank_scale: float = 0.75
++    hip_scale: float = 0.50
++    wheel_scale: float = 10.0
++    diff_min: float = -1.0843
++    diff_max: float = 0.85
++    leg_effort: float = 40.0
++    leg_stall: float = 53.333333333333336
++    leg_no_load: float = 16.755160819145562
++    wheel_effort: float = 5.775909774436091
++    wheel_stall: float = 28.18532894736838
++    wheel_no_load: float = 55.3557
++    policy_hz: float = 100.0
++    yaw_assist_gain: float = 0.0
++
++
++@dataclass
++class UserCommand:
++    vx: float = 0.0
++    vy: float = 0.0
++    wz: float = 0.0
++    height: float = 0.34
++    mode: int = 0
++    auto_mode: bool = True
++
++    def clamp(self):
++        self.vx = float(np.clip(self.vx, -1.5, 2.8))
++        self.vy = 0.0
++        self.wz = float(np.clip(self.wz, -13.0, 13.0))
++        self.height = float(np.clip(self.height, 0.178, 0.34))
++
++
++class Mod4Sim:
++    def __init__(self, xml_path: str | Path, policy_path: str | Path,
++                 config: RuntimeConfig | None = None):
++        self.xml_path = Path(xml_path).resolve()
++        self.model = mujoco.MjModel.from_xml_path(str(self.xml_path))
++        self.data = mujoco.MjData(self.model)
++        self.policy = OnnxPolicy(policy_path)
++        self.cfg = config or RuntimeConfig()
++        self.command = UserCommand()
++        self.last_action = np.zeros(6, dtype=np.float64)
++        self.control_steps = 0
++        self.max_closure_error = 0.0
++        self.max_mimic_error = 0.0
++        self.max_abs_torque = np.zeros(6, dtype=np.float64)
++        self._push_remaining = 0
++        self._push_force = np.zeros(3)
++
++        expected_dt = 1.0 / self.cfg.policy_hz
++        self.decimation = int(round(expected_dt / self.model.opt.timestep))
++        if self.decimation < 1 or abs(self.decimation * self.model.opt.timestep - expected_dt) > 1e-9:
++            raise ValueError("physics timestep is not an integer divisor of the 100 Hz policy")
++
++        self.chassis_id = self._body("chassis")
++        self.qpos = {name: self.model.jnt_qposadr[self._joint(name)] for name in ACTION_ORDER}
++        self.qvel = {name: self.model.jnt_dofadr[self._joint(name)] for name in ACTION_ORDER}
++        self.actuator = {name: self._actuator(name) for name in ACTUATOR_ORDER}
++        self.site_pairs = tuple((self._site(a), self._site(b)) for a, b in (
++            ("left_proximal_a", "left_proximal_b"), ("left_distal_a", "left_distal_b"),
++            ("left_gas_end", "left_gas_mount"), ("right_proximal_a", "right_proximal_b"),
++            ("right_distal_a", "right_distal_b"), ("right_gas_end", "right_gas_mount")))
++        self.mimic_pairs = tuple((a, b) for a, b in (
++            ("left_drive_hip_spin", "left_hip"), ("left_drive_input_spin", "left_crank"),
++            ("right_drive_hip_spin", "right_hip"), ("right_drive_input_spin", "right_crank")))
++        self._initial_body_mass = self.model.body_mass.copy()
++        self._initial_body_inertia = self.model.body_inertia.copy()
++        self._initial_friction = self.model.geom_friction.copy()
++        self._initial_damping = self.model.dof_damping.copy()
++        self.reset()
++
++    def _joint(self, name):
++        idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
++        if idx < 0:
++            raise KeyError(f"joint missing: {name}")
++        return idx
++
++    def _actuator(self, name):
++        idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
++        if idx < 0:
++            raise KeyError(f"actuator missing: {name}")
++        return idx
++
++    def _body(self, name):
++        idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name)
++        if idx < 0:
++            raise KeyError(f"body missing: {name}")
++        return idx
++
++    def _site(self, name):
++        idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, name)
++        if idx < 0:
++            raise KeyError(f"site missing: {name}")
++        return idx
++
++    @property
++    def base_position(self):
++        return self.data.qpos[:3]
++
++    def reset(self, x=-4.0, y=0.0, yaw=0.0, ground_z=0.0):
++        mujoco.mj_resetData(self.model, self.data)
++        self.data.qpos[:3] = (x, y, ground_z + 0.337742301121)
++        self.data.qpos[3:7] = (math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2))
++        self.data.qvel[:] = 0.0
++        self.data.ctrl[:] = 0.0
++        self.data.xfrc_applied[:] = 0.0
++        self.last_action[:] = 0.0
++        self.control_steps = 0
++        self.max_closure_error = 0.0
++        self.max_mimic_error = 0.0
++        self.max_abs_torque[:] = 0.0
++        self.command = UserCommand()
++        mujoco.mj_forward(self.model, self.data)
++
++    def restore_nominal_parameters(self):
++        self.model.body_mass[:] = self._initial_body_mass
++        self.model.body_inertia[:] = self._initial_body_inertia
++        self.model.geom_friction[:] = self._initial_friction
++        self.model.dof_damping[:] = self._initial_damping
++        mujoco.mj_setConst(self.model, self.data)
++
++    def randomize(self, rng: np.random.Generator, mild=True):
++        """Episode-level sim-to-sim perturbations matching the training categories."""
++        self.restore_nominal_parameters()
++        spread = 0.10 if mild else 0.20
++        moving = np.arange(1, self.model.nbody)
++        mass_scale = rng.uniform(1 - spread, 1 + spread)
++        inertia_scale = rng.uniform(1 - spread, 1 + spread)
++        self.model.body_mass[moving] *= mass_scale
++        self.model.body_inertia[moving] *= inertia_scale
++        # Contact friction on both tires, all rollers and the arena.
++        friction_scale = rng.uniform(0.80 if mild else 0.60, 1.20 if mild else 1.40)
++        self.model.geom_friction[:, 0] *= friction_scale
++        self.model.dof_damping[:] *= rng.uniform(0.85 if mild else 0.70, 1.20 if mild else 1.40)
++        mujoco.mj_setConst(self.model, self.data)
++        return {"mass_scale": float(mass_scale), "inertia_scale": float(inertia_scale),
++                "friction_scale": float(friction_scale)}
++
++    def push(self, force_xyz=(0.0, 10.0, 0.0), duration_s=0.2):
++        self._push_force[:] = force_xyz
++        self._push_remaining = int(round(duration_s / self.model.opt.timestep))
++
++    def _auto_task(self):
++        x, y = self.base_position[:2]
++        mode, height = 0, 0.34
++        # Tunnel pre-crouch begins 0.40 m before its x=[1.35,1.65] roof.
++        if abs(y) < 0.48 and 0.95 <= x <= 2.15:
++            mode = 5
++            if 0.95 <= x <= 1.75:
++                height = 0.178
++            else:
++                height = 0.30
++        elif abs(y + 2.5) < 0.8:
++            mode, height = 1, 0.32
++        elif abs(y - 2.5) < 0.8 or abs(y - 4.8) < 0.8:
++            mode, height = 2, 0.32
++        elif abs(y + 4.8) < 0.8 or (abs(x - 5.0) < 1.6 and abs(y + 3.0) < 1.2):
++            mode, height = 4, 0.32
++        elif abs(x - 5.0) < 1.7 and abs(y - 3.1) < 1.7:
++            mode, height = 1, 0.32
++        return mode, height
++
++    def observation(self):
++        if self.command.auto_mode:
++            mode, height = self._auto_task()
++        else:
++            mode, height = self.command.mode, self.command.height
++        R = self.data.xmat[self.chassis_id].reshape(3, 3)
++        projected_gravity = R.T @ np.array([0.0, 0.0, -1.0])
++        try:
++            gyro = np.asarray(self.data.sensor("base_gyro").data, dtype=np.float64).copy()
++        except KeyError:
++            vel = np.zeros(6)
++            mujoco.mj_objectVelocity(self.model, self.data, mujoco.mjtObj.mjOBJ_BODY,
++                                     self.chassis_id, vel, 1)
++            gyro = vel[:3]
++        leg_pos = np.array([self.data.qpos[self.qpos[n]] for n in LEG_ORDER])
++        leg_vel = np.array([self.data.qvel[self.qvel[n]] for n in LEG_ORDER])
++        wheel_vel = np.array([self.data.qvel[self.qvel[n]] for n in WHEEL_ORDER])
++        mode_vec = np.zeros(7)
++        mode_vec[int(np.clip(mode, 0, 6))] = 1.0
++        obs = np.concatenate([
++            np.array([self.command.vx, self.command.vy, self.command.wz]),
++            np.array([height * 5.0]), gyro * 0.5, projected_gravity,
++            leg_pos, np.zeros(2), leg_vel * 0.1, wheel_vel * 0.1,
++            self.last_action, mode_vec,
++        ]).astype(np.float32)
++        if obs.shape != (35,) or not np.isfinite(obs).all():
++            raise FloatingPointError(f"bad observation: shape={obs.shape}, finite={np.isfinite(obs).all()}")
++        return obs
++
++    @staticmethod
++    def _dc_clip(raw, speed, effort, stall, no_load):
++        max_effort = np.minimum(effort, stall * (1.0 - speed / no_load))
++        min_effort = np.maximum(-effort, stall * (-1.0 - speed / no_load))
++        # Beyond no-load speed the admissible interval can invert.  Motoring torque goes to zero,
++        # while braking torque remains available in the opposite direction.
++        if min_effort > max_effort:
++            if speed >= 0:
++                max_effort = 0.0
++            else:
++                min_effort = 0.0
++        return float(np.clip(raw, min_effort, max_effort))
++
++    def action_to_torque(self, action):
++        a = np.clip(np.asarray(action, dtype=np.float64), -6.0, 6.0)
++        target = a[:4] * np.array([self.cfg.crank_scale, self.cfg.hip_scale,
++                                   self.cfg.crank_scale, self.cfg.hip_scale])
++        # Project the two motor targets into the CAD input-difference stop window.
++        target[0] = np.clip(target[0], target[1] + self.cfg.diff_min, target[1] + self.cfg.diff_max)
++        target[2] = np.clip(target[2], target[3] + self.cfg.diff_min, target[3] + self.cfg.diff_max)
++        q = np.array([self.data.qpos[self.qpos[n]] for n in LEG_ORDER])
++        qd = np.array([self.data.qvel[self.qvel[n]] for n in LEG_ORDER])
++        tau_leg_raw = self.cfg.leg_kp * (target - q) - self.cfg.leg_kd * qd
++        tau_leg = np.array([self._dc_clip(t, v, self.cfg.leg_effort,
++                                           self.cfg.leg_stall, self.cfg.leg_no_load)
++                            for t, v in zip(tau_leg_raw, qd)])
++        wheel_vel = np.array([self.data.qvel[self.qvel[n]] for n in WHEEL_ORDER])
++        wheel_target = a[4:] * self.cfg.wheel_scale
++        if self.cfg.yaw_assist_gain:
++            gyro_z = float(self.data.sensor("base_gyro").data[2])
++            correction = self.cfg.yaw_assist_gain * (self.command.wz - gyro_z)
++            wheel_target += np.array([-correction, correction])
++        tau_wheel_raw = self.cfg.wheel_kd * (wheel_target - wheel_vel)
++        tau_wheel = np.array([self._dc_clip(t, v, self.cfg.wheel_effort,
++                                             self.cfg.wheel_stall, self.cfg.wheel_no_load)
++                              for t, v in zip(tau_wheel_raw, wheel_vel)])
++        # Policy order -> MuJoCo actuator order.
++        tau = np.array([tau_leg[1], tau_leg[0], tau_wheel[0],
++                        tau_leg[3], tau_leg[2], tau_wheel[1]])
++        return tau
++
++    def step_control(self, observation_noise=0.0, action_delay=None):
++        obs = self.observation()
++        if observation_noise:
++            obs = obs + np.random.normal(0.0, observation_noise, obs.shape).astype(np.float32)
++        action = self.policy(obs)
++        if action_delay is not None:
++            delayed = action_delay.push(action)
++        else:
++            delayed = action
++        self.last_action[:] = np.clip(delayed, -6.0, 6.0)
++        for _ in range(self.decimation):
++            tau = self.action_to_torque(self.last_action)
++            self.data.ctrl[:] = tau
++            self.max_abs_torque = np.maximum(self.max_abs_torque, np.abs(tau))
++            if self._push_remaining > 0:
++                self.data.xfrc_applied[self.chassis_id, :3] = self._push_force
++                self._push_remaining -= 1
++            else:
++                self.data.xfrc_applied[self.chassis_id] = 0.0
++            mujoco.mj_step(self.model, self.data)
++            if not np.isfinite(self.data.qpos).all() or not np.isfinite(self.data.qvel).all():
++                raise FloatingPointError("MuJoCo state became non-finite")
++        self.control_steps += 1
++        self.max_closure_error = max(self.max_closure_error, self.closure_error())
++        self.max_mimic_error = max(self.max_mimic_error, self.mimic_error())
++        return action
++
++    def closure_error(self):
++        return max(float(np.linalg.norm(self.data.site_xpos[a] - self.data.site_xpos[b]))
++                   for a, b in self.site_pairs)
++
++    def mimic_error(self):
++        return max(abs(float(self.data.qpos[self.model.jnt_qposadr[self._joint(a)]] -
++                             self.data.qpos[self.model.jnt_qposadr[self._joint(b)]]))
++                   for a, b in self.mimic_pairs)
++
++    def health(self):
++        R = self.data.xmat[self.chassis_id].reshape(3, 3)
++        upright_cos = float((R.T @ np.array([0.0, 0.0, -1.0]))[2] * -1.0)
++        return {
++            "time_s": float(self.data.time), "base_xyz": self.base_position.tolist(),
++            "upright_cos": upright_cos, "closure_error_m": self.closure_error(),
++            "mimic_error_rad": self.mimic_error(), "finite": bool(np.isfinite(self.data.qpos).all()),
++            "max_closure_error_m": self.max_closure_error,
++            "max_mimic_error_rad": self.max_mimic_error,
++            "max_abs_torque_nm_actuator_order": self.max_abs_torque.tolist(),
++        }
++
++
++class ActionDelay:
++    def __init__(self, steps=0):
++        self.steps = max(0, int(steps))
++        self.queue = [np.zeros(6, dtype=np.float64) for _ in range(self.steps + 1)]
++
++    def push(self, value):
++        self.queue.append(np.asarray(value, dtype=np.float64).copy())
++        return self.queue.pop(0)
+diff --git a/smoke_test.py b/smoke_test.py
+new file mode 100644
+index 0000000..06279b4
+--- /dev/null
++++ b/smoke_test.py
+@@ -0,0 +1,68 @@
++"""Fast package integrity, interface and topology smoke test."""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++import sys
++
++import mujoco
++import numpy as np
++
++ROOT = Path(__file__).resolve().parent
++sys.path.insert(0, str(ROOT))
++from sim_runtime import Mod4Sim  # noqa: E402
++from launcher import validate_model, validate_policy  # noqa: E402
++from drive_wasd import CONTROL_KEYS, MUJOCO_DIRECT_RESERVED_KEYS  # noqa: E402
++
++
++def sha256(path):
++    h = hashlib.sha256()
++    with open(path, "rb") as f:
++        for b in iter(lambda: f.read(1024 * 1024), b""):
++            h.update(b)
++    return h.hexdigest()
++
++
++def main():
++    policy = ROOT / "policies" / "mod4_general_16295.onnx"
++    meta = json.loads(policy.with_suffix(".json").read_text(encoding="utf-8"))
++    assert sha256(policy) == meta["onnx_sha256"]
++    policy_contract = validate_policy(policy)
++    full_model_contract = validate_model(ROOT / "model" / "rm_training_arena.xml")
++    assert policy_contract["input"]["shape"][-1] == 35
++    assert policy_contract["output"]["shape"][-1] == 6
++    assert full_model_contract["nu"] == 6 and full_model_contract["equalities"] == 10
++    drive_keys = {key for values in CONTROL_KEYS.values() for key in values}
++    assert not drive_keys.intersection(MUJOCO_DIRECT_RESERVED_KEYS)
++    xml = ROOT / "model" / "rm_training_arena_headless.xml"
++    sim = Mod4Sim(xml, policy)
++    assert (sim.model.nq, sim.model.nv, sim.model.nu, sim.model.neq) == (37, 36, 6, 10)
++    assert sim.observation().shape == (35,)
++    sim.command.vx = .4
++    for _ in range(300):
++        action = sim.step_control()
++    health = sim.health()
++    assert action.shape == (6,)
++    assert np.isfinite(action).all() and health["finite"]
++    assert sim.max_closure_error < .002
++    assert sim.max_mimic_error < .01
++    report = {
++        "status": "PASS", "onnx_sha256": sha256(policy),
++        "launcher_contract": {"input_dim": 35, "output_dim": 6,
++                              "full_model_equalities": full_model_contract["equalities"],
++                              "viewer_key_conflicts": 0},
++        "model": {"nq": sim.model.nq, "nv": sim.model.nv, "nu": sim.model.nu,
++                  "bodies": sim.model.nbody, "geoms": sim.model.ngeom,
++                  "equalities": sim.model.neq},
++        "steps": 300, "max_closure_error_m": sim.max_closure_error,
++        "max_mimic_error_rad": sim.max_mimic_error,
++    }
++    out = ROOT / "reports" / "smoke_report.json"
++    out.parent.mkdir(exist_ok=True)
++    out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
++    print(json.dumps(report, indent=2))
++
++
++if __name__ == "__main__":
++    main()

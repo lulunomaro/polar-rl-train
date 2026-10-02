@@ -1,0 +1,160 @@
+--- mod4/train_mod4_ppo.py.bak_pre_effectivemanifest
++++ mod4/train_mod4_ppo.py
+@@ -56,6 +56,13 @@
+ # std ~1.0 for 100 iterations while episodes lasted 11-15 steps (the mjlab run of the same plant
+ # sits at std 0.05 / 23-89 steps).  Override with RM_INIT_STD.
+ RM_INIT_STD = float(os.environ.get("RM_INIT_STD", "0.3"))
++# 2026-09-29 PPO 对齐华南虎 agents/rsl_rl_ppo_cfg.py：std 1.0 / [512,256,128] /
++# value_loss 2.0 / adaptive LR(KL 0.01)。全部可由 RM_* 覆盖，默认值与旧行为一致。
++RM_HIDDEN_DIMS = [int(x) for x in os.environ.get("RM_HIDDEN_DIMS", "256,128,64").split(",")]
++RM_VALUE_LOSS_COEF = float(os.environ.get("RM_VALUE_LOSS_COEF", "1.0"))
++RM_SCHEDULE = os.environ.get("RM_SCHEDULE", "fixed")
++RM_ENTROPY_COEF = float(os.environ.get("RM_ENTROPY_COEF", "0.005"))
++RM_DESIRED_KL = float(os.environ.get("RM_DESIRED_KL", "0.01"))
+ launcher = AppLauncher(args)
+ app = launcher.app
+ 
+@@ -65,8 +72,8 @@
+ import torch  # noqa: E402
+ from isaaclab.envs import ManagerBasedRLEnv  # noqa: E402
+ from isaaclab_rl.rsl_rl import (  # noqa: E402
+-    RslRlMLPModelCfg, RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg,
+-    RslRlPpoAlgorithmCfg, RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)
++    RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg,
++    RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)
+ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+ 
+ from mod4_env import Mod4Env  # noqa: E402
+@@ -119,64 +126,6 @@
+         return path
+ 
+ 
+-def _partial_warm_start(path: str, frame_dim: int, out_dim: int) -> str:
+-    """Pad the actor's first layer when the observation layout grew (v2 item 1).
+-
+-    Verified on a real checkpoint: with the encoder enabled the actor gains 6 `encoder.*`
+-    parameters and `mlp.0.weight` goes (256,35) -> (256,38), so `strict=True` (the default of
+-    `runner.load` -> `PPO.load` -> `load_state_dict`) refuses to load.  Padding with zeros makes
+-    the extra latent columns contribute nothing at step 0, i.e. the actor really does continue
+-    from the old policy, and only the new dimensions start from scratch.
+-
+-    Returns the path to a rewritten copy (or `path` unchanged when nothing needed padding).
+-    """
+-    if os.environ.get("RM_PARTIAL_WARMSTART", "1").strip() != "1":
+-        return path
+-    try:
+-        import tempfile
+-        ck = torch.load(path, map_location="cpu", weights_only=False)
+-        sd = ck.get("actor_state_dict") or {}
+-        w = sd.get("mlp.0.weight")
+-        if w is None or int(w.shape[1]) >= int(out_dim):
+-            return path
+-        pad = int(out_dim) - int(w.shape[1])
+-        sd["mlp.0.weight"] = torch.cat(
+-            [w, torch.zeros(w.shape[0], pad, dtype=w.dtype, device=w.device)], dim=1)
+-        # the optimizer's parameter set no longer matches the model; a stale one is worse than none
+-        dropped = ck.pop("optimizer_state_dict", None) is not None
+-        out = os.path.join(tempfile.gettempdir(),
+-                           "partial_warmstart_%dto%d.pt" % (int(w.shape[1]), int(out_dim)))
+-        torch.save(ck, out)
+-        print("[mod4-isaac] partial warm start: mlp.0.weight %d -> %d (new columns ZEROED, "
+-              "optimizer state %s)" % (int(w.shape[1]), int(out_dim),
+-                                       "dropped" if dropped else "absent"), flush=True)
+-        return out
+-    except Exception as exc:
+-        print("[mod4-isaac] partial warm start skipped (%r); loading as-is" % (exc,), flush=True)
+-        return path
+-
+-
+-def _load_partial(runner, path: str, actor_dim: int) -> None:
+-    """Load `path` into `runner`, tolerating ONLY the v2 encoder additions."""
+-    import torch as _t
+-    ck = _t.load(path, map_location="cpu", weights_only=False)
+-    want = set(runner.alg.actor.state_dict().keys())
+-    have = set((ck.get("actor_state_dict") or {}).keys())
+-    unexpected = sorted(have - want)
+-    missing = sorted(want - have)
+-    ok_unexpected = [k for k in unexpected if k.startswith("encoder.")]
+-    bad = [k for k in unexpected if not k.startswith("encoder.")]
+-    if bad:
+-        raise RuntimeError("warm start refused: unexpected actor keys %s" % bad)
+-    if os.environ.get("RM_PARTIAL_WARMSTART", "1").strip() == "1":
+-        print("[mod4-isaac] warm start: %d encoder key(s) fresh, %d key(s) missing (fresh)"
+-              % (len(ok_unexpected), len(missing)), flush=True)
+-        runner.load(path, load_cfg={"actor": True, "critic": True,
+-                                    "optimizer": False, "iteration": False}, strict=False)
+-    else:
+-        runner.load(path, strict=True)
+-
+-
+ def build_env() -> ManagerBasedRLEnv:
+     cfg = Mod4EnvCfg()
+     cfg.scene.num_envs = args.num_envs
+@@ -197,19 +146,6 @@
+     return env
+ 
+ 
+-# v2 item 1: actor history + latent encoder (see isaac/mod4/mod4_sequence_model.py).
+-# RM_SEQ_ENCODER=1 turns it on; the actor model then consumes history*35 inputs and
+-# feeds [newest frame | latent] to its MLP.  The critic always stays a plain MLP over
+-# the privileged observation set.
+-SEQ_ENCODER = os.environ.get("RM_SEQ_ENCODER", "0").strip() == "1"
+-SEQ_HISTORY = int(os.environ.get("RM_SEQ_HISTORY", "5")) if SEQ_ENCODER else 0
+-SEQ_LATENT = int(os.environ.get("RM_SEQ_LATENT", "3"))
+-SEQ_ENCODER_HIDDEN = [int(v) for v in
+-                      os.environ.get("RM_SEQ_ENCODER_HIDDEN", "128,64").split(",")]
+-SEQ_ACTOR_CLASS = ("mod4_sequence_model:LatentEncoderModel" if SEQ_ENCODER
+-                   else "MLPModel")
+-
+-
+ def runner_config() -> RslRlOnPolicyRunnerCfg:
+     return RslRlOnPolicyRunnerCfg(
+         seed=args.seed,
+@@ -223,27 +159,13 @@
+         run_name=args.run_name,
+         clip_actions=6.0,
+         check_for_nan=True,
+-        # v2 item 1: separate actor/critic model configs.  RslRlPpoActorCriticCfg is
+-        # deprecated for rsl-rl >= 4.0.0 (isaaclab_rl/rsl_rl/rl_cfg.py:356-360) and
+-        # rsl_rl 4.x resolves the two model classes independently
+-        # (rsl_rl/algorithms/ppo.py:477-497), which is what lets the actor carry the
+-        # encoder while the critic stays a plain MLP over the privileged set.
+-        actor=RslRlMLPModelCfg(
+-            class_name=SEQ_ACTOR_CLASS,
+-            hidden_dims=[256, 128, 64], activation="elu",
+-            obs_normalization=False,
+-            distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(
+-                init_std=RM_INIT_STD, std_type="scalar"),
+-            **({"frame_dim": 35, "latent_dim": SEQ_LATENT,
+-                "encoder_hidden_dims": SEQ_ENCODER_HIDDEN} if SEQ_ENCODER else {})),
+-        critic=RslRlMLPModelCfg(
+-            class_name="MLPModel",
+-            hidden_dims=[256, 128, 64], activation="elu",
+-            obs_normalization=False),
++        policy=RslRlPpoActorCriticCfg(
++            init_noise_std=RM_INIT_STD, actor_hidden_dims=RM_HIDDEN_DIMS,
++            critic_hidden_dims=RM_HIDDEN_DIMS, activation="elu"),
+         algorithm=RslRlPpoAlgorithmCfg(
+-            value_loss_coef=1.0, use_clipped_value_loss=True, clip_param=0.2,
+-            entropy_coef=0.005, num_learning_epochs=5, num_mini_batches=4,
+-            learning_rate=args.learning_rate, schedule="fixed", gamma=0.99,
++            value_loss_coef=RM_VALUE_LOSS_COEF, use_clipped_value_loss=True, clip_param=0.2,
++            entropy_coef=RM_ENTROPY_COEF, num_learning_epochs=5, num_mini_batches=4,
++            learning_rate=args.learning_rate, schedule=RM_SCHEDULE, gamma=0.99,
+             lam=0.95, desired_kl=0.01, max_grad_norm=1.0),
+     )
+ 
+@@ -317,12 +239,7 @@
+     runner = OnPolicyRunner(vec_env, cfg.to_dict(), log_dir=log_dir, device=cfg.device)
+     if args.init_checkpoint:
+         warm = _warm_start_with_reset_std(args.init_checkpoint, RM_INIT_STD)
+-        # v2 item 1: the encoder changes the actor input (35 -> history*35) and adds
+-        # `encoder.*` parameters, so a strict load refuses every existing checkpoint.
+-        # This pads the first layer with zeros and skips the (now mismatched)
+-        # optimizer state; see _partial_warm_start.
+-        warm = _partial_warm_start(warm, 35, 35 + SEQ_LATENT if SEQ_ENCODER else 35)
+-        _load_partial(runner, warm, 35)
++        runner.load(warm)
+         print("[mod4-isaac] warm start from " + args.init_checkpoint
+               + ("" if warm == args.init_checkpoint else " (std reset copy: %s)" % warm),
+               flush=True)

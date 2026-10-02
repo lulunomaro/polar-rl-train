@@ -1,0 +1,149 @@
+--- mod4/skills_isaac.py.bak_pre_launchready
++++ mod4/skills_isaac.py
+@@ -87,11 +87,7 @@
+ # (eval of model_10550: 22 s window, underpass_seen 0/32).  The physics therefore demands a
+ # DYNAMIC crossing: drive in at speed, squat late, coast through on the guide rollers.  0.40 m
+ # leaves room to drop while still carrying momentum.
+-TUNNEL_PRECROUCH_LEAD_M = float(os.environ.get("RM_TUNNEL_LEAD_M", "0.40"))
+-# 2026-09-12: the idler-friction finding (docs/TUNNEL_IDLER_FRICTION_FINDING_20260912.md)
+-# shows the crossing is a momentum problem: with the roller-floor pair at ~0.02 a
+-# 0.60 m/s entry coasts >0.5 m, but only if the squat starts LATE.  0.40 m of lead burns
+-# the entry speed inside the mean 0.196 m/s^2 drag of the crouch, so the lead is a knob.
++TUNNEL_PRECROUCH_LEAD_M = 0.40
+ 
+ 
+ def update_tunnel_state(env, env_ids=None) -> None:
+@@ -135,71 +131,6 @@
+ #                                    no gradient 68 mm away, which is where the first run was)
+ 
+ 
+-
+-
+-# --- verified crouch pose (2026-09-13) ---------------------------------------------------
+-# The delivered 247.2 mm opening is crossed with hip +0.470170 / crank -0.595844 (root
+-# 0.1787 m, CAD envelope 245.634 mm, both drive wheels loaded ~41 N; user MuJoCo report
+-# 2026-09-12).  Height and clearance kernels leave the joint configuration free, so this term
+-# scores the pose itself inside the crouch zones.
+-CROUCH_HIP = float(os.environ.get("RM_CROUCH_HIP", "0.470170"))
+-CROUCH_CRANK = float(os.environ.get("RM_CROUCH_CRANK", "-0.595844"))
+-CROUCH_TOL_RAD = float(os.environ.get("RM_CROUCH_TOL_RAD", "0.06"))
+-# v2 (audit section 15): the crouch-pose reward used to pay for holding the pose with no regard
+-# for forward motion, which made "crouch and time out" worth +1.00/step (see section 15).  The gate
+-# below multiplies it by a drive factor so a stationary crouch scores 0 and only the stall penalty
+-# remains.  ON by default because the ungated form is a measured defect; =0 restores legacy.
+-CROUCH_MOVE_GATE = os.environ.get("RM_TUNNEL_CROUCH_MOVE_GATE", "1").strip() == "1"
+-CROUCH_MOVE_VMIN = float(os.environ.get("RM_TUNNEL_CROUCH_VMIN", "0.05"))
+-STALL_VMIN = float(os.environ.get("RM_TUNNEL_STALL_VMIN", "0.08"))
+-STALL_GAIN = float(os.environ.get("RM_TUNNEL_STALL_GAIN", "0.5"))
+-# Shaping kernel for the crouch-pose term (2026-09-12).  The legacy `clip(1 - err/0.06)`
+-# was measurably inert: Episode_Reward/crouch_pose was exactly 0.0000 for a whole
+-# 400-iteration tunnel phase, because past 0.06 rad the term contributes no gradient.
+-# "gauss" dominates the legacy curve everywhere and never reaches zero; "clip" restores
+-# the legacy behaviour exactly for an A/B.
+-CROUCH_KERNEL = os.environ.get("RM_CROUCH_KERNEL", "gauss")
+-CROUCH_KERNEL_RAD = float(os.environ.get("RM_CROUCH_KERNEL_RAD", "0.20"))
+-
+-
+-def _crouch_drive(env) -> torch.Tensor:
+-    """v2 (audit section 15): 1.0 when the robot is actually creeping, 0 when it stands still.
+-
+-    Multiplies the crouch-pose reward so a stationary crouch scores 0 and the only term left in
+-    the crouch zones is `tunnel_stall` (-0.5/step at vx = 0).  Sitting still therefore becomes
+-    net-NEGATIVE BY CONSTRUCTION, whatever RM_CROUCH_POSE_W is set to -- unlike tuning weights
+-    against a reward that keeps paying.  RM_TUNNEL_CROUCH_MOVE_GATE=0 restores the legacy reward.
+-    """
+-    if not CROUCH_MOVE_GATE:
+-        return 1.0
+-    return (_robot(env).data.root_lin_vel_b[:, 0].abs()
+-            / max(1e-6, CROUCH_MOVE_VMIN)).clamp(0.0, 1.0)
+-
+-
+-def tunnel_crouch_pose(env, tol: float = None) -> torch.Tensor:
+-    """[0,1] match of the verified low pose, active in the tunnel pre-crouch/inside zones."""
+-    st = getattr(env, "_mod4_tunnel_state", None)
+-    if st is None:
+-        return torch.zeros(env.num_envs, device=env.device)
+-    robot = _robot(env)
+-    names = robot.joint_names
+-    try:
+-        ids = [names.index(n) for n in ("left_hip", "left_crank", "right_hip", "right_crank")]
+-    except ValueError:
+-        return torch.zeros(env.num_envs, device=env.device)
+-    q = robot.data.joint_pos
+-    err = ((q[:, ids[0]] - CROUCH_HIP).abs() + (q[:, ids[1]] - CROUCH_CRANK).abs()
+-           + (q[:, ids[2]] - CROUCH_HIP).abs() + (q[:, ids[3]] - CROUCH_CRANK).abs()) / 4.0
+-    # 2026-09-12: `tol` (when given) is the KERNEL WIDTH, not a tolerance that hard-clips
+-    # the term to zero.  Measured: with the legacy 0.06 rad clip this term was exactly
+-    # 0.0000 for every iteration of the tunnel phase -> no signal at all.
+-    zone = ((st == 1) | (st == 2)).float()
+-    if CROUCH_KERNEL == "clip":
+-        val = 1.0 - (err / max(1e-6, CROUCH_TOL_RAD)).clamp(max=1.0)
+-    else:
+-        width = float(tol) if tol else CROUCH_KERNEL_RAD
+-        val = torch.exp(-(err / max(1e-6, width)) ** 2)
+-    return zone * val * _crouch_drive(env)
+ def tunnel_height_track(env, std: float = TUNNEL_TRACK_STD_M) -> torch.Tensor:
+     """Tight height tracking while the robot is under or within the pre-crouch lead of the hole.
+ 
+@@ -851,13 +782,7 @@
+     return d["progress_reward"] * scale
+ 
+ 
+-def tunnel_stall(env, min_vx: float = None, gain: float = None) -> torch.Tensor:
+-    # v2 (audit 15): both numbers were hard-coded defaults, so the penalty could not be tuned
+-    # against the crouch reward without editing code.  They now read the environment knobs.
+-    if min_vx is None:
+-        min_vx = STALL_VMIN
+-    if gain is None:
+-        gain = STALL_GAIN
++def tunnel_stall(env, min_vx: float = 0.08, gain: float = 0.5) -> torch.Tensor:
+     """Penalty for standing still inside the tunnel's crouch zones (2026-09-12).
+ 
+     The deep crouch unloads the drive wheels onto the guide rollers, so the robot CAN only creep
+@@ -1337,3 +1262,46 @@
+             "jump/air_frac": round(air_steps / max(1.0, steps), 4),
+             "jump/window_steps": round(steps / max(1.0, float(env.num_envs)), 1) if st is not None else 0.0,
+             "jump/window_done": int(bool(window_done))}
++
++
++# --------------------------------------------------------------------------------------
++# 2026-09-28 SCUT parity (reason + evidence: docs/MOD4_REWARD_FIX_SCUT_PARITY_20260928.md)
++# --------------------------------------------------------------------------------------
++def _mod4_stand_mask(env, command_name: str = "twist"):
++    """True for envs whose velocity command is zero (explicit standing env or |cmd| ~ 0).
++
++    Same rule as SCUT's `skills_isaac._stand_mask`: the command term's `is_standing_env` flag
++    (Isaac Lab sets it for `rel_standing_envs`) plus a numerical near-zero test.
++    """
++    try:
++        term = env.command_manager.get_term(command_name)
++    except Exception:
++        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
++    norm = torch.linalg.vector_norm(term.command, dim=1)
++    flag = getattr(term, "is_standing_env", None)
++    if flag is not None:
++        return flag.bool() | (norm < 1.0e-6)
++    return norm < 1.0e-6
++
++
++def run_velocity_error_l2(env, command_name: str = "twist"):
++    """Dense planar velocity error (m/s)^2 on MOVING flat-run samples only.
++
++    Ported from the SCUT MOD4 port (`skills_isaac.run_velocity_error_l2`).  Their docstring
++    records the mirror image of our failure: "the exponential tracking reward has almost no
++    gradient after a warm-start policy gets far outside its kernel", which let their flat
++    policy sprint at 2.1 m/s against a 0.3-1.2 m/s command.  In our run the same missing
++    gradient let the policy stop moving altogether (probe 2026-09-28: commands 0.30 / 0.60 /
++    1.00 m/s -> actual -0.002 / -0.002 / +0.002 m/s while collecting 1.38 of the 2.0
++    tracking reward).  Weight -1.0 in SCUT's flat walk launcher.
++    """
++    mode = getattr(env, "_mod4_mode_bit", None)
++    if mode is None:
++        if os.environ.get("RM_MOD4_TERRAIN", "flat").strip().lower() != "flat":
++            return torch.zeros(env.num_envs, device=env.device)
++        moving = ~_mod4_stand_mask(env, command_name)
++    else:
++        moving = (mode == 0) & (~_mod4_stand_mask(env, command_name))
++    command = env.command_manager.get_term(command_name).command
++    error = env.scene["robot"].data.root_lin_vel_b[:, :2] - command[:, :2]
++    return moving.float() * error.square().sum(dim=1)

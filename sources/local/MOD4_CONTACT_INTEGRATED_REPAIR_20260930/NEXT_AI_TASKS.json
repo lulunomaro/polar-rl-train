@@ -1,0 +1,58 @@
+{
+  "root": "/home/egde/rl_candidates/MOD4_contact_integrated_repair_20260930",
+  "deadline_beijing": "2026-09-30 14:33:53",
+  "do_not_restart_active_training": true,
+  "completed": [
+    "0.5ms->5ms平均力积分与独立原始数据重算",
+    "物理轨迹相同的配对验证",
+    "128env两轮PPO完整恢复",
+    "20k全配置4轮A/B",
+    "冻结7775的80env15s回放",
+    "7775完整保存边界切换，7800完整checkpoint审计",
+    "Ubuntu终端和逐小时自动化更新"
+  ],
+  "pending": [
+    {
+      "priority": 1,
+      "task": "等待监督器新权重首轮15s回放，禁止重复发探针",
+      "evidence": "reports与status，首轮约11:15，其后逐小时",
+      "rule": "与交接前冻结7775配对，奖励跳变或积分接触100%不得当学习改善"
+    },
+    {
+      "priority": 2,
+      "task": "区分实际物理改善与端点统计漏采",
+      "metrics": [
+        "速度误差",
+        "倾斜/高度",
+        "动作delta/d2",
+        "子步平均载荷与最长双轮低载",
+        "控制采样网格间隙和滑移近似",
+        "闭链/耦合",
+        "刹停残速"
+      ],
+      "rule": "保留逐环境最坏数据；滑移近似不是真实接触流形"
+    },
+    {
+      "priority": 3,
+      "task": "原预算到点完整保存停止、final_integrated_nominal、更新终端并停用mod4-10",
+      "rule": "不得自动提2m、DR、Rough或追加预算"
+    },
+    {
+      "priority": 4,
+      "task": "只有物理指标证据支持时另行设计2m与轻度DR预检",
+      "status": "not implemented in this repair",
+      "rule": "本次2m外推有失稳，300–700N力-行程仍未标定"
+    }
+  ],
+  "restart_if_needed": [
+    "核实无活跃训练，不能双开",
+    "从最新完整logs checkpoint恢复actor/critic/optimizer/std/iter",
+    "读handover_completed.json；不重跑旧一次性交接",
+    "原deadline保持；NaN/OOM/Xid先诊断，不盲目重启"
+  ],
+  "known_bookkeeping": [
+    "当前内存中的监督器早于磁盘辅助源冻结/旧PID清理小补丁，未影响训练源",
+    "status的validation/evaluation PID可能是已退出交接子进程，必须核实实际进程"
+  ],
+  "package_contains_weights": false
+}

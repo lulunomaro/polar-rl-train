@@ -1,0 +1,22 @@
+--- mod4/mod4_sequence_model.py.bak_pre_enczero
++++ mod4/mod4_sequence_model.py
+@@ -84,6 +84,19 @@
+         if self._enable_encoder and self.obs_dim > self.frame_dim:
+             self.encoder = MLP(self.obs_dim, self.latent_dim, self.encoder_hidden_dims,
+                                self._activation)
++            # v2 fix (audit 63): ZERO-INIT the encoder's output layer.  Without this the
++            # random encoder's latent leaks into the pretrained actor as soon as the MLP's
++            # new columns start learning, and every skill regresses (measured: all 8 route
++            # kinds pinned at curriculum level 0 after one phase, in BOTH the full-DR and
++            # the mild-DR run).  With the output layer zeroed the latent is exactly 0 at
++            # step 0 -- the actor reproduces the checkpoint -- and the encoder earns its
++            # influence gradually.
++            import torch as _torch
++            _last = self.encoder[-1]
++            if hasattr(_last, "weight"):
++                _torch.nn.init.zeros_(_last.weight)
++            if getattr(_last, "bias", None) is not None:
++                _torch.nn.init.zeros_(_last.bias)
+         else:
+             # no history (or the critic set): degrade to a plain MLP rather than crash
+             self.encoder = None

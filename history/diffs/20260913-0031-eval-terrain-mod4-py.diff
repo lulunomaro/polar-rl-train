@@ -1,0 +1,54 @@
+--- mod4/eval_terrain_mod4.py.bak_pre_actorclass
++++ mod4/eval_terrain_mod4.py
+@@ -67,7 +67,8 @@
+ 
+ import torch  # noqa: E402
+ from importlib import metadata  # noqa: E402
+-from isaaclab_rl.rsl_rl import (RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg,
++from isaaclab_rl.rsl_rl import (RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg,
++                                   RslRlMLPModelCfg, RslRlPpoAlgorithmCfg,
+                                 RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)  # noqa: E402
+ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+ HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
+@@ -93,13 +94,39 @@
+ TASK_NAMES = {0: "normal", 1: "stair", 2: "slope", 3: "tunnel", 4: "jump", 5: "gyro", 6: "island", 7: "undulation"}
+ 
+ 
++def _actor_class_from_manifest() -> str:
++    """The trainer picks `mod4_sequence_model:LatentEncoderModel` when RM_SEQ_ENCODER=1.
++
++    The evaluator must pick the same, otherwise the state_dict cannot load (audit 49).
++    """
++    keys = {}
++    for src in ((MANIFEST or {}).get("env") or {}, os.environ):
++        for k, v in src.items():
++            keys.setdefault(k, v)
++    return ("mod4_sequence_model:LatentEncoderModel"
++            if str(keys.get("RM_SEQ_ENCODER", "0")).strip() == "1" else "MLPModel")
++
++
++_ACTOR_CLASS = _actor_class_from_manifest()
++
++
+ def build_runner(vec, ckpt):
+     rcfg = RslRlOnPolicyRunnerCfg(
+         seed=0, device="cuda:0", num_steps_per_env=24, max_iterations=1, save_interval=1,
+         experiment_name="terrain", run_name="eval", clip_actions=6.0, check_for_nan=True,
+         obs_groups={"actor": ["policy"], "critic": ["critic"]},
+-        policy=RslRlPpoActorCriticCfg(init_noise_std=0.3, actor_hidden_dims=[256, 128, 64],
+-                                      critic_hidden_dims=[256, 128, 64], activation="elu"),
++        # v2 fix (2026-09-13, audit 49): build the actor with the SAME class the trainer used.
++        # The old `RslRlPpoActorCriticCfg(actor_hidden_dims=...)` form always yields a plain
++        # MLPModel, so a v2 encoder checkpoint (mlp.0 = [256, 38] + encoder.*) could not load
++        # into it (the 175-D history obs sized the MLP at [256, 175]) and EVERY phase eval failed.
++        actor=RslRlMLPModelCfg(
++            class_name=_ACTOR_CLASS,
++            hidden_dims=[256, 128, 64], activation="elu", obs_normalization=False,
++            distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(
++                init_std=0.3, std_type="scalar")),
++        critic=RslRlMLPModelCfg(
++            class_name="MLPModel",
++            hidden_dims=[256, 128, 64], activation="elu", obs_normalization=False),
+         algorithm=RslRlPpoAlgorithmCfg(value_loss_coef=1.0, use_clipped_value_loss=True,
+                                        clip_param=0.2, entropy_coef=0.005, num_learning_epochs=5,
+                                        num_mini_batches=4, learning_rate=1e-4, schedule="fixed",

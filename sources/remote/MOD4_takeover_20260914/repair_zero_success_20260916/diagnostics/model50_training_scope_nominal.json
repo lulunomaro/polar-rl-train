@@ -1,0 +1,2464 @@
+{
+  "schema": "mod4_episode_eval_v2",
+  "status": "ROLLOUT_COMPLETE",
+  "domain_randomization": false,
+  "training_route_scope": true,
+  "seed": 20260916,
+  "steps_completed": 2050,
+  "checkpoint": "/home/egde/rl_candidates/MOD4_takeover_20260914/logs/takeover_12000_mat3_spe48_sol16_4_20260915_v4/2026-09-15_23-36-10_s2b_specialist_recovery/model_50.pt",
+  "checkpoint_sha256": "6b9b410dc82900f232fdaa73b5db9694cafa023a0422e5ae4a97d3e73eb9ed18",
+  "protocol": {
+    "schema": "mod4_nominal_protocol_v1",
+    "num_envs": 36,
+    "step_dt": 0.01,
+    "max_episode_length": 2000,
+    "requested_route_kinds": "fly_jump,jump_in_place,tunnel_cross",
+    "usd_sha256": "d8c31f7a2998ff48068eb7eb7d070e15b3cf5efe7c4e4b8fd501ea2c1c7a2afe",
+    "route_table": [
+      {
+        "id": "flat_run",
+        "name_zh": "平地跑与制动",
+        "kind": "run",
+        "waypoints_m": [
+          [
+            -9.0,
+            -1.0,
+            -0.026185922166028774
+          ],
+          [
+            -5.5,
+            -1.0,
+            -0.02618592209367776
+          ]
+        ],
+        "spawn_ground_m": [
+          -9.0,
+          -1.0,
+          -0.026185922166028774
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          -2.0664619017478966e-11,
+          -0.0261769490078096,
+          0.9996573249572288
+        ],
+        "speed_range_m_s": [
+          0.2,
+          2.5
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "flat_jump",
+        "name_zh": "原地起跳和落地",
+        "kind": "jump_in_place",
+        "waypoints_m": [
+          [
+            -7.0,
+            -1.5,
+            -0.03927888325960671
+          ],
+          [
+            -7.0,
+            -1.5,
+            -0.03927888325960671
+          ]
+        ],
+        "spawn_ground_m": [
+          -7.0,
+          -1.5,
+          -0.03927888325960671
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          -2.0664619017478966e-11,
+          -0.0261769490078096,
+          0.9996573249572288
+        ],
+        "speed_range_m_s": [
+          0.0,
+          0.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.08,
+          0.35
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "island_ramp_up",
+        "name_zh": "沿坡上中心岛",
+        "kind": "ramp_up",
+        "waypoints_m": [
+          [
+            -1.15,
+            -6.2,
+            0.0377158428165183
+          ],
+          [
+            -1.15,
+            -4.1,
+            0.19551536268638436
+          ]
+        ],
+        "spawn_ground_m": [
+          -1.15,
+          -6.2,
+          0.0377158428165183
+        ],
+        "spawn_yaw_rad": 1.5707963267948966,
+        "spawn_surface_normal": [
+          0.0,
+          -0.026176957365421374,
+          0.9996573247383771
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.2
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "island_ramp_down",
+        "name_zh": "中心岛下坡",
+        "kind": "ramp_down",
+        "waypoints_m": [
+          [
+            -1.15,
+            -4.1,
+            0.19551536268638436
+          ],
+          [
+            -1.15,
+            -6.2,
+            0.0377158428165183
+          ]
+        ],
+        "spawn_ground_m": [
+          -1.15,
+          -4.1,
+          0.19551536268638436
+        ],
+        "spawn_yaw_rad": -1.5707963267948966,
+        "spawn_surface_normal": [
+          -1.1134033023007447e-09,
+          -0.026176950595652254,
+          0.9996573249156497
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.2
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "slope_spin",
+        "name_zh": "斜坡小陀螺",
+        "kind": "slope_spin",
+        "waypoints_m": [
+          [
+            -1.15,
+            -5.18,
+            0.10730570535092032
+          ],
+          [
+            -1.15,
+            -5.18,
+            0.10730570535092032
+          ]
+        ],
+        "spawn_ground_m": [
+          -1.15,
+          -5.18,
+          0.10730570535092032
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          0.0,
+          -0.20791206394012413,
+          0.9781475214241242
+        ],
+        "speed_range_m_s": [
+          0.0,
+          0.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          -4.0,
+          4.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "rough_forward",
+        "name_zh": "起伏路段正向",
+        "kind": "rough_cross",
+        "waypoints_m": [
+          [
+            5.85,
+            6.45,
+            0.031169367398673042
+          ],
+          [
+            9.15,
+            6.45,
+            0.031169368112069273
+          ]
+        ],
+        "spawn_ground_m": [
+          5.85,
+          6.45,
+          0.031169367398673042
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          -1.4710536203256591e-09,
+          0.02617694972466331,
+          0.9996573249384574
+        ],
+        "speed_range_m_s": [
+          0.3,
+          2.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 10.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "rough_reverse",
+        "name_zh": "起伏路段反向",
+        "kind": "rough_cross",
+        "waypoints_m": [
+          [
+            9.15,
+            6.45,
+            0.031169368112069273
+          ],
+          [
+            5.85,
+            6.45,
+            0.031169367398673042
+          ]
+        ],
+        "spawn_ground_m": [
+          9.15,
+          6.45,
+          0.031169368112069273
+        ],
+        "spawn_yaw_rad": 3.141592653589793,
+        "spawn_surface_normal": [
+          0.0,
+          0.02617694972466331,
+          0.9996573249384574
+        ],
+        "speed_range_m_s": [
+          0.3,
+          2.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 10.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "fly_jump",
+        "name_zh": "飞坡跨沟",
+        "kind": "fly_jump",
+        "waypoints_m": [
+          [
+            -3.0,
+            -6.94,
+            0.018338262300511055
+          ],
+          [
+            2.8,
+            -6.94,
+            0.018338258046817435
+          ]
+        ],
+        "spawn_ground_m": [
+          -3.0,
+          -6.94,
+          0.018338262300511055
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          0.0,
+          -0.02617694332798165,
+          0.9996573251059603
+        ],
+        "speed_range_m_s": [
+          0.5,
+          3.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 10.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "fly_jump_mirror",
+        "name_zh": "另一侧飞坡跨沟",
+        "kind": "fly_jump",
+        "waypoints_m": [
+          [
+            3.0,
+            6.94,
+            0.018338262300511055
+          ],
+          [
+            -2.8,
+            6.94,
+            0.018338258046817435
+          ]
+        ],
+        "spawn_ground_m": [
+          3.0,
+          6.94,
+          0.018338262300511055
+        ],
+        "spawn_yaw_rad": 3.141592653589793,
+        "spawn_surface_normal": [
+          0.0,
+          0.026176943327981646,
+          0.9996573251059602
+        ],
+        "speed_range_m_s": [
+          0.5,
+          3.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 10.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "central_upper",
+        "name_zh": "二级中心岛台面跨越",
+        "kind": "step_up",
+        "waypoints_m": [
+          [
+            -2.8,
+            0.0,
+            0.30387765169110836
+          ],
+          [
+            -1.5,
+            0.0,
+            0.4000000059604645
+          ]
+        ],
+        "spawn_ground_m": [
+          -2.8,
+          0.0,
+          0.30387765169110836
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          -0.0,
+          0.0261769492903951,
+          0.9996573249498291
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "central_upper_down",
+        "name_zh": "二级中心岛台面下台阶",
+        "kind": "step_down",
+        "waypoints_m": [
+          [
+            -1.5,
+            0.0,
+            0.4000000059604645
+          ],
+          [
+            -2.8,
+            0.0,
+            0.30387765169110836
+          ]
+        ],
+        "spawn_ground_m": [
+          -1.5,
+          0.0,
+          0.4000000059604645
+        ],
+        "spawn_yaw_rad": 3.141592653589793,
+        "spawn_surface_normal": [
+          0.0,
+          0.0,
+          0.9999999999999999
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "central_lip",
+        "name_zh": "中心岛边缘凸坎",
+        "kind": "step_up",
+        "waypoints_m": [
+          [
+            3.05,
+            3.0,
+            0.22431987730028524
+          ],
+          [
+            3.05,
+            4.15,
+            0.2942403501084403
+          ]
+        ],
+        "spawn_ground_m": [
+          3.05,
+          3.0,
+          0.22431987730028524
+        ],
+        "spawn_yaw_rad": 1.5707963267948966,
+        "spawn_surface_normal": [
+          2.4375032877701956e-09,
+          0.026176950495862317,
+          0.9996573249182628
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.0
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "trapezoid",
+        "name_zh": "梯形高地斜坡",
+        "kind": "ramp_up",
+        "waypoints_m": [
+          [
+            -8.6,
+            4.1,
+            -0.10736228080201693
+          ],
+          [
+            -10.0,
+            3.8,
+            0.300630611490597
+          ]
+        ],
+        "spawn_ground_m": [
+          -8.6,
+          4.1,
+          -0.10736228080201693
+        ],
+        "spawn_yaw_rad": 3.141592653589793,
+        "spawn_surface_normal": [
+          -5.315372807352568e-10,
+          0.02617694536180583,
+          0.9996573250527028
+        ],
+        "speed_range_m_s": [
+          0.2,
+          1.2
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "tunnel",
+        "name_zh": "公路狗洞",
+        "kind": "tunnel_cross",
+        "waypoints_m": [
+          [
+            0.3,
+            -5.95,
+            -0.15580623056326845
+          ],
+          [
+            2.3,
+            -5.95,
+            -0.15580623056326845
+          ]
+        ],
+        "spawn_ground_m": [
+          0.3,
+          -5.95,
+          -0.15580623056326845
+        ],
+        "spawn_yaw_rad": 0.0,
+        "spawn_surface_normal": [
+          0.0,
+          -0.026176946606983605,
+          0.9996573250200967
+        ],
+        "speed_range_m_s": [
+          0.1,
+          0.6
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      },
+      {
+        "id": "tunnel_mirror",
+        "name_zh": "另一侧公路狗洞",
+        "kind": "tunnel_cross",
+        "waypoints_m": [
+          [
+            -0.3,
+            5.95,
+            -0.15580623068803004
+          ],
+          [
+            -2.3,
+            5.95,
+            -0.15580623068803004
+          ]
+        ],
+        "spawn_ground_m": [
+          -0.3,
+          5.95,
+          -0.15580623068803004
+        ],
+        "spawn_yaw_rad": 3.141592653589793,
+        "spawn_surface_normal": [
+          0.0,
+          0.026176946546233253,
+          0.9996573250216875
+        ],
+        "speed_range_m_s": [
+          0.1,
+          0.6
+        ],
+        "goal_radius_m": 0.35,
+        "recommended_episode_s": 15.0,
+        "yaw_rate_range_rad_s": [
+          0.0,
+          0.0
+        ],
+        "jump_height_range_m": [
+          0.0,
+          0.0
+        ],
+        "robot_height_offset_m": "Set from robot base-to-ground height at its reset pose; not a terrain dimension.",
+        "status": "geometric route; policy success and real robot feasibility are not yet tested"
+      }
+    ],
+    "runtime_goals": [
+      [
+        -5.5,
+        -1.0,
+        -0.02618592232465744
+      ],
+      [
+        -7.0,
+        -1.5,
+        -0.03927888348698616
+      ],
+      [
+        -1.149999976158142,
+        -4.099999904632568,
+        0.19551536440849304
+      ],
+      [
+        -1.149999976158142,
+        -6.199999809265137,
+        0.037715841084718704
+      ],
+      [
+        -1.149999976158142,
+        -5.179999828338623,
+        0.10730570554733276
+      ],
+      [
+        9.149999618530273,
+        6.449999809265137,
+        0.03116936795413494
+      ],
+      [
+        5.849999904632568,
+        6.449999809265137,
+        0.03116936795413494
+      ],
+      [
+        2.799999952316284,
+        -6.940000057220459,
+        0.01833825744688511
+      ],
+      [
+        -2.799999952316284,
+        6.940000057220459,
+        0.01833825744688511
+      ],
+      [
+        -1.5,
+        0.0,
+        0.4000000059604645
+      ],
+      [
+        -2.799999952316284,
+        0.0,
+        0.30387765169143677
+      ],
+      [
+        3.049999952316284,
+        4.150000095367432,
+        0.2942403554916382
+      ],
+      [
+        -10.0,
+        3.799999952316284,
+        0.3006305992603302
+      ],
+      [
+        1.7999999523162842,
+        -5.949999809265137,
+        -0.15580622851848602
+      ],
+      [
+        -1.7999999523162842,
+        5.949999809265137,
+        -0.15580622851848602
+      ]
+    ],
+    "runtime_starts": [
+      [
+        -9.0,
+        -1.0,
+        -0.02618592232465744
+      ],
+      [
+        -7.0,
+        -1.5,
+        -0.03927888348698616
+      ],
+      [
+        -1.149999976158142,
+        -6.199999809265137,
+        0.037715841084718704
+      ],
+      [
+        -1.149999976158142,
+        -4.099999904632568,
+        0.19551536440849304
+      ],
+      [
+        -1.149999976158142,
+        -5.179999828338623,
+        0.10730570554733276
+      ],
+      [
+        5.849999904632568,
+        6.449999809265137,
+        0.03116936795413494
+      ],
+      [
+        9.149999618530273,
+        6.449999809265137,
+        0.03116936795413494
+      ],
+      [
+        -3.0,
+        -6.940000057220459,
+        0.018338263034820557
+      ],
+      [
+        3.0,
+        6.940000057220459,
+        0.018338263034820557
+      ],
+      [
+        -2.799999952316284,
+        0.0,
+        0.30387765169143677
+      ],
+      [
+        -1.5,
+        0.0,
+        0.4000000059604645
+      ],
+      [
+        3.049999952316284,
+        3.0,
+        0.22431987524032593
+      ],
+      [
+        -8.600000381469727,
+        4.099999904632568,
+        -0.1073622778058052
+      ],
+      [
+        0.30000001192092896,
+        -5.949999809265137,
+        -0.15580622851848602
+      ],
+      [
+        -0.30000001192092896,
+        5.949999809265137,
+        -0.15580622851848602
+      ]
+    ],
+    "runtime_speeds": [
+      [
+        0.20000000298023224,
+        2.5
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.20000000298023224,
+        1.2000000476837158
+      ],
+      [
+        0.20000000298023224,
+        1.2000000476837158
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.30000001192092896,
+        2.0
+      ],
+      [
+        0.30000001192092896,
+        2.0
+      ],
+      [
+        0.5,
+        3.0
+      ],
+      [
+        0.5,
+        3.0
+      ],
+      [
+        0.20000000298023224,
+        1.0
+      ],
+      [
+        0.20000000298023224,
+        1.0
+      ],
+      [
+        0.20000000298023224,
+        1.0
+      ],
+      [
+        0.20000000298023224,
+        1.2000000476837158
+      ],
+      [
+        0.10000000149011612,
+        0.6000000238418579
+      ],
+      [
+        0.10000000149011612,
+        0.6000000238418579
+      ]
+    ],
+    "task_sha256": "1411cb172c3179415469b46aee29886b9d6939806433028f79a762e8662dfc99",
+    "repair_sources": {
+      "repair_contracts.py": "d0d14b8d06d9d2efb5191815dcd8268472c1abd689eca4fd77d36931bbfe7df7",
+      "repair_gate.py": "d6a2a32f67b538d15674f5264274ed716bc3c0d1bf79768d120691ccdad6ab4e",
+      "repair_step.py": "0bebec6a428a3013acd798d915fc667cfa2ad125943f42309e31d1c1d77c8d87"
+    },
+    "controller_sha256": "2e9ba2433a00cb00b978da86ac35d7816bc494c6e96f522dc2d622d5084949a5",
+    "reward_sha256": "f66faafedaa5a1284e810e0fa7394d9f9cec65aa912a09890e09e8b9844ce918",
+    "route_adapter_sha256": "a749cc18d2e71701e88bf7b770c01bccc59206b1bae79f425cc0c95b3aa6e2a1",
+    "sequence_sha256": "ae6ceb5893142ad27c6cbb4b678e57bf401683603f4f07a49e9ef7bb4d6c8c3a",
+    "observations": {
+      "policy": [
+        "commands",
+        "height_command",
+        "base_ang_vel",
+        "projected_gravity",
+        "leg_pos",
+        "wheel_pos_slots",
+        "leg_vel",
+        "wheel_vel",
+        "last_action",
+        "mode_onehot"
+      ],
+      "critic": [
+        "commands",
+        "height_command",
+        "base_ang_vel",
+        "base_lin_vel",
+        "projected_gravity",
+        "leg_pos",
+        "wheel_pos_slots",
+        "leg_vel",
+        "wheel_vel",
+        "last_action",
+        "mode_onehot"
+      ]
+    },
+    "rm_env": {
+      "RM_ACTION_DELAY_MAX_LAG": "0",
+      "RM_ACTION_DELAY_MIN_LAG": "0",
+      "RM_ACTION_DELAY_MS_MAX": "2",
+      "RM_ACTION_DELAY_MS_MIN": "0",
+      "RM_ANG_SCALE_OTHER": "0.25",
+      "RM_ARMATURE_MAX": "1.20",
+      "RM_ARMATURE_MIN": "0.85",
+      "RM_CHASSIS_INERTIA_MAX": "1.10",
+      "RM_CHASSIS_INERTIA_MIN": "0.90",
+      "RM_CHASSIS_MASS_ADD_MAX": "1.0",
+      "RM_CHASSIS_MASS_ADD_MIN": "-0.5",
+      "RM_COM_X": "0.02",
+      "RM_COM_Y": "0.01",
+      "RM_COM_Z": "0.01",
+      "RM_CRANK_ACTION_SCALE": "0.75",
+      "RM_CROUCH_CRANK": "-0.595844",
+      "RM_CROUCH_HIP": "0.470170",
+      "RM_CROUCH_POSE_W": "1.0",
+      "RM_CURR_DEMOTE": "0.25",
+      "RM_CURR_INIT_LEVEL": "4",
+      "RM_CURR_LEVELS": "5",
+      "RM_CURR_MIN_ATTEMPTS": "40",
+      "RM_CURR_PROMOTE": "0.70",
+      "RM_CURR_WINDOW_STEPS": "4000",
+      "RM_DAMPING_MAX": "1.05",
+      "RM_DAMPING_MIN": "0.95",
+      "RM_DEFAULT_DOF_POS_RANGE": "0.03",
+      "RM_DR_OFF": "1",
+      "RM_EFFORT_LEG_MAX": "1.05",
+      "RM_EFFORT_LEG_MIN": "0.95",
+      "RM_EFFORT_NOISE": "0.03",
+      "RM_EFFORT_NOISE_WHEEL": "0.02",
+      "RM_EFFORT_WHEEL_MAX": "1.05",
+      "RM_EFFORT_WHEEL_MIN": "0.95",
+      "RM_ENCODER_BIAS": "0.008",
+      "RM_ENTROPY_COEF": "0.0010",
+      "RM_EPISODE_AUDIT": "1",
+      "RM_EPISODE_S": "20",
+      "RM_FRAME_DIM": "35",
+      "RM_GAS_DAMPING_MAX": "1.10",
+      "RM_GAS_DAMPING_MIN": "0.90",
+      "RM_GAS_STIFFNESS_MAX": "1.10",
+      "RM_GAS_STIFFNESS_MIN": "0.90",
+      "RM_GUIDE_FRICTION": "0.02",
+      "RM_GYRO_EVERY": "80",
+      "RM_GYRO_START": "4.0",
+      "RM_GYRO_STEPS_PER_ITER": "48",
+      "RM_GYRO_TARGET": "5.0",
+      "RM_JUMP_HI": "0.10",
+      "RM_JUMP_HI_MAX": "0.10",
+      "RM_JUMP_LAUNCH_READY": "1",
+      "RM_JUMP_LAUNCH_READY_W": "3.0",
+      "RM_JUMP_LO": "0.10",
+      "RM_JUMP_SCRIPT_PROB": "0",
+      "RM_KEEP_STD": "0",
+      "RM_LEG_ACTION_SCALE": "0.5",
+      "RM_LEG_FRICTION_MAX": "0.10",
+      "RM_LEG_KD": "10",
+      "RM_LEG_KI": "0",
+      "RM_LEG_KI_CLIP": "0.35",
+      "RM_LEG_KP": "2500",
+      "RM_LIMB_INERTIA_MAX": "1.10",
+      "RM_LIMB_INERTIA_MIN": "0.90",
+      "RM_LIMB_MASS_MAX": "1.05",
+      "RM_LIMB_MASS_MIN": "0.95",
+      "RM_METRIC_PERIOD": "20",
+      "RM_MOD4_MAP": "rmuc2026",
+      "RM_MOD4_TERRAIN": "field",
+      "RM_MOD4_USD": "/home/egde/rl_candidates/MOD4_takeover_20260914/repair_1536_20260915/asset/robot_tireload12_mat3.usd",
+      "RM_OBS_DELAY_HOLD_PROB": "0.75",
+      "RM_OBS_DELAY_MAX_LAG": "1",
+      "RM_OBS_DELAY_MIN_LAG": "0",
+      "RM_OBS_DELAY_UPDATE_PERIOD": "10",
+      "RM_PARTIAL_WARMSTART": "1",
+      "RM_RESTITUTION_MAX": "0.10",
+      "RM_RESTITUTION_MIN": "0.0",
+      "RM_REWARD_CLIP": "2.5",
+      "RM_REWARD_CLIP_MODE": "safe",
+      "RM_ROUGH_SPEED_MAX": "0",
+      "RM_ROUTE_CURRICULUM": "0",
+      "RM_ROUTE_KINDS": "fly_jump,jump_in_place,tunnel_cross",
+      "RM_ROUTE_PROGRESS_SCALE": "100",
+      "RM_ROUTE_WEIGHTS": "",
+      "RM_RUN_TAG": "takeover_12000_mat3_spe48_sol16_4_20260915_v4",
+      "RM_SEQ_ENCODER": "1",
+      "RM_SEQ_ENCODER_HIDDEN": "128,64",
+      "RM_SEQ_HISTORY": "5",
+      "RM_SEQ_LATENT": "3",
+      "RM_SHAPE_FRICTION_MAX": "1.20",
+      "RM_SHAPE_FRICTION_MIN": "0.80",
+      "RM_SOLVER_POS": "16",
+      "RM_SOLVER_VEL": "4",
+      "RM_SPAWN_CLEARANCE_M": "0.02",
+      "RM_STIFFNESS_MAX": "1.05",
+      "RM_STIFFNESS_MIN": "0.95",
+      "RM_TIRE_ADD_MM": "0",
+      "RM_TUNNEL_CROUCH_MOVE_GATE": "1",
+      "RM_TUNNEL_GOAL_X": "1.80",
+      "RM_TUNNEL_PRECROUCH_LEAD_M": "0.32",
+      "RM_TUNNEL_SPAWN_LEAD_M": "0.05",
+      "RM_TUNNEL_STALL_GAIN": "0.7",
+      "RM_TUNNEL_STALL_VMIN": "0.08",
+      "RM_WHEEL_FRICTION_MAX": "0.02",
+      "RM_WHEEL_INERTIA_MAX": "1.10",
+      "RM_WHEEL_INERTIA_MIN": "0.90",
+      "RM_WHEEL_MASS_MAX": "1.05",
+      "RM_WHEEL_MASS_MIN": "0.95",
+      "RM_W_ACTION_ACC": "-0.025",
+      "RM_W_ACTION_L2_LEG": "-0.07",
+      "RM_W_ACTION_L2_WHEEL": "-0.02",
+      "RM_W_ACTION_RATE": "-0.10",
+      "RM_W_ANG_VEL_XY": "-0.10",
+      "RM_W_DOF_POS_LIMITS": "-3.0",
+      "RM_W_FLAT_ORIENT": "-4.0",
+      "RM_W_FLIGHT_PROG": "3.0",
+      "RM_W_GYRO_WIDE": "3.0",
+      "RM_W_LANDING_REC": "2.0",
+      "RM_W_LEG_SYMMETRY": "-0.5",
+      "RM_W_LINE_Z": "4.0",
+      "RM_W_TORQUES": "-0.00005",
+      "RM_W_TUNNEL_APPROACH": "1.5",
+      "RM_W_TUNNEL_CROUCH": "0.5",
+      "RM_W_TUNNEL_TRAV": "4.0",
+      "RM_W_UNWANTED_AIR": "-0.5"
+    }
+  },
+  "protocol_sha256": "00709a8fd55ed24b0e5bc42a96c0518bccddaaa00eb6b6681d1bf1ea3f94994e",
+  "route_kinds": {
+    "fly_jump": {
+      "episodes": 14,
+      "successes": 0,
+      "complete_rate": 0.0,
+      "terminated": 5,
+      "timeouts": 9,
+      "underpass_seen": 0,
+      "underpass_seen_rate": 0.0,
+      "launched": 0,
+      "launched_rate": 0.0,
+      "air_after_launch": 0,
+      "air_after_launch_rate": 0.0,
+      "landed": 14,
+      "landed_rate": 1.0,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {
+        "bad_orientation": 0,
+        "base_contact": 5,
+        "closure": 0,
+        "low_base": 0,
+        "mimic": 0,
+        "time_out": 9,
+        "tunnel_roof_hit": 0
+      }
+    },
+    "jump_in_place": {
+      "episodes": 8,
+      "successes": 0,
+      "complete_rate": 0.0,
+      "terminated": 1,
+      "timeouts": 7,
+      "underpass_seen": 0,
+      "underpass_seen_rate": 0.0,
+      "launched": 0,
+      "launched_rate": 0.0,
+      "air_after_launch": 0,
+      "air_after_launch_rate": 0.0,
+      "landed": 8,
+      "landed_rate": 1.0,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {
+        "bad_orientation": 0,
+        "base_contact": 1,
+        "closure": 0,
+        "low_base": 0,
+        "mimic": 0,
+        "time_out": 7,
+        "tunnel_roof_hit": 0
+      }
+    },
+    "ramp_down": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "ramp_up": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "rough_cross": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "run": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "slope_spin": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "step_down": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "step_up": {
+      "episodes": 0,
+      "successes": 0,
+      "complete_rate": null,
+      "terminated": 0,
+      "timeouts": 0,
+      "underpass_seen": 0,
+      "underpass_seen_rate": null,
+      "launched": 0,
+      "launched_rate": null,
+      "air_after_launch": 0,
+      "air_after_launch_rate": null,
+      "landed": 0,
+      "landed_rate": null,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {}
+    },
+    "tunnel_cross": {
+      "episodes": 14,
+      "successes": 0,
+      "complete_rate": 0.0,
+      "terminated": 0,
+      "timeouts": 14,
+      "underpass_seen": 0,
+      "underpass_seen_rate": 0.0,
+      "launched": 0,
+      "launched_rate": 0.0,
+      "air_after_launch": 0,
+      "air_after_launch_rate": 0.0,
+      "landed": 14,
+      "landed_rate": 1.0,
+      "roof_hit_terminations": 0,
+      "failure_reasons": {
+        "bad_orientation": 0,
+        "base_contact": 0,
+        "closure": 0,
+        "low_base": 0,
+        "mimic": 0,
+        "time_out": 14,
+        "tunnel_roof_hit": 0
+      }
+    }
+  },
+  "episodes": [
+    {
+      "env_id": 32,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 2.319999933242798,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019156068563461304,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 4.137846946716309,
+      "final_local_position_m": [
+        1.3353958129882812,
+        6.797595024108887,
+        0.22744379937648773
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 7,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 2.549999952316284,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019159704446792603,
+      "max_air_time_s": 0.14999999105930328,
+      "final_distance_m": 4.286766529083252,
+      "final_local_position_m": [
+        1.4820022583007812,
+        6.737957000732422,
+        0.20797446370124817
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 27,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 3.009999990463257,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019159406423568726,
+      "max_air_time_s": 0.23000003397464752,
+      "final_distance_m": 4.254685878753662,
+      "final_local_position_m": [
+        1.4501914978027344,
+        6.74449348449707,
+        0.20773133635520935
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 12,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 8.519999504089355,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019158869981765747,
+      "max_air_time_s": 0.21000002324581146,
+      "final_distance_m": 4.323476314544678,
+      "final_local_position_m": [
+        1.5138940811157227,
+        6.652317047119141,
+        0.20957721769809723
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 21,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 9.859999656677246,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.0191594660282135,
+      "max_air_time_s": 0.2200000286102295,
+      "final_distance_m": 4.346282482147217,
+      "final_local_position_m": [
+        -1.5365381240844727,
+        -6.649125099182129,
+        0.20938217639923096
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 25,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 18.65999984741211,
+      "terminated": true,
+      "truncated": false,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01916232705116272,
+      "max_air_time_s": 0.4699998199939728,
+      "final_distance_m": 3.98009991645813,
+      "final_local_position_m": [
+        -10.566757202148438,
+        -3.266193389892578,
+        0.09641647338867188
+      ],
+      "terms": {
+        "time_out": false,
+        "bad_orientation": false,
+        "base_contact": true,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 0,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019159823656082153,
+      "max_air_time_s": 0.4699998199939728,
+      "final_distance_m": 4.336520671844482,
+      "final_local_position_m": [
+        -10.965988159179688,
+        -3.2539520263671875,
+        0.0960283949971199
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 1,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01915600895881653,
+      "max_air_time_s": 17.72031021118164,
+      "final_distance_m": 4.134558200836182,
+      "final_local_position_m": [
+        -1.3343124389648438,
+        -6.894954681396484,
+        0.22979499399662018
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 2,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019154995679855347,
+      "max_air_time_s": 17.72031021118164,
+      "final_distance_m": 4.140421390533447,
+      "final_local_position_m": [
+        1.3401412963867188,
+        6.891846656799316,
+        0.22887755930423737
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 3,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799593567848206,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3240238428115845,
+      "final_local_position_m": [
+        0.477996826171875,
+        -5.876877784729004,
+        0.06983329355716705
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 4,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799319386482239,
+      "max_air_time_s": 0.18000000715255737,
+      "final_distance_m": 1.3242223262786865,
+      "final_local_position_m": [
+        -0.47777557373046875,
+        5.877285003662109,
+        0.07011313736438751
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 5,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01915973424911499,
+      "max_air_time_s": 0.48999980092048645,
+      "final_distance_m": 4.365575790405273,
+      "final_local_position_m": [
+        -11.024879455566406,
+        -3.1907386779785156,
+        0.09768082946538925
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 6,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019156813621520996,
+      "max_air_time_s": 17.40030288696289,
+      "final_distance_m": 4.150236129760742,
+      "final_local_position_m": [
+        -1.3501205444335938,
+        -6.909065246582031,
+        0.22686675190925598
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 8,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06854245066642761,
+      "max_air_time_s": 0.18000000715255737,
+      "final_distance_m": 1.3256481885910034,
+      "final_local_position_m": [
+        0.4773216247558594,
+        -5.861313819885254,
+        0.07205598056316376
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 9,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06798988580703735,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3251817226409912,
+      "final_local_position_m": [
+        -0.4779396057128906,
+        5.859097480773926,
+        0.07017825543880463
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 10,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01916205883026123,
+      "max_air_time_s": 0.3099999725818634,
+      "final_distance_m": 4.759313583374023,
+      "final_local_position_m": [
+        -11.598358154296875,
+        -2.7272605895996094,
+        0.10986949503421783
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 11,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019157499074935913,
+      "max_air_time_s": 17.89031410217285,
+      "final_distance_m": 4.0869140625,
+      "final_local_position_m": [
+        -1.2849693298339844,
+        -6.813945770263672,
+        0.2415507286787033
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 13,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799277663230896,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3239039182662964,
+      "final_local_position_m": [
+        0.4783477783203125,
+        -5.8728179931640625,
+        0.07023096084594727
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 14,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06870284676551819,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.325574517250061,
+      "final_local_position_m": [
+        -0.477569580078125,
+        5.858753681182861,
+        0.07067537307739258
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 15,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019162118434906006,
+      "max_air_time_s": 0.4699998199939728,
+      "final_distance_m": 4.465940952301025,
+      "final_local_position_m": [
+        -10.999456405639648,
+        -3.487203598022461,
+        0.09071043133735657
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 16,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019157588481903076,
+      "max_air_time_s": 0.21000002324581146,
+      "final_distance_m": 4.247595310211182,
+      "final_local_position_m": [
+        -1.4463329315185547,
+        -7.043535232543945,
+        0.19894924759864807
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 17,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01915830373764038,
+      "max_air_time_s": 17.410303115844727,
+      "final_distance_m": 4.123039722442627,
+      "final_local_position_m": [
+        1.3208560943603516,
+        6.805835723876953,
+        0.23301099240779877
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 18,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799265742301941,
+      "max_air_time_s": 0.18000000715255737,
+      "final_distance_m": 1.325873851776123,
+      "final_local_position_m": [
+        0.477386474609375,
+        -5.857074737548828,
+        0.07104799151420593
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 19,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06798949837684631,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3260712623596191,
+      "final_local_position_m": [
+        -0.4771461486816406,
+        5.8576812744140625,
+        0.07135961204767227
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 20,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019162297248840332,
+      "max_air_time_s": 0.23000003397464752,
+      "final_distance_m": 4.686880111694336,
+      "final_local_position_m": [
+        -11.512232780456543,
+        -2.76751708984375,
+        0.10949791967868805
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 22,
+      "episode_id": 1,
+      "route_id": 8,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.01915779709815979,
+      "max_air_time_s": 17.930315017700195,
+      "final_distance_m": 4.1260986328125,
+      "final_local_position_m": [
+        1.324045181274414,
+        6.809841156005859,
+        0.23315010964870453
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 23,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799289584159851,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3249403238296509,
+      "final_local_position_m": [
+        0.4781646728515625,
+        -5.859344482421875,
+        0.0703054815530777
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 24,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06798985600471497,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3255889415740967,
+      "final_local_position_m": [
+        -0.4775733947753906,
+        5.858489990234375,
+        0.07045294344425201
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 26,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019157052040100098,
+      "max_air_time_s": 17.5703067779541,
+      "final_distance_m": 4.147340297698975,
+      "final_local_position_m": [
+        -1.3468208312988281,
+        -6.87437629699707,
+        0.22856396436691284
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 28,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799325346946716,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.325322151184082,
+      "final_local_position_m": [
+        0.4773597717285156,
+        -5.865728378295898,
+        0.07135555893182755
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 29,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.0679905116558075,
+      "max_air_time_s": 0.29999998211860657,
+      "final_distance_m": 1.3257356882095337,
+      "final_local_position_m": [
+        -0.4773750305175781,
+        5.859233856201172,
+        0.07222943007946014
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 30,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019159942865371704,
+      "max_air_time_s": 0.48999980092048645,
+      "final_distance_m": 3.4352035522460938,
+      "final_local_position_m": [
+        -9.864555358886719,
+        -3.3960342407226562,
+        0.09766030311584473
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    },
+    {
+      "env_id": 31,
+      "episode_id": 1,
+      "route_id": 7,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019157379865646362,
+      "max_air_time_s": 17.360301971435547,
+      "final_distance_m": 4.128689289093018,
+      "final_local_position_m": [
+        -1.3280410766601562,
+        -6.866855621337891,
+        0.23096534609794617
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "fly_jump",
+      "success": false
+    },
+    {
+      "env_id": 33,
+      "episode_id": 1,
+      "route_id": 13,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799525022506714,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.324289083480835,
+      "final_local_position_m": [
+        0.4774932861328125,
+        -5.881315231323242,
+        0.07086804509162903
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 34,
+      "episode_id": 1,
+      "route_id": 14,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.06799235939979553,
+      "max_air_time_s": 0.17000000178813934,
+      "final_distance_m": 1.3257883787155151,
+      "final_local_position_m": [
+        -0.477386474609375,
+        5.858303070068359,
+        0.07073628902435303
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "tunnel_cross",
+      "success": false
+    },
+    {
+      "env_id": 35,
+      "episode_id": 1,
+      "route_id": 1,
+      "duration_s": 20.0,
+      "terminated": false,
+      "truncated": true,
+      "goal_seen": false,
+      "underpass_seen": false,
+      "launched": false,
+      "air_after_launch": false,
+      "landed": true,
+      "spin_deg": 0.0,
+      "peak_rise_m": 0.019159942865371704,
+      "max_air_time_s": 0.1599999964237213,
+      "final_distance_m": 4.764514446258545,
+      "final_local_position_m": [
+        -11.655921936035156,
+        -2.5114288330078125,
+        0.1155177652835846
+      ],
+      "terms": {
+        "time_out": true,
+        "bad_orientation": false,
+        "base_contact": false,
+        "closure": false,
+        "mimic": false,
+        "low_base": false,
+        "tunnel_roof_hit": false
+      },
+      "kind": "jump_in_place",
+      "success": false
+    }
+  ],
+  "censored_active_episodes": 36,
+  "physical_clearance_verified": false,
+  "clearance_note": "Root plus a constant is not a full articulated CAD envelope. This report does not certify physical dog-hole clearance.",
+  "closure_max_m": 0.0003758978855330497,
+  "mimic_max_rad": 0.0016914558364078403,
+  "closure_post_grace_max_m": 0.0003758978855330497,
+  "mimic_post_grace_max_rad": 0.0016914558364078403,
+  "action_smoothness": {
+    "policy_dt_s": 0.01,
+    "delta_scalar_samples": 442368,
+    "delta_sum_sq": 6289.28662109375,
+    "delta_rms_per_step": 0.11923639476299286,
+    "delta_max_abs": 1.6658965349197388,
+    "second_difference_scalar_samples": 441936,
+    "second_difference_sum_sq": 20937.265625,
+    "second_difference_rms_per_step": 0.2176608294248581,
+    "second_difference_max_abs": 2.522510051727295
+  }
+}

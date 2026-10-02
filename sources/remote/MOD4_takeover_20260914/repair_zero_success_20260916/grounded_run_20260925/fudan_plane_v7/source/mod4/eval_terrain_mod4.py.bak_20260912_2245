@@ -1,0 +1,292 @@
+"""Terrain-wise acceptance evaluator (audit P0-6 / P1).
+
+Two modes:
+  * arena  (RM_MOD4_MAP=rmuc2026): bucket by the delivered package's ROUTE KIND, using its own
+           progress/success bookkeeping.  RM_ROUTE_KINDS selects the stage's routes.
+  * field  (default): bucket by the legacy env_id % N task ids.
+
+    $env:RM_MOD4_TERRAIN="field"; $env:RM_MOD4_MAP="rmuc2026"
+    python isaac\\mod4\\eval_terrain_mod4.py --headless --checkpoint <ckpt> --num_envs 64 \
+        --steps 1500 --report docs\\terrain_<tag>.json
+"""
+from __future__ import annotations
+import argparse, json, os, sys
+from pathlib import Path
+from isaaclab.app import AppLauncher
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--checkpoint", required=True)
+parser.add_argument("--num_envs", type=int, default=64)
+parser.add_argument("--steps", type=int, default=1500)
+parser.add_argument("--report", default="")
+parser.add_argument("--manifest", default="",
+                    help="run_manifest.json of the training run; default: next to the checkpoint")
+parser.add_argument("--seed", type=int, default=20260912,
+                    help="fixed seed for the nominal evaluation (goal 2026-09-12 §5)")
+AppLauncher.add_app_launcher_args(parser)
+args = parser.parse_args()
+
+
+def _find_manifest(path_hint: str, checkpoint: str):
+    """(manifest dict, path) of the run that produced this checkpoint (audit item 9)."""
+    cands = ([Path(path_hint)] if path_hint else [])
+    ck = Path(checkpoint)
+    cands += [ck.parent / "run_manifest.json", ck.parent.parent / "run_manifest.json"]
+    for cand in cands:
+        try:
+            if cand.is_file():
+                return json.loads(cand.read_text(encoding="utf8")), str(cand)
+        except Exception:
+            continue
+    return {}, ""
+
+
+# The task switches have to be in os.environ BEFORE mod4_task is imported below: MAP_MODE,
+# DR_OFF and the delay/effort constants are all read at import time.  CLI wins over manifest.
+MANIFEST, MANIFEST_PATH = _find_manifest(args.manifest, args.checkpoint)
+APPLIED = {}
+for _key, _val in (MANIFEST.get("env") or {}).items():
+    if _key.startswith("RM_") and _key not in os.environ:
+        os.environ[_key] = str(_val)
+        APPLIED[_key] = str(_val)
+
+launcher = AppLauncher(args); app = launcher.app
+
+import torch  # noqa: E402
+from importlib import metadata  # noqa: E402
+from isaaclab_rl.rsl_rl import (RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg,
+                                RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)  # noqa: E402
+from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
+import mod4_task  # noqa: E402
+from mod4_env import Mod4Env  # noqa: E402
+from route_isaac import bucket_by_route  # noqa: E402
+import skills_isaac as skills  # noqa: E402  (delivered roof geometry, deliverable 4)
+
+
+def route_config(buckets) -> dict:
+    """What this evaluation actually ran (audit item 9): labels, map, DR switch, filter."""
+    return {
+        "manifest": MANIFEST_PATH,
+        "applied_from_manifest": APPLIED,
+        "rm_mod4_map": os.environ.get("RM_MOD4_MAP", ""),
+        "rm_mod4_terrain": os.environ.get("RM_MOD4_TERRAIN", ""),
+        "rm_dr_off": os.environ.get("RM_DR_OFF", ""),
+        "rm_route_kinds": os.environ.get("RM_ROUTE_KINDS", ""),
+        "route_kinds_from_manifest": (MANIFEST.get("routes") or {}).get("requested_kinds"),
+        "envs_per_kind": {k: v["envs"] for k, v in (buckets or {}).items()},
+    }
+
+TASK_NAMES = {0: "normal", 1: "stair", 2: "slope", 3: "tunnel", 4: "jump", 5: "gyro", 6: "island", 7: "undulation"}
+
+
+def build_runner(vec, ckpt):
+    rcfg = RslRlOnPolicyRunnerCfg(
+        seed=0, device="cuda:0", num_steps_per_env=24, max_iterations=1, save_interval=1,
+        experiment_name="terrain", run_name="eval", clip_actions=6.0, check_for_nan=True,
+        obs_groups={"actor": ["policy"], "critic": ["critic"]},
+        policy=RslRlPpoActorCriticCfg(init_noise_std=0.3, actor_hidden_dims=[256, 128, 64],
+                                      critic_hidden_dims=[256, 128, 64], activation="elu"),
+        algorithm=RslRlPpoAlgorithmCfg(value_loss_coef=1.0, use_clipped_value_loss=True,
+                                       clip_param=0.2, entropy_coef=0.005, num_learning_epochs=5,
+                                       num_mini_batches=4, learning_rate=1e-4, schedule="fixed",
+                                       gamma=0.99, lam=0.95, desired_kl=0.01, max_grad_norm=1.0))
+    rcfg = handle_deprecated_rsl_rl_cfg(rcfg, metadata.version("rsl-rl-lib"))
+    runner = OnPolicyRunner(vec, rcfg.to_dict(), log_dir=None, device=rcfg.device)
+    runner.load(ckpt)
+    return runner.get_inference_policy(device=vec.unwrapped.device)
+
+
+def main() -> None:
+    # goal §5: the nominal evaluation must be reproducible.  Isaac Lab seeds the env on reset,
+    # which also fixes the DR sampling when the randomisation events are enabled.
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+    cfg = mod4_task.Mod4EnvCfg()
+    cfg.scene.num_envs = args.num_envs
+    arena = mod4_task.attach_rmuc2026_terrain(cfg)
+    env = Mod4Env(cfg=cfg)
+    vec = RslRlVecEnvWrapper(env, clip_actions=6.0)
+    policy = build_runner(vec, args.checkpoint)
+    info = mod4_task.FIELD_INFO
+    robot = env.scene["robot"]
+    n = env.num_envs
+    dev = env.device
+    done_route = torch.zeros(n, dtype=torch.bool, device=dev)
+    prog_route = torch.zeros(n, device=dev)
+    tried = torch.zeros(n, dtype=torch.bool, device=dev)
+    entered = torch.zeros(n, dtype=torch.bool, device=dev)
+    completed = torch.zeros(n, dtype=torch.bool, device=dev)
+    landed = torch.zeros(n, dtype=torch.bool, device=dev)
+    failed = torch.zeros(n, dtype=torch.bool, device=dev)
+    gyro_sum = torch.zeros(n, device=dev); gyro_cmd = torch.zeros(n, device=dev); gyro_n = torch.zeros(n, device=dev)
+    # audit item 6 (mjlab) / item 9 (arena): a per-terrain verdict needs attempts, entries,
+    # landings and the REASON each episode ended -- a single reward number cannot carry that.
+    term_names = list(env.termination_manager.active_terms)
+    fail_counts = torch.zeros(n, len(term_names), device=dev)
+    entered_zone = torch.zeros(n, dtype=torch.bool, device=dev)
+    attempted = torch.zeros(n, dtype=torch.bool, device=dev)
+    first_dist = torch.zeros(n, device=dev)
+    have_first = torch.zeros(n, dtype=torch.bool, device=dev)
+    prev_air = None
+    # goal deliverable 4: minimum CAD-skin clearance while INSIDE the delivered roofed span.
+    # 999 m is the "never went under the roof" sentinel; it is mapped back to null in the
+    # report so a route that never entered the hole cannot look like a tight clearance.
+    _cad_off = float(os.environ.get("RM_CAD_TOP_OFFSET_M", skills.CAD_TOP_ABOVE_ROOT_M))
+    min_clear = torch.full((n,), 999.0, device=dev)
+    roof_seen = torch.zeros(n, dtype=torch.bool, device=dev)
+    obs = vec.get_observations()
+    for _ in range(args.steps):
+        with torch.inference_mode():
+            actions = policy(obs)
+        obs, _, dones, _ = vec.step(actions)
+        loc = robot.data.root_pos_w - env.scene.env_origins
+        x, y, z = loc[:, 0], loc[:, 1], loc[:, 2]
+        # same footprint test as skills_isaac._hole_inside (roofed span, both lanes, below
+        # the ceiling): driving over the hole at normal height must not count as "inside"
+        _under = (z > skills.HOLE_FLOOR_Z - 0.05) & (z < skills.HOLE_CEILING_Z + 0.12)
+        _inside = ((x.abs() >= skills.HOLE_ROOF_X[0]) & (x.abs() <= skills.HOLE_ROOF_X[1]) &
+                   (y.abs() >= skills.HOLE_LANE_Y[0]) & (y.abs() <= skills.HOLE_LANE_Y[1]) &
+                   _under)
+        _clear = skills.HOLE_CEILING_Z - (z + _cad_off)
+        min_clear = torch.where(_inside, torch.minimum(min_clear, _clear), min_clear)
+        roof_seen |= _inside
+        f = env.scene.sensors["wheel_contact"].data.net_forces_w
+        if hasattr(f, "torch"):
+            f = f.torch
+        air = (f.norm(dim=-1).max(dim=1).values < 1.0)
+        if prev_air is not None:
+            landed |= (prev_air > 0.5) & (~air)
+        for _j, _tname in enumerate(term_names):
+            fail_counts[:, _j] += env.termination_manager.get_term(_tname).float()
+        d = getattr(env, "_mod4_route_progress", None)
+        if isinstance(d, dict):
+            if "success" in d:
+                done_route |= d["success"].bool()
+            if "progress_reward" in d:
+                prog_route = prog_route + d["progress_reward"]
+            if "distance_to_goal" in d:
+                dist = d["distance_to_goal"]
+                fresh = ~have_first
+                first_dist = torch.where(fresh, dist, first_dist)
+                have_first |= True
+                # "entered" = got past half of the route's initial stand-off (audit item 6).
+                entered_zone |= dist < 0.5 * first_dist.clamp(min=1e-6)
+                # "attempted" = actually advanced toward the goal; the audit wants the attempt
+                # count per terrain, which a reward sum cannot express.
+                attempted |= (first_dist - dist) > 0.25
+        if arena:
+            failed |= dones.bool() & ~done_route
+        else:
+            task = env._mod4_task_id
+            lane = (y - info["tunnel_spawn"][1]).abs() < 0.45
+            low = z <= info["tunnel_hole_m"][0] + 0.05
+            t3 = task == 3
+            tried |= t3 & (x > info["tunnel_entry"] - 0.6)
+            entered |= t3 & lane & low & (x > info["tunnel_entry"])
+            completed |= t3 & lane & low & (x > info["tunnel_success"])
+            t4 = task == 4
+            if prev_air is not None:
+                landed |= t4 & (prev_air > 0.5) & (~air) & (x > info["launch_success"] - 0.4)
+            t12 = (task == 1) | (task == 2)
+            tried |= t12 & (x > info["stair_takeoff"])
+            completed |= t12 & (x > info["span_x"] - 0.8)
+            failed |= dones.bool() & (t3 | t4 | t12)
+            t5 = task == 5
+            if bool(t5.any()):
+                cmd = env.command_manager.get_command("twist")[:, 2]
+                gyro_sum[t5] += robot.data.root_ang_vel_b[t5, 2].abs()
+                gyro_cmd[t5] += cmd[t5].abs(); gyro_n[t5] += 1.0
+        prev_air = air.float()
+        policy.reset(dones)
+
+    out = {"checkpoint": args.checkpoint, "num_envs": int(n), "steps": args.steps,
+           "mode": "arena" if arena else "field"}
+    if arena:
+        kinds = getattr(env, "_mod4_route_kinds", None)
+        ids = getattr(env, "_mod4_route_ids", None)
+        buckets = {}
+        if kinds is not None and ids is not None:
+            # audit items 1/9: the labels are the SAME ids the trainer spawned and commanded
+            # from, and the bucketing is a pure helper so it can be unit-tested offline.
+            rc = getattr(env, "_mod4_routes", None)
+            if rc is not None:
+                idx = rc.ids.long()
+                # same definition as the package's own gate: rise above the SPAWN root height
+                peak_rise = (rc.peak_z - rc.starts[idx, 2] - rc.base_height).clamp(min=0.0)
+                launched = rc.launched.float()
+                air_after = rc.air_after_launch.float()
+                underpass = rc.underpass_visited.float()
+                max_air = rc.max_air_time
+                spin_deg = torch.rad2deg(rc.spin_angle).abs()
+            else:
+                zero = torch.zeros(n, device=dev)
+                peak_rise = launched = air_after = underpass = max_air = spin_deg = zero
+            extra_sum = {"entered": entered_zone.detach().cpu().tolist(),
+                         "attempted": attempted.detach().cpu().tolist(),
+                         "landed": landed.detach().cpu().tolist(),
+                         "launched": launched.detach().cpu().tolist(),
+                         "air_after_launch": air_after.detach().cpu().tolist(),
+                         "underpass_seen": underpass.detach().cpu().tolist()}
+            for _j, _tname in enumerate(term_names):
+                extra_sum["fail/" + _tname] = fail_counts[:, _j].detach().cpu().tolist()
+            _clo = float(getattr(env, "_mod4_max_closure", 0.0))
+            _mim = float(getattr(env, "_mod4_max_mimic", 0.0))
+            extra_max = {"max_air_time_s": max_air.detach().cpu().tolist(),
+                         "peak_rise_m": peak_rise.detach().cpu().tolist(),
+                         "spin_deg": spin_deg.detach().cpu().tolist(),
+                         # negated on purpose: extra_max takes max(), and max(-c) = -min(c)
+                         "neg_clearance": (-min_clear).detach().cpu().tolist(),
+                         "closure_max_m": [_clo] * n, "mimic_max_rad": [_mim] * n}
+            buckets = bucket_by_route(kinds, ids.detach().cpu().tolist(),
+                                      done_route.detach().cpu().tolist(),
+                                      prog_route.detach().cpu().tolist(),
+                                      failed.detach().cpu().tolist(),
+                                      extra_sum=extra_sum, extra_max=extra_max)
+            # The buckets carry counts (extra_sum sums per env).  The goal's bars are rates,
+            # so publish the normalised values the gates read.
+            for _rec in buckets.values():
+                _neg = _rec.pop("neg_clearance", None)
+                if _neg is not None:
+                    _rec["min_clearance_m"] = None if _neg >= 999.0 else round(-_neg, 5)
+                _envs = max(1, int(_rec.get("envs", 0)))
+                for _k in RATE_KEYS:
+                    if _k in _rec:
+                        _rec[_k + "_rate"] = round(float(_rec[_k]) / _envs, 3)
+                _rec["roof_hit_terminations"] = int(_rec.get("fail/tunnel_roof_hit", 0))
+            _seen = min_clear[roof_seen]
+            out["roof_entries"] = int(roof_seen.sum())
+            out["min_clearance_m"] = (None if _seen.numel() == 0 else round(float(_seen.min()), 5))
+            out["closure_max_m"] = float(getattr(env, "_mod4_max_closure", 0.0))
+            out["mimic_max_rad"] = float(getattr(env, "_mod4_max_mimic", 0.0))
+        out["route_kinds"] = buckets
+        out["route_config"] = route_config(buckets)
+    else:
+        task = env._mod4_task_id
+        buckets = {}
+        for t, name in TASK_NAMES.items():
+            m = task == t
+            cnt = int(m.sum())
+            if cnt == 0:
+                continue
+            rec = {"envs": cnt, "attempted": int(tried[m].sum()), "entered": int(entered[m].sum()),
+                   "completed": int(completed[m].sum()), "landed": int(landed[m].sum()),
+                   "failed_episodes": int(failed[m].sum()),
+                   "attempt_rate": round(int(tried[m].sum()) / cnt, 3),
+                   "complete_rate": round(int(completed[m].sum()) / cnt, 3)}
+            if t == 5:
+                rec["mean_abs_wz"] = round(float((gyro_sum[m] / gyro_n[m].clamp(min=1)).mean()), 3)
+                rec["mean_abs_cmd"] = round(float((gyro_cmd[m] / gyro_n[m].clamp(min=1)).mean()), 3)
+            buckets[name] = rec
+        out["per_task"] = buckets
+        out["route_config"] = route_config(buckets)
+    print("[terrain] " + json.dumps(out, indent=2), flush=True)
+    if args.report:
+        Path(args.report).write_text(json.dumps(out, indent=2), encoding="utf8")
+    env.close()
+
+
+if __name__ == "__main__":
+    main()
+    app.close()

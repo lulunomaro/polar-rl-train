@@ -1,0 +1,152 @@
+"""Continue MOD4's SCUT V14 flat PPO with the SCUT linear gas force law.
+
+Every restart resumes the latest saved actor, critic, optimizer, iteration and
+exploration state.  A restart is only for a process failure or a completed
+segment; it never changes the plant, rewards or command distribution.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+
+STAGE = Path(__file__).resolve().parent
+ROOT = STAGE / "run/scut_v14_strong_posture_20260928"
+STATUS = ROOT / "status.json"
+PYTHON = "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python"
+
+
+def stamp():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def save(data):
+    data["updated_utc"] = stamp()
+    STATUS.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def latest():
+    paths = glob.glob(str(ROOT / "segment_*/logs/*/model_*.pt"))
+    return max(paths, key=lambda p: os.stat(p).st_mtime) if paths else None
+
+
+def stop_group(proc):
+    if proc.poll() is not None:
+        return
+    os.killpg(proc.pid, signal.SIGINT)
+    try:
+        proc.wait(timeout=120)
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGTERM)
+        try:
+            proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--deadline-utc", required=True)
+    args = parser.parse_args()
+    deadline_utc = datetime.fromisoformat(args.deadline_utc)
+    if deadline_utc.tzinfo is None:
+        raise ValueError("deadline must include UTC timezone")
+    ROOT.mkdir(parents=True, exist_ok=True)
+    if STATUS.exists():
+        raise SystemExit(f"existing run status; refusing duplicate: {STATUS}")
+    if not args.checkpoint.is_file():
+        raise SystemExit(f"checkpoint missing: {args.checkpoint}")
+    start_utc = datetime.now(timezone.utc)
+    duration_s = (deadline_utc - start_utc).total_seconds()
+    if duration_s <= 0:
+        raise ValueError("deadline has passed")
+    start = time.monotonic()
+    deadline = start + duration_s
+    previous_status = json.loads((STAGE.parent / "scut_v14_spring_mod4_20260928/run/scut_v14_linear_spring_continue_20260928/status.json").read_text())
+    previous_active_s = previous_status.get("previous_active_s", 0) + previous_status.get("elapsed_s", 0)
+    data = {
+        "state": "starting", "started_utc": stamp(),
+        "deadline_utc": deadline_utc.isoformat(timespec="seconds"),
+        "source_checkpoint": str(args.checkpoint), "scene": "SCUT V14 Flat plane adapted to MOD4",
+        "ppo": "SCUT V14 Flat 256/128/64 ELU, 5 epochs, 4 minibatches, adaptive KL",
+        "envs": 20000, "steps_per_env": 48, "solver_position": 16,
+        "solver_velocity": 4,
+        "gas_law": "SCUT V14: 400 + (200/0.07)*(q_max-q) + U(-50,50) N; damping=0",
+        "gas_frame": "MOD4 authored maximum extension q_max",
+        "stage_root": str(STAGE), "previous_stage": "scut_v14_spring_mod4_20260928",
+        "interruption": "user requested stronger flat tilt and height penalties; source policy/optimizer preserved",
+        # +2 h extension requested 2026-09-28: the 10 h budget (36000 s) keeps
+        # running; seconds already burned are carried so the dashboard bar does
+        # not restart from zero after this supervised restart.
+        "budget_note": "posture penalty experiment within existing 12 h total budget; prior active seconds carried from previous stage",
+        "previous_active_s": previous_active_s,
+        "total_target_s": 43200.0,
+        "segments": [],
+    }
+    save(data)
+    checkpoint = args.checkpoint
+    failures = 0
+    segment = 0
+    while time.monotonic() < deadline:
+        tag = f"scut_v14_strong_posture_20260928/segment_{segment:03d}"
+        cmd = [PYTHON, "-u", str(STAGE / "launch.py"), "train",
+               "--tag", tag, "--envs", "20000", "--iterations", "5000",
+               "--warmstart", "--resume-exact", "--checkpoint", str(checkpoint)]
+        log_path = ROOT / f"segment_{segment:03d}_launcher.log"
+        record = {"segment": segment, "checkpoint": str(checkpoint),
+                  "command": cmd, "started_utc": stamp(), "log": str(log_path)}
+        data["segments"].append(record)
+        with log_path.open("w") as log:
+            proc = subprocess.Popen(cmd, cwd=STAGE, stdout=log,
+                                    stderr=subprocess.STDOUT, start_new_session=True)
+            record["pid"] = proc.pid
+            data["state"] = "training"
+            save(data)
+            while proc.poll() is None and time.monotonic() < deadline:
+                time.sleep(min(30, max(1, deadline - time.monotonic())))
+                recent = latest()
+                data["latest_checkpoint"] = recent or str(checkpoint)
+                data["elapsed_s"] = round(time.monotonic() - start, 1)
+                save(data)
+            timed_out = time.monotonic() >= deadline
+            if timed_out:
+                stop_group(proc)
+            returncode = proc.wait()
+        record["ended_utc"] = stamp()
+        record["exit_code"] = returncode
+        record["deadline_stop"] = timed_out
+        recent = latest()
+        data["latest_checkpoint"] = recent or str(checkpoint)
+        save(data)
+        if timed_out:
+            data["state"] = "time_budget_complete"
+            break
+        if recent is None or (str(recent) == str(checkpoint) and returncode != 0):
+            failures += 1
+            if failures >= 3:
+                data["state"] = "failed_needs_review"
+                data["error"] = "Three consecutive failures without a newer checkpoint"
+                break
+            time.sleep(30)
+        else:
+            checkpoint = Path(recent)
+            failures = 0
+        segment += 1
+    data["finished_utc"] = stamp()
+    data["elapsed_s"] = round(time.monotonic() - start, 1)
+    data["latest_checkpoint"] = latest() or str(checkpoint)
+    save(data)
+
+
+if __name__ == "__main__":
+    main()

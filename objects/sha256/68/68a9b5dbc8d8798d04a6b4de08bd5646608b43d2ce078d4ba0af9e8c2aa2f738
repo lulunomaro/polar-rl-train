@@ -1,0 +1,254 @@
+"""Read-only MOD4 training monitor. Uses no GPU compute or training imports."""
+
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import math
+import re
+import subprocess
+import threading
+import time
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import urlparse
+
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
+
+TAGS = {
+    "reward": "Train/mean_reward",
+    "episode_length": "Train/mean_episode_length",
+    "fps": "Perf/total_fps",
+    "collection_s": "Perf/collection_time",
+    "learning_s": "Perf/learning_time",
+    "run_tilt": "Metrics/run/tilt_deg_rms",
+    "run_ang_xy": "Metrics/run/angular_velocity_xy_rad_s_rms",
+    "run_vel_error": "Metrics/run/velocity_error_xy_m_s_rms",
+    "run_wheels": "Metrics/run/both_wheels_contact_rate",
+    "run_guide": "Metrics/run/guide_contact_rate",
+    "run_height": "Metrics/run/root_height_above_ground_m",
+    "stand_tilt": "Metrics/stand/tilt_deg_rms",
+    "stand_speed": "Metrics/stand/speed_xy_m_s_rms",
+    "stand_wheels": "Metrics/stand/wheel_contact_rate",
+    "action_delta": "Metrics/smooth/action_delta_rms",
+    "action_d2": "Metrics/smooth/action_second_diff_rms",
+    "run_action_delta": "Metrics/run/action_delta_rms",
+    "run_action_d2": "Metrics/run/action_second_diff_rms",
+    "closure_m": "Metrics/plant/closure_err_max_m",
+    "mimic_rad": "Metrics/plant/mimic_err_max_rad",
+    "run_gate": "Metrics/gate/run_smooth_stable_pass",
+    "stand_gate": "Metrics/gate/stand_smooth_stable_pass",
+    "both_gate": "Metrics/gate/run_and_stand_pass",
+    "value_loss": "Loss/value",
+    "surrogate_loss": "Loss/surrogate",
+    "policy_std": "Policy/mean_std",
+    "track_lin_reward": "Episode_Reward/track_lin_vel",
+    "run_tilt_reward": "Episode_Reward/run_tilt",
+}
+
+
+def finite(value):
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    return result if math.isfinite(result) else None
+
+
+def latest_eval(stage: Path, current_iteration: int | None):
+    # Evaluations are separate deterministic 64-env/15-s runs. Do not mix them
+    # with noisy training-rollout scalars in the acceptance panel.
+    candidates = list((stage / "run" / "recovery_audit").glob("*.json"))
+    candidates += list((stage / "run").glob("**/hourly/*.json"))
+    candidates += list((stage / "run").glob("**/nominal*.json"))
+    best = None
+    for path in set(candidates):
+        try:
+            if path.stat().st_size > 5_000_000:
+                continue
+            doc = json.loads(path.read_text())
+            if doc.get("num_envs") != 64 or doc.get("steps") != 1500:
+                continue
+            if doc.get("domain_rand") not in (False, 0, "off", None):
+                continue
+            if "episode_15s_survived" not in doc:
+                continue
+            match = re.search(r"model_(\d+)\.pt", str(doc.get("checkpoint", "")))
+            iteration = int(match.group(1)) if match else -1
+            if current_iteration is not None and iteration > current_iteration:
+                continue
+            rank = (iteration, path.stat().st_mtime)
+            if best is None or rank > best[0]:
+                best = (rank, path, doc)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            continue
+    if best is None:
+        return None
+    (_, _), path, doc = best
+    iteration = best[0][0]
+    keys = [
+        "episode_15s_survived", "episode_15s_pass", "tilt_deg_rms",
+        "velocity_error_xy_m_s_rms", "both_wheels_contact_rate",
+        "action_delta_rms", "action_second_diff_rms",
+        "max_closure_error_m", "max_mimic_error_rad",
+        "root_vx_mean_m_s", "guide_force_norm_sum_mean_n",
+    ]
+    return {
+        "path": str(path), "checkpoint": Path(doc.get("checkpoint", "")).name,
+        "iteration": iteration,
+        "stale": current_iteration is not None and current_iteration - iteration > 5,
+        "mtime": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
+        "values": {k: finite(doc.get(k)) for k in keys},
+    }
+
+
+def gpu_status():
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.used,memory.total,utilization.gpu,"
+             "utilization.memory,temperature.gpu,power.draw", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=4, check=True,
+        ).stdout.strip().splitlines()[0]
+        used, total, util, mem_util, temp, power = [finite(x.strip()) for x in out.split(",")]
+        return {"used_mib": used, "total_mib": total, "util_pct": util,
+                "mem_util_pct": mem_util, "temp_c": temp, "power_w": power}
+    except (OSError, subprocess.SubprocessError, IndexError, ValueError):
+        return None
+
+
+class Monitor:
+    def __init__(self, stage: Path, run: str, interval: float):
+        self.stage = stage
+        self.root = stage / "run" / run
+        self.interval = interval
+        self.lock = threading.Lock()
+        self.accumulators: dict[str, EventAccumulator] = {}
+        self.snapshot = {"error": "Waiting for first refresh"}
+
+    def refresh(self):
+        status_path = self.root / "status.json"
+        status = json.loads(status_path.read_text())
+        paths = sorted(glob.glob(str(self.root / "segment_*/logs/*/events.out.tfevents*")))
+        # Retain curves across supervisor segments, while bounding file handles.
+        paths = paths[-5:]
+        for path in list(self.accumulators):
+            if path not in paths:
+                del self.accumulators[path]
+        merged = {key: {} for key in TAGS}
+        latest_wall = 0.0
+        for path in paths:
+            acc = self.accumulators.get(path)
+            if acc is None:
+                acc = EventAccumulator(path, size_guidance={"scalars": 4096})
+                self.accumulators[path] = acc
+            acc.Reload()
+            available = set(acc.Tags().get("scalars", []))
+            for key, tag in TAGS.items():
+                if tag not in available:
+                    continue
+                for event in acc.Scalars(tag):
+                    value = finite(event.value)
+                    if value is not None:
+                        merged[key][event.step] = [event.step, value]
+                        latest_wall = max(latest_wall, event.wall_time)
+        series = {key: [row for _, row in sorted(values.items())][-1200:]
+                  for key, values in merged.items()}
+        latest = {key: values[-1][1] if values else None for key, values in series.items()}
+        steps = series["reward"] or series["fps"]
+        iteration = int(steps[-1][0]) if steps else None
+        gpu = gpu_status()
+        checkpoint = status.get("latest_checkpoint") or status.get("source_checkpoint")
+        started = status.get("started_utc")
+        deadline = status.get("deadline_utc")
+        elapsed = finite(status.get("elapsed_s")) or 0.0
+        previous = finite(status.get("previous_active_s"))
+        total = finite(status.get("total_target_s"))
+        if previous is None or total is None:
+            old_status = (self.stage.parent / "scut_flat_repair10h_20260927" /
+                          "run/scut_flat_resume_env20000_manual_20260927/status.json")
+            if old_status.exists():
+                handoff = json.loads(old_status.read_text())
+                previous = ((finite(handoff.get("previous_active_s")) or 0.0) +
+                            (finite(handoff.get("elapsed_s")) or 0.0))
+                total = finite(handoff.get("total_target_s"))
+        effective = (previous or 0.0) + elapsed
+        total = total or 36000.0
+        result = {
+            "server_utc": datetime.now(timezone.utc).isoformat(),
+            "state": status.get("state"), "status_updated_utc": status.get("updated_utc"),
+            "started_utc": started, "deadline_utc": deadline,
+            "envs": status.get("envs"), "steps_per_env": status.get("steps_per_env"),
+            "iteration": iteration, "latest_checkpoint": Path(checkpoint).name if checkpoint else None,
+            "progress_pct": max(0, min(100, effective / total * 100)),
+            "effective_training_s": effective, "target_training_s": total,
+            "last_scalar_utc": datetime.fromtimestamp(latest_wall, timezone.utc).isoformat() if latest_wall else None,
+            "latest": latest, "series": series, "gpu": gpu,
+            "acceptance": latest_eval(self.stage, iteration),
+            "event_files": len(paths), "error": None,
+        }
+        with self.lock:
+            self.snapshot = result
+
+    def loop(self):
+        while True:
+            try:
+                self.refresh()
+            except Exception as exc:  # surface errors without killing the dashboard
+                with self.lock:
+                    self.snapshot = {**self.snapshot, "error": f"{type(exc).__name__}: {exc}"}
+            time.sleep(self.interval)
+
+    def get(self):
+        with self.lock:
+            return self.snapshot
+
+
+def serve(monitor: Monitor, host: str, port: int):
+    html = (Path(__file__).parent / "index.html").read_bytes()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            route = urlparse(self.path).path
+            if route == "/":
+                data, kind = html, "text/html; charset=utf-8"
+            elif route == "/api/state":
+                data = json.dumps(monitor.get(), ensure_ascii=False, separators=(",", ":")).encode()
+                kind = "application/json; charset=utf-8"
+            elif route == "/healthz":
+                data, kind = b"ok\n", "text/plain; charset=utf-8"
+            else:
+                self.send_error(404)
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", kind)
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, fmt, *args):
+            if self.path != "/api/state":
+                super().log_message(fmt, *args)
+
+    threading.Thread(target=monitor.loop, daemon=True).start()
+    server = ThreadingHTTPServer((host, port), Handler)
+    print(f"MOD4 monitor listening on http://{host}:{port}/", flush=True)
+    server.serve_forever(poll_interval=1)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", type=Path, required=True)
+    parser.add_argument("--run", default="scut_flat_resume_env20000_manual_20260927")
+    parser.add_argument("--host", default="10.24.4.210")
+    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--interval", type=float, default=10.0)
+    args = parser.parse_args()
+    serve(Monitor(args.stage, args.run, args.interval), args.host, args.port)
+
+
+if __name__ == "__main__":
+    main()

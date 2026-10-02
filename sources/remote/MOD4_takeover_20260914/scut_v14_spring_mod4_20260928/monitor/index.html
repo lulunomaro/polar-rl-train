@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MOD4 · 强化学习实时监控</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0a1020;--panel:#111b2e;--panel2:#142039;--border:#263650;--text:#e8f0fb;--muted:#91a4bd;--cyan:#4ad6db;--blue:#70a9ff;--green:#65dfad;--orange:#ffbc70;--red:#fa7b8b}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% -10%,#143355 0,transparent 28%),radial-gradient(circle at 88% 0,#122b43 0,transparent 22%),var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+    .wrap{max-width:1700px;margin:0 auto;padding:26px 28px 50px}
+    header{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:24px}
+    h1{font-size:27px;letter-spacing:.01em;margin:0 0 8px}h2{font-size:17px;margin:0 0 15px;font-weight:650}h3{font-size:14px;margin:0;font-weight:620}
+    .subtitle,.muted{color:var(--muted)}.subtitle{font-size:13px}.live{display:flex;align-items:center;gap:10px;white-space:nowrap;background:#10273a;border:1px solid #236074;color:#9cf4ec;border-radius:100px;padding:9px 15px;font-size:12px;font-weight:650}
+    .dot{height:8px;width:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #65dfad22}.live.off{background:#3c222b;border-color:#874650;color:#ffb1b8}.live.off .dot{background:var(--red)}
+    .top{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:18px}.card,.panel{background:linear-gradient(155deg,#142038 0%,#101a2d 100%);border:1px solid var(--border);border-radius:17px;box-shadow:0 12px 34px #0002}
+    .card{padding:17px 18px;min-height:104px}.card .label{font-size:12px;color:var(--muted);margin-bottom:8px}.card .number{font-size:24px;font-weight:720;letter-spacing:-.03em}.card .unit{font-size:12px;font-weight:500;color:var(--muted);margin-left:5px}.card .sub{margin-top:6px;color:#a9bdd4;font-size:11px}
+    .panel{padding:20px 22px}.section{display:grid;grid-template-columns:1.6fr 1fr;gap:15px;margin-bottom:16px}.eyebrow{color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:5px}
+    .meta{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:12px}.meta b{color:#d7e7f7;font-weight:550}.bar{height:9px;border-radius:20px;background:#20304a;overflow:hidden;margin:16px 0 7px}.bar>span{display:block;height:100%;background:linear-gradient(90deg,#4381ff,#50d7db);border-radius:20px;transition:width .5s}
+    .gates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px}.gate{min-width:0}.gate-head{display:flex;justify-content:space-between;gap:12px;color:#d9e7f6;font-size:12px}.gate-head small{color:var(--muted);font-size:11px}.gate .bar{height:5px;margin:7px 0 0}.gate.good .bar>span{background:var(--green)}.gate.warn .bar>span{background:var(--orange)}.gate.bad .bar>span{background:var(--red)}
+    .note{border-left:3px solid var(--orange);padding:9px 12px;background:#4a391d38;border-radius:0 9px 9px 0;color:#d7c9aa;font-size:12px;margin:16px 0 0}
+    .eval-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}.eval-item{background:#0b1629;border:1px solid #263650;border-radius:10px;padding:9px 11px}.eval-item span{display:block;font-size:11px;color:var(--muted)}.eval-item strong{font-size:17px;font-variant-numeric:tabular-nums}.eval-item.good strong{color:var(--green)}.eval-item.bad strong{color:var(--red)}
+    .charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.chart-card{min-width:0}.chart-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.chart-caption{color:var(--muted);font-size:11px;margin-top:4px}.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:#b4c7de}.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+    canvas{width:100%;height:195px;display:block;margin-top:11px;cursor:crosshair}.foot{margin-top:20px;color:#8197b2;font-size:11px;display:flex;gap:20px;flex-wrap:wrap}.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#a9bfd9;overflow-wrap:anywhere}
+    .error{color:#ffb4b8}.chip{display:inline-block;border:1px solid #5c6f8b;border-radius:99px;padding:2px 8px;color:#b6c9de;font-size:10px;margin-left:7px}.chip.warn{color:#ffd190;border-color:#9b7548}
+    @media(max-width:1180px){.top{grid-template-columns:repeat(3,1fr)}.section{grid-template-columns:1fr}.charts{grid-template-columns:1fr}}
+    @media(max-width:650px){.wrap{padding:16px}.top{grid-template-columns:repeat(2,1fr)}.card .number{font-size:20px}.panel{padding:16px}.gates{grid-template-columns:1fr}.eval-grid{grid-template-columns:repeat(2,1fr)}header{display:block}.live{display:inline-flex;margin-top:12px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">MOD4 / Isaac Lab / SCUT-style flat</div><h1>强化学习实时监控</h1><div class="subtitle">20,000 环境 · 详细 USD · 平地稳走稳跑 · 10 秒自动刷新</div></div>
+    <div id="live" class="live off"><span class="dot"></span><span>读取中…</span></div>
+  </header>
+  <div class="top" id="top"></div>
+  <div class="section">
+    <section class="panel"><div class="eyebrow">Training progress</div><h2>训练进度与验收达成度</h2><div id="progress"></div><div id="gates" class="gates"></div><p class="note">下方即时指标来自带探索噪声的训练批次，只能看趋势。是否“跑稳、走稳”以 64 环境 × 15 秒无探索动作的确定性验收为准。</p></section>
+    <section class="panel"><div class="eyebrow">Deterministic evaluation</div><h2>最近一次确定性验收 <span id="eval-chip"></span></h2><div id="eval-text" class="muted">查找验收报告中…</div><div id="eval-grid" class="eval-grid"></div><div class="meta" id="eval-meta"></div></section>
+  </div>
+  <div class="charts" id="charts"></div>
+  <div class="foot"><span>数据源：当前 run 的 TensorBoard scalar、监督器状态和 nvidia-smi</span><span>训练指标与确定性验收分开展示；奖励上升不等于通过赛场门槛。</span><span id="footer-time"></span></div>
+</div>
+<script>
+const charts=[
+  {title:'总奖励',caption:'PPO 每轮平均奖励',lines:[['reward','平均奖励','#4ad6db']]},
+  {title:'训练吞吐',caption:'环境策略步/秒；虚线为 12,000 环境旧基线',lines:[['fps','环境步/秒','#70a9ff']],threshold:28732},
+  {title:'跑动时车体倾斜',caption:'越低越稳 · 门槛 8°',lines:[['run_tilt','倾斜 RMS','#fa7b8b']],threshold:8},
+  {title:'速度跟踪误差',caption:'越低越好 · 门槛 0.75 m/s',lines:[['run_vel_error','速度误差','#ffbc70']],threshold:.75},
+  {title:'主轮接地',caption:'双主轮同时接地占比 · 门槛 90%',lines:[['run_wheels','双轮接地','#65dfad',100]],threshold:90},
+  {title:'动作平滑度',caption:'带探索噪声的训练动作；门槛需确定性验收',lines:[['action_delta','一阶差分','#4ad6db'],['action_d2','二阶差分','#ffbc70']]},
+  {title:'站立稳定性',caption:'站立时车体倾斜与速度（不同单位）',lines:[['stand_tilt','站立倾斜 °','#70a9ff'],['stand_speed','站立速度 m/s','#65dfad']]},
+  {title:'闭链与耦合误差',caption:'闭链 mm、mimic mrad，越低越好',lines:[['closure_m','闭链 mm','#4ad6db',1000],['mimic_rad','耦合 mrad','#ffbc70',1000]]},
+  {title:'奖励组成',caption:'前进跟踪与车体倾斜奖励',lines:[['track_lin_reward','速度跟踪','#65dfad'],['run_tilt_reward','倾斜惩罚','#fa7b8b']]},
+  {title:'优化损失',caption:'价值网络和策略代理损失',lines:[['value_loss','价值损失','#70a9ff'],['surrogate_loss','策略损失','#ffbc70']]},
+];
+const gateInfo=[
+  ['跑动倾斜','run_tilt',8,'≤','°'],['速度误差','run_vel_error',.75,'≤','m/s'],
+  ['双主轮接地','run_wheels',.9,'≥',''],['动作一阶差分','action_delta',.18,'≤',''],
+  ['动作二阶差分','action_d2',.25,'≤',''],['闭链误差','closure_m',.002,'≤','m'],
+  ['耦合误差','mimic_rad',.01,'≤','rad'],['站立倾斜','stand_tilt',8,'≤','°'],
+];
+const $=id=>document.getElementById(id);
+const number=(x,d=2)=>x==null||!Number.isFinite(x)?'—':Number(x).toLocaleString('zh-CN',{maximumFractionDigits:d,minimumFractionDigits:d});
+const clock=x=>x?new Date(x).toLocaleString('zh-CN',{hour12:false}):'—';
+const safe=x=>String(x??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function topCard(label,value,unit='',sub=''){return `<div class="card"><div class="label">${label}</div><div class="number">${value}<span class="unit">${unit}</span></div><div class="sub">${sub}</div></div>`}
+function gate(name,key,target,op,unit,value){
+  let v=value?.[key],ratio=v==null?0:(op==='≤'?(v<=0?100:target/v*100):v/target*100),pct=Math.max(0,Math.min(100,ratio));
+  let cls=v==null?'':(pct>=100?'good':pct>=70?'warn':'bad');let val=key==='run_wheels'?number(v*100,1)+'%':number(v,key==='closure_m'||key==='mimic_rad'?4:2)+unit;
+  return `<div class="gate ${cls}"><div class="gate-head"><span>${name} <small>${op} ${target}${unit}</small></span><b>${val}</b></div><div class="bar"><span style="width:${pct}%"></span></div></div>`;
+}
+function drawChart(canvas,config,data){
+  const width=canvas.clientWidth||600,height=195,dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);let c=canvas.getContext('2d');c.scale(dpr,dpr);
+  const L=48,R=14,T=15,B=28,w=width-L-R,h=height-T-B;
+  let lines=config.lines.map(([key,label,color,mult=1])=>({key,label,color,points:(data.series?.[key]||[]).map(p=>[p[0],p[1]*mult]).filter(p=>Number.isFinite(p[1]))}));
+  let all=lines.flatMap(l=>l.points),xs=all.map(p=>p[0]),ys=all.map(p=>p[1]);
+  if(!all.length){c.fillStyle='#8299b4';c.font='12px system-ui';c.fillText('等待训练曲线…',L,T+70);return}
+  if(config.threshold!=null)ys.push(config.threshold);
+  let xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(xmin===xmax)xmax=xmin+1;if(ymin===ymax){ymin-=1;ymax+=1}
+  let pad=(ymax-ymin)*.1;ymin-=pad;ymax+=pad;
+  const xp=x=>L+(x-xmin)/(xmax-xmin)*w,yp=y=>T+h-(y-ymin)/(ymax-ymin)*h;
+  c.lineWidth=1;c.font='10px system-ui';c.textAlign='right';for(let i=0;i<=4;i++){let y=T+h*i/4,v=ymax-(ymax-ymin)*i/4;c.strokeStyle='#293b54';c.beginPath();c.moveTo(L,y);c.lineTo(width-R,y);c.stroke();c.fillStyle='#8da3bd';c.fillText(Math.abs(v)>=1000?Math.round(v).toLocaleString():number(v,Math.abs(v)<1?2:1),L-7,y+3)}
+  if(config.threshold!=null){let y=yp(config.threshold);c.setLineDash([5,5]);c.strokeStyle='#ffbc7099';c.beginPath();c.moveTo(L,y);c.lineTo(width-R,y);c.stroke();c.setLineDash([])}
+  for(let line of lines){if(!line.points.length)continue;c.beginPath();c.lineWidth=2;c.strokeStyle=line.color;line.points.forEach((p,i)=>{let x=xp(p[0]),y=yp(p[1]);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();let last=line.points.at(-1);c.beginPath();c.arc(xp(last[0]),yp(last[1]),3,0,Math.PI*2);c.fillStyle=line.color;c.fill()}
+  c.fillStyle='#8197b2';c.textAlign='left';c.fillText('迭代 '+xmin,L,height-7);c.textAlign='right';c.fillText('迭代 '+xmax,width-R,height-7);
+  canvas.onmousemove=e=>{let x=e.offsetX,step=Math.round(xmin+Math.max(0,Math.min(1,(x-L)/w))*(xmax-xmin));let parts=lines.map(l=>{let p=l.points.reduce((a,b)=>!a||Math.abs(b[0]-step)<Math.abs(a[0]-step)?b:a,null);return p?`${l.label}: ${number(p[1],2)}`:null}).filter(Boolean);canvas.title=`迭代 ${step} · ${parts.join(' · ')}`};
+}
+function renderCharts(data){let holder=$('charts');if(!holder.dataset.built){holder.innerHTML=charts.map((ch,i)=>`<section class="panel chart-card"><div class="chart-top"><div><h3>${ch.title}</h3><div class="chart-caption">${ch.caption}</div></div><div class="legend">${ch.lines.map(l=>`<span><i style="background:${l[2]}"></i>${l[1]}</span>`).join('')}</div></div><canvas id="plot${i}"></canvas></section>`).join('');holder.dataset.built='1'}charts.forEach((ch,i)=>drawChart($('plot'+i),ch,data))}
+function evalCell(label,v,target,op,unit='',digits=2){let ok=v!=null&&(op==='≤'?v<=target:v>=target);return `<div class="eval-item ${v==null?'':ok?'good':'bad'}"><span>${label} ${op} ${target}${unit}</span><strong>${number(v,digits)}${unit}</strong></div>`}
+function renderEval(data){let e=data.acceptance;$('eval-chip').innerHTML=e?`<span class="chip ${e.stale?'warn':''}">${e.stale?'旧检查点参考':'最新检查点'}</span>`:'';if(!e){$('eval-text').textContent='尚未发现同协议的 64 环境 × 15 秒名义评测';$('eval-grid').innerHTML='';$('eval-meta').innerHTML='';return}
+  let v=e.values||{},n=64;$('eval-text').innerHTML=`<b>${safe(e.checkpoint)}</b> · 64 环境 × 15 秒 · 无探索动作${e.stale?' · 尚未反映当前策略':''}`;
+  $('eval-grid').innerHTML=evalCell('15 秒存活',v.episode_15s_survived/n,.8,'≥','',2)+evalCell('严格通过',v.episode_15s_pass/n,.8,'≥','',2)+evalCell('倾斜',v.tilt_deg_rms,8,'≤','°')+evalCell('速度误差',v.velocity_error_xy_m_s_rms,.75,'≤','m/s')+evalCell('双主轮接地',v.both_wheels_contact_rate,.9,'≥','',3)+evalCell('动作一阶差分',v.action_delta_rms,.18,'≤','',3)+evalCell('动作二阶差分',v.action_second_diff_rms,.25,'≤','',3)+evalCell('闭链误差',v.max_closure_error_m,.002,'≤','m',4)+evalCell('耦合误差',v.max_mimic_error_rad,.01,'≤','rad',4);
+  $('eval-meta').innerHTML=`<span>评测文件：<b class="code">${safe(e.path)}</b></span><span>文件更新：<b>${clock(e.mtime)}</b></span>`;
+}
+function render(d){let l=d.latest||{},g=d.gpu||{},age=d.last_scalar_utc?(Date.now()-Date.parse(d.last_scalar_utc))/1000:Infinity,alive=d.state==='training'&&age<120;$('live').className='live '+(alive?'':'off');$('live').querySelector('span:last-child').textContent=alive?`训练中 · 最新迭代 ${d.iteration}`:(d.error||`数据未更新 · ${d.state||'未知'}`);
+  $('top').innerHTML=topCard('环境策略步速',number(l.fps,0),'步/秒',`每轮 ${number((d.envs||0)*(d.steps_per_env||0),0)} 样本`)+topCard('平均奖励',number(l.reward,2),'',`迭代 ${d.iteration??'—'}`)+topCard('训练环境',number(d.envs,0),'env',`${d.steps_per_env??'—'} steps/env`)+topCard('显存',number((g.used_mib||0)/1024,1),'GiB',`总 ${number((g.total_mib||0)/1024,1)} GiB`)+topCard('GPU 利用率',number(g.util_pct,0),'%',`${number(g.temp_c,0)} °C · ${number(g.power_w,0)} W`)+topCard('最新检查点',safe(d.latest_checkpoint||'—'),'',`记录于 ${clock(d.status_updated_utc)}`);
+  let pct=d.progress_pct||0;$('progress').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><b>10 小时有效训练预算</b><b>${number(pct,1)}%</b></div><div class="bar"><span style="width:${pct}%"></span></div><div class="meta"><span>已计入 <b>${number((d.effective_training_s||0)/3600,2)} h</b></span><span>计划截止 <b>${clock(d.deadline_utc)}</b></span><span>最新标量 <b>${clock(d.last_scalar_utc)}</b></span></div>`;
+  $('gates').innerHTML=gateInfo.map(g=>gate(...g,l)).join('');renderEval(d);renderCharts(d);$('footer-time').textContent=`页面更新 ${clock(d.server_utc)} · ${d.event_files||0} 个事件文件`;
+}
+async function refresh(){try{let response=await fetch('/api/state',{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);render(await response.json())}catch(err){$('live').className='live off';$('live').querySelector('span:last-child').textContent='监控服务不可达：'+err.message}}
+refresh();setInterval(refresh,10000);window.addEventListener('resize',()=>refresh());
+</script>
+</body>
+</html>

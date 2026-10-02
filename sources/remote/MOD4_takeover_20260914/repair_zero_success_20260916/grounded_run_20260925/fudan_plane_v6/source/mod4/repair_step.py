@@ -1,0 +1,209 @@
+"""Explicit phase hooks for the frozen MOD4 task. No simulator initialization here."""
+from __future__ import annotations
+import os
+import torch
+
+PRE = ("push_wrench", "leg_effort_noise", "wheel_effort_noise", "gas_spring_preload")
+POST = ("ground_track", "skill_cmds", "route_cmd_term", "air_state", "jump_state",
+        "landing_state", "tunnel_state")
+ACCOUNT = ("route_stats", "plant_metrics")
+
+
+class RepairStepMixin:
+    def _repair_configure(self, cfg):
+        names = set(PRE + POST + ACCOUNT)
+        configured = set()
+        for name in dir(cfg.events):
+            term = getattr(cfg.events, name)
+            if getattr(term, "mode", None) == "step":
+                if name not in names:
+                    raise ValueError("unclassified step event: " + name)
+                # Unique modes retain EventManager's entity resolution and class handling.
+                term.mode = "repair_" + name
+                configured.add(name)
+        if os.environ.get("RM_MOD4_MAP") == "fudan_plane":
+            required = {"ground_track", "skill_cmds", "air_state", "plant_metrics", "gas_spring_preload"}
+        else:
+            required = set(POST + ACCOUNT + ("gas_spring_preload",))
+        if required - configured:
+            raise ValueError("missing required step events: " + str(sorted(required-configured)))
+        self._repair_audit = os.environ.get("RM_EPISODE_AUDIT", "0") == "1"
+
+    def _repair_apply(self, names):
+        for name in names:
+            mode = "repair_" + name
+            if mode in self.event_manager.available_modes:
+                self.event_manager.apply(mode=mode, dt=self.step_dt)
+
+    def _repair_buffers(self):
+        if not hasattr(self, "_repair_episode_id"):
+            self._repair_episode_id = torch.full((self.num_envs,), -1, device=self.device, dtype=torch.long)
+            self._repair_landed = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
+
+    def _repair_reset_buffers(self, env_ids):
+        self._repair_buffers()
+        self._repair_episode_id[env_ids] += 1
+        self._repair_landed[env_ids] = False
+        timer = getattr(self, "_mod4_land_timer", None)
+        if timer is not None:
+            timer[env_ids] = 0
+        progress = getattr(self, "_mod4_route_progress", None)
+        if isinstance(progress, dict):
+            for v in progress.values():
+                if isinstance(v, torch.Tensor) and v.ndim and v.shape[0] == self.num_envs:
+                    v[env_ids] = 0
+
+    def _perkind_account(self, iteration: int, out_dir: str) -> None:
+        """Append one row per route kind: episodes attempted / succeeded so far.
+
+        The counters are accumulated synchronously from terminal events before reset.  Polling
+        route state here used to miss almost every one-step success pulse.
+        """
+        import csv
+        import os
+        live = getattr(self, "_mod4_live_route_stats", None)
+        if not isinstance(live, dict):
+            return
+        try:
+            from mod4_curriculum import ROUTE_KINDS
+            attempts = live["attempts"].detach().to("cpu").tolist()
+            successes = live["successes"].detach().to("cpu").tolist()
+        except Exception:
+            return
+        if len(attempts) != len(ROUTE_KINDS) or len(successes) != len(ROUTE_KINDS):
+            raise RuntimeError("live per-kind counter shape drift")
+        path = os.path.join(out_dir, "perkind_progress.csv")
+        new = not os.path.exists(path)
+        with open(path, "a", newline="") as fh:
+            w = csv.writer(fh)
+            if new:
+                w.writerow(["iteration", "kind", "attempts", "successes", "rate"])
+            for kind, att, suc in zip(ROUTE_KINDS, attempts, successes):
+                att, suc = int(att), int(suc)
+                rate = (suc / att) if att else ""
+                w.writerow([iteration, kind, att, suc,
+                            ("%.4f" % rate) if rate != "" else ""])
+
+    def _repair_publish_reference(self):
+        """Pure command calculation: no elapsed/progress/flight counters advance."""
+        rc = getattr(self, "_mod4_routes", None)
+        if rc is None or not getattr(self, "_mod4_route_ready", False):
+            return
+        robot = self.scene["robot"]
+        p = robot.data.root_pos_w - self.scene.env_origins
+        q = robot.data.root_quat_w  # target build uses xyzw; version-bound by runtime manifest
+        yaw = torch.atan2(2 * (q[:, 3] * q[:, 2] + q[:, 0] * q[:, 1]),
+                          1 - 2 * (q[:, 1].square() + q[:, 2].square()))
+        delta = rc.goals[rc.ids, :2] - p[:, :2]
+        heading = torch.atan2(delta[:, 1], delta[:, 0])
+        error = torch.atan2(torch.sin(heading-yaw), torch.cos(heading-yaw))
+        term = self.command_manager.get_term("twist")
+        cmd = term.command
+        cmd[:, 0] = rc.speed * torch.cos(error).clamp(0, 1)
+        cmd[:, 1] = 0
+        cmd[:, 2] = (2 * error).clamp(-2, 2)
+        kinds = rc.route_kinds[rc.ids]
+        # This publisher runs after command_manager.compute() on EVERY control step, not only
+        # after resets.  It must publish the same braking command as route_commands; otherwise
+        # it overwrites the taper before observation computation and the policy never sees a
+        # request to slow down even though the completion gate expects a physical stop.
+        if os.environ.get("RM_RUN_BRAKE_GATE", "0").strip() == "1":
+            from route_isaac import _run_brake_scale
+            distance = torch.linalg.vector_norm(delta, dim=1)
+            scale = _run_brake_scale(
+                distance, float(os.environ.get("RM_RUN_GOAL_RADIUS_M", "0.35")),
+                float(os.environ.get("RM_RUN_BRAKE_DIST_M", "0.90")))
+            run = kinds == rc.kind_ids["run"]
+            cmd[:, 0] = torch.where(run, cmd[:, 0] * scale, cmd[:, 0])
+        spin = kinds == rc.kind_ids["slope_spin"]
+        jump = kinds == rc.kind_ids["jump_in_place"]
+        cmd[spin, 0] = 0
+        cmd[spin, 2] = rc.spin_speed[spin]
+        cmd[jump] = 0
+        cmd[rc.finished] = 0
+        # route_spawn assigns a fresh run/stand role before this reset-time reference is
+        # published.  Zero it here as well as in route_commands, otherwise the first policy
+        # observation after every stand reset contains a forward run command and produces a
+        # large one-step wheel kick before the step event can correct it.
+        stand = getattr(self, "_mod4_run_stand", None)
+        if stand is not None:
+            cmd[stand] = 0
+        if hasattr(term, "time_left"):
+            term.time_left[:] = 1e9
+        if hasattr(term, "is_standing_env"):
+            term.is_standing_env[:] = False if stand is None else stand
+        # Height is initialized at reset and recomputed after physics. Recompute the
+        # geometry-only tunnel command after reset too (no time accumulation).
+        self._repair_apply(("tunnel_state",))
+
+    def _repair_before_physics(self):
+        self._repair_buffers()
+        self._repair_apply(PRE)
+        # Rewards must use the command the policy actually OBSERVED for this action.
+        self._repair_old_twist = self.command_manager.get_term("twist").command.clone()
+        h = getattr(self, "_mod4_height_cmd", None)
+        self._repair_old_height = None if h is None else h.clone()
+
+    def _repair_after_physics(self):
+        rc = getattr(self, "_mod4_routes", None)
+        if rc is None:
+            if os.environ.get("RM_MOD4_MAP") != "fudan_plane":
+                raise RuntimeError("route controller missing outside Fudan plane stage")
+            self._repair_apply(("ground_track", "skill_cmds", "air_state"))
+            self._repair_next_twist = self.command_manager.get_term("twist").command.clone()
+            self._repair_next_height = self._mod4_height_cmd.clone()
+            self.command_manager.get_term("twist").command.copy_(self._repair_old_twist)
+            if self._repair_old_height is not None:
+                self._mod4_height_cmd.copy_(self._repair_old_height)
+            return
+        # Restore nominal height before computing temporary landing/tunnel overrides.
+        # Previously the landing height could remain latched after its timer expired.
+        table = getattr(self, "_mod4_route_height", None)
+        h = getattr(self, "_mod4_height_cmd", None)
+        if table is not None and h is not None:
+            h[:, 0] = table[rc.ids]
+        self._repair_apply(POST)
+        self._repair_landed |= self._mod4_just_landed.bool()
+        self._repair_next_twist = self.command_manager.get_term("twist").command.clone()
+        self._repair_next_height = self._mod4_height_cmd.clone()
+        self.command_manager.get_term("twist").command.copy_(self._repair_old_twist)
+        if self._repair_old_height is not None:
+            self._mod4_height_cmd.copy_(self._repair_old_height)
+
+    def _repair_after_reward(self):
+        # Curriculum/plant logs now read the physics transition and current termination.
+        self._repair_apply(ACCOUNT)
+        batch = self._repair_terminal_snapshot() if self._repair_audit else []
+        self.command_manager.get_term("twist").command.copy_(self._repair_next_twist)
+        self._mod4_height_cmd.copy_(self._repair_next_height)
+        return batch
+
+    def _repair_terminal_snapshot(self):
+        """Only completed episodes; copied to CPU BEFORE _reset_idx clears their state."""
+        ids = self.reset_buf.nonzero(as_tuple=False).flatten()
+        if ids.numel() == 0:
+            return []
+        rc = self._mod4_routes
+        rid = rc.ids[ids]
+        def take(x):
+            return x[ids].detach().cpu().tolist()
+        terms = {name: take(self.termination_manager.get_term(name).bool())
+                 for name in self.termination_manager.active_terms}
+        data = {
+            "env_id": ids.detach().cpu().tolist(), "episode_id": take(self._repair_episode_id),
+            "route_id": rid.detach().cpu().tolist(),
+            "duration_s": take(self.episode_length_buf * self.step_dt),
+            "terminated": take(self.reset_terminated), "truncated": take(self.reset_time_outs),
+            "goal_seen": take(rc.finished), "underpass_seen": take(rc.underpass_visited),
+            "launched": take(rc.launched), "air_after_launch": take(rc.air_after_launch),
+            "landed": take(self._repair_landed), "spin_deg": take(torch.rad2deg(rc.spin_angle)),
+            "peak_rise_m": take((rc.peak_z - getattr(
+                rc, "jump_start_z", rc.starts[rc.ids, 2] + rc.base_height)).clamp(min=0)),
+            "max_air_time_s": take(rc.max_air_time),
+            "final_distance_m": take(rc.last_dist),
+            "final_local_position_m": take(
+                self.scene["robot"].data.root_pos_w - self.scene.env_origins),
+        }
+        return [{**{k: v[i] for k, v in data.items()},
+                 "terms": {k: v[i] for k, v in terms.items()}}
+                for i in range(len(data["env_id"]))]

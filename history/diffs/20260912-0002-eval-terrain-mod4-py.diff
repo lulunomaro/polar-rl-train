@@ -1,0 +1,153 @@
+--- mod4/eval_terrain_mod4.py.bak_pre_clearance
++++ mod4/eval_terrain_mod4.py
+@@ -25,6 +25,19 @@
+                     help="fixed seed for the nominal evaluation (goal 2026-09-12 §5)")
+ AppLauncher.add_app_launcher_args(parser)
+ args = parser.parse_args()
++
++# 2026-09-12: the per-kind buckets carry COUNTS, but the acceptance bars are RATES
++# ("underpass_seen >= 0.80", "air_after_launch >= 0.60"), so the report publishes both.
++# These keys are the ones patch_eval_clearance.py normalises.
++#
++# BUG FIX: the first version of migration/linux/patch_eval_clearance.py inserted the
++# `for _k in RATE_KEYS` loop below but never inserted this tuple, so EVERY evaluation raised
++# `NameError: name 'RATE_KEYS' is not defined` at the very END of its 2200-step rollout (i.e.
++# after ~8-10 min of GPU time) and wrote NO report.  `eval_phase()` in run_special_phases_v3.sh
++# invokes the evaluator with `|| true`, so the failure was silent: the chain printed
++# VERSION_CHECK=PASS and then FileNotFoundError from read_phase_eval.py.  Measured on the
++# terrain phase 2026-09-12 22:18-22:37: the full eval and the ramp_up focus eval both died here.
++RATE_KEYS = ("underpass_seen", "air_after_launch", "launched", "landed", "entered", "attempted")
+ 
+ 
+ def _find_manifest(path_hint: str, checkpoint: str):
+@@ -54,13 +67,15 @@
+ 
+ import torch  # noqa: E402
+ from importlib import metadata  # noqa: E402
+-from isaaclab_rl.rsl_rl import (RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg,
++from isaaclab_rl.rsl_rl import (RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg,
++                                   RslRlMLPModelCfg, RslRlPpoAlgorithmCfg,
+                                 RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)  # noqa: E402
+ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+ HERE = Path(__file__).resolve().parent; sys.path.insert(0, str(HERE))
+ import mod4_task  # noqa: E402
+ from mod4_env import Mod4Env  # noqa: E402
+ from route_isaac import bucket_by_route  # noqa: E402
++import skills_isaac as skills  # noqa: E402  (delivered roof geometry, deliverable 4)
+ 
+ 
+ def route_config(buckets) -> dict:
+@@ -79,13 +94,39 @@
+ TASK_NAMES = {0: "normal", 1: "stair", 2: "slope", 3: "tunnel", 4: "jump", 5: "gyro", 6: "island", 7: "undulation"}
+ 
+ 
++def _actor_class_from_manifest() -> str:
++    """The trainer picks `mod4_sequence_model:LatentEncoderModel` when RM_SEQ_ENCODER=1.
++
++    The evaluator must pick the same, otherwise the state_dict cannot load (audit 49).
++    """
++    keys = {}
++    for src in ((MANIFEST or {}).get("env") or {}, os.environ):
++        for k, v in src.items():
++            keys.setdefault(k, v)
++    return ("mod4_sequence_model:LatentEncoderModel"
++            if str(keys.get("RM_SEQ_ENCODER", "0")).strip() == "1" else "MLPModel")
++
++
++_ACTOR_CLASS = _actor_class_from_manifest()
++
++
+ def build_runner(vec, ckpt):
+     rcfg = RslRlOnPolicyRunnerCfg(
+         seed=0, device="cuda:0", num_steps_per_env=24, max_iterations=1, save_interval=1,
+         experiment_name="terrain", run_name="eval", clip_actions=6.0, check_for_nan=True,
+         obs_groups={"actor": ["policy"], "critic": ["critic"]},
+-        policy=RslRlPpoActorCriticCfg(init_noise_std=0.3, actor_hidden_dims=[256, 128, 64],
+-                                      critic_hidden_dims=[256, 128, 64], activation="elu"),
++        # v2 fix (2026-09-13, audit 49): build the actor with the SAME class the trainer used.
++        # The old `RslRlPpoActorCriticCfg(actor_hidden_dims=...)` form always yields a plain
++        # MLPModel, so a v2 encoder checkpoint (mlp.0 = [256, 38] + encoder.*) could not load
++        # into it (the 175-D history obs sized the MLP at [256, 175]) and EVERY phase eval failed.
++        actor=RslRlMLPModelCfg(
++            class_name=_ACTOR_CLASS,
++            hidden_dims=[256, 128, 64], activation="elu", obs_normalization=False,
++            distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(
++                init_std=0.3, std_type="scalar")),
++        critic=RslRlMLPModelCfg(
++            class_name="MLPModel",
++            hidden_dims=[256, 128, 64], activation="elu", obs_normalization=False),
+         algorithm=RslRlPpoAlgorithmCfg(value_loss_coef=1.0, use_clipped_value_loss=True,
+                                        clip_param=0.2, entropy_coef=0.005, num_learning_epochs=5,
+                                        num_mini_batches=4, learning_rate=1e-4, schedule="fixed",
+@@ -129,6 +170,12 @@
+     first_dist = torch.zeros(n, device=dev)
+     have_first = torch.zeros(n, dtype=torch.bool, device=dev)
+     prev_air = None
++    # goal deliverable 4: minimum CAD-skin clearance while INSIDE the delivered roofed span.
++    # 999 m is the "never went under the roof" sentinel; it is mapped back to null in the
++    # report so a route that never entered the hole cannot look like a tight clearance.
++    _cad_off = float(os.environ.get("RM_CAD_TOP_OFFSET_M", skills.CAD_TOP_ABOVE_ROOT_M))
++    min_clear = torch.full((n,), 999.0, device=dev)
++    roof_seen = torch.zeros(n, dtype=torch.bool, device=dev)
+     obs = vec.get_observations()
+     for _ in range(args.steps):
+         with torch.inference_mode():
+@@ -136,6 +183,15 @@
+         obs, _, dones, _ = vec.step(actions)
+         loc = robot.data.root_pos_w - env.scene.env_origins
+         x, y, z = loc[:, 0], loc[:, 1], loc[:, 2]
++        # same footprint test as skills_isaac._hole_inside (roofed span, both lanes, below
++        # the ceiling): driving over the hole at normal height must not count as "inside"
++        _under = (z > skills.HOLE_FLOOR_Z - 0.05) & (z < skills.HOLE_CEILING_Z + 0.12)
++        _inside = ((x.abs() >= skills.HOLE_ROOF_X[0]) & (x.abs() <= skills.HOLE_ROOF_X[1]) &
++                   (y.abs() >= skills.HOLE_LANE_Y[0]) & (y.abs() <= skills.HOLE_LANE_Y[1]) &
++                   _under)
++        _clear = skills.HOLE_CEILING_Z - (z + _cad_off)
++        min_clear = torch.where(_inside, torch.minimum(min_clear, _clear), min_clear)
++        roof_seen |= _inside
+         f = env.scene.sensors["wheel_contact"].data.net_forces_w
+         if hasattr(f, "torch"):
+             f = f.torch
+@@ -215,14 +271,41 @@
+                          "underpass_seen": underpass.detach().cpu().tolist()}
+             for _j, _tname in enumerate(term_names):
+                 extra_sum["fail/" + _tname] = fail_counts[:, _j].detach().cpu().tolist()
++            _clo = float(getattr(env, "_mod4_max_closure", 0.0))
++            _mim = float(getattr(env, "_mod4_max_mimic", 0.0))
+             extra_max = {"max_air_time_s": max_air.detach().cpu().tolist(),
+                          "peak_rise_m": peak_rise.detach().cpu().tolist(),
+-                         "spin_deg": spin_deg.detach().cpu().tolist()}
++                         "spin_deg": spin_deg.detach().cpu().tolist(),
++                         # negated on purpose: extra_max takes max(), and max(-c) = -min(c)
++                         "neg_clearance": (-min_clear).detach().cpu().tolist(),
++                         "closure_max_m": [_clo] * n, "mimic_max_rad": [_mim] * n}
+             buckets = bucket_by_route(kinds, ids.detach().cpu().tolist(),
+                                       done_route.detach().cpu().tolist(),
+                                       prog_route.detach().cpu().tolist(),
+                                       failed.detach().cpu().tolist(),
+                                       extra_sum=extra_sum, extra_max=extra_max)
++            # The buckets carry counts (extra_sum sums per env).  The goal's bars are rates,
++            # so publish the normalised values the gates read.
++            for _rec in buckets.values():
++                _neg = _rec.pop("neg_clearance", None)
++                if _neg is not None:
++                    # `neg_clearance` is max(-min_clearance) over the kind's envs, so the
++                    # "never went under the roof" sentinel (min_clearance == 999) arrives here as
++                    # -999.  Measured 2026-09-12 on the first terrain report: the test used to be
++                    # `_neg >= 999.0`, which never fires, so a route that never entered the hole
++                    # published min_clearance_m = 999.0 instead of null -- i.e. it looked like the
++                    # roomiest crossing on the map.  The global field above is masked correctly.
++                    _rec["min_clearance_m"] = None if _neg <= -999.0 else round(-_neg, 5)
++                _envs = max(1, int(_rec.get("envs", 0)))
++                for _k in RATE_KEYS:
++                    if _k in _rec:
++                        _rec[_k + "_rate"] = round(float(_rec[_k]) / _envs, 3)
++                _rec["roof_hit_terminations"] = int(_rec.get("fail/tunnel_roof_hit", 0))
++            _seen = min_clear[roof_seen]
++            out["roof_entries"] = int(roof_seen.sum())
++            out["min_clearance_m"] = (None if _seen.numel() == 0 else round(float(_seen.min()), 5))
++            out["closure_max_m"] = float(getattr(env, "_mod4_max_closure", 0.0))
++            out["mimic_max_rad"] = float(getattr(env, "_mod4_max_mimic", 0.0))
+         out["route_kinds"] = buckets
+         out["route_config"] = route_config(buckets)
+     else:

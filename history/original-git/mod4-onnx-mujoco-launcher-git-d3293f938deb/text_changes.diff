@@ -1,0 +1,22 @@
+diff --git a/launcher.ps1 b/launcher.ps1
+index 79f0163..bbd0611 100644
+--- a/launcher.ps1
++++ b/launcher.ps1
+@@ -176,7 +176,16 @@ function Refresh-Policies([string]$SelectPath = "") {
+     }
+   }
+   if ($chosen -lt 0) {
+-    $preferred = "policies\mod4_extended_800.onnx"
++    # A policy imported from the trainer is the user's current candidate.  Select the newest
++    # imported ONNX by default so opening the launcher cannot silently run an older bundled
++    # checkpoint such as mod4_extended_800.onnx.
++    $latestImported = Get-ChildItem -LiteralPath $Imported -Filter "*.onnx" -File -ErrorAction SilentlyContinue |
++      Sort-Object LastWriteTime -Descending | Select-Object -First 1
++    $preferred = if ($latestImported) {
++      $latestImported.FullName.Substring($Root.Length + 1)
++    } else {
++      "policies\mod4_extended_800.onnx"
++    }
+     $chosen = $PolicyBox.Items.IndexOf($preferred)
+   }
+   if ($chosen -lt 0) { $chosen = 0 }

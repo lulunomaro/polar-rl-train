@@ -1,0 +1,56 @@
+--- isaac/mod4/repair_step.py.bak_pre_perkind
++++ isaac/mod4/repair_step.py
+@@ -49,6 +49,53 @@
+             for v in progress.values():
+                 if isinstance(v, torch.Tensor) and v.ndim and v.shape[0] == self.num_envs:
+                     v[env_ids] = 0
++
++    def _perkind_account(self, iteration: int, out_dir: str) -> None:
++        """Append one row per route kind: episodes attempted / succeeded so far.
++
++        Episodes, not steps (audit 75): a kind's attempt count only increments when an env's
++        episode id changes while it sits on that kind, so one 20 s episode counts once.
++        """
++        import csv
++        import os
++        ids = getattr(self, "_mod4_route_ids", None)
++        prog = getattr(self, "_mod4_route_progress", None)
++        if ids is None or not isinstance(prog, dict):
++            return
++        kinds = [r.get("kind") for r in getattr(getattr(self, "_mod4_routes", None), "routes", [])]
++        if not kinds:
++            return
++        try:
++            idl = ids.detach().to("cpu").tolist()
++            succ = prog.get("success")
++            succl = succ.detach().to("cpu").tolist() if succ is not None else [0.0] * len(idl)
++            epid = getattr(self, "_repair_episode_id", None)
++            epidl = epid.detach().to("cpu").tolist() if epid is not None else [0] * len(idl)
++        except Exception:
++            return
++        st = getattr(self, "_perkind_state", None)
++        if st is None:
++            st = self._perkind_state = {}
++        for env_i, kind_i in enumerate(idl):
++            if not (0 <= kind_i < len(kinds)):
++                continue
++            kind = kinds[kind_i]
++            rec = st.setdefault(kind, {"ep": -1, "att": 0, "suc": 0})
++            if epidl[env_i] != rec["ep"]:
++                rec["ep"] = epidl[env_i]
++                rec["att"] += 1
++            if succl[env_i] > 0.5:
++                rec["suc"] += 1
++        path = os.path.join(out_dir, "perkind_progress.csv")
++        new = not os.path.exists(path)
++        with open(path, "a", newline="") as fh:
++            w = csv.writer(fh)
++            if new:
++                w.writerow(["iteration", "kind", "attempts", "successes", "rate"])
++            for kind, rec in sorted(st.items()):
++                rate = (rec["suc"] / rec["att"]) if rec["att"] else ""
++                w.writerow([iteration, kind, rec["att"], rec["suc"],
++                            ("%.4f" % rate) if rate != "" else ""])
+ 
+     def _repair_publish_reference(self):
+         """Pure command calculation: no elapsed/progress/flight counters advance."""

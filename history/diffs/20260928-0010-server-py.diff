@@ -1,0 +1,23 @@
+--- scut_v14_spring_mod4_20260928/monitor/server.py.bak-20260928-022157
++++ scut_v14_spring_mod4_20260928/monitor/server.py
+@@ -164,8 +164,18 @@
+         started = status.get("started_utc")
+         deadline = status.get("deadline_utc")
+         elapsed = finite(status.get("elapsed_s")) or 0.0
+-        effective = (finite(status.get("previous_active_s")) or 0.0) + elapsed
+-        total = finite(status.get("total_target_s")) or 36000.0
++        previous = finite(status.get("previous_active_s"))
++        total = finite(status.get("total_target_s"))
++        if previous is None or total is None:
++            old_status = (self.stage.parent / "scut_flat_repair10h_20260927" /
++                          "run/scut_flat_resume_env20000_manual_20260927/status.json")
++            if old_status.exists():
++                handoff = json.loads(old_status.read_text())
++                previous = ((finite(handoff.get("previous_active_s")) or 0.0) +
++                            (finite(handoff.get("elapsed_s")) or 0.0))
++                total = finite(handoff.get("total_target_s"))
++        effective = (previous or 0.0) + elapsed
++        total = total or 36000.0
+         result = {
+             "server_utc": datetime.now(timezone.utc).isoformat(),
+             "state": status.get("state"), "status_updated_utc": status.get("updated_utc"),

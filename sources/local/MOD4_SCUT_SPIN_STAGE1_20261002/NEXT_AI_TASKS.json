@@ -1,0 +1,127 @@
+{
+  "authority": "User 2026-10-02 explicitly authorized continuous yaw then directional translation/start-stop/reversal/terrain/higher spin; autonomous progression is allowed inside remaining canonical budget.",
+  "canonical_budget": "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json",
+  "authorized_effective_seconds": 180000,
+  "budget_added_this_stage": false,
+  "current_phase": "pure_yaw_v1: train +/-1--2 rad/s; 10% stand, 60% straight, 30% pure spin; no heading correction",
+  "entry": "isaac/mod4/supervise_spin.py ONE-TIME takeover; do NOT rerun after handover receipt",
+  "next_tasks": [
+    {
+      "order": 1,
+      "task": "Read trial45_decision.json and both frozen reports. Distinguish physical safety, retained flat admission and new yaw skill. Incomplete yaw tracking can continue from exact weights. Physical regression triggers preserved straight fallback, never reset std or train from zero."
+    },
+    {
+      "order": 2,
+      "task": "If yaw skill passes, use same candidate checkpoint in two seed nominal and white_v1 15s spin+flat checks sequentially with no duplicate probes. Graduation thresholds must include signed yaw/error, sustained turns, peak tilt12, load/off-duration, gap/slip proxies, action smoothness and stopping. Do not call short smoke graduation."
+    },
+    {
+      "order": 3,
+      "task": "Implement an isolated start/stop/reverse and directional spin-translation curriculum. Before enabling translation, explicitly derive world/body frame mapping and the two-wheel nonholonomic limitation. Test achievable average/world-directed progress and track cross-direction drift. Do not demand impossible instantaneous lateral velocity, or treat constant body vx circular motion as world-direction control. User clarified 0.5m/s directional spin movement is sufficient; use .15/.3/.5 intro targets, retain separate straight +/-1.5 and pure spin regression; read SPIN_TRANSLATION_0P5_REQUIREMENT_20261002.md."
+    },
+    {
+      "order": 4,
+      "task": "After legal commands, physical and PPO checks, save-boundary warm-start next specialist, retaining stand/run/pure spin regression. Same ledger, no from-zero and no dual 20k. Update Ubuntu Rich and automation root."
+    },
+    {
+      "order": 5,
+      "task": "Bring moderate yaw to validated SCUT Rough v1 slopes/bumps/stairs using existing MOD4_SCUT_ROUGH_V1_ADAPTER_20261002. Ground height/full closed reset/scan/airborne not fully integrated yet. Do not directly flip flat-only terrain or load RMUC. Retain flat+spin regression."
+    },
+    {
+      "order": 6,
+      "task": "Raise spin rate only with actual torque-speed/thermal/load margin and multiple-seed tracking; then test sine wave spin commands and all-terrain. MoE and gimbal payload are later projects, not silently installed."
+    }
+  ],
+  "not_implemented": [
+    "world-directed spin translation",
+    "explicit trained ramp/brake/reverse curriculum (currently command resampling teaches switches and frozen probes diagnose ramps)",
+    "terrain-spin combined training",
+    "higher than2rad/s",
+    "MoE",
+    "calibrated300-700Ngas-springDR"
+  ],
+  "safety": "If remaining budget cannot cover an isolated safe switch, finish current checkpoint and deterministic evaluation without extra authorization budget. Preserve all directories and old checkpoints.",
+  "explicit_extension_after_stage_start": {
+    "id": "USER_ADD20H_20261002_1520",
+    "additional_seconds": 72000,
+    "state": "applied",
+    "trainer_interrupted": false
+  },
+  "spin_translation_requirement": {
+    "user_updated_at": "2026-10-02",
+    "target_world_progress_m_s": 0.5,
+    "intro_targets_m_s": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "meaning": "User wants directional movement during spin. Verify achievable world-directed progress and distinguish average progress from instantaneous speed.",
+    "current_pure_spin_translation_m_s": 0.0,
+    "retained_straight_speed_limit_m_s": 1.5,
+    "implementation_status": "requirement_recorded_not_deployed",
+    "reference": "SPIN_TRANSLATION_0P5_REQUIREMENT_20261002.md"
+  },
+  "latest_frozen_review": {
+    "checkpoint_iteration": 13688,
+    "duration_s": 15,
+    "seed": 20261002,
+    "dr_profile": "white_v1",
+    "pure_spin_groups_pass": true,
+    "ramp_reverse_groups_pass": true,
+    "overall_spin_skill_pass": false,
+    "overall_failure": "1m/s straight group 6/8; two left slip proxies .1565/.1588 exceed .15; independent full flat admission passes.",
+    "next_required": "Two seeds nominal+white_v1 same candidate before new course; do not duplicate supervisor pending evaluations."
+  },
+  "directional_translation_candidate": {
+    "remote_root": "/home/egde/rl_candidates/MOD4_SCUT_SPIN_TRANSLATION_PREPARE_20261002",
+    "cpu_math_cases_passed": 24,
+    "mean_world_progress_goal_m_s": 0.5,
+    "instantaneous_body_peak_at_final_goal_m_s": 1.0,
+    "body_cap_0p5_ideal_mean_m_s": 0.30449888939568276,
+    "actual_isaac_acceptance": false,
+    "actual_policy_acceptance": false,
+    "ppo_acceptance": false,
+    "production_deployed": false,
+    "notes": "No body lateral command; complete-turn ideal average only. Candidate class syntax checked, target SDK runtime not executed. Preserve user distinction of required movement vs peak speed before final course."
+  },
+  "latest_autonomous_authority": "User 2026-10-02 reaffirmed independent difficulty and DR progression; proceed after measured admission without repeated confirmation, within same 180000-second ledger.",
+  "queued_multiseed_admission": {
+    "remote_root": "/home/egde/rl_candidates/MOD4_AUTO_DIFFICULTY_20261002",
+    "reviewer_pid_locator": 1478805,
+    "checkpoint_iteration": 14141,
+    "stage": "paired_frozen_review",
+    "seeds": [
+      20261002,
+      20261003
+    ],
+    "profiles": [
+      "nominal",
+      "white_v1"
+    ],
+    "seconds": 15,
+    "receipt": "reports/MULTISEED_SPIN_ADMISSION.json",
+    "trainer_interrupted": false,
+    "new_curriculum_deployed": false,
+    "parent_temporarily_stopped_only_when_no_trainer": true,
+    "watchdog_restores_parent": true,
+    "note": "Read real status/process identities; no duplicate review or one-time takeover main. Resume original parent after own frozen probes. Review evidence is not deployment.",
+    "first_seed_runtime_receipt": {
+      "checkpoint_iteration": 14141,
+      "first_seed": 20261002,
+      "nominal_skill_pass": true,
+      "mild_skill_pass": true,
+      "nominal_alive": 72,
+      "mild_alive": 72,
+      "nominal_actual_parameter_readback_pass": true,
+      "same_spin_initial_root_q": true,
+      "all_multiseed_review_complete": false,
+      "new_curriculum_deployed": false
+    }
+  },
+  "nominal_evaluation_fix": {
+    "receipt": "reports/nominal_eval_audit_fix_20261002/APPLIED.json",
+    "cpu_checks_pass": 6,
+    "physics_reward_ppo_gate_changed": false,
+    "runtime_pending_at_receipt": false,
+    "actual_isaac_readback_pass": true
+  }
+}

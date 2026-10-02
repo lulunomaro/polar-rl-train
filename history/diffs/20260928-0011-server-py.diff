@@ -1,0 +1,36 @@
+--- scut_v14_spring_mod4_20260928/monitor/server.py.bak2-20260928-022230
++++ scut_v14_spring_mod4_20260928/monitor/server.py
+@@ -164,23 +164,17 @@
+         started = status.get("started_utc")
+         deadline = status.get("deadline_utc")
+         elapsed = finite(status.get("elapsed_s")) or 0.0
+-        carried = finite(status.get("previous_active_s")) or 0.0
++        previous = finite(status.get("previous_active_s"))
+         total = finite(status.get("total_target_s"))
+-        if total is None and status.get("previous_stage"):
+-            # A stage that took over a remaining budget names the hand-off in
+-            # previous_stage; inherit consumed/total seconds from it so the
+-            # effective-training bar keeps showing the real budget instead of
+-            # restarting from zero for each new segment stage.
+-            try:
+-                prev_root = Path(status["previous_stage"])
+-                prev_files = sorted((prev_root / "run").glob("*/status.json"),
+-                                    key=lambda q: q.stat().st_mtime)
+-                prev = json.loads(prev_files[-1].read_text())
+-                carried = carried or (finite(prev.get("previous_active_s")) or 0.0) + (finite(prev.get("elapsed_s")) or 0.0)
+-                total = finite(prev.get("total_target_s"))
+-            except (OSError, ValueError, TypeError, json.JSONDecodeError, IndexError):
+-                pass
+-        effective = carried + elapsed
++        if previous is None or total is None:
++            old_status = (self.stage.parent / "scut_flat_repair10h_20260927" /
++                          "run/scut_flat_resume_env20000_manual_20260927/status.json")
++            if old_status.exists():
++                handoff = json.loads(old_status.read_text())
++                previous = ((finite(handoff.get("previous_active_s")) or 0.0) +
++                            (finite(handoff.get("elapsed_s")) or 0.0))
++                total = finite(handoff.get("total_target_s"))
++        effective = (previous or 0.0) + elapsed
+         total = total or 36000.0
+         result = {
+             "server_utc": datetime.now(timezone.utc).isoformat(),

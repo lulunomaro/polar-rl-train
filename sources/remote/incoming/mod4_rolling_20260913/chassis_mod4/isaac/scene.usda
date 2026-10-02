@@ -1,0 +1,65 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def PhysicsScene "PhysicsScene"
+    {
+        vector3f physics:gravityDirection = (0, 0, -1)
+        float physics:gravityMagnitude = 9.81
+    }
+
+    def Xform "Robot" (
+        prepend references = @robot.usd@</Robot>
+    )
+    {
+        double3 xformOp:translate = (0, 0, 0.337742301121)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Cube "Ground" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "MaterialBindingAPI"]
+    )
+    {
+        rel material:binding:physics = </World/FloorMaterial>
+        color3f[] primvars:displayColor = [(0.21, 0.25, 0.28)]
+        double size = 1
+        float3 xformOp:scale = (20, 20, 0.1)
+        double3 xformOp:translate = (0, 0, -0.05)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Material "FloorMaterial" (
+        prepend apiSchemas = ["PhysicsMaterialAPI"]
+    )
+    {
+        float physics:dynamicFriction = 0.9
+        float physics:restitution = 0
+        float physics:staticFriction = 0.9
+    }
+
+    def DomeLight "DomeLight"
+    {
+        float inputs:intensity = 1000
+    }
+
+    def DistantLight "KeyLight"
+    {
+        float inputs:intensity = 2500
+        float3 xformOp:rotateXYZ = (-35, 25, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+
+    def Camera "Camera"
+    {
+        float2 clippingRange = (0.01, 100)
+        float focalLength = 35
+        matrix4d xformOp:transform = ( (0.7071067811865476, 0.7071067811865476, 0, 0), (-0.2263220588696291, 0.2263220588696291, 0.947394665035657, -0), (0.6699091921066707, -0.6699091921066707, 0.3200677251176315, 0), (0.9000000000000001, -0.9000000000000001, 0.7000000000000001, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+}
+

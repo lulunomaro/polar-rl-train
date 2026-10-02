@@ -1,0 +1,63 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "MuJoCo USD Converter v0.2.0"
+    }
+    defaultPrim = "rm2025_fixed_closed_hifi"
+    doc = """Generated from Composed Stage of root layer C:\\Users\\LULUNO~1\\AppData\\Local\\Temp\\tmp87sdd8dw\\rm2025_fixed_closed_hifi.usdc
+
+
+Generated from Composed Stage of root layer C:\\Users\\LULUNO~1\\AppData\\Local\\Temp\\mjcf_import_robot_serial_knopa9fc\\usdex_robot_serial\\rm2025_fixed_closed_hifi.usdc
+
+
+Generated from Composed Stage of root layer C:\\Users\\LULUNO~1\\AppData\\Local\\Temp\\mjcf_import_robot_serial_knopa9fc\\temp_robot_serial\\robot_serial.usd
+
+
+Generated from Composed Stage of root layer D:\\claude2\\fangzhen\\incoming\\rm2025_fixed\\isaac\\robot_serial\\payloads\\base.usd
+"""
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "rm2025_fixed_closed_hifi" (
+    prepend references = @./payloads/base.usda@
+    variants = {
+        string Physics = "physx"
+    }
+    append variantSets = "Physics"
+)
+{
+    variantSet "Physics" = {
+        "mujoco" (
+            prepend payload = @./payloads/Physics/mujoco.usda@
+        ) {
+
+        }
+        "none" {
+
+        }
+        "physics" (
+            prepend payload = @./payloads/Physics/physics.usda@
+        ) {
+
+        }
+        "physx" (
+            prepend payload = @./payloads/Physics/physx.usda@
+        ) {
+
+        }
+    }
+
+    # The source MJCF scene contains a floor, but this file is used as a robot asset inside
+    # Isaac Lab scenes that provide their own ground/terrain.  Disable the embedded floor to
+    # avoid duplicated, translated collision planes in every cloned environment.
+    over "Geometry"
+    {
+        over "ground" (
+            active = false
+        )
+        {
+        }
+    }
+}

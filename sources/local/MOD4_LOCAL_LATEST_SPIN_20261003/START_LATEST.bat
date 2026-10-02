@@ -1,0 +1,2 @@
+@echo off
+start "" "C:\Users\lulu\Desktop\claude\mjcf\.venv\Scripts\pythonw.exe" "C:\Users\lulu\Desktop\claude\mjcf\mod4-onnx-mujoco-launcher-git\control_panel.py" --engine isaac-live --bundle "C:\Users\lulu\Desktop\claude\mjcf\MOD4_LOCAL_LATEST_SPIN_20261003" --checkpoint "C:\Users\lulu\Desktop\claude\mjcf\MOD4_LOCAL_LATEST_SPIN_20261003\model_15600.pt" --isaac-python "C:\Users\lulu\miniconda3\envs\env_isaaclab\python.exe" --device cpu --height 0.25

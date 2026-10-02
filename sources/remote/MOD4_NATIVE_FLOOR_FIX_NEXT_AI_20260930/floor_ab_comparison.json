@@ -1,0 +1,107 @@
+{
+  "checkpoint": "model8350",
+  "seed": 20260927,
+  "num_envs": 80,
+  "steps": 1500,
+  "changed_factor_for_floor_trials": "Floor only; unchanged robot USD, motors, spring, solver, policy, reward and reset configuration.",
+  "case_env_id": 14,
+  "rows": [
+    {
+      "variant": "original_4km_box",
+      "alive_15s": false,
+      "vel_error": 1.0214884281158447,
+      "tilt": 13.555152893066406,
+      "max_tilt": 29.296329498291016,
+      "left_gap_max_control_m": 0.06167478859424591,
+      "right_gap_max_control_m": 0.011179082095623016,
+      "longest_both_low_force_s_substep": 0.164000004529953,
+      "wheel_effort_clip_fraction": 0.6595670580863953,
+      "leg_effort_clip_fraction": 0.00034916200092993677,
+      "left_support_slip_control": 0.41712337732315063,
+      "right_support_slip_control": 0.3267323970794678,
+      "all_environments_alive": false,
+      "max_closure_m": 0.00026678602444007993,
+      "max_mimic_rad": 0.0016914558364078403
+    },
+    {
+      "variant": "wheel_cap_only",
+      "alive_15s": true,
+      "vel_error": 0.32331758737564087,
+      "tilt": 13.51866626739502,
+      "max_tilt": 22.144380569458008,
+      "left_gap_max_control_m": 0.016890257596969604,
+      "right_gap_max_control_m": 0.01890946924686432,
+      "longest_both_low_force_s_substep": 0.024000000208616257,
+      "wheel_effort_clip_fraction": 0.012413793243467808,
+      "leg_effort_clip_fraction": 0.0005172413657419384,
+      "left_support_slip_control": 0.13666240870952606,
+      "right_support_slip_control": 0.13331039249897003,
+      "all_environments_alive": true,
+      "max_closure_m": 0.00026678602444007993,
+      "max_mimic_rad": 0.0016914558364078403
+    },
+    {
+      "variant": "isolated_200m_box",
+      "alive_15s": true,
+      "vel_error": 0.014564642682671547,
+      "tilt": 0.9699748158454895,
+      "max_tilt": 2.099749803543091,
+      "left_gap_max_control_m": 0.0007550567388534546,
+      "right_gap_max_control_m": 0.0009305775165557861,
+      "longest_both_low_force_s_substep": 0.00950000062584877,
+      "wheel_effort_clip_fraction": 0.005517241545021534,
+      "leg_effort_clip_fraction": 0.0,
+      "left_support_slip_control": 0.08448151499032974,
+      "right_support_slip_control": 0.0700538232922554,
+      "all_environments_alive": true,
+      "max_closure_m": 0.00015816472296137363,
+      "max_mimic_rad": 0.0018269811989739537
+    },
+    {
+      "variant": "isolated_native_plane",
+      "alive_15s": true,
+      "vel_error": 0.016205018386244774,
+      "tilt": 0.9909995198249817,
+      "max_tilt": 2.268916130065918,
+      "left_gap_max_control_m": 0.0007481127977371216,
+      "right_gap_max_control_m": 0.0009988024830818176,
+      "longest_both_low_force_s_substep": 0.010500000789761543,
+      "wheel_effort_clip_fraction": 0.006206896621733904,
+      "leg_effort_clip_fraction": 0.0,
+      "left_support_slip_control": 0.08646558225154877,
+      "right_support_slip_control": 0.07268970459699631,
+      "all_environments_alive": true,
+      "max_closure_m": 0.00012638875341508538,
+      "max_mimic_rad": 0.0016914558364078403
+    }
+  ],
+  "raw_first_invalid_ground_contact": {
+    "time_s": 5.0685,
+    "wheel": 0,
+    "other_actor": "/World/ground/geometry/mesh",
+    "force_N": 2697.84326171875,
+    "point": [
+      0.3161190450191498,
+      0.2514716386795044,
+      0.1269245445728302
+    ],
+    "normal": [
+      5.0956661112877555e-09,
+      -1.2146013972369474e-08,
+      -0.9999999403953552
+    ],
+    "separation_m": -0.2269245684146881
+  },
+  "downward_ground_contact_count_in_4_9_to5_3s": {
+    "original_4km_box": 9,
+    "isolated_200m_box": 0,
+    "isolated_native_plane": 0
+  },
+  "causal_scope": "The huge thin floor causes this reproducible contact failure. The exact PhysX numerical mechanism and all other historical failures are not established by this experiment.",
+  "limitations": [
+    "No retraining or PPO in floor probes.",
+    "15 seconds, one failing seed for causal probe; not long-duration/multiseed robustness.",
+    "Input hull support/slip sampled at10ms is not a contact manifold measurement.",
+    "Native floor candidate does not graduate legacy endpoint contact thresholds or certify2m/s constant/DR/Rough."
+  ]
+}

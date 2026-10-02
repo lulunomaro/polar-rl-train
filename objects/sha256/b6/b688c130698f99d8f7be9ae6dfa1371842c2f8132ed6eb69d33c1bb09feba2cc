@@ -1,0 +1,42 @@
+D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scene\scene.py:66: UserWarning: Entity 'robot' has non-default <option> fields (integrator, iterations, ls_iterations) that will not be propagated by MjSpec.attach(). Use MujocoCfg instead.
+  self._add_entities()
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 258, in <module>
+    main()
+    ~~~~^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 254, in main
+    launch_training(task_id=chosen_task, args=args)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 203, in launch_training
+    run_train(task_id, args, log_dir)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 110, in run_train
+    env = ManagerBasedRlEnv(
+      cfg=cfg.env, device=device, render_mode="rgb_array" if cfg.video else None
+    )
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\envs\manager_based_rl_env.py", line 197, in __init__
+    self.sim = Simulation(
+               ~~~~~~~~~~^
+      num_envs=self.scene.num_envs,
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+      device=device,
+      ^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\sim\sim.py", line 214, in __init__
+    compiled = spec.compile()
+ValueError: Error: unrecognized name '.*' of object
+Element name 'wheel_contact_wheel_L_found', id 15
+[INFO] Training with: device=cuda:0, seed=42, rank=0
+[INFO] Logging experiment in directory: D:\claude2\fangzhen\train\logs\rsl_rl\smoke_rmv\2026-09-04_04-27-36
+Setting seed: 42
+Warp 1.12.1 initialized:
+   CUDA Toolkit 12.9, Driver 13.1
+   Devices:
+     "cpu"      : "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel"
+     "cuda:0"   : "NVIDIA GeForce RTX 3060" (12 GiB, sm_86, mempool enabled)
+   Kernel cache:
+     \\?\C:\Users\lulunomaro\AppData\Local\NVIDIA\warp\Cache\1.12.1

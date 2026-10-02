@@ -1,0 +1,20 @@
+[v3] chain v3 start checkpoint=logs/isaac_mod4/2026-09-12_19-46-13_mod4_fixed_mixed/model_14199.pt from=tunnel envs=512 iters=400 dry_run=0
+[v3] frozen 8 files -> logs/isaac_mod4/chain_v3_20260912_201518_frozen.txt
+[v3] tuning file migration/linux/tunnel_tuning.env:
+[v3]   # MOD4 tunnel-plant tuning for the v3 chain (2026-09-13)
+[v3]   # Plant: rolling-idler USD (8 passive revolute rollers) built by
+[v3]   #   incoming/mod4_rolling_20260913/tools/build_rolling_rollers_usd.py
+[v3]   # Controller: the verified MuJoCo tunnel test runs KP=320/KD=10/KI=90; in Isaac a pure PD
+[v3]   # needs more stiffness because the position loop has no integral action yet
+[v3]   # (probe_crouch_kp.py: kp=60 -> envelope 273.7 mm, kp=2500 -> 246.0 mm vs the 247.2 mm ceiling).
+[v3]   # probe_tunnel_cross_pi.py at kp=2500: crossed the 0.34 m roofed span at 0.12/0.18 m/s with
+[v3]   # 0 roof-contact steps and ~35 N mean drive-wheel load.
+[v3]   RM_MOD4_USD=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd
+[v3]   RM_LEG_KP=2500
+[v3]   RM_LEG_KD=10
+[v3]   RM_LEG_KI=0[v3] skip phase smoke (resuming at tunnel)
+[v3] === phase tunnel envs=512 iters=400
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,slope_spin:2,jump_in_place:1,fly_jump:2,tunnel_cross:8
+[v3]   slots=39  tunnel_cross 41.0%  ramp_up 10.3%  rough_cross 10.3%  fly_jump 10.3%  step_up 10.3%  run 5.1%  slope_spin 5.1%  jump_in_place 2.6%  ramp_down 2.6%  step_down 2.6%
+[launch] plant=incoming/mod4_fixed_20260912/chassis_mod4/isaac/robot.usd sha256=1d437847778ad04ddc3e1e936878e31cf3cc2917e8e105078e5e95daa0d862b4
+[launch] pid=841673 log=logs/isaac_mod4/stage_mixed_fixedplant_20260912_201518.log

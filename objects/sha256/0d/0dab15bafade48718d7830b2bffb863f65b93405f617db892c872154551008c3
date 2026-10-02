@@ -1,0 +1,16 @@
+[skills] retention baseline: {'slope_spin': 0.719, 'step_up': 0.75, 'tunnel_cross': 0.0, 'fly_jump': 0.0}
+[skills] configuration (deliberately conservative):
+[skills]   checkpoint        : logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+[skills]   RM_SEQ_ENCODER    : unset (NO history encoder -- same actor shape as the checkpoint)
+[skills]   RM_DR_OFF         : 1 (DR off -- how the passing skills were trained)
+[skills]   episode / eval    : RM_EPISODE_S=45, RM_EVAL_STEPS=4500 (helps fly/run/rough/tunnel)
+[skills]   retention gate    : ON (stops if slope_spin or step_up < 0.50)
+[skills]   acceptance tag    : skills (cannot overwrite earlier evidence)
+[skills]   envs / iters      : 1024 / 400 per phase
+[skills] started (pid 1184507)  log=logs/isaac_mod4/skills_launch.log
+  [v2] verified: all 25 knobs are read by isaac/mod4
+  [v2] checkpoint : logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+  [v2] from_phase : smoke   iters=400   envs=1024
+  [v2] encoders   : history=5 latent=3    clips: mode=safe clip=2.5
+  [v2] DR         : off=0  delay=0-5.0 ms
+  [v3] chain v3 start checkpoint=logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt from=smoke envs=1024 iters=400 dry_run=0

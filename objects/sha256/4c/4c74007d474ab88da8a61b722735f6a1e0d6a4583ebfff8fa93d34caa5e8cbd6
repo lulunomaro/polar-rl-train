@@ -1,0 +1,16 @@
+[skills] retention baseline: {'slope_spin': 0.719, 'step_up': 0.75, 'tunnel_cross': 0.0, 'fly_jump': 0.0}
+[skills] configuration (deliberately conservative):
+[skills]   checkpoint        : logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+[skills]   RM_SEQ_ENCODER    : unset (NO history encoder -- same actor shape as the checkpoint)
+[skills]   RM_DR_OFF         : 1 (DR off -- how the passing skills were trained)
+[skills]   episode / eval    : RM_EPISODE_S=45, RM_EVAL_STEPS=4500 (helps fly/run/rough/tunnel)
+[skills]   retention gate    : ON (stops if slope_spin or step_up < 0.50)
+[skills]   acceptance tag    : skills (cannot overwrite earlier evidence)
+[skills]   envs / iters      : 1024 / 400 per phase
+[skills] started (pid 1185737)  log=logs/isaac_mod4/skills_launch.log
+  [v3] chain v3 start checkpoint=logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt from=smoke envs=512 iters=400 dry_run=0
+  [v3] frozen 13 files -> logs/isaac_mod4/chain_v3_20260913_141904_frozen.txt
+  [v3] tuning file migration/linux/tunnel_tuning.env:
+  [v3]   # MOD4 tunnel-plant tuning for the v3 chain (2026-09-13)
+  [v3]   # Plant: rolling-idler USD (8 passive revolute rollers) built by
+  [v3]   #   incoming/mod4_rolling_20260913/tools/build_rolling_rollers_usd.py

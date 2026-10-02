@@ -1,0 +1,9 @@
+2026-09-09T12:06:28+08:00 stopped by RL-review: gyro gate failed (yaw_err 5.58 rad/s); smoke with the real M3508 torque-speed curve shows 55 pct saturation and gyro-lane chassis translation 0.39 m/s, i.e. the policy was arc-turning instead of spinning in place. Switching to --wheel-curve --spin-pure via run_spin_pure.sh (run spin_pure_v1). All checkpoints kept.
+=== restart 2026-09-09T12:56:21+08:00
+reason: spin_pure_v1 used the wrong wheel envelope (stall 6.0 / no-load 63.4).
+        DM3519 + 15.8 gearbox -> plateau 6.42 N.m, knee 44.0 rad/s, no-load 55.36 rad/s.
+        2 rev/s needs 47.4 rad/s per wheel, where 4.5 N.m is still available: it IS reachable.
+stopping spin_pure_v1 PID 1939233
+=== 2026-09-09T14:59:39+08:00 stop spin_pure_v2 (gyro stalled at spin_rate_ratio 0.03 after 3000 iters;
+    spin_hold is farmable while standing still, and level(7.0)+upright(1.2)+height(1.2)
+    outweigh all yaw terms.  Next: spin_product=4.0, spin_hold=0.5, gyro_posture_relax=0.5)

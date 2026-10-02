@@ -1,0 +1,267 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 258, in <module>
+    main()
+    ~~~~^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 254, in main
+    launch_training(task_id=chosen_task, args=args)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 203, in launch_training
+    run_train(task_id, args, log_dir)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\scripts\train.py", line 110, in run_train
+    env = ManagerBasedRlEnv(
+      cfg=cfg.env, device=device, render_mode="rgb_array" if cfg.video else None
+    )
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\envs\manager_based_rl_env.py", line 197, in __init__
+    self.sim = Simulation(
+               ~~~~~~~~~~^
+      num_envs=self.scene.num_envs,
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+      device=device,
+      ^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\sim\sim.py", line 216, in __init__
+    self._init_with_model(compiled)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\sim\sim.py", line 233, in _init_with_model
+    self._finish_init()
+    ~~~~~~~~~~~~~~~~~^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\sim\sim.py", line 307, in _finish_init
+    self.create_graph()
+    ~~~~~~~~~~~~~~~~~^^
+  File "D:\claude2\fangzhen\third_party\rc_mjlab\mjlab\src\mjlab\sim\sim.py", line 332, in create_graph
+    mjwarp.step(self.wp_model, self.wp_data)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\warp_util.py", line 97, in wrapper
+    return fn(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\forward.py", line 1263, in step
+    forward(m, d)
+    ~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\warp_util.py", line 97, in wrapper
+    return fn(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\forward.py", line 1257, in forward
+    sensor.sensor_acc(m, d)
+    ~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\warp_util.py", line 97, in wrapper
+    return fn(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\mujoco_warp\_src\sensor.py", line 2498, in sensor_acc
+    wp.launch(
+    ~~~~~~~~~^
+      _preprocess_tactile_contacts,
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+      ],
+      ^^
+    )
+    ^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 11292, in launch
+    module_exec = kernel.module.load(device, block_dim)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 4736, in load
+    raise e
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 4733, in load
+    compiled = self._compile(device, module_dir, output_name, output_arch, options=options)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 4495, in _compile
+    source_str, source_code_ext, meta, ltoir_values, fatbin_values = self._run_codegen(options, is_cpu)
+                                                                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 1732, in locked_call
+    return func(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 4365, in _run_codegen
+    builder = ModuleBuilder(
+        self,
+        options,
+        hasher=self.hashers.get(options["block_dim"], None),
+    )
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 3121, in __init__
+    self.build_kernel(kernel)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 3240, in build_kernel
+    kernel.adj.build(self)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 1732, in locked_call
+    return func(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 2200, in build
+    raise type(original_exc)(*new_args).with_traceback(original_exc.__traceback__) from None
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 2181, in build
+    adj.eval(adj.tree.body[0])
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3354, in emit_FunctionDef
+    adj.eval(f)
+    ~~~~~~~~^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3402, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 5123, in emit_Assign
+    rhs = adj.eval(node.value)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4480, in emit_Call
+    out = adj.add_call(
+        func,
+    ...<6 lines>...
+        kwarg_nodes=kwarg_nodes,
+    )
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 2781, in add_call
+    adj.builder.build_function(func)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 3252, in build_function
+    func.build(self)
+    ~~~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\context.py", line 684, in build
+    self.adj.build(builder, default_builder_options)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 1732, in locked_call
+    return func(*args, **kwargs)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 2200, in build
+    raise type(original_exc)(*new_args).with_traceback(original_exc.__traceback__) from None
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 2181, in build
+    adj.eval(adj.tree.body[0])
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3354, in emit_FunctionDef
+    adj.eval(f)
+    ~~~~~~~~^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3425, in emit_If
+    adj.eval(stmt)
+    ~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 5123, in emit_Assign
+    rhs = adj.eval(node.value)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4441, in emit_Call
+    args.append(adj.resolve_arg(x))
+                ~~~~~~~~~~~~~~~^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4088, in resolve_arg
+    raise error
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4077, in resolve_arg
+    var = adj.eval(arg)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 5068, in emit_Subscript
+    target, indices = adj.eval_subscript(node)
+                      ~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 5031, in eval_subscript
+    target, indices = adj.recurse_subscript(node, [])
+                      ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4700, in recurse_subscript
+    target, indices = adj.recurse_subscript(node.value, indices)
+                      ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 4686, in recurse_subscript
+    target = adj.eval(node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 6075, in eval
+    return emit_node(adj, node)
+  File "D:\claude2\fangzhen\.venv-train\Lib\site-packages\warp\_src\codegen.py", line 3544, in emit_Name
+    raise WarpCodegenKeyError("Referencing undefined symbol: " + str(node.id))
+warp._src.codegen.WarpCodegenKeyError: 'Error while parsing function "_sensor_pos" at D:\\claude2\\fangzhen\\.venv-train\\Lib\\site-packages\\mujoco_warp\\_src\\sensor.py:581:\n      xmat_in, ximat_in, geom_xmat_in, site_xmat_in, cam_xmat_in, worldid, objid, objtype, refid, reftype, axis\n;Error while parsing function "_frame_axis" at D:\\claude2\\fangzhen\\.venv-train\\Lib\\site-packages\\mujoco_warp\\_src\\sensor.py:373:\n    axis = wp.vec3(xmat[0, frame_axis], xmat[1, frame_axis], xmat[2, frame_axis])\n;Referencing undefined symbol: xmat'
+[INFO] Training with: device=cuda:0, seed=42, rank=0
+[INFO] Logging experiment in directory: D:\claude2\fangzhen\third_party\rc_mjlab\logs\rsl_rl\smoke_rcwheelleg\2026-09-04_04-09-41
+Setting seed: 42
+Warp 1.17.0 initialized:
+   CUDA Toolkit 12.9, Driver 13.1
+   Devices:
+     "cpu"      : "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel"
+     "cuda:0"   : "NVIDIA GeForce RTX 3060" (12 GiB, sm_86, mempool enabled)
+   Kernel cache:
+     \\?\C:\Users\lulunomaro\AppData\Local\NVIDIA\warp\Cache\1.17.0
+Module mujoco_warp._src.smooth da25dc7 load on device 'cuda:0' took 4405.95 ms  (compiled)
+Module mujoco_warp._src.collision_driver f6c8244 load on device 'cuda:0' took 157.55 ms  (compiled)
+Module _nxn_broadphase__locals__kernel_b7e7d30c b7e7d30 load on device 'cuda:0' took 404.33 ms  (compiled)
+Module ccd_kernel_builder__locals__ccd_kernel_583e11fb 583e11f load on device 'cuda:0' took 7463.33 ms  (compiled)
+Module ccd_kernel_builder__locals__ccd_kernel_57980f02 57980f0 load on device 'cuda:0' took 7815.19 ms  (compiled)
+Module ccd_kernel_builder__locals__ccd_kernel_b320d7a6 b320d7a load on device 'cuda:0' took 8487.07 ms  (compiled)
+Module ccd_kernel_builder__locals__ccd_kernel_d6b3466e d6b3466 load on device 'cuda:0' took 11227.41 ms  (compiled)
+Module ccd_kernel_builder__locals__ccd_kernel_2e8b97c1 2e8b97c load on device 'cuda:0' took 11887.36 ms  (compiled)
+Module _primitive_narrowphase__locals__primitive_narrowphase_eaadf5f0 eaadf5f load on device 'cuda:0' took 211.03 ms  (compiled)
+Module mujoco_warp._src.constraint d903dd5 load on device 'cuda:0' took 2388.74 ms  (compiled)
+Module _efc_contact_init__locals__kernel_a6ab121c a6ab121 load on device 'cuda:0' took 177.41 ms  (compiled)
+Module _efc_contact_jac_dense__locals__kernel_e99f3616 2a75330 load on device 'cuda:0' took 631.03 ms  (compiled)
+Module _efc_contact_update__locals__kernel_3f97fd5e 3f97fd5 load on device 'cuda:0' took 270.74 ms  (compiled)
+Module mujoco_warp._src.forward fbe5b46 load on device 'cuda:0' took 1250.04 ms  (compiled)
+Module mujoco_warp._src.passive ff37a57 load on device 'cuda:0' took 1090.47 ms  (compiled)
+Module mujoco_warp._src.forward f11f125 load on device 'cuda:0' took 1231.44 ms  (compiled)
+Module mujoco_warp._src.support f39c2de load on device 'cuda:0' took 274.70 ms  (compiled)
+Module _tile_cholesky_factorize_solve__locals__cholesky_factorize_solve_c2596bde bd30ca4 load on device 'cuda:0' took 3644.98 ms  (compiled)
+Module mujoco_warp._src.solver b841adb load on device 'cuda:0' took 1315.77 ms  (compiled)
+Module solve_init_jaref__locals__kernel_c822f564 c822f56 load on device 'cuda:0' took 165.98 ms  (compiled)
+Module mul_m_dense__locals___mul_m_dense_b57c5b4d b57c5b4 load on device 'cuda:0' took 178.77 ms  (compiled)
+Module update_constraint_efc__locals__kernel_d07e112f d07e112 load on device 'cuda:0' took 210.29 ms  (compiled)
+Module update_constraint_gauss_cost__locals__kernel_9cf96939 9cf9693 load on device 'cuda:0' took 171.33 ms  (compiled)
+Module update_gradient_JTDAJ_dense_tiled__locals__kernel_5265e3cf 99eea4a load on device 'cuda:0' took 546.91 ms  (compiled)
+Module update_gradient_cholesky__locals__kernel_45ee6e92 14a1b08 load on device 'cuda:0' took 3148.24 ms  (compiled)
+Module linesearch_jv_fused__locals__kernel_5f0ff114 5f0ff11 load on device 'cuda:0' took 154.93 ms  (compiled)
+Module linesearch_prepare_gauss__locals__kernel_a77867ba a77867b load on device 'cuda:0' took 172.12 ms  (compiled)
+Module mujoco_warp._src.sensor c53ea9e load on device 'cuda:0' took 64.75 ms  (error)

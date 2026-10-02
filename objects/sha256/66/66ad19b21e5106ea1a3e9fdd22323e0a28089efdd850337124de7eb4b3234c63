@@ -1,0 +1,196 @@
+[v3] chain v3 start checkpoint=logs/isaac_mod4/2026-09-12_20-15-25_mod4_fixed_mixed/model_14300.pt from=tunnel envs=512 iters=400 dry_run=0
+[v3] frozen 8 files -> logs/isaac_mod4/chain_v3_20260912_203028_frozen.txt
+[v3] tuning file migration/linux/tunnel_tuning.env:
+[v3]   # MOD4 tunnel-plant tuning for the v3 chain (2026-09-13)
+[v3]   # Plant: rolling-idler USD (8 passive revolute rollers) built by
+[v3]   #   incoming/mod4_rolling_20260913/tools/build_rolling_rollers_usd.py
+[v3]   # Controller: verified MuJoCo tunnel test = KP=320/KD=10/KI=90; Isaac runs a pure PD that needs
+[v3]   # more stiffness (probe_crouch_kp: kp=60 -> envelope 273.7 mm, kp=2500 -> 246.0 mm vs 247.2 mm).
+[v3]   # Action range: the crouch needs crank -0.595844 rad, which a 0.5 rad/unit action CANNOT reach
+[v3]   # (tanh <= 1) -- that is why Episode_Reward/tunnel_height stayed exactly 0 in every run.
+[v3]   # RM_CRANK_ACTION_SCALE=0.75 puts the crouch at 79 % of the crank range.
+[v3]   # DEPLOYMENT: the exported ONNX inherits this scale; contract_rm2025_later.json leg/crank action
+[v3]   # scale must be updated to the same numbers before hardware use.
+[v3]   RM_MOD4_USD=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd
+[v3]   RM_LEG_KP=2500
+[v3]   RM_LEG_KD=10
+[v3]   RM_LEG_KI=0
+[v3]   RM_LEG_ACTION_SCALE=0.5
+[v3]   RM_CRANK_ACTION_SCALE=0.75
+[v3]   RM_CROUCH_POSE_W=1.0[v3] skip phase smoke (resuming at tunnel)
+[v3] === phase tunnel envs=512 iters=400
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,slope_spin:2,jump_in_place:1,fly_jump:2,tunnel_cross:8
+[v3]   slots=39  tunnel_cross 41.0%  ramp_up 10.3%  rough_cross 10.3%  fly_jump 10.3%  step_up 10.3%  run 5.1%  slope_spin 5.1%  jump_in_place 2.6%  ramp_down 2.6%  step_down 2.6%
+[launch] plant=incoming/mod4_fixed_20260912/chassis_mod4/isaac/robot.usd sha256=1d437847778ad04ddc3e1e936878e31cf3cc2917e8e105078e5e95daa0d862b4
+[launch] pid=845008 log=logs/isaac_mod4/stage_mixed_fixedplant_20260912_203028.log
+[v3] tunnel done -> logs/isaac_mod4/2026-09-12_20-30-35_mod4_fixed_mixed/model_14699.pt
+[version] VERSION MISMATCH: import_contract.json cbcdacdf2b15->d8cc237bc073; robot.usd 7b4d85356355->1d437847778a; robot.usd(asset) 7b4d85356355->1d437847778a; import_contract.json(asset) cbcdacdf2b15->d8cc237bc073
+VERSION_CHECK=FAIL
+[version] refusing: code/asset changed since training
+[v3] tunnel: VERSION GATE FAILED (rc=4) -- reporting FAIL_VERSION
+[v3] === phase terrain envs=512 iters=400
+[v3]     weights=run:2,ramp_down:1,step_down:1,tunnel_cross:2,slope_spin:2,jump_in_place:1,fly_jump:2,ramp_up:4,step_up:4,rough_cross:4
+[v3]   slots=39  ramp_up 20.5%  rough_cross 20.5%  step_up 20.5%  fly_jump 10.3%  tunnel_cross 10.3%  run 5.1%  slope_spin 5.1%  jump_in_place 2.6%  ramp_down 2.6%  step_down 2.6%
+[launch] plant=incoming/mod4_fixed_20260912/chassis_mod4/isaac/robot.usd sha256=1d437847778ad04ddc3e1e936878e31cf3cc2917e8e105078e5e95daa0d862b4
+[launch] pid=853701 log=logs/isaac_mod4/stage_mixed_fixedplant_20260912_212120.log
+[v3] terrain done -> logs/isaac_mod4/2026-09-12_21-21-27_mod4_fixed_mixed/model_15098.pt
+[version]   robot.usd [asset]      OK (7b4d85356355)
+[version]   import_contract.json [asset] OK (cbcdacdf2b15)
+VERSION_CHECK=PASS (sources and asset match the training run)
+Traceback (most recent call last):
+  File "/home/egde/fangzhen_linux/migration/linux/read_phase_eval.py", line 77, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/egde/fangzhen_linux/migration/linux/read_phase_eval.py", line 35, in main
+    d = json.load(open(args.report, encoding="utf8"))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'docs/acceptance_phase_v3_terrain/eval.json'
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: 'docs/acceptance_phase_v3_terrain/eval.json'
+[v3] terrain: focused single-kind eval (ramp_up, 64 env, 2200 steps)
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: 'docs/acceptance_phase_v3_terrain/eval_focus_ramp_up.json'
+[v3] terrain: focused single-kind eval (step_up, 64 env, 2200 steps)
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: 'docs/acceptance_phase_v3_terrain/eval_focus_step_up.json'
+[v3] terrain: focused single-kind eval (rough_cross, 64 env, 2200 steps)
+[v3] --- phase terrain_focus_rough_cross verdict (complete_rate / gate) ---
+[v3]     rough_cross    envs=64  complete=0.000 progress=   244.1 FAIL(bar 0.60)
+[v3] phase terrain_focus_rough_cross applied_from_manifest=None
+[v3] === phase spin envs=512 iters=400
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,tunnel_cross:2,jump_in_place:1,fly_jump:2,slope_spin:7
+[v3]   slots=32  slope_spin 21.9%  ramp_up 12.5%  rough_cross 12.5%  fly_jump 12.5%  step_up 12.5%  tunnel_cross 12.5%  run 6.2%  jump_in_place 3.1%  ramp_down 3.1%  step_down 3.1%
+[launch] plant=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd sha256=7b4d853563551755cb15f542a6cee28ae0119111cefee51da0b0d47b21b7ed55
+[launch] pid=861953 log=logs/isaac_mod4/stage_mixed_fixedplant_20260912_225955.log
+[v3] spin done -> logs/isaac_mod4/2026-09-12_23-00-03_mod4_fixed_mixed/model_15497.pt
+[version]   robot.usd [asset]      OK (7b4d85356355)
+[version]   import_contract.json [asset] OK (cbcdacdf2b15)
+VERSION_CHECK=PASS (sources and asset match the training run)
+== docs/acceptance_phase_v3_spin/eval.json
+checkpoint : logs/isaac_mod4/2026-09-12_23-00-03_mod4_fixed_mixed/model_15497.pt
+envs=64 steps=2200 mode=arena
+min_clearance_m (global, under roof): None   roof_entries=0
+closure_max_m=0.0008487172308377922  mimic_max_rad=0.0018269811989739537
+
+route            envs complete  progress   underp spin_deg peak_rise air_after
+fly_jump            8      0.0    15.622      0.0      0.0     0.02      0.0
+jump_in_place       5      0.0       0.0      0.0      0.0     0.02      0.0
+ramp_down           5      1.0     15.59      0.0      0.0     0.02      0.0
+ramp_up             9    0.222     7.301      0.0      0.0   0.4201      0.0
+rough_cross         8      0.0    32.785      0.0      0.0     0.02      0.0
+run                 5      1.0    24.898      0.0      0.0   0.0309      0.0
+slope_spin          4      0.5    17.848      0.0 250.4528     0.02      0.0
+step_down           4      1.0     7.668      0.0      0.0     0.02      0.0
+step_up             8      0.0    14.414      0.0      0.0     0.02      0.0
+tunnel_cross        8      0.0     3.169      0.0      0.0   0.0789      0.0
+
+tunnel: underpass 0.0/8 = 0.0   roof_hit_terminations=0   min_clearance_m=None
+[v3] --- phase spin verdict (complete_rate / gate) ---
+[v3]     fly_jump       envs=8   complete=0.000 progress=    15.6 air_after=0.00 FAIL(bar 0.50)
+[v3]     jump_in_place  envs=5   complete=0.000 progress=     0.0
+[v3]     ramp_down      envs=5   complete=1.000 progress=    15.6 PASS
+[v3]     ramp_up        envs=9   complete=0.222 progress=     7.3 FAIL(bar 0.60)
+[v3]     rough_cross    envs=8   complete=0.000 progress=    32.8 FAIL(bar 0.60)
+[v3]     run            envs=5   complete=1.000 progress=    24.9
+[v3]     slope_spin     envs=4   complete=0.500 progress=    17.8 spin_deg=250.5 FAIL(bar 0.60)
+[v3]     step_down      envs=4   complete=1.000 progress=     7.7 PASS
+[v3]     step_up        envs=8   complete=0.000 progress=    14.4 FAIL(bar 0.60)
+[v3]     tunnel_cross   envs=8   complete=0.000 progress=     3.2 underpass_rate=0.00 roof_hit=0.0 FAIL(bar 0.60)
+[v3] phase spin applied_from_manifest=None
+[v3] spin: focused single-kind eval (slope_spin, 64 env, 2200 steps)
+[v3] --- phase spin_focus_slope_spin verdict (complete_rate / gate) ---
+[v3]     slope_spin     envs=64  complete=0.703 progress=   268.7 spin_deg=1973.7 PASS
+[v3] phase spin_focus_slope_spin applied_from_manifest=None
+[v3] === phase fly envs=512 iters=400
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,tunnel_cross:2,slope_spin:2,jump_in_place:1,fly_jump:6
+[v3]   slots=35  fly_jump 34.3%  ramp_up 11.4%  rough_cross 11.4%  step_up 11.4%  tunnel_cross 11.4%  run 5.7%  slope_spin 5.7%  jump_in_place 2.9%  ramp_down 2.9%  step_down 2.9%
+[launch] plant=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd sha256=7b4d853563551755cb15f542a6cee28ae0119111cefee51da0b0d47b21b7ed55
+[launch] pid=874860 log=logs/isaac_mod4/stage_mixed_fixedplant_20260913_000930.log
+[v3] fly done -> logs/isaac_mod4/2026-09-13_00-09-37_mod4_fixed_mixed/model_15896.pt
+[version]   robot.usd [asset]      OK (7b4d85356355)
+[version]   import_contract.json [asset] OK (cbcdacdf2b15)
+VERSION_CHECK=PASS (sources and asset match the training run)
+== docs/acceptance_phase_v3_fly/eval.json
+checkpoint : logs/isaac_mod4/2026-09-13_00-09-37_mod4_fixed_mixed/model_15896.pt
+envs=64 steps=2200 mode=arena
+min_clearance_m (global, under roof): None   roof_entries=0
+closure_max_m=0.000562879431527108  mimic_max_rad=0.0018269811989739537
+
+route            envs complete  progress   underp spin_deg peak_rise air_after
+fly_jump            8      0.0     3.874      0.0      0.0     0.02      0.0
+jump_in_place       5      0.0       0.0      0.0      0.0     0.02      0.0
+ramp_down           5      1.0    16.818      0.0      0.0     0.02      0.0
+ramp_up             9    0.556    11.835      0.0      0.0   0.4201      0.0
+rough_cross         8      0.0     9.297      0.0      0.0     0.02      0.0
+run                 5      0.6    23.693      0.0      0.0   0.0633      0.0
+slope_spin          4      1.0     8.286      0.0 347.4076   0.0204      0.0
+step_down           4      1.0     7.652      0.0      0.0     0.02      0.0
+step_up             8     0.25    10.413      0.0      0.0     0.02      0.0
+tunnel_cross        8      0.0      3.01      0.0      0.0   0.0789      0.0
+
+tunnel: underpass 0.0/8 = 0.0   roof_hit_terminations=0   min_clearance_m=None
+[v3] --- phase fly verdict (complete_rate / gate) ---
+[v3]     fly_jump       envs=8   complete=0.000 progress=     3.9 air_after=0.00 FAIL(bar 0.50)
+[v3]     jump_in_place  envs=5   complete=0.000 progress=     0.0
+[v3]     ramp_down      envs=5   complete=1.000 progress=    16.8 PASS
+[v3]     ramp_up        envs=9   complete=0.556 progress=    11.8 FAIL(bar 0.60)
+[v3]     rough_cross    envs=8   complete=0.000 progress=     9.3 FAIL(bar 0.60)
+[v3]     run            envs=5   complete=0.600 progress=    23.7
+[v3]     slope_spin     envs=4   complete=1.000 progress=     8.3 spin_deg=347.4 PASS
+[v3]     step_down      envs=4   complete=1.000 progress=     7.7 PASS
+[v3]     step_up        envs=8   complete=0.250 progress=    10.4 FAIL(bar 0.60)
+[v3]     tunnel_cross   envs=8   complete=0.000 progress=     3.0 underpass_rate=0.00 roof_hit=0.0 FAIL(bar 0.60)
+[v3] phase fly applied_from_manifest=None
+[v3] fly: focused single-kind eval (fly_jump, 64 env, 2200 steps)
+[v3] --- phase fly_focus_fly_jump verdict (complete_rate / gate) ---
+[v3]     fly_jump       envs=64  complete=0.000 progress=    60.4 air_after=0.00 FAIL(bar 0.50)
+[v3] phase fly_focus_fly_jump applied_from_manifest=None
+[v3] === phase jump envs=512 iters=400
+[v3]     weights=run:2,ramp_up:2,ramp_down:1,step_up:2,step_down:1,rough_cross:2,tunnel_cross:2,slope_spin:2,fly_jump:2,jump_in_place:5
+[v3]   slots=31  jump_in_place 16.1%  ramp_up 12.9%  rough_cross 12.9%  fly_jump 12.9%  step_up 12.9%  tunnel_cross 12.9%  run 6.5%  slope_spin 6.5%  ramp_down 3.2%  step_down 3.2%
+[launch] plant=/home/egde/fangzhen_linux/incoming/mod4_rolling_20260913/chassis_mod4/isaac/robot.usd sha256=7b4d853563551755cb15f542a6cee28ae0119111cefee51da0b0d47b21b7ed55
+[launch] pid=880512 log=logs/isaac_mod4/stage_mixed_fixedplant_20260913_011722.log
+[v3] jump done -> logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+[version]   robot.usd [asset]      OK (7b4d85356355)
+[version]   import_contract.json [asset] OK (cbcdacdf2b15)
+VERSION_CHECK=PASS (sources and asset match the training run)
+== docs/acceptance_phase_v3_jump/eval.json
+checkpoint : logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+envs=64 steps=2200 mode=arena
+min_clearance_m (global, under roof): None   roof_entries=0
+closure_max_m=0.0006071110838092864  mimic_max_rad=0.0018269811989739537
+
+route            envs complete  progress   underp spin_deg peak_rise air_after
+fly_jump            8      0.0     9.848      0.0      0.0     0.02      0.0
+jump_in_place       5      0.0       0.0      0.0      0.0     0.02      0.0
+ramp_down           5      1.0    16.742      0.0      0.0     0.02      0.0
+ramp_up             9    0.333     7.835      0.0      0.0   0.4201      0.0
+rough_cross         8      0.0    40.459      0.0      0.0   0.0379      0.0
+run                 5      0.6    22.729      0.0      0.0   0.0931      0.0
+slope_spin          4     0.75     20.43      0.0 367.5386   0.0205      0.0
+step_down           4      1.0     7.659      0.0      0.0     0.02      0.0
+step_up             8     0.75    12.638      0.0      0.0   0.0329      0.0
+tunnel_cross        8      0.0     4.139      0.0      0.0   0.0789      0.0
+
+tunnel: underpass 0.0/8 = 0.0   roof_hit_terminations=0   min_clearance_m=None
+[v3] --- phase jump verdict (complete_rate / gate) ---
+[v3]     fly_jump       envs=8   complete=0.000 progress=     9.8 air_after=0.00 FAIL(bar 0.50)
+[v3]     jump_in_place  envs=5   complete=0.000 progress=     0.0
+[v3]     ramp_down      envs=5   complete=1.000 progress=    16.7 PASS
+[v3]     ramp_up        envs=9   complete=0.333 progress=     7.8 FAIL(bar 0.60)
+[v3]     rough_cross    envs=8   complete=0.000 progress=    40.5 FAIL(bar 0.60)
+[v3]     run            envs=5   complete=0.600 progress=    22.7
+[v3]     slope_spin     envs=4   complete=0.750 progress=    20.4 spin_deg=367.5 PASS
+[v3]     step_down      envs=4   complete=1.000 progress=     7.7 PASS
+[v3]     step_up        envs=8   complete=0.750 progress=    12.6 PASS
+[v3]     tunnel_cross   envs=8   complete=0.000 progress=     4.1 underpass_rate=0.00 roof_hit=0.0 FAIL(bar 0.60)
+[v3] phase jump applied_from_manifest=None
+[v3] jump: focused single-kind eval (jump_in_place, 64 env, 2200 steps)
+[v3] --- phase jump_focus_jump_in_place verdict (complete_rate / gate) ---
+[v3]     jump_in_place  envs=64  complete=0.000 progress=     0.0
+[v3] phase jump_focus_jump_in_place applied_from_manifest=None
+[v3] all phases finished; final checkpoint = logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt
+[v3] next: bash migration/linux/final_acceptance_mod4.sh logs/isaac_mod4/2026-09-13_01-17-30_mod4_fixed_mixed/model_16295.pt <tag>

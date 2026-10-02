@@ -1,0 +1,18 @@
+<!-- DERIVED file for testing only.  The delivered MJCF is byte-frozen and is NOT modified.
+     It has nu=0 (no actuators), so onnx_play.py's default --effort-mode ctrl does nothing and the
+     robot lies on its chassis (measured 2026-09-13, audit 64).  This overlay includes the delivered
+     model unchanged and adds the six actuators the contract describes:
+       legs  : position PD, kp 60 / kv 2.0, |torque| <= 40 Nm      (contract leg_kp/leg_kd/leg_effort)
+       wheels: velocity  P, kv 0.6,      |torque| <= 5.776 Nm      (contract wheel_kd/wheel_effort)
+     Gains and limits come from train/deploy/contract_rm2025_later.json. -->
+<mujoco model="rm_vehicle_actuated">
+  <include file="/home/egde/fangzhen_linux/sim2sim/rm_vehicle/mjcf/rm_vehicle.xml"/>
+  <actuator>
+    <position name="act_left_front1"  joint="left_front1_joint"  kp="60" kv="2.0" ctrlrange="-40 40"/>
+    <position name="act_left_rear1"   joint="left_rear1_joint"   kp="60" kv="2.0" ctrlrange="-40 40"/>
+    <position name="act_right_front1" joint="right_front1_joint" kp="60" kv="2.0" ctrlrange="-40 40"/>
+    <position name="act_right_rear1"  joint="right_rear1_joint"  kp="60" kv="2.0" ctrlrange="-40 40"/>
+    <velocity name="act_left_wheel"   joint="left_wheel_joint"   kv="0.6" ctrlrange="-5.7759 5.7759"/>
+    <velocity name="act_right_wheel"  joint="right_wheel_joint"  kv="0.6" ctrlrange="-5.7759 5.7759"/>
+  </actuator>
+</mujoco>

@@ -1,0 +1,50 @@
+--- mod4/mod4_sequence_model.py.bak_pre_seqenv
++++ mod4/mod4_sequence_model.py
+@@ -43,8 +43,8 @@
+     RM_SEQ_ENCODER_HIDDEN=128,64
+ """
+ 
++from __future__ import annotations
+ import os
+-from __future__ import annotations
+ 
+ import copy
+ 
+@@ -53,9 +53,14 @@
+ from rsl_rl.models import MLPModel
+ from rsl_rl.modules import MLP
+ 
+-FRAME_DIM = 35          # the MOD4 deployment contract (ObservationsCfg.PolicyCfg)
+-LATENT_DIM = 3          # reference value: "at least 3 to estimate base linear velocity"
+-ENCODER_HIDDEN = (128, 64)
++# v2 fix (2026-09-13): these were hard-coded, but the dimensions CANNOT travel through
++# RslRlMLPModelCfg (it has no passthrough for custom kwargs -- passing frame_dim raised
++# "TypeError: RslRlMLPModelCfg.__init__() got an unexpected keyword argument 'frame_dim'").
++# The model therefore reads the same environment variables the launcher sets.
++FRAME_DIM = int(os.environ.get("RM_FRAME_DIM", "35"))   # the MOD4 deployment contract
++LATENT_DIM = int(os.environ.get("RM_SEQ_LATENT", "3"))  # reference: ">=3 for base lin vel"
++ENCODER_HIDDEN = tuple(int(v) for v in
++                       os.environ.get("RM_SEQ_ENCODER_HIDDEN", "128,64").split(",") if v.strip())
+ HISTORY_LEN = 5
+ 
+ 
+@@ -79,6 +84,19 @@
+         if self._enable_encoder and self.obs_dim > self.frame_dim:
+             self.encoder = MLP(self.obs_dim, self.latent_dim, self.encoder_hidden_dims,
+                                self._activation)
++            # v2 fix (audit 63): ZERO-INIT the encoder's output layer.  Without this the
++            # random encoder's latent leaks into the pretrained actor as soon as the MLP's
++            # new columns start learning, and every skill regresses (measured: all 8 route
++            # kinds pinned at curriculum level 0 after one phase, in BOTH the full-DR and
++            # the mild-DR run).  With the output layer zeroed the latent is exactly 0 at
++            # step 0 -- the actor reproduces the checkpoint -- and the encoder earns its
++            # influence gradually.
++            import torch as _torch
++            _last = self.encoder[-1]
++            if hasattr(_last, "weight"):
++                _torch.nn.init.zeros_(_last.weight)
++            if getattr(_last, "bias", None) is not None:
++                _torch.nn.init.zeros_(_last.bias)
+         else:
+             # no history (or the critic set): degrade to a plain MLP rather than crash
+             self.encoder = None

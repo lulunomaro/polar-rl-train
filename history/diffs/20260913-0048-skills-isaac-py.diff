@@ -1,0 +1,229 @@
+--- mod4/skills_isaac.py.bak_pre_routecurr
++++ mod4/skills_isaac.py
+@@ -87,11 +87,7 @@
+ # (eval of model_10550: 22 s window, underpass_seen 0/32).  The physics therefore demands a
+ # DYNAMIC crossing: drive in at speed, squat late, coast through on the guide rollers.  0.40 m
+ # leaves room to drop while still carrying momentum.
+-TUNNEL_PRECROUCH_LEAD_M = float(os.environ.get("RM_TUNNEL_LEAD_M", "0.40"))
+-# 2026-09-12: the idler-friction finding (docs/TUNNEL_IDLER_FRICTION_FINDING_20260912.md)
+-# shows the crossing is a momentum problem: with the roller-floor pair at ~0.02 a
+-# 0.60 m/s entry coasts >0.5 m, but only if the squat starts LATE.  0.40 m of lead burns
+-# the entry speed inside the mean 0.196 m/s^2 drag of the crouch, so the lead is a knob.
++TUNNEL_PRECROUCH_LEAD_M = 0.40
+ 
+ 
+ def update_tunnel_state(env, env_ids=None) -> None:
+@@ -135,71 +131,6 @@
+ #                                    no gradient 68 mm away, which is where the first run was)
+ 
+ 
+-
+-
+-# --- verified crouch pose (2026-09-13) ---------------------------------------------------
+-# The delivered 247.2 mm opening is crossed with hip +0.470170 / crank -0.595844 (root
+-# 0.1787 m, CAD envelope 245.634 mm, both drive wheels loaded ~41 N; user MuJoCo report
+-# 2026-09-12).  Height and clearance kernels leave the joint configuration free, so this term
+-# scores the pose itself inside the crouch zones.
+-CROUCH_HIP = float(os.environ.get("RM_CROUCH_HIP", "0.470170"))
+-CROUCH_CRANK = float(os.environ.get("RM_CROUCH_CRANK", "-0.595844"))
+-CROUCH_TOL_RAD = float(os.environ.get("RM_CROUCH_TOL_RAD", "0.06"))
+-# v2 (audit section 15): the crouch-pose reward used to pay for holding the pose with no regard
+-# for forward motion, which made "crouch and time out" worth +1.00/step (see section 15).  The gate
+-# below multiplies it by a drive factor so a stationary crouch scores 0 and only the stall penalty
+-# remains.  ON by default because the ungated form is a measured defect; =0 restores legacy.
+-CROUCH_MOVE_GATE = os.environ.get("RM_TUNNEL_CROUCH_MOVE_GATE", "1").strip() == "1"
+-CROUCH_MOVE_VMIN = float(os.environ.get("RM_TUNNEL_CROUCH_VMIN", "0.05"))
+-STALL_VMIN = float(os.environ.get("RM_TUNNEL_STALL_VMIN", "0.08"))
+-STALL_GAIN = float(os.environ.get("RM_TUNNEL_STALL_GAIN", "0.5"))
+-# Shaping kernel for the crouch-pose term (2026-09-12).  The legacy `clip(1 - err/0.06)`
+-# was measurably inert: Episode_Reward/crouch_pose was exactly 0.0000 for a whole
+-# 400-iteration tunnel phase, because past 0.06 rad the term contributes no gradient.
+-# "gauss" dominates the legacy curve everywhere and never reaches zero; "clip" restores
+-# the legacy behaviour exactly for an A/B.
+-CROUCH_KERNEL = os.environ.get("RM_CROUCH_KERNEL", "gauss")
+-CROUCH_KERNEL_RAD = float(os.environ.get("RM_CROUCH_KERNEL_RAD", "0.20"))
+-
+-
+-def _crouch_drive(env) -> torch.Tensor:
+-    """v2 (audit section 15): 1.0 when the robot is actually creeping, 0 when it stands still.
+-
+-    Multiplies the crouch-pose reward so a stationary crouch scores 0 and the only term left in
+-    the crouch zones is `tunnel_stall` (-0.5/step at vx = 0).  Sitting still therefore becomes
+-    net-NEGATIVE BY CONSTRUCTION, whatever RM_CROUCH_POSE_W is set to -- unlike tuning weights
+-    against a reward that keeps paying.  RM_TUNNEL_CROUCH_MOVE_GATE=0 restores the legacy reward.
+-    """
+-    if not CROUCH_MOVE_GATE:
+-        return 1.0
+-    return (_robot(env).data.root_lin_vel_b[:, 0].abs()
+-            / max(1e-6, CROUCH_MOVE_VMIN)).clamp(0.0, 1.0)
+-
+-
+-def tunnel_crouch_pose(env, tol: float = None) -> torch.Tensor:
+-    """[0,1] match of the verified low pose, active in the tunnel pre-crouch/inside zones."""
+-    st = getattr(env, "_mod4_tunnel_state", None)
+-    if st is None:
+-        return torch.zeros(env.num_envs, device=env.device)
+-    robot = _robot(env)
+-    names = robot.joint_names
+-    try:
+-        ids = [names.index(n) for n in ("left_hip", "left_crank", "right_hip", "right_crank")]
+-    except ValueError:
+-        return torch.zeros(env.num_envs, device=env.device)
+-    q = robot.data.joint_pos
+-    err = ((q[:, ids[0]] - CROUCH_HIP).abs() + (q[:, ids[1]] - CROUCH_CRANK).abs()
+-           + (q[:, ids[2]] - CROUCH_HIP).abs() + (q[:, ids[3]] - CROUCH_CRANK).abs()) / 4.0
+-    # 2026-09-12: `tol` (when given) is the KERNEL WIDTH, not a tolerance that hard-clips
+-    # the term to zero.  Measured: with the legacy 0.06 rad clip this term was exactly
+-    # 0.0000 for every iteration of the tunnel phase -> no signal at all.
+-    zone = ((st == 1) | (st == 2)).float()
+-    if CROUCH_KERNEL == "clip":
+-        val = 1.0 - (err / max(1e-6, CROUCH_TOL_RAD)).clamp(max=1.0)
+-    else:
+-        width = float(tol) if tol else CROUCH_KERNEL_RAD
+-        val = torch.exp(-(err / max(1e-6, width)) ** 2)
+-    return zone * val * _crouch_drive(env)
+ def tunnel_height_track(env, std: float = TUNNEL_TRACK_STD_M) -> torch.Tensor:
+     """Tight height tracking while the robot is under or within the pre-crouch lead of the hole.
+ 
+@@ -851,13 +782,7 @@
+     return d["progress_reward"] * scale
+ 
+ 
+-def tunnel_stall(env, min_vx: float = None, gain: float = None) -> torch.Tensor:
+-    # v2 (audit 15): both numbers were hard-coded defaults, so the penalty could not be tuned
+-    # against the crouch reward without editing code.  They now read the environment knobs.
+-    if min_vx is None:
+-        min_vx = STALL_VMIN
+-    if gain is None:
+-        gain = STALL_GAIN
++def tunnel_stall(env, min_vx: float = 0.08, gain: float = 0.5) -> torch.Tensor:
+     """Penalty for standing still inside the tunnel's crouch zones (2026-09-12).
+ 
+     The deep crouch unloads the drive wheels onto the guide rollers, so the robot CAN only creep
+@@ -978,10 +903,6 @@
+ # airborne steps AND upward velocity; landing needs JUMP_CONTACT_FRAMES of stable contact; an
+ # attempt only counts once it cleared JUMP_MIN_RISE.
+ JUMP_AIR_FRAMES = int(os.environ.get("RM_JUMP_AIR_FRAMES", "4"))
+-# v2 (audit section 13): mirror the DELIVERED launch criterion as a reward + gate.  Off by
+-# default; with it off the latch stays zero and the air gate is bypassed (exact old behaviour).
+-JUMP_LAUNCH_READY = os.environ.get("RM_JUMP_LAUNCH_READY", "0").strip() == "1"
+-JUMP_LAUNCH_READY_W = float(os.environ.get("RM_JUMP_LAUNCH_READY_W", "2.0"))
+ JUMP_CONTACT_FRAMES = int(os.environ.get("RM_JUMP_CONTACT_FRAMES", "3"))
+ JUMP_MIN_VZ = float(os.environ.get("RM_JUMP_MIN_VZ", "0.15"))
+ JUMP_MIN_RISE = float(os.environ.get("RM_JUMP_MIN_RISE", "0.02"))
+@@ -1011,7 +932,6 @@
+         "n_attempts": zero(), "n_success": zero(),
+         "air_cnt": zero(), "ground_cnt": zero(),
+         "peak_vz": zero(),
+-        "launch_ready": zero(),
+         "attempts_win": zero(), "reached_win": zero(), "air_win": zero(), "steps_win": zero(),
+         "attempts_last": zero(), "reached_last": zero(), "steps_last": zero(), "air_last": zero(),
+     }
+@@ -1028,8 +948,7 @@
+     if ids.numel() == 0:
+         return
+     for key in ("h", "peak", "vz", "air", "airborne", "climb", "crouch", "push", "land", "hard",
+-                "impact", "height_hold", "lin_mask", "air_t", "h_ref", "risen",
+-                "launch_ready"):
++                "impact", "height_hold", "lin_mask", "air_t", "h_ref", "risen"):
+         st[key][ids] = 0.0
+     for key in ("air_cnt", "ground_cnt", "peak_vz"):
+         st[key][ids] = 0.0
+@@ -1141,31 +1060,8 @@
+     # hop the freeze test (`air > 0.5`) silently stopped protecting those hops: a small hop lost
+     # the whole height reward and paid almost nothing back, so the policy learned to STOP
+     # hopping (measured: jump_air 0.0001, jump_climb 0.0000, 5 attempts per 1.2M env-steps).
+-    # --- v2 (audit 13): the delivered launch region, mirrored ------------------------------
+-    # `launched |= fly & (u > -.8) & (u < .10) & (z - base > .10) & wheel_grounded & (|dy| < .40)`
+-    # (route_commands.py:78).  Without this term every jump reward is paid AFTER take-off and
+-    # nothing points at the platform the acceptance metric requires first.
+-    if JUMP_LAUNCH_READY:
+-        from route_isaac import route_controller as _rc_fn
+-        _rc = _rc_fn(env)
+-        _ids = _rc.ids
+-        _sign = torch.sign(_rc.goals[_ids, 0] - _rc.starts[_ids, 0])
+-        _sign = torch.where(_sign == 0, torch.ones_like(_sign), _sign)
+-        _p = robot.data.root_pos_w - env.scene.env_origins
+-        _u = _p[:, 0] * _sign
+-        _dy = (_p[:, 1] - _rc.goals[_ids, 1]).abs()
+-        _in_region = (on_route & (_u > -0.8) & (_u < 0.10)
+-                      & ((_p[:, 2] - _rc.base_height) > 0.10) & grounded & (_dy < 0.40))
+-        # latch: set inside the region, cleared on touchdown (same lifecycle as peak / h_ref)
+-        st["launch_ready"] = torch.where(touchdown, zero,
+-                                         torch.maximum(st["launch_ready"],
+-                                                       _in_region.float()))
+-    # The air reward is gated on the latch so it cannot be farmed by unloading the wheels on flat
+-    # ground (measured: jump_air 0.84/episode while launched fired twice in 200 samples).
+-    _air_mask = st["launch_ready"] if JUMP_LAUNCH_READY else 1.0
+     st["airborne"] = air.float()
+-    st["air"], st["climb"], st["crouch"], st["push"] = (
+-        air.float() * frac * _air_mask, climb, crouch, push)
++    st["air"], st["climb"], st["crouch"], st["push"] = air.float() * frac, climb, crouch, push
+     st["land"], st["hard"], st["impact"] = land, hard, impact
+     st["air_cnt"], st["ground_cnt"] = air_cnt, ground_cnt
+     st["peak_vz"] = torch.where(liftoff, vz.clamp(min=0.0),
+@@ -1228,17 +1124,6 @@
+ def jump_air(env) -> torch.Tensor:
+     """Dense: 1.0 for every control step a jump route spends off the ground."""
+     return _jump_val(env, "air")
+-
+-
+-def jump_launch_ready(env) -> torch.Tensor:
+-    """Dense: 1.0 while the robot stands inside the fly route's elevated launch region.
+-
+-    Mirrors `route_commands.py:78` (the criterion the acceptance metric uses), so the reward and
+-    the gate finally point at the same event.  Inert (0.0) unless RM_JUMP_LAUNCH_READY=1.
+-    """
+-    if not JUMP_LAUNCH_READY:
+-        return torch.zeros(env.num_envs, device=env.device)
+-    return _jump_val(env, "launch_ready")
+ 
+ 
+ def jump_land(env) -> torch.Tensor:
+@@ -1377,3 +1262,46 @@
+             "jump/air_frac": round(air_steps / max(1.0, steps), 4),
+             "jump/window_steps": round(steps / max(1.0, float(env.num_envs)), 1) if st is not None else 0.0,
+             "jump/window_done": int(bool(window_done))}
++
++
++# --------------------------------------------------------------------------------------
++# 2026-09-28 SCUT parity (reason + evidence: docs/MOD4_REWARD_FIX_SCUT_PARITY_20260928.md)
++# --------------------------------------------------------------------------------------
++def _mod4_stand_mask(env, command_name: str = "twist"):
++    """True for envs whose velocity command is zero (explicit standing env or |cmd| ~ 0).
++
++    Same rule as SCUT's `skills_isaac._stand_mask`: the command term's `is_standing_env` flag
++    (Isaac Lab sets it for `rel_standing_envs`) plus a numerical near-zero test.
++    """
++    try:
++        term = env.command_manager.get_term(command_name)
++    except Exception:
++        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
++    norm = torch.linalg.vector_norm(term.command, dim=1)
++    flag = getattr(term, "is_standing_env", None)
++    if flag is not None:
++        return flag.bool() | (norm < 1.0e-6)
++    return norm < 1.0e-6
++
++
++def run_velocity_error_l2(env, command_name: str = "twist"):
++    """Dense planar velocity error (m/s)^2 on MOVING flat-run samples only.
++
++    Ported from the SCUT MOD4 port (`skills_isaac.run_velocity_error_l2`).  Their docstring
++    records the mirror image of our failure: "the exponential tracking reward has almost no
++    gradient after a warm-start policy gets far outside its kernel", which let their flat
++    policy sprint at 2.1 m/s against a 0.3-1.2 m/s command.  In our run the same missing
++    gradient let the policy stop moving altogether (probe 2026-09-28: commands 0.30 / 0.60 /
++    1.00 m/s -> actual -0.002 / -0.002 / +0.002 m/s while collecting 1.38 of the 2.0
++    tracking reward).  Weight -1.0 in SCUT's flat walk launcher.
++    """
++    mode = getattr(env, "_mod4_mode_bit", None)
++    if mode is None:
++        if os.environ.get("RM_MOD4_TERRAIN", "flat").strip().lower() != "flat":
++            return torch.zeros(env.num_envs, device=env.device)
++        moving = ~_mod4_stand_mask(env, command_name)
++    else:
++        moving = (mode == 0) & (~_mod4_stand_mask(env, command_name))
++    command = env.command_manager.get_term(command_name).command
++    error = env.scene["robot"].data.root_lin_vel_b[:, :2] - command[:, :2]
++    return moving.float() * error.square().sum(dim=1)

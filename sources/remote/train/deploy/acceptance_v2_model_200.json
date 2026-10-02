@@ -1,0 +1,366 @@
+{
+  "meta": {
+    "checkpoint": "/home/egde/fangzhen_linux/train/logs/rsl_rl/rm2025_later_flat_v2/2026-09-10_14-20-57_prod_20260910_142047/model_200.pt",
+    "checkpoint_name": "model_200.pt",
+    "iteration": 200,
+    "task_flat": "RM2025-Later-CC-Flat-v0",
+    "task_field": "RM2025-Later-CC-Field-v0",
+    "num_envs": 128,
+    "seed": 0,
+    "condition": "nominal",
+    "device": "cuda:0",
+    "smoke": false,
+    "timestamp": "2026-09-10T14:38:52+08:00",
+    "host": "egde-Z790-AORUS-ELITE-AX"
+  },
+  "thresholds": {
+    "survival_seconds": 20.0,
+    "survival_rate_min": 0.95,
+    "survival_alive_frac_min_for_other_tests": 0.9,
+    "speed_cmds_m_s": [
+      1.5,
+      2.0,
+      2.8
+    ],
+    "speed_tol_m_s": {
+      "1.5": 0.3,
+      "2.0": 0.3,
+      "2.8": 0.5
+    },
+    "speed_ramp_s": 2.0,
+    "speed_measure_s": 3.0,
+    "gyro_cmd_rad_s": 12.566370614359172,
+    "gyro_min_abs_rad_s": 10.0,
+    "gyro_tilt_max_deg": 30.0,
+    "gyro_ramp_s": 1.5,
+    "gyro_measure_s": 6.0,
+    "height_cmd_m": 0.22,
+    "height_tol_m": 0.05,
+    "height_ramp_s": 2.0,
+    "height_measure_s": 3.0,
+    "jump_target_m": 0.08,
+    "jump_hold_s": 1.2,
+    "jump_observe_s": 1.5,
+    "jump_peak_min_m": 0.05,
+    "jump_peak_max_m": 0.11,
+    "jump_upright_min_frac": 0.9,
+    "tilt_upright_max_deg": 30.0,
+    "nan_events_max": 0
+  },
+  "criteria": {
+    "identity": {
+      "pass": true,
+      "returncode": 0,
+      "stdout_tail": " | Name             |   Weight |\n+-------+------------------+----------+\n|   0   | track_lin_vel    |      2.0 |\n|   1   | track_ang_vel    |      2.5 |\n|   2   | height_tracking  |      1.0 |\n|   3   | wheel_contact    |      0.8 |\n|   4   | alive            |      1.0 |\n|   5   | flat_orientation |     -1.0 |\n|   6   | lin_vel_z        |     -0.6 |\n|   7   | ang_vel_xy       |    -0.05 |\n|   8   | leg_symmetry     |     -0.2 |\n|   9   | joint_acc        |   -1e-08 |\n|   10  | joint_torques    | -1.5e-05 |\n|   11  | joint_power      |  -0.0002 |\n|   12  | action_rate      |    -0.05 |\n|   13  | action_acc       |    -0.02 |\n|   14  | action_l2_leg    |     -0.1 |\n|   15  | action_l2_wheel  |    -0.02 |\n|   16  | dof_pos_limits   |     -5.0 |\n|   17  | termination      |    -20.0 |\n+-------+------------------+----------+\n\n[INFO] <NullCurriculumManager> (inactive)\n[INFO] <NullMetricsManager> (inactive)\n[INFO] <NullRecorderManager> (inactive)\n\n[1] plant identity\n   OK   option timestep     training=0.0005 source=0.0005\n   OK   option integrator   training=3 source=3\n   OK   option cone         training=1 source=1\n   OK   option solver       training=2 source=2\n   OK   option iterations   training=80 source=80\n   OK   option ls_iterations training=50 source=50\n   OK   option tolerance    training=1e-10 source=1e-10\n   OK   option ls_tolerance training=0.01 source=0.01\n   OK   option impratio     training=1.0 source=1.0\n   OK   option gravity      training=(0.0, 0.0, -9.81) source=(0.0, 0.0, -9.81)\n   OK   option enableflags  training=0 source=0\n   OK   option disableflags training=0 source=0\n   OK   source plant sha256 == provenance pin (version 0910)\n   OK   nq/nv/neq training=(29,28,10) source=(29,28,10)\n   OK   actuator count training=6 source=6\n   OK   actuated joint set matches: ['left_crank', 'left_hip', 'right_crank', 'right_hip', 'left_wheel_spin', 'right_wheel_spin']\n   OK   every source joint exists in the scene: missing=[]\n   OK   every source body exists in the scene: missing=[]\n   OK   closed-chain equalities survived: neq=10\n   OK   active leg armature == 0.015795: [0.015795, 0.015795, 0.015795, 0.015795]\n   OK   wheel armature == 0.00099856 (source MJCF / override): [0.0009985600000000001, 0.0009985600000000001]\n   OK   source wheel armature left == right: 0.0009985600000000001 / 0.0009985600000000001\n   OK   training wheel cap 5.775909774 == delivered ctrlrange/forcerange {'left_wheel_spin': (5.77590977444, 5.77590977444), 'right_wheel_spin': (5.77590977444, 5.77590977444)}\n   OK   training wheel cap 5.775909774 == provenance peak 5.775909774\n   OK   wheel voltage-line intercept 28.18532895 == provenance 28.18532895\n   OK   wheel armature == provenance 0.00099856\n   OK   source gas-spring stiffness == provenance 3500: {'left_gas_slide': 3500.0, 'right_gas_slide': 3500.0}\n\n[2] policy contract\n   OK   actor obs width == 35 (got (35,))\n   OK   action width == 6 (got 6)\n   OK   contract widths agree\n   OK   physics_dt 0.0005 == contract 0.0005\n   OK   policy rate 100.000 Hz == contract 100 Hz\n   OK   compiled timestep == contract physics_dt\n   OK   export action permutation [1, 0, 3, 2, 4, 5]\n   OK   no passive knee in the exported action order: ['left_crank', 'left_hip', 'right_crank', 'right_hip', 'left_wheel_spin', 'right_wheel_spin']\n   contract  : {\"model_key\": \"rm2025_later_no_gimbal\", \"policy_hz\": 100, \"physics_dt\": 0.0005, \"wheel_radius\": 0.0625, \"half_track\": 0.23585399708, \"action_slot_order_raw\": [\"left_hip\", \"left_crank\", \"right_hip\", \"right_crank\", \"left_wheel_spin\", \"right_wheel_spin\"], \"action_slot_order_exported\": [\"left_crank\", \"left_hip\", \"right_crank\", \"right_hip\", \"left_wheel_spin\", \"right_wheel_spin\"], \"export_action_permutation\": [1, 0, 3, 2, 4, 5], \"leg_drive_roles\": {\"left_crank\": \"left_crank_drive\", \"left_hip\": \"left_thigh_drive\", \"right_crank\": \"right_crank_drive\", \"right_hip\": \"right_thigh_drive\"}}\n\nRESULT: IDENTITY GATE PASS\nwrote /home/egde/fangzhen_linux/train/deploy/_identity_later.json\n",
+      "stderr_tail": "/home/egde/fangzhen_linux/third_party/rc_mjlab/mjlab/src/mjlab/scene/scene.py:66: UserWarning: Entity 'robot' has non-default <option> fields (cone, integrator, iterations, timestep, tolerance) that will not be propagated by MjSpec.attach(). Use MujocoCfg instead.\n  self._add_entities()\nWARNING: Attach conflict when attaching 'rm2025_fixed_closed_robot_asset' to 'mjlab scene', policy is 'warning'\ntimestep: parent has 0.002 (default), child has 0.0005, keeping parent value\ntolerance: parent has 1e-08 (default), child has 1e-10, keeping parent value\niterations: parent has 100 (default), child has 80, keeping parent value\nintegrator: parent has 0 (default), child has 3, keeping parent value\ncone: parent has 0 (default), child has 1, keeping parent value\nnjmax: parent has -1 (default), child has 4096, keeping parent value\nnconmax: parent has -1 (default), child has 512, keeping parent value\n\n/home/egde/fangzhen_linux/third_party/rc_mjlab/mjlab/src/mjlab/sim/sim.py:214: UserWarning: Attach conflict when attaching 'rm2025_fixed_closed_robot_asset' to 'mjlab scene', policy is 'warning'\ntimestep: parent has 0.002 (default), child has 0.0005, keeping parent value\ntolerance: parent has 1e-08 (default), child has 1e-10, keeping parent value\niterations: parent has 100 (default), child has 80, keeping parent value\nintegrator: parent has 0 (default), child has 3, keeping parent value\ncone: parent has 0 (default), child has 1, keeping parent value\nnjmax: parent has -1 (default), child has 4096, keeping parent value\nnconmax: parent has -1 (default), child has 512, keeping parent value\n  compiled = spec.compile()\n",
+      "json": {
+        "task": "RM2025-Later-CC-Flat-v0",
+        "model": "later",
+        "options": {
+          "timestep": 0.0005,
+          "integrator": 3,
+          "cone": 1,
+          "solver": 2,
+          "iterations": 80,
+          "ls_iterations": 50,
+          "tolerance": 1e-10,
+          "ls_tolerance": 0.01,
+          "impratio": 1.0,
+          "gravity": [
+            0.0,
+            0.0,
+            -9.81
+          ],
+          "enableflags": 0,
+          "disableflags": 0
+        },
+        "obs_dim": [
+          35
+        ],
+        "action_dim": 6,
+        "contract": {
+          "schema_version": 2,
+          "plant_kind": "similar_linkage_closed_chain",
+          "model_key": "rm2025_later_no_gimbal",
+          "model_xml": "incoming/rm2025_fixed/robot_hifi.xml",
+          "policy_coordinate_space": "actuator_output_joint",
+          "policy_controls_passive_knee": false,
+          "motor_profile": "dm8009",
+          "leg_joints": [
+            "^left_crank$",
+            "^left_hip$",
+            "^right_crank$",
+            "^right_hip$"
+          ],
+          "wheel_joints": [
+            "^left_wheel_spin$",
+            "^right_wheel_spin$"
+          ],
+          "leg_actuators": [
+            "^left_crank$",
+            "^left_hip$",
+            "^right_crank$",
+            "^right_hip$"
+          ],
+          "wheel_actuators": [
+            "^left_wheel_spin$",
+            "^right_wheel_spin$"
+          ],
+          "leg_action_scale": 0.5,
+          "wheel_action_scale": 10.0,
+          "leg_kp": 60.0,
+          "leg_kd": 2.0,
+          "wheel_kd": 0.6,
+          "leg_effort": 40.0,
+          "wheel_effort": 5.775909774436091,
+          "leg_voltage_line_intercept": 53.333333333333336,
+          "wheel_voltage_line_intercept": 28.18532894736838,
+          "leg_no_load": 16.755160819145562,
+          "wheel_no_load": 55.3557,
+          "wheel_knee_speed": 44.01187182266008,
+          "leg_motor_model": "DM-J8009-2EC",
+          "wheel_motor_model": "DM3519+15.8",
+          "leg_internal_reduction": 9.0,
+          "leg_external_chain_ratio": 1.0,
+          "wheel_total_reduction": 15.8,
+          "wheel_radius": 0.0625,
+          "half_track": 0.23585399708,
+          "root_height": 0.298936789692,
+          "decimation": 20,
+          "wheel_armature": 0.0009985600000000001,
+          "wheel_torque_curve_source": "analytic_two_piece",
+          "obs_width": 35,
+          "action_width": 6,
+          "policy_hz": 100,
+          "physics_dt": 0.0005,
+          "wheel_torque_speed_curve": true,
+          "leg_drive_roles": {
+            "left_crank": "left_crank_drive",
+            "left_hip": "left_thigh_drive",
+            "right_crank": "right_crank_drive",
+            "right_hip": "right_thigh_drive"
+          },
+          "hardware_wire_contract": {
+            "state_and_command_coordinate": "model_output_radians",
+            "effort_coordinate": "model_output_newton_meters",
+            "normalization_owner": "embedded_firmware",
+            "calibration_required_before_real_enable": true,
+            "calibration_template": "train/deploy/hardware_calibration.template.json"
+          },
+          "action_slot_order_raw": [
+            "left_hip",
+            "left_crank",
+            "right_hip",
+            "right_crank",
+            "left_wheel_spin",
+            "right_wheel_spin"
+          ],
+          "action_slot_order_exported": [
+            "left_crank",
+            "left_hip",
+            "right_crank",
+            "right_hip",
+            "left_wheel_spin",
+            "right_wheel_spin"
+          ],
+          "export_action_permutation": [
+            1,
+            0,
+            3,
+            2,
+            4,
+            5
+          ]
+        }
+      }
+    },
+    "survival_flat": {
+      "task": "RM2025-Later-CC-Flat-v0",
+      "seconds": 20.0,
+      "num_envs": 128,
+      "survival_rate": 1.0,
+      "upright_rate": 1.0,
+      "tilt_deg": {
+        "n": 10240,
+        "mean": 14.292384147644043,
+        "p50": 12.42154312133789,
+        "p95": 23.24761390686035,
+        "max": 28.22620391845703
+      },
+      "terminations": {},
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "wall_s": 130.73,
+      "pass": true
+    },
+    "survival_field": {
+      "task": "RM2025-Later-CC-Field-v0",
+      "seconds": 20.0,
+      "num_envs": 128,
+      "survival_rate": 0.2578125,
+      "upright_rate": 0.2578125,
+      "tilt_deg": {
+        "n": 3399,
+        "mean": 15.830117225646973,
+        "p50": 13.847404479980469,
+        "p95": 24.951574325561523,
+        "max": 42.08938980102539
+      },
+      "terminations": {
+        "bad_orientation": 95
+      },
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "wall_s": 600.52,
+      "pass": false
+    },
+    "speed_tracking": {
+      "rows": [
+        {
+          "cmd_m_s": 1.5,
+          "achieved_mean_m_s": -0.01713247038424015,
+          "achieved_p50_env_m_s": -0.016516637057065964,
+          "err_m_s": 1.5171324703842402,
+          "tol_m_s": 0.3,
+          "alive_frac": 1.0,
+          "tilt_deg": {
+            "n": 7680,
+            "mean": 20.964914321899414,
+            "p50": 22.456897735595703,
+            "p95": 22.473100662231445,
+            "max": 22.48888397216797
+          },
+          "nan_action_envs": 0,
+          "nan_obs_envs": 0,
+          "pass": false
+        },
+        {
+          "cmd_m_s": 2.0,
+          "achieved_mean_m_s": -0.027683371677994728,
+          "achieved_p50_env_m_s": -0.028438100591301918,
+          "err_m_s": 2.0276833716779947,
+          "tol_m_s": 0.3,
+          "alive_frac": 1.0,
+          "tilt_deg": {
+            "n": 7680,
+            "mean": 20.510637283325195,
+            "p50": 21.694910049438477,
+            "p95": 21.7000732421875,
+            "max": 21.706417083740234
+          },
+          "nan_action_envs": 0,
+          "nan_obs_envs": 0,
+          "pass": false
+        },
+        {
+          "cmd_m_s": 2.8,
+          "achieved_mean_m_s": -0.03191262111067772,
+          "achieved_p50_env_m_s": -0.0344124399125576,
+          "err_m_s": 2.8319126211106775,
+          "tol_m_s": 0.5,
+          "alive_frac": 1.0,
+          "tilt_deg": {
+            "n": 7680,
+            "mean": 19.78799819946289,
+            "p50": 21.673263549804688,
+            "p95": 21.702245712280273,
+            "max": 21.867448806762695
+          },
+          "nan_action_envs": 0,
+          "nan_obs_envs": 0,
+          "pass": false
+        }
+      ]
+    },
+    "gyro": {
+      "cmd_rad_s": 12.566370614359172,
+      "achieved_mean_rad_s": -0.003695722669363022,
+      "achieved_abs_rad_s": 0.003695722669363022,
+      "achieved_rev_s": 0.0005881925311258993,
+      "min_abs_rad_s": 10.0,
+      "tilt_deg": {
+        "n": 15360,
+        "mean": 18.148942947387695,
+        "p50": 19.35236358642578,
+        "p95": 19.36178207397461,
+        "max": 19.932601928710938
+      },
+      "wheel_speed_rad_s": {
+        "n": 15360,
+        "mean": 3.3020386695861816,
+        "p50": 3.71087384223938,
+        "p95": 3.713063955307007,
+        "max": 3.772886276245117
+      },
+      "wheel_tau_nm": {
+        "n": 15360,
+        "mean": 0.7131049036979675,
+        "p50": 0.500671923160553,
+        "p95": 1.883468747138977,
+        "max": 2.2207863330841064
+      },
+      "wheel_tau_sat_frac": {
+        "n": 15360,
+        "mean": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      },
+      "alive_frac": 1.0,
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "pass": false
+    },
+    "height": {
+      "cmd_m": 0.22,
+      "measured_mean_m": 0.13818864524364471,
+      "err_mean_m": 0.08181136846542358,
+      "err_p95_m": 0.08198040723800659,
+      "err_max_m": 0.08215534687042236,
+      "tol_m": 0.05,
+      "alive_frac": 1.0,
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "pass": false
+    },
+    "jump": {
+      "target_m": 0.08,
+      "hold_s": 1.2,
+      "observe_s": 1.5,
+      "valid_envs": 128,
+      "num_envs": 128,
+      "peak_median_m": -4.589557647705078e-06,
+      "peak_p50_m": -4.589557647705078e-06,
+      "peak_p95_m": 2.9009584977757186e-05,
+      "peak_max_m": 9.486079216003418e-05,
+      "peak_in_window_frac": 0.0,
+      "air_time_median_s": 0.6899996399879456,
+      "landed_upright_frac": 1.0,
+      "final_tilt_deg": {
+        "n": 128,
+        "mean": 12.446474075317383,
+        "p50": 12.442309379577637,
+        "p95": 12.519552230834961,
+        "max": 12.544621467590332
+      },
+      "terminations": {},
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "pass": false
+    },
+    "no_nan": {
+      "nan_action_envs": 0,
+      "nan_obs_envs": 0,
+      "pass": true
+    }
+  },
+  "verdict": "FAIL",
+  "failures": [
+    "survival_field: gate failed (see report)",
+    "gyro: gate failed (see report)",
+    "height: gate failed (see report)",
+    "jump: gate failed (see report)",
+    "speed_tracking: at least one command missed its tolerance"
+  ],
+  "wall_s": 941.47
+}

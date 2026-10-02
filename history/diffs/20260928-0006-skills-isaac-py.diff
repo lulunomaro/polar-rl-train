@@ -1,0 +1,14 @@
+--- height32_probe_20260928/source/mod4/skills_isaac.py.pre_gas_dr_only
++++ height32_probe_20260928/source/mod4/skills_isaac.py
+@@ -663,7 +663,10 @@
+     else:
+         ref_low = torch.full((len(env_ids), len(joint_names)), float(low_n), device=env.device)
+         ref_high = torch.full_like(ref_low, float(high_n))
+-    if os.environ.get("RM_DR_OFF", "0") == "1":
++    # Keep gas-only force randomization independent of the other DR knobs.
++    # The 8 h stage set RM_DR_OFF=1 and therefore sampled 500 N throughout.
++    gas_dr_only = os.environ.get("RM_GAS_FORCE_DR_ONLY", "0") == "1"
++    if os.environ.get("RM_DR_OFF", "0") == "1" and not gas_dr_only:
+         env._mod4_gas_force_ref_n[env_ids] = float(nominal_n)
+     else:
+         force = ref_low + torch.rand_like(ref_low) * (ref_high - ref_low)

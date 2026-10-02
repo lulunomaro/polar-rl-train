@@ -1,0 +1,43 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "Arena" (
+        prepend references = @arena.usda@
+    )
+    {
+    }
+
+    def DomeLight "Sky"
+    {
+        float inputs:intensity = 800
+    }
+
+    def DistantLight "Sun"
+    {
+        float inputs:angle = 0.8
+        float inputs:intensity = 2000
+        float3 xformOp:rotateXYZ = (-35, -25, -25)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+
+    def Camera "Overview"
+    {
+        float2 clippingRange = (0.05, 200)
+        float focalLength = 30
+        matrix4d xformOp:transform = ( (0.7633862853691143, 0.6459422414661738, -2.7755575615628907e-17, 0), (-0.36149866469979525, 0.42722569464521254, 0.8287321167030878, -0), (0.5353130810381993, -0.6326427321360538, 0.559645493812663, 0), (22, -26, 23.000000000000004, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    def PhysicsScene "PhysicsScene"
+    {
+        vector3f physics:gravityDirection = (0, 0, -1)
+        float physics:gravityMagnitude = 9.81
+    }
+}
+

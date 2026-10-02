@@ -1,0 +1,71 @@
+--- isaac/mod4/tui_rich.py.bak-20260929-2315-pre-metrics
++++ isaac/mod4/tui_rich.py
+@@ -22,18 +22,40 @@
+ TAGS = {
+     "reward": "Train/mean_reward", "ep_len": "Train/mean_episode_length",
+     "std": "Policy/mean_std", "fps": "Perf/total_fps",
+-    "value_loss": "Loss/value", "height_r": "Episode_Reward/height", "height_def": "Episode_Reward/height_deficit",
+-    "wheel_r": "Episode_Reward/wheel_contact", "orient_r": "Episode_Reward/flat_orientation_y",
+-    "orient_v": "Episode_Reward/flat_orientation_y_v", "no_fork": "Episode_Reward/no_fork",
+-    "action_rate": "Episode_Reward/action_rate", "action_acc": "Episode_Reward/action_acc",
+-    "alive_r": "Episode_Reward/alive", "track_v": "Episode_Reward/track_lin_vel",
++    "value_loss": "Loss/value",
++    "height_r": "Episode_Reward/height",
++    "height_tight": "Episode_Reward/height_tight",
++    "height_both": "Episode_Reward/height_both_wheels",
++    "height_def": "Episode_Reward/height_deficit",
++    "wheel_r": "Episode_Reward/wheel_contact",
++    "orient_r": "Episode_Reward/flat_orientation_y",
++    "orient_v": "Episode_Reward/flat_orientation_y_v",
++    "no_fork": "Episode_Reward/no_fork",
++    "action_rate": "Episode_Reward/action_rate",
++    "action_acc": "Episode_Reward/action_acc",
++    "torques": "Episode_Reward/torques",
++    "joint_power": "Episode_Reward/joint_power",
++    "wheel_align": "Episode_Reward/wheel_motor_z_axis_align_exp",
++    "alive_r": "Episode_Reward/alive",
++    "track_v": "Episode_Reward/track_lin_vel",
++    "track_v_tight": "Episode_Reward/track_lin_vel_tight",
++    "track_w": "Episode_Reward/track_ang_vel",
+     "success": "Metrics/success_rate",
+-    "term_bad": "Episode_Termination/bad_orientation", "term_low": "Episode_Termination/low_base",
+-    "term_base": "Episode_Termination/base_contact", "term_timeout": "Episode_Termination/time_out",
+-    "closure": "Metrics/plant/closure_err_session_max_m", "mimic": "Metrics/plant/mimic_err_session_max_rad",
+-    "err_v": "Metrics/twist/error_vel_xy", "err_w": "Metrics/twist/error_vel_yaw",
+-    "collection_time": "Perf/collection_time", "learning_time": "Perf/learning_time",
++    "term_bad": "Episode_Termination/bad_orientation",
++    "term_low": "Episode_Termination/low_base",
++    "term_base": "Episode_Termination/base_contact",
++    "term_timeout": "Episode_Termination/time_out",
++    "term_closure": "Episode_Termination/closure",
++    "term_mimic": "Episode_Termination/mimic",
++    "closure": "Metrics/plant/closure_err_session_max_m",
++    "mimic": "Metrics/plant/mimic_err_session_max_rad",
++    "err_v": "Metrics/twist/error_vel_xy",
++    "err_w": "Metrics/twist/error_vel_yaw",
++    "gyro_limit": "Curriculum/gyro_window/gyro_window/limit_rad_s",
++    "collection_time": "Perf/collection_time",
++    "learning_time": "Perf/learning_time",
+ }
++
+ EP_CAP = 2000.0
+ GOOD, WARN, BAD = "OK", "!", "X"
+ RENDER_WIDTH = 150
+@@ -408,6 +430,17 @@
+                                    temp=float(j["temp"]), power=float(j["power"]))
+                 except Exception:
+                     got = None
++            if got is None:
++                try:
++                    out = subprocess.run(["nvidia-smi",
++                                          "--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu,power.draw",
++                                          "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=8).stdout.strip()
++                    p = [x.strip() for x in out.split(",")]
++                    if len(p) >= 5:
++                        got = dict(util=float(p[0]), used=float(p[1]), total=float(p[2]),
++                                   temp=float(p[3]), power=float(p[4]))
++                except Exception:
++                    got = None
+             if got:
+                 self.gpu = got
+             self.gpu_t = time.time()

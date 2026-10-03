@@ -1,0 +1,26 @@
+{
+  "id": "20261003-rate6-model16929-substep-contact-diagnostic",
+  "tag": "trial-20261003-rate6-model16929-substep-contact-diagnostic",
+  "title": "6档0.5毫秒接触读回：分离低载代理与承重滚动残差，保留原失败口径",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-03T13:16:55.283111+00:00",
+  "repair_or_experiment_note": "# 6 rad/s接触子步调查：3秒同权重读回\n\n冻结正式model16929，SHA e4973a3a300ad81660b62b46e2bdeeea3e788d04c8266f11ada81871982cecac，seed20261002、white_v1，88环境、300个10ms控制步。使用实际PhysX接触报告和GPU聚合，在每个0.5ms物理步后读回接触位置、法向力及当前刚体在该点的切向速度。控制基线与读回实验的完整初始root/q以及全部旧逐环境数组bit-exact相同。6000个物理回调，0.5秒热身后每轮5000有效样本，88/88存活，闭链最大0.0814mm、mimic最大0.001691rad。\n\n纯+6组8个环境实测平均5.979rad/s。右轮全时输入网格代理均值0.2062–0.2170m/s；在轮载>=10N的物理子步中，网格代理均值降到0.1125–0.1210m/s，低载子步均值0.2365–0.2468m/s。实际报告接触点的载荷加权切向速度均值0.1074–0.1194m/s，其中滚动方向约0.1026–0.1068m/s，侧向约0.0196–0.0371m/s。\n\n这些均值不能掩盖瞬态：右轮有正向法向力的接触点切向速度峰值0.374–0.583m/s，载荷>=10N时约24.3–27.5%的子步切向速度均值超过0.15m/s。各主轮轮载>=10N的子步比例约23–26%，平均载荷约64–74N、子步法向力峰值约1.0–1.4kN；低载/载荷脉动不是单纯10ms端点采样遗漏。低力不是腾空，单轮低载时间也不是双轮同时低载时间；仿真报告力不是实物测量或弹簧标定。\n\n纯-6组平均-6.000rad/s，左轮载荷加权接触点切向均值0.1315–0.1386m/s、滚动分量0.1288–0.1367m/s，也存在0.353–0.401m/s的接触点瞬态。正反方向载荷与速度的关联不同，不能只看两轮或两方向总平均。\n\n读回速度取当前物理步后刚体速度在solver报告接触位置的刚体运动值，不是追踪材料点或控制器子步峰值。输入网格代理仍不是cooked碰撞接触流形；载荷筛选诊断不替换原全部样本0.15m/s验收口径。本次只有3秒、单权重单seed，不能代替原15秒技能验收、多seed或实车认证。旧6档失败布尔、原门槛和rate_rejected=[6]保持。\n\n第一次运行因SDK接触count/start为uint32而Warp kernel声明int32退出；仅隔离诊断模块改为同位宽int32视图，显式检查负数和容量越界，未改生产。六项CPU检查通过：纯滚动抵消、逐点范数防向量相消、零力点峰值排除、COM/link参考等价、低载统计和容量拒绝。保留首次错误及独立retry1输出，完成后已核实父进程恢复。冻结窗口charged165433.3585538864秒前后相同，总授权252000秒不变；不重复本交易或结账。\n\n判断：全时网格代理超限有低载时段的贡献，但确有承重时的滚动残差及载荷脉动，不能靠参考点修复、载荷筛选或调阈值宣布6档安全。下一步只插入5rad/s命令中间档，原white_v2、奖励、物理、硬件和PPO保持；先物理/旧能力/PPO验收，再从最新正式完整状态试训。没有证据支持同时扩摩擦、COM、弹簧或电机限幅。\n",
+  "validation": "六项Warp CPU检查；88env3s；初始root/q和全部旧逐环境数组精确不变；冻结charged不变；保留首次dtype错误及retry1",
+  "source_and_evidence_sha256": {
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/SUBSTEP_REPORT.md": "333c0d2f31cc4b84fdb752c219aa0cead7331f333f51a33db2386a1dbae02600",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/SUBSTEP_DIAGNOSTIC_PREPARED.json": "77afd0a6bd1c1f3f7c808f1a21ff95c410c2049630ea33d4d056fc782074f807",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/SUBSTEP_FROZEN_READBACK.json": "718e5b64390cf0985687d584c56ab9b315d7a9a0460a0b4548a648b60685a1cb",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/SUBSTEP_FROZEN_READBACK_RETRY1.json": "ebbbdff59bf72af123c6b6fcb7ea9642f2aaf3bfcfd5686a37b2e13e554e01fc",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/SUBSTEP_REVIEW.json": "6fd1a4249c50a3f23c0d864ac9cb25ce43dfc2e62cd5f0671f553899313b840e",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/model16929_control3s.json": "00790b4b9369f57cb11e7d0efc90f67a7e777ba1157902699e5728742804357b",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/model16929_substep3s_retry1.json": "7fd67abc2236f7e9a197f133d2897d1c94b278324765a126392fb4040cf11361",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/model16929_substep3s.json.error.txt": "c2cf439eb5020b5a19b7deb5b27b459587359127e10b55950429eb583d33c976",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/substep_contact_readback.py": "8b6248a819ec1733dbe1535c883c2b89177ac5ca58f9fa7562517cea35a1ebaa",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/spin_substep_probe.py": "3675e0133b3942eb178957f8d6238964ba4adbbf99050763dfdcfe6318986e4f",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/test_substep_contact.py": "5e687ba4cddae7f78f431b84372144b4573f5f399ce8f84dfd2a5dc9b85a76da",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/prepare_substep_candidate.py": "a24a3a56f7a1eb0dff12c309aa336f27e67fc3e6f4b825e59c85ac84e67c12d7",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/run_substep_frozen.py": "b265c7ad1ee7f9cc5c24e8bb431026c19744565bee41356e6037a98fd373a86d",
+    "records/20261003/rate6-model16929-substep-contact-diagnostic/run_substep_frozen_retry1.py": "815b99a053e0a0f8a0d4d6b21499de2dc42e150609ee8762569c3e91c2eb1deb"
+  },
+  "real_robot_certified": false
+}

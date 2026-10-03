@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "/home/egde/rl_candidates/MOD4_rate6_substep_diagnostic_20261003/isaac/mod4/spin_substep_probe.py", line 154, in <module>
+    try:main()
+        ^^^^^^
+  File "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/egde/rl_candidates/MOD4_rate6_substep_diagnostic_20261003/isaac/mod4/spin_substep_probe.py", line 82, in main
+    action=policy(vec.get_observations());_,_,done,_=vec.step(action)
+                                                     ^^^^^^^^^^^^^^^^
+  File "/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py", line 185, in step
+    obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/egde/rl_candidates/MOD4_rate6_substep_diagnostic_20261003/isaac/mod4/mod4_env.py", line 141, in step
+    result = super().step(action)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_rl_env.py", line 229, in step
+    self.scene.update(dt=self.physics_dt)
+  File "/home/egde/rl_candidates/MOD4_rate6_substep_diagnostic_20261003/isaac/mod4/substep_contact_readback.py", line 122, in update
+    self.capture(dt)
+  File "/home/egde/rl_candidates/MOD4_rate6_substep_diagnostic_20261003/isaac/mod4/substep_contact_readback.py", line 133, in capture
+    wp.launch(aggregate,dim=(self.env.num_envs,2),inputs=[f.flatten(),p.view(wp.vec3),n.view(wp.vec3),s.flatten(),ct,st,
+  File "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/warp/_src/context.py", line 8282, in launch
+    pack_args(fwd_args, params, adjoint=False)
+  File "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/warp/_src/context.py", line 8242, in pack_args
+    params.append(pack_arg(kernel, arg_type, arg_name, a, device, adjoint))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/warp/_src/context.py", line 7661, in pack_arg
+    raise RuntimeError(
+RuntimeError: Error launching kernel 'aggregate', argument 'counts' expects an array with dtype=<class 'warp._src.types.int32'> but passed array has dtype=<class 'warp._src.types.uint32'>.

@@ -1,0 +1,13 @@
+# 成熟档重复训练流程修复与显式恢复
+
+用户授权自主判断，当前原地小陀螺优先。账本审计显示4rad/s截至20:37累计有效PPO为7h48m（混合站跑/自转、包含不同DR），不是十小时持续纯自转；冻结评测不计PPO。原控制器在下一档6被拒绝后，成熟4配对通过仍回到新两小时PPO块，不断训练成熟档。修复增加5rad/s登记，并在实际下一档被保留拒绝时进入targeted_repair_hold，保存成熟策略和剩余预算，不删除旧失败或自动再次开6。
+
+仅rate_schedule.py、autonomy_policy.py、supervise_autonomy.py三个控制源修改；原有监督函数仅status/controller改变，新增targeted_hold及intermediate5_bootstrap。training/runtime/verify/current_decision/fullscale/rate_preflight/dr_trial/finish/guardian等原函数AST保持，物理、奖励、PPO、硬件和white_v2未改。十项CPU门控和阶段替身检查本机/目标机通过，覆盖登记5、阻塞5/6、DR与转速分开、基线/预检拒绝不得开PPO、正式完整源续训、重复中断阶段拒绝。
+
+交接源是实际trainer2788821绑定的latest_complete正式model16450，SHA0904737799adc6e3f71545fb03bfd70730abf04e3aae42ede38e56233d48c9bb，CPU68浮点张量完整有限。源处于无PPO冻结窗口，原父2490960/guardian2490993实际退出。第一版迁移的退出条件重复读取/proc身份，两次调用间父消失造成NoneType异常；完整保留错误，回滚源/state/freeze，不虚构原父仍活着。
+
+唯一显式recover_intermediate5_exit_race验证原父及guardian已退出、无活跃孩子、无active_segment/active_training、canonical与controller锁可取得、103源一致、正式完整源精确SHA后接续。没有结清任何预算段、没有重复交接、没有清零charged。原账本整个恢复期间字节不变，charged165433.3585538864、授权252000秒。新parent2829322/start18847687、guardian2829358/start18847751以独立session运行v4，实际/latest日志和103源证明部署。
+
+当前真实后续结果：最新源auto0028站跑和4档自转按原15秒协议通过；5档auto0029短物理通过，但20k1.2秒物理门控拒绝，max tilt15.265deg超过原15deg，原combined=false/高差72.803mm警告保留。未运行128PPO或正式5档试训；自动恢复4/white_v2，rate_rejected=[6,5]、pending_intermediate5=null、targeted_repair_hold、没有trainer。新流程实际阻止了无证据继续试训，剩余有效预算约24h03m冻结不变。后续4/5全量同权重对照另立实验，不把本记录当5技能或实车通过。
+
+所有已完成install/recovery/预算脚本不得再次运行；历史格式sleep_v1字段不是运行版本，运行看sleep_v4_intermediate5_bounded。targeted_repair_hold是待专项修复且尚有预算的暂停，不是budget finished，不删除自动化。实际新增对照/恢复必须先查真进程和账本，不盲--resume重复预检，不让成熟4再次无限空转。

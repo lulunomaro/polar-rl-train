@@ -1,0 +1,273 @@
+{
+  "task_sha256": "c957afb415049481e2303526797efa5a8c0f155b6d4d8371963e716a0ee88fa0",
+  "unconditional_flat_reward_terms": [
+    {
+      "names": [
+        "track_lin_vel"
+      ],
+      "line": 1652,
+      "expression": "RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_W, params={'command_name': 'twist', 'std': SCUT_LIN_SIGMA})"
+    },
+    {
+      "names": [
+        "track_lin_vel_tight"
+      ],
+      "line": 1654,
+      "expression": "RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_TIGHT_W, params={'command_name': 'twist', 'std': SCUT_LIN_TIGHT_SIGMA})"
+    },
+    {
+      "names": [
+        "track_lin_vel_huge_gap"
+      ],
+      "line": 1656,
+      "expression": "RewTerm(func=scut_rescue.linear_gap, weight=SCUT_LIN_GAP_W, params={'command_name': 'twist', 'gap': SCUT_LIN_GAP})"
+    },
+    {
+      "names": [
+        "track_lin_vel_square"
+      ],
+      "line": 1658,
+      "expression": "RewTerm(func=scut_rescue.linear_square, weight=SCUT_LIN_SQ_W, params={'command_name': 'twist', 'sigma': SCUT_LIN_SQ_SIGMA})"
+    },
+    {
+      "names": [
+        "run_velocity_error"
+      ],
+      "line": 1660,
+      "expression": "RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)"
+    },
+    {
+      "names": [
+        "track_ang_vel"
+      ],
+      "line": 1662,
+      "expression": "RewTerm(func=scut_rescue.yaw_exp, weight=SCUT_ANG_W, params={'command_name': 'twist', 'std': SCUT_ANG_SIGMA})"
+    },
+    {
+      "names": [
+        "track_ang_vel_square"
+      ],
+      "line": 1664,
+      "expression": "RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W, params={'command_name': 'twist', 'sigma': SCUT_ANG_SQ_SIGMA})"
+    },
+    {
+      "names": [
+        "height"
+      ],
+      "line": 1667,
+      "expression": "RewTerm(func=height_track, weight=SCUT_H_W, params={'sigma': SCUT_H_SIGMA})"
+    },
+    {
+      "names": [
+        "height_tight"
+      ],
+      "line": 1668,
+      "expression": "RewTerm(func=height_track, weight=SCUT_H_TIGHT_W, params={'sigma': SCUT_H_TIGHT_SIGMA})"
+    },
+    {
+      "names": [
+        "height_both_wheels"
+      ],
+      "line": 1670,
+      "expression": "RewTerm(func=height_track_both_wheels, weight=W_HEIGHT_BOTH_WHEELS, params={'sigma': SCUT_H_SOFT_SIGMA})"
+    },
+    {
+      "names": [
+        "height_square"
+      ],
+      "line": 1672,
+      "expression": "RewTerm(func=height_square_scut, weight=SCUT_H_SQ_W, params={'sigma': SCUT_H_SQ_SIGMA})"
+    },
+    {
+      "names": [
+        "lin_vel_z"
+      ],
+      "line": 1675,
+      "expression": "RewTerm(func=skills.lin_vel_z_l2_jump_exempt, weight=SCUT_LINVELZ_W)"
+    },
+    {
+      "names": [
+        "ang_vel_xy"
+      ],
+      "line": 1676,
+      "expression": "RewTerm(func=skills.ang_vel_xy_jump_exempt, weight=-0.05)"
+    },
+    {
+      "names": [
+        "flat_orientation_y"
+      ],
+      "line": 1678,
+      "expression": "RewTerm(func=scut_rescue.orientation, weight=-1.0, params={'mode': 'pitch'})"
+    },
+    {
+      "names": [
+        "flat_orientation_y_v"
+      ],
+      "line": 1679,
+      "expression": "RewTerm(func=scut_rescue.orientation, weight=-1.0, params={'mode': 'pitch_velocity'})"
+    },
+    {
+      "names": [
+        "flat_orientation_x_v"
+      ],
+      "line": 1680,
+      "expression": "RewTerm(func=scut_rescue.orientation, weight=-1.0, params={'mode': 'roll_velocity'})"
+    },
+    {
+      "names": [
+        "no_fork"
+      ],
+      "line": 1681,
+      "expression": "RewTerm(func=scut_rescue.no_fork, weight=-1.0, params={'axis': 0})"
+    },
+    {
+      "names": [
+        "no_fork_z"
+      ],
+      "line": 1682,
+      "expression": "RewTerm(func=scut_rescue.no_fork, weight=-2.0, params={'axis': 2})"
+    },
+    {
+      "names": [
+        "wheel_motor_z_axis_align_exp"
+      ],
+      "line": 1683,
+      "expression": "RewTerm(func=scut_rescue.leg_gravity_alignment, weight=0.1, params={'sigma': 0.01})"
+    },
+    {
+      "names": [
+        "wheel_motor_z_axis_align_exp_tight"
+      ],
+      "line": 1684,
+      "expression": "RewTerm(func=scut_rescue.leg_gravity_alignment, weight=0.1, params={'sigma': 0.001})"
+    },
+    {
+      "names": [
+        "action_rate"
+      ],
+      "line": 1685,
+      "expression": "RewTerm(func=skills.action_rate_jump_exempt, weight=SCUT_ACTION_RATE_W)"
+    },
+    {
+      "names": [
+        "action_acc"
+      ],
+      "line": 1686,
+      "expression": "RewTerm(func=skills.action_acc_l2, weight=SCUT_ACTION_ACC_W)"
+    },
+    {
+      "names": [
+        "torques"
+      ],
+      "line": 1687,
+      "expression": "RewTerm(func=skills.joint_torques_l2_motors, weight=SCUT_TORQUE_W, params={'joint_names': LEG_ORDER + WHEEL_ORDER})"
+    },
+    {
+      "names": [
+        "joint_power"
+      ],
+      "line": 1689,
+      "expression": "RewTerm(func=scut_rescue.wheel_power, weight=SCUT_POWER_W)"
+    },
+    {
+      "names": [
+        "dof_pos_limits"
+      ],
+      "line": 1690,
+      "expression": "RewTerm(func=mdp_rewards.joint_pos_limits, weight=0.0)"
+    },
+    {
+      "names": [
+        "leg_symmetry"
+      ],
+      "line": 1692,
+      "expression": "RewTerm(func=skills.leg_symmetry, weight=0.0, params={'leg_joint_names': LEG_ORDER})"
+    },
+    {
+      "names": [
+        "alive"
+      ],
+      "line": 1695,
+      "expression": "RewTerm(func=mdp_rewards.is_alive, weight=SCUT_ALIVE_W)"
+    },
+    {
+      "names": [
+        "termination"
+      ],
+      "line": 1696,
+      "expression": "RewTerm(func=skills.is_terminated, weight=SCUT_TERM_W)"
+    },
+    {
+      "names": [
+        "wheel_contact"
+      ],
+      "line": 1697,
+      "expression": "RewTerm(func=skills.wheel_contact_fraction_jump_exempt, weight=SCUT_WHEEL_CONTACT_W, params={'sensor_cfg': SceneEntityCfg('wheel_contact')})"
+    },
+    {
+      "names": [
+        "base_contact"
+      ],
+      "line": 1699,
+      "expression": "RewTerm(func=skills.chassis_ground_penalty, weight=SCUT_BASE_CONTACT_W, params={'sensor_cfg': SceneEntityCfg('chassis_contact'), 'threshold': 50.0})"
+    },
+    {
+      "names": [
+        "height_deficit"
+      ],
+      "line": 1702,
+      "expression": "RewTerm(func=flat_height_deficit, weight=W_HEIGHT_DEFICIT)"
+    },
+    {
+      "names": [
+        "height_error_l1"
+      ],
+      "line": 1703,
+      "expression": "RewTerm(func=flat_height_error_l1, weight=W_HEIGHT_LINEAR)"
+    }
+  ],
+  "input_mesh_contact_geometry_imports": [
+    {
+      "file": "spin_probe.py",
+      "line": 21,
+      "text": "from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "diagnose_backward_trace.py",
+      "line": 61,
+      "text": "    from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "diagnose_ground_plane.py",
+      "line": 65,
+      "text": "    from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "spin_rate_probe.py",
+      "line": 22,
+      "text": "from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "diagnose_backward_cap.py",
+      "line": 62,
+      "text": "    from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "validate_speed.py",
+      "line": 65,
+      "text": "    from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "diagnose_contact_partners.py",
+      "line": 61,
+      "text": "    from contact_geometry import ControlGeometry"
+    },
+    {
+      "file": "diagnose_ground_box.py",
+      "line": 63,
+      "text": "    from contact_geometry import ControlGeometry"
+    }
+  ],
+  "slip_proxy_direct_reward_term": false,
+  "reward_changed": false
+}

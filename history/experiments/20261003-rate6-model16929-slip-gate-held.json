@@ -1,0 +1,18 @@
+{
+  "id": "20261003-rate6-model16929-slip-gate-held",
+  "tag": "trial-20261003-rate6-model16929-slip-gate-held",
+  "title": "[MOD4] model16929正向6rad滑移代理回归失败，自动保持当前档",
+  "kind": "evaluation",
+  "recorded_at": "2026-10-03T02:54:09.646111+00:00",
+  "repair_or_experiment_note": "原监督器按既定保存边界完成model16929的80env平地与88env自转15秒冻结回归。独立平地原准入通过，自转88/88存活且physical_smoke通过，但纯+6rad/s右轮最低支撑点滑移代理8个样本为0.1938–0.2082m/s，超过原0.15阈值，组技能0/8；总体原spin_skill_pass=false保留。纯-6及低速/启停反转组仍8/8通过。纯±6实测+5.9765/−6.00135rad/s，+6峰tilt1.232deg、控制采样最大间隙0.616mm、最长双轮低载10ms。滑移是输入轮网格支撑点近似，不是PhysX接触流形，不能把此门控失败称作翻车或GPU故障。\n同seed、同协议、同实际probe源码、相同完整初始root/q与16475首次通过证据比较；权重不同，不能归因于监督器修复或DR变动。consecutive已清为0、failed_blocks=1，监督器自主阻止升8和加强DR，原6rad/s white_v1从16929完整权重继续学习；没有重置std/optimizer、改奖励物理门槛或追加预算。当前完整17100 CPU68浮点张量actor/critic/optimizer/std/iter有限、103份源码哈希一致、无近期训练/内核GPU错误。原50h账本和两条历史扩展保持，10:50余约41278秒为快照。此次仅读取/归档已有结果，没有新探针或干预活跃PPO。\n",
+  "validation": "Original gates and eight failed samples retained; same-seed root/q/probe comparison; full17100 finite; no new probe or production changes",
+  "source_and_evidence_sha256": {
+    "records/20261003/rate6-model16929-regression/auto_0004_assessment_cap6_white_v1_decision.json": "a56799eb9f99ddfe9c0278adabeed771c56e481a26b7acf23cfa5143408c7b6d",
+    "records/20261003/rate6-model16929-regression/auto_0004_assessment_cap6_white_v1_flat.json": "f2c0946e92ef35aca0a6c23bc4ade97f4978975b4b7586ed4f6c324d2cb2a39b",
+    "records/20261003/rate6-model16929-regression/auto_0004_assessment_cap6_white_v1_rate.json": "7aa5596fc54e02d8a4861a59c474350ab352630bef835c9ee7345be065762b6c",
+    "records/20261003/rate6-model16929-regression/HEALTH_AND_GUARD_SNAPSHOT.json": "01592168efc4a13f298eb92c5256a9c20bfd96a609b3e362c48d5f29ba8868d0",
+    "records/20261003/rate6-model16929-regression/NOTE.md": "77d768de6794c7bed1ceb75e37abf24d61a4c48a0492db39208ef49b17c794b6",
+    "records/20261003/rate6-model16929-regression/REVIEW.json": "b248a275c7b8b10d8b36a8257172d928e488e08a563e0a00ea54b71ed96edfd0"
+  },
+  "real_robot_certified": false
+}

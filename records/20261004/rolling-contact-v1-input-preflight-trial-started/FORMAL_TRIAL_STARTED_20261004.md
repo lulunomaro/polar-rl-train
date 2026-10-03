@@ -1,0 +1,21 @@
+# 承重滚动专项正式续训核验
+
+本轮用户要求修复6档并继续升档。新的滚动一致性奖励已接入实际训练；当前是固定5rad/s、white_v2的45分钟奖励适应试训，不代表6档已经修复或开训。原验收门槛、电机包络、物理、PPO、观察和闭链复位不变。
+
+实际22环境3秒reward off/on回读44/44存活，完整初始root/q及行为数组精确相同，实际奖励差值等于登记公式。16项CPU参考点、门控、不变性及边界测试通过。
+
+新20k环境1.2秒预检独立physical_smoke通过：20000存活、无非有限值，闭链最大0.232122mm、mimic 0.001827rad、峰倾角12.310089deg。原combined=false和65.611988mm短高差警告保留；这不是15秒技能通过。
+
+128环境两轮完整PPO与20k环境四轮完整PPO预检均通过并计入同一canonical预算。20k四轮折算约29073环境策略步/秒，仅作开销保护，非严格同源A/B因果结论。预检17040/17042权重弃用，正式仍从原成熟17039完整actor/critic/optimizer/std/iter续训，KEEP_STD1。
+
+实际parent3238128/start_ticks20735397和trainer3251603/start_ticks20796751的/proc cwd/argv已独立核实。训练执行代码在MOD4_SPIN_ROLLING_REPAIR_20261004；status/log/canonical owner保持MOD4_scut_spin_rate_20261002。run为logs/2026-10-04_02-42-38_auto_0042_rolling_adaptation5_trial45_cap5_white_v2，active_log为auto_0042_rolling_adaptation5_trial45_cap5_white_v2.log。
+
+正式首份完整保存17050 SHA e7efc3c8fddf85d0af2b78e645e658cbf3566d7ef33856b9a40f32be6a988e67，CPU回读68浮点张量完整有限，PID绑定latest_complete及run_manifest确认start17039、精确源SHA253ed8effd5fe8580859bce1b7731006ae62a5e7bf1c63a9f8825de2c74bc73e、cap5、white_v2、rolling_profile v1。原104源和候选123源指纹一致。运行约30k环境策略步/秒，新增spin_contact_consistency奖励已有实际日志；没有当前训练Traceback/NaN/OOM。
+
+首段deadline为1791055488.7163908，约北京时间2026-10-04 03:24:48，以实际status为准。完整保存后已有程序安排两seed nominal/white_v2各flat/spin配对。通过才写ROLLING_REWARD_ACCEPTED，再独立提高到6并做短物理、20k及128PPO预检和45分钟试训。6需原15秒技能/站跑通过、两份不同正式完整策略通过和同候选多seed配对，之后才升8→10→4π。失败保留全部新权重并回实际paired成熟策略/repair_hold，不放宽.15或删除历史拒绝。
+
+当前REPAIR_STATE的phase/counters及实际receipt是专项控制依据。旧AUTONOMY_STATE通用consecutive与targeted_mature5历史标记不能代替当前专项阶段，不据此重启或跳档。
+
+预算仍唯一252000有效PPO秒，三次已应用扩展各一次。本轮未加时间、复制账本或清charged。核验时剩约75955秒（约21小时06分）只是快照，之后扣活跃PPO。冻结评测不计，PPO预检/加载/保存退出计；不能重跑entry或已完成交易。
+
+准备阶段曾在任何复制、启动、状态及预算改动前遇到normalized-text SHA与raw-byte SHA比较断言；已将两种摘要分别记录并用raw-byte校验。该断言不是生产训练故障，也没有改动原资产。

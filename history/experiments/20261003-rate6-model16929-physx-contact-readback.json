@@ -1,0 +1,22 @@
+{
+  "id": "20261003-rate6-model16929-physx-contact-readback",
+  "tag": "trial-20261003-rate6-model16929-physx-contact-readback",
+  "title": "诊断6档真实接触点与端点载荷时序，保留旧拒绝门控",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-03T11:53:22.539470+00:00",
+  "repair_or_experiment_note": "# 6档真实接触点读回与继续训练决定（2026-10-03）\n\n主训练继续4 rad/s、white_v2。本轮没有6档PPO、预算扩展、门槛放宽、硬件/物理/奖励变更，`rate_rejected=[6]`保留。\n\n对历史完整策略model16929 / seed20261002 / white_v1 / 88环境执行15秒冻结回放，增加实际PhysX轮体—静态原生地板过滤器和接触报告容量；原始root/q及旧报告全部逐环境数组完全一致。原`spin_skill_pass=false`仍保留，说明报告读回没有改变旧行为。实际最大4个报告点/轮，容量11264，未发现截断；法向绝对Z分量最低约1.0。五项CPU参考点、滚动抵消、缺失接触、力加权范数与向量抵消、容量拒绝检查通过。\n\n计算方法是当前轮体link线速度加角速度叉乘真实报告点到link原点的力臂，再投影到报告法向的切平面。地板静止。有载荷样本定义为该轮报告法向力总和>=10N；逐点先取切向速度范数，再按法向力加权，避免先平均向量造成抵消。无载荷/无点样本排除并披露覆盖率，不填零当安全。\n\n纯+6右轮8环境的有载荷、逐点力加权、控制采样时间平均为0.11350–0.12909m/s；相同有载荷时刻的旧输入网格代理为0.10807–0.12315m/s。此前全控制样本旧代理为0.19380–0.20819m/s，修正link参考点的全样本代理为0.20256–0.21699m/s。这三个总体不同，不能直接替换原门槛宣布6档通过。+6左右轮10ms端点有载荷覆盖仅19.86–22.76% / 24.34–27.86%；同一控制周期的0.5ms积分载荷充足，并不保证端点一直承重，也不能据端点低力宣称腾空。法向力存在脉冲，需进一步子步分析。\n\n不加力权的每次最大报告点速度包括零法向力点，不能冒称实际受载局部峰值。本报告保留它并在REVIEW显式标注。保存的6个时刻中，纯+6右轮一个实际受载点env18/step1499的法向力38.14N，切向速度约0.30462m/s；这是一帧证据，不是完整子步峰值或均值门槛违规判定。\n\n本次接触点/速度读取仍每10ms一次，法向力来自最近0.5ms报告；不是全部子步连续接触或摩擦流形积分，当前body状态与报告点的采样时序也须保留在解释中。因此不声称“真实打滑已经解决”，不把0.114–0.129直接当原0.15门槛通过。原参考点bug只改变约0.01m/s，仍不是之前拒绝6档的主要原因。\n\n参考点修复候选将link位置/力臂与link线速度统一，并保留legacy数组及旧参考点spin布尔并列。原数值阈值不改。正在用同model16317 / seed20261002 / white_v2重新做15秒自转与站跑回归：除正确参考点滑移数组外，所有旧物理数组及legacy滑移必须与已存在的auto0020报告完全相同，正确参考点准入也须通过，才能部署评测代码修复。它不会修改生产奖励、PPO或正在运行的策略。\n\n下一步6档专项训练须先解决受载时序和接触运动的证据问题，再选具体约束。现在不把全样本网格代理直接塞入奖励，以免奖励策略去规避未受载轮缘的几何速度。当前4档已通过现有多种子回归，继续4档比直接重开6档更稳妥。\n\n首次工作者因自然冻结窗口已结束，在暂停父进程之前主动拒绝；没有停止PPO。独立retry1旁路冻结回放实际exit0完成，主PPO继续合法计时，旁路程序没有账本权限。本次不是八份、多种子或实车认证。\n",
+  "validation": "88env×15秒，旧root/q与全部旧数组bit-exact；真实点力加权速度与覆盖率分开披露，无PPO或生产修改",
+  "source_and_evidence_sha256": {
+    "records/20261003/rate6-model16929-physx-contact-readback/CONTACT_REPORT.md": "4d61e051cb5124a5bd0e0a31d0fa6e9c4b91a5171f377f18ea990625516f7ed4",
+    "records/20261003/rate6-model16929-physx-contact-readback/CONTACT_REVIEW.json": "20a050a45d92973ea0aa2eac39fa84cfee4498e9fe8357152f442f906eb63cab",
+    "records/20261003/rate6-model16929-physx-contact-readback/model16929_physx_contacts15s_retry1.json": "354d199eb06b032013f8675e367d06922162f9fbdc2db8f3f1f398fea2605663",
+    "records/20261003/rate6-model16929-physx-contact-readback/CONTACT_DIAGNOSTIC_SOURCE.json": "d41038cb7d5a105ea0a237750c60c6a11df2feca3121cde881e1939bc9c1b942",
+    "records/20261003/rate6-model16929-physx-contact-readback/PARALLEL_CONTACT_RETRY1.json": "feedd74882830d8075bbc5a904a3bf360328bf5098c09291010a4658cca35068",
+    "records/20261003/rate6-model16929-physx-contact-readback/physx_contact_readback.py": "73158c5973d05357f9cad363eb97db17900856f745cd636c353d805a35287825",
+    "records/20261003/rate6-model16929-physx-contact-readback/test_contact_readback.py": "571f287ba12527583b4ec9d3307784576331fce2e76affba9b0e8066fe09199b",
+    "records/20261003/rate6-model16929-physx-contact-readback/spin_contact_probe.py": "880a05a0d6df7d28d6276cb667efcde80d06ecab52ab1a876fcb0b1aa9ec6e66",
+    "records/20261003/rate6-model16929-physx-contact-readback/run_contact_diagnostic.py": "c362656b9e3b12b661151d74d3c0a8aff78e48b20ebdbeddb14b2034f94b1249",
+    "records/20261003/rate6-model16929-physx-contact-readback/run_parallel_contact.py": "fa826ab359fcd813343e79e16294f69f16995fd7f290247e6f57431f86399dae"
+  },
+  "real_robot_certified": false
+}

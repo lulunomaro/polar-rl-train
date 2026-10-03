@@ -1,0 +1,21 @@
+{
+  "id": "20261003-intermediate5-model16450-20k-physical-rejected",
+  "tag": "trial-20261003-intermediate5-model16450-20k-physical-rejected",
+  "title": "5档20k物理预检倾角15.27度：保留报告、拒绝PPO并恢复4档暂停",
+  "kind": "rejected",
+  "recorded_at": "2026-10-03T13:38:04.483646+00:00",
+  "repair_or_experiment_note": "# 5rad/s中间档全量物理预检拒绝\n\n从最新正式16450完整源进行auto0028原80env15s站跑和88env15s cap4自转验收，原flat准入、原spin_skill、修正参考点spin技能均通过。white_v2、物理、奖励、PPO、硬件、闭链reset不变，只有登记的yaw命令上限4→5。22env3秒短检查physical_smoke=true、nonfinite=false，但短spin_skill=false仍保留，没有称15秒毕业。\n\nauto0029的20k×120步1.2秒冻结物理检查，无PPO。20000样本无终止、无NaN；闭链0.2661mm、mimic0.001827rad，两个reset实际质量/惯量/摩擦/输出参数读回通过，非轮材料、局部COM、PD、弹簧和关节参数误差为0；四采样环境承重地面法向+Z。\n\n但最大倾角15.265189deg超过原物理guard的15deg，physical_smoke_pass=false；原combined pass=false和最大高差72.8026mm警告保留。没有忽略最坏环境、降低阈值或把无终止等同全部通过。原短技能和旧strict窗口统计不改。全量报告缺少最坏环境ID，所以不能直接把这次异常归为纯±5组或断定与6档滑移同因。\n\n监督器如实拒绝并恢复4rad/s/white_v2，保留源和所有报告，追加5拒绝记录而保留6旧拒绝，进入targeted_repair_hold。128env PPO及5档45min正式试训均未启动，charged165433.3585538864秒和总252000秒保持，冻结评测未另加时间。\n\n接续已安排同源16450、同seed20260927、同white_v2的cap4/cap5全量只读诊断，保存完整root/q数组哈希、逐环境峰倾角/高度及最坏环境时序。必须完整初始root/q严格相同、原cap5物理结果复现，才能讨论命令上限的差异；当前基线未完成，不预先声称是旧复位瞬态或提速造成。正式修复/续训须依据实际证据，不能重跑已有one-shot或删除拒绝记录。\n",
+  "validation": "4档15秒原能力通过；5档3秒物理通过；20k无NaN终止但倾角guard失败；128及正式PPO未开；原预算不变",
+  "source_and_evidence_sha256": {
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/RATE5_PREFLIGHT_REJECTION_REPORT.md": "d0bd77f460a3259364c972fecde3dc6571d5463961726be2af6407962c99f0e7",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0028_assessment_cap4_white_v2_flat.json": "189cd9d5c3d49d8b1cdbfc7d1a508c6b1ef85c2ffef87e4284c4df5c731f710b",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0028_assessment_cap4_white_v2_rate.json": "83c60642bc864893023071841ff95f8df3ef6c1e57795006e1de47995bcca254",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0028_assessment_cap4_white_v2_decision.json": "28fb6a59a7e6cab285fac8ef73c3f2d05493668ebd7f0b4cebe086f2e31dc78c",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0029_rate_candidate_cap4_white_v2_short.json": "9fd24c21255cf07a70f250580b8235aff48ec9889b6eaba111ecb666dc8c848d",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0029_rate_candidate_cap4_white_v2_20k.json": "2e4cbf1c90ed517e1785149e029b0701c4c6dbcab55be87dc71cc613f2d21ac0",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0029_rate_candidate_cap4_white_v2_20k_acceptance.json": "4a9bb6f14aadb887d563f5e66e4227663025feb7ac9a8f5e6984b152d3d0e005",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0029_rate_candidate_cap4_white_v2_REJECTED.json": "1c623829b813598bf9127e1e97f71e0435097eb2ad91fe9e5b1de6241ac5bff3",
+    "records/20261003/intermediate5-model16450-20k-physical-rejected/intermediate5_actual_reports/auto_0030_targeted_repair_hold_cap4_white_v2.json": "c622b5af62abef76d5c52f33961116803a731f09abdf801ad1f9e5976d9b7d06"
+  },
+  "real_robot_certified": false
+}

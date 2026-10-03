@@ -1,0 +1,33 @@
+{
+  "id": "20261003-contact-reference-link-fix-with-legacy-shadow",
+  "tag": "trial-20261003-contact-reference-link-fix-with-legacy-shadow",
+  "title": "统一轮支撑点速度参考点并保留旧统计，4档15秒回归后部署",
+  "kind": "repair",
+  "recorded_at": "2026-10-03T12:29:27.717424+00:00",
+  "repair_or_experiment_note": "# 滑移代理修复与继续训练决定\n\n2026-10-03：继续原地自转4 rad/s（约38.2 rpm）和white_v2，6档拒绝记录保留。本次修好了评测参考点错误，尚未解决6档行为超限，不新增滑移奖励或降低0.15 m/s门槛。\n\n原评测用link原点计算轮网格支撑点力臂，却使用COM线速度。现在统一使用link线速度，版本wheel_link_support_velocity_v2；旧参考点逐环境滑移数组和spin布尔作为legacy影子并列保留，旧报告没有改写。只部署contact_geometry.py、spin_rate_probe.py、validate_speed.py三份评测源码。物理、奖励、PPO、硬件、DR范围及所有数值门槛不变，103份冻结源哈希重新核验一致。\n\n修复前先在实际PID对应保存边界让单一trainer2688768完整保存model16425后退出，由原监督器自行结清账本。CPU回读actor/critic/optimizer/std/iter共68浮点张量完整有限；checkpoint SHA63662952ea6be6ca6c259a0563fe2495cefc0ebadf9eb729c69ec1e92aba9075。没有手动重复结账或采用预检权重。\n\n隔离候选对已成熟model16317、seed20261002、white_v2顺序完成88环境自转和80环境站跑各1500步/15秒回归。完整初始root/q精确一致，所有原物理逐环境数组和legacy滑移与auto0020旧报告bit-exact一致。自转88/88存活，正确参考点及legacy技能布尔均true；站跑原已训练各组准入通过，启停反转其中一组7/8、其余8/8，原80%门槛不变。旧strict_pass_window=false仍保留。这是修复回归，不是新PPO技能、多seed新毕业或实车认证。\n\n冻结修复窗口约449.85秒，有独立watchdog保护。charged前后均164842.4341135025秒；唯一canonical授权总252000秒、三条已应用扩展保持。剩87157.5658864975秒是结清快照，之后只按实际活跃PPO扣时。原parent2490960/start17250655已实际恢复，继续model16425原定评测与4档计划；无trainer的冻结验收是正常阶段。\n\n此前16929真实PhysX接触点读回显示：+6右轮有载荷控制时刻的逐点力加权切向速度平均0.11350–0.12909 m/s，旧全控制样本网格代理0.19380–0.20819；两者样本总体不同，不能换用前者宣布6档通过。10ms端点受载覆盖仅约20%–28%，并非整周期连续承重；一个实际受载报告点速度约0.30462 m/s。接触读回仅10ms采样最近0.5ms报告，不能当完整子步峰值或连续接触流形。见CONTACT_REPORT.md、CONTACT_REVIEW.json和原始JSON，真实读回已单独归档。\n\n正确参考点全样本代理反而稍高，证明参考点bug不是6档拒绝主因。下一步先隔离补齐子步受载时序、实际接触点运动和控制采样时序的诊断，明确要约束的行为，再设计6档专项试训；不会把未受载轮缘几何速度直接塞进奖励，也不会自动清除rate_rejected=[6]重开6/8。用户当前优先原地小陀螺，移动/FPS/地形继续延期。\n\n过程中的旁路GPU竞争造成600秒回归等待超时，未产生策略拒绝或部署；随后改为完整保存后的冻结验证。第一份保存等待120秒不足以等到25轮保存间隔，trainer正常保存退出。第一份暂停确认出现异步SIGSTOP时序断言错误，已立即核验身份恢复父进程；最终v2将独立watchdog放在暂停前，并将等待T状态与恢复全部放入try/finally，实际完整完成。错误和恢复凭据保留，不重复运行任何已完成保存/交接/冻结脚本。\n\n部署凭据CONTACT_REFERENCE_FIX_FROZEN_V2_20261003.json，实际核验CONTACT_REFERENCE_PRODUCTION_VERIFIED.json。修复前源码及旧freeze备份保留；权重只保存路径与SHA索引。\n",
+  "validation": "同16317/seed/white2初始root-q及所有原物理和legacy数组bit-exact；spin88存活技能通过，flat80原准入通过；103哈希、父恢复及冻结预算不变验证；6档仍拒绝",
+  "source_and_evidence_sha256": {
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/REPORT.md": "ca0b80d9aa46f7d831202058c478b0b1070981b307dbb2a3231336984fd681ea",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/HANDOFF_APPEND.md": "6461cf61a40ab31a601ef20eba9f39c3f2fafbedbd835f19d3aa9bd48ca0d4b6",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/CONTACT_REFERENCE_FIX_FROZEN_V2_20261003.json": "40d4ba5595757d2aad6fcaedb2d5a40e39b372645730529f52a577a836b3a1fb",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/CONTACT_REFERENCE_PRODUCTION_VERIFIED.json": "56292faaf291c0d1f555db5a554d483a3edbecedcd9344dc8633799dcd5207bc",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/REFERENCE_REPAIR_PREPARED.json": "2afc10313f9af46d90a5bf3e94770dd29a01cf800473bdc60de4a1fb07e87870",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/SPIN_SOURCE_FREEZE.json": "27e50b814c1de32bccf29b746dde3d778e47717d3a14b25fa3d23f0af69fc621",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/BEFORE_SPIN_SOURCE_FREEZE.json": "5e563f6c9a9787154574866d86f0f1e1909a5ad4759c473a98eb2b0257713289",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/model16317_reference_fixed_spin_frozen_v2.json": "874772130780fb65d79c5d27636eef0c08370d442b3e45af0b1804142a3b0c92",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/model16317_reference_fixed_flat_frozen_v2.json": "50ae26723378029d5ef0a622c80be212bc35894acb6722366ba92f9a21cdbeb0",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/CONTACT_REFERENCE_FIX_SAVED_WINDOW_20261003.json": "dd439b9b2a8f5b7e812e5821a6c85f258d719d5c9a4b5aba207d945db482837b",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/CONTACT_REFERENCE_FIX_CONTINUATION_20261003.json": "debddb7076870746c4a37ed7e1a1e577ca3892b9ea1bb7d95889f1229a2e440d",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/CONTACT_REFERENCE_STOP_RACE_RECOVERY_20261003.json": "62b85e537ebe618db34000cddd2d14b487712c4e00923fb108aa002071ce9910",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/finish_reference_frozen_v2.py": "ad1ab5d4a8144fb77a6a39a95cd28996cc7d9c3e7a9388a4556ac025b38341d4",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/resume_after_stop_race.py": "3c6d41c2b135cb0a8b104f866a5e7224b05983819276b0aa1c0dab621c57d567",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/finalize_reference_repair.py": "99e8d11d24c123b08f1510a9f5b2f541467663db9f5da6690ed2271629e69dd3",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/reference_fixed/contact_geometry.py": "8eea8c84777638de3cfdcab7809b9fe6f1e44bb1c1e2cea2dac1f5942f60a8d8",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/reference_fixed/spin_rate_probe.py": "5c1b63ca863b6d65b21cb23a1090de5a905e18d083e29b73c6c6611dff04e58c",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/reference_fixed/validate_speed.py": "3e7a751e22571fc8ca6891446fa27b722233c92c553304a344877190b1025323",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/BEFORE_contact_geometry.py": "1197d5914c9908e48c228daf0f44806702f165bd47abc2f4eb877b9e4c306d2c",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/BEFORE_spin_rate_probe.py": "cbe0206c9b02aafa8d418ce7442dd033e02f7f22e9acebe2c0417cc048b85f6b",
+    "records/20261003/contact-reference-link-fix-with-legacy-shadow/BEFORE_validate_speed.py": "308a9e61eaea07c9cbc44df45c06dcf4e131403ba74fc63dfbf425e47c575ffd"
+  },
+  "real_robot_certified": false
+}

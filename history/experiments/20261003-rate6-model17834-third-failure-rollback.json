@@ -1,0 +1,22 @@
+{
+  "id": "20261003-rate6-model17834-third-failure-rollback",
+  "tag": "trial-20261003-rate6-model17834-third-failure-rollback",
+  "title": "6rad/s第三次技能失败：完整保存后回退成熟4rad/s策略",
+  "kind": "rejected",
+  "recorded_at": "2026-10-03T07:00:54.998844+00:00",
+  "repair_or_experiment_note": "6 rad/s 第三个连续技能失败块与实际安全回退。model17834 的 flat 原准入通过、spin 物理通过、88/88 存活，但纯 +6 和 -6 两组均 0/8 技能通过，16 个样本的相应主轮支撑点滑移代理超过原 0.15m/s 门槛。实际平均 yaw +6.02248/-6.01150rad/s，能跟踪转速并不等于完整技能通过。\n\n监督器按已经部署的三失败块规则保留全部新权重，回到真正两种子配对成熟的 model15583（4rad/s、white_v1），将 6rad/s 登记到 rate_rejected，禁止当晚反复尝试。原子保存退出、cap 6→4、profile 维持 v1 的实际 receipts 均保留。CPU 回读回退源15583及最后拒绝源17834，actor/critic/optimizer/std/iter共68个浮点张量完整有限。所有源指纹一致；不是 NaN、GPU 故障或摔车，也没有改门槛、硬件、奖励、PPO或追加预算。\n\n支撑点滑移是 10ms 输入轮网格几何代理，不是 PhysX 接触流形；低载不等于腾空，不能由代理失败证明实物打滑。两份协议的 flat/rate seeds 不同，不伪称 flat/rate 初始状态配对。与上一份17382同协议的root/q精确相同，但权重不同，不归因于监督器或DR改动。旧contact窗口及所有失败报告继续保留。\n",
+  "validation": "已有15秒flat/rate原报告、逐环境16个纯6档滑移代理失败、PID绑定保存/回退receipt与两份完整权重CPU有限数验证；未启动探针或修改门槛预算。",
+  "source_and_evidence_sha256": {
+    "records/20261003/rate6-model17834-regression/auto_0007_autonomous_continued_cap6_white_v1_production.json": "c73d8998bb645abee7c269ef7b909253a9d54e0e2e1c3d1238e78f92da4182a0",
+    "records/20261003/rate6-model17834-regression/auto_0008_assessment_cap6_white_v1_decision.json": "c69f5aea50a119a18aac0ea477c7920f2e9a3817eaf63307ad536ae50d08690e",
+    "records/20261003/rate6-model17834-regression/auto_0008_assessment_cap6_white_v1_flat.json": "57ba4363457faa2a8975ac03041fb46dc9f1a997f172fc6995df16440700d67a",
+    "records/20261003/rate6-model17834-regression/auto_0008_assessment_cap6_white_v1_rate.json": "4ce29920775acd073d4d6b2754544534f7255f7e4478923c7455f93c55d29862",
+    "records/20261003/rate6-model17834-regression/auto_0009_profile_change_cap4_white_v1.json": "5bf8b1d3438135a42dd015759c7db152a73dde1833b18a4754fe656f51ceb62a",
+    "records/20261003/rate6-model17834-regression/HEALTH_AND_GUARD_SNAPSHOT.json": "872167f52a64485998522a616b1cad733ddb04f079675d3887c3f3a16a328849",
+    "records/20261003/rate6-model17834-regression/limit_change_1791008087991797321.json": "1a254bff62163045f9d8b7bf6762b6fff75b1090479524de0642d62c671cd626",
+    "records/20261003/rate6-model17834-regression/NOTE.md": "59c822e621b875f266875be09417565f54279d475d46786b857d386278c853a3",
+    "records/20261003/rate6-model17834-regression/REVIEW.json": "51e30c287f7d8cf2c9f0bbccdac037c164050ebfb7d11253f0781922f96ee38c",
+    "records/20261003/rate6-model17834-regression/TRANSITION_CHECKPOINT_CHECKS.json": "04ff0293393d34723ab7414041d10bc4940c13aadf413db66eec485976e61335"
+  },
+  "real_robot_certified": false
+}

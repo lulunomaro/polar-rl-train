@@ -12,7 +12,7 @@ p.add_argument('--speed_limit',type=float,default=2.0);p.add_argument('--ramp_su
 p.add_argument('--reset_smoke',action='store_true');p.add_argument('--seed',type=int,default=20260926)
 for k,v in json.loads(Path(__file__).with_name('env.json').read_text()).items():os.environ[k]=str(v)
 from isaaclab.app import AppLauncher
-p.add_argument('--dr-profile',choices=['nominal','white_v1'],default=os.environ.get('RM_MILD_DR_PROFILE','nominal'))
+p.add_argument('--dr-profile',choices=['nominal','white_v1','white_v2','white_v3'],default=os.environ.get('RM_MILD_DR_PROFILE','nominal'))
 AppLauncher.add_app_launcher_args(p);args=p.parse_args()
 os.environ['RM_MILD_DR_PROFILE']=args.dr_profile
 app=AppLauncher(args).app

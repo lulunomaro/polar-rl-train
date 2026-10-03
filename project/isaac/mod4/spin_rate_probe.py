@@ -8,7 +8,7 @@ import argparse,json,os,time,traceback
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--checkpoint',required=True);p.add_argument('--output',required=True)
 p.add_argument('--steps',type=int,default=500);p.add_argument('--num_envs',type=int,default=72)
-p.add_argument('--seed',type=int,default=20261002);p.add_argument('--max-rate',type=float,default=3.);p.add_argument('--dr-profile',choices=['nominal','white_v1'],default='white_v1')
+p.add_argument('--seed',type=int,default=20261002);p.add_argument('--max-rate',type=float,default=3.);p.add_argument('--dr-profile',choices=['nominal','white_v1','white_v2','white_v3'],default='white_v1')
 for k,v in json.loads(Path(__file__).with_name('env.json').read_text()).items():os.environ[k]=str(v)
 from isaaclab.app import AppLauncher
 AppLauncher.add_app_launcher_args(p);args=p.parse_args();os.environ['RM_MILD_DR_PROFILE']=args.dr_profile

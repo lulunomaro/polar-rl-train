@@ -283,7 +283,7 @@ class Mod4DCMotor(DCMotor):
 
     def _clip_effort(self, effort: torch.Tensor) -> torch.Tensor:
         scaled = super()._clip_effort(effort) * self.episode_scale * self.step_scale
-        if os.environ.get("RM_MILD_DR_PROFILE", "") == "white_v1":
+        if os.environ.get("RM_MILD_DR_PROFILE", "") in ("white_v1", "white_v2", "white_v3"):
             # Vary unsaturated output gain while preserving the actual torque-speed envelope.
             return super()._clip_effort(scaled)
         return scaled

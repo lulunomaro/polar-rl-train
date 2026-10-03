@@ -6,6 +6,7 @@ This module is installed in a NEW isolated task, never in the running task.
 import os
 import torch
 import warp as wp
+from autonomy_policy import DR_PROFILES
 from isaaclab.managers import ManagerTermBase, EventTermCfg
 
 
@@ -20,6 +21,8 @@ def tensor(value):
 class MildDR(ManagerTermBase):
     def __init__(self, cfg, env):
         super().__init__(cfg, env)
+        self.profile = os.environ.get('RM_MILD_DR_PROFILE', '')
+        self.recipe = DR_PROFILES[self.profile]
         self.robot = robot = env.scene['robot']
         if not hasattr(robot.root_view, 'get_material_properties'):
             raise RuntimeError('Mild DR requires actual PhysX material read/write support')
@@ -50,7 +53,7 @@ class MildDR(ManagerTermBase):
             raise RuntimeError('Two wheel colliders are required')
         self.nonwheel_shapes = [i for i in range(sum(counts)) if i not in self.wheel_shapes]
         # Exactly 33 repeatable triples; no continuous per-shape material creation.
-        self.friction_buckets = torch.cat((torch.tensor([.9]), torch.linspace(.8, 1., 32)))
+        self.friction_buckets = torch.cat((torch.tensor([.9]), torch.linspace(*self.recipe['friction'], 32)))
         self.factor = torch.ones(env.num_envs, device=env.device)
         self.nominal = torch.ones(env.num_envs, dtype=torch.bool, device=env.device)
         self.mu = torch.full((env.num_envs,), .9)
@@ -68,7 +71,7 @@ class MildDR(ManagerTermBase):
         if not len(ids):
             return
         nominal = torch.rand(len(ids), device=env.device, generator=self.generator) < .2
-        factor = torch.empty(len(ids), device=env.device).uniform_(.95, 1.05, generator=self.generator)
+        factor = torch.empty(len(ids), device=env.device).uniform_(*self.recipe['mass'], generator=self.generator)
         factor[nominal] = 1.
         self.factor[ids], self.nominal[ids] = factor, nominal
         self.reset_count[ids] += 1
@@ -76,7 +79,7 @@ class MildDR(ManagerTermBase):
         self.robot.set_inertias_index(inertias=self.inertia[ids] * factor[:, None, None], env_ids=ids)
         for name in ('legs', 'wheels'):
             gains = self.robot.actuators[name].episode_scale
-            gains[ids] = torch.empty_like(gains[ids]).uniform_(.95, 1.05, generator=self.generator)
+            gains[ids] = torch.empty_like(gains[ids]).uniform_(*self.recipe['motor'], generator=self.generator)
             gains[ids[nominal]] = 1.
         cpu_ids = ids.to(device='cpu', dtype=torch.int32)
         bucket = torch.randint(1, 33, (len(ids),), device='cpu', generator=self.cpu_generator)
@@ -112,8 +115,8 @@ class MildDR(ManagerTermBase):
         strengths = {name: {'min': float(a.episode_scale.min()), 'max': float(a.episode_scale.max()),
                             'per_step_noise_abs_error': float((a.step_scale-1.).abs().max())}
                      for name,a in robot.actuators.items() if name in ('legs','wheels')}
-        assert all(.94999 <= s['min'] <= s['max'] <= 1.05001 and s['per_step_noise_abs_error']==0 for s in strengths.values())
-        return {'profile': 'white_v1', 'actual_parameters_pass': True, 'errors': checks,
+        assert all(self.recipe['motor'][0]-1e-5 <= s['min'] <= s['max'] <= self.recipe['motor'][1]+1e-5 and s['per_step_noise_abs_error']==0 for s in strengths.values())
+        return {'profile': self.profile, 'registered_ranges': self.recipe, 'actual_parameters_pass': True, 'errors': checks,
                 'mass_inertia_factor_range': [float(self.factor.min()),float(self.factor.max())],
                 'motor_strength': strengths, 'friction_range': [float(self.mu.min()),float(self.mu.max())],
                 'nominal_environment_count': int(self.nominal.sum()), 'num_envs': len(self.factor),
@@ -125,8 +128,11 @@ class MildDR(ManagerTermBase):
 
 
 def configure(cfg):
-    if os.environ.get('RM_MILD_DR_PROFILE', '') != 'white_v1':
+    profile = os.environ.get('RM_MILD_DR_PROFILE', '')
+    if profile in ('', 'nominal'):
         return
+    if profile not in DR_PROFILES:
+        raise ValueError('Unregistered whitelist DR profile: '+profile)
     if os.environ.get('RM_DR_OFF') != '1':
         raise RuntimeError('Whitelist cannot run alongside the legacy full DR bundle')
     for name in ('mass_inertia','wheel_friction','chassis_com','actuator_gains',

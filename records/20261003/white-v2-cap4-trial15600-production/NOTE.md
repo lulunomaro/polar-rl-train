@@ -1,0 +1,5 @@
+white_v2固定4rad/s的45分钟试训真实正式生产已核实。单一trainer2472824/start16605798、parent2402437、guardian2402470和实际TUI1551130均正确。PID绑定唯一latest_complete指向新run logs/2026-10-03_15-04-09_auto_0014_dr45_trial_cap4_white_v2/model_15600.pt，SHA df3d89e3c09bdcf1e84809d7cd2746d03d13ec727c317c767055019b070efadb；CPU actor/critic/optimizer/std/iter共68浮点张量完整有限，std存在。manifest start15583、KEEP_STD1、cap4、white_v2及积分接触/原生Plane核实，从保留成熟15583完整恢复，未用任何PPO预检或拒绝6档权重。
+
+这是正式迭代与完整保存证明；45分钟试训尚未结束、更强DR尚未最终接受。段截止15:46:19后按既有监督器顺序做同新权重两seed nominal/white_v2 flat/spin，只有真实最终receipt通过才保留；拒绝则恢复原完整15583/white_v1，保留所有新权重和失败报告。
+
+103源指纹匹配、近期训练和GPU内核无所查异常，预算原180000秒及两已应用20h扩展不变；新checkpoint与训练源同目录但不同迭代/SHA，不用全目录最大iteration误选17834。回退后的iteration降低是有意恢复成熟源，不是从零或重置std。记录预算快照仍须扣后续active尾段，冻结评测不计PPO、PPO加载/退出计时。本次仅只读核验并归档；没有启动新仿真、重启训练或修改物理/奖励/PPO/硬件/门槛。

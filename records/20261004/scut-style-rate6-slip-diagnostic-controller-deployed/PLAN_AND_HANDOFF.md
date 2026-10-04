@@ -1,0 +1,15 @@
+# 用户授权的华南虎思路接续：滑移诊断与课程晋级分开
+
+用户2026-10-04：“按照华南虎的搞吧，你觉得呢”。这次采用公开固定提交b8ff79f3df855faf9dc92f4a282bd80c42649466的课程思路：跟踪、稳定和站跑能力决定有界升档，滑移持续记录并优化，不把未经实物标定的0.15m/s/15.01ms滑移数值当独立硬否决。不是华南虎任务或硬件的一比一复制，不把其可选exp奖励的sigma0.25当安全阈值。公开V14配置未启用该可选滑移奖励。
+
+本次只改变验收/监督流程。35/38观察、6动作、闭链reset、滚动奖励loaded_rolling_v1、white_v2、PPO、硬件转矩转速包络与物理字节不改。取消每轮承重时间均速、冲量均速以及连续>.15滑移时长的数值否决；这些数值、峰值/RMS/轮载脉动、原全时网格/legacy/loaded015布尔全保留。缺失承重样本、非有限数、读回不一致继续否决。姿态、闭链、动作、承重/卸载、原地漂移、跟踪、停车、站跑和原严重个体门槛全部保留。
+
+新版本scut_style_nonslip_gate_v1。两个已经完整保存的正式策略19078/19234在既有真实报告上按新版本明确重分类，仅用于不同完整策略依据；旧失败报告不改，不称两次新回放或滑移修好。当前trainer自己的PID绑定最新完整保存另做实际flat/spin以及两个seed20261002/3 nominal/white_v2各flat/spin八份15秒严格完整初态配对和参数读回。全部通过才登记SCUT_STYLE_RATE6_MATURE_ACCEPTED，之后8→10→4π分别物理/128完整PPO预检、45min完整暖启动及两策略/双seed复核。未通过则有界当前档学习，三失败或旧能力/物理退化回真实paired成熟完整权重并hold，不无限叠失败档。
+
+唯一代码root仍/home/egde/rl_candidates/MOD4_SPIN_ROLLING_REPAIR_20261004，status/log/canonical owner仍/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002。新supervise_scut_style_continue.py和migrate_scut_style.py是唯一显式入口，存在SCUT_STYLE_MIGRATION/STATE后禁止重跑。旧parent4145334/start25108417、guardian4145375/start25108483、trainer4158388/start25453090只是接管前身份；后续核查真实/proc cwd/argv/start_ticks和最新receipt。迁移先独立watchdog，再暂停已核验旧父启动权限，仅trainer自身run STOP_AFTER_SAVE完整退出；CPU68浮点完整有限及正常退出证据，结清真实尾段只一次，关旧父/guardian并取得同canonical锁后安装新控制器。未退休之前失败恢复旧父；退休后失败保留journal/真实账本/完整源，禁止盲重复结账。
+
+实际回滚源仍17196/cap5/white_v2，已paired成熟；不会挑选全目录最高iteration。新当前完整保存来源以SCUT_STYLE_HANDOVER为准。全部原104及旧候选130文件字节不变，仅新增scut_style_gate和新controller并登记freeze；随后rate改变只更新候选env cap及哈希。新trainer run_manifest/rolling_source_freeze记录新版本，旧run不改。
+
+唯一canonical=/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json，总252000有效PPO秒70小时及三已应用20h扩展各一次，不追加/复制/清零/重复结账。PPO预检/加载/保存退出计同账本，冻结评测不计。主机新parent与guardian独立session、trainer自身deadline≤2h，本机离线继续。仍每两小时线程巡检，健康无实质变化静默；Rich1551130同生产root/status/active_log/账本5s本地刷新，不新开窗口。
+
+用户当前原地小陀螺优先，moving/FPS/地形/云台/MoE延后，DR/传感器噪声延迟不混入。目标4π=12.56637rad/s=2rev/s=120rpm仍未达到。预算真正耗尽或真实目标验收后完整保存、final flat/activeDR contact-spin/nominal contact-spin，原滑移布尔并列，如实AUTONOMY_FINISHED/终端finished；终验结束才删除mod4-10。预算内repair_hold不等于finished。

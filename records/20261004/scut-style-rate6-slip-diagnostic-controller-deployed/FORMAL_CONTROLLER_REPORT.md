@@ -1,0 +1,13 @@
+# 华南虎思路接续已部署，六档最新权重复核中
+
+用户2026-10-04明确“按照华南虎的搞吧，你觉得呢”。已经部署scut_style_nonslip_gate_v1，只改变课程验收：滑移的时间均值、冲量均值与持续超限时长不作为未经标定的数值硬否决，全部原mesh/legacy/loaded015布尔和所有测量作为诊断并列保留。其他物理/跟踪/姿态/漂移/停车/承重/闭链/原站跑、严重个体及接触数据完整性检查保留。不是华南虎资产任务的一比一复制，不宣称实车安全认证，不把可选exp奖励sigma.25当m/s安全阈值。
+
+14项本机及目标机CPU准入合同通过。旧正式19078和19234真实既有报告在新版本上明确重分类，原失败保持，不称两次新回放或滑移已经修好。最新trainer自己的完整19575用于实际单seedflat/spin、随后双seed nominal/white_v2八份原站跑/新版本自转配对检查，初态root/q必须精确相同，实际参数初末读回和严重个体否决全过才SCUT_STYLE_RATE6_MATURE_ACCEPTED。当前实际仍cap6，不称8已开训或120rpm达成。
+
+新独立parent4179735/start26057140、guardian4179778/start26057207已/proc cwd/argv/start_ticks核验。代码rootC=/home/egde/rl_candidates/MOD4_SPIN_ROLLING_REPAIR_20261004，新入口supervise_scut_style_continue.py；status/log/canonical owner仍旧P=/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002。当前SCUT_STYLE_STATE.phase=scut_style_latest6_assessment，无trainer和active_segment是计划内冻结，实际eval4179779仅是读取时定位。读取P/status实际active_log，勿重复probe。
+
+精确完整源19575路径P/logs/2026-10-04_15-38-41_auto_0065_contact_rate_trial_or_continued_cap6_white_v2/model_19575.pt，SHA3cfd7e15983b775a6dd30e82f82519a0c7f2a378f6b395179a87dbaf1b5f225b。实际paired回滚源17196/cap5/white_v2不变，原历史拒绝[6,5]不删除。原104生产源、原130候选源全部字节匹配，只新增gate与controller，SOURCE_FREEZE现132源。奖励loaded_rolling_v1、white_v2、硬件限幅、PPO、观察35/38和闭链reset/物理未变。
+
+最新6实际复核全部通过后自动独立8物理/材料/128完整PPO预检（预检权重弃用、计同canonical），完整actor/critic/optimizer/std/iter暖启动45min，再两份不同正式策略与双seed站跑/自转配对才继续10→4π。新档只改rate；三失败或旧能力/物理退化回真实paired成熟完整权重并hold，保留新权重/预算。不混DR/移动/FPS/地形。监督器与guardian在主机独立执行，本机离线继续。
+
+唯一252000秒预算及三已授权20h扩展保持，本次无新增。实际尾段116.62875175476074秒已结一次，<=.25s退出观察不确定性保留；无PPO修复/冻结不计。新entry、migration、retry1、saved recovery都已经执行，严禁重跑或盲--resume。每2h线程巡检/健康静默、Rich1551130同P窗口5s本地刷新保持。目标/预算真正完成须完整保存和真实final flat/DRspin/nominalspin、AUTONOMY_FINISHED及原布尔并列，终验完成才删除automation。

@@ -1,0 +1,27 @@
+# 补齐站跑和自转的滑移诊断验收
+
+用户2026-10-04指出：“不是说取消0.15这条未经标定的硬否决了吗”。此前scut_style_nonslip_gate_v1只取消自转中的滑移数值硬否决，原站跑admission仍有左右轮网格代理≤0.15的条件。这个落实遗漏实际阻止了19575的配对准入。本次同步覆盖站跑、自转、单次检查、多seed配对、最终验收和状态显示，版本为scut_style_nonslip_gate_v2_flat_and_spin。
+
+19575白名单seed20261002的1m/s组原来只有6/8通过。env3/53的左轮代理分别为0.1576477736234665、0.1509619951248169m/s；两者其他准入条件通过。新版本把这两个有限数值列为诊断，原flat失败布尔和全部raw报告保留。既有19575八份配对及不同正式19732的报告只作明确版本重分类，不冒称新增回放或滑移行为已经修好。
+
+取消的是未经标定的有限滑移数值硬否决。缺失、非有限滑移读回仍拒绝；原生存、跟踪、姿态/真高、动作平滑、承重/卸载、间隙、停车、闭链、严重个体与自转接触数据完整性检查仍拒绝。奖励loaded_rolling_v1里的0.15归一化继续用于连续优化，属于奖励尺度，不是晋级阈值。white_v2、PPO、网络35/38观察6动作、物理/资产/reset和硬件包络保持原样。
+
+本机与目标机实际30项CPU合同结果相同、全部通过。合同覆盖实际失败重分类且不改报告、逐项非滑移条件失败、缺失/NaN读回拒绝、单个严重姿态异常不能被7/8组通过隐藏、两份不同正式策略及既有八份初态精确配对。实际安装后，五条入口路线全部核验为v2：站跑/自转gate、单次decision、配对pairs、最终finish和站跑UI。
+
+保存边界交接已完成。核实旧parent4179735/start26057140、guardian4179778/start26057207、trainer2316/start26564086后，独立watchdog保护并暂停旧父后续启动。trainer自身run收到STOP_AFTER_SAVE，完整保存19975，实际退出及“Full checkpoint saved; authorized budget or stop-file reached”正常保存日志已核验。由于进程已被原父回收，数值退出码未读到，receipt保留trainer_exit_code=null，不声称读取到exit0。没有重置std、优化器或权重，也没有以预检或全目录最高iteration选择来源。
+
+正式完整来源：
+
+- 路径：/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002/logs/2026-10-04_18-43-51_auto_0070_scut_style_rate_trial_or_continued_cap6_white_v2/model_19975.pt
+- SHA256：64a9dd769108e448d0816ce9b3f670fcc6d915ddc91ce1c7be9acf6c0511bca5
+- CPU actor/critic/optimizer/std/iter共68浮点张量完整有限。
+
+完成真实锁释放后只结算旧trainer尚未计账的307.9612023830414秒一次；退出观察不确定性上界0.25秒。canonical总252000秒、三个已授权扩展保持，charged225308.08865308762秒，冻结remaining26691.911346912384秒约7h24m。这是保存边界快照，后续PPO须扣实时active尾段；迁移等待期间trainer仍运行的有效PPO合法计账，无PPO冻结不计。
+
+旧父、guardian、trainer全部退出。新parent17344/start26974951和guardian17379/start26975017实际/proc cwd/argv/start_ticks已核验，独立session分别17344/17379。代码root仍MOD4_SPIN_ROLLING_REPAIR_20261004，status/log/canonical owner仍MOD4_scut_spin_rate_20261002。原132候选源与104生产源字节未改，只新增v2 gate和controller，候选freeze134源实际一致。
+
+HEALTH_V2_INSTALLED.json快照阶段scut_style_v2_latest6_assessment：没有trainer/active段，唯一eval17380正在对固定19975做原定80env×1500步15秒站跑检查。之后顺序88env15秒自转以及同19975两个seed nominal/white_v2共八份站跑/自转真实配对。全部其他门槛、完整root/q精确配对、参数初末读回和严重个体检查通过才SCUT_STYLE_V2_RATE6_MATURE_ACCEPTED，再独立8预检和有界正式试训。当前不能称6最新策略成熟、8已开训或120rpm达到。
+
+回滚源仍真实paired成熟17196/5/white_v2，全部权重及历史拒绝[6,5]保留。新档只改rate，固定reward/DR/physics/hardware/PPO；三技能失败或非滑移旧能力/物理退化回实际paired成熟完整策略并hold，保留余预算。8→10→4π需各自物理/128完整PPO预检、完整暖启动、两份正式策略和同策略双seed配对。目标或预算真正结束需完整保存/final flat/DRspin/nominalspin，原滑移布尔并列，终验完成才停止监控。
+
+本次migration、stage/launch和entry都已执行，禁止重跑或盲--resume。每2小时巡检、健康无实质变化静默、原地小陀螺优先及移动/FPS/地形延期保持。该修复解决验收落实遗漏，不是实际材料点滑移或实车安全认证。

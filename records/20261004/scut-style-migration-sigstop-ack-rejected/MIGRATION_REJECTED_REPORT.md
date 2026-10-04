@@ -1,0 +1,5 @@
+# 首次迁移：SIGSTOP确认时序错误，生产未改变
+
+唯一migration worker4177099在检查old parent4145334是否进入T状态时立即断言失败。SIGSTOP信号已发送但/proc状态确认存在异步时序，不能同步假设完成。失败发生在写STOP_AFTER_SAVE、退出/结账、安装新文件或新PPO之前；finally恢复已核验旧父SIGCONT。实际trainer4158388继续6/white_v2/rolling_v1，canonical活跃段和全部旧源码保持。
+
+原SCUT_STYLE_MIGRATION.json、原migrate_scut_style.py及错误现场保留。独立watchdog仅保护自己的旧父，不启动trainer、不写账本；随后精确身份退休。显式唯一retry1修改为最多5秒等待相同PID/start_ticks确认T，保留第一事务，不重跑原入口。本次是接管程序故障，不是策略或物理崩溃。

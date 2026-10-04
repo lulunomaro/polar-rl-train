@@ -1,0 +1,16 @@
+{
+  "id": "20261004-scut-style-migration-sigstop-ack-rejected",
+  "tag": "trial-20261004-scut-style-migration-sigstop-ack-rejected",
+  "title": "SCUT-style migration rejected before save: asynchronous SIGSTOP acknowledgement",
+  "kind": "rejected",
+  "recorded_at": "2026-10-04T09:20:06.784543+00:00",
+  "repair_or_experiment_note": "# 首次迁移：SIGSTOP确认时序错误，生产未改变\n\n唯一migration worker4177099在检查old parent4145334是否进入T状态时立即断言失败。SIGSTOP信号已发送但/proc状态确认存在异步时序，不能同步假设完成。失败发生在写STOP_AFTER_SAVE、退出/结账、安装新文件或新PPO之前；finally恢复已核验旧父SIGCONT。实际trainer4158388继续6/white_v2/rolling_v1，canonical活跃段和全部旧源码保持。\n\n原SCUT_STYLE_MIGRATION.json、原migrate_scut_style.py及错误现场保留。独立watchdog仅保护自己的旧父，不启动trainer、不写账本；随后精确身份退休。显式唯一retry1修改为最多5秒等待相同PID/start_ticks确认T，保留第一事务，不重跑原入口。本次是接管程序故障，不是策略或物理崩溃。\n",
+  "validation": "Before STOP/save/settlement/install/PPO, original parent restored, exact trainer and ledger remained active; original failure preserved.",
+  "source_and_evidence_sha256": {
+    "records/20261004/scut-style-migration-sigstop-ack-rejected/MIGRATION_REJECTED_REPORT.md": "1ae0960458ab5b111d3ae8eb40ba74b7a88e6851714ea8fd7e898387dc0cf2e9",
+    "records/20261004/scut-style-migration-sigstop-ack-rejected/SCUT_STYLE_MIGRATION.json": "cbd8bd47affc2fe53e94c4e7689fd2edaed14d5daa583b9858331ca4d6fd6f86",
+    "records/20261004/scut-style-migration-sigstop-ack-rejected/migrate_scut_style.py": "ecf415e660912be8a94a54feb29209e31b2f72cb267eb7cce567e11f30f7b207",
+    "records/20261004/scut-style-migration-sigstop-ack-rejected/HEALTH_MIGRATION_1.json": "dc865be7f1897f0db8ee80bc7406cdb1c979786f46c52a5d0c682efdb6f23a98"
+  },
+  "real_robot_certified": false
+}

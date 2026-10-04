@@ -1,0 +1,7 @@
+# 只读等待器receipt字段修正
+
+有限等待器watch_formal_save.py等到真实PID绑定首份保存时，初版错误读取latest_complete.json的sha256字段，触发KeyError。该receipt只含checkpoint/iteration/saved_at/log_dir/pid，SHA应由CPU完整检查点读取产生。等待器没有启动、停止训练、写账本或改配置；正式trainer4146674及父guardian持续正常。
+
+本机等待器改用该receipt实际iteration字段验证>19078，不再假设存在SHA字段；不重跑任何实验或PPO。随后独立inspect_continuation.py直接按真实PID绑定run/receipt读取完整19100并计算SHA698c8d77bedf534a756ec7378705207fe47397f732c1f06d4d598b255e8957ee，CPU68浮点有限，精确暖启动/实际source freeze核验通过。原只读错误保留，本轮部署核验报告以独立实际证据为准。
+
+原错误：KeyError: 'sha256'（remote read-only observer），不是生产训练失败。

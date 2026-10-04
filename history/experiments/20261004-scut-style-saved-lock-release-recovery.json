@@ -1,0 +1,21 @@
+{
+  "id": "20261004-scut-style-saved-lock-release-recovery",
+  "tag": "trial-20261004-scut-style-saved-lock-release-recovery",
+  "title": "Recover exact saved19575 and settle only real exit tail after lock-release race",
+  "kind": "repair",
+  "recorded_at": "2026-10-04T09:20:13.646125+00:00",
+  "repair_or_experiment_note": "# 保存已完成后监督锁释放竞态：精确尾段恢复\n\n唯一retry1完成旧trainer4158388的自身run STOP_AFTER_SAVE完整退出，正式model19575 SHA3cfd7e15983b775a6dd30e82f82519a0c7f2a378f6b395179a87dbaf1b5f225b，CPU actor/critic/optimizer/std/iter68浮点完整有限、正常完整保存log。旧parent4145334和guardian4145375退休后，立即非阻塞拿锁仍遇到释放竞态而退出；没有安装新gate/启动新的trainer/结清尾段。\n\n后续只读/proc/locks和fuser确认两个实际锁无持有者，所有旧父/guardian/trainer退出、无评测；没有杀其他AI或删除锁文件。新独立finish_saved_migration只在这个已保存窗口接续，不重新运行旧迁移。保留首次与retry1错误和源码；终止自己精确PID/start_ticks的retry watchdog。取得两锁后依据retry1已经记录的实际退出epoch1791105078.612097结清116.62875175476074秒尾段一次，退出检测不确定性<=.25秒；无PPO修复窗口不计预算。\n\ncanonical总252000秒、三登记扩展不变。结清charged218473.09889769554，剩33526.90110230446秒约9h18是冻结快照，active_segment=null；后续有效PPO正常扣时。安装新gate与新controller期间账本字节严格不变。Windows helper首次误在本机import fcntl，在网络/任何变更之前报错，已将fcntl保留在远端Linux代码段，未重结账或重交接。\n\nSCUT_STYLE_SAVED_RECOVERY_BEGIN/COMPLETED和HANDOVER是真实结算与交接证据；该helper不得重跑。旧failed journal不删除、不伪装成成功。完整新旧权重全部保留。\n",
+  "validation": "CPU68 finite full save19575; all old processes exit; both locks acquired;116.62875175476074s actual tail settled once; no frozen downtime/new budget.",
+  "source_and_evidence_sha256": {
+    "records/20261004/scut-style-saved-lock-release-recovery/SAVED_RECOVERY_REPORT.md": "34d2d0a1fcf1b7562e7d1c958917a7e7cb8634dc3b764395d2304a4faaaf3c4f",
+    "records/20261004/scut-style-saved-lock-release-recovery/SCUT_STYLE_MIGRATION_RETRY1.json": "b6cabc296601c2c128d8410dea2ccdc92ddd1350cde4fbccce9295beeb0749dd",
+    "records/20261004/scut-style-saved-lock-release-recovery/SCUT_STYLE_RECOVERY_RETRY1.json": "8000f88cd245ddc2cc56ded6e3fd49415d8f8fefde2445ab314aca22f731ef86",
+    "records/20261004/scut-style-saved-lock-release-recovery/LOCK_REVIEW.json": "cf954db34942e596549fa1a6b384d110a96f3b271f02c385e6c254df08b766ac",
+    "records/20261004/scut-style-saved-lock-release-recovery/migrate_scut_style_retry1.py": "0336ba8b77650724a3f034337e54cce518322ddf9d356d94201d09971a72d493",
+    "records/20261004/scut-style-saved-lock-release-recovery/finish_saved_migration.py": "e324cd978c04997b607ec24e21174551ae55735de5d060a34c38824da90759b0",
+    "records/20261004/scut-style-saved-lock-release-recovery/SCUT_STYLE_SAVED_RECOVERY_BEGIN.json": "0b9a69b825fca08aa68aa454d54e3c30d0f48e4b70ef816251bc74671396d657",
+    "records/20261004/scut-style-saved-lock-release-recovery/SCUT_STYLE_SAVED_RECOVERY_COMPLETED.json": "22b49baa3823e1bed2856e0e1529c218c3ed46b85b165fefd79e57cb60642f43",
+    "records/20261004/scut-style-saved-lock-release-recovery/SCUT_STYLE_HANDOVER.json": "138ad157e1ecd7f41be00dbc5990ae22ea077d98a2d2436fabf6db37f68394e1"
+  },
+  "real_robot_certified": false
+}

@@ -1,0 +1,9 @@
+# 保存已完成后监督锁释放竞态：精确尾段恢复
+
+唯一retry1完成旧trainer4158388的自身run STOP_AFTER_SAVE完整退出，正式model19575 SHA3cfd7e15983b775a6dd30e82f82519a0c7f2a378f6b395179a87dbaf1b5f225b，CPU actor/critic/optimizer/std/iter68浮点完整有限、正常完整保存log。旧parent4145334和guardian4145375退休后，立即非阻塞拿锁仍遇到释放竞态而退出；没有安装新gate/启动新的trainer/结清尾段。
+
+后续只读/proc/locks和fuser确认两个实际锁无持有者，所有旧父/guardian/trainer退出、无评测；没有杀其他AI或删除锁文件。新独立finish_saved_migration只在这个已保存窗口接续，不重新运行旧迁移。保留首次与retry1错误和源码；终止自己精确PID/start_ticks的retry watchdog。取得两锁后依据retry1已经记录的实际退出epoch1791105078.612097结清116.62875175476074秒尾段一次，退出检测不确定性<=.25秒；无PPO修复窗口不计预算。
+
+canonical总252000秒、三登记扩展不变。结清charged218473.09889769554，剩33526.90110230446秒约9h18是冻结快照，active_segment=null；后续有效PPO正常扣时。安装新gate与新controller期间账本字节严格不变。Windows helper首次误在本机import fcntl，在网络/任何变更之前报错，已将fcntl保留在远端Linux代码段，未重结账或重交接。
+
+SCUT_STYLE_SAVED_RECOVERY_BEGIN/COMPLETED和HANDOVER是真实结算与交接证据；该helper不得重跑。旧failed journal不删除、不伪装成成功。完整新旧权重全部保留。

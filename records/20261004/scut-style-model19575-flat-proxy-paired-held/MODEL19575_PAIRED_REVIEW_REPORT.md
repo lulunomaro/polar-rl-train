@@ -1,0 +1,13 @@
+# 正式19575：六档自转通过，原站跑配对未全通过
+
+本次读取已完成的auto0066单次flat/spin和auto0067双seed nominal/white_v2八份15秒报告，未执行新回放。精确正式源19575 SHA `3cfd7e15983b775a6dd30e82f82519a0c7f2a378f6b395179a87dbaf1b5f225b`，来自实际旧trainer自己的完整保存，不搜索检查点。
+
+auto0066在scut_style_nonslip_gate_v1下原站跑和六档自转通过；auto0067四份自转352/352存活，新版本全部通过，无严重个体否决，实际参数初末回读通过。四对完整初始root/q精确一致。原mesh/legacy滑移失败布尔保留，不称滑移已消除或原规则毕业。
+
+auto0067原站跑八份中的四份站跑报告有一份失败：seed20261002/white_v2，1m/s constant组6/8=75%，低于原80%。env3左轮全时网格支撑点滑移代理0.1576477736m/s，env53为0.1509619951m/s，均高于原0.15。这两样本其他原站跑准入条件均通过，peaktilt分别2.488056/2.847576deg，双轮低载最长都4ms。该报告64/64已训练环境存活，原严重个体额外检查通过。其余三份站跑原准入通过。不是新接触数据缺失、崩溃、物理改动或实物打滑认证。
+
+这次控制器只改自转课程滑移验收，用户要求保留的原站跑admission_gate仍含0.15网格代理。没有据此偷换flat规则、重跑挑样本或改生产。auto0067 paired_decision原pass=false完整保留，未写SCUT_STYLE_RATE6_MATURE_ACCEPTED，未升8。监督器据既定有界流程继续六档；当前paired成熟回滚源仍17196/5white_v2。
+
+本机逐环境独立审查见SCUT_STYLE_19575_PAIR_AND_19732_REVIEW.json；实际使用的admission_gate.py和scut_style_gate.py SHA与活跃132源freeze精确一致。证据原始JSON及SHA索引一并归档，权重仅SHA/路径索引。
+
+本次只读已有报告和来源核查，没有启动probe/PPO、暂停重启、改物理/奖励/DR/预算或验收规则。

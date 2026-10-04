@@ -1,0 +1,9 @@
+# 统一滑移诊断规则后的19975真实单次六档回放
+
+固定19975完整源SHA64a9dd769108e448d0816ce9b3f670fcc6d915ddc91ce1c7be9acf6c0511bca5，CPU68浮点完整有限。auto0071实际80env站跑与88env自转各1500步15秒已经落盘。新scut_style_nonslip_gate_v2_flat_and_spin站跑/自转均通过，原站跑admission亦true，旧strict_window仍保留原值；自转88/88存活，11组各8/8通过，严重个体、实际参数回读与接触数据完整性全部通过。
+
+原自转mesh、legacy及loaded015均false原样保留，本次没有把其失败改写，也不声称滑移消除。两协议flat seed20260927 / spin seed20261002不同，不当同初态配对。此为迁移trainer自己的19975新实际回放，不是19575/19732重分类证据的新回放。
+
+纯正负6的逐环境交错索引审查见MODEL19975_FIRST_V2_REVIEW.json。最大闭链0.086088mm、mimic0.001827rad。运行仍cap6/white_v2/rolling_v1，奖励、硬件、物理、PPO不变。最新19975两seed nominal/white八份配对尚在既有流程中，不能凭本次单检称最新6成熟或8正式训练。
+
+独立parent17344/start26974951和guardian17379/start26975017继续；冻结无trainer/active段正常。canonical总252000秒、三原扩展、charged225308.08865308762秒和余26691.911346912384秒保持本次冻结快照，未发重复probe或PPO、未重复结账。

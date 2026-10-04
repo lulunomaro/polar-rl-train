@@ -1,0 +1,38 @@
+# 华南虎 V14 平均水平速度门槛审查
+
+本轮仅审查源码和已有 MOD4 报告，没有连接目标机、发起回放、修改验收或训练配置。
+
+固定公开提交：`b8ff79f3df855faf9dc92f4a282bd80c42649466`。本机 clone HEAD 精确相同、工作区干净。范围为公开 WheelbipeV14FlatEnvCfg、继承的 V13/25v3 环境、命令采样及终止路径；不是对未公开实车策略或所有后续版本的断言。
+
+## 核验结论
+
+没有找到我们这种“15秒回放中，每环境平均水平速度模长不得超过 0.12m/s、每组至少80%通过”的自转晋级硬门槛。公开 V14 使用连续奖励抑制平移，spin_low/mid 按训练迭代启用；该 Flat 配置的 curriculum=None、special_mode_require_stable=False。
+
+| 源码参数/逻辑 | 实际含义 |
+| --- | --- |
+| stand_still_deadzone_threshold=0.1 | 对前向速度指令判定死区；不是实际运动速度上限 |
+| spin_low/mid 的 vx=(-0.1,0.1)、vy=0 | 采样的命令范围；死区使其前向跟踪目标归零，极端端点除外 |
+| lin_vel_xy_sigma=0.5 | exp(-error²/0.5) 的分母；连续奖励尺度 |
+| lin_vel_err_constraint=1.0 | 指数奖励计算前截断前向误差；不是终止/升档速度阈值 |
+| track_lin_vel_xy 权重 +1、square 权重 -1 | 指数跟踪项和平方误差惩罚 |
+| stand_still_lin_vel 权重 -1 | 死区内按机体系 abs(vx)+abs(vy) 连续惩罚，包含自转小 vx 指令 |
+| iteration_start=3000/4000 | 两个高速自转命令模式的启用迭代；不是按回放平均水平速度毕业 |
+| 可选 special_mode_stable_root_lin_vel_b_abs_max=3.0 | 模式入口的瞬时分量检查；当前 require_stable=False，因此未启用 |
+
+常规速度跟踪项实际使用 `body_vx*cos(pitch)` 的前向水平投影，不是世界 xy 速度模长。V14 没有在 _get_dones 中增加平均水平速度门槛；继承路径检查触地、姿态、数值异常等，速度异常兜底是瞬时分量上界而非 .12 的质量门控。台阶状态机对 done 的覆写同样不是该自转平均速度门槛。
+
+固定零前向指令、前向水平误差恒为 0.13m/s 时，单独指数跟踪项约为 exp(-0.13²/0.5)=0.96676；仍须计平方惩罚、静止平移惩罚以及其他奖励。不能从“平均水平速度 .13”直接推算真实平均总奖励。
+
+## 对本项目的影响
+
+本项目 spin_translation_speed 为热身0.5秒后的世界 root xy 速度模长时间均值，即 mean(sqrt(vx²+vy²))；不是 sqrt(mean(vx)²+mean(vy)²)，也不是最终位置净位移除以时间。root_xy_excursion_m 单独记录相对初始位置的最大偏移，亦不是最终净位移。
+
+本轮引用已归档 model20555/auto0085 结果：12个失败个体仅 spin_translation_speed>.12，范围 .120168–.129891m/s；原非滑移站跑、姿态、承重、闭链、停车与数据完整性通过。该证据已在此前试验记录中归档，本轮不重跑或重新归档20555试验。
+
+判断：将0.12作为连续优化/诊断目标合理，但仅以此未经标定的边界数值否决晋级，比该公开 V14 的做法更严格。若后续改变验收，应明确新版本，保留原布尔、平均速度、最大位置偏移与完整原数据；区分周期摆动和持续外漂，不以高奖励代替稳定/控制证据，不热改活跃trainer。本轮尚未实施该调整。
+
+## 精确源码入口
+
+- [V14配置：死区](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env_cfg.py#L756)、[奖励参数](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env_cfg.py#L852)、[自转采样](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env_cfg.py#L975)。
+- [继承奖励：死区掩码](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe25_v3/env.py#L3568)、[速度与静止惩罚](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe25_v3/env.py#L3711)、[终止条件](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe25_v3/env.py#L4911)。
+- [命令迭代门控](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/manager/mdp/isaaclab/commands.py#L275)、[可选瞬时稳定检查](https://github.com/scutrobotlab/wheeled-legged_RL/blob/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/manager/mdp/isaaclab/commands.py#L439)。

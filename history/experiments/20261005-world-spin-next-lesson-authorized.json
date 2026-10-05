@@ -1,0 +1,16 @@
+{
+  "id": "20261005-world-spin-next-lesson-authorized",
+  "tag": "trial-20261005-world-spin-next-lesson-authorized",
+  "title": "登记4π终验后世界定向边走边转科目与监控接续",
+  "kind": "deployment",
+  "recorded_at": "2026-10-05T02:56:59.784660+00:00",
+  "repair_or_experiment_note": "# 用户确认下一科目：世界定向边走边转\n\n2026-10-05用户确认“感觉这样也行，就按照这个来吧，等2Π训练完开始训这个”，随后明确纠正“我说错了因该是4π”。原地终点继续为4πrad/s=2rev/s，不下调到2π。此为顺序与方案授权，不是移动课程已经部署或开训。\n\n原地双seed和final的实际左右signed yaw目标确认后，保留AUTONOMY_FINISHED完整报告/SHA并登记SPIN_STAGE_FINISHED；有预算才在唯一canonical的安全保存边界接下一科目。单科结束不删除mod4-10。预算仍324000有效PPO秒90h，四次20h扩展各一次，未新增预算。若原地终验未达到目标，则继续原地有界学习；预算耗尽则保存和当前阶段终验后如实停止。\n\n下一科目是平地低速自转时沿指定世界方向净推进，V=0.15→0.3→0.5m/s、左右yaw=1–2rad/s。核心请求：每步用实际heading θ，BODY vx=2V cos(θ−α)、vy=0，按朝向交替前进/倒车。V=0.5理想BODY峰值1m/s；横向理想位移峰峰值V/|yaw|，2rad/s时约25cm，1rad/s时约50cm，完整圈横向净漂移必须另列。不能把普通弧线、恒BODY绕圈、速度模长或只看单方向进度当作目标完成。\n\nMATLAB后台API完成72运动学案例、36条件平面动力学案例、恒BODY/反方向/裁剪负对照和步长收敛；来源trial-20261005-matlab-directional-spin-feasibility / HEAD6cd5a6e6094f60c2b81d6c08b06b60f938448b8c。它没有验证完整MOD4轮腿平衡/接触或PPO能力。延迟可产生累计cross误差，MATLAB额外世界位置反馈对照可纠偏，但用了理想位置；实际SDK需独立状态估计、观测/奖励/命令回读证据，不能直接安装MATLAB理想电机控制器或擅自改35/38观察。\n\n正式源只能来自实际原地终验后的PID绑定完整正式checkpoint，不预选21541/21550或全目录最高iter。基于最终源码重基隔离候选，复用directional_spin_sdk_v2.py/world_cycle_metrics.py作为来源，旧复制监督器不能运行。补齐真实每步heading请求、观察/奖励读回、完整圈/全时段/第一失败前有效样本和沿/横世界净位移；保留全部完整圈及周期摆幅。常BODY绕圈整圈零进度、错误世界方向、无完整圈和失败后样本是负对照。\n\n先冻结命令/观察/奖励以及实际模型/接触/参数读回，再短物理和原站跑/原地回归、128完整PPO与20k材料/有限数/吞吐检查；全部PPO预检、加载、保存退出扣同canonical，冻结回放不扣。正式接管须核实旧父不再启动孩子、真实孩子退出、CPU68浮点完整有限、active段结清只一次、同canonical锁、无旧probe。有限45min完整actor/critic/optimizer/std/iter KEEP_STD1、white_v2暖启动，保留原地与站跑回归；真实任务/模型/数据故障保留新权重并回原地终验完整源/hold。SCUT v4有限性能数值继续只诊断与连续优化，不恢复.15滑移或.12平均水平速度硬否决。目标完成必须实际有符号世界净进度证据；不要求120rpm与.5m/s同时实现。\n\n原地未结束时不热改活跃trainer，不混入移动指令，不双开20k/PPO或重复既有probe，不重跑entry/migration/预算/恢复事务。全地形、云台、MoE之后。MATLAB后续只用后台API，不再Computer Use。每两小时巡检和健康静默继续，小陀螺单科完成不删除监控。当前文档不是已部署的移动执行器；新远端控制器验收部署后才承担主机独立执行。\n\n本次落地范围：本机课程队列与现有两小时监控说明已更新核验。主机接续说明未同步（连接环境本轮不可用），没有部署移动执行器，也没有训练/预算动作。下次实际课程接管前同步交接、完成安全入口与验收。\n",
+  "validation": "Explicit human correction to 4pi; existing heartbeat exact readback; .15/.3/.5 m/s with yaw1-2 queue; no remote controller/trainer/budget action",
+  "source_and_evidence_sha256": {
+    "records/20261005/world-spin-next-lesson-authorized/QUEUE.json": "3df4f6ac169261bd6c54eb4d788a50635c4f2166d155257d0ec4b19373b5be04",
+    "records/20261005/world-spin-next-lesson-authorized/HANDOFF.md": "33f686796c7dd685c150e4fa89685c5a604a26476dababcf5d65f58986dfb2a9",
+    "records/20261005/world-spin-next-lesson-authorized/AUTOMATION_VERIFIED.json": "4e838d248ef8925ba84bb4544f6d800134bbe802c0d832deda81c63fdcfd3a16",
+    "records/20261005/world-spin-next-lesson-authorized/REMOTE_HANDOFF_PENDING.json": "bfeac1b9ac59c3d95f7bef3f76ad6fe186aff217a8c829a43f78a3bfc9da6b13"
+  },
+  "real_robot_certified": false
+}

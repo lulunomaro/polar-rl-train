@@ -1,0 +1,20 @@
+{
+  "id": "20261005-world-drift-cycle-reward-off-on-exact-readback",
+  "tag": "trial-20261005-world-drift-cycle-reward-off-on-exact-readback",
+  "title": "Validate cycle cross drift reward with exact off-on behavior and actual reward readback",
+  "kind": "evaluation",
+  "recorded_at": "2026-10-05T13:43:52.139523+00:00",
+  "repair_or_experiment_note": "用户明确授权补世界定向净漂移奖励。新增phase_compensated_cycle_cross_v1：实际2pi圈边界插值净cross与扣理想周期摆動的当前余圈提供连续反馈；cost=clamp((估计/.10)^2,0,4)、weight-.3，上限1.2/s，只moving模式，.10为连续尺度，不新增晋级硬否决。72理想运动学/注入±.06漂移/reset/resample/inactive/clamp CPU测试通过；原22589轨迹完整圈cross离线差2.38e-9。固定实际完整22775策略的22env off/on各1500步15秒实际44/44存活，root/q和参数精确配对，actions/commands/XY/heading/joints全部bit-exact。新reward实际readback误差1.2e-7/s，总reward差公式误差9.32e-10/step，1500步各仅更新一次，非moving成本0。冻结账本bytes不变；奖励是恒定请求yaw的工程余圈估计，非材料点/位置纠偏/学习改善或实车证明。正式回归/PPO和试训结果另记。",
+  "validation": "72 ideal cases and signed drift tests; two 15s actual 22env runs with exact root q actions commands XY heading joints and parameters; reward delta 9.32e-10; ledger unchanged",
+  "source_and_evidence_sha256": {
+    "history/evidence/world-drift-reward-20261005/world_drift_reward.py": "236bf6758f65b30fab3711a430e6c726161ff8af6bd1f535d4bf1ebbedc73c94",
+    "history/evidence/world-drift-reward-20261005/world_drift_isaac.py": "8ece7afebb78ac2f40dee46813d490a2bcab4d8570c85e35c4d853604b52bc99",
+    "history/evidence/world-drift-reward-20261005/test_world_drift_reward.py": "cc36526a52286ba59e82008f55f793c2fd4e61eefa4d4c5b3b711dd2ef1d2bf3",
+    "history/evidence/world-drift-reward-20261005/CPU_CONTRACT.json": "be3c67b1eb97d31eba277f3379a2529393da98328d7f83d8233edeea9fe12723",
+    "history/evidence/world-drift-reward-20261005/EXISTING_TRACE_COST_PREVIEW.json": "9a1ef5a9739cb06a446678c6d0d79865707e095a9661b8b9a4164ee21cf138da",
+    "history/evidence/world-drift-reward-20261005/REWARD_READBACK_off.json": "78e50c24174154d1f721363a987f3902af95ecc048c7f8951235e750c65489e4",
+    "history/evidence/world-drift-reward-20261005/REWARD_READBACK_cycle_v1.json": "faf53eedaca433c8031737f68409b262fbcd798c7e34273c3e07afc9ca7c5b61",
+    "history/evidence/world-drift-reward-20261005/REWARD_READBACK_PASSED.json": "3b638b4c1305a6d3c8d3f1e0e5f1422c0c750308f567f09d6626e7b75e9a018b"
+  },
+  "real_robot_certified": false
+}

@@ -1,0 +1,17 @@
+# 第五次用户预算追加40小时：总130小时
+
+用户本线程明确要求“预算添加40小时”。唯一canonical登记USER_ADD40H_20261005_5TH一次，新增144000秒。原36000+四条各72000+本次144000=468000有效PPO秒130小时。全部旧扩展、charged、权重及历史原样保留，没有复制操作账本或重计已有段。
+
+当前世界监督器verify仍有324000总额硬编码，虽然底层budget_authority已经按明确扩展动态校验。隔离重基164个实际冻结源，只将world verify的固定总额检查改为已注册授权检查；其他原函数AST完全一致、其余163源逐字相同。新增唯一接续控制器后165源。实际奖励phase_compensated_cycle_cross_v1、loaded_rolling_v1、white_v2、硬件、物理、PPO、观察网络和reset不变，新学习while AST与原一致。
+
+在旧父实际clock sleep且账本未写入时暂停其启动/计账权限，独立watchdog保护。trainer330317没有被暂停、提前停止或改deadline，自然完成原45分钟并完整保存22929，SHA71fb20bc51f02a080908b2decc46f357dd024f4560fc7814b4c4bc39831cc7aa，CPU68浮点有限/full actor critic optimizer std iter。原run的164源快照未改。真实/proc退出码0与完整保存/SimulationContext cleared已核验。未提前切掉45min或把预算保存当技能毕业。
+
+进程退出在控制器暂停期间发生，首次确认zombie时间1791211675.7144022作为保守关闭上界，最后SimulationContext日志时间1791211565.898964作为下界。约109.815438秒关闭观测不确定性完整保留，不编造.25秒精度。未记账尾段245.416592598秒只结一次；这一上界之后冻结/迁移未扣PPO。charged=277446.599438667，冻结remaining=190553.400561333秒，约52小时56分；此后仅实际PPO扣尾段。
+
+旧325437/325476/330317实际退休后取得同canonical/controller锁，原子登记本次扩展。新parent341833/start36713121与guardian341878/start36713187独立session，父PPID1。唯一入口supervise_world_drift_budget130_continue.py已执行，phase=frozen_flat，读取时eval341879/start36713193正在原定站跑回归，没有trainer/active_segment是计划内冻结。
+
+当前代码E=/home/egde/rl_candidates/MOD4_WORLD_DRIFT_BUDGET130_20261005；status/log/canonical owner仍P=/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002。接续先对原45min完整22929执行已安排flat/spin/world15s和两seed nominal/white十二份完整root/q配对；奖励开关、20k物理、128/20k完整PPO预检全部明确复用，不追加或重复。如果目标仍未达，按原SCUT v4流程从该完整正式权重继续最长2h学习。世界.5实际目标尚未确认，新奖励效果未预判。
+
+本机12项CPU合同、目标机8项实际预算Authority合同及导入/旧新源/完整保存/账本/唯一实际进程核验通过。只读验证helper第一次误以helpers.identity包含ppid，已改为真实/proc字段读取；生产没有错误或变化。早先下载探测根目录budget_authority不存在也仅为读取路径错误，实际权威模块来自原base，未改变预算模块。
+
+真实唯一预算部署用archive_tools/record_experiment.py归档。两小时健康静默巡检继续，不恢复小时/5min SSH或ping，Rich原P窗口5s仅本地文件刷新。世界actual final完成后预算内接独立物理DR；terrain/gimbal/MoE后续，不自动加时、不删除单科完成监控。

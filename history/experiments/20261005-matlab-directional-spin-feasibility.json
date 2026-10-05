@@ -1,0 +1,24 @@
+{
+  "id": "20261005-matlab-directional-spin-feasibility",
+  "tag": "trial-20261005-matlab-directional-spin-feasibility",
+  "title": "MATLAB验证低速自转世界定向净进度与限幅估算",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-05T02:45:52.898280+00:00",
+  "repair_or_experiment_note": "# MOD4 边走边转：MATLAB 后台仿真结果\n\n结论：两轮底盘可以在持续自转时，按每个完整自转周期沿指定世界方向推进。不能在全部朝向下始终保持固定世界方向的瞬时匀速。此次 MATLAB 精确运动学与条件平面动力学支持低速自转移动 0.15→0.3→0.5 m/s 的可行性，但没有验证完整轮腿平衡或现有 PPO 已掌握技能。\n\n## 实际执行\n\n使用 MATLAB R2024b 的 Windows COM 后台 API，计算进程 PID 28052；不是用户原先打开的桌面进程 PID 42708。不再通过 Computer Use 操作界面。run_directional_spin_study.m 为独立函数，不清理用户工作区，不关闭用户现有图窗，不操作远端训练或预算。run_directional_spin_study 输出 RESULTS.json、CSV、MAT、FIG 和 PNG；animate_directional_spin 通过 MATLAB graphics API 渲染 GIF。\n\n## 指令与净位移\n\n设目标世界方向 α、目标周期净速度 V、实际车身朝向 θ，BODY 前向速度请求为 u=2V cos(θ−α)，BODY 横向速度为0，自转 yaw 为 ±1 或 ±2 rad/s。底盘依朝向交替前进、倒车。理想完整圈世界平均速度为 V[cosα,sinα]，横向完整圈净进度为0。\n\nBODY 请求峰值为 2V；理想横向位移峰峰值为 V/|yaw|。这里的横向摆幅不是滑移，也不是完整圈横向净漂移。\n\n|目标净速度|BODY速度峰值|yaw=1 横向峰峰值|yaw=2 横向峰峰值|名义动力学 yaw=2 完整圈净速度|\n|---:|---:|---:|---:|---:|\n|0.15 m/s|0.30 m/s|0.15 m|0.075 m|约0.15294 m/s|\n|0.30 m/s|0.60 m/s|0.30 m|0.15 m|约0.30588 m/s|\n|0.50 m/s|1.00 m/s|0.50 m|0.25 m|约0.50980 m/s|\n\n72个精确运动学案例涵盖两方向、两转速、两世界目标方向及三个初始朝向。解析位移与数值积分最大误差 1.83e−7 m。\n\n负对照：恒 BODY 前进0.5 m/s、自转2 rad/s只绕圈，整圈净进度约0；世界指令反向则净进度为−0.5 m/s；把0.5 m/s目标的 BODY 请求裁到±0.6 m/s，实际理想净进度降至约0.35762 m/s。说明速度模长、普通弧线或绕圈不能替代方向净进度。\n\n## 简化动力学与纠偏\n\n平面刚体差速模型包含轮自转惯量、估计输出 armature、扭矩反馈与加速度前馈、一阶电机响应、原估计转矩转速包络。以真实积分的 heading 提取完整圈，同时保留从第一个样本开始的全部完整圈、启动圈和全窗口指标。报告的 steady 指标从3秒开始；不是删除启动误差。完整轨迹和每圈数据保存在 RESULTS.json / TRAJECTORIES.mat。\n\n名义参数：当前留存 Isaac 名义质量读回14.22014 kg，合同轮径半径0.0625m、轮距0.4376m；旧 CAD 近0.25m根高度姿态估算 yaw 惯量0.51694 kg·m²、COM高度0.18392m。电机连续/峰值转矩估计2.59175/5.77591Nm、估计空载角速度55.36491rad/s。摩擦系数设定0.75。真实输入 mesh 半径约0.0637m，不与合同半径或有效接触滚动半径混同；这次使用合同半径。参数来源和SHA见 PARAMETERS.json。\n\n共36个动力学案例：名义12种、固定名义控制器的扰动12种、增加世界位置纠偏的相同扰动12种均在条件平面检查中满足有限数、轮法向载荷为正、所需摩擦小于μN、转矩低于估计连续额定值。36例最大轮转矩约1.1604Nm，最大摩擦利用率约0.343，最小估计轮法向载荷约57.56N，没有触及电机包络。条件通过不是完整机器人安全验收。\n\n扰动设定：质量/惯量+7.5%、电机 gain=.925、一阶响应150ms；是本地敏感性实验，不是当前生产启用了150ms传感延迟。未纠偏的0.5 m/s、+2 rad/s案例，完整圈平均along约0.53114m/s、cross约0.02468m/s，有累计横向偏移。仅用理想朝向公式不能保证有延迟情况下的精确世界方向。\n\n加入0.5/s世界位置误差反馈后，同扰动案例从3秒起全部完整圈平均along约0.50251m/s、cross约−0.00467m/s，包含纠偏收敛阶段；最后一圈along=0.50011585m/s、cross=−0.000056376m/s。世界位置反馈在此使用理想已知位置；实际机器人需要独立验证里程计/状态估计。本地示范控制器尚未安装到训练 SDK。\n\nRK4 4ms与2ms在相同末时刻比较：最后位置差约1.52e−7m，完整圈净速度差约2.63e−7m/s。解析等式、负对照和步长收敛均通过。\n\n## 适用边界与下一科目\n\n平面模型假设保持平衡、轮接触不滑；通过所需轮胎力/法向载荷的相容性估算检查这些假设，而非求解真实接触。没有模拟腿/弹簧/闭链柔性、主动俯仰平衡、跳跃/卸载、导轮接地、PhysX摩擦、负载与电池/热限制。质量与电机曲线也不是实物标定结果。因此不能宣称完整 MOD4 动力学或实车已验证，更不能宣称当前策略已学会。\n\n后续仍按已授权顺序：原地2rev/s终验完成后，在同一剩余预算内将世界方向命令基于实际 heading 更新 BODY 请求，在 Isaac 中做真实命令/观察/奖励回读、完整圈净进度回放及站跑/原地回归，再按0.15→0.3→0.5m/s学习。纠偏模块需要独立验证，不能直接把本地 MATLAB 理想控制器替换现有 PPO。这里未验证120rpm自转与0.5m/s净移动同时达到，也不承诺两者同时实现。\n",
+  "validation": "72 exact kinematic cases, 36 conditional planar cases, negative controls, RK4 convergence, 80-frame MATLAB GIF; no PPO or full balance certification",
+  "source_and_evidence_sha256": {
+    "records/20261005/matlab-directional-spin-feasibility/run_directional_spin_study.m": "cf5b9f290d873cd5fc76b4b06bc9757497c66b6d08b843884fd605dbe46c097c",
+    "records/20261005/matlab-directional-spin-feasibility/animate_directional_spin.m": "a5db29a51ce21654d111f2697affa5625c779711ecd5ae475323a2db0c831596",
+    "records/20261005/matlab-directional-spin-feasibility/PARAMETERS.json": "f74452f921aadab4c6ae08f3317b5e7d0218c6f8108af5976222f508f04131cb",
+    "records/20261005/matlab-directional-spin-feasibility/RESULTS.json": "5dc6d7917dbf87742040df5b358853c683924a1b8424f4c0aed74633b4520af3",
+    "records/20261005/matlab-directional-spin-feasibility/CASE_SUMMARY.csv": "d9c6b2a6cb3e709da5c4607263909bd10ec5fde8b072d0d6de89a2fdd1acfd49",
+    "records/20261005/matlab-directional-spin-feasibility/REPORT.md": "00395d594009f42dd0576281a8989117e7880d44da1f142807604ff6750dd3f9",
+    "records/20261005/matlab-directional-spin-feasibility/ARTIFACT_INDEX.json": "c776b91210c26a99c0820addc803b6d8c5037945af6a8930e315c9561767ceb1",
+    "records/20261005/matlab-directional-spin-feasibility/API_RUN_CONNECTION.json": "9ecd8005323041b041d466632c42e310301b5d2fa4c8966d2e309b205e200593",
+    "records/20261005/matlab-directional-spin-feasibility/API_ANIMATION_CONNECTION.json": "99a72c985b0e83d785b969697c9ca194dce65faa8f12b41d682f8bf63da0f7f2",
+    "records/20261005/matlab-directional-spin-feasibility/DIRECTIONAL_SPIN.png": "31e30ae99248814abe82068da9b0b531bf569c1aadee0218db3e331a84699197",
+    "records/20261005/matlab-directional-spin-feasibility/MOTOR_TRACTION.png": "e2206d9a3334d1f91a0ca97764f7691bb23465b4717179e5c8b51ee438c898c6",
+    "records/20261005/matlab-directional-spin-feasibility/ANIMATION_PREVIEW.png": "dd06498f281e2343a90354a5127ee78576bf6c133a10449b9b82e556afe6e881"
+  },
+  "real_robot_certified": false
+}

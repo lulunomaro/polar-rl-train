@@ -1,0 +1,12 @@
+{
+  "path": "isaac/mod4/tui_spin_rate.py",
+  "original_sha256": "ad512a94d1ef6468e41a01061c5f37b52171c2f296a278d4a0d3c41fb36159df",
+  "approved_sha256": "ce8c4b5d31628e2d5bfe89a5058c9a188aea87700723bd034a88086819d8f6ac",
+  "only_evaluation_panel_changed": true,
+  "scope": "Only report precedence and checkpoint dict display conversion changed. Not imported by trainer/probe. Original P source freeze remains untouched; this exact reviewed GUI hash is allowed separately.",
+  "no_training_code_exception": true,
+  "diff": "--- \n+++ \n@@ -312,12 +312,15 @@\n \n \n def evaluation_panel(state):\n-    report = state.get('final_evaluation') or state.get('latest_evaluation') or state.get('baseline') or {}\n+    report = state.get('latest_evaluation') or state.get('final_evaluation') or state.get('baseline') or {}\n     if not report:\n         return Panel('等待首次无探索动作评测', title='确定性回放', border_style='yellow')\n     if 'nominal' in report and 'mild' in report:report=report['mild']\n     seconds = float(report.get('seconds') or 0)\n-    checkpoint = Path(report.get('checkpoint', '?')).name\n+    checkpoint_value = report.get('checkpoint', '?')\n+    if isinstance(checkpoint_value, dict):\n+        checkpoint_value = checkpoint_value.get('path') or checkpoint_value.get('checkpoint') or '?'\n+    checkpoint = Path(str(checkpoint_value)).name\n     title = f'{seconds:g} s 确定性' + ('验收' if seconds >= 15 else '基线探针（不能判定15秒达标）')\n     current_ck = Path(state.get('latest_checkpoint') or '').name\n     stale = bool(current_ck and checkpoint != current_ck)\n",
+  "old_parent_exited": true,
+  "budget_remains_frozen": true,
+  "all_other_UI_AST_exact": true
+}

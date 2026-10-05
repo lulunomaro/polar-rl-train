@@ -1,0 +1,13 @@
+# Model22160 paired .5 world-direction lesson review and existing bounded continuation
+
+Actual read at 2026-10-05 17:46–17:55 Asia/Shanghai. No new probes, trainer launch, PPO preflight, restart, configuration or budget change was issued by this read. The existing remote controller automatically continued its planned terminal lesson.
+
+Auto0202–0213: both seeds20261002/3, nominal/white_v2, flat/spin/world twelve15s reports all passed SCUT v4 task/model/data admission. Six complete initial root/q pairs were independently exact. All352 spin and352 world observations survived; flat320/320 survived, including256 trained environments. Actual parameter audit objects passed where supplied; nominal flat has no independent parameter object and no supplemental readback is claimed. Auto0214 is learning_admission_only=true, not final world goal success.
+
+Model22160 SHA7535dc8f91425346049710a490dff213c8d1bc7664b9cd6ca96241708df7090d. Four world target facts16/64,16/64,16/64,17/64. All ±1rad/s groups passed; ±2rad/s groups largely retained transverse drift. Complete-circle net along range.470955–.548069m/s, max absolute net cross.073692m/s. Full-window oscillation spans include accumulated drift and are not pure periodic sway. Old mesh/legacy failures and flat strict_window=false remain unchanged. Finite quality figures remain diagnostic, not an old admission veto.
+
+One actual trainer277326/start34865727, parent213707/start32914339, independent guardian213749/start32914408. Run logs/2026-10-05_17-47-28_auto_0215_world_directional_learning_cap12.5664_white_v2 restores exact22160 complete actor/critic/optimizer/std/iteration, KEEP_STD1/world goal.5/rolling_v1/white_v2. Manifest initialization and run156 source SHA map were verified. All156 registered candidate source hashes matched. PID-bound22175 SHA75df089dc844bf987d4f7b5b7fc431f899d08fc762657af49c3afa05627a4d6b was independently CPU-read:68 floating tensors finite, optimizer/actor/critic and distribution.std_param retained. This new checkpoint has no15s evaluation yet. Recent active logs had no current NaN/OOM/Traceback.
+
+Deadline2026-10-05 19:44:38+08:00, then the existing parent owns the subsequent retention and paired assessment. Effective budget remaining59488.794s≈16h31m at17:54:54, continuing to deduct active PPO; total324000s90h with the same four authorized extensions. No ledger settlement, authorization, charged value, or budget copy was performed here.
+
+Inplace4π final21697 remains completed. World .5 final and DR expansion are not completed/deployed. Preserve the approved next sequence: actual world final evidence then independent physical DR expansion at fixed tasks; terrain/gimbal/MoE later. All old one-shot/continuation/install/budget transactions stay non-repeatable.

@@ -1,0 +1,15 @@
+{
+  "id": "20261005-world-spin-current-net-direction-reward-gap-audit",
+  "tag": "trial-20261005-world-spin-current-net-direction-reward-gap-audit",
+  "title": "Verify current world-spin reward has no direct net-direction drift term",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-05T13:00:53.910550+00:00",
+  "repair_or_experiment_note": "# 当前世界方向净漂移奖励审查\n\n用户询问当前奖励是否已经惩罚逐圈世界方向漂移。本次只读实际进程、正式run_manifest、run source freeze和源文件；没有新探针/PPO、奖励修改、重启、预算或验收修改。\n\n结论：目前没有专门的完整圈世界净横向漂移奖励项。只有车身前向速度及yaw跟踪对其间接约束。此前“有限性能持续由奖励优化”不能解读为已经部署了与最终净方向精度完全一致的奖励。\n\n实际唯一trainer311263运行auto0232：P/logs/2026-10-05_20-37-07_auto_0232_world_directional_learning_cap12.5664_white_v2。actual/proc cwd/argv/start_ticks、当前三个源文件与SOURCE_FREEZE和该run rolling_source_freeze的SHA逐项一致，见ACTUAL_VERIFIED.json。实际manifest中RM_SPIN_STAGE=world_directional_v1、世界goal=.5、rolling=v1；RM_W_RUN_VEL_ERROR=0.0。实际loaded权重见LOADED_REWARD_ENV.json。\n\n具体训练路径：\n\n- directional_spin_runtime每控制步用真实heading生成BODY vx=2V*cos(theta-alpha)、vy=0，并沿用原RewardsCfg；configure不新增奖励。\n- RewardsCfg.track_lin_vel/tight/huge_gap/square均调用scut_flat_rescue的forward_error。该误差是command vx减去实际BODY前向速度的pitch投影，不读完整圈净cross/世界位置偏移。\n- track_ang_vel及平方项优化signed yaw；这些也不是世界净方向漂移项。\n- run_velocity_error项的loaded权重为0，不能将其函数存在当作启用。\n- world_cycle_metrics和world_progress_contract的完整圈净along/cross只在冻结报告、final能力确认中计算，没有进入训练reward_manager。\n\n因此，车身速度跟踪有所改善可能间接减小净漂移，但不能保证减少逐圈累积偏移。此处训练目标与最终世界方向精度目标存在直接反馈缺口；尚未完成隔离因果实验，不把它断言为全部漂移的唯一成因。\n\n合理下一项候选应只对moving模式增加完整周期或滑动周期的净along/cross反馈，并验证计算、重采样/reset的状态清零、左右转及世界坐标符号、实际reward读回和原站跑/4pi回归。正常理想轨迹本来有非零瞬时cross速度及约25cm周期摆动，不能把瞬时cross速度或摆幅直接压到0。MATLAB的世界位置反馈尚未安装；不把建议说成已部署。本次保持既有trainer执行，任何正式修改须在完整保存边界及隔离验证后接续同canonical。\n\n已核验源码SHA：\n\n- mod4_task.py: 0eecb5511ba132bd6ad4631b0dcadb620d43a934f40e4e66d76b9e68fd8746b7\n- scut_flat_rescue.py: 94287ec8f7f6646525aad20d554100a85783f5f43a376d62a02315261078f8ae\n- directional_spin_runtime.py: 8fed717b0d2ba77491c252b183f9462f49457402d96927cc441c88ecd36b1cd8\n\n没有完成或部署声明，沒有扩大DR。原地4pi完成事实保持，当前世界方向精度仍需实际paired/final证据。\n",
+  "validation": "Read-only actual trainer manifest and three frozen source hashes verified; BODY forward and yaw terms confirmed; no reward, controller or budget mutation.",
+  "source_and_evidence_sha256": {
+    "records/20261005/world-spin-current-net-direction-reward-gap-audit/REPORT.md": "21d634076c0ffa9770fad8009c5eecb8165b4f21d7e7ea29b00550ada0cb64d7",
+    "records/20261005/world-spin-current-net-direction-reward-gap-audit/ACTUAL_VERIFIED.json": "55308264efafa8f285ddde71847fdaf1330bb6dc96ec3e9c0d6b7839e66204d7",
+    "records/20261005/world-spin-current-net-direction-reward-gap-audit/LOADED_REWARD_ENV.json": "f4c2dca68a34f50ee4ad77a61252c73476014575890c689f0ed5557089cf7bbe"
+  },
+  "real_robot_certified": false
+}

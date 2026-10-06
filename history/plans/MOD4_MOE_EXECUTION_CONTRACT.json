@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "plan_id": "MOD4-MOE-PLAN-001",
-  "plan_version": "1.0",
+  "plan_version": "1.1",
   "status": "DRAFT_REVIEW_REQUIRED",
   "document": "history/plans/MOD4_MOE_MASTER_PLAN.md",
-  "document_sha256": "1d8861649f3364cb0a9f4eaaef69b0f3b2230fbed722b559975294ea0b15faf7",
+  "document_sha256": "73a70daa675c292fdae9b75f3e326292268adad7af4999541c8d8bc090733b61",
   "approved": false,
   "approval_message": null,
   "approved_plan_sha256": null,
@@ -16,9 +16,12 @@
     "no_new_GPU_probe": true,
     "no_new_expert_DR_or_gate_training": true,
     "no_old_entry_resume": true,
-    "current_block_original_save_and_already_scheduled_frozen_review_allowed": true,
+    "current_block_original_save_and_already_scheduled_frozen_review_allowed": false,
     "idle_successor_retired": true,
-    "receipt": "history/evidence/20261006-moe-plan-review/REVIEW_HOLD_RECEIPT.json"
+    "receipt": "history/evidence/20261006-moe-plan-review/REVIEW_HOLD_RECEIPT.json",
+    "current_block_saved_and_exited": true,
+    "current_parent_UI_hash_repair_hold_retained": true,
+    "new_extension_ledger_application_waits_approved_S0": true
   },
   "architecture": {
     "actor_input": 35,
@@ -46,7 +49,61 @@
       "residency_ms": 100,
       "probability_margin": 0.2,
       "status": "candidate_requires_independent_validation"
-    }
+    },
+    "baseline_actor_input": 35,
+    "selected_deploy_interface": "pending_S1A_actual_comparison",
+    "history_candidate": {
+      "approved_or_deployed": false,
+      "stage": "S1A",
+      "current_feedback_dimension": 35,
+      "history_frames_first": 5,
+      "history_input": 175,
+      "history_span_ms": 40,
+      "conditional_history_frames": 10,
+      "conditional_span_ms": 90,
+      "encoder_layers": [
+        175,
+        128,
+        64,
+        3
+      ],
+      "actor_candidate_input": 38,
+      "candidate_actor_layers": [
+        38,
+        256,
+        128,
+        64,
+        6
+      ],
+      "ablation": [
+        "A0_existing_single_frame",
+        "A1_history_auxiliary_Body_velocity_supervision_actor_latent_detach",
+        "A2_history_encoder_joint_PPO_only"
+      ],
+      "actual_Body_velocity_label_coordinate_point_index_required": true,
+      "do_not_assume_critic_first_three_velocity": true,
+      "actor_and_gate_no_privileged_oracle_inputs": true,
+      "new_latent_actor_columns_zero_initial_equivalence_required": true,
+      "new_optimizer_no_claim_full_old_optimizer_resume": true,
+      "complete_checkpoint_encoder_actor_critic_optimizers_std_RNG_history_required": true,
+      "auxiliary_learning_charged_same_budget": true,
+      "select_by_matched_skill_retention_DR_steps_wall_not_total_reward": true,
+      "applied_to_all_experts_without_actual_comparison": false,
+      "conditional_history_input": 350,
+      "conditional_encoder_layers": [
+        350,
+        128,
+        64,
+        3
+      ]
+    },
+    "initial_gate_layers_history_candidate": [
+      38,
+      64,
+      32,
+      2
+    ],
+    "privileged_critic_already_present": true
   },
   "experts": [
     {
@@ -234,6 +291,12 @@
       "status": "pending"
     },
     {
+      "id": "S1A",
+      "name": "matched history and auxiliary velocity supervision ablation",
+      "status": "pending",
+      "new_interface_candidates_explicitly_in_reviewed_document": true
+    },
+    {
       "id": "S2",
       "name": "E0 grouped common DR",
       "status": "pending"
@@ -275,6 +338,7 @@
   "suggested_review_scope": [
     "S0",
     "S1",
+    "S1A",
     "S2",
     "S3",
     "S4",
@@ -301,28 +365,31 @@
     "canonical": "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json",
     "authorized_seconds": 468000,
     "extension_records_applied_once": 5,
-    "new_budget_seconds": 0,
-    "snapshot_epoch": 1791301446.7123208,
-    "snapshot_effective_remaining_seconds": 156749.56276917458,
+    "new_budget_seconds": 360000,
+    "snapshot_epoch": 1791303003.5123236,
+    "snapshot_effective_remaining_seconds": 155491.60849547386,
     "reread_before_execution": true,
     "planned_hours": {
-      "new_preflight": 1,
-      "E0_DR": 8,
-      "E1_terrain_DR": 10,
-      "gate_learning": 6,
-      "combined_additional_learning": 3,
-      "optional_flat_world4pi": 6,
-      "optional_rough_rotation": 4,
-      "repair_save_reserve": 5.5
+      "new_preflight": 3,
+      "history_auxiliary_ablation": 6,
+      "E0_DR": 20,
+      "E1_terrain_DR": 30,
+      "gate_combined_matched_learning": 12,
+      "conditional_flat_world4pi": 20,
+      "conditional_rough_rotation_geometry": 18,
+      "conditional_self_rescue_future_revision": 10,
+      "conditional_tunnel_future_revision": 6,
+      "repair_save_reserve": 18
     },
-    "planned_total_hours": 43.5,
-    "live_reserve_formula": "min(5.5h, 0.13*actual_remaining)",
-    "shrink_priority": "retain S0-S5; remove optional S6/S7 first",
+    "planned_total_hours": 143,
+    "live_reserve_formula": "min(18h, 0.13*actual_remaining)",
+    "shrink_priority": "retain S0-S5 including S1A; remove future self rescue/tunnel reservations and conditional S6/S7 first",
     "charged_work": [
       "PPO preflight",
       "expert/gate PPO",
       "gate supervised learning (accounting kind must be implemented and audited in S0)",
-      "associated loading/saving/exit"
+      "associated loading/saving/exit",
+      "history encoder auxiliary supervised learning and associated loading/saving/exit"
     ],
     "uncharged_work": [
       "ordinary CPU contracts",
@@ -332,7 +399,29 @@
       "offline downtime"
     ],
     "no_duplicate_settlement_or_active_clearing": true,
-    "safe_launch_remaining_min_s": 120
+    "safe_launch_remaining_min_s": 120,
+    "ledger_authorized_seconds_current": 468000,
+    "total_plan_authorized_seconds_after_pending_extension": 828000,
+    "new_budget_applied_this_revision": false,
+    "pending_extension": {
+      "id": "USER_ADD100H_20261007_6TH",
+      "seconds": 360000,
+      "human_message": "plan的预算可以再添加100小时，你再反思一下为什么我们累计100亿步了但是完成的科目和效果远远落后于华南虎？",
+      "status": "human_authorized_pending_safe_application_in_approved_S0",
+      "applied": false
+    },
+    "snapshot_canonical_sha256": "ce8d34b2d4c3a84fc85957a97fde499d0d475c1fcb7578b6c0e9cb850db2738f",
+    "snapshot_remaining_after_pending_extension_seconds": 515491.60849547386,
+    "step_accounting": [
+      "actual_new_policy_interactions_per_run",
+      "retained_checkpoint_ancestry",
+      "actual_task_DR_effective_exposure",
+      "discarded_or_failed_branch_learning",
+      "physical_substeps_separate",
+      "optimizer_reuse_separate",
+      "learning_evaluation_migration_wall_separate"
+    ],
+    "UI_iter_batch_estimate_not_global_step_ledger": true
   },
   "hard_contracts": {
     "actual_task_failure": "retain evidence and protect saved weights",
@@ -386,7 +475,8 @@
     "matched_initial_root_q_parameters_deploy_information_hardware_task_DR": true,
     "gate_change_requires_new_whole_system_evaluation": true,
     "costs_and_tail_and_switch_transients_required": true,
-    "no_real_robot_certification_inferred": true
+    "no_real_robot_certification_inferred": true,
+    "single_policy_comparator_same_selected_history_encoder_interface": true
   },
   "execution_refusals": [
     "missing human approval",
@@ -423,5 +513,14 @@
     "weights_and_large_trajectory_sha_only": true,
     "no_credentials": true,
     "no_health_checkpoint_trial": true
+  },
+  "efficiency_review": {
+    "path": "history/plans/MOD4_TRAINING_EFFICIENCY_REVIEW.md",
+    "sha256": "d2c06dd43aa36f196c204651c212e294093ee22dd000f6cd981c67fd3617d98f",
+    "complete_historical_step_audit_finished": false,
+    "UI_counter_is_inherited_iteration_estimate": true,
+    "actual_run_new_steps": 151680000,
+    "UI_estimated_steps": 11489280000,
+    "actual_completed_learning_hours": 86.80788652903504
   }
 }

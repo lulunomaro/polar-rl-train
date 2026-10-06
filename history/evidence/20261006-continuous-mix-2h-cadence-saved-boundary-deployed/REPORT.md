@@ -1,0 +1,11 @@
+新控制器已在真实完整保存/退出/既有短回放/同canonical两锁边界接管，持续原混合任务，首块有界2h；197原runtime文件完全一致，仅新增controller共198源。
+
+人类明确要求记录各科最佳检查点、现在持续混合训练，并在以后比较MoE专家。技能最佳索引已经单独归档，tag trial-20261006-skill-best-known-checkpoint-registry-and-mixed-moe-comparison-queue。新控制器完整恢复均衡源23621 SHA1ad4a9335c276adc040776b9e6f13d12e78f3b150c73a243fce0692d19a4b4f3的actor/critic/optimizer/std/iter，KEEP_STD1。现有197全部源码（包括PPO训练程序、模型/地形/命令/white_v3/reward/physics/obs/reset/硬件限幅）实际字节一致，不重复已经完整通过的同范围128/20k预检或冻结检查。75%flat/25%gentle、flat站10/直线40/纯转30/world20、rough站20/低速±.3保持。
+
+当前实际parent608553/start45066334、guardian608593/start45066402和唯一trainer608594/start45066408均独立session，/proc cwd/argv核验。phase=bounded_continuous_mixed_learning，active_log=/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002/auto_0390_continuous_mixed_baseline_learning_cap12.5664_white_v3.log。这份部署snapshot仍属加载阶段，不借旧源或进程存在宣称新权重成熟/2h结果已完成；自己的实际manifest、定期保存与新回放优先。
+
+当前新策略每块最多2h、15s本地guardian保护；保存后mixed32及white_v3 flat/spin/world少量检查，阶段closeout再两seed三profile18份。无新范围不重复PPO预检；未来新风险首45min合同保留。完整实际回放仍占GPU现实时间，非零成本。未为加速绕过真实task/model/data失败，也不恢复有限质量旧硬门槛。
+
+旧final-pair watcher599556收到SIGSTOP后立即读state，因信号异步过早断言T，检查失败后finally恢复同一旧parent；训练本身没有故障。原log/returned保留，绝不重跑旧watcher。新的唯一helper606076通过实际Linux非GPU SIGSTOP/ack合同，最多2s轮询验证同PID/start，最终在冻结父上实际T确认。旧trainer603527通过自己的STOP_AFTER_SAVE完整原子保存23775 SHA35025d3755e2cc756a5737490e4e9860ab12d6de14f8ef71b53fdd51319cf316、CPU68浮点有限并正常退出；父自行唯一结清真实尾段，保留所有权重。其既有mixed32回放实际通过，完成后旧父/guardian退役。交接账本整字节一致、交易0、重复尾段0，新控制器取得相同两锁后才开始。启动helper本机首次拉取因reports目录缺失失败仅影响下载，远端helper已成功启动，未重复启动。C初次CPU AST读者把模块守卫controller调用算进controller本体，只修独立读者，未改runtime，错误保留。
+
+sensor Z203/A208只CPU/源码准备，没有实际SDK/噪声PPO，当前不启用；MoE未部署。总468000有效PPO秒130h、五既有扩展各一次不变，本次新增预算0。snapshot remaining=162595.402298s，后续扣真实active尾段。健康每2h静默监控保持，单科review不删monitor/加时，不称全课程或实车完成。

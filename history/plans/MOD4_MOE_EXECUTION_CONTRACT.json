@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "plan_id": "MOD4-MOE-PLAN-001",
-  "plan_version": "1.2",
+  "plan_version": "1.3",
   "status": "APPROVED_EXECUTION",
   "document": "history/plans/MOD4_MOE_MASTER_PLAN.md",
-  "document_sha256": "ac8645c775af170ba06a3f4d37b0b0724a043cec3acb9c303556ebdcc953eb68",
+  "document_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
   "approved": true,
   "approval_message": "按照计划执行，还有按照计划精简一下安排定时任务。",
-  "approved_plan_sha256": "ac8645c775af170ba06a3f4d37b0b0724a043cec3acb9c303556ebdcc953eb68",
+  "approved_plan_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
   "allowed_stages": [
     "S0",
     "S0E",
@@ -20,7 +20,7 @@
     "S6",
     "S7"
   ],
-  "controller_implemented": false,
+  "controller_implemented": true,
   "purpose": "Execution constraints bound to direct human approval of original planSHA; actual stage receipts determine deployment and progress.",
   "review_boundary": {
     "no_new_PPO": false,
@@ -545,7 +545,7 @@
   },
   "async_evaluation": {
     "document": "history/plans/MOD4_ASYNC_EVALUATION_PLAN.md",
-    "document_sha256": "c0595fec844daf3dbfde42f85863ceced71df469c10000e3ffbdc88b58f1a726",
+    "document_sha256": "b864f5480ba50c1dbbbb6fdbf04a6d736c43136eb19e3dcafce493ecafbe77a2",
     "training_host": "10.24.4.210",
     "evaluation_host": "10.24.4.249",
     "evaluation_host_OS": "Windows 11",
@@ -614,17 +614,43 @@
     "actual_training_asset_in_isolated_root_SHA_verified": true,
     "formal_functional_calibration_confirmed": false,
     "worker_reconnect_and_result_only_resume": true,
-    "worker_host_task_has_no_periodic_or_boot_trigger": true
+    "worker_host_task_has_no_periodic_or_boot_trigger": true,
+    "validated_training_can_overlap_platform_calibration": true,
+    "platform_calibration_not_a_global_training_barrier": true,
+    "formal_cross_host_equivalence_confirmed": false
   },
   "approval_receipt": "history/evidence/20261007-plan-approved-s0/PLAN_APPROVAL.json",
   "execution_state": {
-    "stage": "S0E",
-    "status": "functional_calibration_in_progress",
+    "stage": "S1A",
+    "status": "bounded_A0_E0_learning",
     "root": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007",
     "state_path": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007/reports/EXECUTION_STATE.json",
     "S0_actual_completed": true,
     "S0E_SDK300_passed": true,
     "worker_actual_PID": 28668,
-    "CPU_result_reader_PID": 664155
-  }
+    "CPU_result_reader_PID": 664155,
+    "learning_root": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007",
+    "learning_state": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007/reports/A0_STATE.json",
+    "parallel_S0E_calibration": true,
+    "new_PID_complete_checkpoint_verified": true,
+    "actual_receipt_reference": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007/reports/A0_TRAINING_ACTUAL.json"
+  },
+  "execution_order_revision": {
+    "epoch": 1791310378.4360738,
+    "plan_id": "MOD4-MOE-PLAN-001",
+    "version": "1.3",
+    "base_version": "1.2",
+    "base_plan_sha256": "ac8645c775af170ba06a3f4d37b0b0724a043cec3acb9c303556ebdcc953eb68",
+    "human_messages": [
+      "4090开训呗，这时间隔着也是浪费啊",
+      "对啊，我让你用3060就是为了并行节省时间，你隔着给我3060评测完4090才能训那我给你3060的意义何在？",
+      "plan里记得改啊"
+    ],
+    "scope": "Only allow S1/S1A A0 on validated4090 range parallel to3060 S0E calibration; all other approved scope unchanged",
+    "new_budget_seconds": 0,
+    "no_new_DR_task_interface_physics_hardware_reset_scope": true,
+    "approved_plan_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
+    "async_plan_sha256": "b864f5480ba50c1dbbbb6fdbf04a6d736c43136eb19e3dcafce493ecafbe77a2"
+  },
+  "implemented_controller_scope": "S1/S1A A0 only; encoder/gate and later expert DR controllers still pending"
 }

@@ -1,0 +1,13 @@
+# 浅地形20k物理通过、PPO吞吐拒绝与精确分块成本复核部署
+
+M auto0312在有效引擎下20k×120步1.2秒实际20000/20000存活、task reset0/nonfinitefalse、closure.181578mm/mimic.001826981rad、完整30q误差0、ground/reward同tick误差0、2401物理接触回调和实际参数初末通过。全部13037624三角面的实际USD与分块世界float32按序流SHA81348d8b3be401698b7c6b5ca5aecbc95372741ddc051e99b5d2c0df2877c8d5；原raw SHA3eda8be003d00110082cfdd8ab6a79de910f3545d8d176ca7abfb1925449010e。无PhysX溢出/BV4生成错误，旧L真实base_contact失败保留，不能把所有历史拒绝混称策略失败或均已修好。
+
+随后auto0313的128环境2轮完整PPO通过，auto0314的20k4轮实际迭代23.75/21.62/21.55/21.55秒，平均有效吞吐21702.272环境策略步每秒，低于保留的23000完整PPO准入条件。采样23.559/21.460/21.392/21.387秒，学习.193/.159/.159/.160秒；worker退出和完整23510/23512 CPU68浮点有限保存核验，两份均预检弃用，未正式地形45min学习。不把吞吐失败说成数值/任务故障或旧有限质量数字否决。两个真实segment38.2342403/300.8007450秒已原父同canonical唯一结清，总339.0349851秒，charged295218.6933579445/剩172781.3066420555/active空。本轮没有追加预算或重新计账。
+
+以同23509、20k真实任务、seed20260928冻结策略另测96控制步，含初始episode随机长度但无PPO：总87.169秒，physics_step累计78.116秒、refresh_ground.114716秒、full_reset.991399秒，实际任务失败0/nonfinitefalse。GPU event相同量级；计时外层增加同步且策略确定性，因此不是PPO吞吐准入替代，physics_step含原物理回调/积分，并未隔离证明每项碰撞成本。初始复位3.3865秒，runtime复位96次合925环境。诊断期间canonical全部字节不变。
+
+实际瓶颈主要在物理步。20,006法向批量数学CPU证明bit-exact的reset优化候选只留本地，不部署、不为其补做无必要PPO。新隔离R=/home/egde/rl_candidates/MOD4_ROUGH_INTRO_COLLISION_COST_REVIEW_20261006仅把原精确连续面分块从每collider最多100000面改为25000面；算法AST规范化该显式bound后完全一致、保留所有坐标/三角面顺序和winding，无简化/隐藏Plane/解析高度或miss缓存。原M179源全核验后重基，178原文件逐字相同，新增唯一controller共180。更细物理collider分块对接触实现及成本的实际效果尚须新10env3s/20k1.2s及完整PPO读回，不能凭部署宣告性能改善或物理接触逐比特一致。
+
+R唯一supervise_rough_intro_collision_cost_review.py已在旧M父guardian与冻结诊断孩子实际退出、无active/S.active_training、同canonical两锁/旧完整源23509 CPU有限边界部署。新子进程必须先读回同seed实际canonical世界三角面SHA与参数/30q/ground/闭链，再新20k实际物理与1282轮/20k4轮PPO达到保留23k后，才从23509完整actor/critic/optimizer/std/iter KEEP_STD1有限45min暖启动；权重全部弃用预检。不是复活旧入口、盲resume、重跑旧账本或再运行已完成预检相同事务。任务仍站20%/低速BODY直线±.3、vy/yaw0；DRwhite3/奖励/torque-speed硬件包络/solver/PPO/35-38-6/reset数学和每tick真实地面查询不变。新正式保存后rough15s和两seed三profile flat/4pi/world18份保存审查；全地形小陀螺、大台阶/空中/自救/洞/云台/MoE未训练。两小时监控继续，hold/deployment/单科通过不称finished或实車认证。
+
+辅助profiling第一次文件模式读者错误与本地report目录缺失发生在启动收据写入边界，第二次Kit未传既有EULA环境在任何scene/dynamic前退出，原错误及exit/code1日志保留；显式命名bootstrap review按原runtime环境启动，最终exit0/整账本exact。它们是辅助启动问题，不是生产policy/model/任务故障；所有这些once及旧entry/budget/恢复事务均不可重跑。

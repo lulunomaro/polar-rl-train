@@ -1,0 +1,128 @@
+"""Explicit low-speed rough intro task; unchanged observations and plant.
+
+Ground is queried after actual physics before termination/reward; no scan is
+secretly supplied to the policy. World-Z impulse is retained with its original
+meaning. No pure/moving spin is requested on this new terrain lesson.
+"""
+import sys, torch
+from pathlib import Path
+A=Path('/home/egde/rl_candidates/MOD4_SCUT_ROUGH_V1_ADAPTER_20261002')
+sys.path.insert(0,str(A))
+from rough_recipe import make_terrain_cfg
+from rough_intro_reset import query, full_reset
+from mod4_env import Mod4Env
+from directional_spin_runtime import DirectionalSpinCommand
+import mod4_task as task
+from isaaclab.managers import TerminationTermCfg
+
+class RoughStraightCommand(DirectionalSpinCommand):
+    """20% stand, remaining uniform BODY vx[-.3,.3]; vy/yaw exactly zero."""
+    def _resample_command(self, env_ids):
+        super()._resample_command(env_ids)
+        ids=torch.as_tensor(env_ids,device=self.device,dtype=torch.long)
+        self.is_pure_spin[ids]=False
+        self.is_moving_spin[ids]=False
+        self.is_transition_spin[ids]=False
+        self.signed_yaw[ids]=0.
+        self.vel_command_b[ids,:]=0.
+        self.vel_command_b[ids,0]=.6*torch.rand(len(ids),generator=self._mode_rng,device=self.device)-.3
+        self.vel_command_b[self.is_standing_env,:]=0.
+
+def boundary_timeout(env):
+    # Explicit finite route boundary is a truncation, never hidden task success.
+    xy=env.scene['robot'].data.root_pos_w[:,:2]
+    anchor=getattr(env,'_rough_spawn_xy',env.scene.env_origins[:,:2])
+    return (xy-anchor).abs().max(-1).values > 2.
+
+def inactive_rolling(env, speed_scale=.15, yaw_min=3.5, support_weight=.25):
+    cmd=env.command_manager.get_command('twist')
+    if bool((cmd[:,2].abs()>1e-6).any()) or bool((cmd[:,1].abs()>1e-6).any()):
+        raise RuntimeError('Intro command contract violated; flat rolling proxy not valid for terrain spin')
+    # Original pure-yaw mask is false on EVERY new terrain command. Do not
+    # instantiate a flat-circle contact proxy and claim terrain material slip.
+    return torch.zeros(env.num_envs,device=env.device)
+
+def configure_intro(cfg):
+    terrain,recipe=make_terrain_cfg(cfg.scene.num_envs,seed=cfg.seed,profile='intro_v1')
+    terrain.terrain_generator.num_rows=2
+    terrain.terrain_generator.num_cols=5
+    terrain.terrain_generator.use_cache=False
+    cfg.scene.ground=None
+    cfg.scene.terrain=terrain
+    cfg.scene.wheel_contact_scut.filter_prim_paths_expr=['/World/ground/terrain/mesh']
+    cfg.scene.wheel_contact_scut.max_contact_data_count_per_prim=64
+    cfg.events.consistent_start.func=full_reset
+    cfg.events.ground_track=None
+    cfg.events.skill_cmds=None
+    cfg.commands.twist.class_type=RoughStraightCommand
+    cfg.commands.twist.rel_standing_envs=.2
+    cfg.commands.twist.ranges.lin_vel_x=(-.3,.3)
+    cfg.commands.twist.ranges.lin_vel_y=(0.,0.)
+    cfg.commands.twist.ranges.ang_vel_z=(0.,0.)
+    cfg.commands.twist.resampling_time_range=(12.,16.)
+    cfg.curriculum.gyro_window=None
+    cfg.rewards.spin_contact_consistency.func=inactive_rolling
+    cfg.terminations.rough_route_boundary=TerminationTermCfg(func=boundary_timeout,time_out=True)
+    cfg.sim.enable_scene_query_support=True
+    cfg.sim.physics.enable_scene_query_support=True
+    return recipe
+
+def refresh_ground(env):
+    tick=int(env._sim_step_counter)
+    if getattr(env,'_rough_query_tick',None)==tick:
+        return env._mod4_ground_z
+    robot=env.scene['robot'];ray=query(env)
+    if not hasattr(env,'_rough_body_ids'):
+        env._rough_body_ids=robot.find_bodies(['chassis','left_wheel','right_wheel'],preserve_order=True)[0]
+    points=torch.cat((robot.data.root_pos_w[:,None,:],robot.data.body_link_pos_w[:,env._rough_body_ids]),dim=1).clone()
+    points[:,:,2]+=1.
+    out=ray.cast(points.contiguous(),4.)
+    if not bool(out['hit'].all()) or not bool(torch.isfinite(out['normal']).all()) or not bool((out['normal'][...,2]>0).all()):
+        raise RuntimeError('Actual root/body/wheel terrain query missing or invalid; no cached-floor fallback')
+    env._mod4_ground_z=out['height'][:,0]
+    env._rough_ground_normal=out['normal']
+    env._rough_ground_heights=out['height']
+    env._rough_query_tick=tick
+    env._rough_query_updates=getattr(env,'_rough_query_updates',0)+1
+    return env._mod4_ground_z
+
+class RoughIntroEnv(Mod4Env):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        termination=self.termination_manager.compute
+        reward=self.reward_manager.compute
+        def actual_termination(*a,**k):
+            refresh_ground(self)
+            self._rough_termination_query_tick=self._rough_query_tick
+            return termination(*a,**k)
+        def actual_reward(*a,**k):
+            refresh_ground(self)
+            self._rough_reward_query_tick=self._rough_query_tick
+            return reward(*a,**k)
+        self.termination_manager.compute=actual_termination
+        self.reward_manager.compute=actual_reward
+        self._rough_query_tick=None
+
+    def _reset_idx(self,env_ids):
+        super()._reset_idx(env_ids)
+        self._rough_query_tick=None
+
+    def step(self,action):
+        result=super().step(action)
+        if self._rough_reward_query_tick != int(self._sim_step_counter):
+            raise RuntimeError('Reward computed from stale terrain phase')
+        if self._rough_termination_query_tick != self._rough_reward_query_tick:
+            raise RuntimeError('Termination/reward terrain phases disagree')
+        return result
+
+def forward_readback(env):
+    robot=env.scene['robot'];heading=robot.data.heading_w.torch
+    grid=torch.cartesian_prod(torch.linspace(0.,.8,5,device=env.device),torch.tensor([-.25,0.,.25],device=env.device))
+    starts=torch.empty((env.num_envs,len(grid),3),device=env.device)
+    starts[:,:,0]=robot.data.root_pos_w[:,0,None]+torch.cos(heading)[:,None]*grid[None,:,0]-torch.sin(heading)[:,None]*grid[None,:,1]
+    starts[:,:,1]=robot.data.root_pos_w[:,1,None]+torch.sin(heading)[:,None]*grid[None,:,0]+torch.cos(heading)[:,None]*grid[None,:,1]
+    starts[:,:,2]=robot.data.root_pos_w[:,2,None]+1.
+    out=query(env).cast(starts.contiguous(),4.)
+    if not bool(out['hit'].all()):
+        raise RuntimeError('Forward scan outside actual mesh; not filled with stale/default height')
+    return out

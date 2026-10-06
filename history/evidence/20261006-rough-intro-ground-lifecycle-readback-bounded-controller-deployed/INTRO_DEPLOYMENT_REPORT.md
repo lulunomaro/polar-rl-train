@@ -1,0 +1,13 @@
+# 低难度地形可训练任务真实地面生命周期回读与独立控制器部署
+
+从实际DR23509（SHA2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a）及F167重基隔离H=/home/egde/rl_candidates/MOD4_ROUGH_INTRO_RUNTIME_20261006。保留166旧源字节，原train入口仅换Env/config接入与实际地形manifest；runner_config、std KEEP_STD1、optimizer、PPO、原子保存与有界停止不变。
+
+任务为固定SCUT五类intro子集、实际mesh替代Plane、完整30q/qd/root复位。每个候选reset的25200碰撞采样点按真实法向布局，64环境分块限制峰值tensor；缺失ray拒绝，不用旧RMUC或缓存地面。ground高度在真实physics更新后、termination/reward之前刷新，二者同tick；root/body/主轮法向和前方scan查询实际mesh。scan仅诊断，35actor38critic6action未改变。世界Z积分仍称竖直冲量、不冒充坡面法向承重或材料点滑移；intro零yaw使原pure rolling mask全false，显式零值适配避免构造不适用的平地圆底代理，其他奖励权重/公式保持。姿态奖励仍世界up，不声称已经全部按地形法向重定义。
+
+首terrain课是站/低速直线BODYvx[-.3,.3]、vy/yaw0，固定white_v3工程分布；旧平地站跑/4pi/world通过独立原模块保留回归，不将未学地形直接压上4pi。场景材料static/dynamic1、multiply相对于原平地单列变化。intro排除cliff/15cm起步大台阶/跳跃/airborne，不认证全地形或实车。
+
+真实10env300步3秒新任务10/10存活，闭链最大.070469mm、mimic.001691456rad、全30q回读误差0，ground高度和height reward相对于独立同一步mesh查询误差都0。真实新command/观察/奖励与white_v3参数初末读回通过。初次SDK拒绝kwargs奖励接口签名、动态步0；在新的signature review入口改为原明确speed_scale/yaw_min/support_weight签名，不改奖励值/physics。原错误和hold完整保留，唯一新重审实际成功，Kit退出0仍按真实error/pass判断。
+
+新supervise_rough_intro.py已经部署，开始独立20k120步物理及128/20k完整PPO合同；预检权重弃用，计同130h唯一canonical。只有检查通过才从精确23509有限45min暖启动，保存后新rough15秒和两seed三profile旧flat/spin/world18份回归，再saved review。此记录是读回/部署，尚不宣称20k/PPO/正式学习通过。23509的F18旧基线和既有组件明确按SHA复用，不重复已完成probe或预算迁移。所有旧entry不可重跑。
+
+冻结SDK回读和部署交接canonical bytes不变、无预算扩展；总468000秒130h，部署前剩173120.341627秒。SOURCE_INDEX记录实际哈希数量和当前canonical；克隆FREEZE顶层旧source_count164/parent_budget324000等只作历史元数据，不是实际源数量或账本依据，动态verify读同一canonical Authority。旧F source freeze与原raw不改。所有权重和大库仅SHA，两小时监控继续。

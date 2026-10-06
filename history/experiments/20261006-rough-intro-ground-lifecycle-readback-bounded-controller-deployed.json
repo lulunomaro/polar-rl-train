@@ -1,0 +1,26 @@
+{
+  "id": "20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed",
+  "tag": "trial-20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed",
+  "title": "低难度地形真实奖励地面生命周期回读与有界控制器部署",
+  "kind": "deployment",
+  "recorded_at": "2026-10-06T02:44:10.377072+00:00",
+  "repair_or_experiment_note": "# 低难度地形可训练任务真实地面生命周期回读与独立控制器部署\n\n从实际DR23509（SHA2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a）及F167重基隔离H=/home/egde/rl_candidates/MOD4_ROUGH_INTRO_RUNTIME_20261006。保留166旧源字节，原train入口仅换Env/config接入与实际地形manifest；runner_config、std KEEP_STD1、optimizer、PPO、原子保存与有界停止不变。\n\n任务为固定SCUT五类intro子集、实际mesh替代Plane、完整30q/qd/root复位。每个候选reset的25200碰撞采样点按真实法向布局，64环境分块限制峰值tensor；缺失ray拒绝，不用旧RMUC或缓存地面。ground高度在真实physics更新后、termination/reward之前刷新，二者同tick；root/body/主轮法向和前方scan查询实际mesh。scan仅诊断，35actor38critic6action未改变。世界Z积分仍称竖直冲量、不冒充坡面法向承重或材料点滑移；intro零yaw使原pure rolling mask全false，显式零值适配避免构造不适用的平地圆底代理，其他奖励权重/公式保持。姿态奖励仍世界up，不声称已经全部按地形法向重定义。\n\n首terrain课是站/低速直线BODYvx[-.3,.3]、vy/yaw0，固定white_v3工程分布；旧平地站跑/4pi/world通过独立原模块保留回归，不将未学地形直接压上4pi。场景材料static/dynamic1、multiply相对于原平地单列变化。intro排除cliff/15cm起步大台阶/跳跃/airborne，不认证全地形或实车。\n\n真实10env300步3秒新任务10/10存活，闭链最大.070469mm、mimic.001691456rad、全30q回读误差0，ground高度和height reward相对于独立同一步mesh查询误差都0。真实新command/观察/奖励与white_v3参数初末读回通过。初次SDK拒绝kwargs奖励接口签名、动态步0；在新的signature review入口改为原明确speed_scale/yaw_min/support_weight签名，不改奖励值/physics。原错误和hold完整保留，唯一新重审实际成功，Kit退出0仍按真实error/pass判断。\n\n新supervise_rough_intro.py已经部署，开始独立20k120步物理及128/20k完整PPO合同；预检权重弃用，计同130h唯一canonical。只有检查通过才从精确23509有限45min暖启动，保存后新rough15秒和两seed三profile旧flat/spin/world18份回归，再saved review。此记录是读回/部署，尚不宣称20k/PPO/正式学习通过。23509的F18旧基线和既有组件明确按SHA复用，不重复已完成probe或预算迁移。所有旧entry不可重跑。\n\n冻结SDK回读和部署交接canonical bytes不变、无预算扩展；总468000秒130h，部署前剩173120.341627秒。SOURCE_INDEX记录实际哈希数量和当前canonical；克隆FREEZE顶层旧source_count164/parent_budget324000等只作历史元数据，不是实际源数量或账本依据，动态verify读同一canonical Authority。旧F source freeze与原raw不改。所有权重和大库仅SHA，两小时监控继续。\n",
+  "validation": "新10env3s实际ground/reward同tick读回误差0/35-38-6/参数通过；明确166旧源/原PPO函数AST一致；签名初错保留；20k及PPO还需实际结果",
+  "source_and_evidence_sha256": {
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/INTRO_TASK_READBACK_VERIFIED.json": "60504db2851ac5d796998c770ae0e07970e5805d462a316e277d0a4bc18a0bb8",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/INITIAL_TERM_SIGNATURE_ERROR.json": "261d64c28f6e899d299e1a069bbe1f3cbfec0c8251c4c0eadbe4fc14c599b9a7",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/INTRO_STATIC_CONTRACT.json": "d31be24b647d509bd9164e0108caf3ac0bc4372569ba06446598ad1023f9026d",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/INTRO_SOURCE_INDEX.json": "2f4bcdfdb625e8371f31d9a7c0eda76086d116a514edfd1205826ca5d61eb539",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/INTRO_DEPLOYMENT_REPORT.md": "ff7b65e54d9b8d2cf593e4c5d5f2a598c1adfb8733df244e10b174c36130ef81",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/ROUGH_INTRO_LAUNCHED.json": "dd2e9bd58a9a671566aba17b327ebb077d3346a8eeebf619bda3e0f3dd2cb5e5",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/rough_intro_runtime.py": "0592811301db9d9aef73789bf48c77a43f91163d96b75690bc687563c31f6f1a",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/rough_intro_reset.py": "0282b6a954fb730835e1d6807172082838d3c4f3ce405240f5dbb6edf8922da8",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/rough_intro_probe.py": "a2b56d17a5bdff761a9c3e4c2a1fbb5320a4bdab637c857797e70e17841b83af",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/rough_reset_tensor.py": "e1b5a6ddc0d0bbd9115387fb366e5ccabd05c035395f9d91b7aba0f2a07bb119",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/train_mod4_ppo.py": "62263bceb0ab2b207298afc3b11d300e349cffd6404e5d1ac72bba81c02ed793",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/supervise_rough_intro.py": "2ee3d7185e2cbb7efe3c6da34478c0c6e3c3a9606358bbed035341f50c908503",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/supervise_intro_readback_once.py": "f682560472680244f3ed05830a9fd1579adaeff7c5c4adc6d57fda1d99bf8105",
+    "history/evidence/20261006-rough-intro-ground-lifecycle-readback-bounded-controller-deployed/source/supervise_intro_signature_review_once.py": "5f405191aa9f8e8307153b493c76c21cbce9bad7669324cd6fb2b8fa1a567a90"
+  },
+  "real_robot_certified": false
+}

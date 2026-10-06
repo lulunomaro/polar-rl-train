@@ -1,0 +1,22 @@
+--- F167/scut_curriculum_gate_v4.py
++++ S0P/scut_curriculum_gate_v4.py
+@@ -73,14 +73,17 @@
+         first=r.get('first_failure_step')
+         require(isinstance(first,list) and len(first)==n and all(v==steps for v in first),'actual_first_failure')
+         sub=r.get('substep_contact_readback') or {};cp=sub.get('per_environment') or {}
+-        require(sub.get('callbacks')==steps*20 and sub.get('sampling_s')==.0005,'incomplete_substep_capture')
++        from physics_clock import validate_clock
++        try:clock=validate_clock(sub.get('sampling_s'));decimation=clock['decimation']
++        except ValueError:clock=None;decimation=0
++        require(clock is not None and sub.get('callbacks')==steps*decimation,'incomplete_substep_capture')
+         for key in CONTACT_FIELDS:
+             a=cp.get(key)
+             require(isinstance(a,list) and len(a)==n and all(isinstance(row,list) and len(row)==2 and all(finite(v) for v in row) for row in a),'invalid_contact_'+key)
+         if not any(x.startswith('invalid_contact_') for x in reasons):
+             for i in range(n):
+                 for w in (0,1):
+-                    require(cp['loaded_samples'][i][w]>0 and cp['valid_ticks'][i][w]==(steps-50)*20,'contact_capture_missing_env'+str(i))
++                    require(cp['loaded_samples'][i][w]>0 and cp['valid_ticks'][i][w]==(steps-50)*decimation,'contact_capture_missing_env'+str(i))
+                     control=pe.get('left_fz' if w==0 else 'right_fz',[float('nan')]*n)[i]
+                     require(finite(control) and abs(cp['mean_normal_force_N'][i][w]-control)<=.1
+                         and cp['max_normal_z_error'][i][w]<=.01 and cp['max_com_link_point_velocity_error'][i][w]<=.001,

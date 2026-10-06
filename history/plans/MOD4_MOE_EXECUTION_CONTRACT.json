@@ -1,16 +1,17 @@
 {
   "schema_version": 1,
   "plan_id": "MOD4-MOE-PLAN-001",
-  "plan_version": "1.3",
+  "plan_version": "1.5",
   "status": "APPROVED_EXECUTION",
   "document": "history/plans/MOD4_MOE_MASTER_PLAN.md",
-  "document_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
+  "document_sha256": "812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b",
   "approved": true,
   "approval_message": "按照计划执行，还有按照计划精简一下安排定时任务。",
-  "approved_plan_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
+  "approved_plan_sha256": "812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b",
   "allowed_stages": [
     "S0",
     "S0E",
+    "S0P",
     "S1",
     "S1A",
     "S2",
@@ -621,9 +622,9 @@
   },
   "approval_receipt": "history/evidence/20261007-plan-approved-s0/PLAN_APPROVAL.json",
   "execution_state": {
-    "stage": "S1A",
-    "status": "bounded_A0_E0_learning",
-    "root": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007",
+    "stage": "S0P",
+    "status": "frozen_flat",
+    "root": "/home/egde/rl_candidates/MOD4_PHYSICS_DT2000_IMPORT_REVIEW_20261007",
     "state_path": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007/reports/EXECUTION_STATE.json",
     "S0_actual_completed": true,
     "S0E_SDK300_passed": true,
@@ -633,7 +634,9 @@
     "learning_state": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007/reports/A0_STATE.json",
     "parallel_S0E_calibration": true,
     "new_PID_complete_checkpoint_verified": true,
-    "actual_receipt_reference": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007/reports/A0_TRAINING_ACTUAL.json"
+    "actual_receipt_reference": "/home/egde/rl_candidates/MOD4_MOE_A0_E0_PARALLEL_20261007/reports/A0_TRAINING_ACTUAL.json",
+    "learning_temporarily_saved_for_timestep_review": true,
+    "actual_epoch": 1791315647.6485455
   },
   "execution_order_revision": {
     "epoch": 1791310378.4360738,
@@ -652,5 +655,52 @@
     "approved_plan_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
     "async_plan_sha256": "b864f5480ba50c1dbbbb6fdbf04a6d736c43136eb19e3dcafce493ecafbe77a2"
   },
-  "implemented_controller_scope": "S1/S1A A0 only; encoder/gate and later expert DR controllers still pending"
+  "implemented_controller_scope": "S1/S1A A0 only; encoder/gate and later expert DR controllers still pending",
+  "physics_efficiency_stage": {
+    "epoch": 1791311685.0574503,
+    "version": "1.4",
+    "base_version": "1.3",
+    "base_plan_sha256": "d7a2447ddb3cf215022ba552022f3dba6d275e2f74baeca2c6b85be7cd595413",
+    "approved_plan_sha256": "a06b95adefdfd9853bc02fca6ed59295d9d495e10685d9aea224b2eb0ec6bd30",
+    "human_message": "可以暂时打断现在训练，毕竟磨刀不误砍柴工，我经过计算理论极限速度能提升到20w step每秒",
+    "scope": "S0P temporary own full-save stop and frozen native timestep/collection benchmark; conditional validated production timestep adoption only",
+    "physical_dt_candidates_s": [
+      0.0005,
+      0.001,
+      0.0025,
+      0.005
+    ],
+    "decimation_candidates": [
+      20,
+      10,
+      4,
+      2
+    ],
+    "policy_period_s": 0.01,
+    "contact_bin_s": 0.005,
+    "target_policy_steps_per_s": 200000,
+    "target_is_not_observed_or_hard_admission": true,
+    "new_budget_seconds": 0,
+    "no_new_DR_task_reward_nominal_model_hardware_or_observation_scope": true,
+    "supplement_sha256": "e11bc72c6c4cc1634b09b415005cfeb6a27c38510d397dfda671be982f60eba2",
+    "dt2000_revision": {
+      "epoch": 1791315086.8480055,
+      "version": "1.5",
+      "base_version": "1.4",
+      "base_plan_sha256": "a06b95adefdfd9853bc02fca6ed59295d9d495e10685d9aea224b2eb0ec6bd30",
+      "approved_plan_sha256": "812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b",
+      "human_messages": [
+        "2.5有问题，1ms余量大，为什么不用2ms?",
+        "你直接验证吧，磨刀不误砍柴工"
+      ],
+      "scope": "S0P isolated2ms cross-bin validation and conditional validated A0 resumption",
+      "physics_dt_s": 0.002,
+      "decimation": 5,
+      "policy_period_s": 0.01,
+      "contact_bin_s": 0.005,
+      "piecewise_step_average_assumption_explicit": true,
+      "new_budget_seconds": 0,
+      "supplement_sha256": "fa2dbc27af88ee38ba3dee763d42030a2cf792723454f758d2c0e1820cc7d0a5"
+    }
+  }
 }

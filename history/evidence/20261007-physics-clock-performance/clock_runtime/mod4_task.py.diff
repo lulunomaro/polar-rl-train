@@ -1,0 +1,14 @@
+--- F167/mod4_task.py
++++ S0P/mod4_task.py
+@@ -130,8 +130,9 @@
+ WHEEL_STALL = float(DELIVERY_CONTRACT["wheel_voltage_line_intercept"])  # 28.1853
+ WHEEL_NO_LOAD = float(DELIVERY_CONTRACT["wheel_no_load"])           # 55.3557 rad/s
+ POLICY_HZ = float(DELIVERY_CONTRACT["policy_hz"])                   # 100 Hz
+-PHYSICS_DT = float(CONTRACT["physics_dt_s"])                        # 0.0005 s
+-DECIMATION = int(round((1.0 / POLICY_HZ) / PHYSICS_DT))             # 20
++from physics_clock import validate_clock
++PHYSICS_DT = float(os.environ.get("RM_PHYSICS_DT_S", CONTRACT["physics_dt_s"]))
++DECIMATION = validate_clock(PHYSICS_DT, 1.0 / POLICY_HZ)["decimation"]
+ 
+ # --- SCUT randomization knobs (same names as the mjlab task) ----------------------
+ def _f(name: str, default: float) -> float:

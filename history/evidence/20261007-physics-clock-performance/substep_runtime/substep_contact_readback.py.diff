@@ -1,0 +1,24 @@
+--- retained/substep_contact_readback.py
++++ reviewed/substep_contact_readback.py
+@@ -1,10 +1,11 @@
+-"""No-force 0.5ms PhysX contact/velocity readback; aggregates on the GPU.
++"""No-force actual-substep PhysX contact/velocity readback; aggregates on the GPU.
+ 
+ All velocities are post-step COM-point velocities at individual reported points.
+ Reported-point timing is the solver report's timing, not an independently tracked
+ material patch. Loaded-population diagnostics never replace the old mesh gate.
+ """
+ import torch
++from physics_clock import validate_clock
+ import warp as wp
+ 
+ COLUMNS = ['ticks','loaded_ticks','normal_impulse','weighted_speed_impulse',
+@@ -111,7 +112,7 @@
+         self.env=env;self.robot=env.scene['robot'];self.sensor=env.scene.sensors['wheel_contact_scut']
+         assert self.sensor.body_names==['left_wheel','right_wheel'] and self.sensor.contact_view.filter_count==1
+         self.tick=0;self.callbacks=0;self.dt=float(env.physics_dt)
+-        self.stride=int(round(env.step_dt/self.dt));assert self.stride==20 and abs(self.dt-.0005)<1e-10
++        self.stride=validate_clock(self.dt,float(env.step_dt))['decimation']
+         n=env.num_envs;d=env.device
+         self.stats=torch.zeros((n,2,len(COLUMNS)),device=d);self.valid=torch.zeros(n,dtype=torch.int32,device=d)
+         self.runs=torch.zeros((n,2),dtype=torch.int32,device=d);self.errors=torch.zeros(2,dtype=torch.int32,device=d)

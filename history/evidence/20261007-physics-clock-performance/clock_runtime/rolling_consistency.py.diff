@@ -1,0 +1,25 @@
+--- F167/rolling_consistency.py
++++ S0P/rolling_consistency.py
+@@ -32,7 +32,9 @@
+         from contact_geometry import ControlGeometry
+         self.env = env
+         self.robot = env.scene["robot"]
+-        assert task.TERRAIN == "flat" and env.physics_dt == .0005
++        assert task.TERRAIN == "flat"
++        from physics_clock import validate_clock
++        validate_clock(float(env.physics_dt), float(env.step_dt))
+         geometry = ControlGeometry(env, task.USD_PATH)
+         self.ids = geometry.ids
+         centers, axes, radii, meta = [], [], [], []
+@@ -55,9 +57,9 @@
+         self.center = torch.tensor(np.array(centers), **kw)[None]
+         self.axle = torch.tensor(np.array(axes), **kw)[None]
+         self.radius = torch.tensor(radii, **kw)[None, :, None]
+-        self.metadata = dict(version=PROFILE, geometry=meta, load_source="existing .5ms impulse /10ms",
++        self.metadata = dict(version=PROFILE, geometry=meta, load_source="actual %.9gs impulse /10ms" % env.physics_dt,
+                              point_source="input-mesh midplane circle bottom; not manifold",
+-                             evaluation_gate_changed=False, dynamics_changed=False)
++                             evaluation_gate_changed=False, dynamics_changed=(env.physics_dt != float(task.CONTRACT["physics_dt_s"])))
+         import json
+         print("ROLLING_CONSISTENCY_CONFIG " + json.dumps(self.metadata), flush=True)
+ 

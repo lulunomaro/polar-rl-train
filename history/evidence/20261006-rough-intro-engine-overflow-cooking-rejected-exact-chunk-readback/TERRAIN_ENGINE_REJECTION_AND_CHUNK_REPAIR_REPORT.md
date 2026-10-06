@@ -1,0 +1,11 @@
+# 低难度地形20k引擎错误保留与真实网格精确拆分重审
+
+从正式完整23509（SHA2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a）开始，新低难度地形还没有PPO。最初H的20k只有10个出生XYZ、每处2000机器人，PhysX报碰撞配对容量溢出和miss interactions；.31秒3次真实任务reset原样保留。新故障观察记录同3个env的bad_orientation、失载和底盘下落，有限数和闭链正常不能证明有效物理。首次诊断参数读者tuple/list误比较在动态步前发生，仅以新明确读者审查JSON值精确一致；未记录全部逐个体DR向量，不声称隔离因果。
+
+J的100列仍报aggregate pairs溢出，.15秒9个真实base_contact reset，拒绝进入PPO。K改回原2.5m独立环境网格、40×40真实覆盖mesh，保留原两行row0进入的难度[0,.5)范围。单mesh约1300万三角面触发PhysX BV4 cooking失败，实际物理碰撞面缺失；Warp authored rays仍存在，机器人自由下落到wheel ray起点低于表面后查询missing。新的只读ground故障诊断保存全10环境状态和原日志。没有放宽miss检查、加隐藏Plane或把这些结果当政策能力失败/完成。
+
+新L=/home/egde/rl_candidates/MOD4_ROUGH_INTRO_CHUNK_REVIEW_20261006在旧父/孩子退出、active为空、同canonical冻结边界部署唯一明确入口。物理mesh按每100000三角面拆成131个碰撞组件，保留全部13037624面、世界坐标和绕序，不降采样；实际USD汇总三角面float32流哈希与生成器及分块哈希精确c7acba6d4920fb6fb263a16c57c6183c214734380002dd9168d724caaa216a0e。6个CPU拓扑/边界样例调用实际partition函数，逐三角面精确相等。全30q/qd/root复位、真实physics后reward/termination前地面刷新、35/38/6与原硬件、DR、PPO保持。unused伙伴force matrix关闭；原get_net_contact_forces及积分reward路径逐字不变，不冒称伙伴归属或材料点测量。
+
+新10env300步3秒实际10/10存活，无引擎错误；closure .064452mm、mimic .001691456rad，ground/reward独立同tick读回误差0，全部30q误差0，6001实际.5ms接触回调，双轮平均世界竖直载荷60.97–77.97N。参数初末真实white_v3读回通过。独立20k120步随后已安排；它和128/20k完整PPO预检尚需实际结果，不把小样本通过当20k/吞吐/训练通过。所有原失败源码/权重/报告保留，旧入口不重复执行。
+
+本轮截至新short回读没有PPO/加时/重复计账，整canonical不变：468000秒130h、charged294879.658372879、remaining173120.341627秒≈48h5m20s、active空。冻结诊断不扣PPO。以后新完整PPO及加载保存退出扣同账本，预检权重弃用；首正式仍只在故障/完整性及吞吐合同通过后从精确23509 KEEP_STD1有限45min。有限质量数字不成为机械晋级门槛，实际模型/数据/任务故障必须处理。两小时监控继续，hold不是finished。

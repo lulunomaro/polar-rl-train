@@ -1,0 +1,28 @@
+{
+  "id": "20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback",
+  "tag": "trial-20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback",
+  "title": "地形碰撞溢出与网格cooking拒绝，精确分块实际接触回读",
+  "kind": "repair",
+  "recorded_at": "2026-10-06T03:24:06.248901+00:00",
+  "repair_or_experiment_note": "# 低难度地形20k引擎错误保留与真实网格精确拆分重审\n\n从正式完整23509（SHA2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a）开始，新低难度地形还没有PPO。最初H的20k只有10个出生XYZ、每处2000机器人，PhysX报碰撞配对容量溢出和miss interactions；.31秒3次真实任务reset原样保留。新故障观察记录同3个env的bad_orientation、失载和底盘下落，有限数和闭链正常不能证明有效物理。首次诊断参数读者tuple/list误比较在动态步前发生，仅以新明确读者审查JSON值精确一致；未记录全部逐个体DR向量，不声称隔离因果。\n\nJ的100列仍报aggregate pairs溢出，.15秒9个真实base_contact reset，拒绝进入PPO。K改回原2.5m独立环境网格、40×40真实覆盖mesh，保留原两行row0进入的难度[0,.5)范围。单mesh约1300万三角面触发PhysX BV4 cooking失败，实际物理碰撞面缺失；Warp authored rays仍存在，机器人自由下落到wheel ray起点低于表面后查询missing。新的只读ground故障诊断保存全10环境状态和原日志。没有放宽miss检查、加隐藏Plane或把这些结果当政策能力失败/完成。\n\n新L=/home/egde/rl_candidates/MOD4_ROUGH_INTRO_CHUNK_REVIEW_20261006在旧父/孩子退出、active为空、同canonical冻结边界部署唯一明确入口。物理mesh按每100000三角面拆成131个碰撞组件，保留全部13037624面、世界坐标和绕序，不降采样；实际USD汇总三角面float32流哈希与生成器及分块哈希精确c7acba6d4920fb6fb263a16c57c6183c214734380002dd9168d724caaa216a0e。6个CPU拓扑/边界样例调用实际partition函数，逐三角面精确相等。全30q/qd/root复位、真实physics后reward/termination前地面刷新、35/38/6与原硬件、DR、PPO保持。unused伙伴force matrix关闭；原get_net_contact_forces及积分reward路径逐字不变，不冒称伙伴归属或材料点测量。\n\n新10env300步3秒实际10/10存活，无引擎错误；closure .064452mm、mimic .001691456rad，ground/reward独立同tick读回误差0，全部30q误差0，6001实际.5ms接触回调，双轮平均世界竖直载荷60.97–77.97N。参数初末真实white_v3读回通过。独立20k120步随后已安排；它和128/20k完整PPO预检尚需实际结果，不把小样本通过当20k/吞吐/训练通过。所有原失败源码/权重/报告保留，旧入口不重复执行。\n\n本轮截至新short回读没有PPO/加时/重复计账，整canonical不变：468000秒130h、charged294879.658372879、remaining173120.341627秒≈48h5m20s、active空。冻结诊断不扣PPO。以后新完整PPO及加载保存退出扣同账本，预检权重弃用；首正式仍只在故障/完整性及吞吐合同通过后从精确23509 KEEP_STD1有限45min。有限质量数字不成为机械晋级门槛，实际模型/数据/任务故障必须处理。两小时监控继续，hold不是finished。\n",
+  "validation": "H/J/K真实引擎故障原raw SHA保留；全部13037624三角面实际USD/hash exact；新10env3s/6001接触回调/ground reward相位/30q通过；20k及PPO尚需实际结果，canonical冻结不变",
+  "source_and_evidence_sha256": {
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/INTRO_FULLSCALE_ENGINE_FAILURE_REVIEW.json": "07712e9ce9548a3cee98e96171589c63f6e06576005bcfb48bac46128aacff93",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/GRID_GROUND_FAILURE_DIAGNOSTIC_invalid_ground_evidence.json": "2faba4426a19eeb0571c97e1944d82582064057c7307f621369f7228c6578b65",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/LOCAL_STAGING_MISSING_REPORT_REVIEW.json": "0c0fafeb6b9a753da9bed00889ba68c6a6170f6cf46f4c0e96de61d0073be546",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/TERRAIN_REJECTIONS_RAW_INDEX_REVIEW.json": "cba0ea8211a3d5c19a4889af2b31c498b5f023ba28b834ea21b24d150aacb641",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/CHUNK_TASK_SHORT_READBACK_REVIEW.json": "c6f20f35945ae7489fcb60f2865aae4fe2e1ae29332ad2265940e8d5b31339cb",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/CHUNK_TASK_SHORT_ENGINE_REVIEW.json": "8601becb9c8657fb2605ec3bab3da666ab3e85f256037776147633ebc2c1c946",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/CHUNK_PARTITION_CPU_CONTRACT.json": "5bf06ebae6e73b7bd4c4f2013038506a8a50fffa4fdb85f1d8809f71c153e3f8",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/CHUNK_SOURCE_CONTRACT.json": "0ae79eea582f03b6f568b5eeac955ae27f2163a632b5e7efda32205c834770d5",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/SOURCE_FREEZE.json": "b8b5bb05425dc2d46fa0d43c7e3dcbfa3256c9d4c0181f20fc2a1e85eae0a473",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/CHUNK_REVIEW_LAUNCHED.json": "f2c5f4a106520d185a11ac53de3da5d87e03581cccf8abf786c1a65916ff1e9c",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/TERRAIN_ENGINE_REJECTION_AND_CHUNK_REPAIR_REPORT.md": "dbd7626f6ae01ce4ef3a95403074747b0da197d96589c824f2d69ba69500ab38",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/source/rough_intro_chunked_terrain.py": "b9554351ea29ea577ba9a3f31f886554b18d34e11282c8d63e623e63144280d7",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/source/rough_intro_runtime.py": "5dc3f87d800b73d7b63056b4dfaace9f01464a8a91d0093fc8630f95e620aeac",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/source/rough_intro_reset.py": "ecbe13360a592cfd0f3d14b6c070912f810aefd15b13f67e8c5fb6382ac06b15",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/source/rough_intro_probe.py": "83f35110b8bb96be881f0585938a498a1da8beff55407fb7bb1e6a776a197a75",
+    "history/evidence/20261006-rough-intro-engine-overflow-cooking-rejected-exact-chunk-readback/source/supervise_rough_intro_chunk_review.py": "795a866f05ce424d8b3ef32c86d55caf5f4b37adceeb8f804c4c773af20dbb96"
+  },
+  "real_robot_certified": false
+}

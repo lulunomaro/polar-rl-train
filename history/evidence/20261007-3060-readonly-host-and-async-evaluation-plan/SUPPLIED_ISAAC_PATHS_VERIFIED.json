@@ -1,0 +1,96 @@
+{
+  "epoch": 1791305734.3023002,
+  "exit_code": 0,
+  "stderr": "",
+  "read_only": true,
+  "remote_installs": false,
+  "GPU_or_Isaac_runtime_started": false,
+  "user_supplied_paths": true,
+  "inventory": {
+    "python_executable": "D:\\claude2\\fangzhen\\.venv-isaaclab\\Scripts\\python.exe",
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+    "prefix": "D:\\claude2\\fangzhen\\.venv-isaaclab",
+    "explicit_paths": {
+      ".venv-isaaclab/Scripts/python.exe": {
+        "exists": true,
+        "is_directory": false
+      },
+      ".venv-isaaclab/Lib/site-packages/isaacsim": {
+        "exists": true,
+        "is_directory": true
+      },
+      "third_party/IsaacLab-3.0.0-beta2.patch1": {
+        "exists": true,
+        "is_directory": true
+      },
+      "third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab": {
+        "exists": true,
+        "is_directory": true
+      },
+      "incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/robot.usd": {
+        "exists": true,
+        "is_directory": false
+      },
+      "isaac": {
+        "exists": true,
+        "is_directory": true
+      },
+      ".venv/Scripts/python.exe": {
+        "exists": true,
+        "is_directory": false
+      },
+      "incoming/rm2025_mod4/robot_hifi.xml": {
+        "exists": true,
+        "is_directory": false
+      },
+      "sim_mujoco": {
+        "exists": true,
+        "is_directory": true
+      },
+      "third_party/rc_mjlab": {
+        "exists": true,
+        "is_directory": true
+      }
+    },
+    "package_versions_metadata_only": {
+      "torch": "2.10.0+cu128",
+      "isaacsim": "6.0.1.0",
+      "isaaclab": "6.1.14",
+      "isaaclab-rl": "0.5.5",
+      "rsl-rl-lib": "5.0.1",
+      "rsl-rl": null,
+      "mujoco": "3.8.0",
+      "mujoco-warp": "3.8.0.3",
+      "warp-lang": "1.13.0",
+      "numpy": "2.3.1"
+    },
+    "assets": {
+      "incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/robot.usd": {
+        "bytes": 47693,
+        "sha256": "afeccdecc780e2492f90e18f955db17fee249496dfc62d96668a0c5fa964728f"
+      },
+      "incoming/rm2025_mod4/robot_hifi.xml": {
+        "bytes": 60006,
+        "sha256": "e91ce28470a38d5ee4f5959d35c096578bf08e06d9cebe0bde9a5647c362d2c8"
+      }
+    },
+    "lab_version_metadata": {
+      "VERSION": {
+        "sha256": "2985be8b28d3ade858e8d8fb4bc22f565b1bf6020dff982dce141f7721b9999c",
+        "text": "3.0.0\n"
+      },
+      "source/isaaclab/config/extension.toml": {
+        "sha256": "97c51b641ac8500bb12a674c8b00252865642886867680e67dab8ea8ef08c61b",
+        "text": "[package]\n\n# Note: Semantic Versioning is used: https://semver.org/\nversion = \"6.1.14\"\n\n# Description\ntitle = \"Isaac Lab framework for Robot Learning\"\ndescription=\"Extension providing main framework interfaces and abstractions for robot learning.\"\nreadme  = \"docs/README.md\"\nrepository = \"https://github.com/isaac-sim/IsaacLab\"\ncategory = \"robotics\"\nkeywords = [\"kit\", \"robotics\", \"learning\", \"ai\"]\n\n[python.pipapi]\nrequirements = [\n    \"numpy\",\n    \"prettytable==3.3.0\",\n    \"toml\",\n    \"lazy_loader>=0.4\",\n    \"hidapi\",\n    \"gymnasium==0.29.0\",\n    \"trimesh\",\n    \"websockets\"\n]\n\nmodules = [\n    \"numpy\",\n    \"prettytable\",\n    \"toml\",\n    \"lazy_loader\",\n    \"hid\",\n    \"gymnasium\",\n    \"trimesh\",\n    \"websockets\"\n]\n\nuse_online_index=true\n\n[core]\nreloadable = false\n\n[[python.module]]\nname = \"isaaclab\"\n"
+      },
+      "source/isaaclab/setup.py": {
+        "sha256": "e155aff6d90a2d095f5224edb60d27117612accd3b6f21c3a34ea715df94f1c2",
+        "text": "# Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).\n# All rights reserved.\n#\n# SPDX-License-Identifier: BSD-3-Clause\n\n\"\"\"Installation script for the 'isaaclab' python package.\"\"\"\n\nimport os\n\nimport toml\nfrom setuptools import setup\n\n# Obtain the extension data from the extension.toml file\nEXTENSION_PATH = os.path.dirname(os.path.realpath(__file__))\n# Read the extension.toml file\nEXTENSION_TOML_DATA = toml.load(os.path.join(EXTENSION_PATH, \"config\", \"extension.toml\"))\n\n# Minimum dependencies required prior to installation\nINSTALL_REQUIRES = [\n    # generic\n    \"numpy>=2\",\n    \"torch>=2.10\",\n    \"onnx>=1.18.0\",  # 1.16.2 throws access violation on Windows\n    \"prettytable==3.3.0\",\n    \"toml\",\n    # devices\n    \"hidapi==0.14.0.post2\",\n    # reinforcement learning\n    \"gymnasium==1.2.1\",\n    # procedural-generation\n    \"trimesh\",\n    \"pyglet>=2.1.6,<3\",\n    # image processing\n    \"transformers==4.57.6\",\n    \"einops\",  # needed for transformers, doesn't always auto-install\n    \"warp-lang==1.13.0\",\n    \"matplotlib>=3.10.3\",  # minimum version for Python 3.12 support\n    # make sure this is consistent with isaac sim version\n    \"pillow==12.2.0\",\n    # required by omni.replicator.core S3 backend\n    \"botocore\",\n    # livestream\n    # range chosen to coexist with isaacsim 6.0 (isaacsim-kernel pulls fastapi==0.117.1 -> starlette<0.49.0)\n    \"starlette>=0.46.0,<0.50\",\n    \"omniverseclient==2.71.1.7015\",\n    # testing\n    \"pytest\",\n    \"pytest-mock\",\n    \"junitparser\",\n    \"coverage==7.6.1\",\n    \"debugpy>=1.8.20\",\n    \"flatdict>=4.1.0\",\n    \"flaky\",\n    \"packaging\",\n    \"psutil\",\n    # cross-platform file locking (used to serialize USD spawn across distributed ranks)\n    \"filelock\",\n    # Match isaacsim-core. pydantic>=2.12 pulls pydantic-core>=2.37, which needs\n    # typing_extensions>=4.14.1 (Sentinel); cap pydantic for kit-less coexistence.\n    \"typing_extensions==4.12.2\",\n    \"pydantic>=2.7,<2.12\",\n    \"lazy_loader>=0.4\",\n]\n\n# Append Linux x86_64 and ARM64 deps via PEP 508 markers\nSUPPORTED_ARCHS_ARM = \"platform_machine in 'x86_64,AMD64,aarch64,arm64'\"\nSUPPORTED_ARCHS = \"platform_machine in 'x86_64,AMD64'\"\nINSTALL_REQUIRES += [\n    # required by isaaclab.isaaclab.controllers.pink_ik\n    f\"pin ; platform_system == 'Linux' and ({SUPPORTED_ARCHS_ARM})\",\n    f\"pin-pink==3.1.0 ; platform_system == 'Linux' and ({SUPPORTED_ARCHS_ARM})\",\n    f\"daqp==0.8.5 ; platform_system == 'Linux' and ({SUPPORTED_ARCHS_ARM})\",\n]\n# Adds OpenUSD dependencies based on architecture for Kit less mode.\nINSTALL_REQUIRES += [\n    f\"usd-core>=25.11,<26.0 ; ({SUPPORTED_ARCHS})\",\n    f\"usd-exchange>=2.2 ; ({SUPPORTED_ARCHS_ARM})\",\n]\n\n# pytetwild ships only an x86_64 manylinux wheel and its sdist fails to build on\n# aarch64 (CMake hardcodes -m64).  Gate it on x86_64 so the ARM64 docker image\n# build is not blocked; tetrahedralize callers already degrade gracefully via\n# an \"install pytetwild\" message when the package is missing.\n# (pinned to 0.2.3: >=0.3 unconditionally imports pyvista at package import time.)\nINSTALL_REQUIRES += [\n    f\"pytetwild==0.2.3 ; ({SUPPORTED_ARCHS})\",\n]\n\n# Pin hf-xet to avoid broken tarball (hf_xet-1.1.8.dev2) cached on NVIDIA Artifactory.\n# that gets installed with --pre\n# and --extra-index-url flags. The broken hf-xet-1.1.8.dev2 package is present as of Mar 12 2026.\n# TODO: Can be removed once the broken hf-xet-1.1.8.dev2 package is removed from NVIDIA Artifactory.\nINSTALL_REQUIRES += [\n    # 1.4.1 is latest as of Mar 12 2026\n    f\"hf-xet>=1.4.1,<2.0.0 ; ({SUPPORTED_ARCHS_ARM})\",\n]\n\nPYTORCH_INDEX_URL = [\"https://download.pytorch.org/whl/cu128\"]\n\n# Optional extras for pip/uv installs.\n# Use ``pip install isaaclab[isaacsim]`` to add Isaac Sim, or\n# ``pip install isaaclab[all]`` to pull in all sub-packages and extras.\nEXTRAS_REQUIRE = {\n    \"isaacsim\": [\"isaacsim[all,extscache]==6.0.1.0\"],\n    \"all\": [\n        \"isaacsim[all,extscache]==6.0.1.0\",\n        \"isaaclab_assets\",\n        \"isaaclab_contrib\",\n        \"isaaclab_experimental\",\n        \"isaaclab_mimic\",\n        \"isaaclab_newton[all]\",\n        \"isaaclab_ov\",\n        \"isaaclab_ovphysx\",\n        \"isaaclab_physx[newton]\",\n        \"isaaclab_ppisp\",\n        \"isaaclab_rl[all]\",\n        \"isaaclab_tasks\",\n        \"isaaclab_tasks_experimental\",\n        \"isaaclab_teleop\",\n        \"isaaclab_visualizers[all]\",\n    ],\n}\n\n# Installation operation\nsetup(\n    name=\"isaaclab\",\n    author=\"Isaac Lab Project Developers\",\n    maintainer=\"Isaac Lab Project Developers\",\n    url=EXTENSION_TOML_DATA[\"package\"][\"repository\"],\n    version=EXTENSION_TOML_DATA[\"package\"][\"version\"],\n    description=EXTENSION_TOML_DATA[\"package\"][\"description\"],\n    keywords=EXTENSION_TOML_DATA[\"package\"][\"keywords\"],\n    license=\"BSD-3-Clause\",\n    include_package_data=True,\n    package_data={\"\": [\"*.pyi\"]},\n    python_requires=\">=3.12\",\n    install_requires=INSTALL_REQUIRES,\n    extras_require=EXTRAS_REQUIRE,\n    entry_points={\n        \"console_scripts\": [\n            \"isaaclab=isaaclab.cli:cli\",\n            \"play=isaaclab.cli:play\",\n            \"train=isaaclab.cli:train\",\n        ],\n    },\n    dependency_links=PYTORCH_INDEX_URL,\n    packages=[\"isaaclab\"],\n    classifiers=[\n        \"Programming Language :: Python :: 3.12\",\n        \"Isaac Sim :: 6.0.0\",\n    ],\n    zip_safe=False,\n)\n"
+      }
+    },
+    "applicable_workspace_instructions": {
+      "D:\\claude2\\fangzhen\\AGENTS.md": "# Agent rules for this workspace (RM2026 wheel-legged robot)\n\nRead this before you touch the robot model, launch training, or export a policy.\nThese rules exist because 2026-09-10 two AI runs trained on a retired plant and on a\nplant that did not match the deployment firmware.\n\n## 1. The only live robot plant is MOD4\n\n* MuJoCo / mjlab plant: `incoming/rm2025_mod4/robot_hifi.xml`, pinned by\n  `incoming/rm2025_mod4/PLANT_PROVENANCE.json` (sha256 `e91ce284..`).\n* Isaac Lab / PhysX asset: `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/robot.usd`\n  plus the `import_contract.json` next to it. Do NOT regenerate that USD with a generic\n  MJCF importer - the closed loops and the 1:1 chain couplings are authored into it.\n* **Everything under `incoming/rm2025_fixed/` is RETIRED (0908 and 0910).** There is no\n  `robot_hifi.xml` there any more; the 0910 file was renamed to `robot_hifi_0910.xml` so\n  nothing can select it by default. Read `incoming/rm2025_fixed/DO_NOT_USE.md` before you\n  even think about it, and never wire it back into `names.py`. If something asks for\n  `incoming/rm2025_fixed/robot_hifi.xml`, the correct answer is \"that plant is retired\",\n  not \"restore the file\".\n* `train/rmvehicle/src/rmvehicle/robot_cfg.py` raises for any plant path that resolves\n  inside `rm2025_fixed/`; `scripts/check_model_identity.py` refuses to train when the\n  plant hash or a pinned number disagrees with the provenance file.\n\n## 2. Entry points\n\n| purpose | entry point |\n|---|---|\n| production RL (mjlab, MuJoCo-Warp, MOD4 MJCF) | `migration/linux/run_closed_chain_training.sh` |\n| plant identity gate | `scripts/check_model_identity.py --task RM2025-Later-CC-Flat-v0` |\n| Isaac Lab training (PhysX, MOD4 USD) | `isaac/mod4/train_mod4_ppo.py` |\n| Isaac Lab physics acceptance | `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/smoke_test.py` (must print `PASS_RUNTIME_BOUNDED`) |\n| deployment gate | `sim2real/preflight_deploy.sh` with the exported ONNX |\n\n`migration/linux/run_allterrain_training.sh`, `run_skills_training.sh`, `run_training.sh`,\n`run_final_*.sh`, `run_teacher_view.sh`, `run_spin_pure.sh`, `supervise_*.sh` and\n`finalize_refine.sh` are the retired 0908/0910 serial-teacher pipeline. They now exit 2\nunless `ALLOW_RETIRED_TEACHER=1` is set, and their checkpoints were never deployable.\n\n## 3. Contracts you may not silently change\n\n* Policy interface: 35-D observation, 6-D action in the exported order\n  `[left_crank, left_hip, right_crank, right_hip, left_wheel_spin, right_wheel_spin]`\n  (`train/deploy/contract_rm2025_later.json`). The passive knee is never an action.\n* Motor envelope (plateau / stall / no-load): legs 40 / 53.333 / 16.755,\n  wheels 5.7759 / 28.185 / 55.3557. Training and deployment must use the same numbers;\n  `scripts/check_model_identity.py` reads them back out of the compiled model.\n* Closed-chain guard: the six loop-closure anchors must stay within 2 mm in any engine\n  (mjlab/MuJoCo and Isaac/PhysX both enforce this). If the guard fires, stop and fix the\n  plant or the solver - do not raise the tolerance.\n* A model swap voids every existing checkpoint, ONNX and sim2sim contract. Retrain and\n  re-run the gates; never re-label old artefacts.\n\n## 4. Isaac Lab notes that cost hours on 2026-09-10\n\n* Isaac Lab 3.0/6.x uses (x, y, z, w) quaternions (identity `[0, 0, 0, 1]`); 2.x used\n  (w, x, y, z). Code that hard-codes the 2.x order reports phantom geometry errors - the\n  delivered `RuntimeGuard`/`smoke_test.py` did exactly that (a fake 0.36 m closure error).\n  Use `isaaclab.utils.math.quat_apply` instead of hand-rolled quaternion maths.\n* `SimulationCfg.physics` is `None` by default; solver settings only exist once you\n  assign a `PhysxCfg` (`isaaclab_physx.physics`).\n* Kit tears the interpreter down inside `app.close()` and can swallow a traceback, leaving\n  an exit code of 0 with no error text. Always wrap the entry point, write the traceback to\n  a file, then close (`isaac/mod4/train_mod4_ppo.py` and `isaac/mod4/probe_physx.py` show\n  the pattern).\n* Do not spawn terrain via the packaged \"plane\"/grid assets on a machine without Nucleus\n  access; build a local collider instead.\n* Local Isaac Lab venv: `.venv-isaaclab` (Isaac Sim 6.0.1, Isaac Lab 6.1.14, rsl-rl 5.x).\n  Run scripts with `.venv-isaaclab\\Scripts\\python.exe`.\n\n## 5. Where the evidence lives\n\n* `docs/ISAACLAB_MOD4_20260910.md` - Isaac Lab / PhysX MOD4 bring-up, training task, DR list.\n* `docs/SCUT_ALIGNMENT_AND_DEPLOY_20260909.md` - the SCUT/���ϻ� randomization list.\n* `docs/MODEL_0910_VS_CURRENT.md`, `docs/AUDIT_0910_ADOPTION_RM2025.md` - why 0908/0910\n  were retired.\n* `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/reports/` - the delivery evidence.\n"
+    },
+    "Isaac_torch_or_GPU_imported": false
+  }
+}

@@ -1,0 +1,9 @@
+# 混合保留候选CPU测试路径读者：首次拒绝保留，部署布局读回修正
+
+针对23624浅地形训练后的跨seed/profile旧方向和高速前进退化，准备独立flat75/gentle25组件。原S182源码逐字保留，新task组件、CPU合同与冻结SDK入口5份共187；当前不是修复PPO执行器。
+
+首次目标CPU测试假定retention_mix_runtime.py与测试同目录，但实际runtime在isaac/mod4，FileNotFoundError发生在任何组件父/worker/PPO启动之前。没有生产训练、模型、预算故障。明确修正仅CPU测试读者根据真实文件布局选择路径；原CPU文件与freeze封存，原错误保留。其余186份候选源码及S182/F167/P源码不变。
+
+本机和目标CPU十项实际布局/子集重置/有限地面/边界/自动命令方法合同通过，错误几何重叠/非有限/维数拒绝。只有CPU证据，不冒称SDK/PhysX或修复效果通过。旧父与孩子退出、active空、同canonical两锁和完整23509 SHA2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a/68有限来源核验。canonical全部字节SHA0189f0d870587b8f0012ad569954f7d6277ea7b1f41f4c0be9a77c00262c1193不变，新增预算/PPO/结账0。
+
+随后新的冻结组件入口已独立session启动，预定32env3s实际读回仍以真实receipt为准。此处不提前宣称动态通过、旧技能已修好、正式混训部署或扩大DR。所有旧entry/迁移/预算和本次已执行stage/首次launch/path-review不可重复运行。

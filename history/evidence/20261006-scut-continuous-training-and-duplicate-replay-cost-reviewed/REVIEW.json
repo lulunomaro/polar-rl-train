@@ -1,0 +1,125 @@
+{
+  "reviewed_at": "2026-10-06T22:33:39.652291+08:00",
+  "scope": "New static source and existing timing audit; not a new GPU benchmark or runtime change",
+  "pinned_scut_commit": "b8ff79f3df855faf9dc92f4a282bd80c42649466",
+  "primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/scripts/rsl_rl/train.py",
+      "sha256": "74a3c5f67b365d8bee00b6a38f32e2657704e3f68edf678da9d3c1e1d63a25a1",
+      "read_from_exact_local_git_object": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/agent.yaml",
+      "sha256": "3b0859c54fae7f1d68fd526af9dc7aab03bea24bccc3ab39878017f8106971a8",
+      "read_from_exact_local_git_object": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/env.yaml",
+      "sha256": "85e82dc8025a53437a25fac4520c8caf7a0097a1627e851168dde15e913a544a",
+      "read_from_exact_local_git_object": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/manager/mdp/isaaclab/commands.py",
+      "sha256": "a09834ccfae197c968915b43cbe71e4a52a401faa36531e40793f051411b0a07",
+      "read_from_exact_local_git_object": true
+    }
+  ],
+  "mod4_sources_sha256": {
+    "supervise_continuous_mix_baseline.py": "6683c65c12b4047251eb5a6211d4761f0267b810c1fa79fde241ad67bfd684ec",
+    "supervise_retention_train.py": "e11e1821afc2e220176379309f2ce67f9149d21c78d60ab1df567ee5ac839ae1",
+    "supervise_world_spin.py": "51e67cda3534851bb13ddcc209fe434a1eabb5df8740660687ad13a7bc7f6f8c",
+    "isaac/mod4/world_spin_probe.py": "e671ce17e02216eda7257e4724670de8cda0c2511f93b1b04089c0b37d13714b",
+    "isaac/mod4/substep_contact_readback.py": "00b68af59ecf514f140052b763e26859e997ff14ea643adab813153cd2663b85"
+  },
+  "prior_measured_cost": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_ROUGH_RETENTION_SOURCE_REVIEW_20261006\\reports\\RETENTION_EVALUATION_COST_SUMMARY.json",
+    "sha256": "ed6af912bde9a1b703eb1043b21afe8656eea7f93604a0171851fc4140b59efe",
+    "measured_16_plus_mixed_wall_s": 3371.181280851364,
+    "per_dynamic_wall_s": [
+      177.49016118049622,
+      193.39150047302246
+    ],
+    "formal_segment_s": 2721.673665523529,
+    "formal_wall_share_to16": 0.4466992386127396,
+    "estimated_full19_wall_min": [
+      60,
+      65
+    ]
+  },
+  "full_regression": {
+    "evaluation_seeds": [
+      20261002,
+      20261003
+    ],
+    "parameter_profiles": [
+      "nominal",
+      "white_v2",
+      "white_v3"
+    ],
+    "kinds": [
+      "flat",
+      "spin",
+      "world"
+    ],
+    "reports": 18,
+    "physical_environments_per_report": {
+      "flat": 80,
+      "spin": 88,
+      "world": 88
+    },
+    "simulated_seconds_per_report": 15,
+    "optimizer_updates": false,
+    "includes_all_future_curricula": false,
+    "rough_checked_separately": true
+  },
+  "current_cadence": {
+    "actual_installed_block_seconds": 7200,
+    "quick_reports": 4,
+    "closeout_reports": 18,
+    "total_report_calls": 22,
+    "prior_improvement_is_longer_training_not_replay_speedup": true,
+    "review_only_then_controller_planned_exit": true
+  },
+  "duplicate_readback_finding": {
+    "expected_same_source_calls": 3,
+    "duplicated_conditions": [
+      "source=last",
+      "profile=white_v3",
+      "seed=20261002",
+      "kind=flat/spin/world",
+      "steps=1500",
+      "count=default80/88",
+      "same probe/runtime"
+    ],
+    "status": "Static duplicate scheduling identified; this active stage has not yet executed those calls",
+    "next_controller_requirement": "Reuse these exact report objects within paired_review, verifying source/probe/runtime SHA, seed/profile/count/steps and complete root/q/parameter/callback proof; do not bypass missing or invalid data"
+  },
+  "physical_work": {
+    "scut_physics_dt_s": 0.005,
+    "scut_control_dt_s": 0.02,
+    "scut_substeps": 4,
+    "mod4_physics_dt_s": 0.0005,
+    "mod4_control_dt_s": 0.01,
+    "mod4_substeps": 20,
+    "steps_per_simulated_second_ratio": 10,
+    "substeps_per_control_ratio": 5,
+    "wall_speed_ratio_unmeasured": true
+  },
+  "next_requirements": [
+    "Stable mixed training rather than isolated narrow lessons",
+    "Reuse complete exact-source quick evidence at full regression",
+    "Full paired suites at phase closeout, scope change, material retention concern; not every checkpoint",
+    "Profile dynamic audit and startup separately before promising speedup",
+    "Persistent or batched evaluation requires independent parameter/reset/RNG/lifecycle validation"
+  ],
+  "training_or_gpu_mutations": 0,
+  "new_probe_or_ppo": 0,
+  "budget_operations": 0,
+  "source_runtime_unchanged": true,
+  "limitations": [
+    "Public code does not expose all SCUT private evaluation practices or actual training wall time",
+    "Terrain generator curriculum flag is not proof of a particular level promotion implementation",
+    "No measured attribution of runtime percentage to physics, GPU synchronizations or startup",
+    "Prior 2–4 week all-course forecast was provisional engineering estimation, not derived from SCUT training logs"
+  ]
+}

@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "plan_id": "MOD4-MOE-PLAN-001",
+  "plan_version": "1.0",
+  "status": "DRAFT_REVIEW_REQUIRED",
+  "document": "history/plans/MOD4_MOE_MASTER_PLAN.md",
+  "document_sha256": "1d8861649f3364cb0a9f4eaaef69b0f3b2230fbed722b559975294ea0b15faf7",
+  "approved": false,
+  "approval_message": null,
+  "approved_plan_sha256": null,
+  "allowed_stages": [],
+  "controller_implemented": false,
+  "purpose": "Draft future execution constraints; this file grants no runtime or training authority.",
+  "review_boundary": {
+    "no_new_PPO": true,
+    "no_new_GPU_probe": true,
+    "no_new_expert_DR_or_gate_training": true,
+    "no_old_entry_resume": true,
+    "current_block_original_save_and_already_scheduled_frozen_review_allowed": true,
+    "idle_successor_retired": true,
+    "receipt": "history/evidence/20261006-moe-plan-review/REVIEW_HOLD_RECEIPT.json"
+  },
+  "architecture": {
+    "actor_input": 35,
+    "critic_input_existing": 38,
+    "action_dimension": 6,
+    "initial_enabled_experts": [
+      "E0",
+      "E1"
+    ],
+    "initial_gate_layers": [
+      35,
+      64,
+      32,
+      2
+    ],
+    "routing": "learned_hard_top1",
+    "expert_weights_frozen_during_initial_gate_learning": true,
+    "weights_or_actions_averaging": false,
+    "deploy_oracle_env_id_or_terrain_or_physics": false,
+    "gate_training_probability": "joint latent expert index and conditional action log probabilities; retain sampled index",
+    "gate_inference": "deterministic top1; report discrepancy from stochastic training",
+    "expert_std": "preserve explicit source",
+    "gate_optimizer": "new optimizer; never claim old single-policy optimizer fully restored",
+    "optional_hysteresis": {
+      "residency_ms": 100,
+      "probability_margin": 0.2,
+      "status": "candidate_requires_independent_validation"
+    }
+  },
+  "experts": [
+    {
+      "id": "E0",
+      "scope": "flat stand/straight/pure4pi and existing low-yaw world movement",
+      "initial_anchor_iteration": 23509,
+      "initial_anchor_sha256": "2f82374fe07a849dbbaeabbf8dd34b20d0df8da789f2ebc2be3e688a1b24498a",
+      "final_selection": "actual matched validated source"
+    },
+    {
+      "id": "E1",
+      "scope": "gentle terrain straight, then validated terrain rotation/stairs",
+      "source_candidates": [
+        23509,
+        23621,
+        23733
+      ],
+      "mature": false
+    },
+    {
+      "id": "E2",
+      "scope": "separate world rotation-translation expansion when warranted",
+      "enabled": false
+    },
+    {
+      "id": "E3",
+      "scope": "self rescue",
+      "enabled": false,
+      "new_plan_required": true
+    },
+    {
+      "id": "E4",
+      "scope": "tunnel low posture, final new posture lesson",
+      "enabled": false,
+      "new_plan_required": true
+    },
+    {
+      "id": "E5",
+      "scope": "optional jump/airborne/landing",
+      "enabled": false,
+      "new_plan_required": true
+    }
+  ],
+  "source_registry": "history/indexes/MOD4_SKILL_CHECKPOINT_INDEX.json",
+  "DR": {
+    "calibration": "engineering candidates, not hardware calibration",
+    "one_group_at_a_time": true,
+    "legacy_bundle_allowed": false,
+    "current_production_groups": [
+      "D0"
+    ],
+    "groups": {
+      "D0": {
+        "mass_inertia": [
+          0.9,
+          1.1
+        ],
+        "six_independent_output_gain": [
+          0.9,
+          1.1
+        ],
+        "main_wheel_mu": [
+          0.7,
+          1
+        ],
+        "nominal_fraction_approx": 0.2
+      },
+      "D1": {
+        "pre_scale_uniform_noise": {
+          "omega_rad_s": 0.125,
+          "gravity_component": 0.025,
+          "four_leg_q_rad": 0.005,
+          "four_leg_qd_rad_s": 0.25,
+          "two_wheel_qd_rad_s": 0.5
+        },
+        "status": "CPU component only; actual SDK and expert behavior required"
+      },
+      "D2": {
+        "four_leg_episode_q_bias_rad": 0.0075,
+        "wheel_position_bias_covered": false,
+        "episode_constant": true,
+        "reset_selected_rows_only": true
+      },
+      "D3": {
+        "first_observation_delay_ms": [
+          0,
+          10
+        ],
+        "next_ms": [
+          0,
+          10,
+          20
+        ],
+        "independent_stress_ms": 40,
+        "stress_automatically_installed": false,
+        "actual_sampling_application_timestamps_required": true,
+        "reset_cache_required": true
+      },
+      "D4": {
+        "first_action_physics_queue_delay_ms": [
+          0,
+          0.5,
+          1
+        ],
+        "separate_communication_stress_ms": [
+          2,
+          5
+        ],
+        "physical_dt_ms": 0.5,
+        "control_dt_ms": 10,
+        "actual_apply_timestamps_required": true
+      },
+      "D5": {
+        "actual_force_stroke_required": true,
+        "initial_relative_pressure": 0.1,
+        "conditional_wider_pressure": 0.2,
+        "conditional_wider_requires_physical_bounds": true,
+        "current_nominal_spring_N_m": 3500,
+        "hardware_300_700N_not_certified": true
+      },
+      "D6": {
+        "nonzero_nominal_multiplier_first": [
+          0.9,
+          1.1
+        ],
+        "conditional_wider": [
+          0.8,
+          1.2
+        ],
+        "zero_nominal_needs_sourced_absolute_range": true,
+        "units_and_static_dynamic_viscous_terms_separate": true
+      },
+      "D7": {
+        "COM_first_abs_mm": 5,
+        "PD_first_multiplier": [
+          0.95,
+          1.05
+        ],
+        "wider_COM_PD_requires_approved_revision": true
+      },
+      "D8": {
+        "load_push_range": null,
+        "measured_parameters_required": true,
+        "future_stage": true
+      },
+      "D9": {
+        "combine_only_individually_validated_approved_groups": true,
+        "coverage_and_correlation_report_required": true
+      }
+    }
+  },
+  "task_ranges": {
+    "current_gentle_rod_height_m": [
+      0.01,
+      0.02
+    ],
+    "next_max_step_height_m": 0.05,
+    "next_max_slope_deg": 10,
+    "slope_requires_actual_geometry_verified": true,
+    "rough_first_body_vx_abs_m_s": 0.3,
+    "next_body_vx_abs_m_s": 0.5,
+    "world_speed_m_s": 0.5,
+    "yaw_magnitude_sequence_rad_s": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12.566370614359172
+    ],
+    "one_geometry_or_speed_or_DR_axis_at_a_time": true,
+    "beyond_ranges_or_new_dangerous_reset_requires_revision": true
+  },
+  "stages": [
+    {
+      "id": "S0",
+      "name": "saved boundary/source/approval/budget contracts",
+      "status": "pending",
+      "approval_required": true
+    },
+    {
+      "id": "S1",
+      "name": "expert registry and interface isolation",
+      "status": "pending"
+    },
+    {
+      "id": "S2",
+      "name": "E0 grouped common DR",
+      "status": "pending"
+    },
+    {
+      "id": "S3",
+      "name": "E1 terrain specialization and common DR",
+      "status": "pending"
+    },
+    {
+      "id": "S4",
+      "name": "frozen expert learned gate",
+      "status": "pending"
+    },
+    {
+      "id": "S5",
+      "name": "combined consolidation and matched comparison",
+      "status": "pending"
+    },
+    {
+      "id": "S6",
+      "name": "optional flat world rotation translation to4pi",
+      "status": "pending",
+      "optional": true
+    },
+    {
+      "id": "S7",
+      "name": "optional validated terrain rotation and difficulty",
+      "status": "pending",
+      "optional": true
+    },
+    {
+      "id": "S8",
+      "name": "self rescue/load/tunnel/jump future detail",
+      "status": "pending",
+      "requires_new_approved_revision": true
+    }
+  ],
+  "suggested_review_scope": [
+    "S0",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5"
+  ],
+  "cadence": {
+    "first_new_risk_learning_s": 2700,
+    "stable_learning_block_max_s": 7200,
+    "complete_save_interval_iterations": 25,
+    "local_guardian_period_s": 15,
+    "quick_frozen_checks_per_stable_block": 2,
+    "full_review_after_learning_s": 21600,
+    "full_review_also_at": [
+      "stage closeout",
+      "major retention doubt",
+      "new interface concern",
+      "budget boundary"
+    ],
+    "same_problem_no_improvement_blocks_before_diagnosis": 2,
+    "exact_valid_evidence_reuse": true,
+    "new_range_full_PPO_preflight_weights_discarded": true
+  },
+  "budget": {
+    "canonical": "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json",
+    "authorized_seconds": 468000,
+    "extension_records_applied_once": 5,
+    "new_budget_seconds": 0,
+    "snapshot_epoch": 1791301446.7123208,
+    "snapshot_effective_remaining_seconds": 156749.56276917458,
+    "reread_before_execution": true,
+    "planned_hours": {
+      "new_preflight": 1,
+      "E0_DR": 8,
+      "E1_terrain_DR": 10,
+      "gate_learning": 6,
+      "combined_additional_learning": 3,
+      "optional_flat_world4pi": 6,
+      "optional_rough_rotation": 4,
+      "repair_save_reserve": 5.5
+    },
+    "planned_total_hours": 43.5,
+    "live_reserve_formula": "min(5.5h, 0.13*actual_remaining)",
+    "shrink_priority": "retain S0-S5; remove optional S6/S7 first",
+    "charged_work": [
+      "PPO preflight",
+      "expert/gate PPO",
+      "gate supervised learning (accounting kind must be implemented and audited in S0)",
+      "associated loading/saving/exit"
+    ],
+    "uncharged_work": [
+      "ordinary CPU contracts",
+      "frozen evaluation",
+      "read-only inspection",
+      "non-learning repair/migration",
+      "offline downtime"
+    ],
+    "no_duplicate_settlement_or_active_clearing": true,
+    "safe_launch_remaining_min_s": 120
+  },
+  "hard_contracts": {
+    "actual_task_failure": "retain evidence and protect saved weights",
+    "nonfinite_rejected": true,
+    "closure_limit_m": 0.002,
+    "mimic_limit_rad": 0.01,
+    "normal_integral_mean_difference_limit_N": 0.1,
+    "normalz_difference_limit": 0.01,
+    "COM_link_speed_difference_limit": 0.001,
+    "complete_callbacks_valid_samples_and_actual_initial_final_parameters": true,
+    "original_post_gain_torque_speed_envelope": true,
+    "systematic_wrong_direction_or_major_retention_regression_requires_diagnosis": true,
+    "finite_quality_values_are_diagnostics_not_new_admission_thresholds": true
+  },
+  "evaluation": {
+    "strict_world_tolerance": "max(0.03,0.1V)",
+    "strict_signed_yaw_error_rad_s": 0.2,
+    "full_signed_circle_along_cross": true,
+    "all_window_and_pre_failure_prefix_retained": true,
+    "periodic_sway_separate_from_net_drift": true,
+    "practical_closeout_separate_from_strict_confirmed": true,
+    "no_new_90_95_100_percent_promotion_threshold": true,
+    "existing_suite": {
+      "seeds": [
+        20261002,
+        20261003
+      ],
+      "profiles": [
+        "nominal",
+        "white_v2",
+        "white_v3"
+      ],
+      "tasks": [
+        "flat",
+        "spin",
+        "world"
+      ],
+      "reports": 18,
+      "simulation_seconds_each": 15
+    },
+    "proposed_holdout_seeds": [
+      20261011,
+      20261012
+    ],
+    "holdout_not_used_for_selection_or_tuning": true,
+    "comparators": [
+      "single mixed policy",
+      "rule-selected same experts",
+      "learned gate same experts"
+    ],
+    "matched_initial_root_q_parameters_deploy_information_hardware_task_DR": true,
+    "gate_change_requires_new_whole_system_evaluation": true,
+    "costs_and_tail_and_switch_transients_required": true,
+    "no_real_robot_certification_inferred": true
+  },
+  "execution_refusals": [
+    "missing human approval",
+    "document SHA differs from approval",
+    "stage not authorized",
+    "DR/task/interface beyond approved range",
+    "unvalidated source",
+    "old authority/child/locks still active",
+    "active accounting ambiguous",
+    "insufficient actual budget"
+  ],
+  "revision_requires_human_approval": [
+    "new time",
+    "new expert responsibility or task goal",
+    "DR/terrain outside range",
+    "new observation/action/history input",
+    "hardware or nominal model changes",
+    "changed real failure contracts",
+    "new dangerous reset",
+    "real robot deployment",
+    "switch from hard top1 to action/weight mixing"
+  ],
+  "monitor": {
+    "automation_id": "mod4-10",
+    "interval_hours": 2,
+    "keep_active": true,
+    "healthy_unchanged_quiet": true,
+    "pending_review_no_new_training_or_probe": true,
+    "no_replay_old_once_entry": true
+  },
+  "archival": {
+    "unique_annotated_trial_via": "archive_tools/record_experiment.py",
+    "verify_remote_main_tag_peeled": true,
+    "weights_and_large_trajectory_sha_only": true,
+    "no_credentials": true,
+    "no_health_checkpoint_trial": true
+  }
+}

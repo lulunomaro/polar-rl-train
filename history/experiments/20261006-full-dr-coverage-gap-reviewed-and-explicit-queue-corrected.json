@@ -1,0 +1,17 @@
+{
+  "id": "20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected",
+  "tag": "trial-20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected",
+  "title": "完整DR覆盖缺口核实并补齐独立课程队列",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-06T06:37:37.721657+00:00",
+  "repair_or_experiment_note": "# 更完整DR清单遗漏审查与独立后续队列补齐\n\n用户指出现有任务清单只写首white_v3而未明确完整DR。审查当前实际冻结源码env.json RM_DR_OFF=1与white_v3，确实仅全body共质量惯量、六输出增益及轮地摩擦，感知噪声/回合零偏/感知和动作延迟/弹簧阻尼与关节摩擦随机化未生产启用。旧legacy源码中有实现不等于实际启用；当前浅地形并非完整rough_rotation_stair课程。\n\n按固定SCUT commit b8ff79f3df855faf9dc92f4a282bd80c42649466读取三个rough_rotation_stair实际保存env.yaml，索引URL和SHA留存。obs[1,4]/act[1,3]及继承torch.randint上界exclusive，实际毫秒还依队列compute生命周期；不能直接复述0–2步或把50Hz/dt5ms等同本机100Hz/dt0.5ms。spring_settings dampingfalse与独立阻尼事件区分；未核实独立episode encoderzero配置，不把用户提出的MOD4鲁棒性项冒称上游精确事实。\n\n补齐明确独立队列：当前浅地形保留回归完成后在安全保存边界优先准备观测噪声/整回合零偏，随后独立感知延迟、动作延迟、气弹簧力–行程/阻尼/关节摩擦、COM/PD等物理变化，再组合DR和更完整地形课程。范围以实际不确定性和读回/回归选择，旧15150延迟异常保留但不是当前策略证据或永久禁令。不是等全部科目完才补DR，也不是同时改变任务/奖励/DR或直接热开legacyDR。\n\n新增的是来源审查与队列，不是新训练实验或执行器部署。主机S三份reports和S/P/G原handoff追加已精确读回；当前runtime env/task/mild_dr三个SHA前后exact。预算操作0、额外模拟/PPO0、当前trainer无暂停重启；正常父可继续合法记账，不断言训练期间账本整字节不变。唯一canonical总468000秒130h及五登记扩展保持，不复活旧one-shot/重复probe或结账，不改真实task/model/data检查与硬件包络。两小时静默监控继续。\n",
+  "validation": "当前DR三组与其他关闭路径核对；固定SCUT三保存配置SHA核验；7项未部署队列；主机reports/handoff精确读回；runtime三SHA前后exact；预算和训练操作0",
+  "source_and_evidence_sha256": {
+    "history/evidence/20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected/DR_COVERAGE_AND_ROADMAP.md": "50c65dcd7ad88b1a6a69be4eef769003f722fb58c7810e0eb0e1c2b78f6e3328",
+    "history/evidence/20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected/QUEUE.json": "a9d5125bda3766bb175da6f785cb9dcd4d7ca154f0a43f64ff65456a98a4e1bf",
+    "history/evidence/20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected/COVERAGE_AUDIT.json": "6c432e9cf58777470d39566b7354c529c21c24d2505400cccf602c7f6fc176d5",
+    "history/evidence/20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected/PINNED_SCUT_CONFIG_INDEX.json": "3df6c73459140c716a0158cc2db1fe2d5567c6577722ca751a49149d36e43b6a",
+    "history/evidence/20261006-full-dr-coverage-gap-reviewed-and-explicit-queue-corrected/REMOTE_QUEUE_SYNC_VERIFIED.json": "05d95ca6cf6b8ad21c516f8b4f1772324fc9ad6b52ed7648d1b38da08690afb0"
+  },
+  "real_robot_certified": false
+}

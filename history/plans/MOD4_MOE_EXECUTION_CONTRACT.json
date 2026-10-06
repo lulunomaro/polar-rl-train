@@ -2,19 +2,30 @@
   "schema_version": 1,
   "plan_id": "MOD4-MOE-PLAN-001",
   "plan_version": "1.2",
-  "status": "DRAFT_REVIEW_REQUIRED",
+  "status": "APPROVED_EXECUTION",
   "document": "history/plans/MOD4_MOE_MASTER_PLAN.md",
   "document_sha256": "ac8645c775af170ba06a3f4d37b0b0724a043cec3acb9c303556ebdcc953eb68",
-  "approved": false,
-  "approval_message": null,
-  "approved_plan_sha256": null,
-  "allowed_stages": [],
+  "approved": true,
+  "approval_message": "按照计划执行，还有按照计划精简一下安排定时任务。",
+  "approved_plan_sha256": "ac8645c775af170ba06a3f4d37b0b0724a043cec3acb9c303556ebdcc953eb68",
+  "allowed_stages": [
+    "S0",
+    "S0E",
+    "S1",
+    "S1A",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7"
+  ],
   "controller_implemented": false,
   "purpose": "Draft future execution constraints; this file grants no runtime or training authority.",
   "review_boundary": {
-    "no_new_PPO": true,
-    "no_new_GPU_probe": true,
-    "no_new_expert_DR_or_gate_training": true,
+    "no_new_PPO": false,
+    "no_new_GPU_probe": false,
+    "no_new_expert_DR_or_gate_training": false,
     "no_old_entry_resume": true,
     "current_block_original_save_and_already_scheduled_frozen_review_allowed": false,
     "idle_successor_retired": true,
@@ -282,13 +293,13 @@
     {
       "id": "S0",
       "name": "saved boundary/source/approval/budget contracts",
-      "status": "pending",
+      "status": "validated",
       "approval_required": true
     },
     {
       "id": "S0E",
       "name": "3060 runtime matching, transfer and cross-host calibration, asynchronous evaluation worker",
-      "status": "pending",
+      "status": "preparing",
       "worker_deployed": false
     },
     {
@@ -370,11 +381,11 @@
   },
   "budget": {
     "canonical": "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json",
-    "authorized_seconds": 468000,
-    "extension_records_applied_once": 5,
+    "authorized_seconds": 828000,
+    "extension_records_applied_once": 6,
     "new_budget_seconds": 360000,
-    "snapshot_epoch": 1791303003.5123236,
-    "snapshot_effective_remaining_seconds": 155491.60849547386,
+    "snapshot_epoch": 1791307061.7951336,
+    "snapshot_effective_remaining_seconds": 515491.60849547386,
     "reread_before_execution": true,
     "planned_hours": {
       "new_preflight": 3,
@@ -407,17 +418,18 @@
     ],
     "no_duplicate_settlement_or_active_clearing": true,
     "safe_launch_remaining_min_s": 120,
-    "ledger_authorized_seconds_current": 468000,
+    "ledger_authorized_seconds_current": 828000,
     "total_plan_authorized_seconds_after_pending_extension": 828000,
-    "new_budget_applied_this_revision": false,
+    "new_budget_applied_this_revision": true,
     "pending_extension": {
       "id": "USER_ADD100H_20261007_6TH",
       "seconds": 360000,
       "human_message": "plan的预算可以再添加100小时，你再反思一下为什么我们累计100亿步了但是完成的科目和效果远远落后于华南虎？",
-      "status": "human_authorized_pending_safe_application_in_approved_S0",
-      "applied": false
+      "status": "applied_once_in_approved_S0",
+      "applied": true,
+      "receipt": "history/evidence/20261007-plan-approved-s0/STAGE_S0_BUDGET_APPLIED.json"
     },
-    "snapshot_canonical_sha256": "ce8d34b2d4c3a84fc85957a97fde499d0d475c1fcb7578b6c0e9cb850db2738f",
+    "snapshot_canonical_sha256": "16f3a89a196aeb798a3ad995822de1ac74810ee41a0e7d37e90e442b946e335e",
     "snapshot_remaining_after_pending_extension_seconds": 515491.60849547386,
     "step_accounting": [
       "actual_new_policy_interactions_per_run",
@@ -511,8 +523,9 @@
     "interval_hours": 2,
     "keep_active": true,
     "healthy_unchanged_quiet": true,
-    "pending_review_no_new_training_or_probe": true,
-    "no_replay_old_once_entry": true
+    "pending_review_no_new_training_or_probe": false,
+    "no_replay_old_once_entry": true,
+    "approved_plan_and_actual_stage_required": true
   },
   "archival": {
     "unique_annotated_trial_via": "archive_tools/record_experiment.py",
@@ -597,5 +610,12 @@
     "preserve_existing_live_project_and_authored_closed_loops": true,
     "generic_MJCF_USD_reimport_allowed": false,
     "secondary_MuJoCo_sim2sim_is_distinct_protocol_not_PhysX_substitute": true
+  },
+  "approval_receipt": "history/evidence/20261007-plan-approved-s0/PLAN_APPROVAL.json",
+  "execution_state": {
+    "stage": "S0E",
+    "status": "preparing_async_runtime",
+    "root": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007",
+    "state_path": "/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007/reports/EXECUTION_STATE.json"
   }
 }

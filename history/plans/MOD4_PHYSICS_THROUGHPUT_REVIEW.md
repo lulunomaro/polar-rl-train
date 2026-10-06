@@ -84,3 +84,9 @@
 ## 2ms实际短窗结果
 
 2026-10-07 native4090，同完整23509、20k环境、seed20260928、warmup24/timed120×100Hz，2ms×5实际106110.588 policy steps/s，相对原0.5ms31306.268约3.39倍。taskfailure0/nonfinitefalse、closure1.185841mm/mimic.001826981rad。独立SDK10env3s与局部reset通过、固定5ms均载误差3.967e-5N/冲量2.317e-7Ns。短窗只证这一范围，旧技能15秒和完整随机PPO继续实际核验，不据此宣称采用或达到200k。大raw JSON仅SHA3e73aaf4462f82e43bdcf1bd9fcb8dd6e873b92506cc827bb2cd6d8201dc76f5。
+
+## 2ms实际完整PPO与正式接续
+
+128×2与20k×4完整PPO实际退出与完整保存CPU68有限；exact任务计数0/控制48-96步/回调240-480精确，不含正常timeout。20k192万策略步、闭链最大1.415214mm、mimic.001826981rad，PPO迭代7.42/5.40/5.37/5.44秒，平均81252.645steps/s，比原完整28643.891约2.84倍；native冻结106110.588与完整PPO分列。预检权重全部弃用。
+
+同原23509/sourceSHA/native资产/white_v3，15s三项任务模型数据通过，world64/64、pure4π左右各8/8在原±.2事实内。直线±1.5实际+1.4320/−1.4431，约4%欠速/原严格充分证据false保持，作为有限45min适应目标。当前MOD4_PHYSICS_DT2000_PRACTICAL_REVIEW_20261007的184源/唯一接续器从原23509完整KEEP_STD1已启动首45min A0，长期效果待该PID完整权重回放；没有门控/encoder/MoE完成结论。全部旧失败/保存/账段保留，关闭故障保护或改硬门槛均未发生。

@@ -1,0 +1,17 @@
+{
+  "id": "20261007-dt2500-model25525-diagnostic-retained-skills-reviewed",
+  "tag": "trial-20261007-dt2500-model25525-diagnostic-retained-skills-reviewed",
+  "title": "25525异步诊断回放完成，普通episode停训候选保留技能",
+  "kind": "evaluation",
+  "recorded_at": "2026-10-07T14:47:48.404765+00:00",
+  "repair_or_experiment_note": "# 已保存25525的独立回放完成，普通episode停训未导致既有技能丢失\n\n旧4090候选25525此前因一次bad_orientation被旧监督器完整保存停训。原任务事件、1.982995mm训练闭链峰和所有权重继续保留，不改称原训练全task0。新的监督器已在另一隔离源218上运行20k PPO，本次只读取3060已完成的三个诊断回放。\n\n同一3060、2.5ms/TGS32-4/A0、seed20261002、white_v3和noise_bias_mild_v1，flat80/spin88/world88各1500控制步15秒，均通过既有SCUTv4实际任务/模型/数据检查。与验证25211的完整初始root/q、实际参数、probe、sensor recipe和solver逐项exact；9份probe/result/manifest返回字节独立核验相同。\n\n25525世界完整圈64/64，最坏净横向速度0.042556910m/s，along0.470474972–0.529082822m/s；25211对应64/64、0.041912537m/s。25525正/反4π各8/8满足原signedyaw±0.2rad/s，组均+12.491546/−12.552444rad/s。+1.5直线误差0.040279172→0.032540575m/s，−1.5误差0.022639973→0.024057917m/s。三诊断回放闭链峰0.575614/0.601763/0.681069mm，三进程wall634.197549s约10.57分钟，2秒采样显存峰3208MiB不是连续峰。\n\n结论仅是这个已有平台协议下，停下保存的候选仍保留既有技能，没有证据支持把一次普通训练episode归因成整个策略或时钟失败。25525登记为可比较候选并保留，当前从25211恢复的新训练继续，不切换正在训练的源、不复活旧main、不放宽2mm/.01完整性合同。\n\n这是单seed/单profile噪声协议的诊断结果，不是双seed三profile毕业、实车认证或隔离因果证明。完整圈、全窗口、有效前缀和原全部flags/raw保留。原大轨迹/权重只保存SHA索引。本次新GPU probe/PPO、预算操作、训练参数/暂停/重启均为0。\n",
+  "validation": "Completed three3060 frozen cases;9returned JSON files byte-exact; fullinitialroot/q/actualparameters/probe/runtime/seed/profile exact; originalv4 and signed fullcircle/yaw facts retained. No new PPO/probe, no budget mutation, no active training change.",
+  "source_and_evidence_sha256": {
+    "history/evidence/MOD4_DT2500_MODEL25525_DIAGNOSTIC_20261007/FIRST_READER_ERROR.json": "61de4c5a1b2b9b9c581260375276b0f12e26269985f1b7dd168871b18b18f390",
+    "history/evidence/MOD4_DT2500_MODEL25525_DIAGNOSTIC_20261007/REPORT.md": "088b8318392d1af6cace1bcd6550bb4a75db15c7d89cd51fc0e61dae20c2617b",
+    "history/evidence/MOD4_DT2500_MODEL25525_DIAGNOSTIC_20261007/REVIEW.json": "c72d8a6b8c705e53bc1c5f6cab0aac0451fc3d648f288a749006726f6dac925e",
+    "history/evidence/MOD4_DT2500_MODEL25525_DIAGNOSTIC_20261007/review_diagnostic25525_completed_once.py": "7f0b08224afb8f847c1f3dc8b5b0149466f74c5ab3dbf8f4e900d2734202dd97",
+    "history/evidence/MOD4_DT2500_MODEL25525_DIAGNOSTIC_20261007/review_diagnostic25525_manifest_schema.py": "95e35b1afbfcb12bc484e3f79c677c5b4166cd0c6e3b2975cc84adffd8e40202"
+  },
+  "real_robot_certified": false
+}

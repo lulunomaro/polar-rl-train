@@ -1,0 +1,26 @@
+{
+  "id": "20261007-env25000-material-pool-repair-and-paired-ppo-scaling-reviewed",
+  "tag": "trial-20261007-env25000-material-pool-repair-and-paired-ppo-scaling-reviewed",
+  "title": "MOD4 material limit repair and20k25k matched PPO scaling reviewed",
+  "kind": "evaluation",
+  "recorded_at": "2026-10-07T12:20:37.824806+00:00",
+  "repair_or_experiment_note": "# 25,000环境配对吞吐测试结果\n\n原2.5ms/TGS32-4 45min正式25211数值/任务健康通过。新25k第一次因64K材料上限拒绝；固定材料共享隔离修复CPU与实际SDK证明原34collider物理数值/机器人几何/闭链不变、轮摩擦独立且恢复exact后，才进行以下完整PPO。\n\n| 环境数 | 后8轮PPO步/s | 最大闭链mm | 采样显存峰GiB | 任务终止 |\n|---:|---:|---:|---:|---:|\n| 20000 | 74129.8 | 1.338378 | 13.828 | 0 |\n| 25000 | 75774.3 | 1.450130 | 16.354 | 0 |\n\n25k对20k吞吐变化+2.218%。每组12更新、前4预热后8按collection+learning总时间计；同25211/seed/2.5ms×4/TGS32-4/完整优化器std与随机流/white_v3+D1D2，无delay或新DR。20k每更新48万样本，25k60万样本，学习批量改变，不称学习效果因果或全局最优。\n\n本次25k增加25%采样批量，仅提升2.218%吞吐且显存采样峰增加18.263%，建议暂留20000。此为实际成本判断，不引入吞吐机械准入线，也不声明全局最优。\n\n采样显存峰不是连续峰；afterstartup采样包含学习/保存退出，GPU平均利用率不代表纯动态区间。全部12更新两组均task0/closure<2mm/mimic<.01/1152回调/初末参数/74浮点有限/自己的219 source_map和snapshot/同canonical唯一账段通过。12更新的短测试不代表25k长段健康或旧技能毕业；正式25211新能力回放仍待。\n\n两段加载学习保存退出各281.482390s和353.176850s已唯一结账。总230h/六授权扩展不变，无新增时间，测试权重弃用保留，正式源25211不替换。原无效frozen进程SIGINT/SIGTERM不退出后，精确身份/无PPO无active核实，仅自身冻结进程强制退休，未信号trainer/其他AI，原9468错误行和SHA日志保留。\n\n原USD694e9d54...与importcontract/assets不改。只共享本scope不会随机化的generic.9/guide.02；未来若随机化这些材料须另作独立参数/缓存读回，不直接套固定共享语义。旧1ms/2ms/2.5ms权重与失败、全部oldflags保留。新219controller计划reviewready退出/noactive是测试审查边界，不冒称全部课程或实车认证完成。权重/大raw只路径SHA，不提交二进制或凭据。\n",
+  "validation": "CPU/real SDK/no engine errors/12updates each/source snapshots/PID74finite/unique ledger/throughput checked; no production adoption or skill graduation.",
+  "source_and_evidence_sha256": {
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/OLD_INVALID_AUTHORITY_RETIRED.json": "2c40d5b828f5e894d9e95035b5bdcf8a0f8dca88d331bd01320841b3e830be93",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/PAIRED_RESULT.json": "21cef00304cd855b503fb162d6016b91b1d7b52ba59f4de53718fe1881497e28",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/POOL_CPU_AND_SOURCE_PASSED.json": "dc8bcea1086857799511fe400a3710b5ff4ee0566a1d368e0183b73914e4e2ca",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/REPORT.md": "7fa72088e7fb14e34e1648afdb450553311f89c38ac084d54af23f91c98f892a",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/SOURCE_LEDGER_SCOPE_AUDIT.json": "42e2c2541aa015d8e23c5ed04d9c998cc9a8dda4d386f7a0054cc05379bbbfdc",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/fixed_material_pool.py": "7e3debfb850b4794544d5392e30adf453887b85b14f435c830f968e2a60f1c40",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/pooled_native_probe.py": "b239c6b25485a5ee5464484ea8db9060989e336a4e14a952507da6dbad515a9e",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/scaling_resume_contract.py": "3325ca3da728173495a35910f5fa1bc71a431efba849bc31b293a7c3270a8167",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/supervise_env25000_material_pool.py": "c4e8fb2a366773a7582c75e1e7343e644ce162e1605f6286d290025613583fd8",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/test_fixed_pool_cpu.py": "a2d3037c097f598513533b1c201446c509fcc916e7f89ab02219126828cbca33",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/test_scaling_cpu.py": "a0bb4e924d2498d3878aea350406f51301e769670da02fea84b6083e9ebe4931",
+    "history/evidence/MOD4_ENV25000_SCALING_20261007/runtime/train_scaling_ppo.py": "8c2f539cdf23e70ca0f1f8a6088960ec20582ac6271115ea31e099ba4fee4dae",
+    "history/plans/MOD4_ENV25000_SCALING_TEST.md": "55a630a6c3a02a3facc82e885d3d10b572583eb3d2776619afea90e2f40ac241",
+    "history/plans/MOD4_ENV25000_SCALING_TEST.json": "04f044b44fbde1e6b1beb8278c4ffd9f9435280a8cdb9d8f61fbf60e98d006fb"
+  },
+  "real_robot_certified": false
+}

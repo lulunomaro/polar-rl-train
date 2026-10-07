@@ -1,0 +1,317 @@
+{
+  "commit": "b8ff79f3df855faf9dc92f4a282bd80c42649466",
+  "rows": [
+    {
+      "path": "scripts/rsl_rl/train.py",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/scripts/rsl_rl/train.py",
+      "sha256": "74a3c5f67b365d8bee00b6a38f32e2657704e3f68edf678da9d3c1e1d63a25a1",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\audits\\20260925\\scutrobotlab_wheeled-legged_RL\\scripts\\rsl_rl\\train.py",
+          "byte_exact": false
+        }
+      ],
+      "saved_config_fields": [],
+      "functions": [
+        {
+          "name": "main",
+          "line": 179,
+          "end_line": 278,
+          "source": "def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlOnPolicyRunnerCfg):\n    \"\"\"Train with RSL-RL agent.\"\"\"\n    # override configurations with non-hydra CLI arguments\n    agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)\n    env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs\n    agent_cfg.max_iterations = (\n        args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations\n    )\n\n    # set the environment seed\n    # note: certain randomizations occur in the environment initialization so we set the seed here\n    env_cfg.seed = agent_cfg.seed\n    if args_cli.device is not None:\n        env_cfg.sim.device = args_cli.device\n        agent_cfg.device = args_cli.device\n\n    # multi-gpu training configuration\n    if args_cli.distributed:\n        env_cfg.sim.device = f\"cuda:{app_launcher.local_rank}\"\n        agent_cfg.device = f\"cuda:{app_launcher.local_rank}\"\n\n        # set seed to have diversity in different threads\n        seed = agent_cfg.seed + app_launcher.local_rank\n        env_cfg.seed = seed\n        agent_cfg.seed = seed\n\n    # specify directory for logging experiments\n    log_root_path = os.path.join(\"logs\", \"rsl_rl\", agent_cfg.experiment_name)\n    log_root_path = os.path.abspath(log_root_path)\n    print(f\"[INFO] Logging experiment in directory: {log_root_path}\")\n    # specify directory for logging runs: {time-stamp}_{run_name}\n    log_dir = datetime.now().strftime(\"%Y-%m-%d_%H-%M-%S\")\n    # This way, the Ray Tune workflow can extract experiment name.\n    print(f\"Exact experiment name requested from command line: {log_dir}\")\n    if agent_cfg.run_name:\n        log_dir += f\"_{agent_cfg.run_name}\"\n    log_dir = os.path.join(log_root_path, log_dir)\n\n    # create isaac environment\n    env = gym.make(args_cli.task, cfg=env_cfg, render_mode=\"rgb_array\" if args_cli.video else None)\n\n    # convert to single-agent instance if required by the RL algorithm\n    if isinstance(env.unwrapped, DirectMARLEnv):\n        env = multi_agent_to_single_agent(env)\n\n    # wrap for video recording\n    if args_cli.video:\n        video_kwargs = {\n            \"video_folder\": os.path.join(log_dir, \"videos\", \"train\"),\n            \"step_trigger\": lambda step: step % args_cli.video_interval == 0,\n            \"video_length\": args_cli.video_length,\n            \"disable_logger\": True,\n        }\n        print(\"[INFO] Recording videos during training.\")\n        print_dict(video_kwargs, nesting=4)\n        env = gym.wrappers.RecordVideo(env, **video_kwargs)\n\n    runner_class = eval(getattr(agent_cfg, \"runner_class\", \"OnPolicyRunner\"))\n    # wrap around environment for rsl-rl\n    if runner_class is OnPolicyRunner:\n        from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper\n    else:\n        from agent_rl.rsl_rl.env import RslRlVecEnvWrapper\n    env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)\n\n    # create runner from rsl-rl\n    runner = runner_class(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)\n    # write git state to logs\n    runner.add_git_repo_to_log(__file__)\n    # load the checkpoint\n    if args_cli.checkpoint is not None:\n        resume_path = os.path.abspath(args_cli.checkpoint)\n        print(f\"[INFO]: Loading model checkpoint from: {resume_path}\")\n        if args_cli.resume_training:\n            # True continuation: restore optimizer/iteration and continue from the next iteration index.\n            load_signature = inspect.signature(runner.load)\n            if \"load_iteration\" in load_signature.parameters:\n                runner.load(resume_path, load_optimizer=True, load_iteration=True)\n            else:\n                runner.load(resume_path, load_optimizer=True)\n            runner.current_learning_iteration += 1\n            print(\n                f\"[INFO]: Resuming training from next iteration: {runner.current_learning_iteration}\"\n            )\n        else:\n            # Weight initialization / finetune-from-checkpoint workflow.\n            _load_policy_for_finetune(runner, resume_path)\n\n    _notify_env_training_progress(env, int(getattr(runner, \"current_learning_iteration\", 0)))\n    _attach_checkpoint_metadata(env_cfg, agent_cfg, args_cli.checkpoint)\n\n    # dump the configuration into log-directory\n    dump_yaml(os.path.join(log_dir, \"params\", \"env.yaml\"), env_cfg)\n    dump_yaml(os.path.join(log_dir, \"params\", \"agent.yaml\"), agent_cfg)\n\n    # run training\n    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)\n\n    # close the simulator\n    env.close()"
+        }
+      ]
+    },
+    {
+      "path": "source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe25_v3/env.py",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe25_v3/env.py",
+      "sha256": "9959c7fae6eff8591d655a18c29986f2c184c13f4905361b6c722efefbad12bc",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\audits\\20260925\\scutrobotlab_wheeled-legged_RL\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe25_v3\\env.py",
+          "byte_exact": false
+        },
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_CLOSURE_REVIEW_20261007\\original\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe25_v3\\env.py",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [],
+      "functions": [
+        {
+          "name": "_apply_termination_duration",
+          "line": 4863,
+          "end_line": 4895,
+          "source": "def _apply_termination_duration(\n        self,\n        terminate: torch.Tensor,\n        *,\n        counter_attr: str = \"_termination_duration_counter\",\n        raw_attr: str = \"_termination_duration_raw_buf\",\n    ) -> torch.Tensor:\n        \"\"\"Require a terminate condition to persist for N consecutive control steps.\"\"\"\n        terminate = terminate.to(dtype=torch.bool, device=self.device)\n        steps = max(int(getattr(self.cfg, \"termination_duration_steps\", 1)), 1)\n        enabled = bool(getattr(self.cfg, \"termination_duration_enabled\", False)) and steps > 1\n\n        raw_buf = getattr(self, raw_attr, None)\n        if raw_buf is None or raw_buf.shape != terminate.shape:\n            raw_buf = torch.zeros_like(terminate, dtype=torch.bool)\n            setattr(self, raw_attr, raw_buf)\n        raw_buf.copy_(terminate)\n\n        counter = getattr(self, counter_attr, None)\n        if counter is None or counter.shape != terminate.shape:\n            counter = torch.zeros(terminate.shape, dtype=torch.int32, device=self.device)\n            setattr(self, counter_attr, counter)\n        if not enabled:\n            counter.zero_()\n            return terminate\n\n        counter_next = torch.where(\n            terminate,\n            torch.clamp(counter + 1, max=steps),\n            torch.zeros_like(counter),\n        )\n        setattr(self, counter_attr, counter_next)\n        return counter_next >= steps"
+        },
+        {
+          "name": "_get_dones",
+          "line": 4911,
+          "end_line": 5028,
+          "source": "def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:\n        # contact termination\n        reset_contact_force = torch.norm(\n            self.contact_sensor.data.net_forces_w[:, self._reset_contact_link_idx], dim=-1)\n        time_out = self.episode_length_buf >= self.max_episode_length - 1\n        terminate = torch.any(reset_contact_force > 1.0, dim=-1)\n\n        # ------------------------------------------------------------------\n        # Numerical safety termination\n        # - NaN/Inf in key states -> terminate immediately\n        # - Large outliers in velocities -> terminate immediately\n        # This prevents a single \"bad\" env from polluting rollout with NaNs.\n        # ------------------------------------------------------------------\n        joint_vel_act = self.joint_vel[:, self._actuate_idx]\n        root_lin_vel_b = self.robot.data.root_lin_vel_b\n        root_ang_vel_b = self.robot.data.root_ang_vel_b\n\n        nan_terminate = (\n            ~torch.isfinite(joint_vel_act).all(dim=-1)\n            | ~torch.isfinite(root_lin_vel_b).all(dim=-1)\n            | ~torch.isfinite(root_ang_vel_b).all(dim=-1)\n        )\n\n        joint_vel_abs_th = float(getattr(self.cfg, \"terminate_joint_vel_abs\", 500))\n        root_ang_vel_abs_th = float(getattr(self.cfg, \"terminate_root_ang_vel_abs\", 200.0))\n        root_lin_vel_abs_th = float(getattr(self.cfg, \"terminate_root_lin_vel_abs\", 100.0))\n\n        joint_vel_abs = torch.amax(torch.abs(joint_vel_act), dim=-1)\n        root_ang_vel_abs = torch.amax(torch.abs(root_ang_vel_b), dim=-1)\n        root_lin_vel_abs = torch.amax(torch.abs(root_lin_vel_b), dim=-1)\n\n        outlier_terminate = (\n            (joint_vel_abs > joint_vel_abs_th)\n            | (root_ang_vel_abs > root_ang_vel_abs_th)\n            | (root_lin_vel_abs > root_lin_vel_abs_th)\n        )\n        self._numerical_safety_reset_buf.copy_(nan_terminate | outlier_terminate)\n        # \u6570\u503c\u5b89\u5168\u7c7b\u7ec8\u6b62\uff08NaN/Inf + Outlier\uff09\u5fc5\u987b\u7acb\u5373\u751f\u6548\uff0c\u4e0d\u53d7 termination_duration \u9650\u5236\n        immediate_terminate = nan_terminate | outlier_terminate\n        # 3. \u7cbe\u51c6\u6253\u5370\u903b\u8f91\n        if bool(getattr(self.cfg, \"debug_numerical_safety_print\", False)) and outlier_terminate.any():\n            # \u83b7\u53d6\u89e6\u53d1\u5f02\u5e38\u7684\u73af\u5883\u7d22\u5f15 (env_ids)\n            outlier_indices = torch.where(outlier_terminate)[0]\n\n            print(f\"\\n[!!!] \u68c0\u6d4b\u5230 {len(outlier_indices)} \u4e2a\u73af\u5883\u6570\u503c\u7206\u70b8:\")\n            for idx in outlier_indices:\n                env_id = idx.item()\n                print(f\"--- Env ID: {env_id} ---\")\n                print(f\"  \u5173\u8282\u901f\u5ea6\u6700\u5927\u503c: {joint_vel_abs[env_id]:.4f} (\u9608\u503c: {joint_vel_abs_th})\")\n                print(f\"  \u673a\u8eab\u89d2\u901f\u5ea6\u6700\u5927\u503c: {root_ang_vel_abs[env_id]:.4f} (\u9608\u503c: {root_ang_vel_abs_th})\")\n                print(f\"  \u673a\u8eab\u7ebf\u901f\u5ea6\u6700\u5927\u503c: {root_lin_vel_abs[env_id]:.4f} (\u9608\u503c: {root_lin_vel_abs_th})\")\n            print(\"########################################################################\")\n\n        terminate |= immediate_terminate\n\n        # ------------------------------------------------------------------\n        # Observation safety termination\n        # - raw obs / raw privileged obs \u975e\u6709\u9650\u6216\u8d85\u8fc7\u9608\u503c -> terminate\n        # \u8bf4\u660e\uff1araw obs \u5728 _get_observations() \u91cc\u7f13\u5b58\uff0c\u786e\u4fdd\u5305\u542b actions \u7b49\u672a clip \u7684\u8f93\u5165\u3002\n        # ------------------------------------------------------------------\n        if self._terminate_on_obs_outlier and self._value_debug_step > 10:\n            obs_abs_th = self._terminate_obs_abs if self._terminate_obs_abs > 0.0 else float(getattr(self.cfg, \"debug_obs_alert_threshold\", 0.0))\n            obs_outlier_terminate = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)\n\n            if obs_abs_th > 0.0:\n                obs_outlier_terminate |= self._obs_raw_policy_max_abs > obs_abs_th\n                if self.cfg.state_space is not None:\n                    obs_outlier_terminate |= self._obs_raw_critic_max_abs > obs_abs_th\n\n            obs_outlier_terminate |= self._obs_raw_policy_has_nonfinite\n            if self.cfg.state_space is not None:\n                obs_outlier_terminate |= self._obs_raw_critic_has_nonfinite\n\n            if obs_outlier_terminate.any():\n                self._terminate_obs_print_counter += 1\n                if self._terminate_obs_print_interval <= 1 or (self._terminate_obs_print_counter % self._terminate_obs_print_interval == 0):\n                    bad_ids = torch.where(obs_outlier_terminate)[0]\n                    print(f\"\\n[ObsReset] \u68c0\u6d4b\u5230 {len(bad_ids)} \u4e2a\u73af\u5883 raw obs \u5f02\u5e38\uff0c\u5c06\u89e6\u53d1 reset. th={obs_abs_th}\")\n                    print(f\"[ObsReset] env_ids={bad_ids.detach().cpu().tolist()}\")\n\n            immediate_terminate |= obs_outlier_terminate\n            terminate |= obs_outlier_terminate\n\n        # orientation termination\n        root_rpy = euler_xyz_from_quat(self.robot.data.root_quat_w)\n        roll_limit_rad = torch.deg2rad(\n            torch.tensor(float(getattr(self.cfg, \"termination_roll_deg\", 40.0)), device=self.device)\n        )\n        pitch_limit_rad = torch.deg2rad(\n            torch.tensor(float(getattr(self.cfg, \"termination_pitch_deg\", 40.0)), device=self.device)\n        )\n        terminate |= torch.abs(wrap_to_pi(root_rpy[0])) > roll_limit_rad\n        terminate |= torch.abs(wrap_to_pi(root_rpy[1])) > pitch_limit_rad\n        if bool(getattr(self.cfg, \"reset_heading_target_terminate_enabled\", False)):\n            reset_heading_target_threshold_rad = torch.deg2rad(\n                torch.tensor(\n                    float(getattr(self.cfg, \"reset_heading_target_terminate_threshold_deg\", 2.0)),\n                    device=self.device,\n                )\n            )\n            reset_heading_error = torch.abs(wrap_to_pi(self.robot.data.heading_w - self.reset_heading_target))\n            terminate |= reset_heading_error > reset_heading_target_threshold_rad\n        # \u6839\u636e\u4e0d\u540c\u72b6\u6001\u673a\u8986\u76d6\u7ec8\u6b62\u9700\u6c42\n        terminate, time_out = self.state_machine_manager.apply_done_masks(\n            self, terminate, time_out\n        )\n        # \u53ef\u4ee5\u8bbe\u7f6e\u7ec8\u6b62\u8fde\u7eed\u6761\u4ef6\uff0c\u6301\u7eedN\u6b65\u6ee1\u8db3\u624d\u771f\u6b63\u7ec8\u6b62\n        # \u6ce8\u610f\uff1a\u6570\u503c\u5b89\u5168\u7c7b\u7ec8\u6b62\uff08NaN/Inf/Outlier/\u89c2\u6d4b\u5f02\u5e38\uff09\u4e0d\u53d7 duration \u9650\u5236\uff0c\u7acb\u5373\u751f\u6548\uff0c\n        # \u4ee5\u907f\u514d NaN \u73af\u5883\u5728\u5ef6\u8fdf\u7a97\u53e3\u5185\u6301\u7eed\u6c61\u67d3\u4eff\u771f\u548c PPO rollout\u3002\n        delayed_terminate = terminate & ~immediate_terminate\n        delayed_terminate = self._apply_termination_duration(delayed_terminate)\n        terminate = delayed_terminate | immediate_terminate\n\n        # others\n        if self.cfg.play is True and not bool(getattr(self.cfg, \"play_keep_done_reset\", False)):\n            terminate = torch.zeros_like(terminate)\n\n        return terminate, time_out"
+        }
+      ]
+    },
+    {
+      "path": "source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env.py",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env.py",
+      "sha256": "71388264b7db94d02bd2c906eae0387bbe5175504187b97575c09894faf58853",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\audits\\20260925\\scutrobotlab_wheeled-legged_RL\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe_V14\\env.py",
+          "byte_exact": false
+        },
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_CLOSURE_REVIEW_20261007\\original\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe_V14\\env.py",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [],
+      "functions": [
+        {
+          "name": "_get_rough_height_offset_curriculum_level",
+          "line": 259,
+          "end_line": 272,
+          "source": "def _get_rough_height_offset_curriculum_level(self) -> tuple[int, float, int]:\n        curriculum_cfg = get_rough_height_offset_curriculum_cfg(self.cfg)\n        num_levels = max(int(curriculum_cfg[\"num_levels\"]), 1)\n        if num_levels <= 1:\n            return 0, 1.0, self._get_rough_height_offset_curriculum_iteration()\n\n        iteration = self._get_rough_height_offset_curriculum_iteration()\n        max_iteration = int(curriculum_cfg[\"max_iteration\"])\n        interval = int(curriculum_cfg[\"interval\"])\n        capped_iteration = min(iteration, max(max_iteration, 0))\n        level = num_levels - 1 if interval <= 0 else capped_iteration // max(interval, 1)\n        level = int(max(0, min(level, num_levels - 1)))\n        scale = float(level) / float(num_levels - 1)\n        return level, scale, iteration"
+        },
+        {
+          "name": "_get_dones",
+          "line": 568,
+          "end_line": 572,
+          "source": "def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:\n        terminate, time_out = super()._get_dones()\n        # Boundary resets are treated as time-outs so they do not contribute to termination reward.\n        time_out |= self._get_rough_terrain_boundary_time_out()\n        return terminate, time_out"
+        }
+      ]
+    },
+    {
+      "path": "source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env_cfg.py",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/source/agent_tasks/agent_tasks/direct/wheelbipe/wheelbipe_V14/env_cfg.py",
+      "sha256": "e287a0dda7124dda6526a9a6f351f00d2ac0e1774ad390b9e2eebf077b9efc93",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\audits\\20260925\\scutrobotlab_wheeled-legged_RL\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe_V14\\env_cfg.py",
+          "byte_exact": false
+        },
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_CLOSURE_REVIEW_20261007\\original\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe_V14\\env_cfg.py",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/flat_and_rotation/2026-07-29_23-20-03/params/env.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/flat_and_rotation/2026-07-29_23-20-03/params/env.yaml",
+      "sha256": "a729486fcb5a8a24c25eafed96709b4ec4e6b29221c615a09bda5343b19a1b21",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_CLOSURE_REVIEW_20261007\\original\\pretrained\\26_infantry\\flat_and_rotation\\2026-07-29_23-20-03\\params\\env.yaml",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [
+        {
+          "line": 21,
+          "text": "dt: 0.005"
+        },
+        {
+          "line": 84,
+          "text": "decimation: 4"
+        },
+        {
+          "line": 86,
+          "text": "episode_length_s: 20.0"
+        },
+        {
+          "line": 828,
+          "text": "termination_duration_enabled: true"
+        },
+        {
+          "line": 829,
+          "text": "termination_duration_steps: 20"
+        },
+        {
+          "line": 1185,
+          "text": "termination_roll_deg: 40.0"
+        },
+        {
+          "line": 1186,
+          "text": "termination_pitch_deg: 40.0"
+        }
+      ],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/flat_and_rotation/2026-07-29_23-20-03/params/agent.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/flat_and_rotation/2026-07-29_23-20-03/params/agent.yaml",
+      "sha256": "b84ac52a084dc58b6e5199e9296462fe5eaef0e991d8baaddd4ac1ae14c3025e",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_CLOSURE_REVIEW_20261007\\original\\pretrained\\26_infantry\\flat_and_rotation\\2026-07-29_23-20-03\\params\\agent.yaml",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [
+        {
+          "line": 3,
+          "text": "num_steps_per_env: 24"
+        },
+        {
+          "line": 4,
+          "text": "max_iterations: 20000"
+        },
+        {
+          "line": 8,
+          "text": "save_interval: 500"
+        }
+      ],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/rough_rotation_stair/2026-07-23_10-19-59/params/env.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-23_10-19-59/params/env.yaml",
+      "sha256": "79a2cfe8a0145b5e20881a7f0babb8c0c79a125d7363d1146fc726dff6ee7da8",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_FULL_DR_ROADMAP_20261006\\source_reference\\pretrained\\26_infantry\\rough_rotation_stair\\2026-07-23_10-19-59\\params\\env.yaml",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [
+        {
+          "line": 21,
+          "text": "dt: 0.005"
+        },
+        {
+          "line": 84,
+          "text": "decimation: 4"
+        },
+        {
+          "line": 86,
+          "text": "episode_length_s: 20.0"
+        },
+        {
+          "line": 828,
+          "text": "termination_duration_enabled: true"
+        },
+        {
+          "line": 829,
+          "text": "termination_duration_steps: 20"
+        },
+        {
+          "line": 1258,
+          "text": "termination_roll_deg: 40.0"
+        },
+        {
+          "line": 1259,
+          "text": "termination_pitch_deg: 40.0"
+        }
+      ],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/env.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/env.yaml",
+      "sha256": "85e82dc8025a53437a25fac4520c8caf7a0097a1627e851168dde15e913a544a",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_FULL_DR_ROADMAP_20261006\\source_reference\\pretrained\\26_infantry\\rough_rotation_stair\\2026-07-23_16-23-21\\params\\env.yaml",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [
+        {
+          "line": 21,
+          "text": "dt: 0.005"
+        },
+        {
+          "line": 84,
+          "text": "decimation: 4"
+        },
+        {
+          "line": 86,
+          "text": "episode_length_s: 20.0"
+        },
+        {
+          "line": 828,
+          "text": "termination_duration_enabled: true"
+        },
+        {
+          "line": 829,
+          "text": "termination_duration_steps: 20"
+        },
+        {
+          "line": 1258,
+          "text": "termination_roll_deg: 40.0"
+        },
+        {
+          "line": 1259,
+          "text": "termination_pitch_deg: 40.0"
+        }
+      ],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/rough_rotation_stair/2026-07-30_09-16-27/params/env.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-30_09-16-27/params/env.yaml",
+      "sha256": "a6117e55b3ebb5a03870981bd2d65d889c38850063008a9341d8346b997bb1ee",
+      "local_reference_comparison": [
+        {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_FULL_DR_ROADMAP_20261006\\source_reference\\pretrained\\26_infantry\\rough_rotation_stair\\2026-07-30_09-16-27\\params\\env.yaml",
+          "byte_exact": true
+        }
+      ],
+      "saved_config_fields": [
+        {
+          "line": 21,
+          "text": "dt: 0.005"
+        },
+        {
+          "line": 84,
+          "text": "decimation: 4"
+        },
+        {
+          "line": 86,
+          "text": "episode_length_s: 20.0"
+        },
+        {
+          "line": 828,
+          "text": "termination_duration_enabled: true"
+        },
+        {
+          "line": 829,
+          "text": "termination_duration_steps: 20"
+        },
+        {
+          "line": 1258,
+          "text": "termination_roll_deg: 40.0"
+        },
+        {
+          "line": 1259,
+          "text": "termination_pitch_deg: 40.0"
+        }
+      ],
+      "functions": []
+    },
+    {
+      "path": "pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/agent.yaml",
+      "url": "https://raw.githubusercontent.com/scutrobotlab/wheeled-legged_RL/b8ff79f3df855faf9dc92f4a282bd80c42649466/pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/agent.yaml",
+      "sha256": "3b0859c54fae7f1d68fd526af9dc7aab03bea24bccc3ab39878017f8106971a8",
+      "local_reference_comparison": [],
+      "saved_config_fields": [
+        {
+          "line": 3,
+          "text": "num_steps_per_env: 24"
+        },
+        {
+          "line": 4,
+          "text": "max_iterations: 20000"
+        },
+        {
+          "line": 8,
+          "text": "save_interval: 500"
+        }
+      ],
+      "functions": []
+    }
+  ]
+}

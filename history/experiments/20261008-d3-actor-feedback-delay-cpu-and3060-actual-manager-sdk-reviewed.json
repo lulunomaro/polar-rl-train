@@ -1,0 +1,25 @@
+{
+  "id": "20261008-d3-actor-feedback-delay-cpu-and3060-actual-manager-sdk-reviewed",
+  "tag": "trial-20261008-d3-actor-feedback-delay-cpu-and3060-actual-manager-sdk-reviewed",
+  "title": "D3感知0或10ms实际管理器与局部reset SDK完成，4090并行学习保持",
+  "kind": "diagnostic",
+  "recorded_at": "2026-10-07T16:58:44.068387+00:00",
+  "repair_or_experiment_note": "# D3感知0/10ms的实际actor管理器已在3060独立验证，当前4090训练持续\n\n在218生产冻结源码之外隔离建立221源：旧218逐字不变，明确复用已有D3反馈队列数学，新增actor接口和12项CPU边界合同。噪声/整回合bias先注入raw反馈，再按各环境episode的0或1个100Hz控制周期延迟，最后使用原manager scale；不是2.5ms物理步延迟、50Hz采样或动作延迟。BODY矢量保留采样时帧，不旋转到应用时帧。35actor/38cleancritic/6action、commands/height/lastaction/mode/wheel-position槽、plant/task/reward/hardware保持。\n\n两个新的immutable包分别delay off和0/10ms on，由原3060单GPU锁worker执行10env×300control、3秒真实SDK，不修改旧worker，不阻断4090的原范围PPO。用已完整旧技能验证25211 actor生成clean输入动作，actual noisy+delayed manager仅用于独立审查，不能把该SDK视为噪声闭环能力回放或D3学习。\n\n原actor manager的五类反馈每类3000个环境采样读回：803次age0us、2197次age10000us；局部reset选中[1,4,7]产生3次warmup age0us，其他行完整队列和episode不变。实际sample/apply tick差与us相符，same tick不推进noise或queue。最大manager公式误差4.76837e-7；critic保持clean，原不延迟槽exact。两case全初始root/q/参数、末态root/q/参数在固定clean动作下bit-exact；这是本次同机隔离读回，不是跨GPU动态bit-exact。\n\n两case exit0、taskreset0、非有限false、闭链峰.547196mm/mimic.001691456rad，实际10articulations/60closedloops/32-4/2.5ms读回。6份probe/result/manifest返回字节exact，assets仍实际694e9d54USD/importcontract/原引用，无重新导入/live覆盖。两进程wall98.511858s，传输5.538522s，2秒采样显存峰2765MiB不是连续峰。\n\n这里只接受manager时戳/缩放/cache/reset/cleancritic的SDK合同，不称D3已开训、毕业或全平台能力通过。此probe没有保存完整physicalcallback计数，不能编造1200回调证明。下一步仍需真实4090新范围20k物理/回调、完整新增delay state/optimizer/RNG和新episode恢复合同、128x2/20kx4完整PPO权重弃用，再在实际完整保存/孩子退出/active明确/同canonical两锁安全边界接新唯一有界D3入口。\n\n第一CPU fixture多传tick、第一publisher局部三引号parse错误发生在CPU/连接发布前，原错误保留并通过新的显式fixture审查及编译修正；生产无故障。所有准备/发布/review once已执行，不重跑旧入口。当前4090 block2继续D1+D2，预算230h/六扩展各一次不变，本次新增PPO/预算交易0。主计划v1.5 SHA未改，未开legacy bundle或40ms/动作延迟。\n",
+  "validation": "12 actualadapter CPU contracts;two10env300control frozen SDK;actual age0/10000us warmup/reset/scale/cleancritic;6returned JSON byte-exact;source221 and assets SHA indexed. No D3 PPO or native20k callback proof, current4090 learning unchanged.",
+  "source_and_evidence_sha256": {
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/CPU_PASSED.json": "d20a08294e6da3307b280da4babbd87961e4ffc9c674d654bc107ed1ac649a47",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/feedback_delay_mild.py": "90b339a6d3690294798befefb33e7f27cb7c3bfa0d8e38c98312e207685b5665",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/feedback_delay_runtime.py": "04d6a19a96a4d274575c846f62db5f0ddebfe7a4aa6c90ff036c935bf568b770",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/FIRST_CPU_FIXTURE_ERROR.json": "00e5175a7d1f17962859dc6b8df784800a02cec7c9754fe6a52efad5308c441e",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/FIRST_PUBLISHER_PARSE_ERROR.json": "a3a1c3936e5fc95092b17b0ef98c31a32db0e5ef3649c5e7416fa809125fa4fe",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/IMMUTABLE_PUBLICATION.json": "61f19fa9851a8c8f7c15f96e14c804d4bd77a272b3c32f0af78ae9588294a748",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/publish_delay_sdk_immutable_once.py": "a686cc520453150d33ae54f5ff6caf4fbcc1b17b89b76a088b4b6fa554a403a7",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/REPORT.md": "b856c6a8a0ecb6671d4beccca44a80a816707e8f9f988e99bc912f88fe2ddeb7",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/REVIEW.json": "9e14aa733c1112b8aad2729ad2a5ce244910a1b2b9eb47882ff6c62a265b14ad",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/review_adapter_cpu_fixture_call_once.py": "a22bdad30338755ae75b17d44d31fbf147f928635102e303e4854a59aa2dc277",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/review_delay_sdk_completed_once.py": "0ddd1a436a09aa2bca17211b109c2bf5071af461a9cbd696a85d383895ca6fee",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/stage_delay_sdk_adapter_once.py": "36a7691e0a4402fd5491ff1d85a7eb5e8c4083bc84a0040939b1e378fe327b5f",
+    "history/evidence/MOD4_D3_ACTOR_DELAY_CPU_AND3060_SDK_20261008/test_delay_actor_boundary_cpu.py": "9a102b6921e234a3ac9ef037fc77bb7bb056df6dadfe5468e785acef61543def"
+  },
+  "real_robot_certified": false
+}

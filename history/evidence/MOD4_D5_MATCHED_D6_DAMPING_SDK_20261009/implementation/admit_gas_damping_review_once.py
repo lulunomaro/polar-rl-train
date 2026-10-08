@@ -1,0 +1,52 @@
+"""CPU-only safe evaluator handover; old files and failed receipt remain intact."""
+from pathlib import Path
+import os,json,time,hashlib,subprocess,base64,msvcrt
+from resilient_json_atomic import atomic
+D=Path(__file__).resolve().parent
+def ps(code):
+    p=subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-EncodedCommand',base64.b64encode(code.encode('utf-16le')).decode()],capture_output=True,text=True,encoding='utf8',errors='replace',creationflags=0x08000000)
+    assert p.returncode==0,p.stdout+p.stderr
+    return json.loads(p.stdout) if p.stdout.strip() else None
+def main():
+    assert D==Path('D:/MOD4_async_eval/closure_episode_clock2500_v15') and not (D/'GAS_DAMPING_REVIEW_WORKER_ADMISSION.json').exists()
+    read=lambda p:json.loads(p.read_text(encoding='utf8'))
+    assert hashlib.sha256((D/'eval_worker_closure2500.py').read_bytes()).hexdigest()=='0b7e7a700a952dda0a08edc7587406f39880d10843ee4ef49132fe979e6268f1'
+    assert hashlib.sha256((D/'eval_worker_atomic_retry_review.py').read_bytes()).hexdigest()=='aabc30c57e37324946035d54d0783da6811a1fcda084858c66423572cbfc65e7'
+    fault=read(D/'ATOMIC_RETRY_WORKER_ATTENTION.json');assert 'Frozen evaluation failed' in fault['error']
+    failed=read(D/'jobs/clk2500-closure-episode-d3-80-d6-gas-sdk-off/result.json');assert failed['phase']=='retained_failed'
+    log=(D/'jobs/clk2500-closure-episode-d3-80-d6-gas-sdk-off/probe.log').read_text(encoding='utf8',errors='replace');assert 'indices should be either on cpu' in log
+    actual=ps("$rows=@(Get-CimInstance Win32_Process|Where-Object {$_.CommandLine -like '*closure_episode_clock2500_v15*' -and $_.Name -like 'python*'}|Select-Object ProcessId,ParentProcessId,CommandLine,@{n='creation_epoch';e={([DateTimeOffset]$_.CreationDate).ToUnixTimeMilliseconds()/1000}});[pscustomobject]@{rows=$rows}|ConvertTo-Json -Compress -Depth 6")
+    this=[x for x in actual['rows'] if x['ProcessId']==os.getpid()];assert len(this)==1
+    allowed={os.getpid(),this[0]['ParentProcessId']}
+    assert all(x['ProcessId'] in allowed and 'admit_gas_damping_review_once.py' in x['CommandLine'] for x in actual['rows']),'A real worker or child is still active; no signals permitted'
+    lock=(D.parent/'worker.lock').open('a+b');lock.seek(0);msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1);msvcrt.locking(lock.fileno(),msvcrt.LK_UNLCK,1);lock.close()
+    old='MOD4_AsyncFrozenEvaluation_v15_atomic_retry_review'
+    task=ps("$ErrorActionPreference='Stop';$xml=Export-ScheduledTask -TaskName '"+old+"';[pscustomobject]@{xml=$xml;triggerCount=([xml]$xml).Task.Triggers.ChildNodes.Count;state=(Get-ScheduledTask -TaskName '"+old+"').State.ToString()}|ConvertTo-Json -Compress")
+    assert task['triggerCount']==0 and task['state']!='Running'
+    (D/'OLD_TASK_BEFORE_GAS_DAMPING_REVIEW_REVIEW.xml').write_text(task['xml'],encoding='utf8')
+    ps("$ErrorActionPreference='Stop';Disable-ScheduledTask -TaskName '"+old+"'|Out-Null")
+    admission=dict(epoch=time.time(),old_worker_and_children_exited=True,actual_processes=actual,old_demand_task_disabled=True,shared_GPU_lock_was_free=True,
+      preserved_old_attention=fault,old_source_and_results_preserved=True,transient_windows_share_conflicts_bounded_retry=True,reviewed_only_PhysX_CPU_tensor_index_reader=True,old80_on_never_ran_not_passed=True,no_4090_PPO_canonical_or_live_asset_mutation=True)
+    atomic(D/'GAS_DAMPING_REVIEW_WORKER_ADMISSION.json',admission)
+    new=ps(r'''
+$ErrorActionPreference='Stop'
+$name='MOD4_AsyncFrozenEvaluation_v15_gas_damping_review'
+if(Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue){throw 'Existing new task; do not repeat'}
+$action=New-ScheduledTaskAction -Execute 'D:\claude2\fangzhen\.venv-isaaclab\Scripts\pythonw.exe' -Argument 'D:\MOD4_async_eval\closure_episode_clock2500_v15\eval_worker_gas_damping_review.py' -WorkingDirectory 'D:\MOD4_async_eval\closure_episode_clock2500_v15'
+$principal=New-ScheduledTaskPrincipal -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
+$settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+Register-ScheduledTask -TaskName $name -Action $action -Principal $principal -Settings $settings -Description 'Frozen evaluator receipt-sharing retry; no triggers; same GPU lock; reuse completed results; no training or budget authority.'|Out-Null
+Start-ScheduledTask -TaskName $name
+$xml=Export-ScheduledTask -TaskName $name
+[pscustomobject]@{name=$name;xml=$xml;triggerCount=([xml]$xml).Task.Triggers.ChildNodes.Count;state=(Get-ScheduledTask -TaskName $name).State.ToString()}|ConvertTo-Json -Compress
+''')
+    assert new['triggerCount']==0
+    for _ in range(100):
+        if (D/'GAS_DAMPING_REVIEW_WORKER_STARTED.json').exists():break
+        time.sleep(.1)
+    started=read(D/'GAS_DAMPING_REVIEW_WORKER_STARTED.json');assert not (D/'GAS_DAMPING_REVIEW_WORKER_ATTENTION.json').exists()
+    (D/'GAS_DAMPING_REVIEW_TASK.xml').write_text(new.pop('xml'),encoding='utf8')
+    done=dict(epoch=time.time(),admission=admission,new_worker=started,new_task=new,no_replay_of_completed_jobs=True,no_4090_PPO_canonical_or_live_asset_mutation=True)
+    atomic(D/'GAS_DAMPING_REVIEW_WORKER_ADMITTED.json',done);print(json.dumps(done))
+if __name__=='__main__':main()
+

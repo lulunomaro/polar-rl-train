@@ -1,0 +1,29 @@
+{
+  "epoch": 1791495144.656291,
+  "existing_approved_S2_D7_scope": true,
+  "actual_installed_backend": "isaaclab_physx",
+  "actual_installed_articulation_SHA": "47d96553282b389493e69f691b8dcbfeb98997a5a80b88c2571c60ba8b58cb6d",
+  "COM_setter": "set_coms_index(coms, body_ids, env_ids, full_data=False)",
+  "COM_shape": "selected envs x selected bodies x 7 or Warp transformf",
+  "COM_frame": "each body link frame; COM pose is pos_xyz + quaternion_xyzw",
+  "COM_setter_behavior": "updates actual buffer then sends full body COM poses for only selected environment indices to PhysX; preserve other bodies and quaternion",
+  "COM_candidate_body": "chassis explicitly named by frozen task; actual body order/index/mass and COM must still be read from live SDK, not assumed",
+  "COM_delta_m": [
+    -0.005,
+    0.005
+  ],
+  "COM_total_system_shift": "mass-weighted chassis contribution, not an asserted equal shift of total robot COM",
+  "PD_explicit_leg_kp_nominal_software": 60.0,
+  "PD_explicit_leg_kd_nominal_software": 2.0,
+  "PD_explicit_wheel_kd_nominal_software": 0.6,
+  "PD_multiplier": [
+    0.95,
+    1.05
+  ],
+  "PD_setter_warning": "PhysX write_joint_stiffness/damping methods update simulation drives and buffers, not actuator model coefficients. DCMotor explicit PD must change only its actual model coefficients, preserving zero implicit motor drives; this requires real SDK readback before integration.",
+  "all_other_mass_inertia_orientation_gas_springs_passive_damping_hardware_limits_preserved": true,
+  "wider_ranges_authorized": false,
+  "new_D7_component_SDK_PPO_executor_deployed": false,
+  "no_GPU_PPO_canonical_or_launch_authority": true,
+  "next_required": "Read actual chassis index/local COM/quaternion/mass and explicit actuator coefficient/zero drive buffers in same actual native model; then isolate independent episode RNG and expected-value auditor before new-range SDK/PPO."
+}

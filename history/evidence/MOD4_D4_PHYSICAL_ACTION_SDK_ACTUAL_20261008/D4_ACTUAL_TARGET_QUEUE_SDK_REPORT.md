@@ -1,0 +1,11 @@
+D4候选0/2.5/5ms物理动作目标队列的3060 off/on两份10env×300control3s已真正执行exit0。源为完整已行为审查27575 SHAded074be755d5320a4050f69753163800a409d6eaf077fb3b990b686d9547a61，2.5ms×4/TGS32-4，原actualUSD694e9d54.../importcontract/引用不改。各1200真实物理contact callbacks，legs/wheels分别1200实际apply calls exact。独立读者对每组3000个命令首次真实应用边界与Articulation目标逐项核验；off均0us，on legs0/2500/5000us=1301/1298/401，wheels600/1898/502，所有6000条on组命令都在请求物理时刻应用。actual articulation target误差0，不将20k正式训练或动作物理效果冒称已完成。
+
+实际SDK调用关系counter先加1后apply、write、simstep，应用时刻(counter-1)*2500us；队列在原scale/defaultq/CAD投影后延迟四腿位置目标（同一组）和两轮速度目标（另一组），不打开legacyDR bundle。两组episode RNG互相独立、global不动。命令保持到下一次policy请求时，最大holding sample age12500us不是首应用延迟；首应用最大5000us，不能把hold年龄当作5ms延迟失控或声称0.5/1ms精确回调。
+
+actual selectedreset[1,4,7]清命令、neutral取真实default腿q/零轮速、其它行/全局时钟exact；首次neutral hold腿9/wheel14读回样本如实记录，不当有效policy命令。实际GPU queue/targets/timestamps/RNG磁盘roundtrip和同tick actor动作exact，不改物理状态，非PhysX exactresume。原requested processed targets在每次apply后恢复，动作观察与命令/cleancritic路径保留；actor35/critic38/actions6、D3反馈0/10ms、noise+bias manager公式误差0，actor无teacher/critic，optimizer更新0。
+
+两case实际任务reset0/非有限false，closure.550899829/.550319499mm、mimic.001691456rad，初始root/30q/实际参数/D3反馈delay分配exact。真实actor闭环下off/on的最终plant可不同，本次不声称同动作或跨进程动态bitexact。原v4 false/reasons group_samples_incomplete及strict flags保留：这是每组一环境的10env3s接口夹具，不是80env15s技能回归。接口专属时间戳/目标/callback/reset/保存读回证明接受，未伪造15s毕业。首次独立读者误套技能group_samples合同，修后仍保留原false；这不是GPU或生产训练故障。
+
+两进程wall57.455266+58.340545=115.795811秒，2s sampled显存峰3065MiB，非连续峰。四份probe/result自动bridge返回4090字节SHA exact，完整大raw只SHA索引。新scope仍需4090真实20k/完整callback/参数/积分/硬件actual路径与新范围128x2和20kx4完整PPO，预检策略弃用计同canonical；完整actor/critic/std/optimizer/feedback+sensor+action队列/global-named RNG保存、恢复后新physicalepisode清队列需补齐。本次没有D4学习executor，4090当前234 D3第三块未暂停、生产动作延迟仍0，clock45min不重复。既有CPU18+10、SDK已按SHA明确完成，后续不能重复这些已有效读回。
+
+主计划v1.5 SHA812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b不改，230h唯一账本/六扩展保持，无PPO或预算交易。既有D3第二2h27575 world64/64/pure左右4pi保持报告不重建，此trial只记录新真实SDK结果。所有旧flags/失败/权重/raw保留，credentials不归档，权重/大raw/NPZ/USD仅SHA，不认证实车。

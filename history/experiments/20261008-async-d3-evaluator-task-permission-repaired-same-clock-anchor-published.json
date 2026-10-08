@@ -1,0 +1,22 @@
+{
+  "id": "20261008-async-d3-evaluator-task-permission-repaired-same-clock-anchor-published",
+  "tag": "trial-20261008-async-d3-evaluator-task-permission-repaired-same-clock-anchor-published",
+  "title": "Async D3 evaluator task permission repaired and same-clock baseline published",
+  "kind": "repair",
+  "recorded_at": "2026-10-08T01:56:00.571902+00:00",
+  "repair_or_experiment_note": "3060的有限权限CPU交接任务在旧20份1ms任务全部完成/worker空闲后，执行Disable-ScheduledTask时收到HRESULT0x80070005。原错误和原入口保留，4090训练持续，没有PPO/预算/时钟/奖励变化。\n\n新的唯一权限审查入口在既有授权SSH管理上下文执行，只在重新核实旧进程创建时间/argv、无GPU孩子、20份任务全部完成、任务无周期或开机trigger后，退休旧idleworker和禁用旧任务。原XML保留。启动新的无trigger2.5ms32-4 D3 frozenworker，共用原单GPU锁；完成的CPUbootstrap任务保存XML后删除。新worker实际创建时间/argv/单GPU孩子已核验，不按旧PID盲信号，不修改权限或扩大训练授权。\n\nCPU-only发布精确25425来源SHA b88b66e974e6f4a5e17fa6bcc7f2311224d09c9b63ef0ff8c7c5e69ea2402e1b在同2.5ms32-4/0-10ms反馈延迟包下的flat/spin/world三份基线，用于后续候选配对；不是新增4090试验，不复跑45min/PPO预检，不选预检或未来源权重。新immutable包SHA56f6ac8fe847b27e4a59e679b6dba99912652efe6b077d255f85754963fd359d及原USD/importcontract引用不变。新worker现已实际开始anchor-flat，但新平台D3行为范围尚待完整实际结果，不借启动/旧scope称通过。\n\n已完成HANDOVER_COMPLETE优先于旧HANDOVER_ATTENTION，仅读取器将旧拒绝列历史，避免再次把已修复问题误判为当前失败。4090自身234来源/2.5ms训练未修改；新增预算0。所有旧入口/错误/候选/raw保留，凭据不归档、权重和大轨迹只SHA。",
+  "validation": "20old jobs finished/idle identity; new demand task and actual singleGPU evaluation; no4090 runtime/PPO/budget mutation; newbehavior scope pending",
+  "source_and_evidence_sha256": {
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/handover_eval_permission_review.py": "d29f1aed138cccc32f3d42d41e603a2a29fba3648383db52d19f1a1aa6c1d164",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/repair_eval_task_permission_once.py": "dd5b499b9d83062b19c8e982b7d8f3e30f0762b407626eb0184d1db0b25b7c8d",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/publish_same_clock_anchor_once.py": "5d8a6dc74baa4d9f04b053e0323af5dbbce4bb7fac1accb3fee658e52869e817",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/read_eval_handover.py": "28c95c3fc6961c46fa748e3a34ae7baa5b4641e9b8639b1c8dec01f6e78b6ef5",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/EVALUATOR_PERMISSION_REPAIRED.json": "f69ab13fd00ef8c86c9e30145b7d351baec88c27ee3e68d8e1d5ebdf4ff4f621",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/EVALUATOR_CURRENT_ACTUAL.json": "0f3fa7a4a2165289588092b3c342ccbde29f6a2f20c531f8ed3ee19d46a35398",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/HANDOVER_ATTENTION.json": "e002663250b49192380ba87f9357d4991bed6f8d6f1c53e6fc4d81efc4525d86",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/HANDOVER_COMPLETE.json": "5e6f195cbe8b921bd80eceef5aef18d77683d4a1a6452d8ac7ca8dd703780860",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/SAME_CLOCK_ANCHOR_PUBLISHED.json": "1a75a2a9f97562dfe5e66a8078d65eaecd6f332c74f3e5f862093db79bb2c815",
+    "history/evidence/MOD4_CLOSURE_EVALUATOR_PERMISSION_REVIEW_20261008/EVALUATOR_PERMISSION_REPAIR_REPORT.md": "a58a978a1051517b68eff4f9512014c9978fc764e522f9756b907596d427054e"
+  },
+  "real_robot_certified": false
+}

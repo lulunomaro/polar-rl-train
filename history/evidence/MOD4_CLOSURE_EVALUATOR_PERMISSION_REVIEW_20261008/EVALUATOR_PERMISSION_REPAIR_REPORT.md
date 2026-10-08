@@ -1,0 +1,7 @@
+3060的有限权限CPU交接任务在旧20份1ms任务全部完成/worker空闲后，执行Disable-ScheduledTask时收到HRESULT0x80070005。原错误和原入口保留，4090训练持续，没有PPO/预算/时钟/奖励变化。
+
+新的唯一权限审查入口在既有授权SSH管理上下文执行，只在重新核实旧进程创建时间/argv、无GPU孩子、20份任务全部完成、任务无周期或开机trigger后，退休旧idleworker和禁用旧任务。原XML保留。启动新的无trigger2.5ms32-4 D3 frozenworker，共用原单GPU锁；完成的CPUbootstrap任务保存XML后删除。新worker实际创建时间/argv/单GPU孩子已核验，不按旧PID盲信号，不修改权限或扩大训练授权。
+
+CPU-only发布精确25425来源SHA b88b66e974e6f4a5e17fa6bcc7f2311224d09c9b63ef0ff8c7c5e69ea2402e1b在同2.5ms32-4/0-10ms反馈延迟包下的flat/spin/world三份基线，用于后续候选配对；不是新增4090试验，不复跑45min/PPO预检，不选预检或未来源权重。新immutable包SHA56f6ac8fe847b27e4a59e679b6dba99912652efe6b077d255f85754963fd359d及原USD/importcontract引用不变。新worker现已实际开始anchor-flat，但新平台D3行为范围尚待完整实际结果，不借启动/旧scope称通过。
+
+已完成HANDOVER_COMPLETE优先于旧HANDOVER_ATTENTION，仅读取器将旧拒绝列历史，避免再次把已修复问题误判为当前失败。4090自身234来源/2.5ms训练未修改；新增预算0。所有旧入口/错误/候选/raw保留，凭据不归档、权重和大轨迹只SHA。

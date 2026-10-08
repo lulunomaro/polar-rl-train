@@ -1,0 +1,13 @@
+D3 0/10ms反馈延迟第二个2h块完整27575已实际核验。SHA ded074be755d5320a4050f69753163800a409d6eaf077fb3b990b686d9547a61，ownPID1153983/start58298211、CPU84有限、234sourcefreeze和19snapshot、自己的latest_complete/manifest与唯一账段exact。1076实际更新、25824控制步、516480000环境策略步、103296物理回调exact；加载学习保存退出7217.781019926秒已原父唯一结清，本次没有预算操作。
+
+真实普通事件仅3：两次bad_orientation和一次closure(env1572/control16362)，峰2.849776065mm。按人类批准healthv3，底层2mm仍终止/reset该环境并留PPO反馈，闭链峰本身不整批STOP；integrity/unknown/mimic事件0、非有限false、STOPnone。legacy_single_peak_2mm_pass=false与原raw保留，不把reset后的状态说成超限自然恢复，也不恢复旧1ms自动回退。
+
+3060同seed20261002/white_v3/noise+bias/0-10ms/2.5ms32-4的27575三份flat80/spin88/world88×1500control15s均任务模型数据准入通过。与26500对应三份初始root/30q/参数/probe/原immutable包/recipe/反馈delay实际年龄分配exact；12probe/result JSON自动返回4090再次字节SHA exact。世界完整signed圈61/64→64/64，maxabsnetcross.061064468→.040302434m/s，along.477366212–.545863041；左右pure4pi各8/8、均12.490338/-12.540843rad/s原signed±.2内。+1.5直线误差.049355790→.044313934，-1.5 .016362403→.019311571。全部strict/raw保留，仅同平台firstseed协议；不称双seed全部profile或完整D3毕业，不把严格全过设成唯一机械毕业线。候选三进程wall678.105212秒、传输11.665602秒；4090已自动接第三块，不等待回放。
+
+下一D4已经从工作单推进至隔离接口组件：action_delay_physics_queue.py在targetTorch2.10 CPU通过18合同，adapter通过10边界合同；无CUDA初始化、无Isaac启动、无PPO或canonical写权限，未改234训练源。实际0/2500/5000us按2.5ms物理apply回调实现，在批准<=5ms通信压力范围内，不声称0.5/1ms或20/40ms。installed SDK在每物理子步先将_sim_step_counter加1，再apply_action、write_data、sim.step；因而实际应用时刻是(counter-1)*2500us。旧legacy_DelayMixin每100Hz process_actions推进，仍关闭。
+
+四腿已经原scale/defaultq/CAD投影后的位置rad目标为同一延迟组，两轮速度rad/s目标为另一延迟组；分组每episode独立RNG不动global。实际adapter调用原process/apply，仅在物理应用时用queue目标，随后恢复原requested processed目标；真实reset用默认腿q和零轮速，清选中环境过期命令、保留未reset行及全局时钟。CPU黄金波形、同tick缓存、0/2.5/5ms首次目标转换、hold sample age与首次延迟分开、selected reset、完整queue/targets/timestamps/RNG磁盘roundtrip、clock/shape/nonfinite/遗漏回调拒绝通过。SDK实际Articulation目标、callback、CUDA queue保存和真实施力仍待现场证据，不能用CPU fixture声称完成。
+
+两个新immutable SDK off/on包已唯一发布到现有3060 sharedsingleGPUlock的worker：clk2500-closure-episode-d3-30-d4-sdk-00-off/01-on，10env×300control3s，明确真实actor闭环与实际目标readback；source为完整已回放27575。off包SHA7f8d5eec82265c5d8a0194e0a782d8f4834497374cf13c97407296ea1da51a9a，on包93137817da1073f0ba3d4928ee3c8c3c84fcba06a05ccba2908f96c72732380d。原actualUSD/importcontract/引用和2.5ms32-4时钟不变，仅WindowsUSD路径适配；不重导入或覆盖live。SDK结果目前pending；D4学习executor未部署、4090生产动作delay仍0。没有重复clock45min或已完成同范围PPO预检，真正D4范围后续补20k与必要完整新PPO权重弃用、完整checkpoint/newphysicalepisode合同。
+
+主计划v1.5 SHA不改，总230h及六扩展不改，新增预算0。普通episode事件不盲停整批；mimic.01/非有限/unknown/reasoncoverage/callback缺失仍自己的STOP_AFTER_SAVE。有限质量与旧flags只诊断，系统性错误方向或重大退化必须处理。所有旧失败raw/权重/成本保留；权重/大raw/NPZ/USD只SHA索引，未归档凭据。

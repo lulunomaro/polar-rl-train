@@ -1,0 +1,30 @@
+"""Explicit new frozen worker after prior authority exited on JSON sharing conflict."""
+from pathlib import Path
+import os,time,json,traceback
+import eval_worker_closure2500 as frozen
+from resilient_json_atomic import atomic
+D=Path(__file__).resolve().parent
+RETIRED=('clk2500-closure-episode-d3-80-d6-gas-sdk-off','clk2500-closure-episode-d3-80-d6-gas-sdk-on','clk2500-closure-episode-d3-66-d5-stiffness-sdk-00-off','clk2500-closure-episode-d3-66-d5-stiffness-sdk-01-on','clk2500-closure-episode-d3-67-d5-stiffness-index-sdk-01-on')
+
+RETIRED=RETIRED+('clk2500-closure-episode-d3-95-d5-retention-20261002-nominal-flat', 'clk2500-closure-episode-d3-95-d5-retention-20261002-nominal-spin', 'clk2500-closure-episode-d3-95-d5-retention-20261002-nominal-world', 'clk2500-closure-episode-d3-95-d5-retention-20261003-nominal-flat', 'clk2500-closure-episode-d3-95-d5-retention-20261003-nominal-spin', 'clk2500-closure-episode-d3-95-d5-retention-20261003-nominal-world')
+
+def main():
+    import msvcrt
+    assert D==frozen.ROOT==Path('D:/MOD4_async_eval/closure_episode_clock2500_v15')
+    admission=json.loads((D/'NOMINAL_SCOPE_REVIEW_WORKER_ADMISSION.json').read_text(encoding='utf8'))
+    assert admission['old_worker_and_children_exited'] and admission['old_demand_task_disabled'] and admission['shared_GPU_lock_was_free']
+    # No edits to the preserved worker; only this authority uses bounded receipt writes.
+    frozen.atomic=atomic
+    lock=(frozen.BRIDGE_ROOT/'worker.lock').open('a+b');lock.seek(0);lock.write(b'0');lock.flush();lock.seek(0);msvcrt.locking(lock.fileno(),msvcrt.LK_NBLCK,1)
+    atomic(D/'NOMINAL_SCOPE_REVIEW_WORKER_STARTED.json',dict(epoch=time.time(),pid=os.getpid(),role='frozen_eval_only',canonical_write_authority=False,training_launch_authority=False,shared_GPU_lock=True,retired_invalid_immutable_jobs=list(RETIRED)))
+    while True:
+        try:
+            jobs=[j for j in frozen.rpc({'op':'list_jobs'})['jobs'] if j.startswith('clk2500-closure-episode-d3-') and j not in RETIRED]
+            atomic(D/'NOMINAL_SCOPE_REVIEW_WORKER_STATE.json',dict(epoch=time.time(),phase='polling',pid=os.getpid(),jobs=jobs,reviewed_invalid_jobs_excluded=list(RETIRED)))
+            for job in jobs:frozen.execute(job)
+        except frozen.BridgeUnavailable:
+            atomic(D/'NOMINAL_SCOPE_REVIEW_WORKER_STATE.json',dict(epoch=time.time(),phase='network_retry',pid=os.getpid(),error=traceback.format_exc(),partial_transfer_retained=True));time.sleep(30);continue
+        except BaseException:
+            atomic(D/'NOMINAL_SCOPE_REVIEW_WORKER_ATTENTION.json',dict(epoch=time.time(),error=traceback.format_exc(),no_production_or_budget_mutation=True));return 2
+        time.sleep(30)
+if __name__=='__main__':raise SystemExit(main())

@@ -1,0 +1,985 @@
+{
+  "epoch": 1791487615.037622,
+  "actual_frozen_source": true,
+  "matches": {
+    "isaac/mod4/nominal_parameter_audit.py": {
+      "sha256": "0da20a0777fbbf4352252b8dca1bcfd0d17bd0f75ef34c539e8c40b50a320d78",
+      "selected": [
+        {
+          "line": 1,
+          "text": "\"\"\"Actual nominal parameter readback for frozen evaluators only.\n\nNo writes, no randomization and no assertion about measured real hardware."
+        },
+        {
+          "line": 14,
+          "text": "    if hasattr(env, '_mild_dr'):\n        return env._mild_dr.audit()\n    if os.environ.get('RM_MILD_DR_PROFILE') != 'nominal' or os.environ.get('RM_DR_OFF') != '1':\n        raise RuntimeError('Missing DR audit object outside explicit nominal evaluation')\n    robot = env.scene['robot']"
+        },
+        {
+          "line": 15,
+          "text": "        return env._mild_dr.audit()\n    if os.environ.get('RM_MILD_DR_PROFILE') != 'nominal' or os.environ.get('RM_DR_OFF') != '1':\n        raise RuntimeError('Missing DR audit object outside explicit nominal evaluation')\n    robot = env.scene['robot']\n    values = {"
+        },
+        {
+          "line": 21,
+          "text": "        'inertia': tensor(robot.root_view.get_inertias()),\n        'materials': tensor(robot.root_view.get_material_properties()),\n        'local_com': tensor(robot.data.body_com_pos_b),\n    }\n    spread = {}"
+        },
+        {
+          "line": 27,
+          "text": "    for key, value in values.items():\n        if not torch.isfinite(value).all():\n            raise RuntimeError('Nonfinite nominal ' + key)\n        spread[key] = float((value - value[:1]).abs().max())\n        raw[key + '_env0'] = value[0].detach().cpu().tolist()"
+        },
+        {
+          "line": 38,
+          "text": "            error = 0. if value is None else float((tensor(value) - 1.).abs().max())\n            if error != 0.:\n                raise RuntimeError('Nominal motor output scale is not one')\n            scales[name + '_' + key + '_error'] = error\n        gains[name] = {key: tensor(getattr(actuator, key))[0].detach().cpu().tolist()"
+        },
+        {
+          "line": 42,
+          "text": "        gains[name] = {key: tensor(getattr(actuator, key))[0].detach().cpu().tolist()\n                       for key in ('stiffness', 'damping')}\n    # Clone invariant checks, not a comparison with an independently measured robot.\n    passed = all(value <= 1e-6 for value in spread.values())\n    if not passed:"
+        },
+        {
+          "line": 45,
+          "text": "    passed = all(value <= 1e-6 for value in spread.values())\n    if not passed:\n        raise RuntimeError('Nominal clone parameters differ: ' + str(spread))\n    return {'profile': 'nominal', 'actual_parameters_pass': passed,\n            'audit_kind': 'read_only_uniform_clone_parameters_and_unity_motor_scales',"
+        },
+        {
+          "line": 46,
+          "text": "    if not passed:\n        raise RuntimeError('Nominal clone parameters differ: ' + str(spread))\n    return {'profile': 'nominal', 'actual_parameters_pass': passed,\n            'audit_kind': 'read_only_uniform_clone_parameters_and_unity_motor_scales',\n            'parameter_spread': spread, 'motor_scale_errors': scales,"
+        },
+        {
+          "line": 49,
+          "text": "            'audit_kind': 'read_only_uniform_clone_parameters_and_unity_motor_scales',\n            'parameter_spread': spread, 'motor_scale_errors': scales,\n            'body_names': list(robot.body_names), 'nominal_actuator_pd_env0': gains,\n            'raw_readback': raw, 'legacy_full_dr_disabled': True,\n            'scope': 'Actual simulator readback; not a measured real-robot calibration'}"
+        }
+      ]
+    },
+    "isaac/mod4/floor_fix_source_before/mod4_task.py": {
+      "sha256": "af03769591164a48b478ad5635c864069541c04789ff359786215f1e1b6c914f",
+      "selected": [
+        {
+          "line": 5,
+          "text": "Design notes (2026-09-10):\n\n* Asset: the MOD4 delivery USD (incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/\n  isaac/robot.usd).  Every number below is read from the delivered import_contract.json\n  that ships next to that USD, so the training plant and the shipped asset cannot drift"
+        },
+        {
+          "line": 13,
+          "text": "  train/deploy/contract_rm2025_later.json.  This is the SAME interface the mjlab trainer\n  (train/rmvehicle/src/rmvehicle/env_cfgs.py) and the real robot use, so an Isaac-trained\n  checkpoint goes through the existing ONNX export instead of a second interface.\n* Motors: Isaac Lab DC motor model (stall torque / continuous torque / no-load speed):\n  legs 53.3333 / 40.0 / 16.7552, wheels 28.1853 / 5.7759 / 55.3557.  That is exactly the"
+        },
+        {
+          "line": 44,
+          "text": "from isaaclab.envs import ManagerBasedRLEnvCfg\nfrom isaaclab.envs.mdp import actions as mdp_actions\nfrom isaaclab.envs.mdp import commands as mdp_commands\nfrom isaaclab.envs.mdp import events as mdp_events\nfrom isaaclab.envs.mdp import observations as mdp_obs"
+        },
+        {
+          "line": 87,
+          "text": "\nROOT = Path(__file__).resolve().parents[2]\n# The asset may live in the repo's synced copy (incoming/rm2025_mod4/isaac, which is what\n# the target machine has) or in the raw unzip directory used during local development.\n# Pick whichever actually exists instead of hard-coding one of them."
+        },
+        {
+          "line": 94,
+          "text": "    # 30 mm guide rollers as analytic colliders.  Preferred as soon as it is synced; the old\n    # packages stay as fallbacks so a machine without the fix still runs.\n    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\","
+        },
+        {
+          "line": 95,
+          "text": "    # packages stay as fallbacks so a machine without the fix still runs.\n    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\",\n)"
+        },
+        {
+          "line": 96,
+          "text": "    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\",\n)\n_ENV_USD = os.environ.get(\"RM_MOD4_USD\", \"\").strip()      # explicit override for A/B runs"
+        },
+        {
+          "line": 120,
+          "text": "                  if n not in ACTUATED + GAS_JOINTS]\n\nLEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6"
+        },
+        {
+          "line": 121,
+          "text": "\nLEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6\nLEG_ACTION_SCALE = float(DELIVERY_CONTRACT[\"leg_action_scale\"])      # 0.5 rad"
+        },
+        {
+          "line": 122,
+          "text": "LEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6\nLEG_ACTION_SCALE = float(DELIVERY_CONTRACT[\"leg_action_scale\"])      # 0.5 rad\nWHEEL_ACTION_SCALE = float(DELIVERY_CONTRACT[\"wheel_action_scale\"])  # 10.0 rad/s"
+        },
+        {
+          "line": 142,
+          "text": "# P2 staging (audit item 8): RM_DR_OFF=1 has to be read BEFORE the knob block below.\n# Gating only the EventCfg terms left the observation noise, the sensor-delay lines and the\n# action-delay line alive, so the \"nominal\" stage still ran a noisy, latency-shifted task --\n# and the delay-line reset was skipped with them (ghost samples from the previous episode).\nDR_OFF = os.environ.get(\"RM_DR_OFF\", \"\").strip() == \"1\""
+        },
+        {
+          "line": 161,
+          "text": "DELAY_PERIOD = int(_f(\"RM_OBS_DELAY_UPDATE_PERIOD\", 10))\nHEIGHT_RANGE = (_f(\"RM_HEIGHT_MIN\", 0.18), _f(\"RM_HEIGHT_MAX\", 0.34))\n# Dense penalty for sitting below the commanded height on flat ground (2026-09-28).\n# The Gaussian height reward alone let the policy drift down until the 0.10 m low_base\n# cut-off: half the episodes ended by sinking with attitude intact.  This term makes"
+        },
+        {
+          "line": 164,
+          "text": "# The Gaussian height reward alone let the policy drift down until the 0.10 m low_base\n# cut-off: half the episodes ended by sinking with attitude intact.  This term makes\n# every centimetre below the command cost something, every step.\nW_HEIGHT_DEFICIT = _f(\"RM_W_HEIGHT_DEFICIT\", -12.0)\n# Symmetric linear height-tracking weight (2026-09-28): the Gaussian kernel is flat beyond"
+        },
+        {
+          "line": 253,
+          "text": "\n    The mjlab task randomizes the same thing through `dr.effort_limits`; PhysX drive\n    limits are shared by every environment, so the scale is applied to the computed\n    effort instead.  `episode_scale` covers unit-to-unit spread, `step_scale` adds the\n    per-step gain noise SCUT injects on top of it."
+        },
+        {
+          "line": 296,
+          "text": "# --- mass / inertia randomization ------------------------------------------------------\n# Isaac Lab's stock randomize_rigid_body_mass/inertia events call the PhysX setters in a way\n# that logs hundreds of \"PxRigidBody::setMassSpaceInertiaTensor(): components must be\n# non-negative\" errors per run (measured 2026-09-10: 0 with the events disabled, 368-514\n# with them enabled, for 32 environments).  The final state read back is valid, but the"
+        },
+        {
+          "line": 358,
+          "text": "    leg_armature = {n: armature[n] for n in LEG_ORDER}\n    wheel_armature = {n: armature[n] for n in WHEEL_ORDER}\n    leg_damping = {n: max(damping[n], LEG_KD) for n in LEG_ORDER}  # drive kd >= XML damping\n    wheel_damping = {n: max(damping[n], WHEEL_KD) for n in WHEEL_ORDER}\n    gas = CONTRACT[\"gas_springs\"]"
+        },
+        {
+          "line": 359,
+          "text": "    wheel_armature = {n: armature[n] for n in WHEEL_ORDER}\n    leg_damping = {n: max(damping[n], LEG_KD) for n in LEG_ORDER}  # drive kd >= XML damping\n    wheel_damping = {n: max(damping[n], WHEEL_KD) for n in WHEEL_ORDER}\n    gas = CONTRACT[\"gas_springs\"]\n    return ArticulationCfg("
+        },
+        {
+          "line": 377,
+          "text": "            articulation_props=sim_utils.ArticulationRootPropertiesCfg(\n                enabled_self_collisions=True,\n                # P3: solver budget is a switch so the 32/8 vs 16/4 comparison can be run\n                # without editing code (the audit asks for that A/B under load).\n                solver_position_iteration_count=int(os.environ.get(\"RM_SOLVER_POS\", \"32\")),"
+        },
+        {
+          "line": 390,
+          "text": "                joint_names_expr=LEG_ORDER, effort_limit=LEG_EFFORT,\n                velocity_limit=LEG_NO_LOAD, saturation_effort=LEG_STALL,\n                stiffness=LEG_KP, damping=leg_damping, armature=leg_armature,\n                friction=0.0),\n            \"wheels\": Mod4DCMotorCfg("
+        },
+        {
+          "line": 417,
+          "text": "    buf = getattr(env, \"_mod4_height_cmd\", None)\n    if buf is None:\n        buf = torch.full((env.num_envs, 1), _f(\"RM_NOMINAL_HEIGHT\", .25), device=env.device)\n        env._mod4_height_cmd = buf\n    return buf"
+        },
+        {
+          "line": 441,
+          "text": "    # audit item 2: the arena sets _mod4_route_ids, not _mod4_task_id -- check the routes\n    # FIRST, otherwise every arena route was reported as 'normal'.\n    # The bit itself is computed ONCE per reset by the adapter and simply scattered here: the\n    # earlier list comprehension walked 1024 route ids per control step (a GPU->CPU sync plus\n    # 1024 Python int() calls at 50 Hz) and the audit asked for a vectorised implementation."
+        },
+        {
+          "line": 442,
+          "text": "    # FIRST, otherwise every arena route was reported as 'normal'.\n    # The bit itself is computed ONCE per reset by the adapter and simply scattered here: the\n    # earlier list comprehension walked 1024 route ids per control step (a GPU->CPU sync plus\n    # 1024 Python int() calls at 50 Hz) and the audit asked for a vectorised implementation.\n    bit = getattr(env, \"_mod4_mode_bit\", None)"
+        },
+        {
+          "line": 557,
+          "text": "def height_track(env, asset_cfg: SceneEntityCfg = SceneEntityCfg(\"robot\"),\n                 sigma: float = 0.02) -> torch.Tensor:\n    \"\"\"Exponential height-tracking reward against the live height command.\n\n    2026-09-28: aligned with SCUT (`exp(-err^2 / sigma)`, sigma 0.005/0.01/0.025) after"
+        },
+        {
+          "line": 561,
+          "text": "    2026-09-28: aligned with SCUT (`exp(-err^2 / sigma)`, sigma 0.005/0.01/0.025) after\n    measuring that our old `exp(-(err/0.06)^2)` was flat beyond ~6 cm -- the probe showed the\n    policy wandering 6-12 cm off the command with almost no gradient to correct it.\n    \"\"\"\n    robot = env.scene[asset_cfg.name]"
+        },
+        {
+          "line": 571,
+          "text": "    value = torch.exp(-torch.square(z - target) / sigma)\n    # audit item 7: hold the last grounded value while a jump route is in the air.  Without\n    # this the term pays 0.000 for the whole flight (the command window is 0.18-0.34 m), which\n    # is one of the three reasons standing still out-scored jumping.\n    return skills.jump_freeze_height(env, value)"
+        },
+        {
+          "line": 577,
+          "text": "\ndef flat_height_deficit(env) -> torch.Tensor:\n    \"\"\"Dense low-height cost on flat ground: clamp(command - root_height, 0, 0.25).\n\n    Applied on every flat sample (standing and moving); returns zero on field/arena terrain"
+        },
+        {
+          "line": 580,
+          "text": "\n    Applied on every flat sample (standing and moving); returns zero on field/arena terrain\n    where the height command is route-driven and the local ground height varies.\n    \"\"\"\n    if TERRAIN != \"flat\":"
+        },
+        {
+          "line": 589,
+          "text": "\ndef flat_height_error_l1(env) -> torch.Tensor:\n    \"\"\"Symmetric linear height error on flat ground: |command - root_height|, clamped 0.25 m.\n\n    Unlike the Gaussian height reward this keeps a constant slope for large errors, and unlike"
+        },
+        {
+          "line": 602,
+          "text": "    \"\"\"Two-sided squared height error, normalised to 1.0 at +-HEIGHT_L2_CLAMP (SCUT parity).\n\n    2026-09-28 probe on model_1750: with 0.6 / 1.0 m/s commands the chassis sat at 0.39 / 0.45 m\n    against a 0.245 m command while pumping +-6.5 cm (height std) -- the one-sided deficit term\n    cannot charge that at all, and the L1 term saturates at 0.25 m (worth only -0.25 with"
+        },
+        {
+          "line": 603,
+          "text": "\n    2026-09-28 probe on model_1750: with 0.6 / 1.0 m/s commands the chassis sat at 0.39 / 0.45 m\n    against a 0.245 m command while pumping +-6.5 cm (height std) -- the one-sided deficit term\n    cannot charge that at all, and the L1 term saturates at 0.25 m (worth only -0.25 with\n    weight -1.0).  SCUT's `track_height_square` (-1.0) is the two-sided term that makes"
+        },
+        {
+          "line": 616,
+          "text": "\ndef vel_height_gate(env) -> torch.Tensor:\n    \"\"\"SCUT `vel_height_gate`: 1.0 while the commanded height is tracked, 0 when it is not.\n\n    \u51fa\u5904\uff1a\u534e\u5357\u864e\u5b98\u65b9\u4ed3\u5e93 `wheeled-legged_RL / wheelbipe25_v3/env.py`\uff0c\u6e90\u7801\u6ce8\u91ca"
+        },
+        {
+          "line": 635,
+          "text": "\n\ndef track_lin_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 0.7071067811865476) -> torch.Tensor:\n    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)"
+        },
+        {
+          "line": 637,
+          "text": "def track_lin_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 0.7071067811865476) -> torch.Tensor:\n    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 640,
+          "text": "\n\ndef track_ang_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 1.4142135623730951) -> torch.Tensor:\n    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)"
+        },
+        {
+          "line": 642,
+          "text": "def track_ang_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 1.4142135623730951) -> torch.Tensor:\n    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 645,
+          "text": "\n\ndef run_velocity_error_gated(env, command_name: str = \"twist\") -> torch.Tensor:\n    return skills.run_velocity_error_l2(env, command_name=command_name) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 646,
+          "text": "\ndef run_velocity_error_gated(env, command_name: str = \"twist\") -> torch.Tensor:\n    return skills.run_velocity_error_l2(env, command_name=command_name) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 669,
+          "text": "\n\ndef _lin_vel_err_xy(env, command_name: str = \"twist\") -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)[:, :2]\n    return cmd - env.scene[\"robot\"].data.root_lin_vel_b[:, :2]"
+        },
+        {
+          "line": 670,
+          "text": "\ndef _lin_vel_err_xy(env, command_name: str = \"twist\") -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)[:, :2]\n    return cmd - env.scene[\"robot\"].data.root_lin_vel_b[:, :2]\n"
+        },
+        {
+          "line": 674,
+          "text": "\n\ndef track_lin_vel_huge_gap(env, command_name: str = \"twist\", gap: float = 0.5) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_huge_gap`: err^2 \u8d85\u9608\u503c\u5c31 0/1 \u786c\u7f5a\uff08\u6743\u91cd -1.0\uff09\uff0c\u4e0d\u6253\u95e8\u63a7\u3002\"\"\"\n    return (_lin_vel_err_xy(env, command_name).square().sum(dim=1) > gap).float()"
+        },
+        {
+          "line": 676,
+          "text": "def track_lin_vel_huge_gap(env, command_name: str = \"twist\", gap: float = 0.5) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_huge_gap`: err^2 \u8d85\u9608\u503c\u5c31 0/1 \u786c\u7f5a\uff08\u6743\u91cd -1.0\uff09\uff0c\u4e0d\u6253\u95e8\u63a7\u3002\"\"\"\n    return (_lin_vel_err_xy(env, command_name).square().sum(dim=1) > gap).float()\n\n"
+        },
+        {
+          "line": 679,
+          "text": "\n\ndef track_lin_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2\uff0c\u6743\u91cd -1.0\u3002\"\"\"\n    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()"
+        },
+        {
+          "line": 681,
+          "text": "def track_lin_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2\uff0c\u6743\u91cd -1.0\u3002\"\"\"\n    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()\n\n"
+        },
+        {
+          "line": 684,
+          "text": "\n\ndef track_ang_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)\n    err = cmd[:, 2] - env.scene[\"robot\"].data.root_ang_vel_b[:, 2]"
+        },
+        {
+          "line": 685,
+          "text": "\ndef track_ang_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)\n    err = cmd[:, 2] - env.scene[\"robot\"].data.root_ang_vel_b[:, 2]\n    return (sigma * err).square()"
+        },
+        {
+          "line": 690,
+          "text": "\n\ndef track_lin_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_lin_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 691,
+          "text": "\ndef track_lin_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_lin_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 694,
+          "text": "\n\ndef track_ang_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_ang_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 695,
+          "text": "\ndef track_ang_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_ang_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 828,
+          "text": "\n    audit P0-5 (\"\u8bad\u7ec3\u76ee\u524d\u53ea\u76d1\u63a7\u95ed\u94fe\u951a\u70b9\uff0c\u6ca1\u6709\u5728\u7ebf\u76d1\u63a7\u56db\u4e2a\u4f20\u52a8 mimic\"): the two termination\n    terms already compute the worst anchor separation and the worst mimic drift every control\n    step, so this term only has to READ them -- no extra physics work.  Written every\n    RM_METRIC_PERIOD steps to keep the GPU->CPU syncs negligible."
+        },
+        {
+          "line": 849,
+          "text": "    log[\"Metrics/plant/closure_err_session_max_m\"] = float(getattr(env, \"_mod4_max_closure\", 0.0))\n    log[\"Metrics/plant/mimic_err_session_max_rad\"] = float(getattr(env, \"_mod4_max_mimic\", 0.0))\n    # Goal \u00a73: `Metrics/success_rate` is Isaac Lab's COMMAND-level metric (velocity error inside\n    # a threshold), NOT a route completion.  Rename it so nobody reads it as the terrain score,\n    # and publish the real per-route numbers next to it."
+        },
+        {
+          "line": 850,
+          "text": "    log[\"Metrics/plant/mimic_err_session_max_rad\"] = float(getattr(env, \"_mod4_max_mimic\", 0.0))\n    # Goal \u00a73: `Metrics/success_rate` is Isaac Lab's COMMAND-level metric (velocity error inside\n    # a threshold), NOT a route completion.  Rename it so nobody reads it as the terrain score,\n    # and publish the real per-route numbers next to it.\n    if \"Metrics/success_rate\" in log:"
+        },
+        {
+          "line": 857,
+          "text": "    if rc is not None:\n        finished = rc.finished.float()\n        log[\"Metrics/route_complete_rate\"] = float(finished.mean().item())\n        batch = getattr(env, \"_mod4_route_progress\", None) or {}\n        succ = batch.get(\"success\")"
+        },
+        {
+          "line": 871,
+          "text": "\n# --- randomization events (SCUT list) ----------------------------------------------\ndef resample_height_command(env, env_ids, low: float = HEIGHT_RANGE[0],\n                            high: float = HEIGHT_RANGE[1]) -> None:\n    buf = height_cmd(env)"
+        },
+        {
+          "line": 961,
+          "text": "    handoff \u00a71.3: hip and crank are two independent motors, and the CAD stop constrains their\n    DIFFERENCE (crank - hip >= -1.0843 rad in the training window, -1.0863 rad at the real\n    block).  PhysX resolves the closed chain with COMPLIANT mimic constraints, so a target pair\n    outside that window does not simply \"press the stop\" -- it yanks the linkage.  The fix\n    package's TorqueInterface does this at torque level for the self-test; the training action"
+        },
+        {
+          "line": 981,
+          "text": "        if self.diff_min > -1.0e8:\n            # LEG_ORDER == [\"left_crank\", \"left_hip\", \"right_crank\", \"right_hip\"], i.e. the\n            # CRANK comes first in the processed target vector (action slots 0 and 2 are cranks).\n            pa = self.processed_actions\n            torch.maximum(pa[:, 0], pa[:, 1] + self.diff_min, out=pa[:, 0])"
+        },
+        {
+          "line": 1075,
+          "text": "# (1024 copies on a 34x20 m grid, collision/visual split, 15 semantic routes).  The terrain has\n# to be built AFTER num_envs is known, so the train entry point calls attach_rmuc2026_terrain().\nRMUC2026_ISAAC = (ROOT / \"incoming\" / \"rmuc2026_field_20260911\" / \"rmuc2026_training\" / \"isaac\")\nMAP_MODE = os.environ.get(\"RM_MOD4_MAP\", \"\").strip().lower()\n# P2 staging: RM_DR_OFF=1 strips the wide randomisation so a new map/skill can be"
+        },
+        {
+          "line": 1107,
+          "text": "\ndef rmuc2026_route_module():\n    \"\"\"Import the package's RouteCommands (15 semantic routes) with sys.path set up.\"\"\"\n    import sys as _sys\n    if str(RMUC2026_ISAAC) not in _sys.path:"
+        },
+        {
+          "line": 1111,
+          "text": "    if str(RMUC2026_ISAAC) not in _sys.path:\n        _sys.path.insert(0, str(RMUC2026_ISAAC))\n    from route_commands import RouteCommands\n    return RouteCommands\n"
+        },
+        {
+          "line": 1112,
+          "text": "        _sys.path.insert(0, str(RMUC2026_ISAAC))\n    from route_commands import RouteCommands\n    return RouteCommands\n\n@configclass"
+        },
+        {
+          "line": 1185,
+          "text": "    \"\"\"Observation noise for one ObsTerm, or None when RM_DR_OFF=1 (audit item 8).\n\n    The P2 nominal stage has to see CLEAN sensor data: gating only the events left the actor\n    on noisy observations while the critic and every reward saw the clean state.\n    \"\"\""
+        },
+        {
+          "line": 1197,
+          "text": "    @configclass\n    class PolicyCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)"
+        },
+        {
+          "line": 1198,
+          "text": "    class PolicyCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=base_ang_vel_delayed, scale=0.5,"
+        },
+        {
+          "line": 1199,
+          "text": "        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=base_ang_vel_delayed, scale=0.5,\n                               noise=_obs_noise(-0.25, 0.25))"
+        },
+        {
+          "line": 1235,
+          "text": "    @configclass\n    class CriticCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)"
+        },
+        {
+          "line": 1236,
+          "text": "    class CriticCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=mdp_obs.base_ang_vel, scale=0.5)"
+        },
+        {
+          "line": 1237,
+          "text": "        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=mdp_obs.base_ang_vel, scale=0.5)\n        base_lin_vel = ObsTerm(func=mdp_obs.base_lin_vel, scale=0.5)"
+        },
+        {
+          "line": 1283,
+          "text": "\n@configclass\nclass CommandsCfg:\n    \"\"\"\u901f\u5ea6\u6307\u4ee4\uff1a\u5bf9\u9f50\u534e\u5357\u864e\u5e73\u5730\u4efb\u52a1\uff08\u822a\u5411\u6307\u4ee4 50%\u3001\u91cd\u91c7\u6837 1\u20138 s\u300110% \u7ad9\u7acb\u73af\u5883\uff09\u3002\"\"\"\n"
+        },
+        {
+          "line": 1286,
+          "text": "    \"\"\"\u901f\u5ea6\u6307\u4ee4\uff1a\u5bf9\u9f50\u534e\u5357\u864e\u5e73\u5730\u4efb\u52a1\uff08\u822a\u5411\u6307\u4ee4 50%\u3001\u91cd\u91c7\u6837 1\u20138 s\u300110% \u7ad9\u7acb\u73af\u5883\uff09\u3002\"\"\"\n\n    twist = mdp_commands.UniformVelocityCommandCfg(\n        asset_name=\"robot\",\n        resampling_time_range=(1.0, 8.0),"
+        },
+        {
+          "line": 1289,
+          "text": "        asset_name=\"robot\",\n        resampling_time_range=(1.0, 8.0),\n        heading_command=bool(int(os.environ.get(\"RM_HEADING_CMD\", \"1\"))),\n        heading_control_stiffness=float(os.environ.get(\"RM_HEADING_STIFFNESS\", \"1.0\")),\n        rel_standing_envs=float(os.environ.get(\"RM_REL_STANDING\", \"0.1\")),"
+        },
+        {
+          "line": 1294,
+          "text": "        rel_heading_envs=float(os.environ.get(\"RM_REL_HEADING\", \"0.5\")),\n        debug_vis=False,\n        ranges=mdp_commands.UniformVelocityCommandCfg.Ranges(\n            lin_vel_x=(_f(\"RM_CMD_VX_MIN\", -1.2), _f(\"RM_CMD_VX_MAX\", 1.2)),\n            lin_vel_y=(0.0, 0.0),"
+        },
+        {
+          "line": 1307,
+          "text": "    \"\"\"EventTerm (mode='startup'): give the delivered arena the same tyre friction as the field.\n\n    2026-09-11 traction probe on the arena: wheels commanded to 16 rad/s spun at 16-17 rad/s while\n    the chassis advanced 0.02 m/s -- the delivered collision material is far slipperier than the\n    0.9/0.9 the robot was trained on, so it could neither drive nor balance (1-9 step episodes)."
+        },
+        {
+          "line": 1460,
+          "text": "    # \u590d\u4f4d\u65f6\u968f\u673a\u817f\u59ff\u4e0e\u8f6e\u901f\uff0c\u9632\u6b62\u7b56\u7565\u9501\u6b7b\u5728\u5355\u4e00\u59ff\u6001\uff08\u7ad9\u7740/\u8db4\u7740\uff09\u3002\n    randomize_leg_start = None  # replaced by full constraint-consistent reset below\n    randomize_wheel_vel = None  # basic locomotion stage: zero initial wheel velocity\n    # audit item 8: the delay-line reset has to run in BOTH stages.  It used to sit inside the\n    # `if not DR_OFF` block, so the nominal stage kept replaying the previous episode's samples"
+        },
+        {
+          "line": 1462,
+          "text": "    randomize_wheel_vel = None  # basic locomotion stage: zero initial wheel velocity\n    # audit item 8: the delay-line reset has to run in BOTH stages.  It used to sit inside the\n    # `if not DR_OFF` block, so the nominal stage kept replaying the previous episode's samples\n    # (a \"ghost observation\" on the first steps after every reset).\n    reset_delay_lines = EventTerm(func=reset_delay_lines, mode=\"reset\")"
+        },
+        {
+          "line": 1474,
+          "text": "    plant_metrics = EventTerm(func=log_plant_metrics, mode=\"step\")\n    if not DR_OFF:                      # P2: no height / delay / push randomisation\n        reset_height_command = EventTerm(func=resample_height_command, mode=\"reset\")\n        reset_push_state = EventTerm(func=reset_push_state, mode=\"reset\")\n    reset_base = EventTerm("
+        },
+        {
+          "line": 1484,
+          "text": "                                   \"pitch\": (-0.3, 0.3), \"yaw\": (-0.3, 0.3)},\n                \"asset_cfg\": SceneEntityCfg(\"robot\")})\n    if not DR_OFF:                      # P2: no actuator / friction / mass / CoM / effort randomisation\n        leg_encoder_bias = EventTerm(\n            func=sample_encoder_bias, mode=\"reset\","
+        },
+        {
+          "line": 1546,
+          "text": "        # P0-4 (audit 2026-09-11): the chassis mass used to be randomized TWICE -- once by this\n        # event and again inside randomize_mass_inertia, which also re-captured the already-perturbed\n        # mass as its \"default\".  The comprehensive event below is the single entry point now.\n        # One event replaces Isaac Lab's six mass/inertia events: chassis mass -1..+2 kg with\n        # inertia x0.8..1.2, limbs mass x0.9..1.1 with inertia x0.7..1.3, wheels mass x0.9..1.1"
+        },
+        {
+          "line": 1552,
+          "text": "        # PhysX setter ever sees a non-positive tensor.\n        mass_inertia = EventTerm(func=randomize_mass_inertia, mode=\"reset\")\n        # Centre-of-mass offset.  This is the ONLY knob that moves the CoM: the mass and inertia\n        # randomizations above scale symmetrically about the existing centre, so an off-centre\n        # battery, gimbal or ammo load is invisible to them.  SCUT's envelope (their agent.yaml"
+        },
+        {
+          "line": 1555,
+          "text": "        # randomizations above scale symmetrically about the existing centre, so an off-centre\n        # battery, gimbal or ammo load is invisible to them.  SCUT's envelope (their agent.yaml\n        # com_range) is x +-0.04 m, y +-0.02 m, z +-0.02 m; on this 14.2 kg chassis a 3 cm\n        # offset needs ~0.98 m/s^2 of sustained acceleration (~8% of the wheel authority) to\n        # hold station, which is exactly the margin we do not want to lose on a slope."
+        },
+        {
+          "line": 1558,
+          "text": "        # offset needs ~0.98 m/s^2 of sustained acceleration (~8% of the wheel authority) to\n        # hold station, which is exactly the margin we do not want to lose on a slope.\n        base_com = EventTerm(\n            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),"
+        },
+        {
+          "line": 1559,
+          "text": "        # hold station, which is exactly the margin we do not want to lose on a slope.\n        base_com = EventTerm(\n            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),\n                    \"com_range\": {\"x\": (-0.04, 0.04), \"y\": (-0.02, 0.02),"
+        },
+        {
+          "line": 1561,
+          "text": "            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),\n                    \"com_range\": {\"x\": (-0.04, 0.04), \"y\": (-0.02, 0.02),\n                                  \"z\": (-0.02, 0.02)}})\n        wheel_friction = EventTerm("
+        },
+        {
+          "line": 1587,
+          "text": "                    \"delta\": EFFORT_NOISE_WHEEL})\n        # Airborne bookkeeping for the flight/landing rewards (step mode: every control step).\n    # P0-2: per-task command + mode bits every control step (audit 2026-09-11).\n    ground_track = EventTerm(func=update_ground_height, mode=\"step\")\n    skill_cmds = EventTerm(func=skills.skill_commands, mode=\"step\")"
+        },
+        {
+          "line": 1589,
+          "text": "    # P0-2: per-task command + mode bits every control step (audit 2026-09-11).\n    ground_track = EventTerm(func=update_ground_height, mode=\"step\")\n    skill_cmds = EventTerm(func=skills.skill_commands, mode=\"step\")\n    if MAP_MODE == \"rmuc2026\":\n        # Route-driven arena: spawn on the semantic route and let the package write the"
+        },
+        {
+          "line": 1592,
+          "text": "    if MAP_MODE == \"rmuc2026\":\n        # Route-driven arena: spawn on the semantic route and let the package write the\n        # velocity command (replaces the lane-offset spawn and the per-task commands).\n        from route_isaac import route_commands as _rc, route_spawn as _rs  # noqa: E402\n        route_spawn_term = EventTerm(func=_rs, mode=\"reset\")"
+        },
+        {
+          "line": 1593,
+          "text": "        # Route-driven arena: spawn on the semantic route and let the package write the\n        # velocity command (replaces the lane-offset spawn and the per-task commands).\n        from route_isaac import route_commands as _rc, route_spawn as _rs  # noqa: E402\n        route_spawn_term = EventTerm(func=_rs, mode=\"reset\")\n        route_cmd_term = EventTerm(func=_rc, mode=\"step\")"
+        },
+        {
+          "line": 1600,
+          "text": "        jump_state = EventTerm(func=skills.update_jump_state, mode=\"step\",\n                               params={\"sensor_cfg\": SceneEntityCfg(\"wheel_contact\")})\n        # audit item 8 (SCUT parity, last piece): after touchdown the height command drops to a\n        # short absorb pose -- the fly stage reaches the ground with the legs extended and was\n        # ending episodes in base_contact (measured 2026-09-12: launched 32/32,"
+        },
+        {
+          "line": 1603,
+          "text": "        # short absorb pose -- the fly stage reaches the ground with the legs extended and was\n        # ending episodes in base_contact (measured 2026-09-12: launched 32/32,\n        # air_after_launch 32/32, complete_rate 0.0, fail/base_contact 21).\n        landing_state = EventTerm(func=skills.update_landing_state, mode=\"step\")\n        # audit item 8 (SCUT parity): terrain-position-driven height command for the tunnel --"
+        },
+        {
+          "line": 1605,
+          "text": "        # air_after_launch 32/32, complete_rate 0.0, fail/base_contact 21).\n        landing_state = EventTerm(func=skills.update_landing_state, mode=\"step\")\n        # audit item 8 (SCUT parity): terrain-position-driven height command for the tunnel --\n        # approach -> pre-crouch -> the measured drivable crouch -> recover.  A single constant\n        # cannot describe a hole whose whole fitting window is 2 mm tall."
+        },
+        {
+          "line": 1641,
+          "text": "    # \u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25) + tight(\u03c30.01) + huge_gap \u786c\u7f5a + square \u7f5a\uff1bexp/soft/square \u8d70\u95e8\u63a7\n    track_lin_vel = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_LIN_SIGMA})\n    track_lin_vel_tight = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_TIGHT_W,\n                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})"
+        },
+        {
+          "line": 1643,
+          "text": "                            params={\"command_name\": \"twist\", \"std\": SCUT_LIN_SIGMA})\n    track_lin_vel_tight = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_TIGHT_W,\n                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})\n    track_lin_vel_huge_gap = RewTerm(func=scut_rescue.linear_gap, weight=SCUT_LIN_GAP_W,\n                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})"
+        },
+        {
+          "line": 1645,
+          "text": "                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})\n    track_lin_vel_huge_gap = RewTerm(func=scut_rescue.linear_gap, weight=SCUT_LIN_GAP_W,\n                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})\n    track_lin_vel_square = RewTerm(func=scut_rescue.linear_square, weight=SCUT_LIN_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})"
+        },
+        {
+          "line": 1647,
+          "text": "                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})\n    track_lin_vel_square = RewTerm(func=scut_rescue.linear_square, weight=SCUT_LIN_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})\n    run_velocity_error = RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)\n    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09"
+        },
+        {
+          "line": 1649,
+          "text": "                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})\n    run_velocity_error = RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)\n    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09\n    track_ang_vel = RewTerm(func=scut_rescue.yaw_exp, weight=SCUT_ANG_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})"
+        },
+        {
+          "line": 1651,
+          "text": "    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09\n    track_ang_vel = RewTerm(func=scut_rescue.yaw_exp, weight=SCUT_ANG_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})\n    track_ang_vel_square = RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_ANG_SQ_SIGMA})"
+        },
+        {
+          "line": 1653,
+          "text": "                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})\n    track_ang_vel_square = RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_ANG_SQ_SIGMA})\n    # \u9ad8\u5ea6\uff1aexp(\u03c30.01,w0.7) + tight(\u03c30.001,w0.3) + both_wheels(\u03c30.1,w0.3) + square((5\u0394h)\u00b2,w\u22121)\n    height = RewTerm(func=height_track, weight=SCUT_H_W, params={\"sigma\": SCUT_H_SIGMA})"
+        },
+        {
+          "line": 1697,
+          "text": "    # registered in field mode, because the tunnel and the launch ramp have to exist first.\n    if MAP_MODE == \"rmuc2026\":\n        # Route rewards come straight from the delivered package: dense progress toward the\n        # route goal plus a one-shot success bonus (route-specific gate: spin angle, jump\n        # height + air time, underpass visit, ...)."
+        },
+        {
+          "line": 1730,
+          "text": "        gyro_track_wide = RewTerm(\n            func=skills.gyro_track_wide, weight=3.0,\n            params={\"command_name\": \"twist\", \"band\": 2.0, \"max_tilt_deg\": 30.0})\n        tunnel_crouch = RewTerm(\n            func=skills.tunnel_crouch, weight=0.5,"
+        },
+        {
+          "line": 1773,
+          "text": "    # audit item 5/6: relative to the LOCAL floor -- the dog-hole floor is 0.156 m below the\n    # highway, so an absolute 0.10 m gate terminated a robot standing correctly inside it.\n    # 2026-09-28: low_base used to END the episode below 0.10 m.  Combined with the new dense\n    # height-deficit penalty that made \"sink until the episode ends\" the cheapest way to stop\n    # paying it (measured: low_base 56% -> 78%, episodes 1400 -> 650).  The penalty must be"
+        },
+        {
+          "line": 1790,
+          "text": "    \"\"\"Curricula for the MOD4 task.\n\n    The yaw-command window is a curriculum in BOTH terrains.  mjlab's working flat run ramps\n    it too (their RM_WZ_MAX is 14 rad/s but the window starts at the rate the previous policy\n    demonstrably HELD, and their config warns the tracking reward is already flat above ~2 m/s"
+        },
+        {
+          "line": 1793,
+          "text": "    it too (their RM_WZ_MAX is 14 rad/s but the window starts at the rate the previous policy\n    demonstrably HELD, and their config warns the tracking reward is already flat above ~2 m/s\n    of error).  Our flat task used to command +-13 rad/s from iteration 0, so\n    ``track_ang_vel = exp(-(13/0.25)^2) = 0`` for every env that cannot spin at 13 rad/s --\n    the only feedback left was the penalty sum, and \"die fast\" won (observed 2026-09-11:"
+        },
+        {
+          "line": 1799,
+          "text": "    \"\"\"\n\n    # \u5c0f\u9640\u87ba: open the yaw command window by +0.5 rad/s every 40 ITERATIONS, from +/-2 rad/s\n    # up to the +/-13 the contract allows (see skills_isaac.gyro_window_schedule).\n    gyro_window = CurrTerm(func=skills.gyro_window_schedule,"
+        },
+        {
+          "line": 1819,
+          "text": "    observations: ObservationsCfg = ObservationsCfg()\n    actions: ActionsCfg = ActionsCfg()\n    commands: CommandsCfg = CommandsCfg()\n    events: EventCfg = EventCfg()\n    rewards: RewardsCfg = RewardsCfg()"
+        },
+        {
+          "line": 1847,
+          "text": "        \"policy_action_order\": ACTION_ORDER,\n        \"policy_hz\": POLICY_HZ, \"physics_dt\": PHYSICS_DT, \"decimation\": DECIMATION,\n        \"leg_kp\": LEG_KP, \"leg_kd\": LEG_KD, \"wheel_kd\": WHEEL_KD,\n        \"leg_action_scale\": LEG_ACTION_SCALE, \"wheel_action_scale\": WHEEL_ACTION_SCALE,\n        \"leg_effort\": LEG_EFFORT, \"leg_stall\": LEG_STALL, \"leg_no_load\": LEG_NO_LOAD,"
+        }
+      ]
+    },
+    "isaac/mod4/mild_dr.py": {
+      "sha256": "a8c4fb06f16dbad215b3a380420909a80680f9819d9bdcfbf5f816061222fb7e",
+      "selected": [
+        {
+          "line": 32,
+          "text": "        self.inertia = tensor(robot.root_view.get_inertias()).clone().to(env.device)\n        self.materials = tensor(robot.root_view.get_material_properties()).clone().cpu()\n        # Local COM translation, independent of robot pose or a principal-axis quaternion representation.\n        self.com = tensor(robot.data.body_com_pos_b).clone()\n        seed=int(env.cfg.seed)"
+        },
+        {
+          "line": 33,
+          "text": "        self.materials = tensor(robot.root_view.get_material_properties()).clone().cpu()\n        # Local COM translation, independent of robot pose or a principal-axis quaternion representation.\n        self.com = tensor(robot.data.body_com_pos_b).clone()\n        seed=int(env.cfg.seed)\n        self.generator=torch.Generator(device=env.device).manual_seed(seed+1717)"
+        },
+        {
+          "line": 58,
+          "text": "        self.friction_buckets = torch.cat((torch.tensor([.9]), torch.linspace(*self.recipe['friction'], 32)))\n        self.factor = torch.ones(env.num_envs, device=env.device)\n        self.nominal = torch.ones(env.num_envs, dtype=torch.bool, device=env.device)\n        self.mu = torch.full((env.num_envs,), .9)\n        self.reset_count = torch.zeros(env.num_envs, dtype=torch.long, device=env.device)"
+        },
+        {
+          "line": 73,
+          "text": "        if not len(ids):\n            return\n        nominal = torch.rand(len(ids), device=env.device, generator=self.generator) < .2\n        factor = torch.empty(len(ids), device=env.device).uniform_(*self.recipe['mass'], generator=self.generator)\n        factor[nominal] = 1."
+        },
+        {
+          "line": 75,
+          "text": "        nominal = torch.rand(len(ids), device=env.device, generator=self.generator) < .2\n        factor = torch.empty(len(ids), device=env.device).uniform_(*self.recipe['mass'], generator=self.generator)\n        factor[nominal] = 1.\n        self.factor[ids], self.nominal[ids] = factor, nominal\n        self.reset_count[ids] += 1"
+        },
+        {
+          "line": 76,
+          "text": "        factor = torch.empty(len(ids), device=env.device).uniform_(*self.recipe['mass'], generator=self.generator)\n        factor[nominal] = 1.\n        self.factor[ids], self.nominal[ids] = factor, nominal\n        self.reset_count[ids] += 1\n        self.robot.set_masses_index(masses=self.mass[ids] * factor[:, None], env_ids=ids)"
+        },
+        {
+          "line": 83,
+          "text": "            gains = self.robot.actuators[name].episode_scale\n            gains[ids] = torch.empty_like(gains[ids]).uniform_(*self.recipe['motor'], generator=self.generator)\n            gains[ids[nominal]] = 1.\n        cpu_ids = ids.to(device='cpu', dtype=torch.int32)\n        bucket = torch.randint(1, 33, (len(ids),), device='cpu', generator=self.cpu_generator)"
+        },
+        {
+          "line": 86,
+          "text": "        cpu_ids = ids.to(device='cpu', dtype=torch.int32)\n        bucket = torch.randint(1, 33, (len(ids),), device='cpu', generator=self.cpu_generator)\n        bucket[nominal.cpu()] = 0\n        mu = self.friction_buckets[bucket]\n        self.mu[cpu_ids.long()] = mu"
+        },
+        {
+          "line": 106,
+          "text": "            'wheel_restitution_abs_max': float(actual_materials[:,self.wheel_shapes,2].abs().max()),\n            'nonwheel_material_error': float((actual_materials[:,self.nonwheel_shapes]-self.materials[:,self.nonwheel_shapes]).abs().max()),\n            'local_com_position_error': float((tensor(robot.data.body_com_pos_b)-self.com).abs().max()),\n        }\n        for name, gains in self.gains.items():"
+        },
+        {
+          "line": 122,
+          "text": "                'mass_inertia_factor_range': [float(self.factor.min()),float(self.factor.max())],\n                'motor_strength': strengths, 'friction_range': [float(self.mu.min()),float(self.mu.max())],\n                'nominal_environment_count': int(self.nominal.sum()), 'num_envs': len(self.factor),\n                'wheel_shapes': self.wheel_shapes, 'material_buckets': 33,\n                'reset_count_range': [int(self.reset_count.min()),int(self.reset_count.max())],"
+        },
+        {
+          "line": 126,
+          "text": "                'reset_count_range': [int(self.reset_count.min()),int(self.reset_count.max())],\n                'legacy_full_dr_disabled': True,\n                'other_randomization': 'spring/PD/COM/armature/joint-friction/push/noise/delay unchanged',\n                'motor_rating': 'output gain followed by original torque-speed clipping'}\n"
+        },
+        {
+          "line": 132,
+          "text": "def configure(cfg):\n    profile = os.environ.get('RM_MILD_DR_PROFILE', '')\n    if profile in ('', 'nominal'):\n        return\n    if profile not in DR_PROFILES:"
+        },
+        {
+          "line": 138,
+          "text": "    if os.environ.get('RM_DR_OFF') != '1':\n        raise RuntimeError('Whitelist cannot run alongside the legacy full DR bundle')\n    for name in ('mass_inertia','wheel_friction','chassis_com','actuator_gains',\n                 'leg_joint_params','wheel_joint_params','gas_gains','push_wrench',\n                 'push_velocity','leg_effort_scale','wheel_effort_scale'):"
+        }
+      ]
+    },
+    "isaac/mod4/mod4_task.py": {
+      "sha256": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "selected": [
+        {
+          "line": 5,
+          "text": "Design notes (2026-09-10):\n\n* Asset: the MOD4 delivery USD (incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/\n  isaac/robot.usd).  Every number below is read from the delivered import_contract.json\n  that ships next to that USD, so the training plant and the shipped asset cannot drift"
+        },
+        {
+          "line": 13,
+          "text": "  train/deploy/contract_rm2025_later.json.  This is the SAME interface the mjlab trainer\n  (train/rmvehicle/src/rmvehicle/env_cfgs.py) and the real robot use, so an Isaac-trained\n  checkpoint goes through the existing ONNX export instead of a second interface.\n* Motors: Isaac Lab DC motor model (stall torque / continuous torque / no-load speed):\n  legs 53.3333 / 40.0 / 16.7552, wheels 28.1853 / 5.7759 / 55.3557.  That is exactly the"
+        },
+        {
+          "line": 44,
+          "text": "from isaaclab.envs import ManagerBasedRLEnvCfg\nfrom isaaclab.envs.mdp import actions as mdp_actions\nfrom isaaclab.envs.mdp import commands as mdp_commands\nfrom isaaclab.envs.mdp import events as mdp_events\nfrom isaaclab.envs.mdp import observations as mdp_obs"
+        },
+        {
+          "line": 88,
+          "text": "\nROOT = Path(__file__).resolve().parents[2]\n# The asset may live in the repo's synced copy (incoming/rm2025_mod4/isaac, which is what\n# the target machine has) or in the raw unzip directory used during local development.\n# Pick whichever actually exists instead of hard-coding one of them."
+        },
+        {
+          "line": 95,
+          "text": "    # 30 mm guide rollers as analytic colliders.  Preferred as soon as it is synced; the old\n    # packages stay as fallbacks so a machine without the fix still runs.\n    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\","
+        },
+        {
+          "line": 96,
+          "text": "    # packages stay as fallbacks so a machine without the fix still runs.\n    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\",\n)"
+        },
+        {
+          "line": 97,
+          "text": "    ROOT / \"incoming\" / \"mod4_fixed_20260912\" / \"chassis_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"rm2025_mod4\" / \"isaac\",\n    ROOT / \"incoming\" / \"chassis_mod4_mjcf_usd_20260910\" / \"chassis_mod4\" / \"isaac\",\n)\n_ENV_USD = os.environ.get(\"RM_MOD4_USD\", \"\").strip()      # explicit override for A/B runs"
+        },
+        {
+          "line": 121,
+          "text": "                  if n not in ACTUATED + GAS_JOINTS]\n\nLEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6"
+        },
+        {
+          "line": 122,
+          "text": "\nLEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6\nLEG_ACTION_SCALE = float(DELIVERY_CONTRACT[\"leg_action_scale\"])      # 0.5 rad"
+        },
+        {
+          "line": 123,
+          "text": "LEG_KP = float(DELIVERY_CONTRACT[\"leg_kp\"])                  # 60.0\nLEG_KD = float(DELIVERY_CONTRACT[\"leg_kd\"])                  # 2.0\nWHEEL_KD = float(DELIVERY_CONTRACT[\"wheel_kd\"])              # 0.6\nLEG_ACTION_SCALE = float(DELIVERY_CONTRACT[\"leg_action_scale\"])      # 0.5 rad\nWHEEL_ACTION_SCALE = float(DELIVERY_CONTRACT[\"wheel_action_scale\"])  # 10.0 rad/s"
+        },
+        {
+          "line": 144,
+          "text": "# P2 staging (audit item 8): RM_DR_OFF=1 has to be read BEFORE the knob block below.\n# Gating only the EventCfg terms left the observation noise, the sensor-delay lines and the\n# action-delay line alive, so the \"nominal\" stage still ran a noisy, latency-shifted task --\n# and the delay-line reset was skipped with them (ghost samples from the previous episode).\nDR_OFF = os.environ.get(\"RM_DR_OFF\", \"\").strip() == \"1\""
+        },
+        {
+          "line": 163,
+          "text": "DELAY_PERIOD = int(_f(\"RM_OBS_DELAY_UPDATE_PERIOD\", 10))\nHEIGHT_RANGE = (_f(\"RM_HEIGHT_MIN\", 0.18), _f(\"RM_HEIGHT_MAX\", 0.34))\n# Dense penalty for sitting below the commanded height on flat ground (2026-09-28).\n# The Gaussian height reward alone let the policy drift down until the 0.10 m low_base\n# cut-off: half the episodes ended by sinking with attitude intact.  This term makes"
+        },
+        {
+          "line": 166,
+          "text": "# The Gaussian height reward alone let the policy drift down until the 0.10 m low_base\n# cut-off: half the episodes ended by sinking with attitude intact.  This term makes\n# every centimetre below the command cost something, every step.\nW_HEIGHT_DEFICIT = _f(\"RM_W_HEIGHT_DEFICIT\", -12.0)\n# Symmetric linear height-tracking weight (2026-09-28): the Gaussian kernel is flat beyond"
+        },
+        {
+          "line": 255,
+          "text": "\n    The mjlab task randomizes the same thing through `dr.effort_limits`; PhysX drive\n    limits are shared by every environment, so the scale is applied to the computed\n    effort instead.  `episode_scale` covers unit-to-unit spread, `step_scale` adds the\n    per-step gain noise SCUT injects on top of it."
+        },
+        {
+          "line": 301,
+          "text": "# --- mass / inertia randomization ------------------------------------------------------\n# Isaac Lab's stock randomize_rigid_body_mass/inertia events call the PhysX setters in a way\n# that logs hundreds of \"PxRigidBody::setMassSpaceInertiaTensor(): components must be\n# non-negative\" errors per run (measured 2026-09-10: 0 with the events disabled, 368-514\n# with them enabled, for 32 environments).  The final state read back is valid, but the"
+        },
+        {
+          "line": 363,
+          "text": "    leg_armature = {n: armature[n] for n in LEG_ORDER}\n    wheel_armature = {n: armature[n] for n in WHEEL_ORDER}\n    leg_damping = {n: max(damping[n], LEG_KD) for n in LEG_ORDER}  # drive kd >= XML damping\n    wheel_damping = {n: max(damping[n], WHEEL_KD) for n in WHEEL_ORDER}\n    gas = CONTRACT[\"gas_springs\"]"
+        },
+        {
+          "line": 364,
+          "text": "    wheel_armature = {n: armature[n] for n in WHEEL_ORDER}\n    leg_damping = {n: max(damping[n], LEG_KD) for n in LEG_ORDER}  # drive kd >= XML damping\n    wheel_damping = {n: max(damping[n], WHEEL_KD) for n in WHEEL_ORDER}\n    gas = CONTRACT[\"gas_springs\"]\n    return ArticulationCfg("
+        },
+        {
+          "line": 382,
+          "text": "            articulation_props=sim_utils.ArticulationRootPropertiesCfg(\n                enabled_self_collisions=True,\n                # P3: solver budget is a switch so the 32/8 vs 16/4 comparison can be run\n                # without editing code (the audit asks for that A/B under load).\n                solver_position_iteration_count=int(os.environ.get(\"RM_SOLVER_POS\", \"32\")),"
+        },
+        {
+          "line": 395,
+          "text": "                joint_names_expr=LEG_ORDER, effort_limit=LEG_EFFORT,\n                velocity_limit=LEG_NO_LOAD, saturation_effort=LEG_STALL,\n                stiffness=LEG_KP, damping=leg_damping, armature=leg_armature,\n                friction=0.0),\n            \"wheels\": Mod4DCMotorCfg("
+        },
+        {
+          "line": 422,
+          "text": "    buf = getattr(env, \"_mod4_height_cmd\", None)\n    if buf is None:\n        buf = torch.full((env.num_envs, 1), _f(\"RM_NOMINAL_HEIGHT\", .25), device=env.device)\n        env._mod4_height_cmd = buf\n    return buf"
+        },
+        {
+          "line": 446,
+          "text": "    # audit item 2: the arena sets _mod4_route_ids, not _mod4_task_id -- check the routes\n    # FIRST, otherwise every arena route was reported as 'normal'.\n    # The bit itself is computed ONCE per reset by the adapter and simply scattered here: the\n    # earlier list comprehension walked 1024 route ids per control step (a GPU->CPU sync plus\n    # 1024 Python int() calls at 50 Hz) and the audit asked for a vectorised implementation."
+        },
+        {
+          "line": 447,
+          "text": "    # FIRST, otherwise every arena route was reported as 'normal'.\n    # The bit itself is computed ONCE per reset by the adapter and simply scattered here: the\n    # earlier list comprehension walked 1024 route ids per control step (a GPU->CPU sync plus\n    # 1024 Python int() calls at 50 Hz) and the audit asked for a vectorised implementation.\n    bit = getattr(env, \"_mod4_mode_bit\", None)"
+        },
+        {
+          "line": 562,
+          "text": "def height_track(env, asset_cfg: SceneEntityCfg = SceneEntityCfg(\"robot\"),\n                 sigma: float = 0.02) -> torch.Tensor:\n    \"\"\"Exponential height-tracking reward against the live height command.\n\n    2026-09-28: aligned with SCUT (`exp(-err^2 / sigma)`, sigma 0.005/0.01/0.025) after"
+        },
+        {
+          "line": 566,
+          "text": "    2026-09-28: aligned with SCUT (`exp(-err^2 / sigma)`, sigma 0.005/0.01/0.025) after\n    measuring that our old `exp(-(err/0.06)^2)` was flat beyond ~6 cm -- the probe showed the\n    policy wandering 6-12 cm off the command with almost no gradient to correct it.\n    \"\"\"\n    robot = env.scene[asset_cfg.name]"
+        },
+        {
+          "line": 576,
+          "text": "    value = torch.exp(-torch.square(z - target) / sigma)\n    # audit item 7: hold the last grounded value while a jump route is in the air.  Without\n    # this the term pays 0.000 for the whole flight (the command window is 0.18-0.34 m), which\n    # is one of the three reasons standing still out-scored jumping.\n    return skills.jump_freeze_height(env, value)"
+        },
+        {
+          "line": 582,
+          "text": "\ndef flat_height_deficit(env) -> torch.Tensor:\n    \"\"\"Dense low-height cost on flat ground: clamp(command - root_height, 0, 0.25).\n\n    Applied on every flat sample (standing and moving); returns zero on field/arena terrain"
+        },
+        {
+          "line": 585,
+          "text": "\n    Applied on every flat sample (standing and moving); returns zero on field/arena terrain\n    where the height command is route-driven and the local ground height varies.\n    \"\"\"\n    if TERRAIN != \"flat\":"
+        },
+        {
+          "line": 594,
+          "text": "\ndef flat_height_error_l1(env) -> torch.Tensor:\n    \"\"\"Symmetric linear height error on flat ground: |command - root_height|, clamped 0.25 m.\n\n    Unlike the Gaussian height reward this keeps a constant slope for large errors, and unlike"
+        },
+        {
+          "line": 607,
+          "text": "    \"\"\"Two-sided squared height error, normalised to 1.0 at +-HEIGHT_L2_CLAMP (SCUT parity).\n\n    2026-09-28 probe on model_1750: with 0.6 / 1.0 m/s commands the chassis sat at 0.39 / 0.45 m\n    against a 0.245 m command while pumping +-6.5 cm (height std) -- the one-sided deficit term\n    cannot charge that at all, and the L1 term saturates at 0.25 m (worth only -0.25 with"
+        },
+        {
+          "line": 608,
+          "text": "\n    2026-09-28 probe on model_1750: with 0.6 / 1.0 m/s commands the chassis sat at 0.39 / 0.45 m\n    against a 0.245 m command while pumping +-6.5 cm (height std) -- the one-sided deficit term\n    cannot charge that at all, and the L1 term saturates at 0.25 m (worth only -0.25 with\n    weight -1.0).  SCUT's `track_height_square` (-1.0) is the two-sided term that makes"
+        },
+        {
+          "line": 621,
+          "text": "\ndef vel_height_gate(env) -> torch.Tensor:\n    \"\"\"SCUT `vel_height_gate`: 1.0 while the commanded height is tracked, 0 when it is not.\n\n    \u51fa\u5904\uff1a\u534e\u5357\u864e\u5b98\u65b9\u4ed3\u5e93 `wheeled-legged_RL / wheelbipe25_v3/env.py`\uff0c\u6e90\u7801\u6ce8\u91ca"
+        },
+        {
+          "line": 640,
+          "text": "\n\ndef track_lin_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 0.7071067811865476) -> torch.Tensor:\n    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)"
+        },
+        {
+          "line": 642,
+          "text": "def track_lin_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 0.7071067811865476) -> torch.Tensor:\n    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 645,
+          "text": "\n\ndef track_ang_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 1.4142135623730951) -> torch.Tensor:\n    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)"
+        },
+        {
+          "line": 647,
+          "text": "def track_ang_vel_gated(env, command_name: str = \"twist\",\n                        std: float = 1.4142135623730951) -> torch.Tensor:\n    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 650,
+          "text": "\n\ndef run_velocity_error_gated(env, command_name: str = \"twist\") -> torch.Tensor:\n    return skills.run_velocity_error_l2(env, command_name=command_name) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 651,
+          "text": "\ndef run_velocity_error_gated(env, command_name: str = \"twist\") -> torch.Tensor:\n    return skills.run_velocity_error_l2(env, command_name=command_name) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 674,
+          "text": "\n\ndef _lin_vel_err_xy(env, command_name: str = \"twist\") -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)[:, :2]\n    return cmd - env.scene[\"robot\"].data.root_lin_vel_b[:, :2]"
+        },
+        {
+          "line": 675,
+          "text": "\ndef _lin_vel_err_xy(env, command_name: str = \"twist\") -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)[:, :2]\n    return cmd - env.scene[\"robot\"].data.root_lin_vel_b[:, :2]\n"
+        },
+        {
+          "line": 679,
+          "text": "\n\ndef track_lin_vel_huge_gap(env, command_name: str = \"twist\", gap: float = 0.5) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_huge_gap`: err^2 \u8d85\u9608\u503c\u5c31 0/1 \u786c\u7f5a\uff08\u6743\u91cd -1.0\uff09\uff0c\u4e0d\u6253\u95e8\u63a7\u3002\"\"\"\n    return (_lin_vel_err_xy(env, command_name).square().sum(dim=1) > gap).float()"
+        },
+        {
+          "line": 681,
+          "text": "def track_lin_vel_huge_gap(env, command_name: str = \"twist\", gap: float = 0.5) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_huge_gap`: err^2 \u8d85\u9608\u503c\u5c31 0/1 \u786c\u7f5a\uff08\u6743\u91cd -1.0\uff09\uff0c\u4e0d\u6253\u95e8\u63a7\u3002\"\"\"\n    return (_lin_vel_err_xy(env, command_name).square().sum(dim=1) > gap).float()\n\n"
+        },
+        {
+          "line": 684,
+          "text": "\n\ndef track_lin_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2\uff0c\u6743\u91cd -1.0\u3002\"\"\"\n    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()"
+        },
+        {
+          "line": 686,
+          "text": "def track_lin_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    \"\"\"SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2\uff0c\u6743\u91cd -1.0\u3002\"\"\"\n    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()\n\n"
+        },
+        {
+          "line": 689,
+          "text": "\n\ndef track_ang_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)\n    err = cmd[:, 2] - env.scene[\"robot\"].data.root_ang_vel_b[:, 2]"
+        },
+        {
+          "line": 690,
+          "text": "\ndef track_ang_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    cmd = env.command_manager.get_command(command_name)\n    err = cmd[:, 2] - env.scene[\"robot\"].data.root_ang_vel_b[:, 2]\n    return (sigma * err).square()"
+        },
+        {
+          "line": 695,
+          "text": "\n\ndef track_lin_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_lin_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 696,
+          "text": "\ndef track_lin_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_lin_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 699,
+          "text": "\n\ndef track_ang_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_ang_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n"
+        },
+        {
+          "line": 700,
+          "text": "\ndef track_ang_vel_square_gated(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\n    return track_ang_vel_square(env, command_name=command_name, sigma=sigma) * vel_height_gate(env)\n\n"
+        },
+        {
+          "line": 833,
+          "text": "\n    audit P0-5 (\"\u8bad\u7ec3\u76ee\u524d\u53ea\u76d1\u63a7\u95ed\u94fe\u951a\u70b9\uff0c\u6ca1\u6709\u5728\u7ebf\u76d1\u63a7\u56db\u4e2a\u4f20\u52a8 mimic\"): the two termination\n    terms already compute the worst anchor separation and the worst mimic drift every control\n    step, so this term only has to READ them -- no extra physics work.  Written every\n    RM_METRIC_PERIOD steps to keep the GPU->CPU syncs negligible."
+        },
+        {
+          "line": 854,
+          "text": "    log[\"Metrics/plant/closure_err_session_max_m\"] = float(getattr(env, \"_mod4_max_closure\", 0.0))\n    log[\"Metrics/plant/mimic_err_session_max_rad\"] = float(getattr(env, \"_mod4_max_mimic\", 0.0))\n    # Goal \u00a73: `Metrics/success_rate` is Isaac Lab's COMMAND-level metric (velocity error inside\n    # a threshold), NOT a route completion.  Rename it so nobody reads it as the terrain score,\n    # and publish the real per-route numbers next to it."
+        },
+        {
+          "line": 855,
+          "text": "    log[\"Metrics/plant/mimic_err_session_max_rad\"] = float(getattr(env, \"_mod4_max_mimic\", 0.0))\n    # Goal \u00a73: `Metrics/success_rate` is Isaac Lab's COMMAND-level metric (velocity error inside\n    # a threshold), NOT a route completion.  Rename it so nobody reads it as the terrain score,\n    # and publish the real per-route numbers next to it.\n    if \"Metrics/success_rate\" in log:"
+        },
+        {
+          "line": 862,
+          "text": "    if rc is not None:\n        finished = rc.finished.float()\n        log[\"Metrics/route_complete_rate\"] = float(finished.mean().item())\n        batch = getattr(env, \"_mod4_route_progress\", None) or {}\n        succ = batch.get(\"success\")"
+        },
+        {
+          "line": 876,
+          "text": "\n# --- randomization events (SCUT list) ----------------------------------------------\ndef resample_height_command(env, env_ids, low: float = HEIGHT_RANGE[0],\n                            high: float = HEIGHT_RANGE[1]) -> None:\n    buf = height_cmd(env)"
+        },
+        {
+          "line": 966,
+          "text": "    handoff \u00a71.3: hip and crank are two independent motors, and the CAD stop constrains their\n    DIFFERENCE (crank - hip >= -1.0843 rad in the training window, -1.0863 rad at the real\n    block).  PhysX resolves the closed chain with COMPLIANT mimic constraints, so a target pair\n    outside that window does not simply \"press the stop\" -- it yanks the linkage.  The fix\n    package's TorqueInterface does this at torque level for the self-test; the training action"
+        },
+        {
+          "line": 986,
+          "text": "        if self.diff_min > -1.0e8:\n            # LEG_ORDER == [\"left_crank\", \"left_hip\", \"right_crank\", \"right_hip\"], i.e. the\n            # CRANK comes first in the processed target vector (action slots 0 and 2 are cranks).\n            pa = self.processed_actions\n            torch.maximum(pa[:, 0], pa[:, 1] + self.diff_min, out=pa[:, 0])"
+        },
+        {
+          "line": 1080,
+          "text": "# (1024 copies on a 34x20 m grid, collision/visual split, 15 semantic routes).  The terrain has\n# to be built AFTER num_envs is known, so the train entry point calls attach_rmuc2026_terrain().\nRMUC2026_ISAAC = (ROOT / \"incoming\" / \"rmuc2026_field_20260911\" / \"rmuc2026_training\" / \"isaac\")\nMAP_MODE = os.environ.get(\"RM_MOD4_MAP\", \"\").strip().lower()\n# P2 staging: RM_DR_OFF=1 strips the wide randomisation so a new map/skill can be"
+        },
+        {
+          "line": 1112,
+          "text": "\ndef rmuc2026_route_module():\n    \"\"\"Import the package's RouteCommands (15 semantic routes) with sys.path set up.\"\"\"\n    import sys as _sys\n    if str(RMUC2026_ISAAC) not in _sys.path:"
+        },
+        {
+          "line": 1116,
+          "text": "    if str(RMUC2026_ISAAC) not in _sys.path:\n        _sys.path.insert(0, str(RMUC2026_ISAAC))\n    from route_commands import RouteCommands\n    return RouteCommands\n"
+        },
+        {
+          "line": 1117,
+          "text": "        _sys.path.insert(0, str(RMUC2026_ISAAC))\n    from route_commands import RouteCommands\n    return RouteCommands\n\nfrom ground_plane_candidate import spawn_local_native_plane"
+        },
+        {
+          "line": 1199,
+          "text": "    \"\"\"Observation noise for one ObsTerm, or None when RM_DR_OFF=1 (audit item 8).\n\n    The P2 nominal stage has to see CLEAN sensor data: gating only the events left the actor\n    on noisy observations while the critic and every reward saw the clean state.\n    \"\"\""
+        },
+        {
+          "line": 1211,
+          "text": "    @configclass\n    class PolicyCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)"
+        },
+        {
+          "line": 1212,
+          "text": "    class PolicyCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=base_ang_vel_delayed, scale=0.5,"
+        },
+        {
+          "line": 1213,
+          "text": "        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=base_ang_vel_delayed, scale=0.5,\n                               noise=_obs_noise(-0.25, 0.25))"
+        },
+        {
+          "line": 1249,
+          "text": "    @configclass\n    class CriticCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)"
+        },
+        {
+          "line": 1250,
+          "text": "    class CriticCfg(ObsGroup):\n        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=mdp_obs.base_ang_vel, scale=0.5)"
+        },
+        {
+          "line": 1251,
+          "text": "        commands = ObsTerm(func=mdp_obs.generated_commands,\n                           params={\"command_name\": \"twist\"})\n        height_command = ObsTerm(func=height_cmd, scale=5.0)\n        base_ang_vel = ObsTerm(func=mdp_obs.base_ang_vel, scale=0.5)\n        base_lin_vel = ObsTerm(func=mdp_obs.base_lin_vel, scale=0.5)"
+        },
+        {
+          "line": 1297,
+          "text": "\n@configclass\nclass CommandsCfg:\n    \"\"\"\u901f\u5ea6\u6307\u4ee4\uff1a\u5bf9\u9f50\u534e\u5357\u864e\u5e73\u5730\u4efb\u52a1\uff08\u822a\u5411\u6307\u4ee4 50%\u3001\u91cd\u91c7\u6837 1\u20138 s\u300110% \u7ad9\u7acb\u73af\u5883\uff09\u3002\"\"\"\n"
+        },
+        {
+          "line": 1300,
+          "text": "    \"\"\"\u901f\u5ea6\u6307\u4ee4\uff1a\u5bf9\u9f50\u534e\u5357\u864e\u5e73\u5730\u4efb\u52a1\uff08\u822a\u5411\u6307\u4ee4 50%\u3001\u91cd\u91c7\u6837 1\u20138 s\u300110% \u7ad9\u7acb\u73af\u5883\uff09\u3002\"\"\"\n\n    twist = mdp_commands.UniformVelocityCommandCfg(\n        asset_name=\"robot\",\n        resampling_time_range=(1.0, 8.0),"
+        },
+        {
+          "line": 1303,
+          "text": "        asset_name=\"robot\",\n        resampling_time_range=(1.0, 8.0),\n        heading_command=bool(int(os.environ.get(\"RM_HEADING_CMD\", \"1\"))),\n        heading_control_stiffness=float(os.environ.get(\"RM_HEADING_STIFFNESS\", \"1.0\")),\n        rel_standing_envs=float(os.environ.get(\"RM_REL_STANDING\", \"0.1\")),"
+        },
+        {
+          "line": 1308,
+          "text": "        rel_heading_envs=float(os.environ.get(\"RM_REL_HEADING\", \"0.5\")),\n        debug_vis=False,\n        ranges=mdp_commands.UniformVelocityCommandCfg.Ranges(\n            lin_vel_x=(_f(\"RM_CMD_VX_MIN\", -1.2), _f(\"RM_CMD_VX_MAX\", 1.2)),\n            lin_vel_y=(0.0, 0.0),"
+        },
+        {
+          "line": 1321,
+          "text": "    \"\"\"EventTerm (mode='startup'): give the delivered arena the same tyre friction as the field.\n\n    2026-09-11 traction probe on the arena: wheels commanded to 16 rad/s spun at 16-17 rad/s while\n    the chassis advanced 0.02 m/s -- the delivered collision material is far slipperier than the\n    0.9/0.9 the robot was trained on, so it could neither drive nor balance (1-9 step episodes)."
+        },
+        {
+          "line": 1474,
+          "text": "    # \u590d\u4f4d\u65f6\u968f\u673a\u817f\u59ff\u4e0e\u8f6e\u901f\uff0c\u9632\u6b62\u7b56\u7565\u9501\u6b7b\u5728\u5355\u4e00\u59ff\u6001\uff08\u7ad9\u7740/\u8db4\u7740\uff09\u3002\n    randomize_leg_start = None  # replaced by full constraint-consistent reset below\n    randomize_wheel_vel = None  # basic locomotion stage: zero initial wheel velocity\n    # audit item 8: the delay-line reset has to run in BOTH stages.  It used to sit inside the\n    # `if not DR_OFF` block, so the nominal stage kept replaying the previous episode's samples"
+        },
+        {
+          "line": 1476,
+          "text": "    randomize_wheel_vel = None  # basic locomotion stage: zero initial wheel velocity\n    # audit item 8: the delay-line reset has to run in BOTH stages.  It used to sit inside the\n    # `if not DR_OFF` block, so the nominal stage kept replaying the previous episode's samples\n    # (a \"ghost observation\" on the first steps after every reset).\n    reset_delay_lines = EventTerm(func=reset_delay_lines, mode=\"reset\")"
+        },
+        {
+          "line": 1488,
+          "text": "    plant_metrics = EventTerm(func=log_plant_metrics, mode=\"step\")\n    if not DR_OFF:                      # P2: no height / delay / push randomisation\n        reset_height_command = EventTerm(func=resample_height_command, mode=\"reset\")\n        reset_push_state = EventTerm(func=reset_push_state, mode=\"reset\")\n    reset_base = EventTerm("
+        },
+        {
+          "line": 1498,
+          "text": "                                   \"pitch\": (-0.3, 0.3), \"yaw\": (-0.3, 0.3)},\n                \"asset_cfg\": SceneEntityCfg(\"robot\")})\n    if not DR_OFF:                      # P2: no actuator / friction / mass / CoM / effort randomisation\n        leg_encoder_bias = EventTerm(\n            func=sample_encoder_bias, mode=\"reset\","
+        },
+        {
+          "line": 1560,
+          "text": "        # P0-4 (audit 2026-09-11): the chassis mass used to be randomized TWICE -- once by this\n        # event and again inside randomize_mass_inertia, which also re-captured the already-perturbed\n        # mass as its \"default\".  The comprehensive event below is the single entry point now.\n        # One event replaces Isaac Lab's six mass/inertia events: chassis mass -1..+2 kg with\n        # inertia x0.8..1.2, limbs mass x0.9..1.1 with inertia x0.7..1.3, wheels mass x0.9..1.1"
+        },
+        {
+          "line": 1566,
+          "text": "        # PhysX setter ever sees a non-positive tensor.\n        mass_inertia = EventTerm(func=randomize_mass_inertia, mode=\"reset\")\n        # Centre-of-mass offset.  This is the ONLY knob that moves the CoM: the mass and inertia\n        # randomizations above scale symmetrically about the existing centre, so an off-centre\n        # battery, gimbal or ammo load is invisible to them.  SCUT's envelope (their agent.yaml"
+        },
+        {
+          "line": 1569,
+          "text": "        # randomizations above scale symmetrically about the existing centre, so an off-centre\n        # battery, gimbal or ammo load is invisible to them.  SCUT's envelope (their agent.yaml\n        # com_range) is x +-0.04 m, y +-0.02 m, z +-0.02 m; on this 14.2 kg chassis a 3 cm\n        # offset needs ~0.98 m/s^2 of sustained acceleration (~8% of the wheel authority) to\n        # hold station, which is exactly the margin we do not want to lose on a slope."
+        },
+        {
+          "line": 1572,
+          "text": "        # offset needs ~0.98 m/s^2 of sustained acceleration (~8% of the wheel authority) to\n        # hold station, which is exactly the margin we do not want to lose on a slope.\n        base_com = EventTerm(\n            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),"
+        },
+        {
+          "line": 1573,
+          "text": "        # hold station, which is exactly the margin we do not want to lose on a slope.\n        base_com = EventTerm(\n            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),\n                    \"com_range\": {\"x\": (-0.04, 0.04), \"y\": (-0.02, 0.02),"
+        },
+        {
+          "line": 1575,
+          "text": "            func=mdp_events.randomize_rigid_body_com, mode=\"reset\",\n            params={\"asset_cfg\": SceneEntityCfg(\"robot\", body_names=[\"chassis\"]),\n                    \"com_range\": {\"x\": (-0.04, 0.04), \"y\": (-0.02, 0.02),\n                                  \"z\": (-0.02, 0.02)}})\n        wheel_friction = EventTerm("
+        },
+        {
+          "line": 1601,
+          "text": "                    \"delta\": EFFORT_NOISE_WHEEL})\n        # Airborne bookkeeping for the flight/landing rewards (step mode: every control step).\n    # P0-2: per-task command + mode bits every control step (audit 2026-09-11).\n    ground_track = EventTerm(func=update_ground_height, mode=\"step\")\n    skill_cmds = EventTerm(func=skills.skill_commands, mode=\"step\")"
+        },
+        {
+          "line": 1603,
+          "text": "    # P0-2: per-task command + mode bits every control step (audit 2026-09-11).\n    ground_track = EventTerm(func=update_ground_height, mode=\"step\")\n    skill_cmds = EventTerm(func=skills.skill_commands, mode=\"step\")\n    if MAP_MODE == \"rmuc2026\":\n        # Route-driven arena: spawn on the semantic route and let the package write the"
+        },
+        {
+          "line": 1606,
+          "text": "    if MAP_MODE == \"rmuc2026\":\n        # Route-driven arena: spawn on the semantic route and let the package write the\n        # velocity command (replaces the lane-offset spawn and the per-task commands).\n        from route_isaac import route_commands as _rc, route_spawn as _rs  # noqa: E402\n        route_spawn_term = EventTerm(func=_rs, mode=\"reset\")"
+        },
+        {
+          "line": 1607,
+          "text": "        # Route-driven arena: spawn on the semantic route and let the package write the\n        # velocity command (replaces the lane-offset spawn and the per-task commands).\n        from route_isaac import route_commands as _rc, route_spawn as _rs  # noqa: E402\n        route_spawn_term = EventTerm(func=_rs, mode=\"reset\")\n        route_cmd_term = EventTerm(func=_rc, mode=\"step\")"
+        },
+        {
+          "line": 1614,
+          "text": "        jump_state = EventTerm(func=skills.update_jump_state, mode=\"step\",\n                               params={\"sensor_cfg\": SceneEntityCfg(\"wheel_contact\")})\n        # audit item 8 (SCUT parity, last piece): after touchdown the height command drops to a\n        # short absorb pose -- the fly stage reaches the ground with the legs extended and was\n        # ending episodes in base_contact (measured 2026-09-12: launched 32/32,"
+        },
+        {
+          "line": 1617,
+          "text": "        # short absorb pose -- the fly stage reaches the ground with the legs extended and was\n        # ending episodes in base_contact (measured 2026-09-12: launched 32/32,\n        # air_after_launch 32/32, complete_rate 0.0, fail/base_contact 21).\n        landing_state = EventTerm(func=skills.update_landing_state, mode=\"step\")\n        # audit item 8 (SCUT parity): terrain-position-driven height command for the tunnel --"
+        },
+        {
+          "line": 1619,
+          "text": "        # air_after_launch 32/32, complete_rate 0.0, fail/base_contact 21).\n        landing_state = EventTerm(func=skills.update_landing_state, mode=\"step\")\n        # audit item 8 (SCUT parity): terrain-position-driven height command for the tunnel --\n        # approach -> pre-crouch -> the measured drivable crouch -> recover.  A single constant\n        # cannot describe a hole whose whole fitting window is 2 mm tall."
+        },
+        {
+          "line": 1659,
+          "text": "    # \u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25) + tight(\u03c30.01) + huge_gap \u786c\u7f5a + square \u7f5a\uff1bexp/soft/square \u8d70\u95e8\u63a7\n    track_lin_vel = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_LIN_SIGMA})\n    track_lin_vel_tight = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_TIGHT_W,\n                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})"
+        },
+        {
+          "line": 1661,
+          "text": "                            params={\"command_name\": \"twist\", \"std\": SCUT_LIN_SIGMA})\n    track_lin_vel_tight = RewTerm(func=scut_rescue.linear_exp, weight=SCUT_LIN_TIGHT_W,\n                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})\n    track_lin_vel_huge_gap = RewTerm(func=scut_rescue.linear_gap, weight=SCUT_LIN_GAP_W,\n                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})"
+        },
+        {
+          "line": 1663,
+          "text": "                                  params={\"command_name\": \"twist\", \"std\": SCUT_LIN_TIGHT_SIGMA})\n    track_lin_vel_huge_gap = RewTerm(func=scut_rescue.linear_gap, weight=SCUT_LIN_GAP_W,\n                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})\n    track_lin_vel_square = RewTerm(func=scut_rescue.linear_square, weight=SCUT_LIN_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})"
+        },
+        {
+          "line": 1665,
+          "text": "                                     params={\"command_name\": \"twist\", \"gap\": SCUT_LIN_GAP})\n    track_lin_vel_square = RewTerm(func=scut_rescue.linear_square, weight=SCUT_LIN_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})\n    run_velocity_error = RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)\n    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09"
+        },
+        {
+          "line": 1667,
+          "text": "                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_LIN_SQ_SIGMA})\n    run_velocity_error = RewTerm(func=run_velocity_error_gated, weight=W_RUN_VEL_ERROR)\n    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09\n    track_ang_vel = RewTerm(func=scut_rescue.yaw_exp, weight=SCUT_ANG_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})"
+        },
+        {
+          "line": 1669,
+          "text": "    # \u89d2\u901f\u5ea6\u8ddf\u8e2a\uff1aexp(\u03c30.25, w0.5) + square \u7f5a\uff08\u822a\u5411\u6307\u4ee4\u7531 command \u9879\u751f\u6210\uff09\n    track_ang_vel = RewTerm(func=scut_rescue.yaw_exp, weight=SCUT_ANG_W,\n                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})\n    track_ang_vel_square = RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_ANG_SQ_SIGMA})"
+        },
+        {
+          "line": 1671,
+          "text": "                            params={\"command_name\": \"twist\", \"std\": SCUT_ANG_SIGMA})\n    track_ang_vel_square = RewTerm(func=track_ang_vel_square_gated, weight=SCUT_ANG_SQ_W,\n                                   params={\"command_name\": \"twist\", \"sigma\": SCUT_ANG_SQ_SIGMA})\n    # \u9ad8\u5ea6\uff1aexp(\u03c30.01,w0.7) + tight(\u03c30.001,w0.3) + both_wheels(\u03c30.1,w0.3) + square((5\u0394h)\u00b2,w\u22121)\n    height = RewTerm(func=height_track, weight=SCUT_H_W, params={\"sigma\": SCUT_H_SIGMA})"
+        },
+        {
+          "line": 1718,
+          "text": "    if os.environ.get('RM_WORLD_DRIFT_PROFILE', 'off') == 'cycle_v1':\n        world_cycle_cross = RewTerm(func=WorldCycleCrossReward, weight=-.3,\n            params={'command_name': 'twist', 'scale': .10, 'max_cost': 4.})\n\n    # --- skills: \u5c0f\u9640\u87ba / \u8fc7\u6d1e / \u98de\u5761 --------------------------------------------------"
+        },
+        {
+          "line": 1724,
+          "text": "    # registered in field mode, because the tunnel and the launch ramp have to exist first.\n    if MAP_MODE == \"rmuc2026\":\n        # Route rewards come straight from the delivered package: dense progress toward the\n        # route goal plus a one-shot success bonus (route-specific gate: spin angle, jump\n        # height + air time, underpass visit, ...)."
+        },
+        {
+          "line": 1757,
+          "text": "        gyro_track_wide = RewTerm(\n            func=skills.gyro_track_wide, weight=3.0,\n            params={\"command_name\": \"twist\", \"band\": 2.0, \"max_tilt_deg\": 30.0})\n        tunnel_crouch = RewTerm(\n            func=skills.tunnel_crouch, weight=0.5,"
+        },
+        {
+          "line": 1800,
+          "text": "    # audit item 5/6: relative to the LOCAL floor -- the dog-hole floor is 0.156 m below the\n    # highway, so an absolute 0.10 m gate terminated a robot standing correctly inside it.\n    # 2026-09-28: low_base used to END the episode below 0.10 m.  Combined with the new dense\n    # height-deficit penalty that made \"sink until the episode ends\" the cheapest way to stop\n    # paying it (measured: low_base 56% -> 78%, episodes 1400 -> 650).  The penalty must be"
+        },
+        {
+          "line": 1817,
+          "text": "    \"\"\"Curricula for the MOD4 task.\n\n    The yaw-command window is a curriculum in BOTH terrains.  mjlab's working flat run ramps\n    it too (their RM_WZ_MAX is 14 rad/s but the window starts at the rate the previous policy\n    demonstrably HELD, and their config warns the tracking reward is already flat above ~2 m/s"
+        },
+        {
+          "line": 1820,
+          "text": "    it too (their RM_WZ_MAX is 14 rad/s but the window starts at the rate the previous policy\n    demonstrably HELD, and their config warns the tracking reward is already flat above ~2 m/s\n    of error).  Our flat task used to command +-13 rad/s from iteration 0, so\n    ``track_ang_vel = exp(-(13/0.25)^2) = 0`` for every env that cannot spin at 13 rad/s --\n    the only feedback left was the penalty sum, and \"die fast\" won (observed 2026-09-11:"
+        },
+        {
+          "line": 1826,
+          "text": "    \"\"\"\n\n    # \u5c0f\u9640\u87ba: open the yaw command window by +0.5 rad/s every 40 ITERATIONS, from +/-2 rad/s\n    # up to the +/-13 the contract allows (see skills_isaac.gyro_window_schedule).\n    gyro_window = CurrTerm(func=skills.gyro_window_schedule,"
+        },
+        {
+          "line": 1846,
+          "text": "    observations: ObservationsCfg = ObservationsCfg()\n    actions: ActionsCfg = ActionsCfg()\n    commands: CommandsCfg = CommandsCfg()\n    events: EventCfg = EventCfg()\n    rewards: RewardsCfg = RewardsCfg()"
+        },
+        {
+          "line": 1854,
+          "text": "    def __post_init__(self):\n        if os.environ.get('RM_SPIN_STAGE') in ('pure_yaw_v1','world_directional_v1'):\n            from spin_commands import configure\n            configure(self)\n        # Explicit straight-speed phase: prevent reset curriculum overriding zero yaw."
+        },
+        {
+          "line": 1879,
+          "text": "        \"policy_action_order\": ACTION_ORDER,\n        \"policy_hz\": POLICY_HZ, \"physics_dt\": PHYSICS_DT, \"decimation\": DECIMATION,\n        \"leg_kp\": LEG_KP, \"leg_kd\": LEG_KD, \"wheel_kd\": WHEEL_KD,\n        \"leg_action_scale\": LEG_ACTION_SCALE, \"wheel_action_scale\": WHEEL_ACTION_SCALE,\n        \"leg_effort\": LEG_EFFORT, \"leg_stall\": LEG_STALL, \"leg_no_load\": LEG_NO_LOAD,"
+        },
+        {
+          "line": 1892,
+          "text": "        \"map\": MAP_MODE or \"legacy\",\n        \"dr_off\": DR_OFF,\n        \"dr_profile\": os.environ.get(\"RM_MILD_DR_PROFILE\", \"nominal\"),\n        \"route_kinds\": os.environ.get(\"RM_ROUTE_KINDS\", \"\").strip() or \"all\",\n        \"jump_window_m\": [float(os.environ.get(\"RM_JUMP_LO\", \"0.04\")),"
+        }
+      ]
+    },
+    "isaac/mod4/sensor_resume_contract.py": {
+      "sha256": "0409919cca3ef500bfcf30309aa8d75a6ef77ca026489131cefe6cc858af52e9",
+      "selected": [
+        {
+          "line": 37,
+          "text": "   assert torch.equal(optimizer[k][name].cpu(),value.cpu()) if torch.is_tensor(value) else optimizer[k][name]==value\n restore_sensor(s,ck);before=s.episode.clone()\n cmd=restore_named(env.command_manager.get_term('twist'),ck['sensor_command_DR_rng_state'])\n physical=restore_named(env._mild_dr,ck['sensor_physical_DR_rng_state'])\n torch.random.set_rng_state(ck['sensor_global_rng_state']['cpu'].cpu())"
+        },
+        {
+          "line": 48,
+          "text": " assert torch.equal(s.episode,before+1)\n # reset invalidates each sensor row; subsequent observation may fill the current tick.\n assert all(bool(((last==-1)|(last==env.common_step_counter)).all()) for last,_ in s.cache.values())\n audit=env.sensor_sdk_audit()\n robot=env.scene['robot'];qerr=float((robot.data.joint_pos-env._rescue_reset_q).abs().max())"
+        },
+        {
+          "line": 55,
+          "text": " p=Path(path);receipt=dict(epoch=time.time(),pid=os.getpid(),source_path=str(p),source_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),\n  actor_critic_std_exact=True,optimizer_loaded_original_path=True,stored_iteration=ck['iter'],sensor_streams_restored=True,\n  command_named_streams=cmd,physical_named_streams=physical,global_CPU_CUDA_streams_restored=True,\n  new_physical_episode=True,all_episode_counters_incremented_once=True,history_cache_new_episode=True,\n  initial30q_error_rad=qerr,actual_parameter_audit=params,actual_sensor_manager_audit=audit,PhysX_exact_resume_claimed=False)"
+        }
+      ]
+    },
+    "installed_articulation.py": {
+      "path": "/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/assets/articulation/articulation.py",
+      "sha256": "be6a3e97b5f385e1d66e04b60d245776b39ace320d1e5612fc89778a981cb7f2",
+      "selected": []
+    }
+  },
+  "no_GPU_or_mutation": true
+}

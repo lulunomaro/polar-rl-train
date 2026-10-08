@@ -1,0 +1,18 @@
+# D4 first two-hour block and frozen-world dispatch review
+
+The4090 D4 physical action-delay block naturally saved model28633 and automatically resumed block2 without waiting for3060. Its ownCPU88/243-source freeze/24 snapshots and boundPID receipt passed. It learned1059 updates/25416 controls/508320000 environment policy steps, with101664 physical callbacks exactly, zero ordinary or integrity task events, no nonfinite values and noSTOP. Closure peaked at1.147719449mm. The original parent charged7222.819905519s exactly once; this review writes no budget.
+
+The first actual D4-to-D4 continuation restored the saved action targets, queue timestamps and both privateCUDA RNG streams together with all earlier sensor/feedback, actor/critic/std/optimizer and global/named RNG state. It then explicitly reset a new physical episode, cleared stale targets and rebased the clock. This is not aPhysX exact resume. The block2 periodic checkpoint is only a save/health snapshot, not a skill result.
+
+Audit found the old standalone world replay imported theD3-only DelaySensorMod4Env. Its original successful task/model/data result remains, but it is notD4 action-delay evidence. Production training and the validflat/spin replay paths correctly usedActionDelayMod4Env. The new immutable world module changes only this dispatcher and adds actual queue readback; every other source, asset and clock is byte-identical. No active training source, worker, reward or plant was changed.
+
+The corrected3060 baseline actually completed88 environments/1500 controls/15s. Its two action groups each applied6000 physical callbacks with target error0, true0/2500/5000us assignment and exact initial/final assignment. Root/30q, parameters andD1-D3 recipe match the old baseline. Its signed world target passed64/64, with worst absolute full-circle net cross0.042694507m/s and along0.477509975–0.544517078m/s. The scope is same3060/seed20261002/white_v3/A0/D1D2+D3+D4, not crossGPU bit equality or dualseed/allprofile graduation.
+
+Candidate28633 completed kinds: flat, spin. All completed candidate pairs preserve actual initialroot/q/parameters, recipes, delay assignments and same immutable probe source. Full three-kind candidate comparison completed=False. Original quality flags and all raw remain. Finite boundary residuals are diagnostics; no new mechanical success-percentage line is introduced.
+
+The CPU-only helper supplies only the missing trueD4 world cases for each actualPASSED block. Existing validflat/spin jobs are reused. The original world jobs remainD3-only diagnostics. A subsequent controller must publish the corrected world module directly, without retaining duplicateD3-only world dispatch.4090 never waits for frozen evaluation.
+
+D5 preparation separately reviewed the frozen nominal software spring law and an offline401-point SI curve. ActualSDK drive-force readback and hardware force-stroke measurements are still missing; noD5 executor or randomization is deployed, and nominalk/preload/damping/armature are unchanged. The software estimate is not physical calibration or300–700N certification.
+
+
+This unique trial records a real frozen-dispatch repair, actual D4 first-block and next-block full queue resume, corrected frozen scope and offline nominal source audit. No new PPO/preflight, training signal, production source mutation, new clock trial, budget write or graduation claim occurred. Existing historical results remain.

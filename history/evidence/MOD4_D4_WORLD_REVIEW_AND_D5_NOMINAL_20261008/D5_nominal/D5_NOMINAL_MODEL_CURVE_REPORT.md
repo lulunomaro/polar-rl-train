@@ -1,0 +1,3 @@
+从当前2.5ms D4 immutable包逐字读回真实MOD4 USD与import_contract，并核对gas_spring_preload/ImplicitActuator路径。两gas slide原软件名义k3500N/m、d3Ns/m、target约0.220639441m，q范围[-0.0267046843609,0.0352033350025]m，原drive effort_limit_sim2000N。target在joint范围外是已有预紧目标，不把它当实物气弹簧行程。静态软件F=k(target-q)在q0约772.238N，全关节范围约649.026–865.704N，1mm相对q变化对应3.5N；阻尼项-d*qd与弹性项分列，不将隐式驱动估计或闭链约束力称实测气弹簧力。401点离线数学曲线及单位/符号检查通过，不是实际SDK force-stroke测试。
+
+计划首±10%若以后实施，只是未标定工程压力；按原软件模型全q范围弹性估计约584.124–952.275N，不据此宣称实物300–700N全行程一致，不为迎合范围改名义k/预紧/模型。实际SDK k/d/target/q/qd/drive力的readback与硬件force-stroke测量仍缺，D5组件与学习入口未部署，本次GPU/PPO/预算操作0。当前4090 D4不受本离线审查阻塞。下一独立接口需完整参数/units/episodeRNG与保存、新episode清状态、闭链与硬件合同；缺标定必须标明未标定，或先推进其它已批准可验证组，不能把旧3500N/m和更多训练变成实物认证。全部原源和raw保留。首次跨平台文本拷贝newline SHA reader错误已用base64字节传输修正，原错误保留，不是物理或训练故障。

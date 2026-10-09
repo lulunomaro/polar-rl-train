@@ -1,0 +1,157 @@
+{
+  "epoch": 1791519417.7270675,
+  "master_SHA_unchanged": "812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b",
+  "human_authorization": "\u80fd\u5148\u4e0d\u6253\u6270\u4e3b\u8bad\u7ec3\u4f18\u5316\u4e00\u4e0b\u57283060\u4e3b\u673a\u4e0a\u8bd5\u4e00\u4e0b\u4f18\u5316\u6548\u679c\u5417",
+  "optimization": "Reuse current/after COM backend reads and calculate normalized-double quaternion preservation only for written rows; keep full all-row expected backend-buffer checks",
+  "SDK": {
+    "epoch": 1791518730.769113,
+    "accepted_SDK_interface_only": true,
+    "actual_COM_translation_episode_private_RNG_exact": true,
+    "raw_quaternion_bytes_pairwise_exact": false,
+    "physical_rotation_existing_dtype_contract": true,
+    "returned_JSON": {
+      "probe.json": "e8e309c152655ae91af826f1c9e6f63e9a1d77fc29cdb2af14f6198aa8fee178",
+      "result.json": "5335ed916415a944a88e907b18ee1c1bb82b57f6fbb3fa204adac513aed3e4f0"
+    },
+    "microbench": [
+      {
+        "selected": 1,
+        "baseline_ms": 3.862599958665669,
+        "optimized_ms": 3.549950022716075,
+        "speedup": 1.0880716443749776
+      },
+      {
+        "selected": 3,
+        "baseline_ms": 3.8533000042662024,
+        "optimized_ms": 3.5743500338867307,
+        "speedup": 1.0780421524850332
+      },
+      {
+        "selected": 10,
+        "baseline_ms": 3.9882000419311225,
+        "optimized_ms": 3.7153499433770776,
+        "speedup": 1.073438600054464
+      }
+    ],
+    "main_training_and_canonical_transactions": 0
+  },
+  "SDK_source_review_SHA": "62f21e677067e8e354483b1f7884ebcefea1351abb62cecab679909f1bb2c647",
+  "actual_collection_completed": true,
+  "comparison": {
+    "initial_full_root_q_parameters_private_global_streams_exact": true,
+    "action_trace_bytes_exact": true,
+    "final_field_exact": {
+      "root": true,
+      "q": true,
+      "qd": true,
+      "COM": true,
+      "mass": true,
+      "inertia": true,
+      "explicit_PD": true,
+      "group_state": true,
+      "global_CPU_RNG": true,
+      "global_CUDA_RNG": true,
+      "control_tick": true
+    },
+    "final_full_root_max_abs_diff": 0.0,
+    "final_joint_q_max_abs_diff": 0.0,
+    "final_joint_qd_max_abs_diff": 0.0,
+    "same_actual_reset_size_sequence": true,
+    "task_hardware_full_parameter_audits_and_callback_scope_unchanged": true,
+    "actual_apply_callbacks_per_group_each_run": 6000,
+    "observed_closure_max_mm": {
+      "baseline": 0.9829677874222398,
+      "optimized": 0.9829677874222398
+    },
+    "observed_mimic_max_rad": {
+      "baseline": 0.0016914558364078403,
+      "optimized": 0.0016914558364078403
+    },
+    "existing_strict_flags_retained": {
+      "baseline": false,
+      "optimized": false
+    }
+  },
+  "collection": {
+    "baseline": {
+      "job": "clk2500-closure-episode-d3-102-d7-reset-performance-0-baseline-flat",
+      "total_collection_seconds": 197.8914882997051,
+      "environment_policy_steps": 116000,
+      "measured_steps_per_second": 586.1798352050338,
+      "mean_control_ms": 136.47688848255524,
+      "reset_median_ms": 34.13759998511523,
+      "reset_total_seconds": 5.557541599380784,
+      "reset_calls": 145,
+      "timed_region": "manual subset reset + command + frozen policy + action trace CPU copy + env.step; GPU synchronized endpoints"
+    },
+    "optimized": {
+      "job": "clk2500-closure-episode-d3-102-d7-reset-performance-1-optimized-flat",
+      "total_collection_seconds": 197.15055980090983,
+      "environment_policy_steps": 116000,
+      "measured_steps_per_second": 588.3828081296915,
+      "mean_control_ms": 135.9659033109723,
+      "reset_median_ms": 32.810800010338426,
+      "reset_total_seconds": 5.363880798686296,
+      "reset_calls": 145,
+      "timed_region": "manual subset reset + command + frozen policy + action trace CPU copy + env.step; GPU synchronized endpoints"
+    }
+  },
+  "collection_speed_ratio": 1.0037581861271074,
+  "collection_single_process_pair_only": true,
+  "overall_20k_speed_gain_not_established": true,
+  "reset_median_speed_ratio": 1.040437903810902,
+  "collection_gpu_memory_sampled_mib": {
+    "baseline": 2885.0,
+    "optimized": 2885.0
+  },
+  "sampler_seconds": 2,
+  "sampled_peak_not_continuous": true,
+  "actual_scope": "3060: 10-env actual COM ABBA SDK and 80-env 1500-control forced-subset-reset frozen collection; no PPO",
+  "not_tested": "4090 20000-env PPO throughput, alternate reset distributions, all terrain or sim-to-real",
+  "production_adopted": false,
+  "main_training_source_bytes_unchanged": true,
+  "main_training_and_canonical_write_transactions": 0,
+  "main_actual_child": {
+    "pid": 1558067,
+    "start_ticks": 67258143,
+    "state": "R",
+    "argv": [
+      "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+      "/home/egde/rl_candidates/MOD4_D7_FULL_CONTRACT_20261009/isaac/mod4/train_chassis_pd_resume_ppo.py",
+      "--headless",
+      "--num_envs",
+      "20000",
+      "--steps_per_env",
+      "24",
+      "--max_iterations",
+      "10000",
+      "--save_interval",
+      "25",
+      "--learning_rate",
+      ".0001",
+      "--seed",
+      "20260928",
+      "--run_name",
+      "d7_stable_block2_1791517402642874860",
+      "--log_root",
+      "/home/egde/rl_candidates/MOD4_D7_FULL_CONTRACT_20261009/learning_logs",
+      "--init_checkpoint",
+      "/home/egde/rl_candidates/MOD4_D7_FULL_CONTRACT_20261009/learning_logs/2026-10-09_09-45-49_d7_stable_block1_1791510179560330441/model_31903.pt",
+      ""
+    ]
+  },
+  "main_phase": "bounded_E0_D7_chassis_COM_explicit_PD_learning",
+  "artifacts_SHA": {
+    "d7-original-frozen.zip": "8a964c1d0cfa291ea8faf72d978464daa8b2a8e90834554c435d528ffb222871",
+    "d7-reset-collection-baseline-frozen.zip": "84b4d657a36f378eb2f3178bd88e60add4b43da5951d88a3e7c9eb9577210eae",
+    "d7-reset-collection-optimized-frozen.zip": "ef9fb0d33107e9c3cb88913fb60f51b4ae1e9501d05d566a52ffe28761d92fd8",
+    "d7-reset-performance-baseline-frozen.zip": "8e72690e21a414e39cad6295fcae8444b01e9bc4a37d13f7d09676583dd6ae70",
+    "d7-reset-performance-device-reader-frozen.zip": "5444164ea4405c14b98e0aac08cff42bb70efe58a7af019f486bdaec0e176f80",
+    "d7-reset-performance-optimized-frozen.zip": "8b355dae3892044dd0a4b5713ded914e5cae2b840aa6492c1ef1c37b72e43f8b",
+    "d7-reset-performance-rotation-reader-frozen.zip": "d3387d4bc68c20d525fc23c7524bca8dc28bc28a0096745ea2ccb3850fc5313d"
+  },
+  "failed_reader_jobs_retained": [
+    "clk2500-closure-episode-d3-92-d7-com-reset-performance-sdk",
+    "clk2500-closure-episode-d3-92-d7-com-reset-rotation-performance-sdk"
+  ]
+}

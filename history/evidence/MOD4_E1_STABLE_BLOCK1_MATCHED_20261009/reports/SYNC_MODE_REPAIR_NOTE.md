@@ -1,0 +1,5 @@
+# Evidence synchronization mode rejection retained
+
+The first independent diagnosis synchronization tried Paramiko `xb`. The installed API handles `x` as an exclusive-create flag but requires explicit `w`, `a` or `+` to mark the handle writable. It created one empty new central report and refused the subsequent write with `OSError: File not open for writing`. The original code/error and empty remote report are retained; no handoff, protected active metadata, GPU/PPO/runtime or canonical budget was changed by that rejection.
+
+A separately named sync helper uses the installed source-verified `wbx` mode and a new `E1_GENTLE_BLOCK1_MATCHED_ACTUAL_REVIEW.json` name, preserving the original empty file. It copies existing complete reports only, checks returned bytes and appends an evidence-only next-boundary handoff while verifying that active learning/evaluation/budget metadata files remain byte-identical. This is a metadata transport repair, not a training or physics failure and not an excuse to repeat any completed case or one-shot entry.

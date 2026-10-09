@@ -1,0 +1,47 @@
+# E1总20000环境混合地形：可行性与效率判断
+
+日期2026-10-09。人类请求：“你觉得能20000个总环境混合训练吗？就是多个场景堆叠一起一起训，会加快效率吗？告诉我你的想法”。这是只读源码审查与建议，不修改已批准课程/当前trainer，不部署GPU/PPO测试或增加预算。以下混合比例是讨论示例，不是准入/开训批准或已测收益。
+
+## 判断
+
+可以在一个E1训练进程里，用总20000个环境分别接触多种已准入地形，共享同一E1策略与PPO更新。建议以当期重点地形为主，保留已学地形与少量已准入的挑战档，逐类调难度。该方案值得作为E1后续课程组织方式；应测量更快达到完整行为要求的墙钟时间，不能承诺仿真steps/s提高或毕业时间缩短。
+
+Isaac Lab官方TerrainGenerator/Importer支持按sub-terrain比例生成混合地形，并管理env origins与difficulty levels：[官方地形API](https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.terrains.html)。这是框架能力证明，不是我们已经完成MOD4实际新地形适配或20000环境吞吐验证。
+
+“一起”具体是相互隔离的场景区块、正确环境落点与机器人碰撞隔离，共享一轮rollout；不将多种地面重叠到同一XYZ，也不将整张RM场地复制20000份。优先只加载对应路线/坡面/起伏/坎片段，保留实际几何、接触净空与高度法向，不用粗略简化掩盖真实竖直壁或波形。
+
+## 当前已有证据
+
+当前实际run manifest中的 `isaac/mod4/e1_rough_recipe.py` SHA256为 `bd4eb44141433eda10068d9945874b6b429416b605197504811b7aa765615ff2`，与本机已验证 `MOD4_D9_COMBINATION_PREPARE_20261009/reports/e1_verified_source_bytes/rough_recipe.py` 字节一致。该intro_v1配置已有五种生成族：plane_for_rm30%、tiny_step20%、slope_for_rm_high20%、inv_slope_for_rm_low15%、random_uniform_for_rm15%。因此现有浅课配置已经混合地形族，不能把本建议描述为首次出现任何混合。
+
+这些是**生成地形的比例**，不是已实测20000环境逐类占用数。现有gentle使用独立40×40 grid、terrain_origins_used=false，不能直接套官方自动env-origin课程分配逻辑，更不能仅改proportion就声称环境配额/selected reset/实际轮迹分配正确。当前源码所有gentle边界和已有实际ground/reset合同保留；新增RM路线混合需要独立完整分配与保存恢复证明。
+
+最近一次只读进度观察（约2026-10-09 21:54+08）的13个iteration平均15.06s，20000×24=480000条环境策略步/iteration，约31873步/s。此前进度报告明确只说明当前gentle吞吐，不是RM新几何或混合分布benchmark。一次log中的collection14.652s、learning0.154s说明该观察下rollout收集比PPO更新耗时大，不能只用提升策略batch利用率解决当前主要耗时。
+
+首次本机搜索source313/isaac/mod4目录不存在，工具报告路径缺失；随后读取既有已验证共用源码并用actual own manifest比对recipe SHA成功。这是本机源码定位结果，不是4090训练/物理故障，没有因此干预trainer。
+
+## 计算吞吐与学习效率分别看
+
+- **计算吞吐**：总环境数、每env rollout24及模型不变时，每轮总样本仍480000，混合本身不增加样本总量。若四个场景均分各5000，每个场景每轮只有120000条，即原20000单场景的四分之一，不能称四倍训练速度。复杂边壁/多接触、更多reset与ground查询可能增加collection时间，具体幅度需要实测。
+- **学习效率**：可能通过共享支撑/越障动作减少重复基础适应，保留旧地形样本帮助持续练习，减少整科切换和遗忘修复。但不同场景控制要求冲突、跨度过大或目标场景样本不足也可能让收敛变慢，这是对本项目的工程判断，不是已跑A/B结果。
+- 官方性能指南明确场景物体、物理复杂度、碰撞/接触会影响性能：[Simulation Performance and Tuning](https://isaac-sim.github.io/IsaacLab/main/source/how-to/simulation_performance.html)。该文的降物理精度/改碰撞建议不自动应用到MOD4，固定clock、solver、完整接触/硬件包络与原CAD几何约束保持。
+
+## 建议的起步组织方式（未实施）
+
+| 环境数量 | 比例 | 用途 |
+|---:|---:|---|
+| 14000 | 70% | 当期主要适应地形及接近难度范围 |
+| 4000 | 20% | 已学会的平地/浅地形通行保持 |
+| 2000 | 10% | 已完成新接触/reset范围准入的较难档 |
+
+14000+4000+2000=20000。可根据逐类实际失败/完整路线表现调整；不是固定毕业线。一次优先推进一个难度轴和一个主要新地形族，例如连续起伏阶段给起伏更多配额；不同时把真实70mm波、200mm竖直外缘坎、未准入陡坡、高速旋转混进同一首次分布。E1内部保持通行yaw0与原35actor/38cleancritic/6action、D0–D7不变，terrain类型/难度mask只用于采样与日志，不额外给actor/gate真值。S7旋转与其他独立专家仍按原计划。
+
+每种族有独立合法reset、完整接近→两轮越障→离开支撑路径、ground/接触/方向指标，按族审查实际环境占用与失败prefix，不能用总体reward或总体success掩盖少数坎场景失败。terrain族分配、难度/episode、selected reset/private CUDA RNG与现有完整optimizer/DR/globalnamed/queue状态都要可保存/恢复，新episode边界仍明确，不称PhysX exactresume。
+
+## 如何证明确实更快（建议，未部署）
+
+先在3060做隔离无学习的新混合分布SDK/reset/ground/接触检查及collection对照，验证物理与参数合同。小样本3060不能外推20k4090PPO吞吐。真正学习对照需要合法保存接管边界和明确同canonical有界学习账段；现有有效clock/同scope测试精确复用，不自动创建实验或重跑45min时钟。
+
+比较完整同一组目标路线与旧地形的表现，在相同真实总学习墙钟/seed/source/DR/可比目标采样预算下记录总steps/s、目标族有效samples/s、各族reset/ordinary率、完整路线/方向/旧技能退化及达到可用范围的总墙钟。只做SDK或短冻结回放不能证明更快收敛；收益未知前不修改先前24–48h E1毕业工作估计，也不宣称2×/4×加速。
+
+结论是支持“主攻当期难点+保留旧地形+少量已准入挑战”的总20k混合课程候选。当前已有浅族混合，进一步价值在于目标配额、逐族独立难度与真实RM路线组织，不是增加仿真并行数量。仅讨论，不修改计划/生产runtime/GPU/PPO/canonical/预算/旧worker或用户暂停的93/94/MuJoCo。

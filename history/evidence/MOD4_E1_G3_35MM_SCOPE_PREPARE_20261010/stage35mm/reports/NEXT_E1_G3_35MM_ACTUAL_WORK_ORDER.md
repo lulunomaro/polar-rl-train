@@ -1,0 +1,15 @@
+# 下一35mm真实范围审查与有界适应
+
+先读中央E1_G2_MODEL32103_COMPLETE_MATCHED_REVIEW、E1_G2_MODEL32103_RETENTION_DECISION、SELECTED_E1_G3_FROZEN_SCOPE_SOURCE、E1_G3_35MM_FROZEN_PREPARED/PUBLISHED/CURRENT_ACTUAL、NEXT_E1_G3_35MM_ACTUAL_WORK_ORDER，及PLAN_APPROVAL/EXECUTION_TRACKS/当前与handoff和RM003/002/001索引。所有PID仅定位，actual/proc、自己manifest/fullsave/PASSED/唯一账段和真正phase优先。
+
+旧330自然完整32103保存退出/active-Sactive空合法，原920.422999382s已唯一结清，不复活旧main/resume/补预算或重复tail。124四case完整事实：20mm两轮前后支撑前后行27/27、ordinary0；旧world62/64→49/64、yaw±2方向cross变差，不以地形成功称保持修好。选较早实际平衡32058 SHA42cdc9d24519778a9da3e35b05a3eb3bb5745760c26a5842c78fcde2bd39e53b。保留32053和32103原数据/成本/strict，不挑maxiter或预检。
+
+125-e1-g3-35mm-source32058-fullroute-flat是计划003下一单几何轴的冻结评测，不是人类已暂停93/94。只有actualcomplete/errorfree才取3060与中央返回probe/result逐字SHA、完整route_raw.npz实际路径大小SHA，再独立按完整30q/初末参数/全部D0-D7 recipe/assignment、每组6000callback、同tick ground/reward/termination、完整接触积分/COMlink/原硬件包络审查。前支撑→两轮十波→后支撑须同episode在普通失败前实际观察；保留未完成prefix、下落/失接触与真实reset，不把reset跳跃计进度。站立/前后方向yaw0，不提前地形spin。
+
+35mm仍是缩放派生范围，period与normalized CAD形状/方向保持，非RM70mm/外缘15–20cm坎。当前没有35mm训练executor/native/fullPPO准入。实际评测合理后积极补新geometry/contact/ground/reset/privateCUDA terrain-state/fullsave/fullresume合同与真正必要SDK/native20k/128x2和20kx4完整PPO，弃预检权重各原父计同唯一canonical。首次从32058的G2状态恢复全部旧组/optimizer/globalnamed后，明确新G3 geometry，不伪称sameG2 exactterrain或PhysXexactresume；实际新geometry CUDA roundtrip后一次newphysicalepisode/episode+1。已有clock和数学/相同范围证据按SHA复用，不重复45min时钟。
+
+新正式窗优先短观察并完整保存后立即地形与flat-spin-world配对，不再次盲加900s/2h。没有完整候选行为保持证据不自动更多PPO；合理完整事实后下一单轴，系统性退化则新独立纠正，不能无限同科或只留队列。新权只oldlaunch闭合/自己fullsave/实际父guardian孩子exit/两原锁/active-Sactive唯一结清，不kill/hotpatch/dual20k/clearactive。保护其他专家/gate与min(18h,.13B)修复规划时间，无预算扩展/账本预留交易。
+
+3060当前eval_worker_e1_artifact_source_review.py及E1_ARTIFACT_SOURCE_REVIEW namespace按真实CIM creation/argv/sourceSHA/孩子/results/当前attention和sharedGPUlock核验，健康不改/不重启。validcomplete旧115/122/123/124精确复用，121allowlist/119Warp/93或94paused原失败未运行保持；没有4090训练启动或canonical写权限。
+
+所有新增prepare/publish/sync once只执行一次，失败保留原source/error/partial，只独立续未执行部分，不重放旧once。新真实阶段record_experiment.py唯一annotatedtrial并核remote main/tag/peeled，阶段后新报告补交；大weights/raw/NPZ/USD/ZIP只真实path-size-SHA，凭据不输出归档。mod4-10每2hACTIVE，健康/pending静默，仅实质变化/真实故障/重大退化/完成/需人类动作通知。

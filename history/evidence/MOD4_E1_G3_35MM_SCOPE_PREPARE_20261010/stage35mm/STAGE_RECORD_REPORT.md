@@ -1,0 +1,15 @@
+# E1匹配回放的能力取舍与35mm冻结准入修复
+
+20mm同几何900s续训已按原父自然完整保存退出，920.422999382019s唯一结清。最终model32103 SHA1f63e07d212e2752140ece48b3c516bffd97699a938f1db61f03551a8cda015f、CPU96/source330/62快照及自身PID/PASSED证据完整；父、guardian、孩子实际均退出，canonical active-Sactive空是合法审查边界，不是故障或全部课程结束。预算828000s不扩展，余321494.7769472599s为实际空闲快照。
+
+124四case真实complete/errorfree、两机8份JSON字节SHA、完整地形NPZ SHA及初始参数/配方/assignment/全窗口回放独立审查完成。20mm两轮前支撑→完整十波→后支撑前后各27/27，ordinary0。旧±1.5直线负/正误差0.031751055/0.044210322m/s；纯正4π8/8、负6/8。world从早期32053的63/64、32058的62/64下降至49/64，yaw±2两方向横向漂移均加重，完整signedcircle最大绝对cross0.063371750m/s。原strict false、有限残差、失败prefix和全部原成本保留。窄指令训练造成遗忘是推断，未证明因果；不能称永久反遗忘修好，也不选择32103继续盲20mm训练。
+
+选择已经完整匹配审查的32058（SHA42cdc9d24519778a9da3e35b05a3eb3bb5745760c26a5842c78fcde2bd39e53b）准备003下一单几何轴35mm冻结准入，其他四族和30/20/20/15/15配方保持，未采用此前70/20/10讨论方案。203独立垂直三角网格剖面射线误差3.8163916471489756e-16m，仅CPU组件核验；原CAD有限剖面1.437364605mm网格误差与真实70mm课程限制继续披露。
+
+125第一次35mm冻结包的dispatcher实际改动未同步SOURCE_MANIFEST文件映射，3060原不可变SHA守卫在GPU/PhysX/PPO前拒绝。原包、source/job/attention和没有结果的事实保留，不能写成物理失败或35mm通过。独立v2包只更新明确已审35mm dispatcher/两几何文件的索引及scope标注，全部281映射逐一SHA验证，其他member字节保持。v2包SHA ccf288b3f32c0d028d8e1cb555d64e98af5267be27fcf4157a3750b8bdfeeebc。
+
+新worker第一次准入又在任何进程/锁/计划任务授权前拒绝：回执SHA取自内存LF文本，Windows实际保存为CRLF。保留该错误，独立回执绑定真实交付源码字节SHA d2ee915a043b39bfe63dc50f0e84e85576ee295b15b619bf5331f918a301a316。原worker/孩子确实退出、共享GPU锁free、旧demand任务非Running且无周期触发后，才准入E1_G3_PACKAGE_REVIEW新namespace，仅精确排除125失败ID；原baseguard/bridge/共享锁/JSON重试和已完成/暂停任务处理保持。新任务无periodic/boot trigger，不授予4090启动或canonical写权。
+
+126新job已经从允许artifact路径同SHA32058真正发布，使用修复v2包。巡检实际新worker33780/venv9804、creation1791585795.820/.812，attentionnull；行为结果尚未生成。所有原失败、pending和成功metadata同步回执都保存。本阶段没有部署35mm学习executor、没有4090GPU/PPO预算事务；35mm通行及完整新geometry/ground/contact/reset/fullresume/必要SDK/native/PPO合同仍待实际证据。不能以包、进程或CPU组件核验冒称35mm学习准入、RM70mm或全E1毕业。
+
+下一按126实际complete结果积极审完整两轮路线、ordinary/有效failureprefix、ground/contact/积分/COMlink和参数全数据。合理通过后准备真正新范围所需合同及有界短窗；若失败先据原raw诊断。准确复用既有时钟/同scope合同，不重跑旧once，不无限hold或只排队。主SHA、RM003/002外缘/001有效spin排除、预算总828000和六扩展各一次、新增0、S8后续具体批准、gate未训、硬件未标定、93/94暂停及MuJoCo结束保持。新报告和随后最终/行为/同步报告全部追加Git，权重/raw/NPZ/ZIP保留原件而只索引真实路径/大小/SHA。

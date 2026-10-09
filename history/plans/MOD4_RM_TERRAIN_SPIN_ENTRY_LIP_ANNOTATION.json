@@ -1,0 +1,170 @@
+{
+  "id": "MOD4-RM-TERRAIN-SPIN-AND-ENTRY-LIP-ANNOTATION-001",
+  "epoch": 1791514415.6329088,
+  "basis": "direct_human_request_in_current_chat",
+  "human_request": "看一下我们计划里rm全地形小陀螺（不包括在狗洞里，台阶上）准备在哪些地方小陀螺，rm上台阶的地方有一个小路坎，上台阶地形适应的时候记得适应一下。在计划里标注",
+  "master_plan_id": "MOD4-MOE-PLAN-001",
+  "master_version": "1.5",
+  "master_sha256": "812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b",
+  "master_bytes_unchanged": true,
+  "annotation_only_no_learning_launch": true,
+  "new_budget_seconds": 0,
+  "production_runtime_changes": 0,
+  "source_geometry": "user-supplied RMUC2026_V2.0.0.stp; not a certification of later rulebook revisions",
+  "CAD_sha256": "8dfe9ebd761e44d91361b3e593bc05416329112217b58cb35800b3cde2ffae33",
+  "source_evidence_sha256": {
+    "rmuc2026_training/reports/source.json": "3f5ddebeba75eb58fa0e867e9a53684bd600a6b76f934e631fe36067c40e2d53",
+    "rmuc2026_training/data/features.json": "a1d1f560e257c79b6b277eeff6db496eae1b6a811d24b6f891cffd8a8f33d6be",
+    "rmuc2026_training/data/routes.json": "3c22615a02bbf74558de236fe9c47f471d58e96c8bac4c9ffafc4041b07612e5",
+    "rmuc2026_work/upper_entry_audit.json": "261da2eaa58b4622f27a8d1dea8ebda901ebd1690e4be18651cd12a0b9b16723",
+    "rmuc2026_work/measure_upper_entry.py": "6cd4fc494d14318fb471ef0767e816608c42e7a4d04cedbb139aee783accb3fd"
+  },
+  "spin_region_matrix": [
+    {
+      "region": "场地普通地面与有足够宽度的公路路面",
+      "features": [
+        "floor",
+        "highway_ramps"
+      ],
+      "spin_target": true,
+      "task": "原地左右转、启停/反向；随后旋转定向移动",
+      "geometry": "保留给定CAD普通地面约1.5度倾斜；按真实路面和边缘净空选点"
+    },
+    {
+      "region": "双方起伏路段",
+      "features": [
+        "rough_road"
+      ],
+      "source_parts": [
+        153,
+        181
+      ],
+      "spin_target": true,
+      "task": "波峰、波谷、过渡面左右转；随后沿路段旋转移动",
+      "geometry": "保留CAD连续波形、波长和行进方向，不用随机小噪声地面替代"
+    },
+    {
+      "region": "中心岛连接斜坡（只取坡面，不含台阶/台面）",
+      "features": [
+        "central_lower"
+      ],
+      "route_reference": [
+        "slope_spin",
+        "island_ramp_up",
+        "island_ramp_down"
+      ],
+      "spin_target": true,
+      "task": "上坡/下坡与横坡姿态的左右转、启停/反向；再旋转移动",
+      "geometry": "CAD同一feature含坡和台面，必须按真实三角面/区域mask拆分，不按部件AABB全选"
+    },
+    {
+      "region": "两侧公路连接坡与梯形高地斜面",
+      "features": [
+        "highway_ramps",
+        "trapezoid_highlands"
+      ],
+      "spin_target": true,
+      "task": "坡向/横坡和两侧镜像覆盖，先纯转再移动",
+      "geometry": "只在连续可支撑且旋转扫掠有净空的坡面；先已验证小坡课程，原CAD更陡目标单独读回"
+    },
+    {
+      "region": "狗洞内、低净空通道",
+      "features": [
+        "road_tunnels"
+      ],
+      "spin_target": false,
+      "task": "只留E4低姿态通行/出口恢复，另有后续授权边界"
+    },
+    {
+      "region": "台阶上、台阶踏面和台阶边缘/凸坎",
+      "features": [
+        "central_upper",
+        "central_edge_blocks"
+      ],
+      "spin_target": false,
+      "task": "E1上下台阶/跨坎通行；台阶上的台面默认不列本次小陀螺目标"
+    },
+    {
+      "region": "飞坡跨沟、腾空和落地区域",
+      "features": [
+        "fly_ramp"
+      ],
+      "spin_target": false,
+      "task": "E5后续独立技能，不把腾空旋转混入本次连续支撑地形小陀螺"
+    }
+  ],
+  "master_sections": [
+    "3 E1/E2 expert scope",
+    "6 terrain/spin curriculum",
+    "S3 E1 terrain foundation",
+    "S7 terrain rotation and geometry"
+  ],
+  "stair_entry_lip": {
+    "source_part": 383,
+    "source_brep": "BREP_424",
+    "route_ids": [
+      "central_upper",
+      "central_upper_down"
+    ],
+    "section_y_m": 0.0,
+    "entry_points_m": [
+      [
+        -2.0072301767,
+        -1e-10,
+        0.3028776435
+      ],
+      [
+        -2.0072301767,
+        0.0,
+        0.3028776435
+      ],
+      [
+        -1.9576684211,
+        -0.0,
+        0.3524393991
+      ]
+    ],
+    "rise_mm": 49.56175559999998,
+    "horizontal_run_mm": 49.56175559999987,
+    "local_chamfer_angle_deg": 45.0,
+    "not_a_45degree_full_ramp": true,
+    "not_a_separate_rail_above_deck": true,
+    "required_curriculum": [
+      "接近入口 -> 两轮依次过小路坎 -> 连接主坡/台阶 -> 到台面并恢复稳定",
+      "上下行、正向/倒退、左右斜向接近、停后起步；角度和速度按已验证档逐级覆盖",
+      "先过入口坎通行，台阶上yaw命令保持0，不追加小陀螺任务",
+      "不能只从坎后reset或只在台面出生；以轮地接触/实际root-q轨迹证明经过入口",
+      "保留倒角碰撞几何，既不抹平入口也不把局部45度当成整段坡度"
+    ]
+  },
+  "separate_larger_edge_blocks": {
+    "feature": "central_edge_blocks",
+    "source_parts": [
+      280,
+      281
+    ],
+    "approximate_height_mm": 100,
+    "exact_route_local_measurement_required": true,
+    "not_the_same_as_49_56mm_entry_chamfer": true,
+    "not_admitted_as_existing_5cm_curriculum": true
+  },
+  "implementation_boundary": {
+    "current_D7_unchanged": true,
+    "no_new_GPU_SDK_PPO": true,
+    "no_new_S8_reset_authorization": true,
+    "existing_first_geometry_height_max_m": 0.05,
+    "existing_first_slope_max_deg": 10,
+    "entry_lip_is_explicit_future_task_target": true,
+    "local_45degree_geometry_requires_its_own_contact_ground_reset_readback": true,
+    "larger_CAD_slopes_steps_are_final_targets_not_current_admitted_range": true,
+    "no_new_teacher_or_terrain_ID_to_actor": true,
+    "no_repeated_valid_clock_trial_or_same_scope_PPO": true
+  },
+  "evaluation_requirements": [
+    "按地点/坡向/波形位置/转向/转速/移动模式分层报告，不把平地结果外推到RM起伏路",
+    "左右纯转/启停/反向与世界定向移动分别记录；完整signed圈along-cross、有效前缀、接触与硬件包络保留",
+    "明确列出狗洞、台阶和腾空任务不在小陀螺验收集合；不得把缺测地点默认为已完成",
+    "场地范围mask仅组织训练/评测样本，不作为actor/gate的特权输入",
+    "台阶入口单列通过轨迹/方向/停起/支撑恢复，并审查对已保留平地和地形技能影响"
+  ]
+}

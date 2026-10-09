@@ -1,0 +1,9 @@
+# User-requested RM terrain curriculum annotation
+
+The user explicitly requested a concrete RM terrain spin-location scope excluding dog-tunnel interiors and stairs, and asked that the stair-access entry lip be included in terrain adaptation. This records a plan/metadata annotation, not a new training or physics experiment.
+
+The supplement maps ordinary ground/road, both continuous rough roads, central-island connecting slope faces, highway connecting slopes and trapezoidal-highland slopes to E1/E2 terrain-spin targets. Tunnel interiors, stair surfaces/edges and stair-top decks are excluded; airborne/fly-gap tasks retain their separate later scope. Actual face masks and sweep clearance are required rather than selecting entire mixed-use CAD parts.
+
+Existing supplied-CAD evidence identifies the upper-island y=0 access chamfer, part383/BREP_424: rise49.5617556mm over49.5617556mm, local45deg. It connects into a gentler ramp; it is not a separate rail above the deck. E1 stair traversal must cover the complete approach-lip-ramp/stair-deck path, up/down/reverse/oblique/stop-start cases and actual wheel support, with no spawn-after-lip shortcut. Separate part280/281 approximately100mm edge blocks are not silently treated as the same49.56mm feature or admitted into the existing5cm course.
+
+Original approved masterv1.5 SHA812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b remains byte-identical. Explicit future geometry targets are distinguished from currently admitted/validated ranges. CurrentD7 sources, learning, budget, physics, actor interface and S8 dangerous-reset approval boundaries are unchanged. New terrain needs its own actual geometry/contact/ground/reset admission; valid prior clock/same-scope PPO evidence is reused. No GPU/PPO/ledger transaction was performed for this annotation. CAD geometry is from the user's supplied2026V2 file, not later rulebook certification.

@@ -11,6 +11,7 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 - [全部版本目录](history/VERSIONS.md)：83 个目录各自的来源、源码和交接说明。
 - [原有 Git 记录](provenance/ORIGINAL_GIT_RECORDS.json)：播放器两个原仓库中仍可读取的 5 条提交，其作者/时间和文本差异保留，另有 `original-*` 标签。
 - [下一位 AI 的记录工作流](docs/NEXT_AI_GIT_WORKFLOW.md)：新增修复/试错按版本追加，不覆盖旧失败或标签。
+- [所有试错与报告的长期Git要求](docs/ALL_TRIALS_AND_REPORTS_GIT_POLICY.md)：失败、拒绝、读者错误、同步与最终验证报告也必须记录，阶段后生成的报告补交。
 - [当前生产状态快照](CURRENT_STATE.md)：归档时实际阶段与未部署候选；不会自动更新为实时状态。
 - [项目代码入口](project/README.md)：当前生产源代码的固定副本及外部运行依赖。
 - [归档范围与缺口](docs/ARCHIVE_POLICY.md)、[检查结果](provenance/ARCHIVE_VALIDATION.json)。

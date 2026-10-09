@@ -1,0 +1,7 @@
+# Human requires every trial and every saved report in Git
+
+The explicit human request is now recorded in workspace/repository AGENTS, a persistent project policy, the next-AI Git workflow and the active2h monitor. Success, failure, rejected approaches, rollback and reader/schema errors all keep their identities and evidence. All saved reports include metadata sync, final verification and later stage supplements; healthy polling without a new saved report does not need a separate trial. Existing exact-SHA reports are indexed by their tracked path rather than duplicated. No previous trial/tag is overwritten.
+
+Backfill the saved reports from the recent RM field geometry audit and terrain curriculum revision, including pending/successful sync receipts, prior Git receipts and final verification. Preserve original snapshots as historical state; the report capture index gives source path/size/SHA, archive path/SHA, exact existing reference or complete/redacted text status. Credentials are never printed or archived, large weights/raw artifacts remain source SHA indices. This targeted backfill is not a claim that all historical reports on every host have been newly audited.
+
+The persistent2h monitor settings and quiet health/pending intent remain, with explicit reporting coverage checks. This is a recording policy and report-completeness follow-up, no GPU/PPO/training process/production runtime/canonical/budget operation. Post-commit remote object verification is returned as tool output, avoiding an infinite chain of new verification files.

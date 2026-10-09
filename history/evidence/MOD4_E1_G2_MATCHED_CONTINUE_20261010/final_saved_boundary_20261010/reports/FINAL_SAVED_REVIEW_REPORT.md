@@ -1,0 +1,9 @@
+# 同20mm900s观察自然结清，候选行为待审
+
+Oct10 02:35:40+08原父唯一结清本900s目标段，实际920.422999382s包含加载、学习、保存与退出尾段，不重结/补预算。实际46updates/1104control/22,080,000环境策略步/4416物理callback exact，ordinary/closure/integrity/unknown0、nonfinitefalse/STOPnone，闭链峰.914594508mm。time_out10376与route4281是声明truncation，实际unique截断14651，两reason coverage exact；两term计数可重叠，不能简单相加替代unique。
+
+正式自己model32103 SHA1f63e07d212e2752140ece48b3c516bffd97699a938f1db61f03551a8cda015f，16,750,577bytes，ownPID1873663/start72519910、CPU96完整有限/330ownfreeze/62真实snapshot与自己的manifest/latest_complete/rollingfreeze/PASSED及原唯一completedsegment绑定通过。actual同G2 terrain identity/state/CUDAroundtrip和actorcriticstdoptimizer/D1-D7/globalnamed私有流先完整恢复后一次新physicalepisode/episode+1，不称PhysXexactresume。父、guardian和孩子已真实退出，E1_G2_matched_continuation_saved_review_ready、E1_REVIEW_READY与active-Sactive空是合法完整保存审查边界，不是训练故障/全E1或RM毕业。remaining321494.776947s约89.304h仅此idle快照，canonical总828000s/六扩展各一次/新增0。
+
+124的四份候选terrain/retention-flat-spin-world已经本root原controller自动发布，permitted artifacts绑定自己32103 SHA。3060现E1_ARTIFACT_SOURCE_REVIEW健康worker25092/creation1791566507.83，CIM实读其孩子25128/32584正执行124-retention-flat，currentattentionnull；这只是进程/发布证据，四份尚未完成独立审查，不能借健康保存称保持能力修好。之前123的32058完整四case实际审查仍有效，前27/27倒26/27、旧world62/64/纯±4pi8/8与5/8、小残差和strict原样保留；新32103未来按同package/seed/root30q/参数/recipes/assignments/callback/完整两轮前支撑-十波-后支撑/有效prefix/fullsignedcircle实际配对，validcomplete不重播。
+
+当前不自动更多PPO、不复活原main/resume或重做同scope native/SDK/CPU/PPO预检/clock45min。积极等真实complete并按既有下一工作单独立审查后作下一单轴或纠正，不能无限原样训练、只凭reward晋级，也不能把pending写pass。E0冻结，RM003/002/001有效排除、masterSHA812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b、S8批准边界/未训gate/未标定硬件/暂停93或94/MuJoCo结束保持。所有新增最终保存、巡检、同步、读者报告随原18d1e590阶段补交Git；大型原件只真实path/bytes/SHA并保留原件。

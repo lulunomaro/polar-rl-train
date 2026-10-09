@@ -1,0 +1,1 @@
+First staging copied all 306 original source files exactly, then refused missing E1_FROZEN_BEHAVIOR_PACKAGES.json. No new worker/CPU/PPO dispatch had run. The optional old-skill publish function is unused for this bounded route observer recovery. Original error retained; no production task changed.

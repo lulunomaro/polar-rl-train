@@ -1,0 +1,16 @@
+"""Complete only the unexecuted package review; preserve the writer's ZipInfo read error."""
+from pathlib import Path
+import copy,hashlib,json,time,zipfile
+D=Path(__file__).resolve().parent;W=D.parent;R=D/'reports';G=W/'MOD4_E1_G3_35MM_SCOPE_PREPARE_20261010';H=lambda b:hashlib.sha256(b).hexdigest();read=lambda p:json.loads(p.read_bytes())
+assert not (R/'PAIRED_APPROACH_PREPARED.json').exists()
+report=dict(epoch=time.time(),trial_id='E1-G3-APPROACH040-PACKAGE-CPU-READER-ERROR-01',source_sha256=H((D/'prepare_paired_approach_diagnostic.py').read_bytes()),error="zipfile.BadZipFile: Bad CRC-32 for file 'runtime/isaac/mod4/frozen_history_flat.py' at changed-member comparison. dst.writestr reused original ZipInfo, mutating its in-memory CRC. Full new package mapping verified before this comparison; no upload/queue/GPU/budget write occurred.",original_source_preserved=True,repair='Reopen immutable original archive with fresh ZipInfo; independently verify existing new package, do not rewrite/replay preparation.',not_source_archive_corruption=True)
+(R/'PACKAGE_READER_ERROR_ORIGINAL.json').write_bytes(json.dumps(report,indent=2).encode())
+p=D/'artifacts/e1-g3-derived35mm-paired-approach040-frozen-v2.zip';old=G/'artifacts/e1-g3-derived35mm-complete-route-manifest-reviewed-v2-frozen.zip';assert H(old.read_bytes())=='ccf288b3f32c0d028d8e1cb555d64e98af5267be27fcf4157a3750b8bdfeeebc'
+with zipfile.ZipFile(old) as original,zipfile.ZipFile(p) as new:
+ m=json.loads(new.read('SOURCE_MANIFEST.json'));assert all(H(new.read(n))==h for n,h in m['files'].items());assert original.namelist()==new.namelist();changed=[n for n in original.namelist() if original.read(n)!=new.read(n)];assert set(changed)=={'SOURCE_MANIFEST.json','runtime/isaac/mod4/frozen_history_flat.py'}
+pkg=dict(path=str(p.resolve()),bytes=p.stat().st_size,sha256=H(p.read_bytes()));jobs=[]
+for role,h in (('source32058','42cdc9d24519778a9da3e35b05a3eb3bb5745760c26a5842c78fcde2bd39e53b'),('candidate32063','e912058d079bf1db7e40c546c54f55568218d514937cba30c65d8c913882a2cf')):
+ j=copy.deepcopy(read(G/'reports/MANIFEST_TEMPLATE.json'));j.update(job_id='clk2500-closure-episode-d3-128-e1-g3-'+role+'-approach040-fullroute-flat',role=role,protocol=m['protocol'],actual_behavior_scope='Paired new .40m front approach, same35mm complete10-wave geometry and200mm rear support, same1500 controls. Duration20s proposal rejected before deployment; no learning.',frozen_approach_distance_m=.4)
+ j['artifacts']['runtime']=dict(path='/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007/artifacts/'+p.name,bytes=pkg['bytes'],sha256=pkg['sha256']);j['artifacts']['checkpoint']=dict(path='/home/egde/rl_candidates/MOD4_MOE_PLAN_EXECUTION_20261007/artifacts/e1-stable-own-'+h+'.pt',bytes=16750577,sha256=h);jobs.append(j)
+v=dict(epoch=time.time(),trial_id='E1-G3-PAIRED-APPROACH040-PREPARE-01',package=pkg,jobs=jobs,AST_single_axis_inverse_exact_from_preserved_prepare=True,changed_members=changed,file_map_verified=len(m['files']),old_ground_contact_tolerances_unchanged=True,original_reader_error_preserved=True,new_budget_seconds=0)
+(R/'PAIRED_APPROACH_PREPARED.json').write_bytes(json.dumps(v,indent=2).encode());print(json.dumps(dict(package=pkg,changed=changed,filemap=len(m['files']),unexecuted_review_completed_without_repackage=True)))

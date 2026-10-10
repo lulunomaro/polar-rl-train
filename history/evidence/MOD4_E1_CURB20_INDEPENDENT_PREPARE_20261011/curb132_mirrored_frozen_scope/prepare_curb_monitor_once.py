@@ -1,0 +1,43 @@
+"""Prepare current CURB authority and monitoring priority, retaining prior prompt."""
+from curb_io import *
+import tomllib
+def main():
+    a=tomllib.loads(Path('C:/Users/lulu/.codex/automations/mod4-10/automation.toml').read_text(encoding='utf8'))
+    assert a['status']=='ACTIVE' and a['rrule']=='FREQ=HOURLY;INTERVAL=2'
+    assert a['target_thread_id']=='01a07a2d-9036-7531-a012-692df9f56353'
+    p=R/'HEARTBEAT_INDEPENDENT_CURB132_CURRENT_20261011.md';assert not p.exists()
+    text='''最新2026-10-11实际优先：004专家细分已经人类明确批准并执行。独立Wave366自己的300s自然完整保存及131四case全部actualcomplete/独立完整审查/中央同步已完成。前24→22/27、倒27→25/27、7个有效15s未完成prefix保持，2b4检查点只是冻结审查证据，非合格Wave/下一学习默认。不要继续旧366或364/365入口，不更多Wave900s/升50mm。
+
+本轮下一独立E1_CURB20真正新冻结范围132已实际发布并由健康3060自己启动GPU。先读中央E1_CURB20_132_FROZEN_PREPARED、E1_CURB20_132_FROZEN_PUBLISHED、E1_CURB20_132_SCOPE_METADATA_SYNCED、NEXT_E1_CURB20_FROZEN_AND_INDEPENDENT_LEARNING_WORK_ORDER，以及本机MOD4_E1_CURB20_INDEPENDENT_PREPARE_20261011/reports最新CURB132_COLLECTED/REVIEW/新完整决定。中央MOE_PLAN_EXECUTION_CURRENT.terrain_subexpert_revision004.curb132_frozen_scope实际优先。未生成未来result是合法pending，不据此task0/故障，不套旧131pending/365或366active。
+
+132唯一job=clk2500-closure-episode-d3-132-e1-curb20-source364-mirrored-fullroute-flat。新包36,397,489bytes SHA b91238eddc550555a70f2a09e4cf8ff085d66fad1cb00bcb5736da6a71b04e7d，283members immutable文件映射逐字SHA；原279member不变，仅新curbgeometry/profile及dispatcher/manifest显式改变。派生20mm竖直侧壁/150mm上沿条带连续接上平台/9m格/40原向40镜像，80env1500control15s/seed20260928white3。实际ground符号确定方向，完整前支撑→两轮侧壁和全部条带→200mm后支撑；上行27/下行27/站立26，所有有效失败和未完成前缀必须保留，stand不要求跨坎。不是实际RM00244.241/92–94/149.929/200.069mm高度，也不是真台阶/RM70mm。
+
+暖启动只选完整129已实际审查source364 own32063 SHA3c97c14e91a5483d03cb979cd0de0858f7fd1f2a1758e8469c88b7546b02921e/17,615,538bytes/CPU102。不要混source338同编号e912、退化365f5b或Wave3662b4。132只冻结actor、全新物理DR回放，无PPO/fulllearningstate恢复或canonical写权；新CURB学习executor尚未部署不能伪称已训练。
+
+积极用collect_curb132_actual.py只在actualcomplete/errorfree时取两host probe/result JSON字节exact与完整NPZ SHA，再review_curb132_actual.py独立新协议完整raw/root30q/参数recipesassignments/6000callbacks/ground-contact积分/COMlink/hardware原容差与mirror signed路径审查。位置完成与原1N接触支撑证据分列，progress只同step prereset-root减before-root，同episode连续、ordinary前prefix，不把reset teleport或短prefix算整路线。控制循环、health/force/hardware auditor AST与旧exact。旧115/123/126–131和新132完成后都不重发，不把CPU射线/包/保存当物理通行。
+
+实际132合理审查后继续真正新、隔离的CURB geometry/assignment/ground/contact/reset/fullsave/fullresume/ownership合同，不无限hold/只留队列。完整3c97 actorcriticstdoptimizer/allD0D7/globalnamed/privateCPUCUDA与旧terrain/command先核恢复，再显式G3→CURB新geometry/CUDA磁盘roundtrip/savedsourceepisode+1，非sameG3/PhysXexactresume。新geometry改变command assignment SHA：旧load_state_retention的assignment exact不能放宽；先按来源assignment身份验证完整旧command/privateRNG，再独立显式迁移到新actualassignment/eligibility，保留旧流/新身份披露。随后同CURB恢复要求完整同geometry/command exact。独立CURB输出与optimizer不覆盖E0/Wave/其他expert。
+
+新范围仅必要CPU、10env300controlSDK(真实新坎上下支撑/selectedreset，不仅10plane)、20k24warm+120timednative、128x2与20kx4完整PPO弃预检权重各一次。已有clock/D0D7/同scope证据exactSHA复用，无重复45minclock。全部新scope PASSED后300s含load-learn-save-exit/save25/15s本机guardian，自己完整CPU保存/ownPID/PASSED/唯一账段后新CURB terrain/flat/spin/world四case完整审查再下一轴，不盲长训/自动35或50mm，不安装V3pure/S7/S8/teacher。
+
+004人类批准专家树E0冻结、E1_WAVE/E1_CURB/E1_SLOPE/几何核实后E1_STAIR独立actorcriticoptimizerstd/全部DR/RNG/队列/geometry/command/save。合格才冻结供原hardtop1每tick一个完整6action选择，不动作/参数平均、新层级gate或用env_id/terrainassignment/未来contact真值喂actor/gate。gate仍未训、35反馈可能不能接触前识别台阶，接口迁移须实证范围。先规则对照再学习gate/critic及真实交界切换/力矩跳变/防抖/延迟。冻结保护旧专家，活跃单expert内部仍可能退化；不得借拆分声称永不退化或MoE已部署。
+
+最新Wave366 ownmodel32068 SHA2b4f5a575d3a4d97013b331e215c503ab86e528a63a92d719a3366a684b52284/CPU102/72actualsnapshot+366ownfreeze/own2348218-start80211793，6updates144control2.88Menvsteps576callbacks exact ordinaryintegrityunknown0/nonfinitefalse/STOPnone/closure.947713444mm/mimic.001691456。target300actual325.19091272354126s原parent唯一结清。parent2348169/guardian2348217/child全部actualexit，两真实OS锁free、active-Sactive空/E1_WAVE_G3_isolated_saved_review_ready合法review边界不是监督故障/全课程finished。131全2host8JSONbyteexact/rawNPZ SHA125b0ae98f89e8150939b6639e73f12a66b76762365f7c565c63496ff15022d5，普通0/closure.656838703mm/world63/64/负4pi6/8正8/8，所有原strictfalse/raw/cost/prefix保持。
+
+3060 E1_G3_PACKAGE_REVIEW worker33780/venv9804 creation1791585795.820/.812只历史定位，实际CIM/argv/creation/children/results/currentattention/锁优先。132首GPU8408/33324 creation1791651087.177/.194只定位，不能盲信号或假永久活跃。无attention健康worker不重启；singleGPUlock/restrictedbridge/JSONboundedretry/demand无periodic无boottrigger/no4090launch/no canonicalwrite不变。旧119Warp/121allowlist/125manifest和LFCRLF失败/93–94paused/MuJoCoended保持，原complete不复活。
+
+solecanonical=/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json总828000s230h/六扩展各一次/新增0。最近idle318524.90188002586s~88.479h仅快照，以后actualactive/accounted扣真实未accounted尾段。CPU/SDK/native/frozen无PPO不计；load/PPOpreflight/learn/save/exit同canonical原parent唯一扣。不追加复制/clearactive/重tail/重扩展/自动加时，余<=120保留不称0。两实际锁=/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002/autonomy_controller.lock及canonicalroot/native_floor_supervisor.lock，persistent文件存在不等于持锁，真实fcntl非阻塞核验，不删锁。新GPU/PPO权仅ownfullsave/PASSED/旧launch闭合/actualparentguardianchildexit/两OS锁/唯一账段active-Sactive自然结清；父故障trainer活跃先保护保存修监督，不hotpatch/kill/dual20k/干预其它AI，旧forceexit已履行不扩大。
+
+masterSHA812a4bedd04834a98a7c9391609d0056b47c47398e0ecdda9c61e61c6466d05b历史master/PLAN_APPROVAL/EXECUTION_TRACKS/RM003保持，004新职责真实humanapprovalsidecar优先。固定2.5msx4/TGS32-4/100Hz/5msbin3history/35actor38critic6action/LR1e-4adaptive/KEEPSTD1/reward/hardware/allD0D7不改。五族plane30/20/20/15/15，仅random新Curb几何轴，planeactualassignment/支撑/保守1m净空在线signedstraightabs1–1.5/worldV.5yaw±1–2，standing.2及其他地形gentleyaw0保持，非拒绝70/20/10配额。worldBODYvx=2Vcos(theta-alpha),vy0/no positioncorrection，signedcircles全窗口/prefix沿横向和dedrift分列，tolmax(.03,.1V)/signedyaw±.2原样。射线支撑不是接触力/全部姿态认证。healthclosure2mm单envordinaryreset入PPO；mimic.01/nonfinite/unknown/missingcallback/managercoverage ownSTOP_AFTER_SAVE完整保存；timeout/route声明truncation两coverageexact，重叠termcounts不相加unique，不造90/95/100线。
+
+RM003起伏10→20→35→50→真实70mm连续波形全支撑/002外缘位置高度优先/001有效spin净空洞台阶台面排除和有限网格1.4373mm误差保持。S3含已用E1 30h/S7conditional18h原规划，其他专家/gate及min(18h,.13B)修复规划保护无ledgerreserve，E0冻结/gate未训/硬件未标定/S8危险reset后续具体批准。华南虎pin1a26356d6f591734d4f6f666f5cead1a6925da67/July30实际roughparams114files6HTTPtimeout已审，persistenteligible采样可借鉴；V14ActorCritic/PPO及CLI MoE入口无永久抗遗忘消融证明，不复制资产/teacher/clock/10.25mm阈值，旧完整恢复已核不误归因漏restore。
+
+人类“别忘了git/所有试错报告Git”持续：先读workspace/repoAGENTS、ALL_TRIALS_AND_REPORTS_GIT_POLICY.md、NEXT_AI_GIT_WORKFLOW。所有保存的新报告/source/错误/schema/false/raw/cost/部署拒绝/未采用/有效prefix/工作单/sync/monitor及后132完整/Gitreceipt都补交；weight/largeNPZ/raw/USD/ZIP只actualpath-size-SHA，credentials只临时授权env不输出不Git。新stage record_experiment.py唯一annotatedtrial，pushfailed只续originalobjects不重record/tag/commit，actualtracked/remote main/tag/peeled证明优先不凭提示假完成。原dc753943/tag5c80及8ac04c8473ce4a214ec78ec2e828f0e5145d905b supplement与所有旧tagobject保持。新CURB具体Git以CURB_STAGE_GIT_RECORDED/后supplement/actualremote核验为准，Git不是训练依赖。所有旧stage/main/resume/SDK/native/PPO/preflight/package/publish/record/sync/budgettailonce不重跑，仅仅读collector按actualstage复用；新132publish/scopeSYNC已执行once不重放。前10743字符Wave监控原文已保存MONITOR_PREVIOUS_WAVE_PROMPT.md/SHA索引追溯。
+
+mod4-10保持ACTIVE每2h，健康pendingDONT_NOTIFY静默无用户commentary，仅实质阶段/真实修复/重大退化/完成/需人类动作NOTIFY。无小时/5minSSH/ping/Rich/自动加时；单课reviewready不删monitor，只有预算真正结束且actualfinal全完成才停止。
+'''
+    p.write_bytes(text.encode())
+    save('CURB_MONITOR_PREPARED.json',dict(epoch=time.time(),prompt_path=str(p.resolve()),prompt_SHA=H(p.read_bytes()),prior_prompt_SHA=H((R/'MONITOR_PREVIOUS_WAVE_PROMPT.md').read_bytes()),
+        name=a['name'],status=a['status'],rrule=a['rrule'],target_thread_id=a['target_thread_id'],new_CURB132_priority=True))
+    print(json.dumps(dict(prompt_path=str(p.resolve()),bytes=p.stat().st_size,sha256=H(p.read_bytes()),status=a['status'],rrule=a['rrule'])))
+if __name__=='__main__':main()

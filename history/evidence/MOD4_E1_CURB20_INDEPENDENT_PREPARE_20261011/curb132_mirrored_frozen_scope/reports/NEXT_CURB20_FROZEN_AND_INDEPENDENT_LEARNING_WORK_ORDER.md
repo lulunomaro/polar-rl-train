@@ -1,0 +1,17 @@
+# 004独立跨坎专家：新实际范围
+
+004已经有人类批准。Wave366及131全部关闭并完整审查，前22/27、倒25/27的有效未完成前缀保持，2b4权重只作冻结审查证据。新CURB暖启动仍选完整129审查的source364/3c97，不能复活旧364或366入口，不能覆盖E0/Wave权重。
+
+新132已发布一个独立冻结范围：派生20mm竖直侧壁、150mm上沿条带连续接上平台，9m格，40个原向与40个镜像实际地形格。80env/1500control/15s/20260928white3，实际生成ground符号决定上行/下行方向，起始根及两轮须在完整前支撑；两轮经过竖直坎及完整条带后，还须观察200mm后支撑。保持上行27/下行27/站立26及全部失败、截断与有效前缀；站立不要求跨坎。
+
+包b91238eddc550555a70f2a09e4cf8ff085d66fad1cb00bcb5736da6a71b04e7d，共36,397,489bytes，283映射逐字SHA核验。只有新curbgeometry/profile和冻结dispatcher/manifest改变。控制循环、PD/硬件、D0–D7、接触积分、reasoncoverage、6000callbacks数据审计AST精确复用。旧125失败保留，不能套旧35mm/wave协议或修改健康3060worker。不是RM002真实坎高，不是真台阶，不是CURB已训练或MoE门控已部署。
+
+积极使用collect_curb132_actual.py，只有actualcomplete/errorfree才收两主机probe/result字节exact与完整NPZ SHA。review_curb132_actual.py按新镜像竖直坎路径独立审查，复用旧完整raw/contact/hardware原容差。位移必须同episode连续、ordinary前有效前缀、根30q/真实wheel COMlink/接触数据均保留；位置完整和原1N接触支持证据分列。原126–131及115/129全部validcomplete不重发。
+
+132合理完整后积极建立真正新、独立CURB学习root/output/sourcefreeze。仅替换原random family的新geometry，五族30/20/20/15/15和35actor/38critic/6action、2.5msx4/TGS32-4/100Hz/DR/reward/LR1e-4adaptive/KEEPSTD1/硬件不改。plane条件signedstraight/world命令数学不改；不用地形真值喂actor/gate。
+
+恢复合同必须明确G3→CURB的新几何迁移：先核3c97的完整actor/critic/std/optimizer、D0–D7/全global/named/privateCPUCUDA、旧terrain及旧命令状态，再创建新geometry状态、CUDA磁盘roundtrip以及savedsourceepisode+1。新地形改变assignment SHA，旧command loader的assignment exact检查不能悄悄放宽：先在源assignment身份下验证旧命令状态与私有rng，再由独立迁移接口显式重绑新actualassignment/eligibility，披露新几何身份、旧流保持及新episode；不声称same-G3 terrain exact或PhysX resume。后续同CURB恢复再要求完整同几何与command exact。
+
+实际SDK必须覆盖新坎的上下平台、竖直接触、实际assignment和selected reset，而不是只强制10个plane。native20k按真实五族回读。真正新scope仅必要CPU/10env300controlSDK/20k24warm+120timednative/128x2和20kx4完整PPO弃预检权重各一次，同canonical由原parent唯一计load/learn/save/exit。旧clock/D0D7和既有同scope证据exact SHA复用，无45minclock重复。全部新合同PASSED后首300s正式完整保存，再新CURB地形及旧flat/spin/world四case审查；无自动长训或升35/50mm。
+
+新权仍要求实际旧parent/guardian/child退出、ownfullsave/PASSED、两真实fcntl锁free、唯一账段结清及active-Sactive空。persistent lockfile存在不代表持锁。不hotpatch/kill/dual20k/清账/重tail/追加预算/干预其他AI。S7/S8/teacher/V3pure不安装，E0冻结、gate未训、hardtop1整六维动作选择保持。所有新报告、源码、拒绝/读者错误、同步与巡检回执Git；大型NPZ/ZIP/权重只真实path-size-SHA索引。

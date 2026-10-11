@@ -1,0 +1,11 @@
+# SLOPE5学习前快照列表拒绝与独立修复
+
+source402的SDK10/native20k/128x2完整PPO已actualPASSED。big20kx4在bounded_learn前复制不存在的slope5_command_migration_environment_view.py被拒绝，没有PPO/控制步。完整八份实际CUDA来源恢复回执已写入；旧source402、原日志/部分快照/回执/false/cost保留，原父guardian孩子自然退出，两OS锁free/noactive与small及failedbig唯一结清核验。
+
+source404新root逐字保留402全部402文件，增加独立worker与唯一wrapper。worker只把快照清单缺失文件名改为真实slope5_command_migration.py，其余源码与旧workerexact；CPU启动前逐项检查必需快照文件存在、原完整source3643c97 CPU102及全部sourceSHA。原SDK/native/small PASSED按实际原件SHA复用，不重复这些GPU合同。仅修复后big20kx4、freshsameSLOPE20k零control零PPO完整恢复通过后才300s formal；正式源仍完整129的3c97，所有discard权重弃用。futureformal/135结果未生成是pending，不声称已通过。
+
+新阶段CPU/readers有三项独立拒绝：误将rawnative当PASSED导致KeyError、boundedreader省略大sensor而误断八份回执为七、wrapper source属性应从prior显式取值导致AttributeError。另一次本地PowerShell引号解析在任何Python/远端前拒绝。原source/error均保存，独立仅补尚未执行readerCPU准入，旧remote/source与false不改，不当物理或训练故障。
+
+source404 unique main/import/Popen argv核验并已dispatch，local15s guardian原账本扣load-learn-save-exit，无扩展/重复结账。中央metadata CAS只更新scope.root及原错误/实际CPU/dispatch/current引用，历史master/approval/tracks/RM保持；自动化仍ACTIVE每2h。新fullformal保存及135完整坡面/flat/spin/world实际配对后才判断下一轴。E0/Wave/CURB不更新，gate未训/硬件未标定/S8后续具体批准，本地WASD播放器不干预。
+
+全部已保存的前595阶段后native/small/实际巡检/同步/monitor/Git回执、此次big失败/原成本与新404源码/CPU/dispatch/读者错误/工作单完整索引入Git；大型weights/raw/NPZ/USD/ZIP只actualpath-size-SHA。后续actualbig/fresh/formal/135/同步仍补充提交，旧标签保持，push失败仅续原objects。

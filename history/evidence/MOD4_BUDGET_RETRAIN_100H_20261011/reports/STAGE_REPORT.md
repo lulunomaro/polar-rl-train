@@ -1,0 +1,9 @@
+# 新增100小时与未毕业独立专家复训授权实际完成
+
+人类直接授权“预算再给你100小时，没毕业的可以复训”。新005计划与新独立budget writer仅执行第七次USER_ADD100H_20261011_7TH；读取自身最新完整source40424b PASSED、实际parent/guardian/child退出、原唯一结清段、canonical active为空以及两真实fcntl锁后执行。新授权总1188000秒330小时，剩676797.5426192284秒约188小时快照；charged511202.45738077164秒、184旧段、原六次扩展全部exact不变，不重tail/复制canonical/clearactive或加自动时间。唯一新增360000秒有APPLIED字节回执。
+
+新PLAN_APPROVAL仅改预算上限和005授权引用；执行合同预算与central current同步。原master812a4b、EXECUTION_TRACKS、RM003、004职责与其批准字节保持，不伪改旧批准。新纯预算函数验证合法第七扩展/charged历史保留及active/重复/未批准/错注册total四拒绝；没有GPU/PPO启动。
+
+未毕业专家可以按失败原因独立有界复训。优先CURB20正向入口/方向，再WAVE35完整路线，冻结E0与已接受SLOPE5/8/10范围。新增100小时为可调整规划CURB25/WAVE25/坡15/真台阶10/gate切换15/准入修复10；原S3含已用30小时加新增地形75小时为105小时规划上限，不必须花满或ledgerreserve。新的CURB reset-entry实际footprint/histogram/fullstate/SDK/native/PPO合同仍pending，不借扩预算伪称已启动训练。旧退化weights只审查证据，所有false/raw/cost/prefix保留。新观察/硬件、危险S8reset等权限不扩大。
+
+mod4-10原ACTIVE每2h、targetthread和静默健康pending保持，旧实际138和CURB下一轴证据保留；新prompt明确330小时/七扩展及005复训权限，实际TOML prompt exact验证。所有新source、预算回执、准入证明、同步、monitor与旧prompt字节入Git；以后stageGitreceipt/central同步追加普通supplement，最终工具验证不另造报告。

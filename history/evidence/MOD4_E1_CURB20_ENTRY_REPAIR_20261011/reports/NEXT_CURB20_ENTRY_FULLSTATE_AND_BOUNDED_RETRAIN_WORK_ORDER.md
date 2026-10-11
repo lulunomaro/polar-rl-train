@@ -1,0 +1,15 @@
+# CURB20新入口单轴修复实际启动与下一范围
+
+人类要求继续修复、追加100小时并允许未毕业专家复训；本轮明确要求驻守改为每小时。mod4-10同一heartbeat ACTIVE/FREQ=HOURLY;INTERVAL=1已实际核验，健康pending静默，独立本机15sguardian与驻守频率分列，不追加5minSSH/ping任务。
+
+旧133完整证据上26→22/27、下27/27，五个上行未完成有效前缀转向横走；因果未证明。暖启动仅完整129 source364model32063 SHA3c97c14e91a5483d03cb979cd0de0858f7fd1f2a1758e8469c88b7546b02921e。df0c和Wave2b4只审查证据，E0及已接受SLOPE5/8/10范围冻结，不覆盖其optimizer/save。
+
+新root MOD4_S3_E1_CURB20_ENTRY_REPAIR_20261011/source398保留389全部旧bytes，新增独立入口组件/两版拒绝修正、nativeprobe和只SDK-native controller、budget005独立guard。V1 CPU完整cell-footprint guard拒绝Y格边，原false/code/error保留；V2只改reset位置，CURB实际assignment每侧0.8/1.65m独立相隔0.85m入口，Y仅把完整碰撞轮廓移入cell安全边界，原朝向/关节姿态/命令/DR/reward/LR/硬件/时钟/20mm竖直150mm条带/五族比例保持。完整bank碰撞采样extentX.283/Y.292m，CPU原20k映射2820CURB起点调整、其它17180不变、完整前支撑至少.442m、合法不重叠与重复起点拒绝实际通过。CPU推导不冒实际接触力/物理通行或覆盖因果。
+
+本轮newentry SDK10x300control/1200callbacks已经自己的PASSED，native20k24warm+120timed原scope实际阶段与之后PASSED为准。此controller没有PPO/optimizer或canonical写权；新的state/fullresume/PPO/final仍pending，不能把native通过叫学习开始/毕业。actual生成assignment/fullfootprint全射线placement、selectedreset和plane signed采样/groundheight/rewardformula/solver/ordinary/nonfinite由自己的实际回执验证。旧SDK/native不能在通过后重复；新的必要histogram审查先从已保存完整retention trace实算两镜像/正反/standing/route前缀，不重跑GPU为补报告。
+
+下一积极完成新reset身份的完整学习状态合同，不能无限hold/只留队列。完整来源actorcriticstdoptimizer/allD0D7/globalnamed/dictprivateCPUCUDA、旧terrain/commands身份exact先验证，再显式G3→CURB geometry/assignment和newentryreset身份迁移。旧strict assignment与named集合不放宽，新增entry deterministic无新rng；自己的entrymapSHA纳入完整状态identity和独立sourcefreeze。CUDA磁盘roundtrip/savedsourceepisode+1与独立output/fullsave/fullresume实际通过；以后sameCURB+sameentry须完整exact。非PhysXexactresume。
+
+新独立learningroot只按当前canonical七条注册extension+base36000=1188000s/330h真实余量准入；已用/184completed/第七次预算记录不变，不重预算writer/tail/clearactive。仅真正新完整state/PPO范围需要128x2及20kx4完整PPO弃权重各一次同canonical，SDK/native/geometry/clock/allDR exactSHA复用，无新45minclock。big完整保存后独立fresh20k新进程0control0PPO exact恢复，不在已步进env误用fresh-only，不调用未初始化logger保存。全部实际PASSED后首300s含load-learn-save-exit/save25/15s本机guardian，完整ownCPU/PID/PASSED/唯一段结清后再新CURB+flat+spin+world四case完整审查，复用132/129初始化协议与全groundcontact/root30q/params/recipes/assignments/6000callback/fullsignedcircle/有效prefix/strictfalse。旧132/133/131/135/137/138等validcomplete不重发，不缩接近/延窗重标旧失败。
+
+新authority仍ownfullsave/PASSED/actual旧parentguardianchildexit/两OS锁free/uniqueactiveSactive自然结清；persistent锁文件非持锁，不删锁/hotpatch/kill/dual20k/其他AI干预。当前native持自己的锁且无PPO，完整自然退出后才下一新learningroot。S8危险reset/teacher/pure/S7/传感接口/硬件阈值/70-20-10方案未新增授权，WASD播放器不干预。所有实际成功失败、源码/回执/reader/schema/同步/monitor/workorder均Git，large原件只actualpath-size-SHA，凭据不输出不Git。

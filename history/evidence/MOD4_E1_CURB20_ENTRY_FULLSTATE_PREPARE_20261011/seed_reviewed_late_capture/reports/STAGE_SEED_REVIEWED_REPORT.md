@@ -1,0 +1,9 @@
+# CURB20入口原点范围补证与严格seed恢复准入修复
+
+新的source409保留398全部源码并新增11份独立来源/entry/fullstate接口。CPU实际旧SDK原点更改缓存0→10、subset和原20kmap byteexact通过。真正新SDK10实际10/10CURB起点、300control1200callbacks/selectedreset/原groundrewardsolverhealth通过；旧398SDK一般PASSED与实际0/10覆盖缺口并列保留。398有效native20k精确SHA复用，没有重native/clock/DR。source409小128x2和big20kx4完整PPO自己的CPU102/fullsave/PIDreceipt/PASSED/唯一同canonical结清，权重弃用。
+
+source409独立fresh20k零control零PPO因argv缺seed20260928、默认42触发旧严格terrain seedguard，在完整恢复与任何控制/PPO之前失败。全部原source/error/false/raw/成本保持，没有formal或139发布。父guardian孩子actual自然退出/两OS锁free/active-Sactive空后，source410保留409所有源码字节，只新增一个唯一wrapper，明确fresh --seed20260928。新CPU102/正确import-main-Popenargv/sourcefreeze准入及dispatch真实完成；只补失败的fresh范围，所有有效SDK/small/big/native原PASSED精确复用，无重新PPO预检。独立fresh实际PASSED之后才首300s正式从3c97加载、自己的完整保存和139四case行为审查，不用discard源/不称已正式毕业。
+
+本次初始归档ID超过record工具81字符正则上限，在commit/tag/experiment对象之前拒绝；实际HEAD及原1288tags unchanged，原untracked捕获目录和错误保留，较短uniqueID仅续尚未执行record。两reader路径错误、metadata字母glob误选authority KeyError、PowerShell inline ParserError及缺新file尝试全部保存preGPU/CAS，不重写旧失败。source409/410新scope中央只增annotation，历史master/approval/tracks/RM字节保护；canonical0051188000/7extensions原parent唯一正常扣，fresh零PPO不计，无加时或清账。
+
+30min同一heartbeatACTIVE真实核验/健康pending静默。E0/Wave/SLOPE权重不更新，gate未训/硬件未标定/S8未新增批准，本地WASD播放器未触碰；reward/LR/hardware/clock/DR/地形比例与命令轴不改。所有当前源码/成功失败/错误/同步/监控/工作单/Git拒绝报告补档，原大raw/权重仅真实path-size-SHA，凭据不入Git。后来fresh/formal/139/ownCPU/新同步/Git回执追加普通supplement。

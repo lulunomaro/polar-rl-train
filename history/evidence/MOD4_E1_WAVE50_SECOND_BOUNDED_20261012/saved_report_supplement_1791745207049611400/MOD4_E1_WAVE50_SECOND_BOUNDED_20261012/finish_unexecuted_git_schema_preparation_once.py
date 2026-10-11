@@ -1,0 +1,4 @@
+from second50_io import *
+save('GIT_SCHEMA_BUILDER_LITERAL_REJECTION.json',dict(epoch=time.time(),original_source='prepare_unexecuted_git_supplement_schema_reader_once.py',error='SyntaxError invalid decimal literal in a diagnostic field name; following reader absent',rejected_before_any_capture_commit_push_or_training_action=True,original_source_retained=True,only_unexecuted_preparation_continued=True))
+original=D/'prepare_unexecuted_git_supplement_schema_reader_once.py';text=original.read_text(encoding='utf8');bad='106_other_project_legacy_rows_use_source_sha256_archive_path=True';assert text.count(bad)==1;text=text.replace(bad,'legacy_other_project_row_count=106,legacy_rows_use_source_sha256_archive_path=True')
+p=D/'prepare_unexecuted_git_supplement_schema_literal_reviewed_once.py';assert not p.exists();compile(text,str(p),'exec');p.write_text(text,encoding='utf8');exec(compile(text,str(p),'exec'))

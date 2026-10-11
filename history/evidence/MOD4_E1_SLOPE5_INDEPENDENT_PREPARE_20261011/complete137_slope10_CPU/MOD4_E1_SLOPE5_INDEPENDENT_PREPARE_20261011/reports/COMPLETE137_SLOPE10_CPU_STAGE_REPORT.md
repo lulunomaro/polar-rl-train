@@ -1,0 +1,9 @@
+# 完整8°冻结通行与下一10°CPU组件
+
+137已actualcomplete/errorfree；两hostprobe/result字节SHAexact，181270701byte完整rawNPZ SHA b0d1059bbe50252e10fbfd672f436df79da0ed0664e6c10ed5a13977b9daef8f，全root30q/parameters/recipes/assignments/6000callback/实际groundcontact积分COMlinkhardware原容差独立审查。新actualworldfloat32射线原点/canonicalgrid身份原1e-6校验通过，完整2m镜像8°坡/.4m接近/200mm后支撑上下各27/27且1N支撑吻合，ordinary0/closure.663315877mm/7声明route截断two reasoncoverageexact，站立26无需跨坡。Frozen physicalprocess267.061986s无PPO/canonical扣账；原136failed-before-control与39.373877s成本保留不重标pass。
+
+采用完整135 own40424b/CPU102/79snapshot/PID/PASSED/唯一335.210922s源；接受观测5°及8°scope并冻结，无额外8°PPO，不声称因果训练收益或整个SLOPE/RM/MoE/gate毕业。135旧negative4pi7→5/8诊断下降与原strictfalse保持，E0一直冻结且未训练gate不借此证明整机switch已验收。原G3worker因136失败自然退出后独立E1_SLOPE8_QUERY_REVIEW worker/单GPUlock/restrictedbridge/无触发demandtask保持，健康新worker无GPU孩子idle合法不重启。
+
+积极准备已批准RM003下一单轴10°CPU组件，派生连续2m高.352653961m/9m镜像，198独立三角射线与法向验证，maxerror3.330669074e-16m。CPU是组件证据，尚无10°frozenpackage/job/SDK/native/完整状态/PPO/executor部署。cos10°=.984807753低于旧8°sample-normal>.99，新10°必须先显式解析三角法向/实际射线输入normal与height合同，原ground1e-6及contact/硬件/ordinary-integrity阈值保持，不能机械复制旧normal检查或静默放宽。完整来源5°terraincommand/CPUCUDA身份验证后明确5→10新geometry与assignment迁移，必要新scope准入/首300s保存复审仅实际需要学习时执行，不能机械每档固定PPO。
+
+中央complete137/next10CPU CAS实际同步，历史masterapprovaltracksRMcanonicalbytes保持，828000s六扩展各一次新增0；E0/Wave/CURB与5°/8°冻结source不覆盖，S8后续具体批准，WASD播放器不干预。新collector/review/decision/workorder/组件源码及阶段后监控/Gitreceipt/encoding错误全部Git捕获，大weights/rawNPZ/USD/ZIP仅actualpath-size-SHA。cd740ccb/ca0fe和d0b520da/e760以及所有旧tag对象保持；本stage后新monitor/sync/Gitreceipt仍ordinarysupplement，actualtracked/remote工具证明优先。

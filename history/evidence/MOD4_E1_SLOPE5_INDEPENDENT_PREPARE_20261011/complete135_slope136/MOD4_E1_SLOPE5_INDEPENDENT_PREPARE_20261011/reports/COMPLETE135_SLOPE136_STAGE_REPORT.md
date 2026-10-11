@@ -1,0 +1,11 @@
+# 完整135坡面候选与新8°单轴冻结范围
+
+source404 ownmodel32069 SHA24b18846fcff1e0b8da7fd478314fca9cd2ed2b97461ca34f65ef5b7c7ff2411、CPU102/79actualsnapshot、own2588230/PASSED与335.2109215s唯一结清已实际核验，父guardian孩子自然退出/两OS锁free/canonicalidle。135四caseactualcomplete/errorfree，两host8probe/result字节SHAexact、181145243byte完整rawNPZ SHA c0fe281d8db1f0e489e4bdf93ac1e040803525d14f1c172bad8f256bf9a3394b，初始化root30q参数配方assignment/6000callback/ground-contact积分COMlinkhardware原容差、全signedcircle实际审查。
+
+5°/2m镜像、0.4m接近、两轮完整坡段及200mm后支撑上下各27/27，1N接触证据吻合，站立26无跨坡要求。ordinary0/closure.662365521mm/四声明route截断原覆盖exact。来源3643c97同5°也上下各27/27，不声称因果训练收益。旧world63→64/64，maxcross.049271624；负4π7→5/8下降、正8/8、直线.020943796/.055501711与全部原strictfalse保留。只冻结接受本次5°范围候选，非整个SLOPE/RM/MoE部署，gate未训。
+
+积极推进已批准RM003坡度5→8一个轴：新136冻结包36,559,243bytes SHA050ef42a3909b13292f0caf29c3a82a05c030d38a35a16312bdc6790c2a5b0c9、287manifest逐字SHAexact，派生8°/2m高.281081669m/9m镜像、原0.4m接近与200mm后支撑。198独立三角射线及法向CPU合同通过，步进/health/contact/hardware审查loop ASTexact；CPU不代物理验收。使用已存在135同SHA24b许可artifact，不重新训练或复制canonical。旧404真实fullsave/退出/唯一结清/两OS锁核后才新136唯一发布，健康3060工作器不重启；实际结果未生成是pending。不同8°不能冒同5°精确初始化，完整136决定/必要新范围恢复SDK/native/PPO准入前不启动更多学习或升10°。
+
+读者兼容错误：旧135collector把地形full_route_raw强套legacy技能KeyError，原错误/源码保留；独立schema collector按actualresultSHA=manifestSHA=ownformalSHA及job/checkpoint.bin接收旧技能，地形fullraw原合同不松。首次136发布guard全字串SHA替换误伤canonical_SHA导致本地compile SyntaxError，在任何远端写/队列/GPU前拒绝；原source/error保持，独立唯一placeholder修正只续未执行发布。没有重发任何validcomplete或修改false/raw/cost。
+
+中央完整135决定与136新冻结范围实际CAS同步，历史master/approval/tracks/RM/canonicalbytes保持；预算828000s/六扩展各一次/新增0、当前idle316797.542619s仅快照。E0/Wave/CURB与5°自身权重不覆盖，S8后续具体批准/人类WASD播放器不干预。全部newreports/source/errors/workorders/同步与此前stage后报告完整捕获，大weights/rawNPZ/USD/ZIP仅真实path-size-SHA。Git阶段后的监控/Gitreceipt与后来136实际结果仍ordinarysupplement，remote验证工具证明优先。

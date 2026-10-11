@@ -1,0 +1,9 @@
+# 独立 E1_SLOPE5 新合同和短窗工作单
+
+134已实际complete/errorfree，完整两机JSON逐字SHA、rawNPZ、全部root30q/参数/recipes/assignments/6000callbacks/ground-contact积分/COMlink/hardware原容差独立审查。5°连续2m坡段/镜像/0.4m接近/200mm后支撑/80env1500controls15s20260928white3，上下行各27/27位置完成与实际1N接触证据吻合，standing26不要求跨坡。只此派生范围，不实际RM全坡面或合格学习专家。
+
+本新独立root只暖启动已完整129审查source3643c97。完整actorcriticstdoptimizer/allD0D7/globalnamed/privateCPUCUDA及旧terraincommand先验证，明确G3→新SLOPE几何与assignment迁移，再CUDAroundtrip/savedsourceepisode+1。原严格assignment和named集合不放宽。独立storage/output不更新E0/Wave/CURB。targetCPU通过仅组件与状态schema，不物理准入。
+
+新SDK10真实上下支撑与镜像300control1200callback、native20k24warm+120timed480/576callbacks、128x2与20kx4完整PPO弃权重，各一次；同scope新fullsave之后独立fresh20k零control零PPO实际sameSLOPE完整CPUCUDA恢复，不在已步进env重用fresh-only接口，不调用未初始化logger可选save。原clock/DR精确复用无45min重复。全部PASSED才唯一300s含load-learn-save-exit/save25/15s本地主机guardian，然后自己fullsave/PIDreceipt/PASSED/唯一账段与135terrain+flat+spin+world完整审查；不自动900s/升8度/更多PPO。
+
+actualreceipt/currentstage优先，未来文件缺失为pending。旧389/CURB完整审查边界不是故障；不复活任何旧once。canonical828000s/六扩展各一次/新增0，PPOload/learn/save/exit同原账唯一扣，不clear/复制/扩展。两OS锁真实fcntl核验，persistent存在非持锁。所有false/raw/cost/prefix/reader/拒绝/同步/monitor/工作单入Git，大原件只真实path-size-SHA。人类本地WASD播放器不受本训练任务干预。004职责、E0冻结/gate未训/硬件未标定/S8后续具体批准/93-94paused保持。

@@ -1,0 +1,11 @@
+from pathlib import Path
+import json,time,hashlib
+D=Path(__file__).resolve().parent;R=D/'reports';source=D/'prepare_local_final_monitor_and_cost_once.py';raw=source.read_bytes()
+p=R/'ORIGINAL_COST_READER_EXIT_SCHEMA_ERROR_RETAINED.json';assert not p.exists();p.write_text(json.dumps(dict(epoch=time.time(),original_error="KeyError: 'actual_mode'",original_source_sha256=hashlib.sha256(raw).hexdigest(),pre_monitor_or_cost_report_write=True,actual_old_EXIT_schema_has_no_actual_mode=True,original_GENERIC_PPO_pending_true_not_charge_admission=True,independent_dispatch_ARGV_mode_required=True,v8_progress_lastupdate1_vs_retained_CPU2_distinguished=True,readonly_source_lookup_missing_rootmodule_paths_retained=True,no_GPU_or_PPO_or_budget_mutation=True),indent=2),encoding='utf8')
+assert not (R/'LOCAL_TEMP_ALL_ATTEMPTS_COST_CLASSIFICATION_ACTUAL.json').exists() and not (R/'LOCAL_FINAL_HOURLY_MONITOR_UPDATE_REQUEST.json').exists()
+text=raw.decode('utf8');anchor="  progress=a/'output/LOCAL_PPO_PROGRESS.json';pp=json.loads(progress.read_bytes()) if progress.exists() else None"
+assert text.count(anchor)==1
+replacement=anchor+"\n  argv=dispatch['argv'];actual_mode=argv[argv.index('--mode')+1] if '--mode' in argv else 'probe'\n  assert actual_mode in ('probe','fullrestore','train') and exit.get('actual_mode',actual_mode)==actual_mode\n  actual_updates=pp['actual_updates'] if pp else 0\n  if a.name=='temporary_train128_v8':\n   retained=json.loads((R/'V8_SAVE_WRITABLE_HANDLE_INDEPENDENT_CPU_VERIFIED.json').read_bytes());assert retained['passed'];cp=Path(retained['checkpoint']['path']);assert hashlib.sha256(cp.read_bytes()).hexdigest()==retained['checkpoint']['sha256'];actual_updates=retained['actual_updates']"
+text=text.replace(anchor,replacement).replace("exit['actual_mode']","actual_mode").replace("actual_PPO_updates=pp['actual_updates'] if pp else 0","actual_PPO_updates=actual_updates,written_progress_snapshot_updates=pp['actual_updates'] if pp else 0")
+text=text.replace('import json,time,tomllib,hashlib','import json,time,tomllib,hashlib')
+p=D/'prepare_local_final_monitor_cost_reviewed_payload.py';assert not p.exists();p.write_text(text,encoding='utf8');namespace={'__name__':'independent_cost_reader_schema','__file__':str(p)};exec(compile(text,str(p),'exec'),namespace);namespace['main']()

@@ -1,0 +1,268 @@
+{
+  "epoch": 1791769149.9623375,
+  "installed_native_sensor_sources": [
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\base_multi_mesh_ray_caster.py",
+      "bytes": 23002,
+      "sha256": "01eaacf2a8c290f229b7dfaf2eb3e75d8ffffc5be9e1596f22f83870105dccdb",
+      "matched_source": [
+        {
+          "line": 446,
+          "context": "                env_mask,\n                self._mesh_ids_wp,\n                self._ray_starts_w,\n                self._ray_directions_w,\n                self._data._ray_hits_w,\n                self._ray_distance_wp,\n                self._dummy_normal_wp,\n                self._dummy_face_id_wp,\n                self._data.ray_mesh_ids.warp if self.cfg.update_mesh_ids else self._ray_mesh_id_wp,"
+        }
+      ]
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\base_multi_mesh_ray_caster_camera.py",
+      "bytes": 11549,
+      "sha256": "2861680bebb862030e16919bec3e3cd98df3db4cdb6499a55941471123f04bfd",
+      "matched_source": [
+        {
+          "line": 100,
+          "context": "        self._compute_intrinsic_matrices()\n\n        # Compute local ray starts/directions from the camera pattern (torch, init-time only)\n        ray_starts_local, ray_directions_local = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch, self._device\n        )\n        self.num_rays = ray_directions_local.shape[1]\n\n        # Store local (sensor-frame) ray arrays as ProxyArrays for Warp kernel dispatch."
+        },
+        {
+          "line": 103,
+          "context": "        ray_starts_local, ray_directions_local = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch, self._device\n        )\n        self.num_rays = ray_directions_local.shape[1]\n\n        # Store local (sensor-frame) ray arrays as ProxyArrays for Warp kernel dispatch.\n        self.ray_starts = ProxyArray(wp.from_torch(ray_starts_local.contiguous(), dtype=wp.vec3f))\n        self.ray_directions = ProxyArray(wp.from_torch(ray_directions_local.contiguous(), dtype=wp.vec3f))\n"
+        },
+        {
+          "line": 107,
+          "context": "\n        # Store local (sensor-frame) ray arrays as ProxyArrays for Warp kernel dispatch.\n        self.ray_starts = ProxyArray(wp.from_torch(ray_starts_local.contiguous(), dtype=wp.vec3f))\n        self.ray_directions = ProxyArray(wp.from_torch(ray_directions_local.contiguous(), dtype=wp.vec3f))\n\n        # Camera-frame offset and drift buffers.\n        self._create_offset_buffers(self._view.count)\n\n        # World-frame ray buffers."
+        },
+        {
+          "line": 114,
+          "context": "\n        # World-frame ray buffers.\n        self._ray_starts_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n        self._ray_directions_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n\n        # Ray hit positions as a warp array; expose a ProxyArray for debug visualisation.\n        self.ray_hits_w = ProxyArray(wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device))\n\n        # Per-ray closest-hit distance for atomic_min across meshes"
+        },
+        {
+          "line": 152,
+          "context": "                self.drift.warp,\n                self.ray_cast_drift.warp,\n                self.ray_starts.warp,\n                self.ray_directions.warp,\n                int(ray_caster_kernels.ALIGNMENT_BASE),\n            ],\n            outputs=[\n                self._data.pos_w.warp,\n                self._data.quat_w_world.warp,"
+        },
+        {
+          "line": 159,
+          "context": "                self._data.pos_w.warp,\n                self._data.quat_w_world.warp,\n                self._ray_starts_w,\n                self._ray_directions_w,\n            ],\n            device=self._device,\n        )\n\n    def _update_buffers_impl(self, env_mask: wp.array):"
+        },
+        {
+          "line": 194,
+          "context": "                env_mask,\n                self._mesh_ids_wp,\n                self._ray_starts_w,\n                self._ray_directions_w,\n                self.ray_hits_w.warp,\n                self._ray_distance_cam_wp,\n                self._ray_normal_w,\n                self._ray_face_id_wp,\n                self._ray_mesh_id_wp,"
+        },
+        {
+          "line": 218,
+          "context": "                    env_mask,\n                    self._data.quat_w_world.warp,\n                    self._ray_distance_cam_wp,\n                    self._ray_directions_w,\n                    int(self.image_shape[1]),\n                    bool(self._depth_clip_enabled),\n                    float(self.cfg.max_distance),\n                    self._depth_clip_fill_value,\n                ],"
+        }
+      ]
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\base_ray_caster.py",
+      "bytes": 15254,
+      "sha256": "6aa7b375bc54716215407bbb885f31624aea8a107e3d45d99ba0ae11bf61dd2a",
+      "matched_source": [
+        {
+          "line": 204,
+          "context": "\n    def _initialize_rays_impl(self):\n        # Compute ray starts and directions from pattern (torch, init-time only)\n        ray_starts_torch, ray_directions_torch = self.cfg.pattern_cfg.func(self.cfg.pattern_cfg, self._device)\n        self.num_rays = len(ray_directions_torch)\n\n        # Apply sensor offset rotation/position to local ray pattern\n        offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)\n        offset_quat = torch.tensor(list(self.cfg.offset.rot), device=self._device)"
+        },
+        {
+          "line": 205,
+          "context": "    def _initialize_rays_impl(self):\n        # Compute ray starts and directions from pattern (torch, init-time only)\n        ray_starts_torch, ray_directions_torch = self.cfg.pattern_cfg.func(self.cfg.pattern_cfg, self._device)\n        self.num_rays = len(ray_directions_torch)\n\n        # Apply sensor offset rotation/position to local ray pattern\n        offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)\n        offset_quat = torch.tensor(list(self.cfg.offset.rot), device=self._device)\n        ray_directions_torch = math_utils.quat_apply("
+        },
+        {
+          "line": 209,
+          "context": "\n        # Apply sensor offset rotation/position to local ray pattern\n        offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)\n        offset_quat = torch.tensor(list(self.cfg.offset.rot), device=self._device)\n        ray_directions_torch = math_utils.quat_apply(\n            offset_quat.repeat(len(ray_directions_torch), 1), ray_directions_torch\n        )\n        ray_starts_torch += offset_pos\n"
+        },
+        {
+          "line": 210,
+          "context": "        # Apply sensor offset rotation/position to local ray pattern\n        offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)\n        offset_quat = torch.tensor(list(self.cfg.offset.rot), device=self._device)\n        ray_directions_torch = math_utils.quat_apply(\n            offset_quat.repeat(len(ray_directions_torch), 1), ray_directions_torch\n        )\n        ray_starts_torch += offset_pos\n\n        # Repeat for each environment"
+        },
+        {
+          "line": 211,
+          "context": "        offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)\n        offset_quat = torch.tensor(list(self.cfg.offset.rot), device=self._device)\n        ray_directions_torch = math_utils.quat_apply(\n            offset_quat.repeat(len(ray_directions_torch), 1), ray_directions_torch\n        )\n        ray_starts_torch += offset_pos\n\n        # Repeat for each environment\n        ray_starts_torch = ray_starts_torch.repeat(self._view_count, 1, 1).contiguous()"
+        },
+        {
+          "line": 217,
+          "context": "\n        # Repeat for each environment\n        ray_starts_torch = ray_starts_torch.repeat(self._view_count, 1, 1).contiguous()\n        ray_directions_torch = ray_directions_torch.repeat(self._view_count, 1, 1).contiguous()\n\n        # Keep public aliases warp-first; kernels use the underlying Warp arrays.\n        self.ray_starts = ProxyArray(wp.from_torch(ray_starts_torch, dtype=wp.vec3f))\n        self.ray_directions = ProxyArray(wp.from_torch(ray_directions_torch, dtype=wp.vec3f))\n"
+        },
+        {
+          "line": 221,
+          "context": "\n        # Keep public aliases warp-first; kernels use the underlying Warp arrays.\n        self.ray_starts = ProxyArray(wp.from_torch(ray_starts_torch, dtype=wp.vec3f))\n        self.ray_directions = ProxyArray(wp.from_torch(ray_directions_torch, dtype=wp.vec3f))\n\n        # Drift buffers are warp-first; reset uses explicit .torch views for sampling.\n        self.drift = ProxyArray(wp.zeros(self._view_count, dtype=wp.vec3f, device=self._device))\n        self.ray_cast_drift = ProxyArray(wp.zeros(self._view_count, dtype=wp.vec3f, device=self._device))\n"
+        },
+        {
+          "line": 229,
+          "context": "\n        # World-frame ray buffers\n        self._ray_starts_w = wp.empty((self._view_count, self.num_rays), dtype=wp.vec3f, device=self._device)\n        self._ray_directions_w = wp.empty((self._view_count, self.num_rays), dtype=wp.vec3f, device=self._device)\n\n        # Data buffers\n        self._data.create_buffers(self._view_count, self.num_rays, self._device)\n\n        # Dummy distance/normal buffers required by the merged raycast_mesh_masked_kernel signature."
+        },
+        {
+          "line": 271,
+          "context": "                self.drift.warp,\n                self.ray_cast_drift.warp,\n                self.ray_starts.warp,\n                self.ray_directions.warp,\n                self._alignment_mode,\n            ],\n            outputs=[\n                self._data._pos_w,\n                self._data._quat_w,"
+        },
+        {
+          "line": 278,
+          "context": "                self._data._pos_w,\n                self._data._quat_w,\n                self._ray_starts_w,\n                self._ray_directions_w,\n            ],\n            device=self._device,\n        )\n\n    def _update_buffers_impl(self, env_mask: wp.array):"
+        },
+        {
+          "line": 303,
+          "context": "                BaseRayCaster.meshes[(self.cfg.mesh_prim_paths[0], self._device)].id,\n                env_mask,\n                self._ray_starts_w,\n                self._ray_directions_w,\n                float(self.cfg.max_distance),\n                int(False),  # return_distance: not needed by RayCaster\n                int(False),  # return_normal: not needed by RayCaster\n                self._data._ray_hits_w,\n                self._dummy_ray_distance,"
+        }
+      ]
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\base_ray_caster_camera.py",
+      "bytes": 27583,
+      "sha256": "b80c70058776d3f7bd82296de86419f1b34e681430ed6d21d74cd18e66a41cf4",
+      "matched_source": [
+        {
+          "line": 137,
+          "context": "        self._focal_length = focal_length\n        # recompute ray directions\n        ray_starts_torch = self.ray_starts.torch if hasattr(self.ray_starts, \"torch\") else self.ray_starts\n        ray_directions_torch = (\n            self.ray_directions.torch if hasattr(self.ray_directions, \"torch\") else self.ray_directions\n        )\n        ray_starts_torch[env_ids], ray_directions_torch[env_ids] = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch[env_ids], self._device\n        )"
+        },
+        {
+          "line": 138,
+          "context": "        # recompute ray directions\n        ray_starts_torch = self.ray_starts.torch if hasattr(self.ray_starts, \"torch\") else self.ray_starts\n        ray_directions_torch = (\n            self.ray_directions.torch if hasattr(self.ray_directions, \"torch\") else self.ray_directions\n        )\n        ray_starts_torch[env_ids], ray_directions_torch[env_ids] = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch[env_ids], self._device\n        )\n        # Refresh warp views of local ray buffers; .contiguous() may produce a copy so we store"
+        },
+        {
+          "line": 140,
+          "context": "        ray_directions_torch = (\n            self.ray_directions.torch if hasattr(self.ray_directions, \"torch\") else self.ray_directions\n        )\n        ray_starts_torch[env_ids], ray_directions_torch[env_ids] = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch[env_ids], self._device\n        )\n        # Refresh warp views of local ray buffers; .contiguous() may produce a copy so we store\n        # the contiguous tensors explicitly to prevent GC while the warp views are alive.\n        if hasattr(self, \"_ray_starts_local\"):"
+        },
+        {
+          "line": 147,
+          "context": "        # the contiguous tensors explicitly to prevent GC while the warp views are alive.\n        if hasattr(self, \"_ray_starts_local\"):\n            self._ray_starts_contiguous = ray_starts_torch.contiguous()\n            self._ray_directions_contiguous = ray_directions_torch.contiguous()\n            self._ray_starts_local = wp.from_torch(self._ray_starts_contiguous, dtype=wp.vec3f)\n            self._ray_directions_local = wp.from_torch(self._ray_directions_contiguous, dtype=wp.vec3f)\n\n    def reset(self, env_ids: Sequence[int] | None = None, env_mask: wp.array | None = None):\n        env_mask = self._resolve_indices_and_mask(env_ids, env_mask)"
+        },
+        {
+          "line": 149,
+          "context": "            self._ray_starts_contiguous = ray_starts_torch.contiguous()\n            self._ray_directions_contiguous = ray_directions_torch.contiguous()\n            self._ray_starts_local = wp.from_torch(self._ray_starts_contiguous, dtype=wp.vec3f)\n            self._ray_directions_local = wp.from_torch(self._ray_directions_contiguous, dtype=wp.vec3f)\n\n    def reset(self, env_ids: Sequence[int] | None = None, env_mask: wp.array | None = None):\n        env_mask = self._resolve_indices_and_mask(env_ids, env_mask)\n        # reset the timestamps\n        SensorBase.reset(self, env_mask=env_mask)"
+        },
+        {
+          "line": 276,
+          "context": "    def _create_offset_buffers(self, count: int):\n        \"\"\"Create Warp-owned camera offset and drift buffers.\"\"\"\n        quat_w = math_utils.convert_camera_frame_orientation_convention(\n            torch.tensor([self.cfg.offset.rot], device=self._device), origin=self.cfg.offset.convention, target=\"world\"\n        )\n        offset_pos = [tuple(float(v) for v in self.cfg.offset.pos)] * count\n        offset_quat = [tuple(float(v) for v in quat_w.squeeze(0).tolist())] * count\n        self._offset_pos_wp = wp.array(offset_pos, dtype=wp.vec3f, device=self._device)\n        self._offset_quat_wp = wp.array(offset_quat, dtype=wp.quatf, device=self._device)"
+        },
+        {
+          "line": 295,
+          "context": "        # compute intrinsic matrices\n        self._compute_intrinsic_matrices()\n        # compute ray starts and directions\n        self.ray_starts, self.ray_directions = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch, self._device\n        )\n        self.num_rays = self.ray_directions.shape[1]\n\n        # Offset/drift buffers are warp-primary so kernels always see current values without re-wrapping."
+        },
+        {
+          "line": 298,
+          "context": "        self.ray_starts, self.ray_directions = self.cfg.pattern_cfg.func(\n            self.cfg.pattern_cfg, self._data.intrinsic_matrices.torch, self._device\n        )\n        self.num_rays = self.ray_directions.shape[1]\n\n        # Offset/drift buffers are warp-primary so kernels always see current values without re-wrapping.\n        self._create_offset_buffers(self._view.count)\n\n        # Warp buffers for world-frame rays (used by update kernel)"
+        },
+        {
+          "line": 305,
+          "context": "\n        # Warp buffers for world-frame rays (used by update kernel)\n        self._ray_starts_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n        self._ray_directions_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n\n        # Warp views for ray_starts and ray_directions (from torch tensors returned by pattern_cfg.func)\n        # These are (num_envs, num_rays, 3) torch tensors; wrap as warp vec3f arrays.\n        # Store contiguous tensors explicitly so they are not garbage-collected while the\n        # warp views are alive (mirrors the pattern in RayCaster._initialize_impl)."
+        },
+        {
+          "line": 307,
+          "context": "        self._ray_starts_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n        self._ray_directions_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)\n\n        # Warp views for ray_starts and ray_directions (from torch tensors returned by pattern_cfg.func)\n        # These are (num_envs, num_rays, 3) torch tensors; wrap as warp vec3f arrays.\n        # Store contiguous tensors explicitly so they are not garbage-collected while the\n        # warp views are alive (mirrors the pattern in RayCaster._initialize_impl).\n        self._ray_starts_contiguous = self.ray_starts.contiguous()\n        self._ray_directions_contiguous = self.ray_directions.contiguous()"
+        },
+        {
+          "line": 312,
+          "context": "        # Store contiguous tensors explicitly so they are not garbage-collected while the\n        # warp views are alive (mirrors the pattern in RayCaster._initialize_impl).\n        self._ray_starts_contiguous = self.ray_starts.contiguous()\n        self._ray_directions_contiguous = self.ray_directions.contiguous()\n        self._ray_starts_local = wp.from_torch(self._ray_starts_contiguous, dtype=wp.vec3f)\n        self._ray_directions_local = wp.from_torch(self._ray_directions_contiguous, dtype=wp.vec3f)\n\n        # Intermediate warp buffers for ray results (filled with inf before each raycasting step)\n        self._ray_distance_wp = wp.empty((self._view.count, self.num_rays), dtype=wp.float32, device=self._device)"
+        },
+        {
+          "line": 314,
+          "context": "        self._ray_starts_contiguous = self.ray_starts.contiguous()\n        self._ray_directions_contiguous = self.ray_directions.contiguous()\n        self._ray_starts_local = wp.from_torch(self._ray_starts_contiguous, dtype=wp.vec3f)\n        self._ray_directions_local = wp.from_torch(self._ray_directions_contiguous, dtype=wp.vec3f)\n\n        # Intermediate warp buffers for ray results (filled with inf before each raycasting step)\n        self._ray_distance_wp = wp.empty((self._view.count, self.num_rays), dtype=wp.float32, device=self._device)\n        if \"normals\" in self.cfg.data_types:\n            self._ray_normal_w = wp.empty((self._view.count, self.num_rays), dtype=wp.vec3f, device=self._device)"
+        },
+        {
+          "line": 340,
+          "context": "                self.drift.warp,\n                self.ray_cast_drift.warp,\n                self._ray_starts_local,\n                self._ray_directions_local,\n                int(ray_caster_kernels.ALIGNMENT_BASE),\n            ],\n            outputs=[\n                self._data.pos_w.warp,\n                self._data.quat_w_world.warp,"
+        },
+        {
+          "line": 347,
+          "context": "                self._data.pos_w.warp,\n                self._data.quat_w_world.warp,\n                self._ray_starts_w,\n                self._ray_directions_w,\n            ],\n            device=self._device,\n        )\n\n    def _update_frame(self, env_mask: wp.array, frame_op: int):"
+        },
+        {
+          "line": 389,
+          "context": "                BaseRayCaster.meshes[(self.cfg.mesh_prim_paths[0], self._device)].id,\n                env_mask,\n                self._ray_starts_w,\n                self._ray_directions_w,\n                float(ray_caster_kernels.CAMERA_RAYCAST_MAX_DIST),\n                int(True),  # return_distance: always needed for depth output\n                need_normal,\n                self.ray_hits_w.warp,\n                self._ray_distance_wp,"
+        },
+        {
+          "line": 408,
+          "context": "                    env_mask,\n                    self._data.quat_w_world.warp,\n                    self._ray_distance_wp,\n                    self._ray_directions_w,\n                    int(self.image_shape[1]),\n                    bool(self._depth_clip_enabled),\n                    float(self.cfg.max_distance),\n                    self._depth_clip_fill_value,\n                ],"
+        }
+      ]
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster.py",
+      "bytes": 563,
+      "sha256": "476f26bcd47e1ae989198ef083c4fe17806e524812ee121cf7462a17bc8dc4ac",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster_camera.py",
+      "bytes": 607,
+      "sha256": "722bd19621efc5730441e8525c1df1071772f04647c6da7c5f2ba3a3413a22a0",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster_camera_cfg.py",
+      "bytes": 1320,
+      "sha256": "13019f98bfe31b35abb3c68f560c663a2082263a2cd730356ee9d9a0e50af8f5",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster_camera_data.py",
+      "bytes": 991,
+      "sha256": "a239dba0f974072e3a2732de462b35581eb8c71d762275df8f29bf06bad0f208",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster_cfg.py",
+      "bytes": 2814,
+      "sha256": "13f3e743300363656bed2a3c525d233b6e5f2862ba01d4ec45621f441c3da77e",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\multi_mesh_ray_caster_data.py",
+      "bytes": 648,
+      "sha256": "80931ba3f459112a328a9a369774a0bee7234124262599c56eab7419dd3274d8",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\ray_caster.py",
+      "bytes": 496,
+      "sha256": "55bed52ecba4197649ad87a32284c1222b99d68f9df1133a5fc4994b0e786eb8",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\ray_caster_camera.py",
+      "bytes": 540,
+      "sha256": "122696ad21efceea5909b7df82eba1e2cf0dd6f4b4a8ead9d326e680c42e97ef",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\ray_caster_camera_cfg.py",
+      "bytes": 2724,
+      "sha256": "321786424062a9a0b5cf2363262bd86dccadec243dea044e4dcc35de7ddcf5d5",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\ray_caster_cfg.py",
+      "bytes": 4479,
+      "sha256": "3d8b403ebc5ad5af9cd42da12a85d35f296564c0da940e1a6bc6cd367046d0e9",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab\\isaaclab\\sensors\\ray_caster\\ray_caster_data.py",
+      "bytes": 3330,
+      "sha256": "8a849cbeb2d7c58dce2891728958fe03cb9fb2ebcab8ccd67ed3884a54f760ca",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab_physx\\isaaclab_physx\\sensors\\ray_caster\\multi_mesh_ray_caster.py",
+      "bytes": 490,
+      "sha256": "1f20a659f1a89faa50d8e54acdf4c27cbcc6d3bdad322e1e12533cab18dea68e",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab_physx\\isaaclab_physx\\sensors\\ray_caster\\multi_mesh_ray_caster_camera.py",
+      "bytes": 521,
+      "sha256": "dc4de97a4e0ade0aed3041bba08b519f99cf9b4c85b107cff18c0a4d02e09e14",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab_physx\\isaaclab_physx\\sensors\\ray_caster\\ray_caster.py",
+      "bytes": 9159,
+      "sha256": "300266751ed1c3b5bb75f102aac76c43a62d015430db74104c2fa3fe2cc5e3a6",
+      "matched_source": []
+    },
+    {
+      "path": "D:\\claude2\\fangzhen\\third_party\\IsaacLab-3.0.0-beta2.patch1\\source\\isaaclab_physx\\isaaclab_physx\\sensors\\ray_caster\\ray_caster_camera.py",
+      "bytes": 474,
+      "sha256": "e2ab447419c6ce7ac045264d9411a54bb92dc79cb55acc788c515218e364ed11",
+      "matched_source": []
+    }
+  ],
+  "no_app_GPU_or_worker_mutation": true
+}

@@ -1,0 +1,54 @@
+from pathlib import Path
+import ast,json,time,os,subprocess,argparse,traceback,torch
+import supervise_wave50_route_lifecycle_once as prior
+from wave50_lifetime_fullsave_cpu import fullsave
+D=prior.D;R=prior.R;CODE=prior.CODE;s=prior.s;read=prior.read;identity=prior.identity
+OLD=Path('/home/egde/rl_candidates/MOD4_S3_E1_WAVE50_ROUTE_STARTUP_RESOURCE_REVIEWED_20261012')
+SOURCE_SHA=prior.SOURCE_SHA
+def verify():
+ prior_verify();f=read(R/'SOURCE_FREEZE.json')['sha256'];old=read(OLD/'reports/SOURCE_FREEZE.json')['sha256'];assert len(old)==449 and all(f[k]==v for k,v in old.items())
+ decision=read(R/'COMPLETE153_EPISODE_LIFETIME_AXIS_DECISION.json');assert decision['new_lifetime_axis_authorized_by_human_continue_and004005_bounded_diagnosis'] and decision['two_same_route_blocks_complete'] and decision['forward_complete']==13 and decision['reverse_complete']==23
+ b=read(s.q.ctl.CANONICAL);assert b['authorized_training_seconds']==1188000 and len(b['budget_extensions'])==7 and b['remaining_training_seconds']>1020
+ assert read(R/'WAVE50_TARGET_CPU_PASSED.json')['passed']
+def wait_existing():
+ proof=read(OLD/'reports/INDEPENDENT_POSTEXIT_FULLSTATE_CPU_ACTUAL.json');assert proof['passed'] and proof['closeout_ready']
+ for loc in (read(OLD/'reports/E1_STATE.json')['owner'],read(OLD/'reports/E1_GUARDIAN_STARTED.json'),dict(pid=3374665,start_ticks=94934812)):
+  actual=identity(loc['pid']);assert not actual or actual['state']=='Z' or actual['start_ticks']!=loc['start_ticks']
+ assert not trainers() and s.q.base.budget_state()['active_segment'] is None and not read(s.q.ctl.STATE_PATH).get('active_training')
+def trainers():
+ rows=prior_trainers()
+ for p in Path('/proc').glob('[0-9]*/cmdline'):
+  try:
+   argv=[x.decode(errors='replace') for x in p.read_bytes().split(bytes([0]))]
+   if any(Path(x).name in ('train_wave50_lifetime_resume_ppo.py','train_wave50_lifetime_fresh_preflight_ppo.py','native_e1_wave50_lifetime_scope_probe.py','probe_wave50_lifetime_fresh_process_full_resume.py','train_wave50_route_startup_resource_reviewed_ppo.py') for x in argv):rows.append(identity(int(p.parent.name)))
+  except (OSError,ValueError):pass
+ return rows
+prior_verify=prior.verify;prior_trainers=prior.trainers
+prior.verify=verify;prior.wait_existing=wait_existing;prior.fullsave=fullsave;prior.trainers=trainers
+prior.__file__=__file__
+prior.s.verify=verify
+replacements={'train_wave50_route_resume_ppo.py':'train_wave50_lifetime_resume_ppo.py','train_wave50_route_fresh_preflight_ppo.py':'train_wave50_lifetime_fresh_preflight_ppo.py','probe_wave50_route_fresh_process_full_resume.py':'probe_wave50_lifetime_fresh_process_full_resume.py','native_e1_wave50_route_lifecycle_scope_probe.py':'native_e1_wave50_lifetime_scope_probe.py','e1_WAVE50_route_lifecycle_observation':'e1_WAVE50_episode_lifetime_observation','bounded_E1_WAVE50_route_lifecycle_learning':'bounded_E1_WAVE50_episode_lifetime_learning','E1_WAVE50_route_lifecycle_saved_review_ready':'E1_WAVE50_episode_lifetime_saved_review_ready','e1-wave50-route-lifecycle-repair':'e1-wave50-episode-lifetime-repair'}
+for name in ('train','native_contract','fresh_resume','guardian','main','publish'):
+ node=next(x for x in ast.parse((D/'supervise_wave50_route_lifecycle_once.py').read_text()).body if isinstance(x,ast.FunctionDef) and x.name==name)
+ class Rename(ast.NodeTransformer):
+  def visit_Constant(self,n):
+   if isinstance(n.value,str):
+    for a,b in replacements.items():n.value=n.value.replace(a,b)
+   return n
+ text=ast.unparse(Rename().visit(node))
+ if name=='train':
+  anchor="route = read(run / 'E1_WAVE50_ROUTE_RESUME_STARTUP_VERIFIED.json')";assert anchor in text
+  text=text.replace(anchor,"lifetime = read(run / 'E1_WAVE50_LIFETIME_RESUME_STARTUP_VERIFIED.json')\n        assert lifetime['passed'] and lifetime['explicit_new_episode_lifetime_scope'] and not lifetime['predecessor_lifetime_state_restored_exact'] and lifetime['actual_CUDA_lifetime_disk_roundtrip_exact'] and lifetime['saved_source_episode_plus_one_verified']\n        "+anchor)
+ if name=='native_contract':
+  anchor="audit_native_trace(outpath, v)";assert anchor in text
+  text=text.replace(anchor,anchor+"\n        assert v['episode_lifetime']['Wave_seconds']==40. and v['episode_lifetime']['other_seconds']==20. and v['actual_lifetime_GPU_fixture']['passed'] and v['actual_lifetime_GPU_fixture']['actual_bound_CUDA_state']\n        write(label+'_LIFETIME_GPU_SCOPE_PASSED.json',dict(passed=True,audit=v['episode_lifetime'],fixture=v['actual_lifetime_GPU_fixture'],physical_callbacks=v['physical_callback_count']))")
+ if name=='fresh_resume':
+  anchor="assert proof['passed']";assert anchor in text
+  text=text.replace(anchor,"assert proof['lifetime']['predecessor_lifetime_state_restored_exact'] and not proof['lifetime']['explicit_new_episode_lifetime_scope'] and proof['lifetime']['actual_CUDA_lifetime_disk_roundtrip_exact']\n    "+anchor)
+ exec(compile(text,str(__file__)+'#new-lifetime-'+name,'exec'),vars(prior))
+if __name__=='__main__':
+ p=argparse.ArgumentParser();p.add_argument('--guardian',nargs=2);a=p.parse_args()
+ try:
+  if a.guardian:prior.guardian(int(a.guardian[0]),int(a.guardian[1]))
+  else:prior.main()
+ except BaseException:prior.write('E1_ATTENTION.json',dict(epoch=time.time(),error=traceback.format_exc(),own_child_still_alive=bool(s.LIVE and s.LIVE.poll() is None),active_segment=s.q.base.budget_state()['active_segment'],original_failure_retained=True,no_blind_resume=True));raise

@@ -1,0 +1,21 @@
+from pathlib import Path
+import json,time,tomllib,hashlib
+D=Path(__file__).resolve().parent;R=D/'reports';T=Path('C:/Users/lulu/.codex/automations/mod4-10/automation.toml');s=tomllib.loads(T.read_text(encoding='utf8'))
+p=D/'MONITOR_PREVIOUS_REMOTE_PAUSED_BEFORE_LOCAL_TEMP.md';assert not p.exists();p.write_text(s['prompt'],encoding='utf8')
+prompt=f'''人类2026-10-13明确授权“补齐适配在本机进行临时训练”。仅本机独立128环境临时分支获恢复授权，远端正式训练和评测继续暂停；不得自动SSH/ping3060或4090，不恢复任何oldmain/resume/once或远端预算事务。mod4-10同一heartbeat恢复ACTIVE每1h、同target；健康pending DONT_NOTIFY静默，仅实质阶段、真实修复、重大退化、完成或人类动作NOTIFY。无第二驻守/5minSSH/自动加时。
+
+当前本机root={D}，唯一actualattempt=attempts/temporary_train128_v10_sameidentity_saved_source，读取其真实DISPATCH_RECEIPT/CIM或psutil PIDcreation/argv/cwd/GUARDIAN_CURRENT/LOCAL_FULLSTATE_STARTUP_VERIFIED/LOCAL_PPO_PROGRESS/LOCAL_LATEST_COMPLETE/LOCAL_PPO_FORMAL_FINAL_ACTUAL/EXIT_RECEIPT及本机LOCAL_GPU_EXCLUSIVE.lock实际msvcrt held/free，不按文件exists。首孩子27316/create1791835930.1418393只定位，后actual优先，不假永久active。实际已4updates96control的完整model32268 SHA48a4a0e98a6091602beb033a22add6b09e4bba0dbb838606137f15a66887de3b/1418935B/107floating/9actorchanged/optimizerdelta80，活动保存不是final或50mm合格。仅读{D}/read_local_training_actual.py可按actualstage复用，CPU不初始化新GPU/不启动PPO。
+
+原源459最新model32264 SHA d05c2f3ce1acc7988137f94a8853be0a6ac686d53225ef000821031bd1ffe64a/19043064B/20k/107floating/完整backup原件不变。新WindowsIsaacSim5.1/IsaacLab0.54.4/Torch2.7cu128/5070TiLaptop12GB为显式本机后端分支，不冒远端PhysX引擎等价。原1600cells/10,306,304triangles两geometrySHA/50mmprofile与assignment exact；只环境数20k→128确定性五族38/26/26/19/19源索引投影，原actorcriticstdoptimizer/globalnamed/所有privateCPUCUDAstreams byteexact，99个perenvtensor字段exact选择；固定原selectedentry不重排车道、完整30q/各episode+1/12startup严格CUDA磁盘roundtrip通过。所有命令DR奖励LR硬件/2.5msx4-TGS32/4-100Hz-5msbin3/35actor38critic6action保持，source6actionhardtop1/无teacher/真值actor-gate/heading纠正，其他E0/35/CURB20/SLOPE权重不覆盖。
+
+本机API只PhysxCfg接口/rootview/setter、SciPyxyzw→本机wxyz/COM真实frame、contact getter dt→同Warp数组/Tensor.torch只读身份桥，安装SDK文件不改。128小batch缓冲容量明确独立下调，原solver/geometry/contact/query阈值不变，overflow真实失败不得松容差。120control零动作SDK闭环.762557mm/mimic.001691456通过；fullrestore48control192callbacks闭环.6558475mm/mimic.00154408、ordinary/integrityunknown0/finite/两coverage通过。全actualsource/errors/cost保存。
+
+原prepare多余workspacecontract路径assert/缺目录只读错误、SDKv1.sim.physics属性、v2contact_view/v3Tensor.torch、TensorDict._C在Kit导入后nativeC0000005(v5与v6)均保留；独立在任何Isaac模块前预加载TensorDict v7真实通过，不改已安装包。v8真实2PPO48control已写完整.saving.pt但Windows只读fd fsync BadFileDescriptor，原父failed不涂PASSED。第一次CPU关账读者误要求health48而文件只有24，严格拒绝保留；v9缺该proof在PPO前拒绝。新独立CPU确认v8float107/actor9/optimizerdelta40/完整raw48x128x16 finite/ordinary0/truncation2/physicalapplytick191/noSTOP，不伪完整48control健康回执；仅此retainedownfullstate允许新的same128续训。v10严格sameidentity从原v8.saving.pt恢复全部CPUCUDA/episode+1，再修Windowsr+b fsync，真实新4updates和完整保存通过。原失败耗时与旧false/raw保留，无旧GPU回放或kill/hotpatch。
+
+本机当前首有界临时窗口目标1800s含loadlearnsaveexit；原父15s自有guardian，不强杀，每2actualupdates完整CPUDR/RNG保存，STOP_AFTER_SAVE只当前更新后保存自然退出。当前窗口结束后读取全自己fullsave、成本、actualexit/锁free和完整trace；不盲续第三或自动更多PPO/70mm/新expert/全MoE，不把墙钟当每env物理暴露。user原“暂停关机”只对远端main持续生效，若新用户再要求暂停，先请求本机ownsave-stop，不删/覆盖源权重。WASD播放器不GUI/reset/stop/restart。
+
+005 solecanonical1188000s330h/七扩展早once，不复制/clearactive/refund/重tail/扩展。本机actualcost唯一记录在每attempt的parentEXIT和LOCAL_PPO_UNIQUE_COST_STARTED/ENDED，远端canonical对账仍pending，不假报已扣/新预算；这些是实际成本证据不是第二canonical。以后人类明确恢复远端后按原唯一账和实际匹配成本对账，不重复扣。CPU/SDK/fullrestore0PPO不计，v8真PPO和v9failed学习启动成本如实保留；原SDKEXIT泛型pending字段与真正noPPO分类分列。成本/预算需人类动作时NOTIFY，不自行补预算。
+
+所有saved源、拒绝、native错误/dump实际pathsizeSHA、未采用、完整state投影、GPUphysical/PPO/fullsave/cost/monitor/Gitreceipt持续Git。新stage用record_experiment唯一annotatedtrial actualremote main/tag/peeled/oldtags工具证明；未来报告普通supplement，push失败仅existingobjects不重record/tag/commit。大PTNPZUSDZIP/dump只actualpathsizeSHA原件保留，凭据不输出Git。源完整459四项4090评测raw此前全部保存但完整行为审查仍pending，不能以本机训练叫50mm或70mm合格；人类试玩差劲原记录保持。此旧prompt只历史{p} SHA{hashlib.sha256(p.read_bytes()).hexdigest()}，本机actual及新用户指令优先。
+'''
+q=R/'LOCAL_TEMP_HOURLY_MONITOR_UPDATE_REQUEST.json';assert not q.exists();q.write_text(json.dumps(dict(id='mod4-10',mode='update',kind='heartbeat',name=s['name'],status='ACTIVE',rrule=s['rrule'],targetThreadId=s['target_thread_id'],prompt=prompt),ensure_ascii=False,indent=2),encoding='utf8');print(json.dumps(dict(request=str(q))))

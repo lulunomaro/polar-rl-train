@@ -1,0 +1,20 @@
+from pathlib import Path
+import time,json,sys,hashlib,traceback
+F=Path(__file__).resolve().parent;W=F.parents[1];sys.path.insert(0,str(W/'MOD4_4090_WINDOWS_REPAIR_20261013'))
+from windows4090_native_transport import connect,powershell,upload
+R='C:/Users/Win10/Documents/MOD4_WAVE50_WINDOWS_4090_20261013';task='MOD4_Windows4090_IndependentArtifact_Subprocess_CPU_20261013'
+files=['windows4090_missing4_independent_artifact_cpu_review_v6.py','extract_native_wheelhouse_independent_artifact_reviewed_cpu_v6.py','windows4090_compatibility_artifacts_cpu_review_v6.py','windows4090_native_libraries_cpu_admission_v5.py','windows4090_cpu_dependency_install_subprocess_supervisor_v8.py']
+bundle=json.loads((F/'WINDOWS4090_MINIMAL_LABRL_BOUND_DEPENDENCY_COMPATIBILITY_CPU_ACTUAL.json').read_bytes())['bundle']
+items=[(F/f,R+'/'+f) for f in files]+[(Path(bundle['path']),R+'/packages/'+Path(bundle['path']).name)]
+out=F/('WINDOWS4090_INDEPENDENT_ARTIFACT_SUBPROCESS_CPU_DISPATCH_ACTUAL_'+str(time.time_ns())+'.json');j=dict(epoch=time.time(),task=task,sources=[],no_GPU_Kit_PPO_or_budgetwrite=True,original_download_parent_wait_unknown_not_stopped=True)
+try:
+ s=connect();pre=json.loads(powershell(s,"$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();$r='"+R+"';@{started=Test-Path -LiteralPath ($r+'/install_reports/CPU_SUBPROCESS_DEPENDENCY_SUPERVISOR_STARTED.json');task_present=[bool](Get-ScheduledTask -TaskName '"+task+"' -ErrorAction SilentlyContinue);own_python=Test-Path -LiteralPath ($r+'/env/python.exe');freeC=(Get-PSDrive C).Free}|ConvertTo-Json",timeout=30));j['pre']=pre;out.write_text(json.dumps(j,indent=2),encoding='utf8');assert pre['own_python'] and not pre['started'] and not pre['task_present'] and pre['freeC']>=30*1024**3
+ for p,remote in items:
+  h=hashlib.sha256(p.read_bytes()).hexdigest()
+  exists=powershell(s,"$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();if(Test-Path -LiteralPath '"+remote+"'){'PRESENT'}else{'ABSENT'}",timeout=25);assert exists=='ABSENT','unknown prior upload outcome requires separate actual SHA review'
+  upload(p,remote,timeout=60)
+  a=powershell(s,"$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();(Get-FileHash -LiteralPath '"+remote+"' -Algorithm SHA256).Hash.ToLower()",timeout=25);assert a==h
+  j['sources'].append(dict(local=str(p),remote=remote,bytes=p.stat().st_size,sha256=h,actual_remote_SHA_exact=True));out.write_text(json.dumps(j,indent=2),encoding='utf8')
+ code="$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();$r='"+R+"';$a=New-ScheduledTaskAction -Execute 'C:\\Users\\Win10\\Documents\\MOD4_WAVE50_WINDOWS_4090_20261013\\env\\python.exe' -Argument 'C:\\Users\\Win10\\Documents\\MOD4_WAVE50_WINDOWS_4090_20261013\\windows4090_cpu_dependency_install_subprocess_supervisor_v8.py';$u=New-ScheduledTaskPrincipal -UserId 'Win10' -LogonType S4U -RunLevel Highest;$st=New-ScheduledTaskSettingsSet -Hidden -ExecutionTimeLimit (New-TimeSpan -Hours 2);Register-ScheduledTask -TaskName '"+task+"' -Action $a -Principal $u -Settings $st|Out-Null;Start-ScheduledTask -TaskName '"+task+"';Start-Sleep -Seconds 2;@{task='"+task+"';registered_without_any_Trigger_argument=$true;started=if(Test-Path -LiteralPath ($r+'/install_reports/CPU_SUBPROCESS_DEPENDENCY_SUPERVISOR_STARTED.json')){Get-Content -LiteralPath ($r+'/install_reports/CPU_SUBPROCESS_DEPENDENCY_SUPERVISOR_STARTED.json') -Raw|ConvertFrom-Json}else{$null};stage=if(Test-Path -LiteralPath ($r+'/install_reports/04A_MISSING4_INDEPENDENT_ARTIFACT_CPU_REVIEW_STARTED.json')){Get-Content -LiteralPath ($r+'/install_reports/04A_MISSING4_INDEPENDENT_ARTIFACT_CPU_REVIEW_STARTED.json') -Raw|ConvertFrom-Json}else{$null}}|ConvertTo-Json -Depth 12"
+ j['dispatch']=json.loads(powershell(s,code,timeout=35));s.close();out.write_text(json.dumps(j,indent=2),encoding='utf8');print(json.dumps(dict(report=str(out),actual=j['dispatch']),ensure_ascii=True))
+except Exception as e:j.update(error_type=type(e).__name__,error=str(e),traceback=traceback.format_exc());out.write_text(json.dumps(j,indent=2),encoding='utf8');raise

@@ -1,0 +1,20 @@
+from pathlib import Path
+import sys,json,time,hashlib,traceback
+W=Path('C:/Users/lulu/Desktop/claude/mjcf');F=W/'MOD4_WAVE50_FACTOR_DIAGNOSIS_20261013/io_dr';sys.path.insert(0,str(W/'MOD4_4090_WINDOWS_REPAIR_20261013'))
+from windows4090_native_transport import connect,powershell,upload
+ROOT='C:/Users/Win10/Documents/MOD4_WAVE50_WINDOWS_4090_20261013'
+files=[(F/'TESTED_PYTHON311_CONDA_BASE_OFFLINE_20261013.zip','packages/TESTED_PYTHON311_CONDA_BASE_OFFLINE_20261013.zip'),(F/'windows4090_extract_minimal_conda_base_offline.py','windows4090_extract_minimal_conda_base_offline.py'),(F/'windows4090_offline_python_base_cpu_supervisor_v3.ps1','windows4090_offline_python_base_cpu_supervisor_v3.ps1')]
+r=dict(epoch=time.time(),files=[],no_GPU_or_PPO_or_budgetwrite=True,copy20_conda_archives_only_not_whole_env=True);p=F/('WINDOWS4090_OFFLINE_PY311_BASE_DISPATCH_ACTUAL_'+str(time.time_ns())+'.json');c=connect()
+def save():p.write_text(json.dumps(r,indent=2),encoding='utf8')
+try:
+ r['before']=json.loads(powershell(c,r"""$r='C:\Users\Win10\Documents\MOD4_WAVE50_WINDOWS_4090_20261013';if(Test-Path -LiteralPath (Join-Path $r 'env')){throw 'Prefix already consumed'};$t=Get-ScheduledTask -TaskName 'MOD4_Windows4090_CPU_HTTPS_Install_20261013';if($t.State.ToString()-eq'Running'){throw 'OldHTTPS ownCPU task running'};@{old_task_state=$t.State.ToString();old_task_result=(Get-ScheduledTaskInfo -TaskName $t.TaskName).LastTaskResult;prefix_unused=$true}|ConvertTo-Json -Compress""",45));save()
+ for f,relative in files:
+  expected=hashlib.sha256(f.read_bytes()).hexdigest();remote=ROOT+'/'+relative
+  upload(str(f),remote,timeout=180)
+  code=r"""$p='__PATH__';@{path=$p;bytes=(Get-Item -LiteralPath $p).Length;sha256=(Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash.ToLower()}|ConvertTo-Json -Compress""".replace('__PATH__',remote)
+  row=json.loads(powershell(c,code,45));assert row['bytes']==f.stat().st_size and row['sha256']==expected;r['files'].append(row);save()
+ source=r['files'][-1]['sha256']
+ code=r"""$ErrorActionPreference='Stop';$r='C:\Users\Win10\Documents\MOD4_WAVE50_WINDOWS_4090_20261013';$n='MOD4_Windows4090_CPU_Offline_Py311_20261013';if(Get-ScheduledTask -TaskName $n -ErrorAction SilentlyContinue){throw 'Offline newtask already consumed'};if(Test-Path -LiteralPath (Join-Path $r 'env')){throw 'Prefix consumed'};$f=Join-Path $r 'windows4090_offline_python_base_cpu_supervisor_v3.ps1';if((Get-FileHash -LiteralPath $f).Hash.ToLower()-ne'__SHA__'){throw 'Offline sourceSHA mismatch'};$a=New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File '+$f);$pr=New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType S4U -RunLevel Highest;$s=New-ScheduledTaskSettingsSet -Hidden -ExecutionTimeLimit ([TimeSpan]::FromHours(6)) -MultipleInstances IgnoreNew;Register-ScheduledTask -TaskName $n -Action $a -Principal $pr -Settings $s|Out-Null;Start-ScheduledTask -TaskName $n;Start-Sleep -Seconds 2;$t=Get-ScheduledTask -TaskName $n;$st=Join-Path $r 'install_reports\OFFLINE_BASE_SUPERVISOR_STARTED.json';$started=if(Test-Path -LiteralPath $st){[IO.File]::ReadAllText($st)|ConvertFrom-Json}else{$null};$a=@{epoch=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds();task=$n;state=$t.State.ToString();last_result=(Get-ScheduledTaskInfo -TaskName $n).LastTaskResult;trigger_count=@($t.Triggers|Where-Object{$null-ne$_}).Count;source_sha256='__SHA__';started=$started;no_GPU_PPO_budget_or_globalDNS_TLSchange=$true};[IO.File]::WriteAllText((Join-Path $r 'install_reports\OFFLINE_BASE_DEMAND_TASK_DISPATCH_ACTUAL.json'),($a|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false));$a|ConvertTo-Json -Depth 8 -Compress""".replace('__SHA__',source)
+ r['dispatch_actual']=json.loads(powershell(c,code,45));save();print(json.dumps(dict(report=str(p),actual=r),ensure_ascii=True))
+except BaseException:r['error']=traceback.format_exc();r['unknown_outcome_read_actual_before_any_repeat']=True;save();raise
+finally:c.close()

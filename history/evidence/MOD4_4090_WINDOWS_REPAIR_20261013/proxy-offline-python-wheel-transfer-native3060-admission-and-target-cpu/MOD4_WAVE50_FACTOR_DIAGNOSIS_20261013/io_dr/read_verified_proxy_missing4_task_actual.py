@@ -1,0 +1,11 @@
+from pathlib import Path
+import json,time,sys,traceback
+F=Path(__file__).resolve().parent;W=F.parents[1];sys.path.insert(0,str(W/'MOD4_4090_WINDOWS_REPAIR_20261013'))
+from windows4090_native_transport import connect,powershell
+R='C:/Users/Win10/Documents/MOD4_WAVE50_WINDOWS_4090_20261013';task='MOD4_Windows4090_VerifiedProxy_NvidiaMissing4_CPU_20261013'
+out=F/('WINDOWS4090_VERIFIED_PROXY_MISSING4_TASK_ACTUAL_'+str(time.time_ns())+'.json')
+code="""$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();$r='ROOT';$n='TASK';$t=Get-ScheduledTask -TaskName $n;$xml=[xml](Export-ScheduledTask -TaskName $n);$ri=@{};foreach($f in @('NVIDIA_MISSING4_SUPERVISOR_STARTED.json','02A_VERIFIED_PROXY_MISSING4_NVIDIA_DOWNLOAD_STARTED.json','02A_VERIFIED_PROXY_MISSING4_NVIDIA_DOWNLOAD_ENDED.json','NVIDIA_MISSING4_DOWNLOAD_ACTUAL_COMPLETE.json')){if(Test-Path -LiteralPath ($r+'/install_reports/'+$f)){$ri[$f]=Get-Content -LiteralPath ($r+'/install_reports/'+$f) -Raw|ConvertFrom-Json}};$proc=@();foreach($id in @(14048,18416)){$p=Get-Process -Id $id -ErrorAction SilentlyContinue;if($p){$proc+=@{pid=$p.Id;name=$p.Name;start=$p.StartTime.ToUniversalTime().ToString('o');path=$p.Path}}};@{epoch=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()/1000;task=$n;state=[string]$t.State;triggers_nonnull=@($t.Triggers|Where-Object{$null-ne$_}).Count;actual_XML_trigger_count=@($xml.Task.Triggers.ChildNodes|Where-Object{$_.NodeType-eq'Element'}).Count;prior_dispatch_at_null_trigger_count1_retained_as_reader_error=$true;processes=$proc;receipts=$ri;stdout_tail=@(Get-Content -LiteralPath ($r+'/install_logs/02A_VERIFIED_PROXY_MISSING4_NVIDIA_DOWNLOAD.stdout.log') -Tail 12);stderr_tail=@(Get-Content -LiteralPath ($r+'/install_logs/02A_VERIFIED_PROXY_MISSING4_NVIDIA_DOWNLOAD.stderr.log') -Tail 5);freeC=(Get-PSDrive C).Free}|ConvertTo-Json -Depth 12""".replace('ROOT',R).replace('TASK',task)
+try:
+ s=connect();actual=json.loads(powershell(s,code,timeout=40));s.close();out.write_text(json.dumps(actual,indent=2),encoding='utf8');print(json.dumps(dict(report=str(out),actual=actual),ensure_ascii=True))
+except Exception as e:
+ p=F/('WINDOWS4090_MISSING4_TASK_READER_ORIGINAL_ERROR_'+str(time.time_ns())+'.json');p.write_text(json.dumps(dict(error=str(e),error_type=type(e).__name__,traceback=traceback.format_exc()),indent=2),encoding='utf8');raise

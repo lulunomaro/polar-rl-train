@@ -1,0 +1,11 @@
+from pathlib import Path
+import json,time,sys,traceback,base64
+F=Path(__file__).resolve().parent;W=F.parents[1];sys.path.insert(0,str(W/'MOD4_4090_WINDOWS_REPAIR_20261013'))
+from windows4090_native_transport import connect,powershell
+out=F/('WINDOWS4090_CPU_SUBPROCESS_INSTALL_BASE64_STAGE_ACTUAL_'+str(time.time_ns())+'.json')
+code="""$OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new();$r='C:/Users/Win10/Documents/MOD4_WAVE50_WINDOWS_4090_20261013';$items=Get-ChildItem -LiteralPath ($r+'/install_reports') -File;$proof=@{};foreach($f in @($items|Where-Object{$_.Name-like'04*_STARTED.json'-or$_.Name-like'04*_ENDED.json'}|Sort-Object LastWriteTimeUtc|Select-Object -Last 4)+@($items|Where-Object{$_.Name-eq'WINDOWS4090_FULL_ENVIRONMENT_CPU_ACTUAL_COMPLETE.json'-or$_.Name-like'CPU_SUBPROCESS_ORIGINAL_FAILURE*'})){$b=[IO.File]::ReadAllBytes($f.FullName);$proof[$f.Name]=[Text.Encoding]::UTF8.GetString($b)|ConvertFrom-Json};$last=Get-ChildItem -LiteralPath ($r+'/install_logs') -Filter '04*.log' -File|Sort-Object LastWriteTimeUtc|Select-Object -Last 2;$logs=@();foreach($p in $last){$f=[IO.File]::Open($p.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite);$len=$f.Length;$n=[Math]::Min($len,4096);$f.Seek(-$n,[IO.SeekOrigin]::End)|Out-Null;$b=New-Object byte[] $n;$f.Read($b,0,$n)|Out-Null;$f.Dispose();$logs+=@{path=$p.FullName;bytes=$len;actual_tail_base64=[Convert]::ToBase64String($b)}};$payload=@{epoch=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()/1000;receipts=$proof;logs=$logs;freeC=(Get-PSDrive C).Free}|ConvertTo-Json -Depth 14;[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload))"""
+try:
+ s=connect();a=json.loads(base64.b64decode(powershell(s,code,timeout=30)).decode('utf8'));s.close();out.write_text(json.dumps(a,indent=2),encoding='utf8')
+ brief=dict(receipts=a['receipts'],logs=[dict(path=x['path'],bytes=x['bytes'],tail=base64.b64decode(x['actual_tail_base64']).decode('utf8','replace')) for x in a['logs']],freeC=a['freeC']);print(json.dumps(dict(report=str(out),actual=brief),ensure_ascii=True))
+except Exception as e:
+ p=F/('WINDOWS4090_CPU_SUBPROCESS_STAGE_READER_ERROR_'+str(time.time_ns())+'.json');p.write_text(json.dumps(dict(error_type=type(e).__name__,error=str(e),traceback=traceback.format_exc(),no_install_or_GPU_replay=True),indent=2),encoding='utf8');raise

@@ -1,0 +1,1011 @@
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: C:\Users\Win10\Documents\MOD4_WAVE50_WINDOWS_4090_20261013\sdk_exact\apps\isaaclab.python.headless.kit
+
+[36m===================================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: C:\Users\Win10\AppData\Local\Temp\isaaclab\logs\isaaclab_2026-10-13_19-37-50.log[0m
+[36m===================================================================================================================[0m
+
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 20260928
+	Physics step-size     : 0.0025
+	Rendering step-size   : 0.01
+	Environment step-size : 0.01
+[INFO] Generating terrains based on curriculum took : 5.941255 seconds
+[INFO]: Time taken for scene creation : 19.761365 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 128
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 2.532756 seconds
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++-------------------------------------------+
+|            Active Command Terms           |
++-------+-------+---------------------------+
+| Index | Name  |            Type           |
++-------+-------+---------------------------+
+|   0   | twist | WaveEntryDirectionCommand |
++-------+-------+---------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 2 active terms.
++--------------------------------------+
+| Active Event Terms in Mode: 'reset'  |
++--------+-----------------------------+
+| Index  | Name                        |
++--------+-----------------------------+
+|   0    | reset_scene                 |
+|   1    | reset_delay_lines           |
+|   2    | reset_history               |
+|   3    | reset_base                  |
+|   4    | consistent_start            |
+|   5    | mild_dr_white               |
+|   6    | sensor_mild_episode_bias    |
++--------+-----------------------------+
++------------------------------------+
+| Active Event Terms in Mode: 'step' |
++---------+--------------------------+
+|  Index  | Name                     |
++---------+--------------------------+
+|    0    | plant_metrics            |
+|    1    | air_state                |
+|    2    | gas_spring_preload       |
++---------+--------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 2 active terms.
++----------------------------------+
+|  Active Action Terms (shape: 6)  |
++---------+----------+-------------+
+|  Index  | Name     |   Dimension |
++---------+----------+-------------+
+|    0    | legs     |           4 |
+|    1    | wheels   |           2 |
++---------+----------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 2 groups.
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (35,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | commands                        |    (3,)   |
+|     1     | height_command                  |    (1,)   |
+|     2     | base_ang_vel                    |    (3,)   |
+|     3     | projected_gravity               |    (3,)   |
+|     4     | leg_pos                         |    (4,)   |
+|     5     | wheel_pos_slots                 |    (2,)   |
+|     6     | leg_vel                         |    (4,)   |
+|     7     | wheel_vel                       |    (2,)   |
+|     8     | last_action                     |    (6,)   |
+|     9     | mode_onehot                     |    (7,)   |
++-----------+---------------------------------+-----------+
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (38,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | commands                        |    (3,)   |
+|     1     | height_command                  |    (1,)   |
+|     2     | base_ang_vel                    |    (3,)   |
+|     3     | base_lin_vel                    |    (3,)   |
+|     4     | projected_gravity               |    (3,)   |
+|     5     | leg_pos                         |    (4,)   |
+|     6     | wheel_pos_slots                 |    (2,)   |
+|     7     | leg_vel                         |    (4,)   |
+|     8     | wheel_vel                       |    (2,)   |
+|     9     | last_action                     |    (6,)   |
+|     10    | mode_onehot                     |    (7,)   |
++-----------+---------------------------------+-----------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 7 active terms.
++-----------------------------------------+
+|         Active Termination Terms        |
++-------+----------------------+----------+
+| Index | Name                 | Time Out |
++-------+----------------------+----------+
+|   0   | time_out             |   True   |
+|   1   | bad_orientation      |  False   |
+|   2   | base_contact         |  False   |
+|   3   | closure              |  False   |
+|   4   | mimic                |  False   |
+|   5   | low_base             |  False   |
+|   6   | rough_route_boundary |   True   |
++-------+----------------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 34 active terms.
++------------------------------------------------------+
+|                 Active Reward Terms                  |
++-------+------------------------------------+---------+
+| Index | Name                               |  Weight |
++-------+------------------------------------+---------+
+|   0   | track_lin_vel                      |     1.0 |
+|   1   | track_lin_vel_tight                |     0.2 |
+|   2   | track_lin_vel_huge_gap             |    -1.0 |
+|   3   | track_lin_vel_square               |    -1.0 |
+|   4   | run_velocity_error                 |     0.0 |
+|   5   | track_ang_vel                      |     0.5 |
+|   6   | track_ang_vel_square               |    -1.0 |
+|   7   | height                             |     0.7 |
+|   8   | height_tight                       |     0.3 |
+|   9   | height_both_wheels                 |     0.3 |
+|   10  | height_square                      |     0.0 |
+|   11  | lin_vel_z                          |    -0.5 |
+|   12  | ang_vel_xy                         |   -0.05 |
+|   13  | flat_orientation_y                 |    -1.0 |
+|   14  | flat_orientation_y_v               |    -1.0 |
+|   15  | flat_orientation_x_v               |    -1.0 |
+|   16  | no_fork                            |    -1.0 |
+|   17  | no_fork_z                          |    -2.0 |
+|   18  | wheel_motor_z_axis_align_exp       |     0.1 |
+|   19  | wheel_motor_z_axis_align_exp_tight |     0.1 |
+|   20  | action_rate                        |   -0.01 |
+|   21  | action_acc                         |   -0.05 |
+|   22  | torques                            |  -1e-05 |
+|   23  | joint_power                        | -0.0001 |
+|   24  | dof_pos_limits                     |     0.0 |
+|   25  | leg_symmetry                       |     0.0 |
+|   26  | alive                              |     0.0 |
+|   27  | termination                        |     0.0 |
+|   28  | wheel_contact                      |     0.0 |
+|   29  | base_contact                       |     0.0 |
+|   30  | height_deficit                     |     0.0 |
+|   31  | height_error_l1                    |     0.0 |
+|   32  | spin_contact_consistency           |    -0.3 |
+|   33  | world_cycle_cross                  |    -0.3 |
++-------+------------------------------------+---------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+CONTACT_CAPTURE_CONFIG {"enabled": true, "period_s": 0.005, "physics_dt": 0.0025, "stride": 2, "history_length": 3, "semantics": "instantaneous sensor force at 5 ms endpoints; not accumulated impulses or continuous contact"}
+CONTACT_INTEGRATED_CONFIG {"enabled": true, "period_s": 0.005, "physics_dt": 0.0025, "stride": 2, "history_length": 3, "semantics": "instantaneous sensor force at 5 ms endpoints; not accumulated impulses or continuous contact", "integrated_enabled": true, "raw_capture_period_s": 0.0025, "bin_period_s": 0.005, "bin_samples": 2, "history_bins": 3, "crossbin": false, "force_between_solver_callbacks": "piecewise constant step-average; not measured substep timing", "reward_source": "mean vector force = summed physical impulse /5ms; >1N per-wheel history maximum", "peak_source": "diagnostic only; not reward or graduation", "adaptation": "Aligned legacy kernel retained;2ms solver impulse apportioned by exact integer-time overlap into fixed5ms bins"}
+[WARNING]: The `policy` configuration is deprecated for rsl-rl >= 4.0.0. Please use, e.g., `actor` and `critic` model configurations instead.
+[WARNING]: The `policy` configuration is used to infer the `actor` model configuration.
+[WARNING]: The `policy` configuration is used to infer the `critic` model configuration.
+[WARNING]: The `distribution_cfg` configuration is now used to specify the output distribution for stochastic policies. Consider updating the configuration to use `distribution_cfg` instead of `stochastic`, `init_noise_std`, `noise_std_type`, and `state_dependent_std` parameters.
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: MLPModel(
+  (obs_normalizer): Identity()
+  (distribution): GaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=35, out_features=256, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=256, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=64, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=64, out_features=6, bias=True)
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=38, out_features=256, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=256, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=64, bias=True)
+    (5): ELU(alpha=1.0)
+    (6): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Could not find git repository in C:\Users\Win10\Documents\MOD4_WAVE50_WINDOWS_4090_20261013\env\Lib\site-packages\rsl_rl\__init__.py. Skipping.
+COMMAND_AUDIT {"control_step": 1, "gyro_curriculum_enabled": false, "configured_yaw_range": [0.0, 0.0], "actual_command_yaw_abs_max": 1.9119000434875488, "actual_command_yaw_abs_mean": 0.10604839771986008, "actual_command_vx_min": -1.4033945798873901, "actual_command_vx_max": 1.4726102352142334, "spin_command_audit": {"stage": "directional_spin_v1", "command_frame": "body", "manual_frozen_evaluation": false, "world_progress_goal_m_s": 0.5, "projection_error_m_s": 0.0, "pure_fraction_actual": 0.0, "moving_fraction_actual": 0.0703125, "transition_fraction_actual": 0.0, "stand_fraction_actual": 0.1796875, "pure_max_rad_s": 12.566370614359172, "moving_yaw_max_rad_s": 2.0, "world_progress_achieved": "unmeasured; actual displacement and complete cycles required"}}
+################################################################################
+[1m                        Learning iteration 32264/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 3072 
+                       Steps per second: 152 
+                        Collection time: 19.892s 
+                          Learning time: 0.187s 
+                        Mean value loss: 0.0015
+                    Mean surrogate loss: 0.0465
+                      Mean entropy loss: -8.0208
+                            Mean reward: -0.00
+                    Mean episode length: 4.00
+                        Mean action std: 0.06
+           Episode_Reward/track_lin_vel: 0.0000
+     Episode_Reward/track_lin_vel_tight: 0.0000
+  Episode_Reward/track_lin_vel_huge_gap: -0.0018
+    Episode_Reward/track_lin_vel_square: -0.0001
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0000
+    Episode_Reward/track_ang_vel_square: -0.0003
+                  Episode_Reward/height: 0.0012
+            Episode_Reward/height_tight: 0.0005
+      Episode_Reward/height_both_wheels: 0.0004
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0000
+              Episode_Reward/ang_vel_xy: -0.0000
+      Episode_Reward/flat_orientation_y: -0.0000
+    Episode_Reward/flat_orientation_y_v: -0.0000
+    Episode_Reward/flat_orientation_x_v: -0.0000
+                 Episode_Reward/no_fork: 0.0000
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0001
+              Episode_Reward/action_acc: -0.0001
+                 Episode_Reward/torques: -0.0000
+             Episode_Reward/joint_power: -0.0000
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: -0.0000
+             Metrics/twist/error_vel_xy: 0.0016
+            Metrics/twist/error_vel_yaw: 0.0028
+           Episode_Termination/time_out: 0.0068
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 20.08s
+                           Time elapsed: 00:00:20
+                                    ETA: 05:43:52
+
+################################################################################
+[1m                        Learning iteration 32265/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 6144 
+                       Steps per second: 138 
+                        Collection time: 20.572s 
+                          Learning time: 1.648s 
+                        Mean value loss: 0.0029
+                    Mean surrogate loss: -0.0056
+                      Mean entropy loss: -8.0105
+                            Mean reward: 0.91
+                    Mean episode length: 33.75
+                        Mean action std: 0.06
+           Episode_Reward/track_lin_vel: 0.0097
+     Episode_Reward/track_lin_vel_tight: 0.0016
+  Episode_Reward/track_lin_vel_huge_gap: -0.0010
+    Episode_Reward/track_lin_vel_square: -0.0001
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0046
+    Episode_Reward/track_ang_vel_square: -0.0002
+                  Episode_Reward/height: 0.0075
+            Episode_Reward/height_tight: 0.0031
+      Episode_Reward/height_both_wheels: 0.0032
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0000
+              Episode_Reward/ang_vel_xy: -0.0000
+      Episode_Reward/flat_orientation_y: -0.0000
+    Episode_Reward/flat_orientation_y_v: -0.0000
+    Episode_Reward/flat_orientation_x_v: -0.0001
+                 Episode_Reward/no_fork: 0.0000
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0001
+              Episode_Reward/action_acc: -0.0002
+                 Episode_Reward/torques: -0.0001
+             Episode_Reward/joint_power: -0.0000
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: -0.0000
+             Metrics/twist/error_vel_xy: 0.0015
+            Metrics/twist/error_vel_yaw: 0.0027
+           Episode_Termination/time_out: 0.0130
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0000
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0007
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 22.22s
+                           Time elapsed: 00:00:42
+                                    ETA: 11:28:07
+
+################################################################################
+[1m                        Learning iteration 32266/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 9216 
+                       Steps per second: 128 
+                        Collection time: 23.857s 
+                          Learning time: 0.086s 
+                        Mean value loss: 0.0014
+                    Mean surrogate loss: -0.0152
+                      Mean entropy loss: -7.9997
+                            Mean reward: 1.25
+                    Mean episode length: 45.43
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0279
+     Episode_Reward/track_lin_vel_tight: 0.0043
+  Episode_Reward/track_lin_vel_huge_gap: 0.0000
+    Episode_Reward/track_lin_vel_square: -0.0000
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0137
+    Episode_Reward/track_ang_vel_square: -0.0000
+                  Episode_Reward/height: 0.0198
+            Episode_Reward/height_tight: 0.0084
+      Episode_Reward/height_both_wheels: 0.0084
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0000
+              Episode_Reward/ang_vel_xy: -0.0001
+      Episode_Reward/flat_orientation_y: -0.0000
+    Episode_Reward/flat_orientation_y_v: -0.0001
+    Episode_Reward/flat_orientation_x_v: -0.0009
+                 Episode_Reward/no_fork: 0.0000
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0001
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0001
+              Episode_Reward/action_acc: -0.0004
+                 Episode_Reward/torques: -0.0003
+             Episode_Reward/joint_power: -0.0000
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0022
+            Metrics/twist/error_vel_yaw: 0.0026
+           Episode_Termination/time_out: 0.0430
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0000
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0013
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0007
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 23.94s
+                           Time elapsed: 00:01:06
+                                    ETA: 13:19:56
+
+################################################################################
+[1m                        Learning iteration 32267/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 12288 
+                       Steps per second: 115 
+                        Collection time: 24.632s 
+                          Learning time: 1.952s 
+                        Mean value loss: 0.0009
+                    Mean surrogate loss: -0.0187
+                      Mean entropy loss: -7.9718
+                            Mean reward: 1.18
+                    Mean episode length: 49.00
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0228
+     Episode_Reward/track_lin_vel_tight: 0.0023
+  Episode_Reward/track_lin_vel_huge_gap: -0.0105
+    Episode_Reward/track_lin_vel_square: -0.0010
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0095
+    Episode_Reward/track_ang_vel_square: -0.0007
+                  Episode_Reward/height: 0.0248
+            Episode_Reward/height_tight: 0.0081
+      Episode_Reward/height_both_wheels: 0.0106
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0016
+              Episode_Reward/ang_vel_xy: -0.0032
+      Episode_Reward/flat_orientation_y: -0.0009
+    Episode_Reward/flat_orientation_y_v: -0.0012
+    Episode_Reward/flat_orientation_x_v: -0.0018
+                 Episode_Reward/no_fork: -0.0010
+               Episode_Reward/no_fork_z: -0.0182
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0006
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0001
+             Episode_Reward/action_rate: -0.0003
+              Episode_Reward/action_acc: -0.0009
+                 Episode_Reward/torques: -0.0004
+             Episode_Reward/joint_power: -0.0004
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0226
+            Metrics/twist/error_vel_yaw: 0.0205
+           Episode_Termination/time_out: 0.0622
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0000
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0003
+Metrics/plant/closure_err_session_max_m: 0.0008
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 26.58s
+                           Time elapsed: 00:01:32
+                                    ETA: 20:35:46
+
+################################################################################
+[1m                        Learning iteration 32268/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 15360 
+                       Steps per second: 124 
+                        Collection time: 24.652s 
+                          Learning time: 0.094s 
+                        Mean value loss: 0.0017
+                    Mean surrogate loss: -0.0160
+                      Mean entropy loss: -7.9606
+                            Mean reward: 1.41
+                    Mean episode length: 56.33
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0307
+     Episode_Reward/track_lin_vel_tight: 0.0038
+  Episode_Reward/track_lin_vel_huge_gap: -0.0083
+    Episode_Reward/track_lin_vel_square: -0.0008
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0136
+    Episode_Reward/track_ang_vel_square: -0.0006
+                  Episode_Reward/height: 0.0287
+            Episode_Reward/height_tight: 0.0101
+      Episode_Reward/height_both_wheels: 0.0123
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0012
+              Episode_Reward/ang_vel_xy: -0.0025
+      Episode_Reward/flat_orientation_y: -0.0007
+    Episode_Reward/flat_orientation_y_v: -0.0010
+    Episode_Reward/flat_orientation_x_v: -0.0016
+                 Episode_Reward/no_fork: -0.0008
+               Episode_Reward/no_fork_z: -0.0143
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0004
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0001
+             Episode_Reward/action_rate: -0.0003
+              Episode_Reward/action_acc: -0.0009
+                 Episode_Reward/torques: -0.0005
+             Episode_Reward/joint_power: -0.0003
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0188
+            Metrics/twist/error_vel_yaw: 0.0179
+           Episode_Termination/time_out: 0.0645
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0000
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0009
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 24.75s
+                           Time elapsed: 00:01:57
+                                    ETA: 05:08:36
+
+################################################################################
+[1m                        Learning iteration 32269/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 18432 
+                       Steps per second: 115 
+                        Collection time: 24.798s 
+                          Learning time: 1.752s 
+                        Mean value loss: 0.0089
+                    Mean surrogate loss: -0.0152
+                      Mean entropy loss: -7.9481
+                            Mean reward: 1.42
+                    Mean episode length: 64.10
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0435
+     Episode_Reward/track_lin_vel_tight: 0.0047
+  Episode_Reward/track_lin_vel_huge_gap: -0.0048
+    Episode_Reward/track_lin_vel_square: -0.0008
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0263
+    Episode_Reward/track_ang_vel_square: -0.0003
+                  Episode_Reward/height: 0.0416
+            Episode_Reward/height_tight: 0.0147
+      Episode_Reward/height_both_wheels: 0.0175
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0009
+              Episode_Reward/ang_vel_xy: -0.0009
+      Episode_Reward/flat_orientation_y: -0.0024
+    Episode_Reward/flat_orientation_y_v: -0.0032
+    Episode_Reward/flat_orientation_x_v: -0.0008
+                 Episode_Reward/no_fork: -0.0053
+               Episode_Reward/no_fork_z: -0.0041
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0001
+              Episode_Reward/action_acc: -0.0008
+                 Episode_Reward/torques: -0.0008
+             Episode_Reward/joint_power: -0.0002
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0241
+            Metrics/twist/error_vel_yaw: 0.0145
+           Episode_Termination/time_out: 0.0703
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0036
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0013
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0009
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 26.55s
+                           Time elapsed: 00:02:24
+                                    ETA: 19:11:23
+
+################################################################################
+[1m                        Learning iteration 32270/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 21504 
+                       Steps per second: 124 
+                        Collection time: 24.531s 
+                          Learning time: 0.083s 
+                        Mean value loss: 0.0018
+                    Mean surrogate loss: -0.0136
+                      Mean entropy loss: -7.9491
+                            Mean reward: 1.68
+                    Mean episode length: 80.92
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0362
+     Episode_Reward/track_lin_vel_tight: 0.0013
+  Episode_Reward/track_lin_vel_huge_gap: -0.0105
+    Episode_Reward/track_lin_vel_square: -0.0016
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0265
+    Episode_Reward/track_ang_vel_square: -0.0006
+                  Episode_Reward/height: 0.0464
+            Episode_Reward/height_tight: 0.0138
+      Episode_Reward/height_both_wheels: 0.0192
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0017
+              Episode_Reward/ang_vel_xy: -0.0018
+      Episode_Reward/flat_orientation_y: -0.0044
+    Episode_Reward/flat_orientation_y_v: -0.0058
+    Episode_Reward/flat_orientation_x_v: -0.0008
+                 Episode_Reward/no_fork: -0.0096
+               Episode_Reward/no_fork_z: -0.0067
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0001
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0002
+              Episode_Reward/action_acc: -0.0012
+                 Episode_Reward/torques: -0.0009
+             Episode_Reward/joint_power: -0.0004
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0441
+            Metrics/twist/error_vel_yaw: 0.0242
+           Episode_Termination/time_out: 0.0703
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0104
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0015
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0013
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 24.61s
+                           Time elapsed: 00:02:48
+                                    ETA: 21:32:25
+
+################################################################################
+[1m                        Learning iteration 32271/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 24576 
+                       Steps per second: 136 
+                        Collection time: 20.845s 
+                          Learning time: 1.685s 
+                        Mean value loss: 0.0022
+                    Mean surrogate loss: -0.0135
+                      Mean entropy loss: -7.9433
+                            Mean reward: 2.39
+                    Mean episode length: 105.06
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0792
+     Episode_Reward/track_lin_vel_tight: 0.0108
+  Episode_Reward/track_lin_vel_huge_gap: -0.0057
+    Episode_Reward/track_lin_vel_square: -0.0006
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0343
+    Episode_Reward/track_ang_vel_square: -0.0005
+                  Episode_Reward/height: 0.0614
+            Episode_Reward/height_tight: 0.0242
+      Episode_Reward/height_both_wheels: 0.0263
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0006
+              Episode_Reward/ang_vel_xy: -0.0011
+      Episode_Reward/flat_orientation_y: -0.0007
+    Episode_Reward/flat_orientation_y_v: -0.0012
+    Episode_Reward/flat_orientation_x_v: -0.0014
+                 Episode_Reward/no_fork: 0.0000
+               Episode_Reward/no_fork_z: -0.0006
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0005
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0003
+              Episode_Reward/action_acc: -0.0014
+                 Episode_Reward/torques: -0.0008
+             Episode_Reward/joint_power: -0.0003
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0181
+            Metrics/twist/error_vel_yaw: 0.0259
+           Episode_Termination/time_out: 0.0869
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0335
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0013
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 22.53s
+                           Time elapsed: 00:03:11
+                                    ETA: 16:03:55
+
+################################################################################
+[1m                        Learning iteration 32272/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 27648 
+                       Steps per second: 155 
+                        Collection time: 19.685s 
+                          Learning time: 0.084s 
+                        Mean value loss: 0.0029
+                    Mean surrogate loss: -0.0117
+                      Mean entropy loss: -7.9415
+                            Mean reward: 2.45
+                    Mean episode length: 110.35
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0643
+     Episode_Reward/track_lin_vel_tight: 0.0065
+  Episode_Reward/track_lin_vel_huge_gap: -0.0225
+    Episode_Reward/track_lin_vel_square: -0.0025
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0428
+    Episode_Reward/track_ang_vel_square: -0.0002
+                  Episode_Reward/height: 0.0642
+            Episode_Reward/height_tight: 0.0210
+      Episode_Reward/height_both_wheels: 0.0279
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0011
+              Episode_Reward/ang_vel_xy: -0.0018
+      Episode_Reward/flat_orientation_y: -0.0033
+    Episode_Reward/flat_orientation_y_v: -0.0088
+    Episode_Reward/flat_orientation_x_v: -0.0025
+                 Episode_Reward/no_fork: -0.0027
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0004
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0003
+              Episode_Reward/action_acc: -0.0016
+                 Episode_Reward/torques: -0.0012
+             Episode_Reward/joint_power: -0.0004
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0516
+            Metrics/twist/error_vel_yaw: 0.0175
+           Episode_Termination/time_out: 0.1009
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0391
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0012
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0013
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 19.77s
+                           Time elapsed: 00:03:31
+                                    ETA: 03:17:01
+
+################################################################################
+[1m                        Learning iteration 32273/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 30720 
+                       Steps per second: 124 
+                        Collection time: 22.885s 
+                          Learning time: 1.793s 
+                        Mean value loss: 0.0021
+                    Mean surrogate loss: -0.0147
+                      Mean entropy loss: -7.9256
+                            Mean reward: 2.70
+                    Mean episode length: 119.42
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0687
+     Episode_Reward/track_lin_vel_tight: 0.0064
+  Episode_Reward/track_lin_vel_huge_gap: -0.0160
+    Episode_Reward/track_lin_vel_square: -0.0018
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0393
+    Episode_Reward/track_ang_vel_square: -0.0004
+                  Episode_Reward/height: 0.0643
+            Episode_Reward/height_tight: 0.0231
+      Episode_Reward/height_both_wheels: 0.0277
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0010
+              Episode_Reward/ang_vel_xy: -0.0019
+      Episode_Reward/flat_orientation_y: -0.0022
+    Episode_Reward/flat_orientation_y_v: -0.0056
+    Episode_Reward/flat_orientation_x_v: -0.0021
+                 Episode_Reward/no_fork: -0.0025
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0005
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0004
+              Episode_Reward/action_acc: -0.0018
+                 Episode_Reward/torques: -0.0011
+             Episode_Reward/joint_power: -0.0004
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0427
+            Metrics/twist/error_vel_yaw: 0.0224
+           Episode_Termination/time_out: 0.0993
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0426
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0012
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0013
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 24.68s
+                           Time elapsed: 00:03:55
+                                    ETA: 06:41:39
+
+################################################################################
+[1m                        Learning iteration 32274/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 33792 
+                       Steps per second: 117 
+                        Collection time: 25.940s 
+                          Learning time: 0.130s 
+                        Mean value loss: 0.0077
+                    Mean surrogate loss: -0.0125
+                      Mean entropy loss: -7.9139
+                            Mean reward: 3.13
+                    Mean episode length: 142.91
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.0960
+     Episode_Reward/track_lin_vel_tight: 0.0111
+  Episode_Reward/track_lin_vel_huge_gap: -0.0197
+    Episode_Reward/track_lin_vel_square: -0.0021
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0482
+    Episode_Reward/track_ang_vel_square: -0.0021
+                  Episode_Reward/height: 0.0853
+            Episode_Reward/height_tight: 0.0332
+      Episode_Reward/height_both_wheels: 0.0329
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0042
+              Episode_Reward/ang_vel_xy: -0.0043
+      Episode_Reward/flat_orientation_y: -0.0147
+    Episode_Reward/flat_orientation_y_v: -0.0555
+    Episode_Reward/flat_orientation_x_v: -0.0082
+                 Episode_Reward/no_fork: -0.0174
+               Episode_Reward/no_fork_z: -0.0050
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0006
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0003
+              Episode_Reward/action_acc: -0.0019
+                 Episode_Reward/torques: -0.0018
+             Episode_Reward/joint_power: -0.0005
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0487
+            Metrics/twist/error_vel_yaw: 0.0436
+           Episode_Termination/time_out: 0.1100
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0521
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0015
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 26.07s
+                           Time elapsed: 00:04:21
+                                    ETA: 12:59:49
+
+################################################################################
+[1m                        Learning iteration 32275/132264                         [0m 
+
+                               Run name: temporary2048_train_v1
+                            Total steps: 36864 
+                       Steps per second: 114 
+                        Collection time: 24.926s 
+                          Learning time: 1.818s 
+                        Mean value loss: 0.0017
+                    Mean surrogate loss: -0.0168
+                      Mean entropy loss: -7.9033
+                            Mean reward: 3.33
+                    Mean episode length: 148.25
+                        Mean action std: 0.07
+           Episode_Reward/track_lin_vel: 0.1334
+     Episode_Reward/track_lin_vel_tight: 0.0235
+  Episode_Reward/track_lin_vel_huge_gap: 0.0000
+    Episode_Reward/track_lin_vel_square: -0.0000
+      Episode_Reward/run_velocity_error: 0.0000
+           Episode_Reward/track_ang_vel: 0.0650
+    Episode_Reward/track_ang_vel_square: -0.0001
+                  Episode_Reward/height: 0.0940
+            Episode_Reward/height_tight: 0.0400
+      Episode_Reward/height_both_wheels: 0.0403
+           Episode_Reward/height_square: 0.0000
+               Episode_Reward/lin_vel_z: -0.0002
+              Episode_Reward/ang_vel_xy: -0.0003
+      Episode_Reward/flat_orientation_y: -0.0001
+    Episode_Reward/flat_orientation_y_v: -0.0004
+    Episode_Reward/flat_orientation_x_v: -0.0048
+                 Episode_Reward/no_fork: 0.0000
+               Episode_Reward/no_fork_z: 0.0000
+Episode_Reward/wheel_motor_z_axis_align_exp: 0.0002
+Episode_Reward/wheel_motor_z_axis_align_exp_tight: 0.0000
+             Episode_Reward/action_rate: -0.0002
+              Episode_Reward/action_acc: -0.0016
+                 Episode_Reward/torques: -0.0014
+             Episode_Reward/joint_power: -0.0000
+          Episode_Reward/dof_pos_limits: 0.0000
+            Episode_Reward/leg_symmetry: 0.0000
+                   Episode_Reward/alive: 0.0000
+             Episode_Reward/termination: 0.0000
+           Episode_Reward/wheel_contact: 0.0000
+            Episode_Reward/base_contact: 0.0000
+          Episode_Reward/height_deficit: 0.0000
+         Episode_Reward/height_error_l1: 0.0000
+Episode_Reward/spin_contact_consistency: 0.0000
+       Episode_Reward/world_cycle_cross: 0.0000
+             Metrics/twist/error_vel_xy: 0.0066
+            Metrics/twist/error_vel_yaw: 0.0121
+           Episode_Termination/time_out: 0.1309
+    Episode_Termination/bad_orientation: 0.0000
+       Episode_Termination/base_contact: 0.0000
+            Episode_Termination/closure: 0.0000
+              Episode_Termination/mimic: 0.0000
+           Episode_Termination/low_base: 0.0000
+Episode_Termination/rough_route_boundary: 0.0547
+        Metrics/plant/closure_err_max_m: 0.0006
+        Metrics/plant/mimic_err_max_rad: 0.0014
+       Metrics/plant/mimic_err_mean_rad: 0.0002
+Metrics/plant/closure_err_session_max_m: 0.0016
+Metrics/plant/mimic_err_session_max_rad: 0.0015
+--------------------------------------------------------------------------------
+                         Iteration time: 26.74s
+                           Time elapsed: 00:04:48
+                                    ETA: 19:48:29

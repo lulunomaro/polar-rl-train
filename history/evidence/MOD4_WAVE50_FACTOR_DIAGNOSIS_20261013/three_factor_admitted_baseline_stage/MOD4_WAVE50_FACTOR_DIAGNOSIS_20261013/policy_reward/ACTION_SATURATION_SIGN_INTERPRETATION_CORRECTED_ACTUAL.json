@@ -1,0 +1,52 @@
+{
+  "epoch": 1791855950.5807977,
+  "passed": true,
+  "stage": "CPU interpretation correction only",
+  "original_report": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_WAVE50_FACTOR_DIAGNOSIS_20261013\\policy_reward\\ACTION_SATURATION_CPU_ACTUAL_REVIEW.json",
+    "sha256": "1609df3005e8b3a382587cd653e503131f3d0b6c1993b89e85d18c86ef616768"
+  },
+  "original_error": "Narrative hypothesis claimed upper guard from abs-mean110; real actor output is negative and numerical report already showed lower guard100%.",
+  "original_narrative_error_retained_no_reclassification_or_overwrite": true,
+  "corrected_observations": [
+    {
+      "group": "forward",
+      "left_crank_mean": -110.09272003173828,
+      "left_crank_minmax": [
+        -131.21800231933594,
+        -78.0840072631836
+      ],
+      "left_crank_below_negative6_fraction": 1.0,
+      "all_six_requested_actions_mean": [
+        -110.09244537353516,
+        1.7791831493377686,
+        -0.5404849052429199,
+        1.5462400913238525,
+        0.5888522267341614,
+        0.6040681600570679
+      ]
+    },
+    {
+      "group": "reverse",
+      "left_crank_mean": -112.49480438232422,
+      "left_crank_minmax": [
+        -129.75418090820312,
+        -68.58922576904297
+      ],
+      "left_crank_below_negative6_fraction": 1.0,
+      "all_six_requested_actions_mean": [
+        -112.49518585205078,
+        1.5926849842071533,
+        -0.8424035310745239,
+        1.1319255828857422,
+        -0.744552493095398,
+        -0.813467800617218
+      ]
+    }
+  ],
+  "correct_interpretation": "Requested left-crank target is continuously at lower input-difference projection; actual saved q is inside admissible geometry, so no claim of mechanical stop contact.",
+  "candidate_factor": "Only left crank action from paired right motor-input difference; CPU fixture passed, GPU not executed.",
+  "learning_hypothesis": "Large actor means outside clipping create many different sampled requests with identical physical input, reducing policy-gradient feedback for that column; physical causal effect still requires paired action-factor test.",
+  "no_source_checkpoint_or_production_change": true,
+  "no_GPU": true
+}

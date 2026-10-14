@@ -1,0 +1,60 @@
+"""New root-leased metadata-only stage, with zero requested evaluation controls."""
+from pathlib import Path
+import argparse,hashlib,json,os,sys,time,traceback,msvcrt
+import importlib.metadata as distribution_metadata
+
+D=Path(__file__).resolve().parent
+def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+p=argparse.ArgumentParser()
+for k in ('output','lease','case-id','shared-payload','xy-input'):p.add_argument('--'+k,required=True)
+p.add_argument('--num-envs',type=int,required=True);p.add_argument('--seed',type=int,required=True)
+p.add_argument('--requested-controls',type=int,required=True)
+p.add_argument('--headless',action='store_true');p.add_argument('--device',default='cuda:0');a=p.parse_args()
+O=Path(a.output);S=Path(a.shared_payload);L=S/'runtime';C=L/'isaac/mod4'
+manifest=json.loads((D/'RETENTION_PLANE_METADATA_CPU_MANIFEST_V7.json').read_bytes())
+lease=json.loads(Path(a.lease).read_bytes())
+case=dict(num_envs=a.num_envs,seed=a.seed,requested_controls=a.requested_controls,headless=a.headless,device=a.device)
+assert case==dict(num_envs=80,seed=20261002,requested_controls=0,headless=True,device='cuda:0')
+assert lease['target_host']=='10.24.4.249' and lease['namespace']==manifest['target_namespace']
+assert lease['GPU_lease_granted_by_root'] is True and lease['actual_shared_slot_idle_verified'] is True
+assert lease['worker_sha256']==H(__file__) and lease['case_id']==a.case_id and lease['case_parameters']==case
+assert lease['source_positions_sha256']==H(a.xy_input)==manifest['source_positions']['sha256']
+for row in manifest['package_files']:assert H(D/row['relative'])==row['sha256'],row['relative']
+for row in manifest['shared_source_freeze']:assert H(S/row['relative'])==row['sha256'],row['relative']
+stub=manifest['actual_primary_stub'];assert H(stub['actual_installed_stub_path'])==stub['actual_sha256']
+sdk=json.loads((S/'EXPECTED_INSTALLED_3060_BACKEND_V2.json').read_bytes())
+actual_backend_files=[]
+for name,version in sdk['versions'].items():
+ if version is not None:assert distribution_metadata.version(name)==version
+for row in sdk['files']:
+ digest=H(row['path']);assert digest==row['sha256'];actual_backend_files.append(dict(**row,actual_bytes=Path(row['path']).stat().st_size,actual_sha256=digest))
+sdk=dict(**sdk);sdk['files']=actual_backend_files
+lock=Path('D:/MOD4_async_eval/worker.lock');assert lock.exists() and not O.exists()
+f=lock.open('r+b');f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_NBLCK,1);O.mkdir(parents=True)
+def save(name,value):
+ q=O/name;assert not q.exists()
+ with q.open('xb') as out:out.write(json.dumps(value,ensure_ascii=False,indent=2).encode('utf8'));out.flush();os.fsync(out.fileno())
+save('STARTED.json',dict(epoch=time.time(),pid=os.getpid(),argv=sys.argv,case=case,lease=lease,
+     no_PPO=True,no_policy_actor_constructed=True,requested_evaluation_controls=0,
+     SDK_initialization_total_physics_zero_not_claimed=True,OS_shared_lock_acquired=True))
+for key,value in json.loads((S/'provenance/original459_run_manifest.json').read_bytes())['env'].items():
+ if key.startswith('RM_'):os.environ[key]=str(value)
+os.environ['RM_MOD4_USD']=str(L/'assets/robot.usd');os.environ['RM_MILD_DR_PROFILE']='white_v3'
+os.environ.update(ISAACSIM_ACCEPT_EULA='Y',OMNI_KIT_ACCEPT_EULA='YES')
+sys.path[:0]=[str(C),str(L),str(S),str(D)]
+app=None
+try:
+ import torch,tensordict
+ from isaaclab.app import AppLauncher
+ app=AppLauncher(headless=a.headless,device=a.device).app;torch.set_num_threads(1)
+ from retention_plane_metadata_v7 import run_metadata
+ run_metadata(a,O,save,manifest,sdk)
+ app.close()
+ save('EXIT_NATURAL.json',dict(epoch=time.time(),pid=os.getpid(),exit_code=0,app_close_returned=True,
+                              no_PPO=True,requested_evaluation_controls=0))
+except BaseException:
+ save('ORIGINAL_ERROR.json',dict(epoch=time.time(),pid=os.getpid(),error=traceback.format_exc(),
+                               no_PPO=True,requested_evaluation_controls=0))
+ print(traceback.format_exc(),flush=True);os._exit(1)
+finally:
+ f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_UNLCK,1);f.close()

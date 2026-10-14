@@ -1,0 +1,31 @@
+"""Bind complete actual fourcase evidence to a bounded supported-domain continuation."""
+from pathlib import Path
+import json,hashlib,time,subprocess,base64
+D=Path(__file__).resolve().parent;W=D.parent;R=D/'reports';B=W/'MOD4_LINUX_WAVE50_BODYFRAME_RESET_INTEGRATION_20261014';E=W/'MOD4_3060_BODYFRAME_FIRST_FULL80_20261014';RET=W/'MOD4_3060_BODYFRAME_FIRST_RETENTION_20261014'
+SHA='f5166509d297814e3c3fe4f457ae064d9b02a8bd62702914759dc430f20d2139'
+def read(p):return json.loads(p.read_bytes())
+def index(p):return dict(path=str(p),bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest())
+def main():
+ out=R/'FOURCASE_SECOND_BODY_SCOPE_DECISION_ACTUAL.json';assert not out.exists()
+ paths=dict(own_final=B/'reports/BODYFRAME_OWN_FINAL_FULLTRACE_LOCAL_CPU_VERIFIED.json',wave_data=E/'reports/FULL80_FULL1500_INDEPENDENT_CPU_DATA_ACTUAL_REVIEW.json',wave_complete=E/'reports/FULL80_ORIGINAL_1N_ROUTE_ALL_PREFIX_COMPLETE_ACTUAL_REVIEW.json',wave_direct=E/'reports/BODYFRAME_DIRECT_E3_ORIGINAL_FULL80_PREFIX_ACTUAL_REVIEW.json',three_pairs=RET/'reports/BODYFRAME_FIRST_F516_THREE_RETENTION_PAIRS_COMPLETE_ACTUAL_CPU_REVIEW.json',own_CPU=R/'SECOND_BODY_OWN_F516_WHOLE_CPU_AND_UNCHANGED_LEARN_CALLBACKS_ACTUAL.json')
+ v={k:read(p) for k,p in paths.items()};assert all(x['passed'] for x in v.values())
+ assert v['own_final']['own_checkpoint']['sha256']==SHA and v['own_final']['updates']==6 and v['own_final']['actual_parent_guardian_child_out'] and v['own_final']['two_locks_free']
+ assert v['own_CPU']['source_SHA']==SHA and v['own_CPU']['no_CUDA'] and v['own_CPU']['owned_BODY_schema_verified'] and v['own_CPU']['original_resume_save_and_normal_learning_callbacks_AST_exact']
+ for key in ('wave_data','wave_complete'):assert v[key]['source_SHA']==SHA and v[key]['callbacks']==6000 and v[key]['controls']==1500
+ wave=v['wave_complete'];direct=v['wave_direct'];assert wave['position_contact_agree_all_episodes'] and wave['all_valid_unfinished_and_preordinary_prefixes_preserved'] and wave['no_sameepisode_reset_teleport_credit']
+ assert direct['new_source_SHA']==SHA and direct['actual_all_initial_root_q30_physical_parameters_recipes_assignments_captured_RNG_and_queue_values_exact']
+ assert direct['new_forward']==26 and direct['new_reverse']==26 and direct['new_ordinary']==1
+ three=v['three_pairs'];assert three['source_own_SHA']==SHA and three['all_three_inherited_full1500_complete'] and not three['pending']
+ assert set(three['pairs'])=={'flat','spin','world'} and all(x['original_false_and_all_failed_prefix_kept'] for x in three['pairs'].values())
+ for case,row in three['actual_cases'].items():
+  assert row['actual_parent_unique_zero_PPO_cost_seconds']>0
+ # Recover transport ownership only from actual local CIM absence, never a stale CURRENT phase.
+ receipt=read(RET/'reports/BODYFRAME_FIRST_RETENTION_FINITE_BATCH_ROOT_DISPATCH_ACTUAL.json');pid=receipt['pid']
+ ps="[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$p=Get-CimInstance Win32_Process -Filter 'ProcessId="+str(pid)+"';[PSCustomObject]@{present=($null -ne $p);pid="+str(pid)+";creation=$(if($p){$p.CreationDate.ToUniversalTime().ToString('o')});argv=$(if($p){$p.CommandLine})}|ConvertTo-Json -Compress"
+ raw=subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-EncodedCommand',base64.b64encode(ps.encode('utf-16-le')).decode()],capture_output=True,check=True).stdout;identity=json.loads(raw.decode('utf-8-sig'));assert not identity['present']
+ complete=read(RET/'reports/BODYFRAME_FIRST_RETENTION_FIXED_THREE_COMPLETE_ACTUAL.json');assert complete['all_three_new_candidates_complete'] and len(complete['results'])==3
+ for kind in ('flat','spin','world'):
+  boundary=read(RET/'reports'/f'retention_bodyframe_first_f516_{kind}_1500_v8_INDEPENDENT_BOUNDARY.json');assert boundary['actual_parent_absent'] and boundary['actual_child_absent'] and boundary['shared_OS_lock_free']
+ value=dict(epoch=time.time(),passed=True,all_own_four_cases_actual_complete=True,selected_source_SHA=SHA,second_body3600_reasonable=True,scope_learning_block_index=2,max_blocks_same_axis=2,first_seconds=300,second_seconds=3600,total_axis_planned_seconds=3900,second_and_last_block_before_full_audit=True,evidence={k:index(p) for k,p in paths.items()},actual_finite_owner_CIM_absent=identity,root_transport_ownership_reclaimed=True,current_learning_idle=True,whole_core_and_owned_BODY_strict_restore_required=True,same_declared_BODY_profile_continuation=True,new_axis_initializer_requested=False,original_native144_fullrestore120_scope_SHA_reused_no_GPU_replay=True,own_first_physical_prefix_seconds=1.44,reason='First300s yielded six updates and only1.44s new physical prefix per env. Full Wave26/26 improves two forward residuals without transit regression; complete paired retained skills disclose small straight changes, negative4pi improvement, persistent positive4pi stalls and world61/64 unchanged with exchanged failures. One bounded3600s continuation supplies original40s episode exposure without changing reset profile, reward, commands, DR, clock, hardware or another expert. It is the second BODY block, not a third left-head duration block.',actual_retained_skill_comparisons=three['pairs'],wave_original_protocol=dict(forward=26,reverse=26,ordinary=1,remaining_forward=[15],remaining_reverse=[67],controls=1500,callbacks=6000),supported_E1_domain='Observed continuous Wave50 ±.3m/s yaw0; inherited pure4pi and other behavior remain disclosed tests, not universal E1 certification. Frozen E0 remains available for its separately reviewed flat/spin/world domain; gate not trained.',qualified50=False,qualified70=False,all_skills_accepted=False,no_mechanical_graduation_score=True,original_false_regressions_and_failure_prefixes_kept=True,other_E0_WAVE35_CURB_SLOPE_frozen=True,S4_CPU_only_gate_not_trained=True,planning_budget_only_no_canonical_write=True,known_local_Windows_pending_unique_seconds=9400.860692501068,interrupted_Windows512_tail_unknown_not_guessed=True,actual_linux_budget_and_resource_admission_PENDING=True,no_SSH_GPU_PPO_or_budget_action=True)
+ out.write_text(json.dumps(value,indent=2),encoding='utf8');print(json.dumps(dict(passed=True,decision=str(out),fourcase_complete=True,second3600_scope_reasonable=True,actual_target_GPU_pending=True)))
+if __name__=='__main__':main()

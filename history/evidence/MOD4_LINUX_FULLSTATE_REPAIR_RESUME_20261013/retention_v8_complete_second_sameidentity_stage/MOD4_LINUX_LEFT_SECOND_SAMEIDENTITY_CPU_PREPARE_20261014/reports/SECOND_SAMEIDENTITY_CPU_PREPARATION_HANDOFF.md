@@ -1,0 +1,22 @@
+# 同完整20k 2b的第二3600秒窗口：仅CPU源码准备
+
+拟议远端独立root为 `/mnt/mod4_linux_durable_20261013/MOD4_LINUX_FULLSTATE_REPAIR_RESUME_20261013/left_exploration20k_second_formal_sameidentity_v1`。该路径仅提出命名，本任务没有创建或验证远端root存在，也没有SSH、GPU、预算或Git操作。
+
+已只读核对first formal的实际parent_v2、worker_v3、恢复模块、522项sourcefreeze manifest和13份own startup JSON。本次新payload四个文件编译通过：
+
+- `left_exploration_sameidentity_resume_contract_v2.py`：只接受完整own2b SHA；必须已含原left身份，禁止center/near marker；先原12恢复，再严格actor/critic/std/optimizer相等、全20k实际offset/defaultq/scale及left身份CUDA磁盘roundtrip。没有candidate加载或initializer分支。新physical episode+1由原继承合同实证，非PhysX exact resume。
+- `left_exploration_sameidentity_second_worker_v1.py`：只允许formal学习；native/fresh模式不存在，导入和runpy只在main内发生。原current-update自然save hook的AST相等，原RL worker、normal learn、配置与参数复用。
+- `left_sameidentity_typed13_receipts.py`：采用真实13份历史receipt的具体布尔schema；8份旧receipt没有passed字段仍按其exact/verified语义接收。错误PID/source、意外新entry、缺关键exact字段四个隔离CPU负例均拒绝，避免旧passed-KeyError。
+- `left_second_sameidentity_typed_parent_v1.py`：唯一第二块、3600秒含load/learn/save/exit、20k/seed20260928/24 controls每update/LR1e−4/save25/15秒自有guardian，原55GB available RAM、30GB durable disk、22GB free GPU资源floor保持。复用原两把fcntl锁和唯一1188000秒canonical；七extension必须全applied且第七100h身份匹配。cost仍只有自己的parent唯一区段负责记账，包含真实失败学习启动，不复制、退款或补预算。
+
+首先生成的准备器因docstring出现“candidate”触发错误的词面assert，在任何远端/GPU/预算前拒绝，原源码及错误报告保留。独立语义读者只检查AST identifier/方法调用和恢复分支，确认无候选或初始化逻辑，只继续原尚未执行的typed fixture/manifest准备；四份已生成payload没有被重写或重跑旧once。原false没有涂成passed。
+
+`LEFT_SECOND_SAMEIDENTITY_ADMISSION_MANIFEST_CPU_TEMPLATE.json`明确`approved_GPU=false`、`target_CPU_actual_passed=false`、sourcefreeze为空且待实际目标装配、四case scope decision待实际。controller会在这些条件下拒绝launch。该模板不是可直接部署的已准入manifest。
+
+根代理在V8三继承skill及原Wave完整评测实际完成后，先独立形成当前scope decision。它应绑定选中source2b和完整输入报告SHA，并明确完整四case数据/物理/query/contact/COM/hardware准入、first formal全trace已审、center与near候选拒绝且不作为来源、同identity第二块合理、第二且最后一块后全审。这里不要求把原行为false机械涂成全部pass，也不宣称50/70毕业。
+
+只有上述实际decision允许后，根代理才创建新独立远端root，将已核522 runtime/assets逐byte SHA复用并新增这四份source，形成实际完整sourcefreeze、目标CPU/source107/99、import-main/Popen-cwd-root与resource/seed准入。此后唯一launch本第二formal；不重SDK/native/fresh/clock/preflight/oldmain/once，不再次初始化left或新增policy轴。原完整source2b、全部actorcritic/std/Adam/allD0D7/globalnamed/dictprivateCPUCUDA、geometry-entry-command-direction-route-lifetime-left身份必须strict exact/newflagsfalse/disk/episode+1。
+
+首块3600与第二块3600为最多两个名义有界窗口，共7200秒；真实loadlearnsaveexit可能有自然保存/Kit退出尾段，仍按真实parent唯一cost记账，不把名义窗口冒实际成本或重结旧tail。第二ownfullsave/13startup/actorAdam/health/原unique账段/父guardian孩子自然exit、两fcntlFree、canonicalidle后，完整所有NPZ/prefix/physical phase及四case再全审。不能盲第三duration/70。
+
+本目录保存的源码、准备器原错误、独立语义修复、template及CPU报告均待根代理普通supplement归档。准备不等同targetCPU/GPU、future ownsave、训练更新或通行证书。

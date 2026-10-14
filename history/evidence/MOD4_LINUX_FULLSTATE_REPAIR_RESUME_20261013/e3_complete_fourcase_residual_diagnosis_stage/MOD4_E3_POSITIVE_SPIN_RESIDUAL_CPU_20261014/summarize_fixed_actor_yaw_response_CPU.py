@@ -1,0 +1,13 @@
+from pathlib import Path
+import json,time,hashlib
+D=Path(__file__).resolve().parent;R=D/'reports';p=R/'FIXED_2B_E3_ACTOR35_COMMAND_YAW_SINGLE_AXIS_ACTUAL_CPU_REVIEW.json';j=json.loads(p.read_bytes());groups=[]
+for yaw in sorted(set(r['counterfactual_yaw'] for r in j['rows'])):
+ rows=[r for r in j['rows'] if r['counterfactual_yaw']==yaw]
+ groups.append(dict(yaw=yaw,actual_saved_obs_count=len(rows),outputs={model:dict(right_wheel_clip_count=sum(r['outputs'][model]['right_wheel_actor_clip'] for r in rows),left_wheel_clip_count=sum(r['outputs'][model]['left_wheel_actor_clip'] for r in rows),left_CAD_lower_count=sum(r['outputs'][model]['left_CAD_lower_projected'] for r in rows)) for model in ('baseline','candidate')}))
+examples=[]
+for r in j['rows']:
+ if r['source']=='candidate' and (r['env_id'],r['control']) in ((51,1000),(73,75)) and r['counterfactual_yaw'] in (2.,12.566370614359172):
+  examples.append(dict(env_id=r['env_id'],control=r['control'],yaw=r['counterfactual_yaw'],out={k:dict(raw_right_wheel=v['fixed_head_mean6'][5],wheel_targets=v['wheel_requested_velocity_target_rad_s'],left_crank=v['fixed_head_mean6'][0],hip=v['fixed_head_mean6'][1],left_CAD_lower=v['left_CAD_lower_projected']) for k,v in r['outputs'].items()}))
+out=R/'FIXED_ACTOR_YAW_SINGLE_AXIS_SUMMARY_CPU_ACTUAL.json';assert not out.exists()
+out.write_text(json.dumps(dict(epoch=time.time(),component_report=dict(path=str(p),bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest()),fixed_original_weights_and_std=True,no_production_candidate_or_physics=True,groups=groups,examples=examples,CPU_same_original_input_vs_GPU_saved_raw_maxabs=j['same_original_input_GPU_saved_raw_vs_CPU_maxabs'],same_input_GPU_CPU_bitexact_claim=False,guard_original_saved_row_reconstruction_exact=j['CAD_guard_reconstruction_original_saved_raw_maxabs_rad'],conclusion='Command yaw alone pushes the same fixed saved posture inputs into different clipped wheel request domains. High positive yaw clips right wheel in both model versions on important residual postures; this does not by itself isolate e3 policy changes as the sole cause. Low yaw on the same saved high-yaw physical posture is a counterfactual tensor, not new behavior.',no_automatic_training_or_parameter_change=True,small_source_lookup_errors_preserved=['initial frozen_history_policy.py guessed directly under payload missing; actual path runtime/isaac/mod4 found','initial local rsl_rl/networks/mlp.py path missing; actual modules/mlp.py read and copied before construction']),indent=2),encoding='utf8')
+print(json.dumps(dict(output=str(out),groups=groups,examples=examples),indent=2))

@@ -1,0 +1,9 @@
+# Linux20k Wave50 birth-frame integration: actual attempts and independent cache repair
+
+The original whole20k e3 model32825 and522 runtime files remain unchanged. The new axis balances birth orientation while preserving WORLD inward route, original command magnitudes, standing and all DR/reward/clock/hardware settings. This is S3/E1/G1 Wave50 repair, not S4 gate training or50mm graduation.
+
+Independent actual V1 failed before Kit on eager query import; V2 restored all original13 GPU contracts then rejected an ArticulationView getter API mismatch; V3 retained actual pi placement but rejected raw-quaternion-bit equality; V4 preserved actual native/data root witnesses and rejected heading cache consistency. Read-only installed source shows pose setter does not invalidate the heading/other derived lazy timestamps. V5 targetCPU rejected a stale checkpoint import before GPU. All old code, false outcomes, errors and sources remain intact.
+
+V6 has a fresh CPU-bound root and a single finite parent, actual PID172368/create1791980426.87. Its new component invalidates only pose-derived lazy timestamps after the original native setter; joint history and simulation timestamp remain unchanged. CPU cache test passed. Strict XYZ, original quaternion unit bound, query/physical/health thresholds remain unchanged; no installed SDK files were edited. The source-bound native144, own fullrestore120 and first300s formal are serial and fail closed. At this archive snapshot no own14/PPO save has yet been verified. Future results require ordinary supplementary evidence and cannot be inferred from dispatch.
+
+One bounded read-only collector owns transport; no competing210/249 connections. Native/restore are zeroPPO and leave canonical budget bytes unchanged. Only an actually entered formal stage may charge its original unique parent interval. Laptop GPU remains paused,3060 evaluation only. No signals, deletions, oldcase replay or automatic budget extensions.

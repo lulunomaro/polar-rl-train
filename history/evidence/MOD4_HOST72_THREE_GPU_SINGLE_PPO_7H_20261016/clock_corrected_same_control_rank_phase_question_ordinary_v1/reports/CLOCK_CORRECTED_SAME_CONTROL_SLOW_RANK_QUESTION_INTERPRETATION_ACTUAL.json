@@ -1,0 +1,51 @@
+{
+  "epoch": 1792090281.4860046,
+  "question": "Is original host210 RTX4090 the slowest rank?",
+  "observed_control_steps": 1800,
+  "callbacks_per_rank": 7200,
+  "rank_map": {
+    "0": "original host210 RTX4090",
+    "1": "host72 GPU0",
+    "2": "host72 GPU1"
+  },
+  "corrected_host72_arrival_later_than_rank0_seconds": {
+    "1": 10.730754852294922,
+    "2": 11.220567226409912
+  },
+  "clock_estimate_combined_halfwidth_s": {
+    "1": 0.06365156173706055,
+    "2": 0.06365156173706055
+  },
+  "interpretation": "At this same physical-control boundary rank0 arrived first; ranks1/2 on host72 arrived roughly 10.7/11.2 seconds later. Evidence contradicts original210 being the slowest sampler in this observed window.",
+  "limits": [
+    "One periodically recorded rollout boundary, not a rank-wise averaged CUDA/NCCL profile.",
+    "Current SSH date-offset bounds assume no intervening wall-clock step since the saved health epoch.",
+    "Does not isolate GPU hardware versus shared host CPU/NUMA, other workloads or software/communication effects.",
+    "Ranks1/2 existing logs do not publish per-iteration collection/learning metrics; absence is logger behavior, not a runtime failure.",
+    "Rank0 learning timer includes GAE, PPO compute, collective synchronization and waiting; it does not demonstrate rank0 is the slowest GPU."
+  ],
+  "own_health_at_boundary": {
+    "0": {
+      "ordinary": 0,
+      "integrity": 0,
+      "unknown": 0,
+      "nonfinite": false,
+      "STOP": null
+    },
+    "1": {
+      "ordinary": 0,
+      "integrity": 0,
+      "unknown": 0,
+      "nonfinite": false,
+      "STOP": null
+    },
+    "2": {
+      "ordinary": 0,
+      "integrity": 0,
+      "unknown": 0,
+      "nonfinite": false,
+      "STOP": null
+    }
+  },
+  "same_seven_hour_training_continues_no_restart_hotpatch_signals_resource_config_or_other_job_actions": true
+}

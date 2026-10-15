@@ -1,0 +1,53 @@
+{
+  "epoch": 1792088919.6059864,
+  "question": "Why three GPU 55k versus human single GPU 30k envsteps/s?",
+  "measured": {
+    "collection": 14.257,
+    "learning": 12.591750000000001,
+    "total": 26.84875,
+    "global_envsteps_s": 53633.78183341869,
+    "single_GPU_30000_is_human_baseline_not_matched_rebenchmark": true,
+    "baseline_iteration_seconds_if_identical": 16.0,
+    "scaling_vs_human_30000": 1.787792727780623,
+    "parallel_efficiency_vs_ideal90000": 0.5959309092602076
+  },
+  "global_envs": 60000,
+  "per_rank_envs": 20000,
+  "controls_per_update": 24,
+  "global_envsteps_per_update": 1440000,
+  "hypothetical_ideal_envsteps_s": 90000,
+  "hypothetical_ideal_iteration_s": 16.0,
+  "extra_iteration_s_vs_hypothetical_matched_single": 10.848749999999999,
+  "global_rate_is_same_envstep_unit_not_physics_substep": true,
+  "installed_logger_collect_plus_learning_timer": true,
+  "learning_timer_includes": [
+    "GAE_returns",
+    "backward_optimizer",
+    "adaptive_KL",
+    "allreduce",
+    "rank_wait"
+  ],
+  "learning_seconds_are_not_pure_network_seconds": true,
+  "native_PPO_gradient_allreduces_per_update": 20,
+  "observed_both_host_links_Mbps": 1000,
+  "NCCL_cross_host_transport": "socket with IB disabled",
+  "bandwidth_or_network_latency_not_measured": true,
+  "same_control_health_timestamp_observation": {
+    "control_steps": 600,
+    "all_controls_same": true,
+    "cross_host_epoch_spread_s": 13.627450942993164,
+    "same_host_rank1_rank2_epoch_spread_s": 2.333254814147949,
+    "caveat": "Health write timestamps are phase observations, not CUDA/NCCL profiling; inter-host clock synchronization/offset has not been verified. Do not label the cross-host spread as measured communication or wait time."
+  },
+  "GPU_utilization_snapshot_caveat": "Single instantaneous samples; source/target sampled roughly 11 seconds apart. Cannot infer mean utilization or compare source versus target at one phase.",
+  "CPU_NUMA_threads_caveat": "Two own simulator ranks share host72 and both have full CPU affinity; no isolated causal benchmark or CPU/NUMA attribution.",
+  "human_single_30000_caveat": "Human-stated baseline; identical task/source/DR/co-load and timing boundary not independently rebenchmarked.",
+  "conclusion": "Approx 1.79x throughput and 59.6% parallel efficiency against stated single baseline. Synchronous same-PPO training has compute, synchronization and slow-rank waiting costs. The dominant individual cause is not yet isolated; do not blame all 12.6 seconds on network or other jobs.",
+  "original_readonly_path_lookup_miss": {
+    "action": "Get-Content from repository cwd used a workspace-relative path",
+    "error": "Path not found",
+    "corrected_read": "Used workspace cwd to read existing report; no runtime or file changed"
+  },
+  "no_runtime_edits_signals_restarts_benchmarks_or_other_process_actions": true,
+  "same_original_seven_hour_parent_and_canonical": true
+}

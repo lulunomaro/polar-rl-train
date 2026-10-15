@@ -1,0 +1,263 @@
+{
+  "epoch": 1792071703.2087028,
+  "host": "10.24.0.72",
+  "user": "lc01",
+  "inspection_only": true,
+  "gpu": [
+    {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4090",
+      "uuid": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+      "driver": "535.54.03",
+      "memory_total_MiB": 24564,
+      "memory_used_MiB": 13,
+      "memory_free_MiB": 24203,
+      "utilization_percent": 0
+    },
+    {
+      "index": 1,
+      "name": "NVIDIA GeForce RTX 4090",
+      "uuid": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+      "driver": "535.54.03",
+      "memory_total_MiB": 24564,
+      "memory_used_MiB": 13,
+      "memory_free_MiB": 24203,
+      "utilization_percent": 0
+    }
+  ],
+  "no_compute_processes_at_snapshot": true,
+  "system": {
+    "OS": "Ubuntu20.04.4LTS",
+    "kernel": "Linux amax 5.15.0-70-generic #77~20.04.1-Ubuntu SMP Wed Apr 5 09:38:34 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux\n",
+    "CPU": "2xIntelXeonPlatinum8358P",
+    "physical_cores": 64,
+    "logical_threads": 128,
+    "memory_total_bytes": 540654702592,
+    "installed_nvcc_toolkit": "11.8.89",
+    "nvidia_smi_reported_CUDA": "12.2"
+  },
+  "disks": [
+    {
+      "path": "/",
+      "total": 974505869312,
+      "used": 255351787520,
+      "free": 677186387968
+    },
+    {
+      "path": "/home/lc01",
+      "total": 3934805671936,
+      "used": 2898273140736,
+      "free": 836578840576
+    },
+    {
+      "path": "/mnt",
+      "total": 974505869312,
+      "used": 255351787520,
+      "free": 677186387968
+    },
+    {
+      "path": "/data",
+      "total": 3934826397696,
+      "used": 1436000256,
+      "free": 3753239007232
+    },
+    {
+      "path": "/tmp",
+      "total": 974505869312,
+      "used": 255351787520,
+      "free": 677186387968
+    }
+  ],
+  "actual_torch_import_and_two_GPU_enumeration": [
+    {
+      "python": "/opt/anaconda3/bin/python",
+      "torch": "2.0.1+cu118",
+      "torch_path": "/opt/anaconda3/lib/python3.10/site-packages/torch/__init__.py",
+      "built_cuda": "11.8",
+      "cudnn": 8700,
+      "cuda_available": true,
+      "device_count": 2,
+      "no_tensor_allocation_or_GPU_kernel": true,
+      "devices": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4090",
+          "total_memory": 25393692672,
+          "capability": [
+            8,
+            9
+          ]
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA GeForce RTX 4090",
+          "total_memory": 25393692672,
+          "capability": [
+            8,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "python": "/home/lc01/Zonglin Li/worldmodel/server-work/envs/l2t/bin/python",
+      "torch": "2.7.1+cu126",
+      "torch_path": "/home/lc01/Zonglin Li/worldmodel/server-work/envs/l2t/lib/python3.10/site-packages/torch/__init__.py",
+      "built_cuda": "12.6",
+      "cudnn": 90501,
+      "cuda_available": true,
+      "device_count": 2,
+      "no_tensor_allocation_or_GPU_kernel": true,
+      "devices": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4090",
+          "total_memory": 25393692672,
+          "capability": [
+            8,
+            9
+          ]
+        },
+        {
+          "index": 1,
+          "name": "NVIDIA GeForce RTX 4090",
+          "total_memory": 25393692672,
+          "capability": [
+            8,
+            9
+          ]
+        }
+      ]
+    }
+  ],
+  "no_tensor_compute_benchmark_or_Isaac_simulation_proven": true,
+  "checked_python_environments_no_resolved_IsaacSim_IsaacLab_RSL_RL_TensorDict": true,
+  "bounded_source_path_search_no_Isaac_matches": true,
+  "not_exhaustive_machine_or_container_inventory": true,
+  "docker_daemon_read_denied": {
+    "argv": [
+      "docker",
+      "ps",
+      "--format",
+      "{{.Names}}\t{{.Image}}\t{{.Status}}"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get \"http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/json\": dial unix /var/run/docker.sock: connect: permission denied\n"
+  },
+  "data_path_access": {
+    "exists": true,
+    "readable": true,
+    "writable_permission_metadata": false
+  },
+  "original_reader_findings_preserved": {
+    "named_pytorch_env_exists_but_no_torch": true,
+    "Python37_importlib_metadata_reader_errors_preserved": true,
+    "legacy_pkg_resources_reader_successes": [
+      {
+        "argv": [
+          "/home/lc01/miniconda3/envs/4DGS/bin/python",
+          "-B",
+          "-c",
+          "\nimport sys,json,importlib.util,pkg_resources\nkeys=('torch','numpy','tensordict','rsl','isaac','omni','gymnasium','mujoco','warp')\npkgs={d.project_name:d.version for d in pkg_resources.working_set if d.project_name.lower().startswith(keys)}\norigins={}\nfor name in ('isaaclab','isaacsim','omni','rsl_rl','tensordict'):\n try:\n  s=importlib.util.find_spec(name);origins[name]=None if s is None else str(s.origin)\n except Exception as e:origins[name]=dict(error=type(e).__name__+': '+str(e))\nprint(json.dumps(dict(python=sys.executable,version=sys.version,packages=pkgs,module_resolution_only=origins)))\n"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "actual": {
+          "python": "/home/lc01/miniconda3/envs/4DGS/bin/python",
+          "version": "3.7.16 (default, Jan 17 2023, 22:20:44) \n[GCC 11.2.0]",
+          "packages": {
+            "numpy": "1.21.6",
+            "torch": "1.13.1",
+            "torchvision": "0.14.1",
+            "torchaudio": "0.13.1"
+          },
+          "module_resolution_only": {
+            "isaaclab": null,
+            "isaacsim": null,
+            "omni": null,
+            "rsl_rl": null,
+            "tensordict": null
+          }
+        }
+      },
+      {
+        "argv": [
+          "/home/lc01/miniconda3/envs/ed3dgs/bin/python",
+          "-B",
+          "-c",
+          "\nimport sys,json,importlib.util,pkg_resources\nkeys=('torch','numpy','tensordict','rsl','isaac','omni','gymnasium','mujoco','warp')\npkgs={d.project_name:d.version for d in pkg_resources.working_set if d.project_name.lower().startswith(keys)}\norigins={}\nfor name in ('isaaclab','isaacsim','omni','rsl_rl','tensordict'):\n try:\n  s=importlib.util.find_spec(name);origins[name]=None if s is None else str(s.origin)\n except Exception as e:origins[name]=dict(error=type(e).__name__+': '+str(e))\nprint(json.dumps(dict(python=sys.executable,version=sys.version,packages=pkgs,module_resolution_only=origins)))\n"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "actual": {
+          "python": "/home/lc01/miniconda3/envs/ed3dgs/bin/python",
+          "version": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "packages": {
+            "numpy": "1.21.6",
+            "torch": "1.13.1+cu116",
+            "torchvision": "0.14.1+cu116",
+            "torchaudio": "0.13.1+cu116"
+          },
+          "module_resolution_only": {
+            "isaaclab": null,
+            "isaacsim": null,
+            "omni": null,
+            "rsl_rl": null,
+            "tensordict": null
+          }
+        }
+      },
+      {
+        "argv": [
+          "/home/lc01/miniconda3/envs/evogs/bin/python",
+          "-B",
+          "-c",
+          "\nimport sys,json,importlib.util,pkg_resources\nkeys=('torch','numpy','tensordict','rsl','isaac','omni','gymnasium','mujoco','warp')\npkgs={d.project_name:d.version for d in pkg_resources.working_set if d.project_name.lower().startswith(keys)}\norigins={}\nfor name in ('isaaclab','isaacsim','omni','rsl_rl','tensordict'):\n try:\n  s=importlib.util.find_spec(name);origins[name]=None if s is None else str(s.origin)\n except Exception as e:origins[name]=dict(error=type(e).__name__+': '+str(e))\nprint(json.dumps(dict(python=sys.executable,version=sys.version,packages=pkgs,module_resolution_only=origins)))\n"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "actual": {
+          "python": "/home/lc01/miniconda3/envs/evogs/bin/python",
+          "version": "3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) \n[GCC 9.4.0]",
+          "packages": {
+            "numpy": "1.21.6",
+            "torch": "1.12.1+cu116",
+            "torchvision": "0.13.1+cu116",
+            "torchaudio": "0.12.1+cu116",
+            "torchdiffeq": "0.2.5"
+          },
+          "module_resolution_only": {
+            "isaaclab": null,
+            "isaacsim": null,
+            "omni": null,
+            "rsl_rl": null,
+            "tensordict": null
+          }
+        }
+      }
+    ],
+    "neither_error_is_GPU_hardware_failure": true
+  },
+  "deployment_readiness": "GPU enumeration and existing Torch imports succeed. Existing MOD4 Isaac/physics/DR/source/fullstate stack has not been deployed or admitted on this host. No training/deployment authority inferred from inspection.",
+  "evidence": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_HOST72_DUAL4090_ENV_READONLY_20261015\\reports\\HOST72_READONLY_DISCOVERY_ACTUAL.json",
+      "bytes": 10121,
+      "sha256": "cf5e4bfe90ab517eb4ae72c3becd353741aca65b41d74d356634dfd5bc7b3cf6"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_HOST72_DUAL4090_ENV_READONLY_20261015\\reports\\HOST72_PYTHON_SIM_STACK_READONLY_ACTUAL.json",
+      "bytes": 21535,
+      "sha256": "dc7ae7a4ff0942c9b99b0234720b7cbf79a95129a3bd643fc06c8d857f398357"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_HOST72_DUAL4090_ENV_READONLY_20261015\\reports\\HOST72_AVAILABLE_TORCH_LEGACY_METADATA_V2_ACTUAL.json",
+      "bytes": 8007,
+      "sha256": "f685fec93ca58b76fa08bc5badc3176a38c3e2bdc9cd282f02e26228c7123eea"
+    }
+  ],
+  "credentials_not_saved": true,
+  "no_remote_source_install_training_signal_or_budget_mutation": true,
+  "existing210_249_transport_and_frozen_evaluation_scopes_untouched": true
+}

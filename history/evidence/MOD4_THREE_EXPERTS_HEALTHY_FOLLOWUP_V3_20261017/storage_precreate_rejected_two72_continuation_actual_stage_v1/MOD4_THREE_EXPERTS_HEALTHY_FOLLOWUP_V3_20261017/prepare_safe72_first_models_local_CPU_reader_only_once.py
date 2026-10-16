@@ -1,0 +1,10 @@
+"""Prepare only: immutable complete checkpoints must exist before the new CPU reader runs."""
+from pathlib import Path
+import ast,json,time,hashlib
+F=Path(__file__).resolve().parent;V=F.parent/'MOD4_THREE_EXPERTS_RECOVERED_FULL_FINAL_CONTINUATION_20261017';src=V/'review_new_recovered_three_slot_complete_first_models_local_CPU_once.py';text=src.read_text('utf8')
+changes={"THREE_SLOT_ACTUAL_NATIVE_FIRST_IMMUTABLE_MODELS_COMPLETE_BOUND_COLLECTION.json":"SAFE72_NATIVE_FIRST_IMMUTABLE_MODELS_COMPLETE_BOUND_COLLECTION_ACTUAL.json","for key,spec in prep['specs'].items():":"for key in ('e2','recovery'):\n  spec=prep['specs'][key]","U/'payload'/key":"U/'payload_v3'/key","all3=len(positive)==3":"all3=len(positive)==2","==3 and len({x['critic_SHA'] for x in positive})==3":"==2 and len({x['critic_SHA'] for x in positive})==2","all_three_real_distinct_saved_PPO_positive=all3":"all_two_healthy72_real_distinct_saved_PPO_positive=all3,H1_resource_rejected_no_worker_or_GO=True","THREE_SLOT_REAL_DISTINCT_FIRST_COMPLETE_MODELS_LOCAL_CPU_ACTUAL.json":"SAFE72_TWO_REAL_DISTINCT_FIRST_COMPLETE_MODELS_LOCAL_CPU_ACTUAL.json","all_three_real_saved_PPO=all3":"all_two_healthy72_real_saved_PPO=all3","THREE_SLOT_FIRST_MODELS_CPU_ORIGINAL_ERROR_":"SAFE72_FIRST_MODELS_CPU_ORIGINAL_ERROR_"}
+for a,b in changes.items():assert text.count(a)==1,(a,text.count(a));text=text.replace(a,b)
+ast.parse(text);out=F/'review_safe72_immutable_first_complete_models_local_CPU_once.py';assert not out.exists();out.write_text(text,encoding='utf8')
+report=dict(epoch=time.time(),reader_prepared_not_executed=True,source_reader=str(src),source_SHA=hashlib.sha256(src.read_bytes()).hexdigest(),new_reader=str(out),new_reader_SHA=hashlib.sha256(out.read_bytes()).hexdigest(),exact_changes=changes,requires_complete_collection_twohost_SHA_fulltensors_core17Adam_plus20_actual_changes_E3_native_episode_plus1=True,no_GPU_optimizer_or_model_claim=True)
+with (F/'reports/SAFE72_FIRST_MODEL_CPU_READER_PREPARED_ONLY_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(report,f,indent=2)
+print(json.dumps(report))

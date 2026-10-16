@@ -1,0 +1,5 @@
+from pathlib import Path
+import ast,time,json,hashlib
+F=Path(__file__).resolve().parent;old=F/'review_safe72_immutable_first_complete_models_local_CPU_once.py';src=old.read_text('utf8');a='SAFE72_NATIVE_FIRST_IMMUTABLE_MODELS_COMPLETE_BOUND_COLLECTION_ACTUAL.json';b='SAFE72_HOURLY0610_EXISTING_SCOPE_MISSING_MODELS_ORIGINAL_OWNER_BOUND_COLLECTION_ACTUAL.json';assert src.count(a)==1;new=src.replace(a,b);ast.parse(new);p=F/'review_safe72_hourly0610_immutable_first_complete_models_local_CPU_v2_once.py';assert not p.exists();p.write_text(new,encoding='utf8');report=dict(epoch=time.time(),CPU_reader_only_new_complete_collection_filename_binding=True,old_source=str(old),old_SHA=hashlib.sha256(old.read_bytes()).hexdigest(),new_source=str(p),new_SHA=hashlib.sha256(p.read_bytes()).hexdigest(),old_pending0_collection_retained=True,no_GPU_or_optimizer_or_source_change=True,not_yet_executed_or_pass=True)
+with (F/'reports/HOURLY0610_CPU_READER_EXACT_COLLECTION_BINDING_PREPARED_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(report,f,indent=2)
+print(json.dumps(report))

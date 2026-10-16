@@ -1,0 +1,21 @@
+from pathlib import Path
+import os,shutil,json,hashlib,ast,time
+W=Path(__file__).resolve().parent;OLD=W/'MOD4_CURB140_E2_58_HEALTHY_CONTINUATION_ADMISSION_20261016';D=W/'MOD4_THREE4090_CURB_DIRECTION_AND_E3_RECOVERY_20261016';H1=W/'MOD4_H1_FLAT_JUMP_FULLSTATE_REWARD_NATIVE_ADMISSION_20261016'
+def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def main():
+ assert not D.exists();D.mkdir();(D/'reports').mkdir();Q=D/'payload';Q.mkdir();curb=Q/'curb';recovery=Q/'recovery';shutil.copytree(OLD/'training_payload/curb',curb);shutil.copytree(H1/'payload',recovery)
+ src=OLD/'actual_two_continuation_final_models/curb_final.pt';assert H(src)=='5cefc1562581d580bb2664116f08df752f975f830b3a53e7bed61d6bdaa11e1b';shutil.copy2(src,curb/'job0/source/CURB140.pt')
+ changes=[]
+ def change(p,a,b):
+  s=p.read_text('utf8');assert a in s,(p,a);p.write_text(s.replace(a,b),encoding='utf8');changes.append(dict(path=str(p),old_literal=a,new_literal=b,SHA=H(p)))
+ rt=curb/'job0/runtime/isaac/mod4';oldsha='84d29fa99c0a75f2273cf2d427bc729e8bb614fef7a8fa25d8b9889361e1e626';newsha=H(src)
+ change(rt/'curb35_checkpoint.py',oldsha,newsha)
+ for n in ('native_admission_worker.py','production_worker.py'):
+  change(curb/n,'663200','666140')
+ for n in ('train_curb35_resume_ppo.py',):
+  change(rt/n,'resume_e1_new_episode(runner,env,args.init_checkpoint,log_dir)','resume_e1_new_episode(runner,env,args.init_checkpoint,log_dir)\n    from curb35_reset_approach_command_axis_v1 import bind\n    bind(env)')
+ task=json.loads((curb/'job0/TASK_CURB35.json').read_bytes());task.update(id='CURB35_FROM140_PLUS147_RESET_BOUND_APPROACH_COMMAND_NATIVE144',kind='CURB35_RESET_BOUND_APPROACH_COMMAND',source_SHA=newsha,source_Adamstep=666140,only_geometry_height_changed_from20_to35=False,new_axis='Bind nonstanding original CURB family command toward reset-fixed edge at signed0.3m/s with yaw0; no live position/heading feedback. Same previously admitted CURB20 command axis now isolated on35.',no_height_reward_DR_physics_change=True,approved_for_PPO=False);(curb/'job0/TASK_CURB35.json').write_text(json.dumps(task,indent=2),encoding='utf8')
+ # Prior script creates H1 only when explicitly invoked; these copied files remain unused.
+ report=dict(epoch=time.time(),human='那赶紧充分利用啊',curb_previous_actual_training_entry_did_not_call_reset_approach_binding=True,not_claimed_unique_failure_cause=True,new_CURB_source_SHA=newsha,new_CURB_command_axis_not_blind_same_duration=True,recovery_original_E0_full_source_SHA=H(recovery/'job0/source/E0_full_source.pt'),materialized_only_not_target_native_or_PPO=True,changes=changes,all_old_sources_and_failed_prefix_retained=True)
+ (D/'reports/MATERIALIZED_TWO_UNUSED_EXPERT_SOURCE_AXES_ACTUAL.json').write_text(json.dumps(report,indent=2),encoding='utf8');print(json.dumps(dict(root=str(D),CURB_source_SHA=newsha,E3_source_SHA=report['recovery_original_E0_full_source_SHA'],materialized_only=True)))
+if __name__=='__main__':main()

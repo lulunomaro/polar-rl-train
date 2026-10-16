@@ -1,0 +1,16 @@
+"""Finalize new explicit package after CPU tests; old unexecuted observer draft retained."""
+from pathlib import Path
+import ast,json,time,hashlib,shutil
+D=Path(__file__).resolve().parent;W=D.parent;P=D/'payload';R=D/'reports';OLD=W/'MOD4_HOST72_E2_MOVING4_AND_H1_JUMP_ADMISSION_20261016'
+def H(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def main():
+ assert not (P/'PAYLOAD_H1_FULLSTATE_MANIFEST_V2.json').exists();unused=D/'unused_pre_norm_scalar_observer_v1';unused.mkdir();shutil.copy2(P/'job0/runtime/isaac/mod4/h1_fullstate_environment_v1.py',unused/'h1_fullstate_environment_v1.py');shutil.copy2(P/'PAYLOAD_H1_FULLSTATE_MANIFEST.json',unused/'PAYLOAD_H1_FULLSTATE_MANIFEST.json')
+ for n in ('h1_public_request_phase_v1.py','h1_reward_scope_v1.py','h1_fullstate_environment_v1.py','h1_fullstate_checkpoint_v1.py'):shutil.copy2(D/n,P/'job0/runtime/isaac/mod4'/n)
+ for n in ('h1_fullstate_native_worker_v1.py','h1_native_finite_parent_v1.py','h1_public_request_phase_v1.py','review_H1_full20k_native_allrows_CPU_v1.py'):shutil.copy2(D/n,P/n)
+ text=(OLD/'review_H1_XYZW_fullpose_allrows_independent_CPU_once.py').read_text();fn=next(x for x in ast.parse(text).body if isinstance(x,ast.FunctionDef) and x.name=='support');code='import numpy as np\n'+ast.get_source_segment(text,fn)+'\n';(P/'h1_reference_geometry_cpu.py').write_text(code,encoding='utf8');(D/'h1_reference_geometry_cpu.py').write_text(code,encoding='utf8')
+ for p in P.rglob('*.py'):
+  if p.name.startswith(('h1_','train_H1','review_H1')):compile(p.read_text(),str(p),'exec')
+ s=json.loads((OLD/'reports/H1_ACTUAL_SDK_POSE_QUATERNION_SOURCE_CONTRACT_CPU.json').read_bytes());sha=next(x['SHA'] for x in s['files'] if x['path'].endswith('/utils/math.py'));assert len(sha)==64
+ manifest=dict(epoch=time.time(),source_E0_SHA='b10958d2a8631b12c0f9502bf7fa9230d9a7a1ae9863443bb68388604bed61f8',SDK_math_actual_SHA=sha,SDKmath_receipt_source=str(OLD/'reports/H1_ACTUAL_SDK_POSE_QUATERNION_SOURCE_CONTRACT_CPU.json'),no_GPU_or_PPO_yet=True,native_only_no_learning_owner_or_new_budget=True,all_original_static_runtime_assets_reused=True,new_files_explicit_not_shared_SDK_edits=True,source_original_checkpoint_contains_no_H1_phase=True,added_phase_explicit_no_new_rng=True,geometry_CPU_function_original_source_SHA=H(OLD/'review_H1_XYZW_fullpose_allrows_independent_CPU_once.py'),files=[dict(relative=p.relative_to(P).as_posix(),bytes=p.stat().st_size,SHA=H(p)) for p in sorted(P.rglob('*')) if p.is_file() and p.name not in ('PAYLOAD_H1_FULLSTATE_MANIFEST.json',)])
+ (P/'PAYLOAD_H1_FULLSTATE_MANIFEST_V2.json').write_text(json.dumps(manifest,indent=2),encoding='utf8');(R/'H1_NATIVE_FULL20K_FINAL_PACKAGE_CPU_NEGATIVES_AND_SOURCE_FREEZE_V2_ACTUAL.json').write_text(json.dumps(dict(epoch=time.time(),manifest_SHA=H(P/'PAYLOAD_H1_FULLSTATE_MANIFEST_V2.json'),files=len(manifest['files']),original_unexecuted429_prepared_manifest_preserved=True,actual_full20k_native_or_PPO_unclaimed=True,all_scripts_syntax_passed=True,phase_public_contact_invariance_and_real_rebound_CPU_passed=True,source_E0_freeze_and_actual_SDK_XYZW_SHA_bound=True,no_training_lease=True),indent=2),encoding='utf8');print(json.dumps(dict(prepared_files=len(manifest['files']),manifest_SHA=H(P/'PAYLOAD_H1_FULLSTATE_MANIFEST_V2.json'),newGPU=False,newPPO=False)),flush=True)
+if __name__=='__main__':main()

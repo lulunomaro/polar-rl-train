@@ -1,0 +1,17 @@
+from pathlib import Path
+import os,sys,json,time,traceback
+os.environ['CUDA_VISIBLE_DEVICES']=''
+import torch
+D=Path(__file__).resolve().parent;W=D.parent;R=D/'reports';sys.path.insert(0,str(W/'MOD4_H1_FLAT_JUMP_FULLSTATE_REWARD_NATIVE_ADMISSION_20261016'));from review_H1_complete_native_models_source_and_admission_local_CPU_once import eq,tensors,H
+def main():
+ out=R/'H1_V2_FINAL25_MODEL_EXACT_COST_AND_E2_NATIVE0_LOCAL_CPU_ACTUAL.json';assert not out.exists();torch.set_num_threads(2);rng=torch.get_rng_state().clone();v=json.loads((R/'OLD_H1_V2_FINAL_AND_E2_MISSING_NATIVE0_READONLY_ACTUAL.json').read_bytes());models={};rows=[]
+ for row in v['local_models']:
+  p=Path(row['path']);assert p.stat().st_size==row['bytes'] and H(p)==row['SHA'];ck=torch.load(p,map_location='cpu',weights_only=False);count=[0,0];tensors(ck,count);models[row['role']]=ck;rows.append(dict(**row,tensors=count[0],float_tensors=count[1],all_finite=True))
+ f=models['H1_V2_final_model.pt'];start=torch.load(W/'MOD4_H1_GROUNDED_PRELAUNCH_PROGRESS_V2_20261016/actual_complete_native_and_first_models/production_own_H1_startup0.pt',map_location='cpu',weights_only=False);assert {int(x['step']) for x in f['optimizer_state_dict']['state'].values()}=={640260};assert f['owned_H1_completed_updates']==25 and f['owned_H1_phase']=='production' and not f['failed_partial_prefix'];changes={k:[n for n in start[k] if not eq(start[k][n],f[k][n])] for k in ('actor_state_dict','critic_state_dict')};assert len(changes['actor_state_dict'])==9 and len(changes['critic_state_dict'])==8
+ e=torch.load(W/'MOD4_HOST72_E2_MOVING4_AND_H1_JUMP_ADMISSION_20261016/E2_closed_first_scope_final/model.pt',map_location='cpu',weights_only=False)
+ for k in ('actor_state_dict','critic_state_dict','optimizer_state_dict'):assert eq(e[k],models['E2_native_own_startup0.pt'][k])
+ seg=v['H1_source']['own_matching_completed_segments'];assert len(seg)==1;seg=seg[0];assert abs(seg['charged_seconds']-(seg['ended_epoch']-seg['started_epoch']))<1e-6 and seg['charged_seconds']<=1800 and seg['duration_bound_passed'];assert not v['H1_source']['actual_owner_processes'] and not v['H1_target']['actual_own_processes'];assert seg['actual_remote_terminal_child_handoff']['returncode']==0 and seg['actual_remote_terminal_child_handoff']['actual_all_children_waited'];assert not torch.cuda.is_initialized() and torch.equal(rng,torch.get_rng_state())
+ result=dict(epoch=time.time(),passed=True,H1_actual_FINAL_updates=25,H1_actual_production_controls=600,H1_production_envsteps=12000000,all17Adam_from639760_to640260=True,actual_actor9_STD_critic8_changes=changes,models=rows,H1_unique_actual_parent_seconds=seg['charged_seconds'],old_H1_parent_node_workers_actual_out=True,E2_missing_native0_actor9critic8STD17Adam_literal_source_exact=True,current_new_CURB_E2_canonical_owner_not_claimed_idle_or_free=True,H1_production_control_event_and_frozen_jump_skill_audit_still_pending=True,global_CPU_RNG_unchanged0CUDA0optimizer=True);out.write_text(json.dumps(result,indent=2),encoding='utf8');print(json.dumps({k:result[k] for k in ('passed','H1_actual_FINAL_updates','H1_unique_actual_parent_seconds','H1_production_control_event_and_frozen_jump_skill_audit_still_pending')}))
+if __name__=='__main__':
+ try:main()
+ except BaseException:(R/('H1_FINAL25_LOCAL_CPU_ORIGINAL_ERROR_'+str(time.time_ns())+'.json')).write_text(json.dumps(dict(epoch=time.time(),error=traceback.format_exc(),no_GPU_replay=True),indent=2),encoding='utf8');raise

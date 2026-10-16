@@ -1,0 +1,5 @@
+from pathlib import Path
+import ast,time,json,hashlib
+G=Path(__file__).resolve().parent;R=G/'reports';src=G/'collect_new_v5_two72_native_immutable_first_models_finite_once.py';s=src.read_text('utf8');needle="v['owner']=owner";assert s.count(needle)==1;s=s.replace(needle,needle+";v['prior_unused_v4_registration_expired_owner']=a.code(c,a.t.PY,READ,'/mnt/mod4_linux_durable_20261013/T3_1710v4r72/owner','owner')");ast.parse(s);out=G/'collect_new_v5_two72_and_prior_unused_owner_actual_exit_finite_v2_once.py';assert not out.exists();out.write_text(s,encoding='utf8');v=dict(epoch=time.time(),old_prepared_collector_not_run_or_overwritten=True,source_SHA=hashlib.sha256(src.read_bytes()).hexdigest(),new_collector=str(out),new_SHA=hashlib.sha256(out.read_bytes()).hexdigest(),same_one_bounded_source_connection_then_target=True,additional_read_only_prior_owned_noGO_registration_expiry_namespace=True,no_GPU_or_ledger_mutation=True)
+with (R/'COLLECTOR_V2_ADDITIONAL_PRIOR_OWNED_EXIT_BINDING_PREPARED_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(v,f,indent=2)
+print(json.dumps(v))

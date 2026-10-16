@@ -1,0 +1,64 @@
+
+from pathlib import Path
+import os,json,time,msvcrt,psutil,subprocess
+root=Path('D:/MOD4_async_eval/MOD4_CURB140_E2_58_HEALTHY_CONTINUATION_ADMISSION_20261016/curb140_frozen35_3060_v1');lock=Path('D:/MOD4_async_eval/worker.lock');rows=[]
+for p in psutil.process_iter(['pid','create_time','name','cmdline','ppid']):
+ try:
+  a=p.info;s=' '.join(a.get('cmdline') or []).lower()
+  if any(w in s for w in ['paired_direct3060','run_direct3060','eval_worker','mirror_target_tui.py','kit.exe']):rows.append(a)
+ except (psutil.NoSuchProcess,psutil.AccessDenied):pass
+assert not rows, 'Another evaluation/Kit/oldworker process exists'
+assert lock.exists()
+with lock.open('rb') as f:
+ f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_NBLCK,1);f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_UNLCK,1)
+gpu=subprocess.run(['nvidia-smi','--query-gpu=index,name,memory.total,memory.free','--format=csv,noheader,nounits'],capture_output=True,text=True,timeout=20)
+assert gpu.returncode==0,gpu.stderr
+device=gpu.stdout.strip().splitlines();assert len(device)==1
+index,name,total,free=[x.strip() for x in device[0].split(',')];device_name=name;assert int(index)==0 and int(free)>=4096
+apps=subprocess.run(['nvidia-smi','--query-compute-apps=pid,process_name','--format=csv,noheader'],capture_output=True,text=True,timeout=20)
+assert apps.returncode==0;active=[x.strip() for x in apps.stdout.splitlines() if x.strip() and 'No running processes' not in x]
+desktop=[];unknown=[]
+allowed_names={'textinputhost.exe','explorer.exe','shellexperiencehost.exe','searchhost.exe','phoneexperiencehost.exe','opencode.exe','msedgewebview2.exe','chatgpt.exe','codex-computer-use-swift.exe','startmenuexperiencehost.exe','dwm.exe','msedge.exe','wudfhost.exe'}
+for line in active:
+ try:
+  pid=int(line.split(',')[0].strip());process=psutil.Process(pid);exe=process.exe();argv=process.cmdline();name=Path(exe).name.lower()
+  if name=='gameviewerserver.exe':
+   assert pid==9272 and process.create_time()==1791859314.9767294
+   assert Path(exe).as_posix().casefold()=='C:/Program Files/Netease/GameViewer/bin/GameViewerServer.exe'.casefold()
+   children=process.children(recursive=True)
+   assert all(c.name().lower()=='crashpad_handler.exe' and Path(c.exe()).as_posix().casefold()=='C:/Program Files/Netease/GameViewer/bin/crashpad_handler.exe'.casefold() for c in children)
+   desktop.append(dict(pid=pid,creation=process.create_time(),exe=exe,role='Actual authenticated NetEase signed remote desktop service; GPU graphics/encoding, no evaluation ownership; preserved untouched'))
+  elif name=='deepseek harness.exe':
+   import hashlib
+   parent=process.parent();assert parent is not None
+   actual=dict(process=dict(pid=process.pid,creation=process.create_time(),argv=process.cmdline(),exe=process.exe(),parent=process.ppid()),parent=dict(pid=parent.pid,creation=parent.create_time(),argv=parent.cmdline(),exe=parent.exe(),parent=parent.ppid()),binary_SHA=hashlib.sha256(Path(exe).read_bytes()).hexdigest())
+   expected={'process': {'pid': 38888, 'creation': 1792128107.6247945, 'argv': ['C:\\Users\\lulunomaro\\AppData\\Local\\Programs\\DeepSeek Harness\\DeepSeek Harness.exe', '--type=gpu-process', '--user-data-dir=C:\\Users\\lulunomaro\\AppData\\Roaming\\@deepseek-ai/dsh-desktop', '--gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAAEAAAAAIAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA=', '--field-trial-handle=1880,i,11099651239387120003,15216465284246210607,262144', '--enable-features=PdfUseShowSaveFilePicker', '--disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,NetworkServiceSandbox,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation', '--variations-seed-version', '--pseudonymization-salt-handle=1920,i,13825158373428848168,4616787388470376600,4', '--trace-process-track-uuid=3190708988185955192', '--mojo-platform-channel-handle=1892', '/prefetch:2'], 'exe': 'C:\\Users\\lulunomaro\\AppData\\Local\\Programs\\DeepSeek Harness\\DeepSeek Harness.exe', 'parent': 38360}, 'parent': {'pid': 38360, 'creation': 1792128107.3105829, 'argv': ['C:\\Users\\lulunomaro\\AppData\\Local\\Programs\\DeepSeek Harness\\DeepSeek Harness.exe'], 'exe': 'C:\\Users\\lulunomaro\\AppData\\Local\\Programs\\DeepSeek Harness\\DeepSeek Harness.exe', 'parent': 33160}, 'binary_SHA': 'df4e91fd91f6f1bee19a1990b0e167bfe06abf8353279d82bbb8e60edb6ba0d3'}
+   assert actual==expected and '--type=gpu-process' in actual['process']['argv'] and not any(x.startswith('--type=') for x in actual['parent']['argv']), 'Desktop identity changed: unknown, no wildcard permission'
+   desktop.append(dict(pid=pid,creation=process.create_time(),exe=exe,role='Exact Authenticode-valid DeepSeek desktop Electron GPU child, parent and binary SHA verified; no evaluation ownership; retained untouched'))
+  elif name not in allowed_names:unknown.append(dict(pid=pid,exe=exe))
+  else:desktop.append(dict(pid=pid,creation=process.create_time(),exe=exe,role='actual Windows desktop/browser/Codex background process; retained untouched'))
+ except (ValueError,psutil.NoSuchProcess,psutil.AccessDenied):unknown.append(dict(raw=line,unresolved=True))
+assert not unknown, 'Another or unresolved non-desktop compute process owns GPU'
+ram=psutil.virtual_memory();disk=psutil.disk_usage('D:/')
+assert ram.available>=8*2**30 and disk.free>=4*2**30
+outbound=[]
+for c in psutil.net_connections(kind='tcp'):
+ if c.raddr and c.raddr.ip in ['10.24.4.210','172.27.131.74']:outbound.append(dict(pid=c.pid,remote=list(c.raddr),status=c.status))
+known={'pid': 23808, 'creation': 1791979810.7755249, 'argv': ['C:\\Program Files\\OpenSSH\\ssh.exe', '-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=NUL', '-o', 'ConnectTimeout=15', 'egde@10.24.4.210'], 'exe': 'C:\\Program Files\\OpenSSH\\ssh.exe', 'parent': 28480, 'parent_creation': 1791979810.4926991, 'parent_argv': ['C:\\Program Files\\PowerShell\\7\\pwsh.exe', '-Command', 'try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\nssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=15 egde@10.24.4.210'], 'parent_exe': 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'}
+classified=[];blocked=[]
+for row in outbound:
+ try:
+  p=psutil.Process(row['pid']);parent=psutil.Process(p.ppid())
+  actual=dict(pid=p.pid,creation=p.create_time(),argv=p.cmdline(),exe=p.exe(),parent=p.ppid(),parent_creation=parent.create_time(),parent_argv=parent.cmdline(),parent_exe=parent.exe())
+  assert actual==known,'Outbound identity is not the explicitly identified interactive SSH'
+  assert Path(actual['exe']).name.lower()=='ssh.exe'
+  assert Path(actual['parent_exe']).name.lower() in ('powershell.exe','pwsh.exe','cmd.exe')
+  assert not any(x in ' '.join(actual['parent_argv']).lower() for x in ('mirror_target','eval_worker','rpc','poller','retry'))
+  classified.append(dict(connection=row,actual_identity=actual,role='Existing interactive user SSH terminal; preserved; no GPU or task ownership'))
+ except (AssertionError,psutil.Error) as error:blocked.append(dict(connection=row,error=repr(error)))
+assert not blocked,'Retired or unidentified210 bridge still connected'
+
+print(json.dumps(dict(epoch=time.time(),root=str(root),new_root_unused=not root.exists(),shared_OS_lock_free=True,
+ GPU=dict(index=int(index),name=device_name,total_MiB=int(total),free_MiB=int(free),confirmed_WDDM_desktop_GPU_processes=desktop,unknown_or_evaluation_compute_processes=unknown),
+ RAM_available=ram.available,durable_D_free=disk.free,thresholds=dict(RAM_available_min=8*2**30,durable_min=4*2**30,GPU_free_MiB_min=4096),
+ oldworker_and_GPUchild_absence=True,target210_outbound=outbound,identified_interactive_SSH_preserved=classified,read_only=True)))

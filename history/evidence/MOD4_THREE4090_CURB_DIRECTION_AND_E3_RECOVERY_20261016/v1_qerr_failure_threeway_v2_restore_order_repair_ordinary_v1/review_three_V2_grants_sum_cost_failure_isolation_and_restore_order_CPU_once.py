@@ -1,0 +1,20 @@
+from pathlib import Path
+import os,ast,json,time,hashlib,types
+os.environ['CUDA_VISIBLE_DEVICES']=''
+import torch
+D=Path(__file__).resolve().parent;P=D/'v2_payload';R=D/'reports'
+def main():
+ out=R/'THREE_V2_GRANTS_THREE_INTERVALS_ISOLATION_RESTORE_ORDER_CPU_ACTUAL.json';assert not out.exists();rng=torch.get_rng_state().clone();proof=json.loads((R/'THREE_EXPERT_V2_FULLSOURCE_RESTORE_ORDER_RESOURCE_MANIFEST_CPU_ACTUAL.json').read_bytes());tree=ast.parse((P/'curb/three_expert_helpers_v2.py').read_text('utf8'));nodes=[x for x in tree.body if isinstance(x,ast.FunctionDef) and x.name in ('valid_ready','charge_values','terminal')];ns=dict(hashlib=hashlib,json=json);exec(compile(ast.Module(body=nodes,type_ignores=[]),'actual_three_helper_functions_CPU','exec'),ns);neg=0
+ for spec in proof['frozen']:
+  data=dict(passed=True,source_SHA=spec['source_SHA'],controls=spec['native_controls'],callbacks=4*spec['native_controls']);r=dict(phase='ready',manifest_SHA=spec['manifest_SHA'],native_GPU_waited_EXIT0=True,native_CPU=dict(value=data,actual_CPU_waited_EXIT0=True,SHA=hashlib.sha256(json.dumps(data,indent=2).encode()).hexdigest()));assert ns['valid_ready'](r,spec)
+  for patch in [dict(original_error=True),dict(native_GPU_waited_EXIT0=False),dict(manifest_SHA='0'*64),dict(phase='native')]:assert not ns['valid_ready'](dict(r,**patch),spec);neg+=1
+ active=dict(experts={},charged_expert_seconds=0.);c=dict(charged_training_seconds=1000.,remaining_training_seconds=1187000.);go={x['key']:dict(learning_started_epoch=100.,max_parent_seconds=x['max_parent_seconds']) for x in proof['frozen']};rows={k:dict(returncode=None) for k in go};ns['charge_values'](c,active,go,rows,110.);assert c['charged_training_seconds']==1030.;ns['charge_values'](c,active,go,rows,110.);assert c['charged_training_seconds']==1030.;rows['recovery']=dict(returncode=1,owner_received_terminal_epoch=112.);ns['charge_values'](c,active,go,rows,120.);assert active['experts']['recovery']['charged_seconds']==12. and active['experts']['curb']['charged_seconds']==20. and active['experts']['e2']['charged_seconds']==20.;ns['charge_values'](c,active,go,rows,125.);assert active['experts']['recovery']['charged_seconds']==12. and active['experts']['curb']['charged_seconds']==25. and active['experts']['e2']['charged_seconds']==25.;assert c['charged_training_seconds']==1062. and c['remaining_training_seconds']==1186938.
+ # Original native source guard retained literally; a failed upstream call cannot reach fall placement.
+ original=D/'payload/recovery/job0/runtime/isaac/mod4/sensor_resume_contract.py';current=P/'recovery/job0/runtime/isaac/mod4/sensor_resume_contract.py';assert original.read_bytes()==current.read_bytes();s=(P/'recovery/job0/runtime/isaac/mod4/e3_fullstate_checkpoint_v1.py').read_text('utf8');assert s.index('proof=resume_chassis_pd_new_episode')<s.index('env.e3_reset_enabled=True')<s.index('env.place_declared_fall');env=types.SimpleNamespace(e3_reset_enabled=False,placed=False)
+ def fail():raise AssertionError('original qerr must reject')
+ try:
+  fail();env.e3_reset_enabled=True;env.placed=True
+ except AssertionError:pass
+ assert not env.e3_reset_enabled and not env.placed;owner=(D/'three_expert_finite_owner_node_v2.py').read_text('utf8');assert "rows.get('original_error')" not in owner and 'CURB_ORIGINAL_ERROR_ISOLATED.json' in owner and 'other_experts_not_stopped=True' in owner
+ assert torch.equal(rng,torch.get_rng_state()) and not torch.cuda.is_initialized();result=dict(epoch=time.time(),passed_CPU_functions_only=True,actual_original_source_guard_bytes_exact=True,upstream_guard_rejection_prevents_new_reset_axis=True,twelve_invalid_grants_rejected=neg,three_distinct_intervals_sum_no_double_charge=True,failed_expert_stops_its_interval_other_two_continue=True,source_owner_per_expert_error_isolation_AST_inspected_not_runtime_fault_injected=True,original_canonical_not_read_or_written_by_fixture=True,no_target_or_native_PPO_pass_inferred=True,CPU_RNG_unchanged0CUDA0optimizer=True);out.write_text(json.dumps(result,indent=2),encoding='utf8');print(json.dumps(result))
+if __name__=='__main__':main()

@@ -1,0 +1,13 @@
+from pathlib import Path
+import sys,json,getpass,time,traceback
+B=Path(__file__).resolve().parent;sys.path.insert(0,str(B.parent/'MOD4_H1_HUMAN_REQUESTED_SAME_SCOPE_RESTART_20261017'));from deploy_human_requested_H1_new_finite_strict_native_reuse_once import a
+PROGRAM="\nfrom pathlib import Path\nimport sys,json,time,psutil,subprocess\nT=Path(sys.argv[1]);E=Path(sys.argv[2]);read=lambda p:json.loads(p.read_bytes()) if p.is_file() else None\nrows=[]\nfor p in psutil.process_iter(['pid','create_time','cmdline']):\n try:\n  if p.pid!=__import__('os').getpid() and any(x.startswith(str(T)+'/') or x.startswith(str(E)+'/') for x in p.info['cmdline'] or []):rows.append(p.info)\n except psutil.Error:pass\nout=E/'native120/output';errors={p.name:read(p) for p in out.glob('*ERROR*.json')}\nprint(json.dumps(dict(epoch=time.time(),training_current=read(T/'NODE_CURRENT.json'),training_GO=read(T/'GO_PRODUCTION.json'),training_error=read(T/'NODE_ORIGINAL_ERROR.json'),training_first_exists=(T/'job0/production/model_update1.pt').is_file(),eval_dispatch=read(E/'native120/DISPATCH_RECEIPT.json'),eval_parent_exit=read(E/'native120/PARENT_EXIT_RECEIPT.json'),eval_started=read(out/'STARTED.json'),eval_complete=read(out/'COMPLETE_ACTUAL.json'),eval_original_errors=errors,actual_scope_processes=rows,GPU_actual_snapshot=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,utilization.gpu,memory.used,memory.free','--format=csv,noheader,nounits']).decode(),compute_actual_snapshot=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits']).decode(),no_PT_raw_hash=True)))\n"
+pw=getpass.getpass('Host72 actual existing GPU1 timeout state only (hidden): ');c=None
+try:
+ c=a.connect72(pw);pw=None;v=a.code(c,a.PY,PROGRAM,'/home/lc01/Zonglin Li/zonglin2/tasks/H1r_1810v4','/home/lc01/Zonglin Li/zonglin2/tasks/H1fe_1810ev4',timeout=90)
+ log=a.code(c,a.PY,"from pathlib import Path;import json;B=Path('/home/lc01/Zonglin Li/zonglin2/tasks/H1fe_1810ev4/native120');p=B/'worker.log';f=p.open('rb');f.seek(max(0,p.stat().st_size-20000));print(json.dumps(dict(log_tail=f.read().decode('utf8',errors='backslashreplace'),bytes=p.stat().st_size)))",timeout=60);v['worker_log']=log
+ with (B/'reports/LINUX_GPU1_V4_LAUNCH_TIMEOUT_EXISTING_ACTUAL_DIAGNOSIS.json').open('x',encoding='utf8') as f:json.dump(v,f,indent=2)
+ print(json.dumps(dict(epoch=v['epoch'],train_GO=v['training_GO'],train_error=v['training_error'],eval_errors=v['eval_original_errors'],eval_complete=v['eval_complete'],compute=v['compute_actual_snapshot'],logtail=log['log_tail'][-3500:])),flush=True)
+finally:
+ pw=None
+ if c:c.close()

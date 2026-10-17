@@ -1,0 +1,17 @@
+"""Bind one new3060 frozen native case to the sealed E3V2 package; no dispatch here."""
+from pathlib import Path
+import json,time,hashlib,ast
+B=Path(__file__).resolve().parent;W=B.parent;R=B/'reports';Q=B/'e3_closed85_frozen_prepared_v2/payload';H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+proof=json.loads((R/'E3_FROZEN_V2_QUERY104_PREFIX_AND_DR_PHASE_READBACK_COVERAGE_CPU_ACTUAL.json').read_bytes());assert proof['passed_pre_dispatch_actual_query104_prefix_and_source_coverage_CPU'];mf=Q/'E3_CLOSED85_FROZEN_COMPLETE_MANIFEST_V2.json';m=json.loads(mf.read_bytes());source=m['source'];assert H(Q/m['source_relative'])==source['SHA'];source={**source,'path':str(Q/m['source_relative'])}
+v=dict(epoch=time.time(),passed_complete_payload_CPU_only=True,source=source,manifest=proof['manifest'],package=proof['package'],worker=dict(path=str(Q/'e3_frozen_worker_v2.py'),SHA=H(Q/'e3_frozen_worker_v2.py')),parent=dict(path=str(Q/'e3_frozen_parent_v2.py'),SHA=H(Q/'e3_frozen_parent_v2.py')),no_GPU_dispatch_yet=True)
+with (R/'E3_CLOSED85_NATIVE120_V2_EXACT_DEPLOY_BINDINGS_CPU_PREPARED.json').open('x',encoding='utf8') as f:json.dump(v,f,indent=2)
+K=W/'MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017';s=(K/'dispatch_closed112_V10_unused_native120_exact_current_resource_source_SDK_once.py').read_text('utf8')
+start="proof=json.loads((D/'reports/E2_LATEST_CLOSED112_SAME_RECIPE_FROZEN_SOURCE_CONTROLLER_CPU_PREPARED.json').read_bytes());assert proof['passed_source_controller_CPU_only']";assert s.count(start)==1;s=s.replace(start,"proof=json.loads((R/'E3_FROZEN_V2_QUERY104_PREFIX_AND_DR_PHASE_READBACK_COVERAGE_CPU_ACTUAL.json').read_bytes());assert proof['passed_pre_dispatch_actual_query104_prefix_and_source_coverage_CPU']")
+changes={'e2_closed112_frozen_prepared_v10':'e3_closed85_frozen_prepared_v2','MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017/E2_CLOSED112_FROZEN_V10':B.name+'/E3_CLOSED85_FROZEN_V2','E2_CLOSED112_SIGNED4_COMPLETE_FROZEN_V10_CPU_PREPARED_ACTUAL.json':'E3_CLOSED85_NATIVE120_V2_EXACT_DEPLOY_BINDINGS_CPU_PREPARED.json','E2_CLOSED112':'E3_CLOSED85','E2closed112':'E3closed85','e2closed112_signed4_native120_v10':'e3closed85_public03_native120_v2','SIGNED4_NATIVE120_V10':'PUBLIC03_NATIVE120_V2','SIGNED4_FROZEN_V10':'PUBLIC03_FROZEN_V2','NATIVE120_V10':'NATIVE120_V2','FROZEN_V10':'FROZEN_V2','MANIFEST_V10':'MANIFEST_V2','e2_closed112_source_guard_CPU_v1':'recovery_closed85_source_guard_v1','validate_E2_source':'validate_E3_source','e2_closed112_single35_CPU_v1':'recovery_closed85_single35_public03_perenv_CPU_v2','[175,98]':'[173,96]','Single35(source,88,':'Single35(source,104,',"kind='world'":"kind='recovery'",'num_envs=88':'num_envs=104','source/E2_closed112.pt':'source/E3_closed85.pt','e2_frozen_worker_v10.py':'e3_frozen_worker_v2.py','e2_frozen_parent_v10.py':'e3_frozen_parent_v2.py','native120_V10_unused_once':'native120_V2_unused_once'}
+for old,new in changes.items():s=s.replace(old,new)
+# Correct final concrete manifest path and source guard counts before any connection.
+s=s.replace('E3_CLOSED85_FROZEN_COMPLETE_MANIFEST_V10','E3_CLOSED85_FROZEN_COMPLETE_MANIFEST_V2')
+assert 'e2_frozen_worker_v10' not in s and "kind='world'" not in s and '[175,98]' not in s and 'Single35(source,88,' not in s
+q=B/'dispatch_E3closed85_V2_unused_native120_actual_resource_source_SDK_once.py';ast.parse(s)
+with q.open('x',encoding='utf8',newline='\n') as f:f.write(s)
+print(json.dumps(dict(deployer_prepared=True,worker_SHA=v['worker']['SHA'],source_SHA=source['SHA'],no_GPU=True)))

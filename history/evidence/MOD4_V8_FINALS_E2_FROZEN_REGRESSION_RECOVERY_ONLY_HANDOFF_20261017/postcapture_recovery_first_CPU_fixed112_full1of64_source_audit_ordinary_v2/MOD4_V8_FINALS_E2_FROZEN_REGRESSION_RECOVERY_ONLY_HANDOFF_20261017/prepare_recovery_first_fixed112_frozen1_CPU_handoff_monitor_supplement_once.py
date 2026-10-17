@@ -1,0 +1,99 @@
+"""Local evidence/work-order/heartbeat preparation only; no host or training action."""
+from pathlib import Path
+import hashlib,json,time
+
+K=Path(__file__).resolve().parent
+R=K/'reports'
+H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+def save(p,value):
+    with p.open('x',encoding='utf8',newline='\n') as f:
+        json.dump(value,f,ensure_ascii=False,indent=2)
+
+def main():
+    names=[
+        'RECOVERY_EXISTING_NATIVE_FIRST_FINAL_RUNTIME_1457_BOUND_COLLECTION_ACTUAL.json',
+        'RECOVERY_ONLY_FIRST_COMPLETE_MODEL_LOCAL_CPU_ACTUAL.json',
+        'E2_CLOSED112_NATIVE120_V10_COMPLETE_OR_PENDING_BOUND_COLLECTION_ACTUAL.json',
+        'E2_CLOSED112_NATIVE120_V10_ALL_PHYSICAL_SOURCE_CPU_ACTUAL.json',
+        'E2_CLOSED112_FULL1500_V10_COMPLETE_OR_PENDING_BOUND_COLLECTION_ACTUAL.json',
+        'E2_CLOSED112_FULL1500_V10_ALL_PHYSICAL_SOURCE_CPU_ACTUAL.json',
+        'CLOSED105_VS_CLOSED112_FULL1500_ACTUAL_INITIAL_SIGNED_RESIDUAL_CPU_ACTUAL.json',
+        'E2_FIXED112_FULL1500_ONE_OF64_SIGNED_RESIDUAL_AND_STATIC_SOURCE_CPU_AUDIT_ACTUAL.json',
+        'E2_SAME_OBSERVATION_ACTOR_CPU_READER_V1_PARSE_ORIGINAL_ERROR_ACTUAL.json',
+        'E2_SOURCE101105112_SAME_OBSERVATION_ACTOR_MEAN_STD_CPU_DIAGNOSTIC_ACTUAL.json',
+        'THIS_TURN_RECOVERY112_FINITE_TRANSPORT_LOCAL_CIM_HANDBACK_ACTUAL.json',
+    ]
+    rows=[dict(path=str(R/n),bytes=(R/n).stat().st_size,SHA=H(R/n)) for n in names]
+    first=json.loads((R/names[1]).read_bytes())
+    native=json.loads((R/names[3]).read_bytes())
+    full=json.loads((R/names[5]).read_bytes())
+    residual=json.loads((R/names[7]).read_bytes())
+    conditional=json.loads((R/names[9]).read_bytes())
+    assert first['one_healthy_recovery_real_saved_PPO_positive'] and first['complete_locally_verified_expert_count']==1
+    e=first['experts']['recovery'];assert e['first']['all17Adam_before']==655960 and e['first']['all17Adam_after']==655980
+    assert e['first']['SHA']=='1741a0b43a81ccd1dce5612ce20f30efdaf2c2dbdcd279d600b8092a7888423c'
+    assert native['passed'] and full['passed'] and residual['matched_initial105112_all']
+    assert residual['source112_counts']==dict(total=1,positive=0,negative=1)
+    assert conditional['passed_CPU_diagnostic_only'] and conditional['E2_new_paid_learning_remains_held']
+    priorargs=json.loads((K/'AUTOMATION_UPDATE_V8_FINALS_FIXED105_REGRESSION_RECOVERY_ONLY_V1_ARGS.json').read_bytes())
+    old=priorargs['prompt'].encode('utf8')
+    oldpath=K/'ORIGINAL_PRE_RECOVERY_FIRST_FIXED112_FROZEN1_MOD4_10_PROMPT_UTF8.txt'
+    with oldpath.open('xb') as f:f.write(old)
+    order=K/'NEXT_RECOVERY_FIRST_CPU_FIXED112_FROZEN1_E2_SOURCE_REVIEW_HOLD_ACTUAL_WORK_ORDER.json'
+    save(order,dict(epoch=time.time(),latest_actual_priority=True,evidence=rows,
+        recovery_actual_immutable_first_CPU=e,
+        recovery_current_FINAL_cost_exit_original_canonical_locks_still_pending=True,
+        recovery_latest_runtime_snapshot_epoch=1792220299.5484247,
+        recovery_GO=e['actual_GO'],GO_schedule_is_not_future_bound_or_exit_proof=True,
+        E2_fixed112_actual_frozen_counts=residual['source112_counts'],
+        E2_fixed112_source_SHA=full['source_SHA'],
+        E2_fixed112_physical_CPU_passed=full['passed'],
+        E2_signed_metrics=residual['signed_metrics'],
+        E2_source10122_source1050_source1121_of64_all_preserved=True,
+        E2_latest_fixed112_native120_full1500_Task_once_consumed_no_replay=True,
+        E2_new_paid_learning_remains_held_no_new_worker_node_GO_or_charge=True,
+        E2_conditional_CPU_diagnostic_only=conditional,
+        original_V1_parse_error_and_static_search_errors_preserved=True,
+        no_training_reward_command_LR_STD_threshold_or_SDK_change=True,
+        next_actions=[
+            'Only collect missing current recovery FINAL/full model when actually present; verify full CPU, own parent/children/EXIT, real original canonical interval and two-fcntl handback. Do not re-download complete first/native/raw for hash.',
+            'Continue E2 source/units/command-reward/frame review on pinned local sources and recorded observations. Stored STD and saturated action0 also occur in source101; conditional CPU forward is not a counterfactual closed-loop rollout or unique cause.',
+            'Any future E2 learning requires actual diagnosis and already-authorized same-stage admission, fresh native/resource checks and original writer handoff; do not blindly reopen a failed axis or change reward/rate/threshold.',
+            'Prepare recovery frozen physical skill review using a truly closed source; PPO model saves alone do not prove self-rescue qualification.',
+        ],
+        storage_original_D_already_authorized_used_C_system_still_readonly_no_new_human_authorization=True,
+        previous_full_prompt=dict(path=str(oldpath),bytes=len(old),SHA=H(oldpath)),
+        Git=dict(stage_already_recorded='39bd29af20ec6e192c4550aba43827539753b59c',
+            actual_HEAD_before_this_supplement='b0ff281756931d11f87636ff54b307c336eed0ee',
+            ordinary_supplement_pending_until_actual_remote_verification=True,no_record_tag_or_old_stage_helper=True)))
+    prompt=f'''最新ownactual优先（2026-10-17北京时间15:18后，按各report实际epoch而非heartbeat触发时刻）：K自救单路新immutablefirst完整PT已twohostSHA收本机且独立全CPU通过；最新E2 fixed112自己的3060 native120/full1500也完整结束并逐行CPU通过，技能目标仅1/64，仍暂停新增E2付费学习。下文为当前完整可执行交接；旧完整prompt原件保留在{oldpath.as_posix()}，SHA{H(oldpath)}，只追溯旧pending/PID/Git字段，laterhuman/ownactual优先。
+K=C:/Users/lulu/Desktop/claude/mjcf/MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017；J=C:/Users/lulu/Desktop/claude/mjcf/MOD4_V7_FINALS_AND_CLOSED101_FROZEN_RESIDUAL_20261017。先读K/{order.name}与reports/RECOVERY_ONLY_FIRST_COMPLETE_MODEL_LOCAL_CPU_ACTUAL.json、RECOVERY_EXISTING_NATIVE_FIRST_FINAL_RUNTIME_1457_BOUND_COLLECTION_ACTUAL.json、E2_CLOSED112_FULL1500_V10_ALL_PHYSICAL_SOURCE_CPU_ACTUAL.json、CLOSED105_VS_CLOSED112_FULL1500_ACTUAL_INITIAL_SIGNED_RESIDUAL_CPU_ACTUAL.json、E2_FIXED112_FULL1500_ONE_OF64_SIGNED_RESIDUAL_AND_STATIC_SOURCE_CPU_AUDIT_ACTUAL.json、E2_SOURCE101105112_SAME_OBSERVATION_ACTOR_MEAN_STD_CPU_DIAGNOSTIC_ACTUAL.json。随后以自己的CURRENT/FINAL/ORIGINAL_ERROR/实际PID创建argv-root-save-EXIT/真实fcntl-msvcrt/原canonical优先，不套永久alive/idle或排程已FINAL。
+
+当前唯一原writer718138/create1792217675.0，sourceROOT=/mnt/mod4_linux_durable_20261013/T3_1710v9r72rec/owner；72recoverynode3175058，ROOT=/home/lc01/Zonglin Li/zonglin2/tasks/T3_1710v9r72rec/recovery。原three_slot_finite_owner_v1.py/node_v1.py及四controller byteexact，无live热改。source是J完整closedE3final86/Adam655960/SHAfbda89d36e1b4cb3cf62241a10a0effabdfe8e0b6b1ece46ebe1a785e907e468。自己的新20k native336/1344/all6.72Mpolicy26.88Mphysical和独立CPU已真正passed，CPUreportSHA0db5c58bc33ee5cd602d10a0ace150cc52180f82e0114ec28947d3f8114f7a49。新production startup0完整14713533B SHA5b583d4071cdf3d32eb8e1c5e6a192d3d3fef4a0e18da2d36b5194b6ed491c99，自己的newnative typed参考SHA9c50e11c887a65dbe201e9e8301af7dc9d16ff32c4132ce5983ce3e41e1896c8；first14713712B SHA1741a0b43a81ccd1dce5612ce20f30efdaf2c2dbdcd279d600b8092a7888423c。两端完整SHA、本机全173tensor96float/model-runtimefinite、startup0 sourceactor9含STDcritic8与17Adam literalexact、全部17Adam655960→655980与actor9critic8全部变化、episode确切自己newnative+1都passed，各首24control480000productionenvsteps；不是自救技能资格/全课毕业。旧900s只native startupmetadata/empty0 collection保留pending；新1457只补缺模型，不重GPU/native/Task/once/旧completePT/rawhash。旧preparedreader未用，新实际collection绑定reader已成功。
+recovery真正GO1792219026.3815758=14:37:06.381576，save15:32:06.381576/end15:37:06.381576，cap3600/headroom300含productionloadlearnfullsaveSDKclosechildwait/ownerterminal，只是排程非未来bound/退出保证。14:58 actualsnapshot仍production/noerror，原canonical活跃属于同writer、两原锁held，尚无当前完整FINAL/真实成本/父孩子out或锁free收证。下一只收缺的新FINAL/fullPT与真实原账/实际exit/两锁handback，不能重收已完整first/native或用rollinglatest的metadata冒本机全模型已核；远端detached自行有限保存退出，不依赖Laptop/heartbeat。真正全CPU闭合及安全原writerhandoff后才下一已批健康同阶段任务，不自动热延当前grant/另开窗。可提前准备recovery冻结技能审查，不能永久只排队或盲续没有验收的轴。
+
+H1仍resource_admission_rejected_before_worker，E2仍frozen_behavior_review_hold_before_worker；两者actual0worker/0native/0GO/0账，E2没有新targetroot上传/node发出，hold不是GPU故障。72GPU1 UUIDc27eecbd自救学习，GPU0 UUID16828f91原signed±4rad/s-worldV.5当前因行为评审未新派学习；210单4090 UUID937bdb0b因存储无H1任务。不能说三卡全PPO或持续100%。各策略optimizer独立无NCCL/动作或权重平均，3060 frozenonly/LaptopGPU暂停。
+
+最新fixed112就是J原closedE2final112/Adam666780/SHAca6fc2662d5bfe4d33ad63b370389504961a3c2500b4b476c1c527b17b12b2be，不混101/105。K/e2_closed112_frozen_prepared_v10/payload完整560file/ZIP60470215B，sourceguard/target完整manifest/currentexactdesktop签名/MSVCRT/资源/installedSDK-DLL源SHA CPU后，自己的native120/88env480cb和full1500/88env6000cb实际完成。native raw17480019B SHA250f59b1e79a375d031fb554dae6bf8d7e11e1f26ff8a724af1da48e8e5c0ba3；full218245733B SHA61d5dac756966406af2ab4efd9f15f232fb9d3517d7d0b16070d4534449fbdea。两hostraw完整、每savedactor9STD CPUmean/normal35/clip6/previousactual6/selectedreset/每physical finite-query1e-6/contact积分-COM1e-5/hardware/mimic.01/closure.002独立CPU全过，父孩子launcherout/MSVCRTfree，ordinary0/trunc0；meanmax native6.103515625e-5/full7.62939453125e-5非bitexact。所有112新native/fullTask/once已consume，不再GPU重放或为hash重收raw。
+同seed60928/white_v3/88env11组、四方向×两sign±4/worldV.5共64moving，其余stand/.3/1直行retention；实际raw报告recipe字段seed20260928原样保留，不伪checkpoint seed。新fixed112完整圆周目标1/64=正0/32反1/32；groups3..10为0/0/0/0/0/0/0/1各8，整体false/不晋级。正向along中位.5917511152m/s，全部32超原.5±.05速度容差，yaw中位3.9934399128；负along中位.6161341189/yaw-4.0356493。fixed105原0/64与fixed101原22/64(+22,-0)、fixed1093/64各源完整保留。实际root/q30/所有DR参数/RNGqueue/phase/Plane-nativeactor元数据/加载ownPhysX指纹105与112 exact，前101与105也已exact；只是同actualinitial描述对照，不统计显著/唯一因果/全技能毕业。所有legacyworld translation<=.12/低yaw±1/2/原false/idealZ0false22/missingEXIT_NATURAL/首heading_w与rootquat差异未证明原因照留。新每行使用实际探针保存heading_w trace核，非擅改目标或物理阈值；Plane authored/nativeactor source参考非cookedShapeLocal/manifold/二进制bitexact证明。
+E2付费学习继续hold，下一优先source/命令投影/奖励实际生效配置与坐标系审查，不能直接加同失败轴PPO/改reward、LR、STD或门槛。CPU已真正用完整101/105/112源在同112的132000条已记录35维观测前向，无RNG/optimizer/CUDA，重建112 max7.62939453125e-5；存储STD和动作0饱和在101也存在，不能因此断言唯一退化原因。只是条件网络动作对照，不是三个模型闭环反事实物理或技能资格。原reader V1末尾print关键字112_reconstruction_max无效标识符在parse前拒绝，原source/trace保留；新V2仅打印key修正并实际CPU成功，没有模型/阈值修改。此前literal Windows rg glob os123、缺runtime/mdp os2与本次长searchstdout截断是本机查找问题，非GPU故障。任何实质修复先实际诊断、新CPU负例/source/native/resource准入与原writer安全交接，不盲重旧consume。
+
+J/V8两个旧完整FINAL已全本机CPU/actor9STDcritic8实际变化/原父孩子out自然EXIT0/canonicalNone/两原fcntlFree/原账once结清后才K新发：E2final112 Adam666780上述ca6...，E3final86 Adam655960上述fbda...；实际总6682.426454782486s，各<=3600，remaining513518.86262106895只当时快照，不能二扣/退款/取整。旧H/I/G/F/V/U窗口和所有原native/Task/once已消费，不重launch/hash收raw。
+本机旧collector3664及新1457recoverycollector、112 native/full deployer/collector都已实际返回，最新本机CIM报告THIS_TURN_RECOVERY112_FINITE_TRANSPORT_LOCAL_CIM_HANDBACK_ACTUAL.json核自己已知finiteprocess0。以后先本机CIM，只有自己的新finitecollector actualcreationargv真alive才独占所有210/72/249 transport；根/agent此时仅本机reports+CIM，不另SSH/为Git连host/新watcher。actual返回后root顺序有界读自己scope，不永久owner、不5minpoller、不额外常驻coord。
+
+人类磁盘问题已实测答复ownMOD4目录227066018304allocatedB≈227.1GB/211.5GiB：WindowsD160271809024B与Linuxhome rl_candidates MOD466794209280B；D其他既有192438593024B不能算我们，Dfree3454234624B。WindowsD数据/dev/nvme0n1p5早已明确授权writable/fsync mounted /mnt/mod4_linux_durable_20261013，目前不足25GiB正是已用D。WindowsC系统/dev/nvme0n1p3 mounted /mnt/mod4_windows_readonly_20261013/system约509.8GBfree仍只读，问句不是新C写入/重挂/清理/搬原件授权。原D授权不能重复要求；同storagepending不重复通知。不删清搬raw/原件，不tmpfs冒durable，不改25GiB GPUguard；metadataowner>1GiB/canonicalfs>512MiB不是H1GPU准入。若明确新人类给可写持久路径/扩容，按确切scope推进H1完整旧121source/backend自己新native180和安全handoff，不能hotadd当前finitecontract/另writer。
+
+本K唯一stage39bd29af20ec6e192c4550aba43827539753b59c/tagtrial-20261017-v8-finals-fixed105-regression-recovery-only-original-handoff/objectf110b4df2978c869f56a5722ad84d8b8b3cc759e已actualremote，总1367tags。旧ordinaryb0ff281756931d11f87636ff54b307c336eed0ee已remote/all1367原object-peel/tracked1558核。本次newfirstCPU/112冻结/CPU读者原错误-V2/源审/本工作单monitorreceipt须ordinarysupplement，lateractualHEAD/remote/tracked工具为准，不凭prompt冒以后全Git；禁止重record/tag/archive_v8_finals_fixed105_regression_recovery_only_unique_stage_once.py/旧helper/同stagecommit。pushfail续existingobjects不重commit/关闭证书/globalconfig/密集retry。按AGENTS/ALL_TRIALS_AND_REPORTS_GIT_POLICY全部成功失败false/源/报告/交接/monitorreceipt进Git，大PTNPZUSDZIPtarraw只actualpath-size-SHA索引保原件，partial明确deferred，不为Git重GPU/热改/停主训/改账。Git验证工具输出可作最终回执，不无限新增验证文件。
+
+原master812a4b+004005/RM003002001、solecanonical1188000s330h/七extensions不变；一个originalwriter两原fcntl只按真正GO后的actual productionloadlearnsaveSDKclosechildwait/ownerterminal独立区间求和once，H1/E2未GO0，nativeCPU/frozen0PPO不扣。不共享wall/复制canonical/二扣/clearactive/refund/tail/新ledger/预算或自动延时。Windows9400.8606925旧pending与512未知尾分列。20k60928/24/LR1e-4adaptiveKEEPSTD1/35-38-6/.0025×4TGS32/4/100Hz/history5msbin3/D0D7white_v3+noise+rewardhardware保持，STD保留可学非freeze/reset。query1e-6/COM1e-5/closure2mm普通同行selectedreset/mimic.01-nonfiniteunknownmissingcallbacks ownsave-stop不降。E3原raw/clip1e-4与GPUfloatgeometry1e-6 false保留，既有FP32源网络工程包络/双CPUFP64 authoredgeometry参考不冒vendor证明/物理bitexact。无H2H3/70/±6-8-10/fullS8/第二gate/新奖励/teacher/envID地形truth/未来contact/liveheadingposition纠偏/额外力/暗hysteresis/NCCL/平均。72新写只/home/lc01/Zonglin Li/zonglin2，sourceowned/mnt，不delete/系统driver-glibc/profile/installedSDK/旧env或其他AI变更。凭据/HMAC全SSHstdin+childstdin-memory不argv/log/盘/Git，旧N临时launcher曾argv暴露披露原样，不声称无OSaudit。
+保护E0/W35/gate148/f51650mm26/26和全部祖先false/失败prefix；CURB27.5正0/14反10/13上10/27下27/27及旧35/20、H1old25事件0/0/0不偷换。S3/S5整体未毕业，S5world377/384-384/384-378/384只descriptive/Breference/Cfreeze，原35真seed60928六dev02/03×profiles缺失、heldout61011/12不调参。publicSDK源非loadedDLLbitexact/authored34shape非cookedShapeLocal或manifold实测/COM未实物标定/hostlatency非板deadline。
+same mod4-10 ACTIVE每1h同target01a07a2d-9036-7531-a012-692df9f56353，不第二monitor/watcher/驻守/5minSSH/旧RPCmirrorTUI-SCUTmainresumeonce/kill-otherjob/删锁/自动budget。持续最大有意义利用三4090，提前实际准备已批任务/source/准入/安全handoff，不永久队列或机械等hourly；不能为利用率盲失败轴/重复consume/关guard/干扰别人/扩scope或预算。人类本轮将获自救新完整firstCPU和fixed112完整1/64(+0,-1)通知，之后healthyunchanged/正常learningpending/同storagepending静默DONT_NOTIFY不重复；仅后来新完整FINAL/实质修复/新冻结/重大退化/新增必需人类动作NOTIFY。有限段结束非全部课程结束，仅actualbudgetend且allfinal全部完才停。'''
+    prompt=prompt.strip().replace('\r\n','\n')
+    newpath=K/'MONITOR_RECOVERY_FIRST_CPU_FIXED112_FROZEN1_E2_REVIEW_UTF8LF_V2_20261017.txt'
+    with newpath.open('xb') as f:f.write(prompt.encode('utf8'))
+    args=dict(priorargs,prompt=prompt)
+    save(K/'AUTOMATION_UPDATE_RECOVERY_FIRST_FIXED112_FROZEN1_V2_ARGS.json',args)
+    print(json.dumps(dict(work_order=str(order),prompt_path=str(newpath),prompt_SHA=H(newpath),prompt_bytes=newpath.stat().st_size,old_prompt_SHA=H(oldpath),local_preparation_only=True)),flush=True)
+
+if __name__=='__main__':main()

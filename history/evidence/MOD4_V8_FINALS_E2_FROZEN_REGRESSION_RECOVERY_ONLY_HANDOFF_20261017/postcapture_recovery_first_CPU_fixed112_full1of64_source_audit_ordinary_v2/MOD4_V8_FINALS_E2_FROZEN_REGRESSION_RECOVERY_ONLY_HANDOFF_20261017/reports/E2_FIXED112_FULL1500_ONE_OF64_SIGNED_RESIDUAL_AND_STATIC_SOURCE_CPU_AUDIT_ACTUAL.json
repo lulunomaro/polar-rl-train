@@ -1,0 +1,193 @@
+{
+  "epoch": 1792221212.689286,
+  "fixed112_actual_source_SHA": "ca6fc2662d5bfe4d33ad63b370389504961a3c2500b4b476c1c527b17b12b2be",
+  "matched_initial105112_all": true,
+  "source105_counts": {
+    "total": 0,
+    "positive": 0,
+    "negative": 0
+  },
+  "source112_counts": {
+    "total": 1,
+    "positive": 0,
+    "negative": 1
+  },
+  "source101_previous_best_descriptive22of64_retained_not_replaced": true,
+  "signed_metrics": {
+    "1": {
+      "count": 32,
+      "passed": 0,
+      "along_median": 0.5917511152288699,
+      "along_min": 0.570872764924651,
+      "along_max": 0.6164013975354454,
+      "yaw_median": 3.9934399127960205,
+      "cross_median": 0.02732846375396114,
+      "original_goal_velocity_rows_within_point5_plusminus_point05": 0
+    },
+    "-1": {
+      "count": 32,
+      "passed": 1,
+      "along_median": 0.6161341188736882,
+      "along_min": 0.4734025453902809,
+      "along_max": 0.629613918672857,
+      "yaw_median": -4.035649299621582,
+      "cross_median": -0.02635158288374101,
+      "original_goal_velocity_rows_within_point5_plusminus_point05": 1
+    }
+  },
+  "all_group_original_counts": {
+    "3": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "4": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "5": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "6": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "7": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "8": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "9": {
+      "pass_count": 0,
+      "count": 8
+    },
+    "10": {
+      "pass_count": 1,
+      "count": 8
+    }
+  },
+  "overall_original_goal_pass": false,
+  "physical_and_all_source_CPU_passed": true,
+  "not_skill_promotion_or_learning_resume": true,
+  "source_AST_index": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\scut_flat_rescue.py",
+      "bytes": 4921,
+      "SHA": "94287ec8f7f6646525aad20d554100a85783f5f43a376d62a02315261078f8ae",
+      "selected_source_functions": [
+        {
+          "name": "linear_exp",
+          "line": 26,
+          "source": "def linear_exp(env, command_name='twist', std=.25):\n    # Keep the legacy parameter name for the Isaac manager interface only.\n    return exponential(forward_error(env,command_name).square(),std)"
+        },
+        {
+          "name": "linear_square",
+          "line": 31,
+          "source": "def linear_square(env, command_name='twist', sigma=.25):\n    return (sigma*forward_error(env,command_name)).square()"
+        },
+        {
+          "name": "linear_gap",
+          "line": 35,
+          "source": "def linear_gap(env, command_name='twist', gap=.5):\n    return (forward_error(env,command_name).square()>gap).float()"
+        },
+        {
+          "name": "yaw_exp",
+          "line": 39,
+          "source": "def yaw_exp(env, command_name='twist', std=.25):\n    error=env.command_manager.get_command(command_name)[:,2]-env.scene['robot'].data.root_ang_vel_b[:,2]\n    return exponential(error.square(),std)"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\mod4_task.py",
+      "bytes": 106603,
+      "SHA": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "selected_source_functions": [
+        {
+          "name": "track_lin_vel_gated",
+          "line": 640,
+          "source": "def track_lin_vel_gated(env, command_name: str = \"twist\",\r\n                        std: float = 0.7071067811865476) -> torch.Tensor:\r\n    return mdp_rewards.track_lin_vel_xy_exp(env, std=std, command_name=command_name) * vel_height_gate(env)"
+        },
+        {
+          "name": "track_ang_vel_gated",
+          "line": 645,
+          "source": "def track_ang_vel_gated(env, command_name: str = \"twist\",\r\n                        std: float = 1.4142135623730951) -> torch.Tensor:\r\n    return skills.track_ang_vel_route_scaled(env, command_name=command_name, std=std) * vel_height_gate(env)"
+        },
+        {
+          "name": "track_lin_vel_square",
+          "line": 684,
+          "source": "def track_lin_vel_square(env, command_name: str = \"twist\", sigma: float = 0.25) -> torch.Tensor:\r\n    \"\"\"SCUT `track_lin_vel_xy_square`: (sigma * err_x)^2，权重 -1.0。\"\"\"\r\n    return (sigma * _lin_vel_err_xy(env, command_name)[:, 0]).square()"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\spin_translation_math.py",
+      "bytes": 1502,
+      "SHA": "69575be60f63bc944d4c7edd0b37279a68a47c40d68e629f75d5a69b6fe967c6",
+      "selected_source_functions": [
+        {
+          "name": "body_command",
+          "line": 12,
+          "source": "def body_command(speed, direction, heading, body_speed_limit=1.5):\r\n    \"\"\"Return feasible planar body vx/vy references for a world progress goal.\r\n\r\n    Inputs broadcast normally. The unconstrained instantaneous peak is 2*speed.\r\n    No lateral body velocity is requested. Callers must independently evaluate\r\n    actual displacement, lateral error, yaw tracking and hardware constraints.\r\n    \"\"\"\r\n    if body_speed_limit <= 0:\r\n        raise ValueError('body_speed_limit must be positive')\r\n    vx = 2 * speed * torch.cos(heading - direction)\r\n    vx = vx.clamp(-body_speed_limit, body_speed_limit)\r\n    return vx, torch.zeros_like(vx)"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\e2_directional_spin_runtime_v1.py",
+      "bytes": 8403,
+      "SHA": "ea8e568cca20f008a93a07364e93fa04bc64aae1b03354c53a2ff7676e9a03a4",
+      "selected_source_functions": [
+        {
+          "name": "configure",
+          "line": 107,
+          "source": "def configure(cfg):\r\n    term = cfg.commands.twist\r\n    term.class_type = DirectionalSpinCommand\r\n    term.heading_command = False\r\n    term.rel_heading_envs = 0.\r\n    term.ranges.heading = None\r\n    limit = float(os.environ.get('RM_SPIN_MAX_RAD_S', '3.'))\r\n    term.ranges.ang_vel_z = (-limit, limit)\r\n    term.ranges.lin_vel_y = (0., 0.)\r\n    term.rel_standing_envs = .1\r\n    # Explicit new curriculum: complete turns and full train-time transitions.\r\n    term.resampling_time_range = (12., 16.)\r\n    cfg.curriculum.gyro_window = None"
+        },
+        {
+          "name": "_resample_command",
+          "line": 66,
+          "source": "def _resample_command(self, env_ids):\r\n        super()._resample_command(env_ids)\r\n        ids = torch.as_tensor(env_ids, dtype=torch.long, device=self.device)\r\n        u = torch.rand((len(ids), 5), generator=self._mode_rng, device=self.device)\r\n        available = ~self.is_standing_env[ids]\r\n        pure_end = self.pure_fraction / (1 - self.cfg.rel_standing_envs)\r\n        moving_end = pure_end + self.moving_fraction / (1 - self.cfg.rel_standing_envs)\r\n        pure = available & (u[:, 0] < pure_end)\r\n        moving = available & (u[:, 0] >= pure_end) & (u[:, 0] < moving_end)\r\n        transition = pure & (u[:, 4] < self.transition_within_pure)\r\n        self.is_pure_spin[ids] = pure\r\n        self.is_moving_spin[ids] = moving\r\n        self.is_transition_spin[ids] = transition\r\n        self.is_heading_env[ids] = False\r\n        sign = torch.where(u[:, 2] < .5, -1., 1.)\r\n        rate = torch.where(moving, torch.full_like(u[:, 1], 4.0), 1 + (self.pure_max - 1) * u[:, 1])\r\n        self.signed_yaw[ids] = torch.where(pure | moving, sign * rate, 0.)\r\n        self.world_direction[ids] = 2 * math.pi * u[:, 3] - math.pi\r\n        self.phase_elapsed[ids] = 0.\r\n        self.vel_command_b[ids, 2] = self.signed_yaw[ids]\r\n        self.vel_command_b[ids[pure], :2] = 0.\r\n        self._write_dynamic(ids)"
+        },
+        {
+          "name": "_write_dynamic",
+          "line": 89,
+          "source": "def _write_dynamic(self, ids):\r\n        moving = ids[self.is_moving_spin[ids]]\r\n        heading = self.robot.data.heading_w.torch[moving]\r\n        vx, vy = body_command(self.progress_goal, self.world_direction[moving], heading, self.body_limit)\r\n        self.vel_command_b[moving, 0] = vx\r\n        self.vel_command_b[moving, 1] = vy\r\n        self.vel_command_b[moving, 2] = self.signed_yaw[moving]\r\n        transitions = ids[self.is_transition_spin[ids]]\r\n        self.vel_command_b[transitions, 2] = transition_yaw(self.phase_elapsed[transitions], self.signed_yaw[transitions])\r\n        self.vel_command_b[self.is_standing_env, :] = 0."
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\e2_command_checkpoint_v1.py",
+      "bytes": 2443,
+      "SHA": "3d66d844dc43cc6a0b3c9a6c12d1fbcc46ad68a0d0b3993f029fa70b1b37eb13",
+      "selected_source_functions": []
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_V8_FINALS_E2_FROZEN_REGRESSION_RECOVERY_ONLY_HANDOFF_20261017\\payload\\e2\\job0\\runtime\\isaac\\mod4\\train_E2_full_resume_v1.py",
+      "bytes": 21843,
+      "SHA": "3af2029df042cabde471fa062c64952448a51812b934bd7719e2859bbc7acdf7",
+      "selected_source_functions": []
+    }
+  ],
+  "static_source_inspection_no_import_or_GPU_or_RNG_gradient_or_optimizer_execution": true,
+  "effective_live_reward_manager_values_not_proven_by_AST": true,
+  "no_unique_cause_or_statistical_significance_claim": true,
+  "next_CPU_review_before_any_E2_learning": [
+    "Compare original body command projection, actor35 input semantics and frozen complete-cycle world target units using pinned source; no command or tolerance edits.",
+    "Use verified checkpoint source101/105/112 and recorded frozen observations for deterministic CPU mean/clip/STD comparison only; no extra live actor sampling or claimed counterfactual physics.",
+    "Any repair must preserve source/old false and use explicit actual diagnosis, independent CPU negative cases, fresh native/resource admission and safe original writer handoff; no blind same-axis extra PPO or reward change."
+  ],
+  "local_source_search_errors_preserved": [
+    {
+      "operation": "rg literal Windows path ending /*cfg*.py",
+      "error": "Windows os error123 invalid filename syntax",
+      "remote_GPU_or_training_action": false
+    },
+    {
+      "operation": "rg nonexistent copied runtime/mdp directory",
+      "error": "os error2 directory absent",
+      "remote_GPU_or_training_action": false
+    }
+  ],
+  "actual_correct_sources_indexed_above": true
+}

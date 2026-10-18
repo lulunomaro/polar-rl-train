@@ -1,0 +1,33 @@
+from pathlib import Path
+import json,time,ast,hashlib,tomllib,datetime
+B=Path(__file__).resolve().parent;W=B.parent;F=W/'MOD4_THREE_GPU_HOUR4_CONTINUATION_20261018'
+R=B/'reports';d=json.loads((R/'THREE_NEXT_HOUR_CLOSED_SOURCE_LEARNING_DETACHED_ACTUAL.json').read_bytes())
+a=json.loads((R/'THREE_REAL_GPU_ACTUAL_PPO_LEARNING_METADATA_VERIFIED_OR_PENDING.json').read_bytes())
+f=json.loads((F/'reports/THREE_HOUR_ALL_CLOSED_FINAL_MODELS_ORIGINAL_COST_CPU_ACTUAL.json').read_bytes())
+assert a['three_actual_PPO_learning_verified'] and d['owner']['detached_pid']==185836 and f['passed_all_three_whole_final_models_CPU']
+for name in ('collect_next_hour_missing_closed_finals_bounded_owner_wait_V2_once.py','review_next_closed_hour_finals_whole_model_original_cost_CPU_once.py'):
+    s=(F/name).read_text('utf-8').replace('174112','185836');ast.parse(s)
+    with (B/name).open('x',encoding='utf-8') as out:out.write(s)
+details={k:dict(source=f['experts'][k]['final'],updates=f['experts'][k]['updates'],Adam=f['experts'][k]['all17Adam_after'],worker=v['worker'],GO=v['GO'],
+    save_Beijing=datetime.datetime.fromtimestamp(v['GO']['save_deadline'],datetime.timezone(datetime.timedelta(hours=8))).isoformat()) for k,v in a['experts'].items()}
+order=dict(epoch=time.time(),version=21,phase='Three fourth-hour full finals closed; fifth hour three actual learning; corrected original UI with real full CAD map',
+    previous_all_closed_CPU=f,actual_new_dispatch=d,actual_three_learning=a,future_final_helpers_owner185836_prepared_only=True,
+    same_original_budget_accounting_and_PPO_physics=True,details=details,
+    local_player=dict(root=str(W/'MOD4_LOCAL_MUJOCO_DRIVE_20261008'),entry='START_RM7V7_MOE.bat',driver='drive_rm7v7_moe.py',
+        full_map_source='User supplied RMUC2026_V2.0.0.stp / full29x16m ground assembly, machinery omitted in existing assets',
+        checkpoints='Latest complete fourth-hour H1/E2/E3; protected original gate148 E0/W35',
+        no_training_stop_or_hidden_inputs=True,do_not_reopen_or_interrupt_user_player_on_heartbeat=True))
+work=B/'NEXT_ACTUAL_THREE_GPU_FIFTH_HOUR_AND_FULL_RM7V7_LOCAL_PLAYER_V21_WORK_ORDER.json'
+work.write_text(json.dumps(order,ensure_ascii=False,indent=2),encoding='utf-8')
+old=tomllib.loads((Path.home()/'.codex/automations/mod4-10/automation.toml').read_text(encoding='utf-8'))
+prefix='''最新actual V21覆盖V20的第四小时active/未来收尾：第四个三卡小时已经真正完整闭合/threewholeCPU/原费用once结清，三张4090已从各自最新完整末模型实际进入第五小时PPO。AI负责技术选择，不重复审批措辞。G=C:/Users/lulu/Desktop/claude/mjcf/MOD4_THREE_GPU_HOUR5_CONTINUATION_20261018，F=同workspace/MOD4_THREE_GPU_HOUR4_CONTINUATION_20261018。先读G/NEXT_ACTUAL_THREE_GPU_FIFTH_HOUR_AND_FULL_RM7V7_LOCAL_PLAYER_V21_WORK_ORDER.json及G/reports/THREE_REAL_GPU_ACTUAL_PPO_LEARNING_METADATA_VERIFIED_OR_PENDING.json、THREE_NEXT_HOUR_CLOSED_SOURCE_LEARNING_DETACHED_ACTUAL.json和F/reports/THREE_HOUR_ALL_CLOSED_FINAL_MODELS_ORIGINAL_COST_CPU_ACTUAL.json。actual创建argv/sourceSHA/实际保存EXIT/原canonical/真实fcntl及laterownactual优先，不按PID、排程冒永久alive或未来FINAL。
+第四小时完整H1 74updates/SHAa7711e6d1894900e18d616bcc568d5b84fec08f0a2790d2f33688207d9e4f323/Adam655360；E2 240updates/SHAd42e497b1e1fe9761b02f8f02ba06ddbf6593cd4832691911dbebfda5963cd75/Adam686020；E3 94updates/SHAd4c8067dd4b0f51ba510a88d95d341017e1c56881417f7faffaba95f2d260f48/Adam665300，three完整PT两hostSHA+本机wholefinite/17Adam每update20与actor9含STDcritic8全17项变化真过。旧owner174112/全部nodeworkeractualout/EXIT0/canonicalNone/两原fcntl和private共享free，actual独立区间sum10939.876977205276s once结清，remaining449529.1767463684仅读取snapshot，不二扣/refund/clearactive。
+新唯一originalwriter185836/create1792337572.66，root=/mnt/mod4_linux_durable_20261013/T3h5_1810v5/owner；210E2 node185841/production185868，72GPU0H1 node40697/production40720，72GPU1E3 node40714/production40728，各actualcreationargv与GO/source/backend/UUID见workorder。三实际GO在北京时间23:32:56附近，各save=GO+3600约2026-10-19 00:32:56、nominalend约00:37:56只是计划不当futureFINAL。三GO/正更新日志/对应三UUID实际compute均已核True；仅学习metadata，不冒中途wholemodel或技能PASS/持续100%。同closed_same_backend_production、原33负例/wholeworkerAST只sourcefilenameAdam、currentSDK/RSL/runtimeassets/sourceCPU真实过，不重standalone native、不把production叫native、E3不反向加旧native读取。20k×24/一小时save/3900lifecycle含300exit/no24cutoff/原全部rewardLR可学STDphysicsCAD硬guard不变，不热延当前窗。
+G自己的collect_next_hour_missing_closed_finals_bounded_owner_wait_V2_once.py与review_next_closed_hour_finals_whole_model_original_cost_CPU_once.py已按185836创建且AST过，仅prepared未运行。下一小时末如提前同一source连接max900秒只等实际owner终态，实际闭合后仅收缺三完整FINAL/PT/原once费用/全父孩子out/canonicalNone/原两fcntl与private共享free，再本机全CPU。F collector/native/Task/once均已consume，禁止重run，不下载hash已完整oldPT/raw。缺项或error原样保留后新有界只缺，及时准备下一原三专家小时，不机械等hourly、不恢复旧E2E3hold或盲改失败轴/奖励/阈值/总预算。所有finite已实际返回，下一每次先freshCIM按exactbasename/相对或绝对argv+exe/create核；只有actualalive自己finite才独占210/72/249，期间rootagents仅localreports+CIM，不另SSH/第二watcher/5minpoll/为Git连训练host。PID不永久占transport。
+人类本轮更正本地试玩：要MOD4_LOCAL_MUJOCO_DRIVE_20261008原驾驶面板，并明确真实RM7v7地图。C=同workspace/MOD4_LOCAL_MUJOCO_DRIVE_MOE_CORRECTION_20261018。已实际接入此前用户提供的RMUC2026_V2.0.0.stp转换的完整29x16米地面装配，保留原1.5度双方地板/中心岛/起伏路/飞坡/狗洞；现有源转换缺基地前哨等机关如实注明，不称完整机械装配。fullmap47,282静态凸片/原机器人PD60/2、crank.5、31body/6actuator/10约束保持，无新航向/扶正/训练物理变更；3770原CAD射线在原容差下V2真过max0.000764699m，初次透明collider全部miss和tiny-volume编译拒绝/source/修复完整保留，V2只修本地ray可见性/静态mesh shell惯量或路径，不翻原false。新完整第四小时H1/E2/E3图导出CPUparity6.67572e-6，原gate148 E0/W35硬选+手动技能，不冒新五路训练门控或全技能毕业。START_WASD.bat与START_RM7V7_MOE.bat当前都指drive_rm7v7_moe.py，P开始/暂停、按住WASD松手停车、J跳跃、K恢复、Z/B自旋、N/X普通、M全景跟随、F或下拉15CAD起点。初始暂停。用户已打开本地窗口，后续heartbeat不要自动重开/打断/热改该玩家，也不把其渲染当三卡PPO或冻结资格。所有旧本地版本/错误与source报告保留；用户本地试玩不停止健康remote训练。
+G新真实stageID three-gpu-fifth-hour-closed-source-continuation。Git以lateractual工具回执为准；F unique f906510和本地前版unique f1c8b881/tagb4447/总1383tags已consume；本轮G和C各新helper一旦record就consume，不重复record/tag/同stagecommit；pushfail只existingobjects，不为写HEAD无限补档。全F/G/C正式文本/source/失败/reader/lookup/unused/工作单monitor/appreceipt要Git，超过50MB全文orderedUTF8parts+reassemblySHA不丢报告，权重/raw/MJB/NPZ/USD/ZIP/PNG只actualpathsizeSHA保原件，partial如实deferred，不为Git重GPU/旧PTrawhash/改账。原1188000s330h七extensions/solecanonical oneoriginalwriter两fcntl独立actualinterval sumonce、Windows旧pending尾与全部原scope/硬guard/祖先false仍有效。same mod4-10 ACTIVE每1h原target，quiet健康不重复通知，只新完整FINAL/新冻结/实质修复/重大退化/必要人类动作。原预算未结束不删monitor。
+以下V20与更早合同只历史；旧owner174112/current/source/未来helper未运行与旧Git待归档字段已由上方actual覆盖。
+'''
+args=dict(mode='update',id='mod4-10',kind='heartbeat',name=old['name'],prompt=prefix+'\n'+old['prompt'],rrule=old['rrule'],status=old['status'],targetThreadId=old['target_thread_id'])
+(B/'AUTOMATION_FIFTH_HOUR_AND_FULL_RM7V7_V21_ARGS.json').write_text(json.dumps(args,ensure_ascii=False,indent=2),encoding='utf-8')
+print(json.dumps(dict(workorder=str(work),owner=185836,helpers_prepared_only=True,prompt_bytes=len(args['prompt'].encode('utf-8')))))

@@ -1,0 +1,1055 @@
+# Third reward-hour closure and fourth-hour continuation
+
+{
+  "closed": {
+    "h1": {
+      "final": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf3_1910v8/h1/job0/production/model_update74.pt",
+        "bytes": 16646963,
+        "SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "key": "h1",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_THIRD_HOUR_20261019\\actual_closed_three_finals\\h1\\model_update74.pt",
+        "twohost_complete_SHA": true
+      },
+      "updates": 74,
+      "Adam": 661180,
+      "tensor_counts": [
+        199,
+        105
+      ]
+    },
+    "e2": {
+      "final": {
+        "path": "/mnt/mod4_linux_durable_20261013/T3sf3_1910v8/e2/job0/production/model_update241.pt",
+        "bytes": 14615528,
+        "SHA": "db8fa6db514747bab92541338130df15443c2308f9dfe2464d28bbc3991481f7",
+        "key": "e2",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_THIRD_HOUR_20261019\\actual_closed_three_finals\\e2\\model_update241.pt",
+        "twohost_complete_SHA": true
+      },
+      "updates": 241,
+      "Adam": 705280,
+      "tensor_counts": [
+        175,
+        98
+      ]
+    },
+    "recovery": {
+      "final": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf3_1910v8/recovery/job0/production/final_valid_update94.pt",
+        "bytes": 14715349,
+        "SHA": "c5fa50e88b542ed511dcb2b1b0787ed46925afdf468383e9aefcadb93a227bf9",
+        "key": "recovery",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_THIRD_HOUR_20261019\\actual_closed_three_finals\\recovery\\final_valid_update94.pt",
+        "twohost_complete_SHA": true
+      },
+      "updates": 94,
+      "Adam": 672860,
+      "tensor_counts": [
+        173,
+        96
+      ]
+    }
+  },
+  "cost_once": 10938.098278999329,
+  "remaining_snapshot": 405852.46469545364,
+  "new_dispatch": {
+    "epoch": 1792353758.6966217,
+    "owner": {
+      "detached_pid": 235200,
+      "root": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/owner",
+      "role": "owner"
+    },
+    "nodes": {
+      "e2": {
+        "detached_pid": 235205,
+        "root": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/e2",
+        "role": "node"
+      },
+      "h1": {
+        "detached_pid": 51399,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/h1",
+        "role": "node"
+      },
+      "recovery": {
+        "detached_pid": 51416,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/recovery",
+        "role": "node"
+      }
+    },
+    "source_root": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/owner",
+    "roots": {
+      "h1": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/h1",
+      "e2": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/e2",
+      "recovery": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/recovery"
+    },
+    "specs": {
+      "h1": {
+        "key": "h1",
+        "GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "source_filename": "H1_closed_hour74.pt",
+        "source_Adamstep": 661180,
+        "manifest_SHA": "539dd00eb75e4e1e6f1ea56a9a588e5f759a4ca8872a59d1c85293e63f9a2d58",
+        "native_controls": 180,
+        "native_script": "h1_ground_prelaunch_v2_native_worker_v1.py",
+        "native_CPU_script": "review_H1_prelaunch_v2_native_allrows_CPU_v1.py",
+        "production_script": "h1_prelaunch_v2_production_worker_v1.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf3_1910v8/h1",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-16828f91-2b45-b646-8dc0-9481138e2842.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      },
+      "e2": {
+        "key": "e2",
+        "GPU_UUID": "GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "db8fa6db514747bab92541338130df15443c2308f9dfe2464d28bbc3991481f7",
+        "source_filename": "E2_closed_hour241.pt",
+        "source_Adamstep": 705280,
+        "manifest_SHA": "e4855bc181cfd8374469b47e7b410abae50c4dbdd3e92110b5de40d4b9a09c3d",
+        "native_controls": 144,
+        "native_script": "native_admission_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "native_admission_worker.py",
+        "execution_backend": "source210",
+        "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+        "previous_runtime_root": "/mnt/mod4_linux_durable_20261013/T3sf3_1910v8/e2",
+        "previous_exit_kind": "node",
+        "private_lock": "/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      },
+      "recovery": {
+        "key": "recovery",
+        "GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "c5fa50e88b542ed511dcb2b1b0787ed46925afdf468383e9aefcadb93a227bf9",
+        "source_filename": "RECOVERY_closed_hour94.pt",
+        "source_Adamstep": 672860,
+        "manifest_SHA": "216d7e2c80b1c583467c87730697a7e13dfda8e412d45b6fb8944dbd313322a7",
+        "native_controls": 336,
+        "native_script": "recovery_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "recovery_worker.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf3_1910v8/recovery",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      }
+    },
+    "all_three_direct_full_production_source_not_native_replay": true,
+    "one_original_writer_independent_intervals_once": true,
+    "all_GO_save3600_lifecycle3900_exit300": true,
+    "no_total_budget_PPO_reward_LR_STD_physics_threshold_change": true,
+    "not_actual_learning_claim_before_GO": true
+  },
+  "actual_learning": {
+    "epoch": 1792354196.4060023,
+    "three_actual_PPO_learning_verified": true,
+    "experts": {
+      "h1": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 51421,
+          "creation": 1792353761.55,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/h1/h1_prelaunch_v2_production_worker_v1.py",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792354178.0925083,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/h1/job0/production/model_update1.pt",
+          "bytes": 16646758,
+          "SHA": "5ccf70840b299ea40f3023832b037b6041cc2eac39a197a87903f621fe62eaa1",
+          "phase": "production",
+          "updates": 1,
+          "actual17Adam_steps": [
+            661200
+          ],
+          "failed_partial_prefix": false
+        },
+        "GO": {
+          "learning_started_epoch": 1792353760.2013268,
+          "save_deadline": 1792357360.2013268,
+          "nominal_end_epoch": 1792357660.2013268,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "c9ce2f01ae14b5dbbc62a8ee4c4b493460b88d3e608ab5ae41e2b5411e1c16c6",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 235200,
+          "original_owner_creation": 1792353756.41,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792353757071745800",
+          "actual_H1_prelaunch_v2_scope_admitted": true
+        }
+      },
+      "recovery": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 51429,
+          "creation": 1792353762.11,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/recovery/recovery_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792354165.0628912,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf4_1910v9/recovery/job0/production/model_update1.pt",
+          "bytes": 14714032,
+          "SHA": "5cbd7316d493f4ead21442c7cf6fc04bca7e70c4f8370a94d89a73c9215232f7",
+          "updates": 1,
+          "Adam_step": 672880,
+          "phase": "production"
+        },
+        "GO": {
+          "learning_started_epoch": 1792353760.2233996,
+          "save_deadline": 1792357360.2233996,
+          "nominal_end_epoch": 1792357660.2233996,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "c5fa50e88b542ed511dcb2b1b0787ed46925afdf468383e9aefcadb93a227bf9",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "43a60dbdcd21eca81c64273c5cce70e5ab1ef7de95b9887420b84834eed5b5a6",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 235200,
+          "original_owner_creation": 1792353756.41,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792353757071745800",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      },
+      "e2": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 235235,
+          "creation": 1792353759.78,
+          "argv": [
+            "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+            "-u",
+            "-B",
+            "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/e2/native_admission_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/e2"
+        },
+        "latest_complete": {
+          "epoch": 1792353956.703483,
+          "path": "/mnt/mod4_linux_durable_20261013/T3sf4_1910v9/e2/job0/production/model_update1.pt",
+          "bytes": 14615166,
+          "SHA": "6999486a92e2666c54e0d9927f58d3bdb163098dcdbe4dfd89b10ed0d2a05a15",
+          "phase": "production",
+          "updates": 1,
+          "Adam_step": 705300,
+          "kind": "E2_WORLD_MOVING_SIGNED4"
+        },
+        "GO": {
+          "learning_started_epoch": 1792353760.2127056,
+          "save_deadline": 1792357360.2127056,
+          "nominal_end_epoch": 1792357660.2127056,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "db8fa6db514747bab92541338130df15443c2308f9dfe2464d28bbc3991481f7",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "0560c2ed8a75cad49f5e4604474200a7e266fb15359155898d465c257b3b0dfb",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 235200,
+          "original_owner_creation": 1792353756.41,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792353757071745800",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      }
+    },
+    "H1_loaded_SCUT_Fudan_recipe": {
+      "profile": {
+        "version": "scut_fudan_jump_reward_v1",
+        "tuck_leg_length_m": 0.22,
+        "extend_leg_length_m": 0.31,
+        "leg_exp_l1_gain": 4.0,
+        "zero_wheel_torque_sigma": 1.5,
+        "Fudan_weighted_rate_clip": 2.5,
+        "weights": {
+          "push_vz": 1.0,
+          "flight_vz": 6.0,
+          "flight": 0.15,
+          "leg_tuck": 1.7,
+          "takeoff_extend": 0.5,
+          "wheel_below_base": 2.0,
+          "air_wheel_zero_torque": 20.0,
+          "orientation": -25.0,
+          "angular_velocity_xy": -0.1
+        },
+        "geometry_adaptation": "body-to-wheel 3D lengths from actual MOD4 link poses; tuck .22 SCUT default, extend .31 Fudan target",
+        "no_assist_force_or_air_reset_or_privileged_actor_observation": true,
+        "flight_mask": "existing H1 air_ticks>0; measured both-wheel clearance, all34 clearance, nonwheel clean and positive-vz history; no new success threshold",
+        "active_scope": "H1 public4 request rows with an actual ready attempt; every normal action row retains its original reward"
+      },
+      "actual_loaded_terms": [
+        {
+          "name": "ang_vel_xy",
+          "weight": -0.05,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function ang_vel_xy_jump_exempt at 0x7f1bb457a2a0>, 'original_params': {}}"
+        },
+        {
+          "name": "flat_orientation_y",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f1bb457aca0>, 'original_params': {'mode': 'pitch'}}"
+        },
+        {
+          "name": "flat_orientation_y_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f1bb457aca0>, 'original_params': {'mode': 'pitch_velocity'}}"
+        },
+        {
+          "name": "flat_orientation_x_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f1bb457aca0>, 'original_params': {'mode': 'roll_velocity'}}"
+        },
+        {
+          "name": "h1_scut_fudan_push_vz",
+          "weight": 1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'push_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight_vz",
+          "weight": 6.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight",
+          "weight": 0.15,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight'}"
+        },
+        {
+          "name": "h1_scut_fudan_leg_tuck",
+          "weight": 1.7,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'leg_tuck'}"
+        },
+        {
+          "name": "h1_scut_fudan_takeoff_extend",
+          "weight": 0.5,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'takeoff_extend'}"
+        },
+        {
+          "name": "h1_scut_fudan_wheel_below_base",
+          "weight": 2.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'wheel_below_base'}"
+        },
+        {
+          "name": "h1_scut_fudan_air_wheel_zero_torque",
+          "weight": 20.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'air_wheel_zero_torque'}"
+        },
+        {
+          "name": "h1_scut_fudan_orientation",
+          "weight": -25.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'orientation'}"
+        },
+        {
+          "name": "h1_scut_fudan_angular_velocity_xy",
+          "weight": -0.1,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'angular_velocity_xy'}"
+        }
+      ],
+      "no_new_actor_input": true
+    },
+    "H1_actual_SCUT_Fudan_public4_rows_readout": {
+      "epoch": 1792354177.5922558,
+      "completed": 1,
+      "active_rows": 0,
+      "airborne_rows": 0,
+      "unweighted_rate_means": {
+        "push_vz": 0.0,
+        "flight_vz": 0.0,
+        "flight": 0.0,
+        "leg_tuck": 0.0,
+        "takeoff_extend": 0.0,
+        "wheel_below_base": 0.0,
+        "air_wheel_zero_torque": 0.0,
+        "orientation": 0.0,
+        "angular_velocity_xy": 0.0
+      },
+      "not_skill_or_final_model_audit": true
+    },
+    "current_metadata_not_whole_model_CPU_or_skill_qualification": true,
+    "no_heavy_mid_hour_checkpoint_or_behavior_audit": true,
+    "no_runtime_stop_or_canonical_write": true,
+    "actual_finite_transport_returned": true
+  },
+  "local_mixed_results": {
+    "epoch": 1792353988.6969628,
+    "local_same_protocol_new_source_only": true,
+    "rows": [
+      {
+        "public4_requested": false,
+        "yaw": 0.0,
+        "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "ready_before_request": true,
+        "strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "event_callback_rows": {
+          "takeoff": [],
+          "landing": [],
+          "recovery": []
+        },
+        "first_failure": null,
+        "duration_s": 15.00000000000684,
+        "previous_source_SHA": "db76ed2ca60b5b68ce8336b98054bf52976c18c7adf6bba2898ccfa090ba9043",
+        "previous_strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "previous_duration_s": 15.00000000000684,
+        "earlier_failure_than_previous": false,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FOURTH_HOUR_20261019\\local_third_reward_hour_new_source_trajectories\\after_reward_hour3_normal_0.0.npz",
+          "bytes": 1370930,
+          "SHA": "b583329cef3fea0a10182dfbc610ae4f0677c43c4dd3bda3c288dd70b8981bc7"
+        }
+      },
+      {
+        "public4_requested": false,
+        "yaw": 3.141592653589793,
+        "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "ready_before_request": true,
+        "strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "event_callback_rows": {
+          "takeoff": [],
+          "landing": [],
+          "recovery": []
+        },
+        "first_failure": null,
+        "duration_s": 15.00000000000684,
+        "previous_source_SHA": "db76ed2ca60b5b68ce8336b98054bf52976c18c7adf6bba2898ccfa090ba9043",
+        "previous_strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "previous_duration_s": 15.00000000000684,
+        "earlier_failure_than_previous": false,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FOURTH_HOUR_20261019\\local_third_reward_hour_new_source_trajectories\\after_reward_hour3_normal_3.1416.npz",
+          "bytes": 1368490,
+          "SHA": "b4cb5838af1a3f6e608e2d1e1093a89d186d7d6d42387162980ebd861cef3b08"
+        }
+      },
+      {
+        "public4_requested": true,
+        "yaw": 0.0,
+        "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "ready_before_request": true,
+        "strict_counts": {
+          "takeoff": 1,
+          "landing": 1,
+          "recovery": 0
+        },
+        "event_callback_rows": {
+          "takeoff": [
+            {
+              "time_s": 1.157499999999928,
+              "control": 115,
+              "mode": 4,
+              "pitch": -0.09032244306984165,
+              "roll": 0.06109293039574371,
+              "world_angular_velocity": [
+                0.6288292768106915,
+                0.7008834886870214,
+                0.2087293859508635
+              ]
+            }
+          ],
+          "landing": [
+            {
+              "time_s": 1.3249999999999096,
+              "control": 132,
+              "mode": 4,
+              "pitch": -0.06499352229411874,
+              "roll": 0.09498905772541218,
+              "world_angular_velocity": [
+                -0.07645451651318283,
+                -1.0721730773724958,
+                -0.08455308587762135
+              ]
+            }
+          ],
+          "recovery": []
+        },
+        "first_failure": {
+          "time": 1.4924999999998911,
+          "control": 149,
+          "kind": "bad_orientation_local_tilt_0.75",
+          "mode": 4,
+          "roll": 0.14703802228378335,
+          "pitch": -0.7511251431698834
+        },
+        "duration_s": 1.4924999999998911,
+        "previous_source_SHA": "db76ed2ca60b5b68ce8336b98054bf52976c18c7adf6bba2898ccfa090ba9043",
+        "previous_strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "previous_duration_s": 1.9549999999998402,
+        "earlier_failure_than_previous": true,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FOURTH_HOUR_20261019\\local_third_reward_hour_new_source_trajectories\\after_reward_hour3_jump_0.0.npz",
+          "bytes": 137562,
+          "SHA": "aae695a2a1b456a4803a12672763d5eee36f60c6e198be397cce0bdaabd7a1f2"
+        }
+      },
+      {
+        "public4_requested": true,
+        "yaw": 3.141592653589793,
+        "source_SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+        "ready_before_request": true,
+        "strict_counts": {
+          "takeoff": 1,
+          "landing": 1,
+          "recovery": 0
+        },
+        "event_callback_rows": {
+          "takeoff": [
+            {
+              "time_s": 1.157499999999928,
+              "control": 115,
+              "mode": 4,
+              "pitch": -0.0903224430710241,
+              "roll": 0.06109293039601737,
+              "world_angular_velocity": [
+                -0.6288292768115772,
+                -0.7008834886839735,
+                0.2087293859522744
+              ]
+            }
+          ],
+          "landing": [
+            {
+              "time_s": 1.3249999999999096,
+              "control": 132,
+              "mode": 4,
+              "pitch": -0.06499352229667917,
+              "roll": 0.09498905772639425,
+              "world_angular_velocity": [
+                0.07645451651105459,
+                1.0721730774038076,
+                -0.08455308587930815
+              ]
+            }
+          ],
+          "recovery": []
+        },
+        "first_failure": {
+          "time": 1.4924999999998911,
+          "control": 149,
+          "kind": "bad_orientation_local_tilt_0.75",
+          "mode": 4,
+          "roll": 0.14703802228739857,
+          "pitch": -0.7511251431779435
+        },
+        "duration_s": 1.4924999999998911,
+        "previous_source_SHA": "db76ed2ca60b5b68ce8336b98054bf52976c18c7adf6bba2898ccfa090ba9043",
+        "previous_strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "previous_duration_s": 1.9549999999998402,
+        "earlier_failure_than_previous": true,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FOURTH_HOUR_20261019\\local_third_reward_hour_new_source_trajectories\\after_reward_hour3_jump_3.1416.npz",
+          "bytes": 137368,
+          "SHA": "f920af5d3a164fcb2e7c84371618c5c5c5907d3e616b158317ece7c4e01e7d01"
+        }
+      }
+    ],
+    "interpretation": "Mixed change: local readiness and original strict takeoff/landing appeared, but recovery remains0 and jump failure is earlier than the prior checkpoint. No overall repaired/graduated claim. Current failure is during mode4 after landing, unlike the prior mode0-after-request failure; do not carry the old timing explanation onto this source.",
+    "previous_residual_boolean_clarification": "THIRD_REWARD_HOUR_LOCAL_PREFIX_RESIDUAL_CPU_ACTUAL.json local_jump_survival_regression=False compares only whether a15s-surviving prior case became non-surviving. Both jump checkpoints fail, so that boolean isFalse despite an earlier failure time. Original report retained; explicit duration comparison here takes precedence.",
+    "not_PhysX_or_statistical_or_unique_causality": true,
+    "no_new_threshold_or_command_switch_or_reward_change": true
+  },
+  "closed_phase_snapshot": {
+    "epoch": 1792353901.5280442,
+    "source": {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf3_1910v8/h1/job0/production/model_update74.pt",
+      "bytes": 16646963,
+      "SHA": "330220514b9bcf5f5bdf3e8b1280b08932bb4d8e58adeee33ee1b9a5281c8801",
+      "key": "h1",
+      "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_THIRD_HOUR_20261019\\actual_closed_three_finals\\h1\\model_update74.pt",
+      "twohost_complete_SHA": true
+    },
+    "current_episode_phase_tensor_summary": {
+      "age_control": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 19852,
+        "min": 0.0,
+        "max": 1776.0,
+        "mean": 94.9713
+      },
+      "stable_ticks": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 11708,
+        "min": 0.0,
+        "max": 1615.0,
+        "mean": 41.39085
+      },
+      "air_ticks": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 469,
+        "min": 0.0,
+        "max": 67.0,
+        "mean": 0.53915
+      },
+      "land_ticks": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 99,
+        "min": 0.0,
+        "max": 1115.0,
+        "mean": 0.12395
+      },
+      "recover_ticks": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 0,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0
+      },
+      "takeoff_count": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 632,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0316
+      },
+      "landing_count": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 211,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.01055
+      },
+      "recovery_count": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.int64",
+        "nonzero": 0,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0
+      },
+      "ready": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 3613,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.18065
+      },
+      "anchor_valid": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 19852,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9926
+      },
+      "request_for_action": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 4064,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.2032
+      },
+      "previous_request": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 4064,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.2032
+      },
+      "attempt": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 1604,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0802
+      },
+      "positive_vz": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 1570,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0785
+      },
+      "launched": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 632,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0316
+      },
+      "landed": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 211,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.01055
+      },
+      "recovered": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.bool",
+        "nonzero": 0,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0
+      },
+      "yaw_reference": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 19852,
+        "min": -0.29996636509895325,
+        "max": 0.3000079095363617,
+        "mean": 1.3097169351431148e-05
+      },
+      "peak": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 796,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.030407724887132646
+      },
+      "paid_peak": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 632,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.026889098168164493
+      },
+      "event_control": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 93,
+        "min": 0.0,
+        "max": 2.0,
+        "mean": 0.004180516715347767
+      },
+      "progress_peak": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 1567,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0637777753922478
+      },
+      "progress_paid": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 1567,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.06377777539234093
+      },
+      "progress_control": {
+        "shape": [
+          20000
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 227,
+        "min": 0.0,
+        "max": 0.47417113184928894,
+        "mean": 0.0012988550098849828
+      }
+    },
+    "current_episode_schedule_cross_tab": {
+      "before_request": {
+        "environments": 15284,
+        "attempt": 0,
+        "ready": 3381,
+        "launched": 0,
+        "landed": 0,
+        "recovered": 0
+      },
+      "request_window": {
+        "environments": 4204,
+        "attempt": 1593,
+        "ready": 57,
+        "launched": 621,
+        "landed": 201,
+        "recovered": 0
+      },
+      "after_request": {
+        "environments": 512,
+        "attempt": 11,
+        "ready": 175,
+        "launched": 11,
+        "landed": 10,
+        "recovered": 0
+      }
+    },
+    "current_counts_not_cumulative_training_or_frozen_success": true,
+    "episode_resets_clear_counts": true,
+    "phase_profile": {
+      "version": 2,
+      "base_profile": {
+        "version": 1,
+        "normal_controls": 100,
+        "jump_controls": 80,
+        "request_once_per_episode": true,
+        "physics_dt": 0.0025,
+        "control_dt": 0.01,
+        "ground_ticks": 80,
+        "air_ticks": 16,
+        "landing_ticks": 12,
+        "recovery_ticks": 200,
+        "target_wheel_apex_m": 0.03,
+        "ground_support_N": 1.0,
+        "ground_geometric_skin_m": 0.001,
+        "preparation_speed_m_s": 0.2,
+        "preparation_vz_m_s": 0.2,
+        "preparation_tilt_rad": 0.2617993877991494,
+        "recovery_speed_m_s": 0.03,
+        "recovery_tilt_rad": 0.17453292519943295,
+        "recovery_yaw_rad": 0.2
+      },
+      "additional_reward": "bounded_prelaunch_upward_root_kinetic_proxy",
+      "reference_g_m_s2": 9.81,
+      "reference_rise_m": 0.03,
+      "min_upward_speed_m_s": 0.05,
+      "max_prelaunch_credit": 0.5,
+      "ground_reset_and_public_schedule_unchanged": true,
+      "not_flight_or_COM_or_hardware_energy": true
+    },
+    "zero_twist_command_snapshot_exact": true,
+    "saved_training_PD_recipe": {
+      "version": 1,
+      "COM_profile": "chassis_link_local_independent_xyz_5mm_v1",
+      "PD_profile": "explicit_motor_PD_independent_095_105_v1",
+      "chassis_link_local_delta_m": [
+        -0.005,
+        0.005
+      ],
+      "chassis_only": true,
+      "PD_factor": [
+        0.95,
+        1.05
+      ],
+      "leg_kp_nominal": 60.0,
+      "leg_kd_nominal": 2.0,
+      "wheel_kd_nominal": 0.6,
+      "wheel_kp0": true,
+      "independent_COM_xyz_and_PD_groups": true,
+      "motor_implicit_drive_zero": true,
+      "complete_D0_D6_retained": true,
+      "engineering_pressure_not_hardware_calibration": true
+    },
+    "local_runtime_config": {
+      "leg_kp": 60.0,
+      "leg_kd": 2.0,
+      "wheel_kd": 0.6,
+      "crank_scale": 0.5,
+      "hip_scale": 0.5,
+      "wheel_scale": 10.0,
+      "diff_min": -1.0843,
+      "diff_max": 0.85,
+      "leg_effort": 40.0,
+      "leg_stall": 53.333333333333336,
+      "leg_no_load": 16.755160819145562,
+      "wheel_effort": 5.775909774436091,
+      "wheel_stall": 28.18532894736838,
+      "wheel_no_load": 55.3557,
+      "policy_hz": 100,
+      "yaw_assist_gain": 0
+    },
+    "nominal_PD_kp_kd_wheelkd_equal": true,
+    "training_PD_factors": {
+      "leg_kp": {
+        "shape": [
+          20000,
+          4
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 80000,
+        "min": 0.9500002264976501,
+        "max": 1.0499993562698364,
+        "mean": 0.9999996132977307
+      },
+      "leg_kd": {
+        "shape": [
+          20000,
+          4
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 80000,
+        "min": 0.9500024318695068,
+        "max": 1.0499988794326782,
+        "mean": 0.9998172870256007
+      },
+      "wheel_kd": {
+        "shape": [
+          20000,
+          2
+        ],
+        "dtype": "torch.float32",
+        "nonzero": 40000,
+        "min": 0.95000159740448,
+        "max": 1.0499995946884155,
+        "mean": 0.9999405616551638
+      }
+    },
+    "training_COM_delta_m": {
+      "shape": [
+        20000,
+        3
+      ],
+      "dtype": "torch.float32",
+      "nonzero": 60000,
+      "min": -0.0049999491311609745,
+      "max": 0.004999945871531963,
+      "mean": 3.263362465695394e-05
+    },
+    "height_source": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_THIRD_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\mod4_task.py",
+      "SHA": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "nominal": 0.25,
+      "configured_range": [
+        0.18,
+        0.34
+      ],
+      "local_command": 0.25,
+      "per_environment_saved_height_commands_not_in_this_phase_wrapper": true,
+      "not_an_actual_loaded_height_readback": true
+    },
+    "limitations": [
+      "Saved phase values cover only each current episode; resets erase earlier events. They cannot measure training jump success or compare frozen80env scores.",
+      "Local deterministic nominal PD/reset and MuJoCo .5ms differ from saved20k randomized PhysX runtime; equal nominal gains do not prove backend equivalence.",
+      "No actor input, reward, STD, LR, CAD, physics, success threshold or live player was changed."
+    ],
+    "CPU_only_no_CUDA_optimizer_GPU_or_canonical_write": true
+  },
+  "scope": "Unchanged SCUT+Fudan recipe, original physics/PPO/STD/LR/budget and independent accounting; local CPU diagnostics are not PhysX or course graduation."
+}

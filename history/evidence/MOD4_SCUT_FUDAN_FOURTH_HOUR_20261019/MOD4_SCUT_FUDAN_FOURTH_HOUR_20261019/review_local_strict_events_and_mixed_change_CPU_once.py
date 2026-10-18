@@ -1,0 +1,12 @@
+from pathlib import Path
+import json,time,numpy as np
+B=Path(__file__).resolve().parent;R=B/'reports';C=B.parent/'MOD4_SCUT_FUDAN_THIRD_HOUR_20261019'
+v=json.loads((R/'THIRD_SCUT_FUDAN_HOUR_NEW_SOURCE_LOCAL_MUJOCO_BEHAVIOR_ACTUAL.json').read_bytes());old=json.loads((C/'reports/SECOND_SCUT_FUDAN_HOUR_NEW_SOURCE_LOCAL_MUJOCO_BEHAVIOR_ACTUAL.json').read_bytes());rows=[]
+for e in v['episodes']:
+ a=np.load(e['raw']['path'])['callback'];prior=next(x for x in old['episodes'] if x['public4_requested']==e['public4_requested'] and x['yaw']==e['yaw']);ev={}
+ for name,col in [('takeoff',39),('landing',40),('recovery',41)]:
+  z=np.flatnonzero(a[:,col]);assert len(z)==e['counts'][name];ev[name]=[dict(time_s=float(a[i,0]),control=int(a[i,1]),mode=int(a[i,2]),pitch=float(a[i,35]),roll=float(a[i,34]),world_angular_velocity=a[i,10:13].tolist()) for i in z]
+ rows.append(dict(public4_requested=e['public4_requested'],yaw=e['yaw'],source_SHA=e['SHA'],ready_before_request=e['ready_before_request'],strict_counts=e['counts'],event_callback_rows=ev,first_failure=e['first_failure'],duration_s=e['simulated_s'],previous_source_SHA=prior['SHA'],previous_strict_counts=prior['counts'],previous_duration_s=prior['simulated_s'],earlier_failure_than_previous=bool(e['first_failure'] and prior['first_failure'] and e['simulated_s']<prior['simulated_s']),raw=e['raw']))
+out=dict(epoch=time.time(),local_same_protocol_new_source_only=True,rows=rows,interpretation='Mixed change: local readiness and original strict takeoff/landing appeared, but recovery remains0 and jump failure is earlier than the prior checkpoint. No overall repaired/graduated claim. Current failure is during mode4 after landing, unlike the prior mode0-after-request failure; do not carry the old timing explanation onto this source.',previous_residual_boolean_clarification='THIRD_REWARD_HOUR_LOCAL_PREFIX_RESIDUAL_CPU_ACTUAL.json local_jump_survival_regression=False compares only whether a15s-surviving prior case became non-surviving. Both jump checkpoints fail, so that boolean isFalse despite an earlier failure time. Original report retained; explicit duration comparison here takes precedence.',not_PhysX_or_statistical_or_unique_causality=True,no_new_threshold_or_command_switch_or_reward_change=True)
+with (R/'THIRD_HOUR_LOCAL_STRICT_EVENTS_AND_MIXED_CHANGE_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(out,f,indent=2)
+print(json.dumps(dict(jump=[r for r in rows if r['public4_requested']]),indent=2))

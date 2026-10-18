@@ -1,0 +1,65 @@
+{
+  "epoch": 1792298823.577638,
+  "passed_complete_own_native_allrow_remote_and_two_models_local_CPU": false,
+  "passed_real_immutable_first_complete_local_CPU": false,
+  "source_SHA": "ce3c69bbcf56bd6c884681f23f527b9fe9e1884a7b5444ff90d3f7a2e28b2d90",
+  "source_Adam": 646100,
+  "expected_first_Adam": 646120,
+  "all_models": [
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/job0/native/own_source_full20k_startup0.pt",
+      "bytes": 16647196,
+      "SHA": "88b2814b330bf97ba1c0f927f6f2a0aacd53fd1b4c074835414f98d597709d48",
+      "kind": "own_native_startup0",
+      "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_POST_POWER_RESTORE_H1_SATURATION_REPAIR_20261018\\proposal_ce3_same_candidate_finite_v1\\actual_own_native_first_models\\own_source_full20k_startup0.pt",
+      "twohost_complete_SHA": true
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/job0/native/own_H1_ground_prelaunch_v2_native180.pt",
+      "bytes": 16650513,
+      "SHA": "c14a90da0ab0f61892e1cc066ac1f8f18c2a85344b8a8e06773fdfc90c2897b8",
+      "kind": "own_native_complete",
+      "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_POST_POWER_RESTORE_H1_SATURATION_REPAIR_20261018\\proposal_ce3_same_candidate_finite_v1\\actual_own_native_first_models\\own_H1_ground_prelaunch_v2_native180.pt",
+      "twohost_complete_SHA": true
+    }
+  ],
+  "counts": {
+    "own_native_startup0": [
+      199,
+      105
+    ],
+    "own_native_complete": [
+      199,
+      105
+    ]
+  },
+  "all_collected_models_runtime_finite": true,
+  "native_sourcecore9STD8critic17Adam_literalexact": false,
+  "startup0_core9STD8critic17Adam_literalexact": false,
+  "source_episode_plus1_startup_only_phaseage0": false,
+  "all17Adam646100_to646120": false,
+  "all17_actorcritic_changes": {},
+  "first24control480000productionenvsteps": false,
+  "first_under100normal_schedule_not_aux_effect": true,
+  "current_loss_diagnostic_not_immutable_first_attribution": null,
+  "original_target_errors_preserved": [
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/H1_NATIVE_CPU_ORIGINAL_ERROR_1792298587343582191.json",
+      "value": {
+        "error": "Traceback (most recent call last):\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/review_H1_prelaunch_v2_native_allrows_CPU_v1.py\", line 57, in <module>\n    try:main()\n        ^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/review_H1_prelaunch_v2_native_allrows_CPU_v1.py\", line 39, in main\n    precision=audit_saved_mean(s['actor_state_dict'],x.reshape(-1,35),d['raw6'].reshape(-1,6));reference_metrics.append(precision);maxmean=max(maxmean,precision['torch64_maxabs'],precision['numpy64_maxabs']);assert maxmean<=1e-4;control_count+=len(x)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/h1_owned_dual_FP64_mean_reference_same_bound_v1.py\", line 18, in audit_saved_mean\n    assert maxima['torch64_maxabs']<=1e-4 and maxima['numpy64_maxabs']<=1e-4,maxima\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'torch64_maxabs': 0.00015978302720753845, 'numpy64_maxabs': 0.00015978302720753845, 'reference_cross_maxabs': 2.842170943040401e-14, 'original_fp32_maxabs': 3.814697265625e-05}\n",
+        "no_GPU_replay": true
+      }
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/NODE_ORIGINAL_ERROR.json",
+      "value": {
+        "epoch": 1792298587.6687949,
+        "error": "Traceback (most recent call last):\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/three_slot_finite_node_v1.py\", line 26, in node\n    native=run_CPU_with_status(spec,b.native_CPU,send,put,B);p=None;phase='ready'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/native_CPU_status_bridge_v1.py\", line 15, in run_CPU_with_status\n    result=audit(cfg);assert not stopped[0],'Original source requested saved-stop during CPU admission; no new PPO';assert time.monotonic()-last_ack[0]<=max_ack_gap,'No actual authenticated source acknowledgement within original transport timeout';succeeded=True;return result\n           ^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/H1cq_1810p3/three_slot_common_v1.py\", line 56, in native_CPU\n    assert spec['key'] in CAPS;args=[spec['python'],'-u','-B',str(B/(spec['native_CPU_script']))];args+=[] if spec['key']=='h1' else ['--job','0'];p=subprocess.Popen(args,cwd=B,env=environment(spec,True),stdout=(J/'native_CPU.log').open('xb'),stderr=subprocess.STDOUT,close_fds=True);put(J/'native_CPU_STARTED_ACTUAL.json',ident(p.pid));rc=p.wait();put(J/'native_CPU_WAITED_EXIT_ACTUAL.json',dict(epoch=time.time(),returncode=rc,actual_waited=True));assert rc==0;path=outdir('native')/('H1_PRELAUNCH_V2_NATIVE180_ALL_ROWS_CPU_ADMITTED.json' if spec['key']=='h1' else 'NATIVE_ALL_ROWS_CPU_ADMITTED.json');v=read(path);assert v and v['passed'] and v['source_SHA']==spec['source_SHA'] and v['controls']==spec['native_controls'] and v['callbacks']==spec['native_controls']*4;return dict(value=v,path=str(path),SHA=H(path),actual_CPU_waited_EXIT0=True)\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^^^^^\nAssertionError\n",
+        "no_automatic_retry": true
+      }
+    }
+  ],
+  "pending_missing_native_or_first": false,
+  "not_frozen_jump_skill_FINAL_or_all_three_PPO": true,
+  "CPU_RNG_unchanged0CUDA0optimizer": true
+}

@@ -1,0 +1,96 @@
+{
+  "epoch": 1792357648.249579,
+  "rows": [
+    {
+      "source_SHA": "133847baef60d16a9c2c286b7d2dbde3c1b54cd097fe29d529441bd40fb5c5d4",
+      "public4_requested": false,
+      "yaw": 0.0,
+      "strict_counts": {
+        "takeoff": 0,
+        "landing": 0,
+        "recovery": 0
+      },
+      "duration_s": 15.00000000000684,
+      "first_failure": null,
+      "previous_duration_s": 15.00000000000684,
+      "previous_first_failure": null,
+      "final_planar_speed_m_s": 0.054426180893934466,
+      "final_yaw_error_rad": 0.683186169831631,
+      "actual_phase_recovery_ticks_max": 0,
+      "required_recovery_callbacks": 200
+    },
+    {
+      "source_SHA": "133847baef60d16a9c2c286b7d2dbde3c1b54cd097fe29d529441bd40fb5c5d4",
+      "public4_requested": false,
+      "yaw": 3.141592653589793,
+      "strict_counts": {
+        "takeoff": 0,
+        "landing": 0,
+        "recovery": 0
+      },
+      "duration_s": 15.00000000000684,
+      "first_failure": null,
+      "previous_duration_s": 15.00000000000684,
+      "previous_first_failure": null,
+      "final_planar_speed_m_s": 0.05442616964332756,
+      "final_yaw_error_rad": 0.6831861688906042,
+      "actual_phase_recovery_ticks_max": 0,
+      "required_recovery_callbacks": 200
+    },
+    {
+      "source_SHA": "133847baef60d16a9c2c286b7d2dbde3c1b54cd097fe29d529441bd40fb5c5d4",
+      "public4_requested": true,
+      "yaw": 0.0,
+      "strict_counts": {
+        "takeoff": 1,
+        "landing": 1,
+        "recovery": 0
+      },
+      "duration_s": 15.00000000000684,
+      "first_failure": null,
+      "previous_duration_s": 1.4924999999998911,
+      "previous_first_failure": {
+        "time": 1.4924999999998911,
+        "control": 149,
+        "kind": "bad_orientation_local_tilt_0.75",
+        "mode": 4,
+        "roll": 0.14703802228378335,
+        "pitch": -0.7511251431698834
+      },
+      "final_planar_speed_m_s": 0.05511820945849278,
+      "final_yaw_error_rad": 0.657909618123722,
+      "actual_phase_recovery_ticks_max": 110,
+      "required_recovery_callbacks": 200
+    },
+    {
+      "source_SHA": "133847baef60d16a9c2c286b7d2dbde3c1b54cd097fe29d529441bd40fb5c5d4",
+      "public4_requested": true,
+      "yaw": 3.141592653589793,
+      "strict_counts": {
+        "takeoff": 1,
+        "landing": 1,
+        "recovery": 0
+      },
+      "duration_s": 15.00000000000684,
+      "first_failure": null,
+      "previous_duration_s": 1.4924999999998911,
+      "previous_first_failure": {
+        "time": 1.4924999999998911,
+        "control": 149,
+        "kind": "bad_orientation_local_tilt_0.75",
+        "mode": 4,
+        "roll": 0.14703802228739857,
+        "pitch": -0.7511251431779435
+      },
+      "final_planar_speed_m_s": 0.05511821031982922,
+      "final_yaw_error_rad": 0.6579095836508815,
+      "actual_phase_recovery_ticks_max": 110,
+      "required_recovery_callbacks": 200
+    }
+  ],
+  "interpretation": "Both new-source local jump traces take off and land under the original phase protocol and survive15s, compared with the prior source failing near1.4925s. Recovery remains0; the longest actual stable recovery run is110 callbacks, below200. Post-landing speed and yaw remain outside the original recovery conditions. These two yaw variants are deterministic small-sample MuJoCo evidence, not independent statistical trials, PhysX qualification or unique reward causality.",
+  "torque_readout_limitation": "The existing46-column callback array stores the controller torque sent to MuJoCo d.ctrl, in actuator order hip,crank,wheel for each side. The added local reward-formula diagnostic uses those wheel command torques at indices2,5. It does not separately read d.actuator_force and must not be called a measured actuator-force or PhysX applied_torque readback. All original trace/code/report bytes remain retained.",
+  "rate_readout_limit": "Added9-term callback rates are a read-only local formula diagnostic; they neither change control nor measure the production RewardManager/PPO return. Normal-mode extra terms are zero by the same request/attempt mask. This is not proof of full normal-behavior nonregression.",
+  "response": "Continue the healthy unchanged production hour; next new source review should inspect recovery planar/yaw residuals and post-landing action/torque timeline. Do not tune the heldout set, alter phase/thresholds/request clock, add correction forces, or blindly change reward/LR/STD/physics.",
+  "no_replay_or_GPU_player_account_mutation": true
+}

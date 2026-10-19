@@ -1,0 +1,23 @@
+{
+  "trial_id": "ninth-source-local-review-premature-receipt-read",
+  "actual_errors": [
+    {
+      "script": "review_ninth_local_strict_recovery_normal_and_actuator_CPU_once.py",
+      "exception": "FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TENTH_HOUR_20261019\\reports\\NINTH_SCUT_FUDAN_HOUR_NEW_SOURCE_LOCAL_MUJOCO_BEHAVIOR_ACTUAL.json'",
+      "location": "line 5, Path.read_bytes -> Path.open -> io.open",
+      "exit_code": 1,
+      "no_output_report_created": true
+    },
+    {
+      "script": "review_ninth_local_events_and_drift_CPU_once.py",
+      "exception": "FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TENTH_HOUR_20261019\\reports\\NINTH_HOUR_LOCAL_STRICT_RECOVERY_NORMAL_AND_ACTUATOR_CPU_ACTUAL.json'",
+      "location": "line 5, Path.read_bytes -> Path.open -> io.open",
+      "exit_code": 1,
+      "no_output_report_created": true
+    }
+  ],
+  "cause": "The orchestrator started read-only CPU reviewers after a session poll that still reported a running trajectory session. The trajectory producer had emitted two normal rows but had not written its final receipt.",
+  "not_GPU_or_backend_failure": true,
+  "original_sources_and_tool_tracebacks_retained": true,
+  "recovery": "Wait for actual producer exit and receipt, then use separate V2 readers for missing report outputs only. Do not replay any trajectory, GPU task, native, PT download or original charge."
+}

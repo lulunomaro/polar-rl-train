@@ -1,0 +1,14 @@
+"""Record the later explicit old-data deletion authority and supersede installer-copy intent."""
+from pathlib import Path
+import json,time,tomllib
+B=Path(__file__).resolve().parent;R=B/'reports'
+old=tomllib.loads((Path.home()/'.codex/automations/mod4-10/automation.toml').read_text('utf8'))
+head=f'''最新直接人类授权V42覆盖V41安装包备份方案：人类明确说“你去吧老旧的轨迹数据，回放，残缺检查点都给删除释放空间”。本轮改为对72本项目已闭合旧SCUT+Fudan小时1至15的production/control_prefix_raw内由原producer索引确认的旧轨迹、旧production回放和残缺/失败prefix检查点作精确清理；最新已闭合16、reserved17、全部健康完整FINAL/sourcePT、运行env/SDK/重置库/所有文字报告、锁和其他job都保留。新授权覆盖这些旧raw/残缺检查点的旧“原件保留”限制；必须保存实际删除清单、bytes、已有producerSHA（未知不得伪造）、闭合证据与原报告Git索引，不改旧false/历史分类。不是清空home/tasks或所有权重。
+S={B.as_posix()}。安装包备份V1因小SFTP窗观测约2.7至3.6MiB/s，root只中断了自己的localcopy，actualout/原error/272629760bytes D盘partial已保留；远端安装包未删、完整backup未成，未续传；原KeyboardInterrupt及关闭时SFTP/后台socket错误并列保留，不冒GPU/网络故障。该旧helper已consume，不能重run或把旧intent当当前。
+当前先用S/plan_explicit_old_trajectory_and_partial_cleanup_finite_once.py单72有限连接收精确候选清单和闭合/路径stat/producer索引，actualreturn后freshCIM再由root审查并准备自己的exact-list apply helper。所有transport先fresh本机CIM按exactbasename/argv+exe/create；任何本轮S目录finite实际alive时独占210/72/249，rootagents仅localreports+CIM，不另SSH/Q容量V3/第二watcher/5minpoll/为Git连训练host。真实返回才交还，不拿PID/计划当永久alive或已delete。删除必须约束owned zonglin2/tasks/旧root/已闭合节点、排除symlink/活进程/完整final与runtime，fresh核stat且不递归删目录/删锁；原producer/text报告留存。
+清理actual完成且free满足原25GiB/GPU/RAM/锁保护后，才freshCIM执行Q现有unused T3sf17 deployer一次并收原metadata三GO/PPO/matchingUUID；不重Q preparer或cb11本机轨迹，不加E2-only writer，不改reward/LR/STD/physics/预算/账。当前仍无第17owner/GO/PPO/费用；later真实清理与派发receipt优先。后续本次用户明确清理+actual接训新unique阶段归档，原1405tags及HEAD2a7aa5811df16f7e9f582eb878b097741de0af3e保留，旧record/helper/tag consume。以下V41/V40仅历史intent及容量状态，不覆盖本条新human/ownactual。
+'''
+args=dict(mode='update',id='mod4-10',kind='heartbeat',name=old['name'],prompt=(head+old['prompt']).rstrip(),rrule=old['rrule'],status=old['status'],targetThreadId=old['target_thread_id'])
+with (B/'AUTOMATION_EXPLICIT_OLD_RAW_CLEANUP_INTENT_V42_ARGS.json').open('x',encoding='utf8') as f:json.dump(args,f,ensure_ascii=False,indent=2)
+with (R/'LATEST_EXPLICIT_OLD_DATA_CLEANUP_AUTHORIZATION_AND_SCOPE_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),human_latest_exact='你去吧老旧的轨迹数据，回放，残缺检查点都给删除释放空间',scope=head,old_installer_backup_interrupted_own_process_actual_out=True,no_remote_installer_deletion_or_full_backup_claim=True,D_partial_retained_bytes=272629760,background_prefetch_close_error_observed='Thread-5 (_prefetch_thread): OSError: Socket is closed after own interrupt',original_main_error_report=str(R/'USER_INSTALLER_BACKUP_CLEANUP_ORIGINAL_ERROR.json'),no_GPU_training_process_interruption=True),f,ensure_ascii=False,indent=2)
+print(json.dumps(dict(explicit_raw_cleanup_authority_recorded=True,installer_backup_superseded=True,no_delete_yet=True)))

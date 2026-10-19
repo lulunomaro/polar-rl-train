@@ -1,0 +1,120 @@
+{
+  "observation_width": 35,
+  "action_width": 6,
+  "dtype": "float32",
+  "rate_Hz": 100,
+  "observation_terms": [
+    {
+      "indices": [
+        0,
+        2
+      ],
+      "term": "command_vx_vy_wz",
+      "scale": 1
+    },
+    {
+      "indices": [
+        3,
+        3
+      ],
+      "term": "height",
+      "scale": 5
+    },
+    {
+      "indices": [
+        4,
+        6
+      ],
+      "term": "body_angular_velocity",
+      "scale": 0.5
+    },
+    {
+      "indices": [
+        7,
+        9
+      ],
+      "term": "projected_gravity",
+      "scale": 1
+    },
+    {
+      "indices": [
+        10,
+        13
+      ],
+      "term": "left_crank_left_hip_right_crank_right_hip_positions",
+      "scale": 1
+    },
+    {
+      "indices": [
+        14,
+        15
+      ],
+      "term": "reserved_positions",
+      "value": [
+        0,
+        0
+      ]
+    },
+    {
+      "indices": [
+        16,
+        19
+      ],
+      "term": "leg_velocities_same_order",
+      "scale": 0.1
+    },
+    {
+      "indices": [
+        20,
+        21
+      ],
+      "term": "left_right_wheel_velocities",
+      "scale": 0.1
+    },
+    {
+      "indices": [
+        22,
+        27
+      ],
+      "term": "previous_clipped_action",
+      "scale": 1
+    },
+    {
+      "indices": [
+        28,
+        34
+      ],
+      "term": "mode_one_hot",
+      "exactly_one": true
+    }
+  ],
+  "action_order": [
+    "left_crank",
+    "left_hip",
+    "right_crank",
+    "right_hip",
+    "left_wheel_spin",
+    "right_wheel_spin"
+  ],
+  "not_torque": true,
+  "combined_action_clip": [
+    -6,
+    6
+  ],
+  "individual_experts_output_unclipped": true,
+  "routing_modes": {
+    "0": "original E0/W35 gate",
+    "3": "E3 recover",
+    "4": "H1 jump",
+    "6": "E2 spin player alias; E2 mode normalized to0"
+  },
+  "leg_targets_scale": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ],
+  "wheel_velocity_scale": 10,
+  "control_reference": "player/sim_runtime.py action_to_torque; runtime_config.json",
+  "skill_qualification": false
+}

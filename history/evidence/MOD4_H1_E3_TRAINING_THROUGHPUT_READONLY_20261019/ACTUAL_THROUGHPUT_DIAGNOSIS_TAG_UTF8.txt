@@ -1,0 +1,65 @@
+Diagnose H1 and E3 rollout throughput from existing logs without changing training
+
+One bounded read of existing eighth/ninth-hour timing logs and host telemetry; one missing-only identity query for the observed extra GPU process. No GPU workload or production changes.
+
+{
+  "timing": {
+    "hour8_h1": {
+      "samples": 20,
+      "median_collection_s": 42.794,
+      "median_PPO_learning_s": 0.2365,
+      "learning_fraction": 0.00549610160235182
+    },
+    "hour8_recovery": {
+      "samples": 20,
+      "median_collection_s": 33.1285,
+      "median_PPO_learning_s": 0.199,
+      "learning_fraction": 0.005971044932863251
+    },
+    "hour9_h1": {
+      "samples": 20,
+      "median_collection_s": 43.593999999999994,
+      "median_PPO_learning_s": 0.2345,
+      "learning_fraction": 0.005350399853976295
+    },
+    "hour9_recovery": {
+      "samples": 20,
+      "median_collection_s": 33.275,
+      "median_PPO_learning_s": 0.2015,
+      "learning_fraction": 0.0060191477603692145
+    },
+    "hour8_e2": {
+      "samples": 20,
+      "median_collection_s": 13.951,
+      "median_PPO_learning_s": 0.1505,
+      "learning_fraction": 0.010672623479771656
+    },
+    "hour9_e2": {
+      "samples": 20,
+      "median_collection_s": 13.972999999999999,
+      "median_PPO_learning_s": 0.151,
+      "learning_fraction": 0.010691022373265364
+    }
+  },
+  "H1_saved_trace_volume": {
+    "completed_closed_hour": 8,
+    "controls": 1776,
+    "chunks": 74,
+    "compressed_npz_bytes": 24644737000,
+    "preupdate_models": 74,
+    "preupdate_model_bytes": 1231531406,
+    "physical_callback_replay": false,
+    "from_existing_producer_index_no_old_raw_PT_read_or_rehash": true
+  },
+  "findings_and_limits": {
+    "observed_bottleneck": "Existing logger timing places >98 percent of loop time in collection for all three, while the H1/E3 gap to E2 is overwhelmingly in collection rather than PPO update.",
+    "collection_scope": "Collection is the whole rollout path, including synchronous env wrappers, CPU transfers, compression and saves inside vec.step; not a pure PhysX timer.",
+    "H1_confirmed_hot_path": "H1 trace copies all20k observation/state/action/reward tensors to CPU every control, np.stack and np.savez_compressed every24 controls, saves a complete pre-update source once per chunk. H1 also evaluates all34 authored shape clearances plus31-body contact and phase truth at each of4 physics callbacks per control.",
+    "E3_confirmed_path": "E3 production adds recovery phase and fallen-reset construction. place_declared_fall loads the reset NPZ, maps joints, transforms CAD points in128-environment chunks and hashes the reset bank during resets. Its extra full physical capture/evaluate path is gated by e3_capture and is NOT enabled by the production worker; do not attribute production slowdown to its native-only all34 capture.",
+    "E3_cost_not_yet_isolated": "No kernel/callback/reset profiling or controlled host comparison was run. Recovery reset and contact workload, Python/CUDA synchronization and Xeon versus i9 host differences remain plausible contributors whose individual shares are not measured.",
+    "H1_cost_not_yet_isolated": "The trace transfer/compression/I/O cost and all34 callback cost have not been separately timed. The total traced bytes do not by themselves prove storage bandwidth is saturated.",
+    "GPU_peer": "A fresh snapshot observes additional pid66633 using8526MiB on the H1 GPU. Its identity lookup returned AccessDenied. Ownership and workload are unknown; no bypass, kill, stop or lock deletion was attempted. The prior closed-hour collection gap already existed; this snapshot is not proof the extra process caused the entire gap.",
+    "utilization_limit": "GPU percentages/power and host CPU utilization are instantaneous snapshots, not sustained measurements or per-process GPU attribution.",
+    "no_changes": "No training/PPO/physics/reward/guard/STD/LR/geometry/budget changes, no profiler workload, no model/raw downloads or replays, no live player action."
+  }
+}

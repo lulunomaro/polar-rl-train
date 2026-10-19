@@ -1,0 +1,246 @@
+{
+  "epoch": 1792368830.696658,
+  "trial_id": "scut-fudan-seventh-hour-new-source-local-flat-mujoco-prefix",
+  "backend": "local CPU MuJoCo original October8 player robot on flat floor",
+  "not_PhysX_or_RM7V7_qualification": true,
+  "not_statistical_or_unique_causal_comparison": true,
+  "no_remote_or_player_change": true,
+  "policy": "each H1 source actor for both normal and public4 rows; no E0/W35 router or auxiliary forces",
+  "strict_phase_source": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SEVENTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\h1_public_request_phase_v1.py",
+    "SHA": "7026d990e36e2b932151c6de962ec3f84eb3ac3f33f9b50695c84f7d6507bd71",
+    "profile": {
+      "version": 1,
+      "normal_controls": 100,
+      "jump_controls": 80,
+      "request_once_per_episode": true,
+      "physics_dt": 0.0025,
+      "control_dt": 0.01,
+      "ground_ticks": 80,
+      "air_ticks": 16,
+      "landing_ticks": 12,
+      "recovery_ticks": 200,
+      "target_wheel_apex_m": 0.03,
+      "ground_support_N": 1.0,
+      "ground_geometric_skin_m": 0.001,
+      "preparation_speed_m_s": 0.2,
+      "preparation_vz_m_s": 0.2,
+      "preparation_tilt_rad": 0.2617993877991494,
+      "recovery_speed_m_s": 0.03,
+      "recovery_tilt_rad": 0.17453292519943295,
+      "recovery_yaw_rad": 0.2
+    }
+  },
+  "different_backend_physics": {
+    "dt": 0.0005,
+    "evidence_callback": 0.0025,
+    "closure_bound": 0.002,
+    "mimic_bound": 0.01,
+    "local_tilt_first_failure": 0.75
+  },
+  "config": {
+    "leg_kp": 60.0,
+    "leg_kd": 2.0,
+    "wheel_kd": 0.6,
+    "crank_scale": 0.5,
+    "hip_scale": 0.5,
+    "wheel_scale": 10.0,
+    "diff_min": -1.0843,
+    "diff_max": 0.85,
+    "leg_effort": 40.0,
+    "leg_stall": 53.333333333333336,
+    "leg_no_load": 16.755160819145562,
+    "wheel_effort": 5.775909774436091,
+    "wheel_stall": 28.18532894736838,
+    "wheel_no_load": 55.3557,
+    "policy_hz": 100,
+    "yaw_assist_gain": 0
+  },
+  "source_files": {
+    "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_LOCAL_MUJOCO_DRIVE_20261008\\playground.xml": "21abdf40969913f1a75551d480a2665756ac186993628d76bcf9a53dc9625c84",
+    "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_LOCAL_MUJOCO_DRIVE_20261008\\sim_runtime.py": "1df31f78181b70e3b8a689461c66b24ca4ec77ace09ac0e92ebc85af841ba78b",
+    "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_LOCAL_MUJOCO_DRIVE_20261008\\current_sim.py": "1a2803ff29201b8a7c2938f3c6787c924d774729e43626e769722016a5ab6f43",
+    "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_LOCAL_MUJOCO_DRIVE_20261008\\src_snapshot\\reset_bank.json": "48be349c9bae1ec089b8bfb46ccc79085576e14bf373f6cb514027c3c155e50f"
+  },
+  "raw_columns": [
+    "time",
+    "control",
+    "mode",
+    "root7",
+    "world_spatial_vel6",
+    "action6",
+    "actuator_tau6",
+    "wheel_norm2",
+    "wheel_clear2",
+    "all_min_clear",
+    "nonwheel_force",
+    "roll",
+    "pitch",
+    "yaw",
+    "closure",
+    "mimic",
+    "takeoff",
+    "landing",
+    "recovery",
+    "ready",
+    "attempt",
+    "air_ticks",
+    "recover_ticks"
+  ],
+  "reward_telemetry": {
+    "columns": [
+      "time",
+      "control",
+      "active",
+      "airborne",
+      "launched",
+      "landed",
+      "recovered",
+      "recover_ticks",
+      "body_angular_velocity3",
+      "projected_gravity3",
+      "push_vz",
+      "flight_vz",
+      "flight",
+      "leg_tuck",
+      "takeoff_extend",
+      "wheel_below_base",
+      "air_wheel_zero_torque",
+      "orientation",
+      "angular_velocity_xy"
+    ],
+    "profile": {
+      "version": "scut_fudan_jump_reward_v1",
+      "tuck_leg_length_m": 0.22,
+      "extend_leg_length_m": 0.31,
+      "leg_exp_l1_gain": 4.0,
+      "zero_wheel_torque_sigma": 1.5,
+      "Fudan_weighted_rate_clip": 2.5,
+      "weights": {
+        "push_vz": 1.0,
+        "flight_vz": 6.0,
+        "flight": 0.15,
+        "leg_tuck": 1.7,
+        "takeoff_extend": 0.5,
+        "wheel_below_base": 2.0,
+        "air_wheel_zero_torque": 20.0,
+        "orientation": -25.0,
+        "angular_velocity_xy": -0.1
+      },
+      "geometry_adaptation": "body-to-wheel 3D lengths from actual MOD4 link poses; tuck .22 SCUT default, extend .31 Fudan target",
+      "no_assist_force_or_air_reset_or_privileged_actor_observation": true,
+      "flight_mask": "existing H1 air_ticks>0; measured both-wheel clearance, all34 clearance, nonwheel clean and positive-vz history; no new success threshold",
+      "active_scope": "H1 public4 request rows with an actual ready attempt; every normal action row retains its original reward"
+    },
+    "callback_rates_only_not_PhysX_PPO_reward": true,
+    "weighted_Fudan_rate_clip": 2.5,
+    "no_reward_used_for_control": true,
+    "wheel_torque_input": "actual local MuJoCo d.actuator_force indices2,5",
+    "actuator_readback_columns": [
+      "time",
+      "control",
+      "sent_d_ctrl6",
+      "actual_d_actuator_force6"
+    ],
+    "not_PhysX_applied_torque_readback": true
+  },
+  "episodes": [
+    {
+      "source": "after_reward_hour7",
+      "SHA": "a21a82639c332456a7f89c985c838616ab5f8e5771cc71f32894485658ca866a",
+      "public4_requested": false,
+      "yaw": 0.0,
+      "ready_before_request": true,
+      "counts": {
+        "takeoff": 0,
+        "landing": 0,
+        "recovery": 0
+      },
+      "first_failure": null,
+      "survived15s": true,
+      "callbacks": 6000,
+      "simulated_s": 15.00000000000684,
+      "max_closure_m": 4.682098138249413e-06,
+      "max_mimic_rad": 4.152362966536316e-05,
+      "raw": {
+        "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\local_seventh_reward_hour_new_source_trajectories\\after_reward_hour7_normal_0.0.npz",
+        "bytes": 1659808,
+        "SHA": "b5cec117e7a0474f9b9908b8d8ee07660a9be4bcc8fa1450ce7cc1b2d6acb155"
+      },
+      "wall_seconds": 10.078000000001339
+    },
+    {
+      "source": "after_reward_hour7",
+      "SHA": "a21a82639c332456a7f89c985c838616ab5f8e5771cc71f32894485658ca866a",
+      "public4_requested": false,
+      "yaw": 3.141592653589793,
+      "ready_before_request": true,
+      "counts": {
+        "takeoff": 0,
+        "landing": 0,
+        "recovery": 0
+      },
+      "first_failure": null,
+      "survived15s": true,
+      "callbacks": 6000,
+      "simulated_s": 15.00000000000684,
+      "max_closure_m": 4.68209813808475e-06,
+      "max_mimic_rad": 4.152362966547418e-05,
+      "raw": {
+        "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\local_seventh_reward_hour_new_source_trajectories\\after_reward_hour7_normal_3.1416.npz",
+        "bytes": 1654472,
+        "SHA": "8294d7c2166b51b6056257ea596fa660a542c7aa6fd59fa21692eca9b2df6081"
+      },
+      "wall_seconds": 10.14100000000326
+    },
+    {
+      "source": "after_reward_hour7",
+      "SHA": "a21a82639c332456a7f89c985c838616ab5f8e5771cc71f32894485658ca866a",
+      "public4_requested": true,
+      "yaw": 0.0,
+      "ready_before_request": true,
+      "counts": {
+        "takeoff": 1,
+        "landing": 1,
+        "recovery": 1
+      },
+      "first_failure": null,
+      "survived15s": true,
+      "callbacks": 6000,
+      "simulated_s": 15.00000000000684,
+      "max_closure_m": 1.982550254842361e-05,
+      "max_mimic_rad": 8.675351145670529e-05,
+      "raw": {
+        "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\local_seventh_reward_hour_new_source_trajectories\\after_reward_hour7_jump_0.0.npz",
+        "bytes": 1744186,
+        "SHA": "07221ca959aaaca32ff2d9596e475957e259d68c7f6d50485ee3e6ff936d0b0b"
+      },
+      "wall_seconds": 10.171999999998661
+    },
+    {
+      "source": "after_reward_hour7",
+      "SHA": "a21a82639c332456a7f89c985c838616ab5f8e5771cc71f32894485658ca866a",
+      "public4_requested": true,
+      "yaw": 3.141592653589793,
+      "ready_before_request": true,
+      "counts": {
+        "takeoff": 1,
+        "landing": 1,
+        "recovery": 1
+      },
+      "first_failure": null,
+      "survived15s": true,
+      "callbacks": 6000,
+      "simulated_s": 15.00000000000684,
+      "max_closure_m": 1.9825502558879095e-05,
+      "max_mimic_rad": 8.675351146447685e-05,
+      "raw": {
+        "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\local_seventh_reward_hour_new_source_trajectories\\after_reward_hour7_jump_3.1416.npz",
+        "bytes": 1740638,
+        "SHA": "b9a8db195f402f90eea8247dce8c24072a9835e0e1e0a931c39ff56f33e1851f"
+      },
+      "wall_seconds": 10.015999999995984
+    }
+  ],
+  "not_skill_graduation": true
+}

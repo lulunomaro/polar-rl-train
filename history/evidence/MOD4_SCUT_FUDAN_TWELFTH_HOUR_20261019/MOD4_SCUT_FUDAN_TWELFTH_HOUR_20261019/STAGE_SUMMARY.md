@@ -1,0 +1,801 @@
+# Actual partial-hour closure and restored H1 shared-GPU three-expert learning
+
+{
+  "previous_partial_closed_CPU": {
+    "epoch": 1792384610.5720246,
+    "passed_all_actual_GO_final_models_CPU": true,
+    "passed_next_three_sources_whole_model_CPU": true,
+    "actual_owned_new_final_experts": [
+      "e2",
+      "recovery"
+    ],
+    "H1_failed_admission_zero_GO_retains_hour10_source": true,
+    "experts": {
+      "e2": {
+        "final": {
+          "path": "/mnt/mod4_linux_durable_20261013/T3sf11_1910v16/e2/job0/production/model_update240.pt",
+          "bytes": 14615528,
+          "SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+          "key": "e2",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_ELEVENTH_HOUR_20261019\\actual_closed_three_finals\\e2\\model_update240.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          175,
+          98
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 240,
+        "production_envsteps": 115200000,
+        "all17Adam_before": 738880,
+        "all17Adam_after": 743680,
+        "all17_actual_changes": {
+          "actor_state_dict": [
+            "distribution.std_param",
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ],
+          "critic_state_dict": [
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ]
+        },
+        "actual_original_independent_cost_once": {
+          "started_epoch": 1792380939.5858507,
+          "accounted_through_epoch": 1792384555.715919,
+          "charged_seconds": 3616.1300683021545,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792384555.715919,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "recovery": {
+        "final": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/recovery/job0/production/final_valid_update99.pt",
+          "bytes": 14715349,
+          "SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+          "key": "recovery",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_ELEVENTH_HOUR_20261019\\actual_closed_three_finals\\recovery\\final_valid_update99.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          173,
+          96
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 99,
+        "production_envsteps": 47520000,
+        "all17Adam_before": 686100,
+        "all17Adam_after": 688080,
+        "all17_actual_changes": {
+          "actor_state_dict": [
+            "distribution.std_param",
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ],
+          "critic_state_dict": [
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ]
+        },
+        "actual_original_independent_cost_once": {
+          "started_epoch": 1792380939.5983055,
+          "accounted_through_epoch": 1792384579.819036,
+          "charged_seconds": 3640.2207305431366,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792384579.819036,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "h1": {
+        "final": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf10_1910v15/h1/job0/production/model_update42.pt",
+          "bytes": 16646963,
+          "SHA": "3223ff9f7d79b35f4728f877bbea3bd7520e6bde0e4375f8c0666560a6f3ecfa",
+          "key": "h1",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TENTH_HOUR_20261019\\actual_closed_three_finals\\h1\\model_update42.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          199,
+          105
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 42,
+        "all17Adam_before": 670480,
+        "all17Adam_after": 670480,
+        "retained_previous_healthy_final_hour": 10,
+        "current_hour_actual_GO": false,
+        "current_hour_production_updates": 0,
+        "current_hour_charged_seconds": 0.0,
+        "previous_healthy_full_CPU_proof": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TENTH_HOUR_20261019\\reports\\THREE_HOUR_ALL_CLOSED_FINAL_MODELS_ORIGINAL_COST_CPU_ACTUAL.json"
+      }
+    },
+    "one_original_writer_actual_segment": {
+      "pid": 318576,
+      "owner_parent_pid": 318576,
+      "kind": "Linux_THREE_INDEPENDENT_H1_E2_E3_1792380939576791407",
+      "started_epoch": 1792380939.576789,
+      "accounted_through_epoch": 1792384582.8289824,
+      "charged_expert_seconds": 7256.350798845291,
+      "experts": {
+        "e2": {
+          "started_epoch": 1792380939.5858507,
+          "accounted_through_epoch": 1792384555.715919,
+          "charged_seconds": 3616.1300683021545,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792384555.715919,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        },
+        "recovery": {
+          "started_epoch": 1792380939.5983055,
+          "accounted_through_epoch": 1792384579.819036,
+          "charged_seconds": 3640.2207305431366,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792384579.819036,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "charge_contract": "One original writer; sum independent actual production load learn save SDKclose childwait and owner terminal receipt.",
+      "ended_epoch": 1792384582.8289824,
+      "actual_terminal_rows": {
+        "h1": {
+          "key": "h1",
+          "phase": "admission",
+          "worker": null,
+          "returncode": 1,
+          "final": null,
+          "latest_save": null,
+          "actual_exit": null,
+          "errors": [],
+          "manifest_SHA": "34f49f685d14e589f9dbe70ea57480810dfefa53943794c0b0848038af3b27cb",
+          "native_CPU": null,
+          "closed_source_CPU": null,
+          "original_error": true,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792380937.914973
+        },
+        "e2": {
+          "key": "e2",
+          "phase": "production",
+          "worker": null,
+          "returncode": 0,
+          "final": {
+            "epoch": 1792384542.9713888,
+            "passed": true,
+            "final": {
+              "epoch": 1792384542.963968,
+              "path": "/mnt/mod4_linux_durable_20261013/T3sf11_1910v16/e2/job0/production/model_update240.pt",
+              "bytes": 14615528,
+              "SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+              "phase": "production",
+              "updates": 240,
+              "Adam_step": 743680,
+              "kind": "E2_WORLD_MOVING_SIGNED4"
+            },
+            "prechecks_discarded": false
+          },
+          "latest_save": {
+            "epoch": 1792384542.963968,
+            "path": "/mnt/mod4_linux_durable_20261013/T3sf11_1910v16/e2/job0/production/model_update240.pt",
+            "bytes": 14615528,
+            "SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+            "phase": "production",
+            "updates": 240,
+            "Adam_step": 743680,
+            "kind": "E2_WORLD_MOVING_SIGNED4"
+          },
+          "actual_exit": {
+            "epoch": 1792384555.702619,
+            "pid": 318611,
+            "returncode": 0,
+            "actual_waited": true
+          },
+          "errors": [],
+          "manifest_SHA": "81b420fdba96a1064878c8538afeb782d3c7c35b07472b35584829e5a5b8ecba",
+          "native_CPU": null,
+          "closed_source_CPU": {
+            "value": {
+              "kind": "closed_same_backend_production",
+              "key": "e2",
+              "passed": true,
+              "source_SHA": "b7b7f0a09e5936cf80daf6d39b2de9ff95850fc89c70db14f302b38cdf9b9659",
+              "GPU_UUID": "GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e",
+              "execution_backend": "source210",
+              "all_source_model_runtime_finite_CPU": true,
+              "old_complete_production_checkpoint_actual_EXIT0": true,
+              "same_active_runtime_assets_and_PPO_AST": true,
+              "same_physics_assets_and_PPO_AST": true,
+              "reward_migration": null,
+              "reward_CPU_report_SHA": null,
+              "original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained": true,
+              "not_another_native_or_frozen_skill_pass": true,
+              "whole_model_CPU_report_SHA": "63ec2c9cc0f186017fb06e7941649acbdbc894655ae142ca24268ec8ed0f1e62"
+            },
+            "SHA": "cbeb36ce33e9c704bd88826727872f2b3c10fb62e94fc2512b35070e35ed0280",
+            "actual_CPU_waited_EXIT0": true
+          },
+          "original_error": false,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792384555.715919
+        },
+        "recovery": {
+          "key": "recovery",
+          "phase": "production",
+          "worker": null,
+          "returncode": 0,
+          "final": {
+            "epoch": 1792384554.424311,
+            "passed": true,
+            "final": {
+              "epoch": 1792384554.4101648,
+              "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/recovery/job0/production/final_valid_update99.pt",
+              "bytes": 14715349,
+              "SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+              "updates": 99,
+              "Adam_step": 688080,
+              "phase": "production"
+            },
+            "not_recovery_skill_qualification": true
+          },
+          "latest_save": {
+            "epoch": 1792384554.4101648,
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/recovery/job0/production/final_valid_update99.pt",
+            "bytes": 14715349,
+            "SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+            "updates": 99,
+            "Adam_step": 688080,
+            "phase": "production"
+          },
+          "actual_exit": {
+            "epoch": 1792384579.8355768,
+            "pid": 75088,
+            "returncode": 0,
+            "actual_waited": true
+          },
+          "errors": [],
+          "manifest_SHA": "69215fd754f81d991c135ffb5354ff64d65afade122a39579dde357d88a6d08b",
+          "native_CPU": null,
+          "closed_source_CPU": {
+            "value": {
+              "kind": "closed_same_backend_production",
+              "key": "recovery",
+              "passed": true,
+              "source_SHA": "2c26fc01f2a6a262f4173b49cb2ecb5bd7a1fef1fadeaebe2d19b0447e19d9d6",
+              "GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+              "execution_backend": "target72",
+              "all_source_model_runtime_finite_CPU": true,
+              "old_complete_production_checkpoint_actual_EXIT0": true,
+              "same_active_runtime_assets_and_PPO_AST": true,
+              "same_physics_assets_and_PPO_AST": true,
+              "reward_migration": null,
+              "reward_CPU_report_SHA": null,
+              "original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained": true,
+              "not_another_native_or_frozen_skill_pass": true,
+              "whole_model_CPU_report_SHA": "63ec2c9cc0f186017fb06e7941649acbdbc894655ae142ca24268ec8ed0f1e62"
+            },
+            "SHA": "f9625fb1d3e9160e01986513073003803e42f20dda3b269fe7f0aec54c4da111",
+            "actual_CPU_waited_EXIT0": true
+          },
+          "original_error": false,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792384579.819036
+        }
+      }
+    },
+    "remaining_snapshot": 322169.20644164085,
+    "all_actual_owner_nodes_children_out_canonicalNone_real_locks_free": true,
+    "not_frozen_behavior_or_skill_qualification": true,
+    "CPU_RNG_unchanged0CUDA0optimizer": true
+  },
+  "qualified_source_pool": {
+    "e2": {
+      "final": {
+        "path": "/mnt/mod4_linux_durable_20261013/T3sf11_1910v16/e2/job0/production/model_update240.pt",
+        "bytes": 14615528,
+        "SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+        "key": "e2",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_ELEVENTH_HOUR_20261019\\actual_closed_three_finals\\e2\\model_update240.pt",
+        "twohost_complete_SHA": true
+      },
+      "source_owned_updates": 240,
+      "Adam": 743680,
+      "tensor_counts": [
+        175,
+        98
+      ],
+      "source_completed_hour": 11,
+      "actual_hour11_GO": true,
+      "actual_hour11_updates": 240
+    },
+    "recovery": {
+      "final": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/recovery/job0/production/final_valid_update99.pt",
+        "bytes": 14715349,
+        "SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+        "key": "recovery",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_ELEVENTH_HOUR_20261019\\actual_closed_three_finals\\recovery\\final_valid_update99.pt",
+        "twohost_complete_SHA": true
+      },
+      "source_owned_updates": 99,
+      "Adam": 688080,
+      "tensor_counts": [
+        173,
+        96
+      ],
+      "source_completed_hour": 11,
+      "actual_hour11_GO": true,
+      "actual_hour11_updates": 99
+    },
+    "h1": {
+      "final": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf10_1910v15/h1/job0/production/model_update42.pt",
+        "bytes": 16646963,
+        "SHA": "3223ff9f7d79b35f4728f877bbea3bd7520e6bde0e4375f8c0666560a6f3ecfa",
+        "key": "h1",
+        "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TENTH_HOUR_20261019\\actual_closed_three_finals\\h1\\model_update42.pt",
+        "twohost_complete_SHA": true
+      },
+      "source_owned_updates": 42,
+      "Adam": 670480,
+      "tensor_counts": [
+        199,
+        105
+      ],
+      "source_completed_hour": 10,
+      "actual_hour11_GO": false,
+      "actual_hour11_updates": 0
+    }
+  },
+  "current_dispatch": {
+    "epoch": 1792384720.9138253,
+    "owner": {
+      "detached_pid": 329132,
+      "root": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/owner",
+      "role": "owner"
+    },
+    "nodes": {
+      "e2": {
+        "detached_pid": 329137,
+        "root": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/e2",
+        "role": "node"
+      },
+      "h1": {
+        "detached_pid": 80354,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/h1",
+        "role": "node"
+      },
+      "recovery": {
+        "detached_pid": 80371,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/recovery",
+        "role": "node"
+      }
+    },
+    "source_root": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/owner",
+    "roots": {
+      "h1": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/h1",
+      "e2": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/e2",
+      "recovery": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/recovery"
+    },
+    "specs": {
+      "h1": {
+        "key": "h1",
+        "GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "3223ff9f7d79b35f4728f877bbea3bd7520e6bde0e4375f8c0666560a6f3ecfa",
+        "source_filename": "H1_closed_hour42.pt",
+        "source_Adamstep": 670480,
+        "manifest_SHA": "8ab201a7b8341e25adac22f0c4dac7fdc19b0e4356cd2a8ee0709ca50834eeb6",
+        "native_controls": 180,
+        "native_script": "h1_ground_prelaunch_v2_native_worker_v1.py",
+        "native_CPU_script": "review_H1_prelaunch_v2_native_allrows_CPU_v1.py",
+        "production_script": "h1_prelaunch_v2_production_worker_v1.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf10_1910v15/h1",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-16828f91-2b45-b646-8dc0-9481138e2842.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false,
+        "human_explicit_GPU_sharing": true,
+        "previous_failed_preGO_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/h1"
+      },
+      "e2": {
+        "key": "e2",
+        "GPU_UUID": "GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+        "source_filename": "E2_closed_hour240.pt",
+        "source_Adamstep": 743680,
+        "manifest_SHA": "1c0597abdde7a47d7742d364a13e621ca9e5e8de2c2112d455eaab3646d6b4c7",
+        "native_controls": 144,
+        "native_script": "native_admission_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "native_admission_worker.py",
+        "execution_backend": "source210",
+        "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+        "previous_runtime_root": "/mnt/mod4_linux_durable_20261013/T3sf11_1910v16/e2",
+        "previous_exit_kind": "node",
+        "private_lock": "/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      },
+      "recovery": {
+        "key": "recovery",
+        "GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+        "source_filename": "RECOVERY_closed_hour99.pt",
+        "source_Adamstep": 688080,
+        "manifest_SHA": "25fe85038cd3d94589a5fdd7485e530e621c317c927dcfebe2375bf59f215174",
+        "native_controls": 336,
+        "native_script": "recovery_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "recovery_worker.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/recovery",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      }
+    },
+    "all_three_direct_full_production_source_not_native_replay": true,
+    "one_original_writer_independent_intervals_once": true,
+    "all_GO_save3600_lifecycle3900_exit300": true,
+    "no_total_budget_PPO_reward_LR_STD_physics_threshold_change": true,
+    "not_actual_learning_claim_before_GO": true
+  },
+  "current_actual_learning": {
+    "epoch": 1792385234.556818,
+    "three_actual_PPO_learning_verified": true,
+    "experts": {
+      "h1": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 80377,
+          "creation": 1792384723.85,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/h1/h1_prelaunch_v2_production_worker_v1.py",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792385218.1369207,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/h1/job0/production/model_update1.pt",
+          "bytes": 16646758,
+          "SHA": "123676c85f4ee32abafbf1289392638fd3cae1b6c6787427d2eb66182cea4ec0",
+          "phase": "production",
+          "updates": 1,
+          "actual17Adam_steps": [
+            670500
+          ],
+          "failed_partial_prefix": false
+        },
+        "GO": {
+          "learning_started_epoch": 1792384722.2730494,
+          "save_deadline": 1792388322.2730494,
+          "nominal_end_epoch": 1792388622.2730494,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "3223ff9f7d79b35f4728f877bbea3bd7520e6bde0e4375f8c0666560a6f3ecfa",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "1a5833b1a9eb7183bcca71c24811a1b497cd4ed71c4c4cee604a345a78f4871f",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 329132,
+          "original_owner_creation": 1792384718.47,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792384719113709600",
+          "actual_H1_prelaunch_v2_scope_admitted": true
+        }
+      },
+      "recovery": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 80385,
+          "creation": 1792384724.34,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/recovery/recovery_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792385162.308296,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf12_1910v17/recovery/job0/production/model_update1.pt",
+          "bytes": 14714032,
+          "SHA": "55e42fbe9a41a08bdf20a0241bf74d1033eafbbe3f7857dcb22a7a4c911021ba",
+          "updates": 1,
+          "Adam_step": 688100,
+          "phase": "production"
+        },
+        "GO": {
+          "learning_started_epoch": 1792384722.2976167,
+          "save_deadline": 1792388322.2976167,
+          "nominal_end_epoch": 1792388622.2976167,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "e3c518cdf82ad6e90eac17ce43dcac16d260a164b2222189425de1ad9b449c36",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "d6838cc743564023fc25594a251ffdab801456be76cbb23a4c1cad8bbbc0f962",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 329132,
+          "original_owner_creation": 1792384718.47,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792384719113709600",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      },
+      "e2": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 329166,
+          "creation": 1792384721.93,
+          "argv": [
+            "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+            "-u",
+            "-B",
+            "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/e2/native_admission_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/e2"
+        },
+        "latest_complete": {
+          "epoch": 1792384918.2488537,
+          "path": "/mnt/mod4_linux_durable_20261013/T3sf12_1910v17/e2/job0/production/model_update1.pt",
+          "bytes": 14615166,
+          "SHA": "7027c04c08874262a0f8e313aa8bfcec86649e68a5fb60406f0aa87a9f6241fe",
+          "phase": "production",
+          "updates": 1,
+          "Adam_step": 743700,
+          "kind": "E2_WORLD_MOVING_SIGNED4"
+        },
+        "GO": {
+          "learning_started_epoch": 1792384722.2856593,
+          "save_deadline": 1792388322.2856593,
+          "nominal_end_epoch": 1792388622.2856593,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "e26fb72d3a75405e214622234f0bad4f8f69f0a408e8080b2cc0edaeb1d0b447",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "3c6a29434a9a0c4b6e8d55388388e94996f7387027f4daaac149bc692b65d2a2",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 329132,
+          "original_owner_creation": 1792384718.47,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792384719113709600",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      }
+    },
+    "H1_loaded_SCUT_Fudan_recipe": {
+      "profile": {
+        "version": "scut_fudan_jump_reward_v1",
+        "tuck_leg_length_m": 0.22,
+        "extend_leg_length_m": 0.31,
+        "leg_exp_l1_gain": 4.0,
+        "zero_wheel_torque_sigma": 1.5,
+        "Fudan_weighted_rate_clip": 2.5,
+        "weights": {
+          "push_vz": 1.0,
+          "flight_vz": 6.0,
+          "flight": 0.15,
+          "leg_tuck": 1.7,
+          "takeoff_extend": 0.5,
+          "wheel_below_base": 2.0,
+          "air_wheel_zero_torque": 20.0,
+          "orientation": -25.0,
+          "angular_velocity_xy": -0.1
+        },
+        "geometry_adaptation": "body-to-wheel 3D lengths from actual MOD4 link poses; tuck .22 SCUT default, extend .31 Fudan target",
+        "no_assist_force_or_air_reset_or_privileged_actor_observation": true,
+        "flight_mask": "existing H1 air_ticks>0; measured both-wheel clearance, all34 clearance, nonwheel clean and positive-vz history; no new success threshold",
+        "active_scope": "H1 public4 request rows with an actual ready attempt; every normal action row retains its original reward"
+      },
+      "actual_loaded_terms": [
+        {
+          "name": "ang_vel_xy",
+          "weight": -0.05,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function ang_vel_xy_jump_exempt at 0x7fc3be6d23e0>, 'original_params': {}}"
+        },
+        {
+          "name": "flat_orientation_y",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7fc3be6d2de0>, 'original_params': {'mode': 'pitch'}}"
+        },
+        {
+          "name": "flat_orientation_y_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7fc3be6d2de0>, 'original_params': {'mode': 'pitch_velocity'}}"
+        },
+        {
+          "name": "flat_orientation_x_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7fc3be6d2de0>, 'original_params': {'mode': 'roll_velocity'}}"
+        },
+        {
+          "name": "h1_scut_fudan_push_vz",
+          "weight": 1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'push_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight_vz",
+          "weight": 6.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight",
+          "weight": 0.15,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight'}"
+        },
+        {
+          "name": "h1_scut_fudan_leg_tuck",
+          "weight": 1.7,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'leg_tuck'}"
+        },
+        {
+          "name": "h1_scut_fudan_takeoff_extend",
+          "weight": 0.5,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'takeoff_extend'}"
+        },
+        {
+          "name": "h1_scut_fudan_wheel_below_base",
+          "weight": 2.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'wheel_below_base'}"
+        },
+        {
+          "name": "h1_scut_fudan_air_wheel_zero_torque",
+          "weight": 20.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'air_wheel_zero_torque'}"
+        },
+        {
+          "name": "h1_scut_fudan_orientation",
+          "weight": -25.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'orientation'}"
+        },
+        {
+          "name": "h1_scut_fudan_angular_velocity_xy",
+          "weight": -0.1,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'angular_velocity_xy'}"
+        }
+      ],
+      "no_new_actor_input": true
+    },
+    "H1_actual_SCUT_Fudan_public4_rows_readout": {
+      "epoch": 1792385217.472698,
+      "completed": 1,
+      "active_rows": 0,
+      "airborne_rows": 0,
+      "unweighted_rate_means": {
+        "push_vz": 0.0,
+        "flight_vz": 0.0,
+        "flight": 0.0,
+        "leg_tuck": 0.0,
+        "takeoff_extend": 0.0,
+        "wheel_below_base": 0.0,
+        "air_wheel_zero_torque": 0.0,
+        "orientation": 0.0,
+        "angular_velocity_xy": 0.0
+      },
+      "not_skill_or_final_model_audit": true
+    },
+    "current_metadata_not_whole_model_CPU_or_skill_qualification": true,
+    "no_heavy_mid_hour_checkpoint_or_behavior_audit": true,
+    "no_runtime_stop_or_canonical_write": true,
+    "actual_finite_transport_returned": true
+  },
+  "exact_H1_payload_and_binding_check": {
+    "epoch": 1792384677.6506596,
+    "passed": true,
+    "resource_overridden_after_controller_copy_exact_bytes": true,
+    "resource_SHA": "f9704ad61111b1425498cc38700bde7edd98363ca9f2850a3072e9fd0dbaefa1",
+    "manifest_SHA": "8ab201a7b8341e25adac22f0c4dac7fdc19b0e4356cd2a8ee0709ca50834eeb6",
+    "actual_healthy_runtime_worker_AST_normalization_passed": true,
+    "old_script_source_binding": {
+      "filename": "H1_closed_hour62.pt",
+      "Adam": 669640
+    },
+    "new_complete_source": {
+      "filename": "H1_closed_hour42.pt",
+      "SHA": "3223ff9f7d79b35f4728f877bbea3bd7520e6bde0e4375f8c0666560a6f3ecfa",
+      "Adam": 670480
+    },
+    "H1_source_retained_hour10_no_hour11_GO_or_charge_claim": true,
+    "previous_failed_admission_exit_guard_present": true,
+    "original_33_source_negative_cases_retained": true,
+    "no_GPU_Task_native_old_case_replay_or_budget_change": true
+  },
+  "source_reward_files_unchanged": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TWELFTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\h1_scut_fudan_jump_reward_v1.py",
+      "bytes": 6955,
+      "SHA": "2e05d53cf642c02bc1ed580f69855e0fb25d8687cb121d19e367b0a4f8c15666"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TWELFTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\h1_takeoff_progress_environment_v2.py",
+      "bytes": 6227,
+      "SHA": "6f7be5375b6ca84eda554b44e2a5fdf0e2c632c240c24ee920d01e11a3491d70"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_TWELFTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\train_H1_ground_prelaunch_fullstate_v2.py",
+      "bytes": 22209,
+      "SHA": "9ea83360989bd19c0b7b5f24116bd0e1812590d5e6e8908a778dfdbb795f08b2"
+    }
+  ],
+  "no_H1_behavior_case_replay_because_source_unchanged": true,
+  "future_full_three_proofs_and_post_controller_copy_policy_preserved": true,
+  "original_budget_physics_PPO_LR_STD_and_player_unchanged": true
+}

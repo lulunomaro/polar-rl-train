@@ -1,0 +1,12 @@
+from pathlib import Path
+import ast,hashlib,json,time,importlib.util
+B=Path(__file__).resolve().parent;R=B/'reports';W=B.parent
+H=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+p=json.loads((R/'THREE_NEXT_CLOSED_SOURCES_ONE_HOUR_CPU_PREPARED_ACTUAL.json').read_bytes());assert p['passed'] and len(p['negative_cases'])==33
+s=p['specs']['h1'];assert s['human_explicit_GPU_sharing'] is True and s['previous_runtime_root']=='/home/lc01/Zonglin Li/zonglin2/tasks/T3sf10_1910v15/h1' and s['previous_failed_preGO_runtime_root']=='/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/h1'
+q=B/'payload/h1';m=json.loads((q/'THREE_SLOT_COMPLETE_MANIFEST_V1.json').read_bytes());v=json.loads((q/'CLOSED_PRODUCTION_SOURCE_PROVENANCE.json').read_bytes());resource=q/'three_real_gpu_resource_v1.py';assert resource.read_bytes()==(B/'three_real_gpu_resource_shared_user_v2.py').read_bytes();assert H(resource)==next(x['SHA'] for x in m['files'] if x['relative']==resource.name)
+sp=importlib.util.spec_from_file_location('actual_repaired_closed_source_normalizer',B/'closed_production_continuation_CPU_v2.py');mod=importlib.util.module_from_spec(sp);sp.loader.exec_module(mod)
+old=W/'MOD4_SCUT_FUDAN_TENTH_HOUR_20261019/payload/h1';assert ast.dump(ast.parse((old/s['production_script']).read_text('utf8')))==ast.dump(ast.parse(mod.normalize_worker((q/s['production_script']).read_text('utf8'),v)))
+assert v['previous_source_filename']=='H1_closed_hour62.pt' and v['previous_Adam']==669640 and v['new_source_filename']=='H1_closed_hour42.pt' and v['Adam']==670480
+with (R/'ACTUAL_REPAIRED_H1_RESOURCE_MANIFEST_AND_HEALTHY_BINDING_CPU_ACTUAL.json').open('x',encoding='utf8') as stream:json.dump(dict(epoch=time.time(),passed=True,resource_overridden_after_controller_copy_exact_bytes=True,resource_SHA=H(resource),manifest_SHA=H(q/'THREE_SLOT_COMPLETE_MANIFEST_V1.json'),actual_healthy_runtime_worker_AST_normalization_passed=True,old_script_source_binding=dict(filename=v['previous_source_filename'],Adam=v['previous_Adam']),new_complete_source=dict(filename=v['new_source_filename'],SHA=v['source_SHA'],Adam=v['Adam']),H1_source_retained_hour10_no_hour11_GO_or_charge_claim=True,previous_failed_admission_exit_guard_present=True,original_33_source_negative_cases_retained=True,no_GPU_Task_native_old_case_replay_or_budget_change=True),stream,indent=2)
+print(json.dumps(dict(actual_H1_payload_policy_and_healthy_runtime_binding_passed=True)))

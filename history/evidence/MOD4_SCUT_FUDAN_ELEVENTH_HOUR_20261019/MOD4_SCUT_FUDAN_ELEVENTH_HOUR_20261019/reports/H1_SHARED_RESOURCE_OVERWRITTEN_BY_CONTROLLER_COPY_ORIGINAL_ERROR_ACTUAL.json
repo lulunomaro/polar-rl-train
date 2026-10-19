@@ -1,0 +1,39 @@
+{
+  "epoch": 1792381201.6077497,
+  "trial_id": "eleventh-hour-H1-zero-GO-resource-inheritance-failure",
+  "original_H1_node_error": {
+    "epoch": 1792380937.9150727,
+    "error": "Traceback (most recent call last):\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/h1/three_slot_finite_node_v1.py\", line 13, in node\n    b.validate_payload(spec);from three_real_gpu_resource_v1 import acquire;lock=acquire(spec,B)\n                                                                                 ^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/h1/three_real_gpu_resource_v1.py\", line 23, in acquire\n    compute=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits']).decode();assert not any(spec['GPU_UUID'] in x for x in compute.splitlines());line=next(x for x in subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode().splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>7000 and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3\n                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+    "no_automatic_retry": true
+  },
+  "actual_H1_terminal": {
+    "key": "h1",
+    "phase": "admission",
+    "worker": null,
+    "returncode": 1,
+    "final": null,
+    "latest_save": null,
+    "actual_exit": null,
+    "errors": [],
+    "manifest_SHA": "34f49f685d14e589f9dbe70ea57480810dfefa53943794c0b0848038af3b27cb",
+    "native_CPU": null,
+    "closed_source_CPU": null,
+    "original_error": true,
+    "terminal_all_own_children_waited": true
+  },
+  "actual_owner_GO_keys": [
+    "e2",
+    "recovery"
+  ],
+  "H1_no_GO_no_worker_no_production_charge": true,
+  "cause": "The preparer first copied the previous H1 payload, then copied every controller file over it. The old controllers/three_real_gpu_resource_v1.py replaced the previous payload H1 sharing-aware file. The deploy INSTALL allowed sharing but node acquire used the overwritten exclusive check.",
+  "original_sources_and_false_first_metadata_retained": true,
+  "unrelated_local_lookup_error": {
+    "wrong_filename": "THREE_NEXT_CLOSED_SOURCE_LEARNING_DETACHED_ACTUAL.json",
+    "actual_filename": "THREE_NEXT_HOUR_CLOSED_SOURCE_LEARNING_DETACHED_ACTUAL.json",
+    "original_Get_Content_missing_path_retained": true,
+    "not_a_remote_or_GPU_failure": true
+  },
+  "safe_current_state": "Original owner318576 continues independent E2/E3. It latched stop[h1]=True before H1 GO; no supported authenticated failed-slot replacement was prepared. Do not patch live owner, stop healthy workers, recover HMAC from memory, add a writer or bypass canonical locks. Prepare a separate corrected cohort after natural two-slot closure.",
+  "no_peer_interference_or_old_GPU_Task_replay": true
+}

@@ -1,0 +1,1597 @@
+# Fifteenth full sources, sixteenth actual learning and further delayed local recovery
+
+{
+  "previous_complete_CPU": {
+    "epoch": 1792399892.898432,
+    "passed_all_three_whole_final_models_CPU": true,
+    "experts": {
+      "h1": {
+        "final": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/h1/job0/production/model_update42.pt",
+          "bytes": 16646963,
+          "SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "key": "h1",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\actual_closed_three_finals\\h1\\model_update42.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          199,
+          105
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 42,
+        "production_envsteps": 20160000,
+        "all17Adam_before": 673060,
+        "all17Adam_after": 673900,
+        "all17_actual_changes": {
+          "actor_state_dict": [
+            "distribution.std_param",
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ],
+          "critic_state_dict": [
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ]
+        },
+        "actual_original_independent_cost_once": {
+          "started_epoch": 1792396157.034537,
+          "accounted_through_epoch": 1792399807.3472512,
+          "charged_seconds": 3650.312714099884,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399807.3472512,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "e2": {
+        "final": {
+          "path": "/mnt/mod4_linux_durable_20261013/T3sf15_1910v20/e2/job0/production/model_update224.pt",
+          "bytes": 14615528,
+          "SHA": "bbd516056da01c09788a9c4ab963f07fa3442481592c8913652812993c4ad9c3",
+          "key": "e2",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\actual_closed_three_finals\\e2\\model_update224.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          175,
+          98
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 224,
+        "production_envsteps": 107520000,
+        "all17Adam_before": 758180,
+        "all17Adam_after": 762660,
+        "all17_actual_changes": {
+          "actor_state_dict": [
+            "distribution.std_param",
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ],
+          "critic_state_dict": [
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ]
+        },
+        "actual_original_independent_cost_once": {
+          "started_epoch": 1792396157.0466774,
+          "accounted_through_epoch": 1792399780.2227638,
+          "charged_seconds": 3623.1760864257812,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399780.2227638,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "recovery": {
+        "final": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/recovery/job0/production/final_valid_update96.pt",
+          "bytes": 14715349,
+          "SHA": "dd5cff02a9900d93a018313d4ea174e2d5dcf5281a7534f3d7604c58d941d140",
+          "key": "recovery",
+          "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\actual_closed_three_finals\\recovery\\final_valid_update96.pt",
+          "twohost_complete_SHA": true
+        },
+        "whole_tensor_counts": [
+          173,
+          96
+        ],
+        "all_model_runtime_finite": true,
+        "updates": 96,
+        "production_envsteps": 46080000,
+        "all17Adam_before": 693820,
+        "all17Adam_after": 695740,
+        "all17_actual_changes": {
+          "actor_state_dict": [
+            "distribution.std_param",
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ],
+          "critic_state_dict": [
+            "mlp.0.weight",
+            "mlp.0.bias",
+            "mlp.2.weight",
+            "mlp.2.bias",
+            "mlp.4.weight",
+            "mlp.4.bias",
+            "mlp.6.weight",
+            "mlp.6.bias"
+          ]
+        },
+        "actual_original_independent_cost_once": {
+          "started_epoch": 1792396157.0583491,
+          "accounted_through_epoch": 1792399807.3469613,
+          "charged_seconds": 3650.288612127304,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399807.3469613,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      }
+    },
+    "one_original_writer_actual_segment": {
+      "pid": 364556,
+      "owner_parent_pid": 364556,
+      "kind": "Linux_THREE_INDEPENDENT_H1_E2_E3_1792396157025414015",
+      "started_epoch": 1792396157.0254116,
+      "accounted_through_epoch": 1792399810.3572006,
+      "charged_expert_seconds": 10923.77741265297,
+      "experts": {
+        "h1": {
+          "started_epoch": 1792396157.034537,
+          "accounted_through_epoch": 1792399807.3472512,
+          "charged_seconds": 3650.312714099884,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399807.3472512,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        },
+        "e2": {
+          "started_epoch": 1792396157.0466774,
+          "accounted_through_epoch": 1792399780.2227638,
+          "charged_seconds": 3623.1760864257812,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399780.2227638,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        },
+        "recovery": {
+          "started_epoch": 1792396157.0583491,
+          "accounted_through_epoch": 1792399807.3469613,
+          "charged_seconds": 3650.288612127304,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792399807.3469613,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "charge_contract": "One original writer; sum independent actual production load learn save SDKclose childwait and owner terminal receipt.",
+      "ended_epoch": 1792399810.3572006,
+      "actual_terminal_rows": {
+        "h1": {
+          "key": "h1",
+          "phase": "production",
+          "worker": null,
+          "returncode": 0,
+          "final": {
+            "epoch": 1792399773.333299,
+            "passed": true,
+            "final": {
+              "epoch": 1792399773.308674,
+              "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/h1/job0/production/model_update42.pt",
+              "bytes": 16646963,
+              "SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+              "phase": "production",
+              "updates": 42,
+              "actual17Adam_steps": [
+                673900
+              ],
+              "failed_partial_prefix": false
+            },
+            "discarded_prechecks": false,
+            "not_frozen_jump_skill_pass": true
+          },
+          "latest_save": {
+            "epoch": 1792399773.308674,
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/h1/job0/production/model_update42.pt",
+            "bytes": 16646963,
+            "SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+            "phase": "production",
+            "updates": 42,
+            "actual17Adam_steps": [
+              673900
+            ],
+            "failed_partial_prefix": false
+          },
+          "actual_exit": {
+            "epoch": 1792399807.3255024,
+            "pid": 95807,
+            "returncode": 0,
+            "actual_waited": true
+          },
+          "errors": [],
+          "manifest_SHA": "ad8738da7f64bfb9c894bcc4dbfca8d006e88b4baa4e392d1338aed55681b899",
+          "native_CPU": null,
+          "closed_source_CPU": {
+            "value": {
+              "kind": "closed_same_backend_production",
+              "key": "h1",
+              "passed": true,
+              "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+              "GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+              "execution_backend": "target72",
+              "all_source_model_runtime_finite_CPU": true,
+              "old_complete_production_checkpoint_actual_EXIT0": true,
+              "same_active_runtime_assets_and_PPO_AST": true,
+              "same_physics_assets_and_PPO_AST": true,
+              "reward_migration": null,
+              "reward_CPU_report_SHA": null,
+              "original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained": true,
+              "not_another_native_or_frozen_skill_pass": true,
+              "whole_model_CPU_report_SHA": "ece7ec1f5b3632c9854d8c5a0729b5ed31ff58874165efc91b8a9a93c0b70b5b"
+            },
+            "SHA": "b886a4f6f4634c378853ea2ac6330aef64e770ab5c4936871bd0fe59229ce97e",
+            "actual_CPU_waited_EXIT0": true
+          },
+          "original_error": false,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792399807.3472512
+        },
+        "e2": {
+          "key": "e2",
+          "phase": "production",
+          "worker": null,
+          "returncode": 0,
+          "final": {
+            "epoch": 1792399765.6652997,
+            "passed": true,
+            "final": {
+              "epoch": 1792399765.6583796,
+              "path": "/mnt/mod4_linux_durable_20261013/T3sf15_1910v20/e2/job0/production/model_update224.pt",
+              "bytes": 14615528,
+              "SHA": "bbd516056da01c09788a9c4ab963f07fa3442481592c8913652812993c4ad9c3",
+              "phase": "production",
+              "updates": 224,
+              "Adam_step": 762660,
+              "kind": "E2_WORLD_MOVING_SIGNED4"
+            },
+            "prechecks_discarded": false
+          },
+          "latest_save": {
+            "epoch": 1792399765.6583796,
+            "path": "/mnt/mod4_linux_durable_20261013/T3sf15_1910v20/e2/job0/production/model_update224.pt",
+            "bytes": 14615528,
+            "SHA": "bbd516056da01c09788a9c4ab963f07fa3442481592c8913652812993c4ad9c3",
+            "phase": "production",
+            "updates": 224,
+            "Adam_step": 762660,
+            "kind": "E2_WORLD_MOVING_SIGNED4"
+          },
+          "actual_exit": {
+            "epoch": 1792399780.2077477,
+            "pid": 364593,
+            "returncode": 0,
+            "actual_waited": true
+          },
+          "errors": [],
+          "manifest_SHA": "509c1ec7d54976656c36c3c2229af0bc160c6d1f329c206decf68e66bb3625a9",
+          "native_CPU": null,
+          "closed_source_CPU": {
+            "value": {
+              "kind": "closed_same_backend_production",
+              "key": "e2",
+              "passed": true,
+              "source_SHA": "ef96d249994327fe7bd69148f37188823281d02873aa75254253af8064c9d1f2",
+              "GPU_UUID": "GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e",
+              "execution_backend": "source210",
+              "all_source_model_runtime_finite_CPU": true,
+              "old_complete_production_checkpoint_actual_EXIT0": true,
+              "same_active_runtime_assets_and_PPO_AST": true,
+              "same_physics_assets_and_PPO_AST": true,
+              "reward_migration": null,
+              "reward_CPU_report_SHA": null,
+              "original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained": true,
+              "not_another_native_or_frozen_skill_pass": true,
+              "whole_model_CPU_report_SHA": "ece7ec1f5b3632c9854d8c5a0729b5ed31ff58874165efc91b8a9a93c0b70b5b"
+            },
+            "SHA": "07f28c564de061ddfa2473519a4c4eaf278176a741cd8e5318b8e5047b9c416c",
+            "actual_CPU_waited_EXIT0": true
+          },
+          "original_error": false,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792399780.2227638
+        },
+        "recovery": {
+          "key": "recovery",
+          "phase": "production",
+          "worker": null,
+          "returncode": 0,
+          "final": {
+            "epoch": 1792399781.6161954,
+            "passed": true,
+            "final": {
+              "epoch": 1792399781.6019077,
+              "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/recovery/job0/production/final_valid_update96.pt",
+              "bytes": 14715349,
+              "SHA": "dd5cff02a9900d93a018313d4ea174e2d5dcf5281a7534f3d7604c58d941d140",
+              "updates": 96,
+              "Adam_step": 695740,
+              "phase": "production"
+            },
+            "not_recovery_skill_qualification": true
+          },
+          "latest_save": {
+            "epoch": 1792399781.6019077,
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/recovery/job0/production/final_valid_update96.pt",
+            "bytes": 14715349,
+            "SHA": "dd5cff02a9900d93a018313d4ea174e2d5dcf5281a7534f3d7604c58d941d140",
+            "updates": 96,
+            "Adam_step": 695740,
+            "phase": "production"
+          },
+          "actual_exit": {
+            "epoch": 1792399807.3254576,
+            "pid": 95815,
+            "returncode": 0,
+            "actual_waited": true
+          },
+          "errors": [],
+          "manifest_SHA": "1a039a2249cd0fb5430c0b23731f70fc93f305f5e51f5cd486f81b1b6f1eb789",
+          "native_CPU": null,
+          "closed_source_CPU": {
+            "value": {
+              "kind": "closed_same_backend_production",
+              "key": "recovery",
+              "passed": true,
+              "source_SHA": "2971d7e061f9fbbceb1bdd336fb9080d87094a1e8b3b0d83b641ec2597344d77",
+              "GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+              "execution_backend": "target72",
+              "all_source_model_runtime_finite_CPU": true,
+              "old_complete_production_checkpoint_actual_EXIT0": true,
+              "same_active_runtime_assets_and_PPO_AST": true,
+              "same_physics_assets_and_PPO_AST": true,
+              "reward_migration": null,
+              "reward_CPU_report_SHA": null,
+              "original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained": true,
+              "not_another_native_or_frozen_skill_pass": true,
+              "whole_model_CPU_report_SHA": "ece7ec1f5b3632c9854d8c5a0729b5ed31ff58874165efc91b8a9a93c0b70b5b"
+            },
+            "SHA": "be4f34d79939f33b9b3b249f0e80f979de19031a6e2c18a075149520dbb5401d",
+            "actual_CPU_waited_EXIT0": true
+          },
+          "original_error": false,
+          "terminal_all_own_children_waited": true,
+          "owner_received_terminal_epoch": 1792399807.3469613
+        }
+      }
+    },
+    "remaining_snapshot": 278402.9004085064,
+    "all_actual_owner_nodes_children_out_canonicalNone_real_locks_free": true,
+    "not_frozen_behavior_or_skill_qualification": true,
+    "CPU_RNG_unchanged0CUDA0optimizer": true
+  },
+  "current_dispatch": {
+    "epoch": 1792399970.9854352,
+    "owner": {
+      "detached_pid": 376288,
+      "root": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/owner",
+      "role": "owner"
+    },
+    "nodes": {
+      "e2": {
+        "detached_pid": 376293,
+        "root": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/e2",
+        "role": "node"
+      },
+      "h1": {
+        "detached_pid": 99029,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/h1",
+        "role": "node"
+      },
+      "recovery": {
+        "detached_pid": 99046,
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/recovery",
+        "role": "node"
+      }
+    },
+    "source_root": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/owner",
+    "roots": {
+      "h1": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/h1",
+      "e2": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/e2",
+      "recovery": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/recovery"
+    },
+    "specs": {
+      "h1": {
+        "key": "h1",
+        "GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+        "source_filename": "H1_closed_hour42.pt",
+        "source_Adamstep": 673900,
+        "manifest_SHA": "0293942e77cbb18084a3813eca3df497035e5c02e383c08dcfa03db87425d2c3",
+        "native_controls": 180,
+        "native_script": "h1_ground_prelaunch_v2_native_worker_v1.py",
+        "native_CPU_script": "review_H1_prelaunch_v2_native_allrows_CPU_v1.py",
+        "production_script": "h1_prelaunch_v2_production_worker_v1.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/h1",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-16828f91-2b45-b646-8dc0-9481138e2842.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false,
+        "human_explicit_GPU_sharing": true,
+        "previous_failed_preGO_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf11_1910v16/h1"
+      },
+      "e2": {
+        "key": "e2",
+        "GPU_UUID": "GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "bbd516056da01c09788a9c4ab963f07fa3442481592c8913652812993c4ad9c3",
+        "source_filename": "E2_closed_hour224.pt",
+        "source_Adamstep": 762660,
+        "manifest_SHA": "fe11def18e6f75bd1261a390b33c256c4d25508d3723bb7daa98f9d1ffdeff6f",
+        "native_controls": 144,
+        "native_script": "native_admission_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "native_admission_worker.py",
+        "execution_backend": "source210",
+        "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+        "previous_runtime_root": "/mnt/mod4_linux_durable_20261013/T3sf15_1910v20/e2",
+        "previous_exit_kind": "node",
+        "private_lock": "/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      },
+      "recovery": {
+        "key": "recovery",
+        "GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+        "max_parent_seconds": 3900,
+        "exit_headroom_seconds": 300,
+        "source_SHA": "dd5cff02a9900d93a018313d4ea174e2d5dcf5281a7534f3d7604c58d941d140",
+        "source_filename": "RECOVERY_closed_hour96.pt",
+        "source_Adamstep": 695740,
+        "manifest_SHA": "c55f4a27ef0712e2dfd7d7544f76f2a98863eb7573c81b17e18379ef2c8c3d7b",
+        "native_controls": 336,
+        "native_script": "recovery_worker.py",
+        "native_CPU_script": "native_CPU.py",
+        "production_script": "recovery_worker.py",
+        "execution_backend": "target72",
+        "python": "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+        "previous_runtime_root": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf15_1910v20/recovery",
+        "previous_exit_kind": "node",
+        "private_lock": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock",
+        "reuse_completed_native": false,
+        "closed_production_continuation": true,
+        "reward_migration": false
+      }
+    },
+    "all_three_direct_full_production_source_not_native_replay": true,
+    "one_original_writer_independent_intervals_once": true,
+    "all_GO_save3600_lifecycle3900_exit300": true,
+    "no_total_budget_PPO_reward_LR_STD_physics_threshold_change": true,
+    "not_actual_learning_claim_before_GO": true
+  },
+  "current_actual_learning": {
+    "epoch": 1792400478.3665237,
+    "three_actual_PPO_learning_verified": true,
+    "experts": {
+      "h1": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 99051,
+          "creation": 1792399973.81,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/h1/h1_prelaunch_v2_production_worker_v1.py",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792400466.7831593,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/h1/job0/production/model_update1.pt",
+          "bytes": 16646758,
+          "SHA": "056b540d559e513c1bc58f30804ff2461b53f53b2309e22b58067acc08230a52",
+          "phase": "production",
+          "updates": 1,
+          "actual17Adam_steps": [
+            673920
+          ],
+          "failed_partial_prefix": false
+        },
+        "GO": {
+          "learning_started_epoch": 1792399972.2567253,
+          "save_deadline": 1792403572.2567253,
+          "nominal_end_epoch": 1792403872.2567253,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "fad443f75a750357a5aa0369f58cbee1f2e5a36ab2b134dda09f89e0f7b2758e",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 376288,
+          "original_owner_creation": 1792399968.46,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792399969095335200",
+          "actual_H1_prelaunch_v2_scope_admitted": true
+        }
+      },
+      "recovery": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 99059,
+          "creation": 1792399974.41,
+          "argv": [
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+            "--library-path",
+            "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+            "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+            "-B",
+            "-u",
+            "-B",
+            "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/recovery/recovery_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/home/lc01/Zonglin Li/zonglin2"
+        },
+        "latest_complete": {
+          "epoch": 1792400385.4375062,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/T3sf16_1910v21/recovery/job0/production/model_update1.pt",
+          "bytes": 14714032,
+          "SHA": "c010dee250529c1f831995a9dc7bfbcc581f5d19c8539cf2831dfcfbf0327d9a",
+          "updates": 1,
+          "Adam_step": 695760,
+          "phase": "production"
+        },
+        "GO": {
+          "learning_started_epoch": 1792399972.282077,
+          "save_deadline": 1792403572.282077,
+          "nominal_end_epoch": 1792403872.282077,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "dd5cff02a9900d93a018313d4ea174e2d5dcf5281a7534f3d7604c58d941d140",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "58406cdbcee7ba2db3dd50ecb87e6cbaf41837fdf9bad5a4008274421fc3a922",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 376288,
+          "original_owner_creation": 1792399968.46,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792399969095335200",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      },
+      "e2": {
+        "actual_GO": true,
+        "actual_production_log_positive": true,
+        "actual_matching_GPU_worker_compute": true,
+        "worker": {
+          "pid": 376319,
+          "creation": 1792399971.92,
+          "argv": [
+            "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+            "-u",
+            "-B",
+            "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/e2/native_admission_worker.py",
+            "--job",
+            "0",
+            "--phase",
+            "production"
+          ],
+          "root": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/e2"
+        },
+        "latest_complete": {
+          "epoch": 1792400170.0064974,
+          "path": "/mnt/mod4_linux_durable_20261013/T3sf16_1910v21/e2/job0/production/model_update1.pt",
+          "bytes": 14615166,
+          "SHA": "6aceea2cb8d1e92be3e744bf977c91dd84c7417a6773b426da5cebffbf78aef8",
+          "phase": "production",
+          "updates": 1,
+          "Adam_step": 762680,
+          "kind": "E2_WORLD_MOVING_SIGNED4"
+        },
+        "GO": {
+          "learning_started_epoch": 1792399972.26964,
+          "save_deadline": 1792403572.26964,
+          "nominal_end_epoch": 1792403872.26964,
+          "max_parent_seconds": 3900,
+          "exit_headroom_seconds": 300,
+          "source_SHA": "bbd516056da01c09788a9c4ab963f07fa3442481592c8913652812993c4ad9c3",
+          "source_native_CPU_SHA": null,
+          "source_CPU_SHA": "58b74823b6fdbfcfe2685da50f32a340580ad43c4eae98e51ec23a31a6abe538",
+          "source_qualification_kind": "closed_same_backend_production",
+          "original_owner_pid": 376288,
+          "original_owner_creation": 1792399968.46,
+          "run_id": "THREE_NEXT_CLOSED_HOUR_1792399969095335200",
+          "actual_H1_prelaunch_v2_scope_admitted": false
+        }
+      }
+    },
+    "H1_loaded_SCUT_Fudan_recipe": {
+      "profile": {
+        "version": "scut_fudan_jump_reward_v1",
+        "tuck_leg_length_m": 0.22,
+        "extend_leg_length_m": 0.31,
+        "leg_exp_l1_gain": 4.0,
+        "zero_wheel_torque_sigma": 1.5,
+        "Fudan_weighted_rate_clip": 2.5,
+        "weights": {
+          "push_vz": 1.0,
+          "flight_vz": 6.0,
+          "flight": 0.15,
+          "leg_tuck": 1.7,
+          "takeoff_extend": 0.5,
+          "wheel_below_base": 2.0,
+          "air_wheel_zero_torque": 20.0,
+          "orientation": -25.0,
+          "angular_velocity_xy": -0.1
+        },
+        "geometry_adaptation": "body-to-wheel 3D lengths from actual MOD4 link poses; tuck .22 SCUT default, extend .31 Fudan target",
+        "no_assist_force_or_air_reset_or_privileged_actor_observation": true,
+        "flight_mask": "existing H1 air_ticks>0; measured both-wheel clearance, all34 clearance, nonwheel clean and positive-vz history; no new success threshold",
+        "active_scope": "H1 public4 request rows with an actual ready attempt; every normal action row retains its original reward"
+      },
+      "actual_loaded_terms": [
+        {
+          "name": "ang_vel_xy",
+          "weight": -0.05,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function ang_vel_xy_jump_exempt at 0x7f253b63e2a0>, 'original_params': {}}"
+        },
+        {
+          "name": "flat_orientation_y",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f253b63eca0>, 'original_params': {'mode': 'pitch'}}"
+        },
+        {
+          "name": "flat_orientation_y_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f253b63eca0>, 'original_params': {'mode': 'pitch_velocity'}}"
+        },
+        {
+          "name": "flat_orientation_x_v",
+          "weight": -1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+          "params": "{'original_func': <function orientation at 0x7f253b63eca0>, 'original_params': {'mode': 'roll_velocity'}}"
+        },
+        {
+          "name": "h1_scut_fudan_push_vz",
+          "weight": 1.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'push_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight_vz",
+          "weight": 6.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight_vz'}"
+        },
+        {
+          "name": "h1_scut_fudan_flight",
+          "weight": 0.15,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'flight'}"
+        },
+        {
+          "name": "h1_scut_fudan_leg_tuck",
+          "weight": 1.7,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'leg_tuck'}"
+        },
+        {
+          "name": "h1_scut_fudan_takeoff_extend",
+          "weight": 0.5,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'takeoff_extend'}"
+        },
+        {
+          "name": "h1_scut_fudan_wheel_below_base",
+          "weight": 2.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'wheel_below_base'}"
+        },
+        {
+          "name": "h1_scut_fudan_air_wheel_zero_torque",
+          "weight": 20.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'air_wheel_zero_torque'}"
+        },
+        {
+          "name": "h1_scut_fudan_orientation",
+          "weight": -25.0,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'orientation'}"
+        },
+        {
+          "name": "h1_scut_fudan_angular_velocity_xy",
+          "weight": -0.1,
+          "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+          "params": "{'name': 'angular_velocity_xy'}"
+        }
+      ],
+      "no_new_actor_input": true
+    },
+    "H1_actual_SCUT_Fudan_public4_rows_readout": {
+      "epoch": 1792400466.0655754,
+      "completed": 1,
+      "active_rows": 0,
+      "airborne_rows": 0,
+      "unweighted_rate_means": {
+        "push_vz": 0.0,
+        "flight_vz": 0.0,
+        "flight": 0.0,
+        "leg_tuck": 0.0,
+        "takeoff_extend": 0.0,
+        "wheel_below_base": 0.0,
+        "air_wheel_zero_torque": 0.0,
+        "orientation": 0.0,
+        "angular_velocity_xy": 0.0
+      },
+      "not_skill_or_final_model_audit": true
+    },
+    "current_metadata_not_whole_model_CPU_or_skill_qualification": true,
+    "no_heavy_mid_hour_checkpoint_or_behavior_audit": true,
+    "no_runtime_stop_or_canonical_write": true,
+    "actual_finite_transport_returned": true
+  },
+  "source_reward_files_unchanged": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\h1_scut_fudan_jump_reward_v1.py",
+      "bytes": 6955,
+      "SHA": "2e05d53cf642c02bc1ed580f69855e0fb25d8687cb121d19e367b0a4f8c15666"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\h1_takeoff_progress_environment_v2.py",
+      "bytes": 6227,
+      "SHA": "6f7be5375b6ca84eda554b44e2a5fdf0e2c632c240c24ee920d01e11a3491d70"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\payload\\h1\\job0\\runtime\\isaac\\mod4\\train_H1_ground_prelaunch_fullstate_v2.py",
+      "bytes": 22209,
+      "SHA": "9ea83360989bd19c0b7b5f24116bd0e1812590d5e6e8908a778dfdbb795f08b2"
+    }
+  ],
+  "new_source_local_behavior": {
+    "epoch": 1792400036.3604848,
+    "rows": [
+      {
+        "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+        "public4_requested": false,
+        "yaw": 0.0,
+        "strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "event_times_s": {
+          "takeoff": [],
+          "landing": [],
+          "recovery": []
+        },
+        "survived15s": true,
+        "duration_s": 15.00000000000684,
+        "first_failure": null,
+        "peak_both_wheel_min_clearance_m": -6.308035734592377e-07,
+        "prepared_longest_callbacks": 396,
+        "actual_phase_recovery_ticks_max": 0,
+        "first_after_recovery_yaw_condition_breach_s": null,
+        "previous_after_recovery_yaw_condition_breach_s": null,
+        "final_yaw_error_rad": -0.3773464931091455,
+        "previous_final_yaw_error_rad": -0.22974451641596239,
+        "final_planar_speed_m_s": 0.01675296124479792,
+        "previous_final_planar_speed_m_s": 0.000536857728967072,
+        "command_actual_force_max_abs_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_comparison": {
+          "current": {
+            "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+            "survived15s": true,
+            "final_speed_m_s": 0.01675296124479792,
+            "last_second_mean_speed_m_s": 0.01675296535572329,
+            "final_yaw_drift_rad": -0.3773464931091455,
+            "net_planar_displacement_m": 0.25469105964317834,
+            "raw": {
+              "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_0.0.npz",
+              "bytes": 1661711,
+              "SHA": "ce24e0456390ce35d2e2d0c222f992b84307f67f6d6c7ed031bef1bb498b80b4"
+            }
+          },
+          "previous": {
+            "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+            "survived15s": true,
+            "final_speed_m_s": 0.000536857728967072,
+            "last_second_mean_speed_m_s": 0.000536865957411873,
+            "final_yaw_drift_rad": -0.22974451641596239,
+            "net_planar_displacement_m": 0.0219208460805322,
+            "raw": {
+              "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_normal_0.0.npz",
+              "bytes": 1679621,
+              "SHA": "517730022d205f4fb96047e57b7afc0290c432e8609a287ba3abdeb7e29425f6"
+            }
+          }
+        },
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_0.0.npz",
+          "bytes": 1661711,
+          "SHA": "ce24e0456390ce35d2e2d0c222f992b84307f67f6d6c7ed031bef1bb498b80b4"
+        }
+      },
+      {
+        "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+        "public4_requested": false,
+        "yaw": 3.141592653589793,
+        "strict_counts": {
+          "takeoff": 0,
+          "landing": 0,
+          "recovery": 0
+        },
+        "event_times_s": {
+          "takeoff": [],
+          "landing": [],
+          "recovery": []
+        },
+        "survived15s": true,
+        "duration_s": 15.00000000000684,
+        "first_failure": null,
+        "peak_both_wheel_min_clearance_m": -6.3080357357026e-07,
+        "prepared_longest_callbacks": 396,
+        "actual_phase_recovery_ticks_max": 0,
+        "first_after_recovery_yaw_condition_breach_s": null,
+        "previous_after_recovery_yaw_condition_breach_s": null,
+        "final_yaw_error_rad": -0.37734650554955174,
+        "previous_final_yaw_error_rad": -0.2297444994600577,
+        "final_planar_speed_m_s": 0.016752966228483688,
+        "previous_final_planar_speed_m_s": 0.0005368589215838974,
+        "command_actual_force_max_abs_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_comparison": {
+          "current": {
+            "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+            "survived15s": true,
+            "final_speed_m_s": 0.016752966228483688,
+            "last_second_mean_speed_m_s": 0.016752966731289717,
+            "final_yaw_drift_rad": -0.37734650554955174,
+            "net_planar_displacement_m": 0.25469106269926156,
+            "raw": {
+              "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_3.1416.npz",
+              "bytes": 1656779,
+              "SHA": "3b705fd65a4ca4c02b3d32674aa5a14ec8424922e793fadfeee45f9daca08713"
+            }
+          },
+          "previous": {
+            "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+            "survived15s": true,
+            "final_speed_m_s": 0.0005368589215838974,
+            "last_second_mean_speed_m_s": 0.0005368651985908876,
+            "final_yaw_drift_rad": -0.2297444994600577,
+            "net_planar_displacement_m": 0.021920851200341568,
+            "raw": {
+              "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_normal_3.1416.npz",
+              "bytes": 1675398,
+              "SHA": "0e01ee61b634d539b5c1198fa666697575234099f5ff942e199e18e3d19914b4"
+            }
+          }
+        },
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_3.1416.npz",
+          "bytes": 1656779,
+          "SHA": "3b705fd65a4ca4c02b3d32674aa5a14ec8424922e793fadfeee45f9daca08713"
+        }
+      },
+      {
+        "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+        "public4_requested": true,
+        "yaw": 0.0,
+        "strict_counts": {
+          "takeoff": 1,
+          "landing": 1,
+          "recovery": 1
+        },
+        "event_times_s": {
+          "takeoff": [
+            1.1374999999999302
+          ],
+          "landing": [
+            1.4274999999998983
+          ],
+          "recovery": [
+            9.79500000000048
+          ]
+        },
+        "survived15s": true,
+        "duration_s": 15.00000000000684,
+        "first_failure": null,
+        "peak_both_wheel_min_clearance_m": 0.0943004054952374,
+        "prepared_longest_callbacks": 396,
+        "actual_phase_recovery_ticks_max": 2282,
+        "first_after_recovery_yaw_condition_breach_s": null,
+        "previous_after_recovery_yaw_condition_breach_s": null,
+        "final_yaw_error_rad": 0.06296321719043926,
+        "previous_final_yaw_error_rad": 0.09623374858380546,
+        "final_planar_speed_m_s": 0.016752966234374125,
+        "previous_final_planar_speed_m_s": 0.0005368613545334583,
+        "command_actual_force_max_abs_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_comparison": null,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_0.0.npz",
+          "bytes": 1728960,
+          "SHA": "d4a1830551034ebb6ce0d93ec55a249818b8685d6e9048d80f2b357151d8bcdf"
+        }
+      },
+      {
+        "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+        "public4_requested": true,
+        "yaw": 3.141592653589793,
+        "strict_counts": {
+          "takeoff": 1,
+          "landing": 1,
+          "recovery": 1
+        },
+        "event_times_s": {
+          "takeoff": [
+            1.1374999999999302
+          ],
+          "landing": [
+            1.4274999999998983
+          ],
+          "recovery": [
+            9.79500000000048
+          ]
+        },
+        "survived15s": true,
+        "duration_s": 15.00000000000684,
+        "first_failure": null,
+        "peak_both_wheel_min_clearance_m": 0.09430040549524643,
+        "prepared_longest_callbacks": 396,
+        "actual_phase_recovery_ticks_max": 2282,
+        "first_after_recovery_yaw_condition_breach_s": null,
+        "previous_after_recovery_yaw_condition_breach_s": null,
+        "final_yaw_error_rad": 0.06296323118670014,
+        "previous_final_yaw_error_rad": 0.09623376989503418,
+        "final_planar_speed_m_s": 0.016752968195111025,
+        "previous_final_planar_speed_m_s": 0.0005368691928963937,
+        "command_actual_force_max_abs_difference": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_comparison": null,
+        "raw": {
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_3.1416.npz",
+          "bytes": 1724493,
+          "SHA": "809e5911db8a8a19e09d3ca1831886f4c794d2069803d8ad3bd8cd1c499ea565"
+        }
+      }
+    ],
+    "interpretation": "Compare each observed event, duration, clearance and late yaw/speed/displacement separately. A sticky recovery event does not establish continuous holding. These are four deterministic local MuJoCo trajectories under a different backend without the production20kDR, not PhysX qualification, statistical significance, unique reward causality or complete normal nonregression.",
+    "original_physics_control_request_clock_and_thresholds_unchanged": true,
+    "no_old_case_replay_or_live_player_GPU_account_change": true,
+    "retained_original_yaw_objective_source_audit": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\reports\\NORMAL_YAW_RATE_SOURCE_OBJECTIVE_CPU_ACTUAL.json"
+  },
+  "local_actual_force_and_action_residual": {
+    "epoch": 1792400036.593334,
+    "rows": [
+      {
+        "public4_requested": false,
+        "yaw": 0.0,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_0.0.npz",
+            "bytes": 1661711,
+            "SHA": "ce24e0456390ce35d2e2d0c222f992b84307f67f6d6c7ed031bef1bb498b80b4"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 0,
+            "landing": 0,
+            "recovery": 0
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.024025067860219684,
+            "mean_world_yaw_rate_rad_s": -0.024025067795195396,
+            "mean_body_yaw_rate_rad_s": -0.024022116151565433,
+            "mean_planar_speed_m_s": 0.01675296535572329,
+            "mean_policy_action6": [
+              -6.0,
+              1.7494449434137702,
+              -0.6982196199329119,
+              1.2616427051753474,
+              0.01840145614676345,
+              -0.07287040813605387
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.2221219746909812,
+              -0.22422629370976943
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.22212197469103964,
+              0.22422629370993838
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_normal_0.0.npz",
+            "bytes": 1679621,
+            "SHA": "517730022d205f4fb96047e57b7afc0290c432e8609a287ba3abdeb7e29425f6"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 0,
+            "landing": 0,
+            "recovery": 0
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.014166763635154705,
+            "mean_world_yaw_rate_rad_s": -0.014166763653935805,
+            "mean_body_yaw_rate_rad_s": -0.014166091307767201,
+            "mean_planar_speed_m_s": 0.000536865957411873,
+            "mean_policy_action6": [
+              -6.0,
+              1.6983912657026639,
+              -0.6547190988450277,
+              1.3002709340573546,
+              0.01826882852877762,
+              -0.02035297531439479
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.0857582094976572,
+              -0.08636116750959281
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.08575820949812474,
+              0.08636116751010288
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        }
+      },
+      {
+        "public4_requested": false,
+        "yaw": 3.141592653589793,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_normal_3.1416.npz",
+            "bytes": 1656779,
+            "SHA": "3b705fd65a4ca4c02b3d32674aa5a14ec8424922e793fadfeee45f9daca08713"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 0,
+            "landing": 0,
+            "recovery": 0
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.02402507188624803,
+            "mean_world_yaw_rate_rad_s": -0.024025071783549328,
+            "mean_body_yaw_rate_rad_s": -0.0240221199563361,
+            "mean_planar_speed_m_s": 0.016752966731289717,
+            "mean_policy_action6": [
+              -6.0,
+              1.7494449333062494,
+              -0.6982196301890727,
+              1.2616426965542267,
+              0.01840145480900334,
+              -0.07287042628871532
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.22212197166485223,
+              -0.22422630639883
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.22212197166493003,
+              0.22422630639897909
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_normal_3.1416.npz",
+            "bytes": 1675398,
+            "SHA": "0e01ee61b634d539b5c1198fa666697575234099f5ff942e199e18e3d19914b4"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 0,
+            "landing": 0,
+            "recovery": 0
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.014166760511232057,
+            "mean_world_yaw_rate_rad_s": -0.014166760478400391,
+            "mean_body_yaw_rate_rad_s": -0.014166088089343356,
+            "mean_planar_speed_m_s": 0.0005368651985908876,
+            "mean_policy_action6": [
+              -6.0,
+              1.698391268080904,
+              -0.6547190873997467,
+              1.300270940002955,
+              0.0182688245526573,
+              -0.02035297241591456
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.08575818387510722,
+              -0.08636115221644868
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.08575818387550688,
+              0.08636115221705509
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        }
+      },
+      {
+        "public4_requested": true,
+        "yaw": 0.0,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_0.0.npz",
+            "bytes": 1728960,
+            "SHA": "d4a1830551034ebb6ce0d93ec55a249818b8685d6e9048d80f2b357151d8bcdf"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 1,
+            "landing": 1,
+            "recovery": 1
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.024025072233027467,
+            "mean_world_yaw_rate_rad_s": -0.024025072319307405,
+            "mean_body_yaw_rate_rad_s": -0.024022120623283245,
+            "mean_planar_speed_m_s": 0.016752963307878375,
+            "mean_policy_action6": [
+              -6.0,
+              1.7494449341980893,
+              -0.6982196266217124,
+              1.261642699229747,
+              0.01840146714612433,
+              -0.0728704122608142
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.22212197284711768,
+              -0.22422629630737004
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.222121972847198,
+              0.22422629630755092
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_jump_0.0.npz",
+            "bytes": 1743124,
+            "SHA": "9974b4592b411ef1738e79a0b98aab4a1c98e72d6e7e87015b22ec045b87b28f"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 1,
+            "landing": 1,
+            "recovery": 1
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.014166762474232583,
+            "mean_world_yaw_rate_rad_s": -0.01416676242910574,
+            "mean_body_yaw_rate_rad_s": -0.014166090057309549,
+            "mean_planar_speed_m_s": 0.0005368652816576217,
+            "mean_policy_action6": [
+              -6.0,
+              1.6983912728373844,
+              -0.654719090075267,
+              1.3002709391111151,
+              0.018268827042377502,
+              -0.020352974348234715
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.08575820151908714,
+              -0.0863611647377219
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.08575820151974056,
+              0.0863611647384117
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        }
+      },
+      {
+        "public4_requested": true,
+        "yaw": 3.141592653589793,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_3.1416.npz",
+            "bytes": 1724493,
+            "SHA": "809e5911db8a8a19e09d3ca1831886f4c794d2069803d8ad3bd8cd1c499ea565"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 1,
+            "landing": 1,
+            "recovery": 1
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.02402507576213607,
+            "mean_world_yaw_rate_rad_s": -0.024025075775893218,
+            "mean_body_yaw_rate_rad_s": -0.024022124137620064,
+            "mean_planar_speed_m_s": 0.016752963649961643,
+            "mean_policy_action6": [
+              -6.0,
+              1.7494449353872095,
+              -0.6982196248380323,
+              1.2616427027971073,
+              0.018401465734044217,
+              -0.07287041512213444
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.22212197161518804,
+              -0.22422630893717274
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.2221219716152478,
+              0.22422630893739082
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_jump_3.1416.npz",
+            "bytes": 1735444,
+            "SHA": "182866a15621f85d1c1a385cd2dca29f3a1a19d6e942361633f8d3f4c1433025"
+          },
+          "survived15s": true,
+          "strict_counts": {
+            "takeoff": 1,
+            "landing": 1,
+            "recovery": 1
+          },
+          "last_second": {
+            "callbacks": 401,
+            "yaw_growth_rad": -0.014166765173478257,
+            "mean_world_yaw_rate_rad_s": -0.014166765168684828,
+            "mean_body_yaw_rate_rad_s": -0.01416609292029152,
+            "mean_planar_speed_m_s": 0.0005368656447697943,
+            "mean_policy_action6": [
+              -6.0,
+              1.698391268080904,
+              -0.6547191111821486,
+              1.3002709233552738,
+              0.018268831947497892,
+              -0.020352972713194584
+            ],
+            "action_at_abs_clip6_fraction_per_channel": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "actual_wheel_actuator_force_mean_indices2_5": [
+              0.08575821736083651,
+              -0.0863611947054694
+            ],
+            "actual_wheel_actuator_force_RMS_indices2_5": [
+              0.08575821736123856,
+              0.08636119470595566
+            ],
+            "extra_nine_formula_rates_zero": true
+          },
+          "actual_ctrl_force_max_abs_difference": 0.0
+        }
+      }
+    ],
+    "normal_and_post_request_extra_terms_zero_is_expected_original_scope": true,
+    "actuator_order": "Local MuJoCo hip/crank/wheel per side; actual d.actuator_force wheel channels2,5. Signed values retain original joint-axis convention, not a world yaw moment.",
+    "read_only_original_raw_comparison_no_case_replay": true,
+    "retained_yaw_rate_vs_accumulated_heading_source_audit": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_EIGHTH_HOUR_20261019\\reports\\NORMAL_YAW_RATE_SOURCE_OBJECTIVE_CPU_ACTUAL.json",
+    "interpretation": "Late local yaw growth and clipped actor channels are observations. Their coexistence does not establish which reward, actuator or backend difference caused drift. Rates are local formula diagnostics, not production RewardManager/PPO returns or PhysX torque readback. Two yaw variants without production20kDR do not establish statistical significance, PhysX skill qualification or complete normal nonregression.",
+    "no_live_player_remote_GPU_reward_LR_STD_physics_threshold_or_budget_change": true
+  },
+  "original_recovery_condition_timing": {
+    "epoch": 1792400050.7676282,
+    "rows": [
+      {
+        "yaw": 0.0,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_0.0.npz",
+            "bytes": 1728960,
+            "SHA": "d4a1830551034ebb6ce0d93ec55a249818b8685d6e9048d80f2b357151d8bcdf"
+          },
+          "recovery_event_s": 9.79500000000048,
+          "original_200_callback_window": {
+            "first_s": 9.297499999999872,
+            "last_s": 9.79500000000048,
+            "callbacks": 200,
+            "all_original_conditions_true": true
+          },
+          "last_failed_original_condition_before_window_s": {
+            "both_wheel_support": 1.86499999999985,
+            "nonwheel_clean": null,
+            "geometry_clear": null,
+            "vertical_speed": 2.034999999999847,
+            "planar_speed": 2.292499999999933,
+            "roll": null,
+            "pitch": null,
+            "yaw": 9.294999999999868
+          },
+          "last_non_yaw_failure_before_window_s": 2.292499999999933,
+          "only_yaw_failed_while_other_conditions_passed_before_event": {
+            "callbacks": 2859,
+            "first_s": 2.0849999999998636,
+            "last_s": 9.294999999999868,
+            "callback_count_times_2p5ms_s": 7.1475
+          },
+          "yaw_error_at_window_start_rad": 0.19996618531213128,
+          "yaw_error_at_recovery_rad": 0.18801371395894764
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_jump_0.0.npz",
+            "bytes": 1743124,
+            "SHA": "9974b4592b411ef1738e79a0b98aab4a1c98e72d6e7e87015b22ec045b87b28f"
+          },
+          "recovery_event_s": 8.1749999999985,
+          "original_200_callback_window": {
+            "first_s": 7.6774999999984646,
+            "last_s": 8.1749999999985,
+            "callbacks": 200,
+            "all_original_conditions_true": true
+          },
+          "last_failed_original_condition_before_window_s": {
+            "both_wheel_support": 1.8249999999998545,
+            "nonwheel_clean": null,
+            "geometry_clear": null,
+            "vertical_speed": 2.032499999999846,
+            "planar_speed": 2.064999999999857,
+            "roll": null,
+            "pitch": null,
+            "yaw": 7.674999999998466
+          },
+          "last_non_yaw_failure_before_window_s": 2.064999999999857,
+          "only_yaw_failed_while_other_conditions_passed_before_event": {
+            "callbacks": 2244,
+            "first_s": 2.067499999999858,
+            "last_s": 7.674999999998466,
+            "callback_count_times_2p5ms_s": 5.61
+          },
+          "yaw_error_at_window_start_rad": 0.19996988479156955,
+          "yaw_error_at_recovery_rad": 0.1929219146095197
+        }
+      },
+      {
+        "yaw": 3.141592653589793,
+        "current": {
+          "source_SHA": "3428424d2cb2958f42cd6378eec12ec4ba642613b8c3770da03901b77bf50ce0",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_SIXTEENTH_HOUR_20261019\\local_fifteenth_reward_hour_new_source_trajectories\\after_reward_hour15_jump_3.1416.npz",
+            "bytes": 1724493,
+            "SHA": "809e5911db8a8a19e09d3ca1831886f4c794d2069803d8ad3bd8cd1c499ea565"
+          },
+          "recovery_event_s": 9.79500000000048,
+          "original_200_callback_window": {
+            "first_s": 9.297499999999872,
+            "last_s": 9.79500000000048,
+            "callbacks": 200,
+            "all_original_conditions_true": true
+          },
+          "last_failed_original_condition_before_window_s": {
+            "both_wheel_support": 1.86499999999985,
+            "nonwheel_clean": null,
+            "geometry_clear": null,
+            "vertical_speed": 2.034999999999847,
+            "planar_speed": 2.292499999999933,
+            "roll": null,
+            "pitch": null,
+            "yaw": 9.294999999999868
+          },
+          "last_non_yaw_failure_before_window_s": 2.292499999999933,
+          "only_yaw_failed_while_other_conditions_passed_before_event": {
+            "callbacks": 2859,
+            "first_s": 2.0849999999998636,
+            "last_s": 9.294999999999868,
+            "callback_count_times_2p5ms_s": 7.1475
+          },
+          "yaw_error_at_window_start_rad": 0.19996619348430245,
+          "yaw_error_at_recovery_rad": 0.18801372178676815
+        },
+        "previous": {
+          "source_SHA": "51f49535ffa5965135cdba71e8b55433d745c059f0e807080f978f3a598f64c8",
+          "raw": {
+            "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_SCUT_FUDAN_FIFTEENTH_HOUR_20261019\\local_fourteenth_reward_hour_new_source_trajectories\\after_reward_hour14_jump_3.1416.npz",
+            "bytes": 1735444,
+            "SHA": "182866a15621f85d1c1a385cd2dca29f3a1a19d6e942361633f8d3f4c1433025"
+          },
+          "recovery_event_s": 8.1749999999985,
+          "original_200_callback_window": {
+            "first_s": 7.6774999999984646,
+            "last_s": 8.1749999999985,
+            "callbacks": 200,
+            "all_original_conditions_true": true
+          },
+          "last_failed_original_condition_before_window_s": {
+            "both_wheel_support": 1.8249999999998545,
+            "nonwheel_clean": null,
+            "geometry_clear": null,
+            "vertical_speed": 2.032499999999846,
+            "planar_speed": 2.064999999999857,
+            "roll": null,
+            "pitch": null,
+            "yaw": 7.674999999998466
+          },
+          "last_non_yaw_failure_before_window_s": 2.064999999999857,
+          "only_yaw_failed_while_other_conditions_passed_before_event": {
+            "callbacks": 2244,
+            "first_s": 2.067499999999858,
+            "last_s": 7.674999999998466,
+            "callback_count_times_2p5ms_s": 5.61
+          },
+          "yaw_error_at_window_start_rad": 0.1999698900193092,
+          "yaw_error_at_recovery_rad": 0.19292192877789474
+        }
+      }
+    ],
+    "interpretation": "The last failed condition before the observed original200-callback recovery window is a temporal readout of these trajectories. It does not identify which reward, action or backend difference caused that condition. No request clock, actor input, force, physics or threshold was changed. These are two deterministic local MuJoCo yaws without production20kDR, not PhysX skill qualification or statistical evidence.",
+    "read_only_already_saved_raw_no_case_or_GPU_or_player_replay": true,
+    "original_sticky_recovered_flag_not_permanent_holding": true
+  },
+  "full_three_future_binding_and_H1_resource_exact_CRLF_bytes_retained": true,
+  "source_filename_not_identity": true,
+  "no_budget_PPO_reward_LR_STD_physics_CAD_guard_or_player_change": true
+}

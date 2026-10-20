@@ -1,0 +1,33 @@
+from pathlib import Path,PurePosixPath
+import ast,hashlib,json,shutil,time
+B=Path(__file__).resolve().parent;R=B/'reports';W=B.parent;F=W/'MOD4_POLICY_50HZ_CONTINUATION_20261020';H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest();read=lambda p:json.loads(Path(p).read_bytes())
+def main():
+ rec=read(R/'ORIGINAL_ACCOUNT_PENDING_RECONCILIATION_ACTUAL.json');assert rec['passed'];review=read(F/'reports/review_policy50_second_closed_all_out_original_account_CPU_once_CPU_ACTUAL.json');assert review['passed'] and review['current_window'] is None and len(review['new_closed_models'])==1;new=review['new_closed_models'][0];assert new['window']=='hour0002';receipt=read(F/'reports/collect_policy50_saved_boundary_original_account_V4_missing_once_RETURNED_ACTUAL.json');assert receipt['actual']['boundary_handback']['all_old_single_100Hz_and_current50Hz_own_processes_actual_out'];assert read(R/'E2_POLICY50_ACTUAL_NATIVE24_ALL_STATE_AND_HEALTH_CPU_ACTUAL.json')['proof']['passed'];controllers=B/'two_policy50_original_account_controllers';shutil.copy2(B/'original_account_policy50_source_CPU.py',controllers/'original_account_policy50_source_CPU.py');OUT=B/'two50_payloads';assert not OUT.exists();OUT.mkdir();payloads={};specs={};sources={};roots={'e2':'/mnt/mod4_linux_durable_20261013/E2policy50_2010v31/e2','recovery':'/home/lc01/Zonglin Li/zonglin2/tasks/T2policy50_2010v32/recovery'}
+ for key in ('e2','recovery'):
+  out=OUT/key;out.mkdir();payloads[key]=str(out)
+  if key=='e2':
+   base=B/'E2_policy50_payload';oldm=read(base/'THREE_SLOT_COMPLETE_MANIFEST_V1.json');spec=read(R/'E2_POLICY50_FULL_PAYLOAD_CPU_PREPARED_ACTUAL.json')['spec'];source=base/'job0/source'/spec['source_filename'];source_info=dict(SHA=spec['source_SHA'],bytes=source.stat().st_size,Adam=772320,updates=241,path='/mnt/mod4_linux_durable_20261013/T3sf17_1910v22/e2/job0/production/model_update241.pt');task=read(base/'job0/TASK.json')
+  else:
+   base=F/'factory50_CPU_fixture/windows/hour0001/recovery';capture=F/'remote_snapshots/collect_policy50_new_closed_windows_hourly_V2_once/windows/hour0002/recovery';oldm=read(capture/'THREE_SLOT_COMPLETE_MANIFEST_V1.json');current=receipt['actual']['series']['SERIES_CURRENT.json'];closed=next(x for x in current['completed'] if x['index']==2);spec=read(capture.parent/'SPEC_NO_TOKEN.json');source=Path(new['final']['local_path']);source_info=dict(SHA=new['final']['SHA'],bytes=source.stat().st_size,Adam=new['Adam_after'],updates=new['updates'],path=new['final']['path']);task=read(capture/'job0/TASK.json');spec.update(previous_runtime_root=str(PurePosixPath(closed['node_root'])),source_SHA=source_info['SHA'],source_Adamstep=source_info['Adam'],source_policy_hz=50,policy_hz=50)
+  for row in oldm['files']:
+   rel=row['relative'];dest=out/rel;dest.parent.mkdir(parents=True,exist_ok=True)
+   if rel=='job0/source/'+spec['source_filename']:shutil.copy2(source,dest);continue
+   p=base/rel
+   if key=='recovery' and (capture/rel).is_file():p=capture/rel
+   assert p.is_file() and p.stat().st_size==row['bytes'],rel;shutil.copy2(p,dest)
+  if key=='recovery':
+   p=out/'recovery_worker.py';s=p.read_text('utf8');oldAdam=oldm['source_Adamstep'];needle='{'+str(oldAdam)+'+20*updates}';assert needle in s;s=s.replace(needle,'{'+str(source_info['Adam'])+'+20*updates}');p.write_text(s,encoding='utf8')
+  for p in controllers.iterdir():
+   if p.is_file():shutil.copy2(p,out/p.name)
+  task.update(id='TWO_POLICY50_ORIGINAL_ACCOUNT_20261020_'+key,source_SHA=source_info['SHA'],source_Adamstep=source_info['Adam'],source_policy_hz=100 if key=='e2' else 50,policy_hz=50,source_filename=spec['source_filename'],source_owned_updates=source_info['updates'],source_owned_completed_updates=source_info['updates'],exact_closed_source_updates=source_info['updates'],max_parent_seconds=3900,max_all_optimizer_parent_seconds=3900,exit_headroom_seconds=300,policy_clock_migration_authorized=True,original_pending_reconciliation_transaction=rec['transaction_id']);(out/'job0/TASK.json').write_text(json.dumps(task,indent=2),encoding='utf8')
+  if key=='e2':shutil.copy2(B/'E2_native24_actual_text/POLICY50_CLOCK_NATIVE24_ALL_STATE_CPU_ADMITTED_ACTUAL.json',out/'POLICY50_CLOCK_NATIVE24_ALL_STATE_CPU_ADMITTED_ACTUAL.json')
+  (out/'QUALIFIED_RUNTIME_BASE_MANIFEST.json').write_text(json.dumps(oldm,indent=2),encoding='utf8');(out/'ORIGINAL_ACCOUNT_PENDING_RECONCILIATION_ACTUAL.json').write_text(json.dumps(rec,indent=2),encoding='utf8');(out/'TWO50_SOURCE_PROVENANCE.json').write_text(json.dumps(dict(source_SHA=source_info['SHA'],source_Adamstep=source_info['Adam'],source_owned_updates=source_info['updates'],source_policy_hz=task['source_policy_hz'],native_required_only_for_E2_100_to_50=True,original_pending_reconciled_once=rec['transaction_id'],runtime_assets_qualified_manifest_retained=True),indent=2),encoding='utf8')
+  rows=[]
+  for p in sorted(out.rglob('*')):
+   if p.is_file() and p.name!='THREE_SLOT_COMPLETE_MANIFEST_V1.json':
+    if p.suffix=='.py':ast.parse(p.read_text('utf8'))
+    rel=p.relative_to(out).as_posix();previous=next((x for x in oldm['files'] if x['relative']==rel),None);sha=H(p) if p.suffix not in ('.pt','.npz','.usd','.stl') else (source_info['SHA'] if rel=='job0/source/'+spec['source_filename'] else previous['SHA']);rows.append(dict(relative=rel,bytes=p.stat().st_size,SHA=sha))
+  m=dict(oldm,source_SHA=source_info['SHA'],source_Adamstep=source_info['Adam'],files=rows,policy_hz=50,source_policy_hz=task['source_policy_hz'],original_canonical_pending_reconciled=rec['transaction_id'],original_PPO_reward_command_DR_hardware_unchanged=False,explicit_50Hz_clock_protocol=True);(out/'THREE_SLOT_COMPLETE_MANIFEST_V1.json').write_text(json.dumps(m,indent=2),encoding='utf8');spec.update(policy_hz=50,source_policy_hz=task['source_policy_hz'],source_SHA=source_info['SHA'],source_Adamstep=source_info['Adam'],manifest_SHA=H(out/'THREE_SLOT_COMPLETE_MANIFEST_V1.json'),closed_production_continuation=True,reward_migration=False,source_original_account_ready=True);specs[key]=spec;sources[key]=source_info
+ with (R/'TWO50_LATEST_CLOSED_SOURCES_PAYLOADS_CPU_PREPARED_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),passed=True,payloads=payloads,specs=specs,sources=sources,roots=roots,owner_root='/mnt/mod4_linux_durable_20261013/T2policy50_2010v32/owner',original_account_reconciliation=rec['transaction_id'],one_original_writer_two_fcntl=True,no_actual_new_GO_yet=True),f,ensure_ascii=False,indent=2)
+ print(json.dumps(dict(prepared=True,E2_source=sources['e2']['SHA'],E3_source=sources['recovery']['SHA'],no_GO=True)))
+if __name__=='__main__':main()

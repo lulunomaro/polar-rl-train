@@ -1,0 +1,46 @@
+{
+  "epoch": 1792487909.7498097,
+  "error": "Traceback (most recent call last):\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py\", line 102, in main\n    window,node,owner,newspec=build_window(index,previous_node,previous_owner,spec,source,proof,cfg['authority']);CPU_source(node);qualify_clock_native(node,newspec) if newspec['source_policy_hz']==100 else None;runid=cfg['series_id']+'_hour'+str(index).zfill(4);token=secrets.token_hex(32);owner_cfg=dict(role='owner',experts={'recovery':newspec},approval_id=AUTHORITY,explicit_offline_cost_approval=True,expected_source_SHA=source['SHA'],deferred_experts=['h1','e2'],run_id=runid,token=token);oid=launch(owner,'three_slot_finite_owner_v1.py',owner_cfg)\n                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py\", line 133, in qualify_clock_native\n    put(node/'POLICY50_NATIVE_WORKER_WAITED_EXIT_ACTUAL.json',dict(epoch=time.time(),returncode=rc,pid=p.pid,actual_waited=True));assert rc==0 and read(node/'job0/clock_native50/FINAL.json')['passed'] and not list((node/'job0/clock_native50').glob('*ORIGINAL_ERROR*'))\n                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py\", line 10, in read\n    def read(p):return json.loads(Path(p).read_bytes())\n                                  ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/windows/hour0001/recovery/job0/clock_native50/FINAL.json'\n",
+  "state": {
+    "series_id": "AUTO_E3_POLICY50_20261020_1792487891370821263",
+    "completed": [],
+    "active": null,
+    "status": "original_error_no_automatic_retry",
+    "original_canonical_settled": false,
+    "budget_guard": {
+      "admit": true,
+      "available_after_pending_and_reserves": 126853.51562285423,
+      "series_actual_pending_seconds": 0,
+      "prior_single_E3_pending_seconds": 3626.8895361423492,
+      "original_canonical_settled": false
+    },
+    "account_host_state": "known_Windows_original_canonical_offline",
+    "last_resource_snapshot": {
+      "epoch": 1792487892.8903062,
+      "ready": true,
+      "checks": {
+        "GPU_empty": true,
+        "GPU_free_over7000": true,
+        "RAM_over8GiB": true,
+        "disk_over25GiB": true,
+        "private_shared_fcntl_free": true
+      },
+      "GPU_line": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d, 24203",
+      "compute_snapshot": "GPU-16828f91-2b45-b646-8dc0-9481138e2842, 104121, 14514\n",
+      "disk_free": 278886248448,
+      "RAM_available": 530933891072,
+      "locks": [
+        {
+          "path": "/home/lc01/Zonglin Li/zonglin2/state/three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock",
+          "actual_fcntl_free": true
+        },
+        {
+          "path": "/home/lc01/Zonglin Li/zonglin2/state/finite_environment_validation.lock",
+          "actual_fcntl_free": true
+        }
+      ]
+    }
+  },
+  "canonical_not_written": true,
+  "inspect_any_active_children_before_resume": true
+}

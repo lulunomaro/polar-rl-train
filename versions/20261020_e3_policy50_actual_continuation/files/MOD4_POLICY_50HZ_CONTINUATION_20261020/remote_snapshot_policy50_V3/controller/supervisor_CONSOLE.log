@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py", line 143, in <module>
+    os.setsid();fd=os.open(str(B/'supervisor_CONSOLE.log'),os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600);os.dup2(fd,1);os.dup2(fd,2);os.close(fd);fd=os.open('/dev/null',os.O_RDONLY);os.dup2(fd,0);os.close(fd);main(cfg)
+                                                                                                                                                                                                           ^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py", line 102, in main
+    window,node,owner,newspec=build_window(index,previous_node,previous_owner,spec,source,proof,cfg['authority']);CPU_source(node);qualify_clock_native(node,newspec) if newspec['source_policy_hz']==100 else None;runid=cfg['series_id']+'_hour'+str(index).zfill(4);token=secrets.token_hex(32);owner_cfg=dict(role='owner',experts={'recovery':newspec},approval_id=AUTHORITY,explicit_offline_cost_approval=True,expected_source_SHA=source['SHA'],deferred_experts=['h1','e2'],run_id=runid,token=token);oid=launch(owner,'three_slot_finite_owner_v1.py',owner_cfg)
+                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py", line 133, in qualify_clock_native
+    put(node/'POLICY50_NATIVE_WORKER_WAITED_EXIT_ACTUAL.json',dict(epoch=time.time(),returncode=rc,pid=p.pid,actual_waited=True));assert rc==0 and read(node/'job0/clock_native50/FINAL.json')['passed'] and not list((node/'job0/clock_native50').glob('*ORIGINAL_ERROR*'))
+                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/controller/auto_E3_serial_supervisor_v1.py", line 10, in read
+    def read(p):return json.loads(Path(p).read_bytes())
+                                  ^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/pathlib.py", line 1019, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/lc01/Zonglin Li/zonglin2/tasks/E3auto50_2010v28/windows/hour0001/recovery/job0/clock_native50/FINAL.json'

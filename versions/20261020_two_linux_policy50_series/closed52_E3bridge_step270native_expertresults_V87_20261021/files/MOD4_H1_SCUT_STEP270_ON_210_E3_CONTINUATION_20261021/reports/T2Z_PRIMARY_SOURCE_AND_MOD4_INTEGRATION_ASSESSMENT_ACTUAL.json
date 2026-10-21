@@ -1,0 +1,39 @@
+{
+  "epoch": 1792581999.8873148,
+  "human_question": "T2-z能否加入RL及预训练后训练阶段",
+  "review_only_no_install_no_training_recipe_change": true,
+  "primary_sources": [
+    "https://github.com/T2-z-latent-optimization/T2-z",
+    "https://arxiv.org/html/2610.22364v1",
+    "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/main/configs/ours/sim_pushbox_friction.yaml",
+    "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/main/configs/inference/sim_pushbox_friction.yaml"
+  ],
+  "method": {
+    "training": "alternate shared world-model weights and environment latent with the other frozen",
+    "deployment": "freeze world model and optimize new environment latent using observed support trajectories",
+    "official_implementation": "Wan2.2-TI2V-5B and BWM initialization; video+actions; 32D latent",
+    "representative_inference": "40 latent updates;25 video denoising steps;H200 adaptation+five query video generations18.09sec, not per-control real-time guarantee"
+  },
+  "current_MOD4": {
+    "method": "model-free PPO continuing actor and critic and all17 Adam",
+    "actor_inputs": 35,
+    "critic_inputs": 38,
+    "actions": 6,
+    "policy_hz": {
+      "H1": 100,
+      "E2_E3": 50
+    },
+    "world_model": false,
+    "phase": "continued specialist skill learning and explicit H1 270mm new-task fine-tuning preparation; not deployed frozen-model latent adaptation",
+    "latest_eval": "H1 10/80 stable; E2 0/64 strict moving-world; E3 0/96 first episode stable; cannot graduate"
+  },
+  "engineering_inference": {
+    "possible": true,
+    "drop_in_PPO_plugin": false,
+    "next_proposal": "separate lightweight proprioceptive transition model conditioned on latent; held-out episode and environment split; compare frozen z0 versus adapted z; no new actor input until separate version qualification",
+    "latent_not_unconditionally_physical_parameter_identification": true,
+    "actor_z_conditioning_requires_architecture_change_and_training": true,
+    "current_priority": "actual 270mm step task and original E2/E3 skill metrics before sim2real adaptation",
+    "not_automatic_T2z_deployment_authorization": true
+  }
+}

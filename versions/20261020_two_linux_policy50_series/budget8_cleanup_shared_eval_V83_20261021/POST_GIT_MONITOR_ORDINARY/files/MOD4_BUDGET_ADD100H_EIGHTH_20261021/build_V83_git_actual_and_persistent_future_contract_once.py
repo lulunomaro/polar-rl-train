@@ -1,0 +1,9 @@
+from pathlib import Path
+import ast,hashlib,json,shutil,subprocess,time
+B=Path(__file__).resolve().parent;R=B/'reports';W=B.parent;G=W/'polar-rl-train';head=subprocess.check_output(['git','-C',str(G),'rev-parse','HEAD'],text=True).strip();assert head=='257dde27b0c4d0da917b5958f4442e058ad0a4a5'
+for seq in (50,51):
+ C=W/('MOD4_TWO_LINUX_POLICY50_COHORT_'+str(seq)+'_20261021');p=C/'build_two50_actual_handoff_monitor_TEMPLATE.py';s=p.read_text('utf8');needle=" saved=tomllib.loads(";assert needle in s
+ s=s.replace(needle," prompt=(B.parent/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/PERSISTENT_BUDGET8_SHARED_EVAL_STORAGE_CONTRACT.md').read_text('utf8')+'\\n'+prompt\n"+needle);ast.parse(s);p.write_text(s,encoding='utf8')
+a=json.loads((R/'V83_EXISTING_MONITOR_FINAL_UPDATE_ARGS.json').read_bytes());a['prompt']='V83 Git lateractual：新预算第八次100h/原账扣费历史保留/96旧中途PT精确授权清理/49真实preGO磁盘拒绝原trace/新50两actualPPO/第三卡共享冻结native13全部真实GPU失败和CPU修复/999GB NTFS休眠写入拒绝与只读actual已唯一record '+head+'，tagobject98f9334abee91eec0d1b49e7810dcc52b4f5a305，trial-20261021-budget-add100h-cleanup-shared-eval-two50-v83，总1418。remote main/tag/peeled及全部原1417tag objects/peels、4280完整/引用文本entries、159新Git文件真核，旧同SHA大日志全文Git引用，无新大日志；PT/NPZ只producer路径大小SHA。唯一archive/helper/record/tag consume，不重run；same授权series新窗和评测补报仅ordinary，pushfail只续已有objects。此后monitor/appreceipt/readback与首次full13 metadata只一次ordinary补档，不无限补HEAD，不为GitSSH训练host/中途PT重hash/改账。\n首次full13 metadata已actual source/GPU/clock准入，H1自己compute 892MiB，controls336/6.72sim秒只是1792570935.66508快照，父子尚无terminal/错误；原父/worker/root与source身份见E/reports/SHARED_H1_FULL13_FIRST_ACTUAL_GPU_CLOCK_METADATA.json。不是未来FINAL或持续alive。新persistent contract已绑定后继50/51 TEMPLATE，source在E/PERSISTENT_BUDGET8_SHARED_EVAL_STORAGE_CONTRACT.md。\n'+a['prompt']
+with (R/'V83_GIT_ACTUAL_MONITOR_UPDATE_ARGS.json').open('x',encoding='utf8') as f:json.dump(a,f,ensure_ascii=False,indent=2)
+print(json.dumps(dict(passed=True,HEAD=head,prompt_chars=len(a['prompt']),future_templates_bound=True)))

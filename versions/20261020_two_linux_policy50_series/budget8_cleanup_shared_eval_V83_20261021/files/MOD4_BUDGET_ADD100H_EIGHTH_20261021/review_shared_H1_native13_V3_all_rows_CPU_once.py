@@ -1,0 +1,13 @@
+from pathlib import Path
+import hashlib,json,time,numpy as np,torch
+from frozen_actor_exact_cpu import FrozenActor
+B=Path(__file__).resolve().parent;R=B/'reports';A=B/'shared_H1_native13_V3_actual';receipt=json.loads((R/'SHARED_H1_NATIVE13_V3_FINITE_RETURNED_ACTUAL.json').read_bytes());f=receipt['final'];assert receipt['actual_child_waited'] and receipt['actual_returncode']==0 and receipt['own_eval_lock_released'] and not receipt['original_error_paths'] and f and f['passed_diagnostic_execution'];c=np.load(A/'out/CONTROL_ACTUAL.npz',allow_pickle=False);p=np.load(A/'out/PHYSICAL_CALLBACK_ACTUAL.npz',allow_pickle=False);initial=np.load(A/'out/INITIAL_ACTUAL.npz',allow_pickle=False)
+for data,count in ((c,60),(p,480)):
+ for k in data.files:
+  x=data[k];assert x.shape[0]==count and x.shape[1]==13
+  if x.dtype.kind in 'fc':assert np.isfinite(x).all(),k
+assert c['policy'].shape==(60,13,35) and c['raw_action'].shape==(60,13,6) and p['all31_force'].shape==(480,13,31,3) and p['witness_clear34'].shape==(480,13,34);assert not c['policy'][:,:,:3].any() and np.array_equal(initial['recipe'],np.arange(13))
+torch.set_num_threads(2);rng=torch.get_rng_state().clone();src=B.parent/'MOD4_TWO_LINUX_POLICY50_COHORT_48_20261021/current_two50_closed_models/recovery/final_valid_update77.pt';actor=FrozenActor(src,f['source_SHA'],f['source_Adam']);result=actor.mean(torch.from_numpy(c['policy'].copy()).reshape(-1,35)).numpy().reshape(60,13,6);error=float(np.max(abs(result-c['raw_action'])));assert error<1e-5 and actor.exact() and torch.equal(rng,torch.get_rng_state()) and not torch.cuda.is_initialized();h=f['source_health'];assert h['integrity_task_reset_events']==h['unknown_task_reset_events']==0 and h['actual_physics_callbacks']==480 and h['expected_physics_callbacks']==480 and not h['nonfinite_observed']
+report=dict(epoch=time.time(),passed_small_diagnostic_native_CPU=True,source_SHA=f['source_SHA'],source_Adam=f['source_Adam'],actual_native60_callbacks480_feedback120=True,all13_all_control_and_physical_rows_finite=True,actor9_STD_exact_and_no_optimizer=True,CPU_mean_action_max_abs_error=error,ordinary_episode_resets=h['ordinary_episode_reset_events'],closure_resets=h['closure_episode_reset_events'],ordinary_failed_environments=h['failed_environments'],max_closure_error=h['max_closure_error_m'],mimic_max=h['max_mimic_error_rad'],not_skill_or_full104_native_qualification=True,next_allowed='fresh same-source15s13case diagnostic; original guards and error recording retained; no graduation claim',actual_shared_GPU_scope_authorized=True)
+with (R/'SHARED_H1_NATIVE13_V3_ALL_ROWS_CPU_ACTUAL.json').open('x',encoding='utf8') as file:json.dump(report,file,indent=2)
+print(json.dumps(report))

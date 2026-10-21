@@ -1,0 +1,31 @@
+from pathlib import Path
+import ast,copy,hashlib,json,shutil,time
+B=Path(__file__).resolve().parent;W=B.parent;R=B/'reports';N=W/'MOD4_TWO_LINUX_POLICY50_COHORT_49_20261021';P=W/'MOD4_TWO_LINUX_POLICY50_COHORT_48_20261021';H=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+assert json.loads((R/'EIGHTH_BUDGET_APPLIED_AND_METADATA_SYNCED_ACTUAL.json').read_bytes())['passed']
+bound=B/'bound_controllers';bound.mkdir();rows=[]
+def norm(s):return ast.dump(ast.parse(s),include_attributes=False)
+for name in ('three_slot_finite_owner_v1.py','three_slot_common_v1.py'):
+ src=P/'two_policy50_original_account_controllers'/name;old=src.read_text('utf8');new=old.replace('1188000','1548000').replace("len(c['budget_extensions'])==7","len(c['budget_extensions'])==8");assert new!=old and norm(new.replace('1548000','1188000').replace("len(c['budget_extensions'])==8","len(c['budget_extensions'])==7"))==norm(old)
+ if 'owner' in name:assert 'sum(b.CAPS[k] for k in specs)' in new
+ (bound/name).write_text(new,encoding='utf8');rows.append(dict(name=name,old_SHA=H(src),new_SHA=H(bound/name),normalized_rest_AST_exact=True))
+owner=(bound/'three_slot_finite_owner_v1.py').read_text('utf8');tree=ast.parse(owner);guard=next(n.test for n in ast.walk(tree) if isinstance(n,ast.Assert) and 'authorized_training_seconds' in ast.unparse(n.test));fn=compile(ast.Expression(guard),'<actual_owner_budget_admission>','eval')
+class Stub:CAPS={'h1':3900,'e2':3900,'recovery':3900}
+tests=[]
+for name,total,count,remaining,active,expected in [('actual_extended_two',1548000,8,437880.0906355381,None,True),('old_total_rejected',1188000,8,437880,None,False),('old_count_rejected',1548000,7,437880,None,False),('equal_threshold_rejected',1548000,8,82512.86069250107,None,False),('above_threshold_admitted',1548000,8,82512.86069250108,None,True),('active_rejected',1548000,8,437880,{'id':1},False)]:
+ c=dict(active_segment=active,authorized_training_seconds=total,budget_extensions=[{}]*count,remaining_training_seconds=remaining);v=eval(fn,dict(c=c,b=Stub,specs={'e2':{},'recovery':{}}));assert v==expected;tests.append(dict(name=name,passed=True,admitted=v))
+common=ast.parse((bound/'three_slot_common_v1.py').read_text('utf8'));funcs=[n for n in common.body if isinstance(n,ast.FunctionDef) and n.name in ('terminal','charge_values')];ns={};exec(compile(ast.Module(body=funcs,type_ignores=[]),'<exact_charge_functions>','exec'),ns)
+c=dict(charged_training_seconds=1110119.909364462,remaining_training_seconds=437880.0906355381);a=dict(experts={},charged_expert_seconds=0.);go={k:dict(learning_started_epoch=t,max_parent_seconds=3900) for k,t in [('e2',100.),('recovery',110.)]};v,a=ns['charge_values'](c,a,go,{},120.);assert a['charged_expert_seconds']==30.;v,a=ns['charge_values'](c,a,go,{'e2':dict(terminal_all_own_children_waited=True,returncode=0,owner_received_terminal_epoch=125.)},130.);assert a['charged_expert_seconds']==45.;v,a=ns['charge_values'](c,a,go,{'e2':dict(terminal_all_own_children_waited=True,returncode=0,owner_received_terminal_epoch=125.),'recovery':dict(terminal_all_own_children_waited=True,returncode=0,owner_received_terminal_epoch=132.)},140.);assert a['charged_expert_seconds']==47. and abs(c['charged_training_seconds']+c['remaining_training_seconds']-1548000)<1e-5;tests.append(dict(name='independent_intervals_no_terminal_double_charge',passed=True,charged_seconds=47.))
+for name in ('deploy_two50_reconciled_original_writer_once.py','collect_current_two50_finals_original_cost_bounded_once.py'):
+ p=N/name;s=p.read_text('utf8');shutil.copy2(p,N/(p.stem+'_V1_UNUSED_RETAINED.py'));s=s.replace('1188000','1548000').replace("len(c['budget_extensions'])==7","len(c['budget_extensions'])==8");ast.parse(s);p.write_text(s,encoding='utf8')
+p=N/'prepare_following_two50_closed_sources_CPU_once.py';s=p.read_text('utf8');shutil.copy2(p,N/'prepare_following_two50_closed_sources_CPU_V1_UNUSED_RETAINED.py');start=s.index(' authority=json.loads(');end=s.index(" for key in ('e2','recovery'):",start)
+s=s[:start]+''' binding=json.loads((B.parent/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/reports/EIGHTH_NEW_CONTROLLERS_AND_UNUSED_WORKFLOW_CPU_ACTUAL.json').read_bytes());assert binding['passed']
+ for name in ('three_slot_finite_owner_v1.py','three_slot_common_v1.py'):
+  src=B.parent/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/bound_controllers'/name;assert H(src)==binding['bound_source_SHA'][name];shutil.copy2(src,controllers/name)
+'''+s[end:]
+needle="rec.update(remaining_after=proof['remaining_actual_snapshot'],derived_current_cohort_source_cost_receipt_only=True,legacy18_pending_not_reconciled_again=True,source_current_cohort_original_cost_summary=proof);"
+replacement=needle+"extension=read(B.parent/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/reports/EIGHTH_BUDGET_APPLIED_AND_METADATA_SYNCED_ACTUAL.json');assert extension['passed'] and extension['budget']['authorized_after']==1548000 and extension['budget']['extension_records']==8;rec.update(authorized_total=1548000,extension_records=8,explicit_eighth_extension_receipt=extension);\n if cfg['previous_actual_run_id']=='TWO_LINUX_POLICY50_ORIGINAL_1792562830710752300':\n  assert abs(proof['remaining_actual_snapshot']-extension['budget']['remaining_seconds']+360000)<1e-5;rec['remaining_after']=extension['budget']['remaining_seconds']\n "
+assert needle in s;s=s.replace(needle,replacement);ast.parse(s);p.write_text(s,encoding='utf8')
+p=N/'build_two50_actual_handoff_monitor_TEMPLATE.py';s=p.read_text('utf8').replace('原total1188000s330h/七extensions不增','原total1548000s430h/八extensions（人类20261021明确新增100小时已一次入账）不再自动增加');p.write_text(s,encoding='utf8');ast.parse(s)
+out=dict(epoch=time.time(),passed=True,extension_receipt=str(R/'EIGHTH_BUDGET_APPLIED_AND_METADATA_SYNCED_ACTUAL.json'),bound_source_SHA={p.name:H(p) for p in bound.glob('*.py')},controller_change=rows,CPU_cases=tests,only_authorized_budget_total_count_and_unused_receipt_binding_changed=True,approved_scheduled_caps_retained=True,resource_save_cost_recipe_guards_retained=True,new_total=1548000,new_extensions=8,no_remote_install_or_GO_yet=True)
+with (R/'EIGHTH_NEW_CONTROLLERS_AND_UNUSED_WORKFLOW_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(out,f,indent=2)
+print(json.dumps(dict(passed=True,bound_source_SHA=out['bound_source_SHA'],CPU_cases=len(tests))))

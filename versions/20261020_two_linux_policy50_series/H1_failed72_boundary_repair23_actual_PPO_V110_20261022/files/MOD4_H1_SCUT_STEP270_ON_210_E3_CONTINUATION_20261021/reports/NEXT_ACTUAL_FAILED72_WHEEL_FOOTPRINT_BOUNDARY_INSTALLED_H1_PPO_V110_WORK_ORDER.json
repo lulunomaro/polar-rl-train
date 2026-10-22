@@ -1,0 +1,923 @@
+{
+  "epoch": 1792678143.7679346,
+  "latest_actual": true,
+  "failed21": {
+    "epoch": 1792677352.7101214,
+    "passed_only_failed_closure_cost_allout_diagnostic_scope": true,
+    "qualified_FINAL": false,
+    "models": {},
+    "failed_diagnostic_prefix": {
+      "epoch": 1792675486.4090168,
+      "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/own_failed_valid_prefix.pt",
+      "bytes": 16870043,
+      "SHA": "69164276b367662c6e21232cfef9d7c5fb4e4312b01c15b5fdff810576ce4195",
+      "phase": "production",
+      "updates": 72,
+      "actual17Adam_steps": [
+        700360
+      ],
+      "failed_partial_prefix": true
+    },
+    "complete_updates_before_failure": 72,
+    "actual_cost": {
+      "started_epoch": 1792673235.1323438,
+      "accounted_through_epoch": 1792675501.3166316,
+      "charged_seconds": 2266.1842877864838,
+      "max_parent_seconds": 3900,
+      "ended_epoch": 1792675501.3166316,
+      "actual_returncode": 0,
+      "duration_bound_passed": true
+    },
+    "actual_cost_sumonce": 2266.1842877864838,
+    "remaining_actual_snapshot": 300427.8887372017,
+    "all_owner_nodes_children_actual_out": true,
+    "original_canonical_cost_settled": true,
+    "all_scheduled_H1_original_locks_free": true,
+    "E3_not_scheduled_or_charged_or_locks_checked": true,
+    "original_error": {
+      "epoch": 1792675486.3123233,
+      "error": "Traceback (most recent call last):\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/h1_step270_production_worker_v1.py\", line 60, in learn\n    try:runner.learn(num_learning_iterations=n,init_at_random_ep_len=True)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/rsl_rl/runners/on_policy_runner.py\", line 87, in learn\n    obs, rewards, dones, extras = self.env.step(actions.to(self.env.device))\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/h1_production_control_prefix_trace_v1.py\", line 32, in step\n    output=old_step(actions);obs,reward,done,info=output;assert self.frame is not None and self.observed is not None;row={**self.observed,**self.frame,'raw_sampled6':raw,'total_reward':reward.detach().clone(),'done':done.detach().clone()};self.rows.append({k:v.detach().cpu().numpy().copy() for k,v in row.items()});self.total+=1\n           ^^^^^^^^^^^^^^^^^\n  File \"/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py\", line 185, in step\n    obs_dict, rew, terminated, truncated, extras = self.env.step(actions)\n                                                   ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/runtime/isaac/mod4/clock_training_health.py\", line 35, in step\n    result=old(action);self.steps+=1\n           ^^^^^^^^^^^\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/runtime/isaac/mod4/h1_takeoff_progress_environment_v2.py\", line 53, in step\n    try:return super().step(action)\n               ^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/runtime/isaac/mod4/mod4_env.py\", line 147, in step\n    result = super().step(action)\n             ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/manager_based_rl_env.py\", line 229, in step\n    self.scene.update(dt=self.physics_dt)\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/h1_step270_sdk_runtime_candidate.py\", line 169, in update\n    old(dt)\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/runtime/isaac/mod4/h1_takeoff_progress_environment_v2.py\", line 20, in update\n    r=self.scene['robot'];pos=tensor(r.data.body_pos_w);qbody=tensor(r.data.body_quat_w);root=tensor(r.data.root_state_w);clear=evaluate(pos,qbody,self.h1_shapes);forces=tensor(self.h1_sensor.contact_view.get_net_contact_forces(dt=float(dt))).reshape(self.num_envs,31,3);wheelraw=tensor(self._integrated_contact.sensor.contact_view.get_net_contact_forces(dt=float(dt))).reshape(self.num_envs,2,3);wheelmean=self._integrated_contact.history[:,0];wc=torch.stack([clear[:,ids].amin(-1) for ids in self.h1_wheel_shapes],-1);non=forces[:,self.h1_nonwheel].norm(dim=-1).amax(-1);wheel_norm=wheelmean.norm(dim=-1);planar_speed=root[:,7:9].norm(dim=-1);x,y,z,w=root[:,3:7].unbind(-1);roll=torch.atan2(2*(w*x+y*z),1-2*(x*x+y*y));pitch=torch.asin((2*(w*y-z*x)).clamp(-1,1));yaw=torch.atan2(2*(w*z+x*y),1-2*(y*y+z*z));event=self.h1_phase.physical(wheel_N=wheel_norm,wheel_clear_m=wc,all_min_clear_m=clear.amin(-1),nonwheel_max_N=non,root_vz=root[:,9],root_planar_speed=planar_speed,roll=roll,pitch=pitch,yaw=yaw);self._h1_scut_last_wheel_clearance=wc;self.h1_callback_count+=1\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/h1_step270_sdk_runtime_candidate.py\", line 134, in physical\n    raise RuntimeError('Missing actual wheel terrain query')\nRuntimeError: Missing actual wheel terrain query\n",
+      "complete_updates": 72
+    },
+    "actual_bad_query": {
+      "kind": "wheel_ground",
+      "actual_bad_rows": [
+        {
+          "env": 11843,
+          "ray": 1,
+          "actual_start": [
+            -31.974620819091797,
+            177.50027465820312,
+            1.0632824897766113
+          ],
+          "hit": false,
+          "height": null,
+          "normal": [
+            null,
+            null,
+            null
+          ],
+          "distance": null,
+          "face_id": -1
+        }
+      ],
+      "actual_floor_xy_bounds": [
+        [
+          -178.75,
+          -177.5
+        ],
+        [
+          178.75,
+          177.5
+        ]
+      ],
+      "no_fallback_or_tolerance_change": true
+    },
+    "health": {
+      "version": 3,
+      "epoch": 1792675486.4267223,
+      "pid": 470816,
+      "physics_dt_s": 0.0025,
+      "control_dt_s": 0.01,
+      "control_steps": 1731,
+      "actual_task_reset_events": 2856,
+      "closure_episode_reset_events": 2794,
+      "closure_2mm_still_resets_only_this_environment": true,
+      "closure_peak_alone_does_not_stop_global_learning": true,
+      "legacy_single_peak_2mm_pass": false,
+      "post_reset_values_not_relabelled_as_pre_reset_failure": true,
+      "failed_environments": 2628,
+      "ordinary_episode_reset_events": 2856,
+      "integrity_task_reset_events": 0,
+      "unknown_task_reset_events": 0,
+      "termination_events_by_reason": {
+        "time_out": 15772,
+        "bad_orientation": 35,
+        "base_contact": 27,
+        "closure": 2794,
+        "mimic": 0,
+        "low_base": 0,
+        "h1_step270_arena_exit": 0
+      },
+      "ordinary_task_thresholds_unchanged": true,
+      "ordinary_resets_continue_learning": true,
+      "termination_reason_coverage_exact": true,
+      "nonfinite_observed": false,
+      "actual_physics_callbacks": 6928,
+      "expected_physics_callbacks": 6924,
+      "max_closure_error_m": 0.006238692440092564,
+      "max_mimic_error_rad": 0.001953125,
+      "stop_reason": null,
+      "request_own_save_only_no_force_kill": true,
+      "last_actual_termination_events": [
+        {
+          "control_step": 1376,
+          "env_id": 3302,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1386,
+          "env_id": 899,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1396,
+          "env_id": 14259,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1403,
+          "env_id": 1624,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1406,
+          "env_id": 5572,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1415,
+          "env_id": 12268,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1428,
+          "env_id": 10314,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1443,
+          "env_id": 8422,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1467,
+          "env_id": 4920,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1496,
+          "env_id": 18460,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1502,
+          "env_id": 16507,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1531,
+          "env_id": 8887,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1541,
+          "env_id": 18017,
+          "reasons": [
+            "base_contact"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1571,
+          "env_id": 9806,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1590,
+          "env_id": 18267,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1615,
+          "env_id": 5692,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1642,
+          "env_id": 19926,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1656,
+          "env_id": 19316,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1659,
+          "env_id": 17737,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1661,
+          "env_id": 14235,
+          "reasons": [
+            "base_contact"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1665,
+          "env_id": 16486,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1666,
+          "env_id": 5534,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1671,
+          "env_id": 18256,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1673,
+          "env_id": 17903,
+          "reasons": [
+            "base_contact"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1677,
+          "env_id": 14617,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1686,
+          "env_id": 9527,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1695,
+          "env_id": 10681,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1701,
+          "env_id": 18103,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1705,
+          "env_id": 15712,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1719,
+          "env_id": 11883,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1722,
+          "env_id": 15993,
+          "reasons": [
+            "closure"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        },
+        {
+          "control_step": 1731,
+          "env_id": 7136,
+          "reasons": [
+            "base_contact"
+          ],
+          "snapshot_scope": "Actual termination-manager flags; post-reset body state deliberately not labelled failure-state"
+        }
+      ],
+      "event_examples_limited_to_last32": true,
+      "timeout_excluded": true,
+      "ordinary_failure_rate_is_reported_not_a_new_graduation_threshold": true
+    },
+    "partial_control_callback_mismatch_not_relabelled_as_pass": true,
+    "retention": {
+      "producer_entries": 73,
+      "retained_indices": [
+        0,
+        70,
+        71,
+        72
+      ],
+      "failure_preserves_currently_present": true,
+      "history_transactions": 69,
+      "already_pruned_not_recoverable": true
+    },
+    "original_reviewer_rejected_no_FINAL": {
+      "epoch": 1792676557.863564,
+      "argv": [
+        "C:/Users/lulu/miniconda3/envs/env_isaaclab/python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\review_selected_H1_model_unused_once.py"
+      ],
+      "actual_returncode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\review_selected_H1_model_unused_once.py\", line 60, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\review_selected_H1_model_unused_once.py\", line 10, in main\n    assert len(receipt['complete_models'][key])==1\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+      "original_reviewer_executed_once": true,
+      "no_FINAL_promoted_no_cost_refund": true
+    },
+    "not_production_source_or_skill": true,
+    "no_PT_reloading_GPU_or_account_write": true
+  },
+  "failed21_prefix_diagnostic_only": {
+    "epoch": 1792676752.8124003,
+    "failed_diagnostic_prefix": {
+      "epoch": 1792675486.4090168,
+      "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/own_failed_valid_prefix.pt",
+      "bytes": 16870043,
+      "SHA": "69164276b367662c6e21232cfef9d7c5fb4e4312b01c15b5fdff810576ce4195",
+      "phase": "production",
+      "updates": 72,
+      "actual17Adam_steps": [
+        700360
+      ],
+      "failed_partial_prefix": true
+    },
+    "stat": {
+      "bytes": 16870043,
+      "inode": 274945,
+      "mtime_ns": 1792675486407364300
+    },
+    "all_own_out": true,
+    "canonical_none": true,
+    "original_locks_free": [
+      "/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/native_floor_supervisor.lock",
+      "/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002/autonomy_controller.lock",
+      "/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock"
+    ],
+    "durable_free_bytes": 26342137856,
+    "no_budget_write": true,
+    "local_prefix": {
+      "epoch": 1792675486.4090168,
+      "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/own_failed_valid_prefix.pt",
+      "bytes": 16870043,
+      "SHA": "69164276b367662c6e21232cfef9d7c5fb4e4312b01c15b5fdff810576ce4195",
+      "phase": "production",
+      "updates": 72,
+      "actual17Adam_steps": [
+        700360
+      ],
+      "failed_partial_prefix": true,
+      "local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\failed_H1_diagnostic_models\\own_failed_valid_prefix.pt",
+      "twohost_complete_SHA": true
+    },
+    "not_qualified_production_source": true,
+    "actual210_transport_returned": true
+  },
+  "boundary_candidate_CPU": {
+    "epoch": 1792677011.6545153,
+    "passed": true,
+    "scope": "Ordinary per-environment arena exit covers actual complete wheel collider footprint; no ground fallback or tolerance change",
+    "old_runtime": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\current_pair_closed_text\\h1\\h1_step270_sdk_runtime_candidate.py",
+      "SHA": "5106639e761abfb51d0ea4a2be3249895f6eb502c2e030c0a1f56565d914f36d"
+    },
+    "candidate_runtime": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_PATH_V1_20261022\\wheel_footprint_boundary_candidate_V1_UNINSTALLED\\h1_step270_sdk_runtime_candidate.py",
+      "SHA": "0ec7db1fc55ca0d552341e24237048a916d1cbb6b125905eb22b0001b60a8e34"
+    },
+    "all_other_normalized_AST_exact": true,
+    "tests": [
+      {
+        "name": "all20k_inside",
+        "passed": true,
+        "terminated_environments": 0
+      },
+      {
+        "name": "exact_floor_edge_axis0",
+        "passed": true,
+        "terminated_environments": 0
+      },
+      {
+        "name": "one_representable_step_outside_axis0",
+        "passed": true,
+        "terminated_environments": 1
+      },
+      {
+        "name": "exact_floor_edge_axis1",
+        "passed": true,
+        "terminated_environments": 0
+      },
+      {
+        "name": "one_representable_step_outside_axis1",
+        "passed": true,
+        "terminated_environments": 1
+      },
+      {
+        "name": "actual_failed_wheel_ray_outside_root_only_blindspot",
+        "passed": true,
+        "terminated_environments": 1
+      },
+      {
+        "name": "existing_root_exit_still_terminates",
+        "passed": true,
+        "terminated_environments": 1
+      },
+      {
+        "name": "nonfinite_root",
+        "passed": true,
+        "rejected": true
+      },
+      {
+        "name": "nonfinite_wheel",
+        "passed": true,
+        "rejected": true
+      }
+    ],
+    "recorded_miss": {
+      "env": 11843,
+      "ray": 1,
+      "actual_start": [
+        -31.974620819091797,
+        177.50027465820312,
+        1.0632824897766113
+      ],
+      "hit": false,
+      "height": null,
+      "normal": [
+        null,
+        null,
+        null
+      ],
+      "distance": null,
+      "face_id": -1
+    },
+    "actual_floor_xy_bounds": [
+      [
+        -178.75,
+        -177.5
+      ],
+      [
+        178.75,
+        177.5
+      ]
+    ],
+    "recorded_ray_y_excess_m": 0.000274658203125,
+    "original_missing_query_guards_and_reward_methods_AST_exact": true,
+    "root_only_blindspot_confirmed_but_prior_control_prevention_not_yet_measured": true,
+    "no_claim_of_actual_GPU_repair_or_skill": true,
+    "no_new_native_query_physics_actor_optimizer_RNG_or_GO": true
+  },
+  "pre_failure_recorded_kinematic_diagnosis": {
+    "epoch": 1792677171.240515,
+    "passed_recorded_kinematic_diagnosis": true,
+    "rows": [
+      {
+        "control": 1729,
+        "root_position": [
+          -32.16530990600586,
+          177.38194274902344,
+          0.2523975372314453
+        ],
+        "root_inside_original_floor": true,
+        "wheels": [
+          {
+            "name": "left_wheel",
+            "body_center": [
+              -32.290709176015355,
+              177.19666348274293,
+              0.06340735150346871
+            ],
+            "lo": [
+              -32.341413080141116,
+              177.143629972741,
+              -9.881833561375952e-06
+            ],
+            "hi": [
+              -32.24000527188959,
+              177.24969699274487,
+              0.1268245848404988
+            ]
+          },
+          {
+            "name": "right_wheel",
+            "body_center": [
+              -31.971913432514203,
+              177.4964367961113,
+              0.0636603446781008
+            ],
+            "lo": [
+              -32.02275633593267,
+              177.44321540115996,
+              1.100441931516094e-05
+            ],
+            "hi": [
+              -31.921070529095733,
+              177.54965819106266,
+              0.12730968493688644
+            ]
+          }
+        ],
+        "reconstructed_wheel_max_y": 177.54965819106266,
+        "wheel_footprint_outside_floor": true,
+        "recorded_done": 0,
+        "recorded_episode": 347,
+        "reconstructed_closure_max_m": 0.0005528327610695678,
+        "recorded_closure_m": 0.0005487195448949933
+      },
+      {
+        "control": 1730,
+        "root_position": [
+          -32.16584014892578,
+          177.38412475585938,
+          0.25280970335006714
+        ],
+        "root_inside_original_floor": true,
+        "wheels": [
+          {
+            "name": "left_wheel",
+            "body_center": [
+              -32.29121379959279,
+              177.19757615497383,
+              0.0634587639389052
+            ],
+            "lo": [
+              -32.341923901747734,
+              177.14442314016208,
+              -3.530607170133815e-05
+            ],
+            "hi": [
+              -32.240503697437845,
+              177.2507291697856,
+              0.12695283394951173
+            ]
+          },
+          {
+            "name": "right_wheel",
+            "body_center": [
+              -31.972541425479438,
+              177.49748076287202,
+              0.06353260285842377
+            ],
+            "lo": [
+              -32.023307923664106,
+              177.44428675059737,
+              -2.9948817736075162e-05
+            ],
+            "hi": [
+              -31.92177492729477,
+              177.55067477514666,
+              0.12709515453458362
+            ]
+          }
+        ],
+        "reconstructed_wheel_max_y": 177.55067477514666,
+        "wheel_footprint_outside_floor": true,
+        "recorded_done": 0,
+        "recorded_episode": 347,
+        "reconstructed_closure_max_m": 0.0005564794032147885,
+        "recorded_closure_m": 0.0005407351418398321
+      },
+      {
+        "control": 1731,
+        "root_position": [
+          -32.1666259765625,
+          177.38613891601562,
+          0.2534506320953369
+        ],
+        "root_inside_original_floor": true,
+        "wheels": [
+          {
+            "name": "left_wheel",
+            "body_center": [
+              -32.292001318058745,
+              177.1987116470344,
+              0.06365657493936938
+            ],
+            "lo": [
+              -32.342736782134494,
+              177.14542093295736,
+              1.6034337516415698e-05
+            ],
+            "hi": [
+              -32.241265853982995,
+              177.25200236111144,
+              0.12729711554122236
+            ]
+          },
+          {
+            "name": "right_wheel",
+            "body_center": [
+              -31.97370859930831,
+              177.49902758855262,
+              0.06341851798929274
+            ],
+            "lo": [
+              -32.02432901329235,
+              177.44592033183724,
+              -9.44869611464727e-06
+            ],
+            "hi": [
+              -31.923088185324268,
+              177.552134845268,
+              0.1268464846747001
+            ]
+          }
+        ],
+        "reconstructed_wheel_max_y": 177.552134845268,
+        "wheel_footprint_outside_floor": true,
+        "recorded_done": 0,
+        "recorded_episode": 347,
+        "reconstructed_closure_max_m": 0.0005683356822745316,
+        "recorded_closure_m": 0.0005691418773494661
+      }
+    ],
+    "scope": "Three actual 100Hz root/q records with same authored USD FK; not PhysX callback replay or actual future repaired run",
+    "joint_order_derived_from_actual_body_order_not_new_PhysX_readback": [
+      "left_hip",
+      "left_crank",
+      "left_drive_hip_spin",
+      "left_drive_input_spin",
+      "right_hip",
+      "right_crank",
+      "right_drive_hip_spin",
+      "right_drive_input_spin",
+      "guide_roller_00",
+      "guide_roller_01",
+      "guide_roller_02",
+      "guide_roller_03",
+      "guide_roller_04",
+      "guide_roller_05",
+      "guide_roller_06",
+      "guide_roller_07",
+      "left_rocker_pin",
+      "left_knee",
+      "left_gas_pin",
+      "left_coupler_pin",
+      "right_rocker_pin",
+      "right_knee",
+      "right_gas_pin",
+      "right_coupler_pin",
+      "left_distal_pin",
+      "left_wheel_spin",
+      "left_gas_slide",
+      "right_distal_pin",
+      "right_wheel_spin",
+      "right_gas_slide"
+    ],
+    "asset": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022\\payloads\\h1\\job0\\assets\\robot.usd",
+    "actual_bad_query_y": 177.50027465820312,
+    "floor_y_max": 177.5,
+    "root_only_boundary_blindspot_consistent_with_pre_failure_records": true,
+    "no_guarantee_for_all_future_boundary_crossings": true,
+    "no_new_actor_optimizer_RNG_GPU_physics_query_or_model_load": true
+  },
+  "failed21_transfer": {
+    "epoch": 1792677601.2974658,
+    "passed": true,
+    "files": [
+      {
+        "SHA": "515646655390c3cafdafd743430ac7d7a82f934ec5834b5a129ece2ff866aca9",
+        "bytes": 340518717,
+        "existing_complete_no_retransfer": false,
+        "name": "control_prefix_0.npz",
+        "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/control_prefix_raw/control_prefix_0.npz",
+        "target_full_SHA_verified": true,
+        "target_path": "/home/lc01/Zonglin Li/zonglin2/forensic_originals/PEER_TLS_FAILED_CLOSED21_V110_H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022/retained_control_npz/control_prefix_0.npz"
+      },
+      {
+        "SHA": "5b5786dbff9ba6a2fad9fc8280640587756e49b960e6fe35aae1df738f6e2d63",
+        "bytes": 352220302,
+        "existing_complete_no_retransfer": false,
+        "name": "control_prefix_70.npz",
+        "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/control_prefix_raw/control_prefix_70.npz",
+        "target_full_SHA_verified": true,
+        "target_path": "/home/lc01/Zonglin Li/zonglin2/forensic_originals/PEER_TLS_FAILED_CLOSED21_V110_H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022/retained_control_npz/control_prefix_70.npz"
+      },
+      {
+        "SHA": "fc08c506948f6b75e350774c643e4319faffc491765e3532c6c68192095083aa",
+        "bytes": 352045552,
+        "existing_complete_no_retransfer": false,
+        "name": "control_prefix_71.npz",
+        "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_resource_2210v21/h1/job0/production/control_prefix_raw/control_prefix_71.npz",
+        "target_full_SHA_verified": true,
+        "target_path": "/home/lc01/Zonglin Li/zonglin2/forensic_originals/PEER_TLS_FAILED_CLOSED21_V110_H1_STEP270_REWARD_RESOURCE_BRANCH_V21_20261022/retained_control_npz/control_prefix_71.npz"
+      }
+    ],
+    "source_free_after": 27386896384,
+    "source_above_original_disk25": true,
+    "all_full_SHA_retained_on72": true,
+    "canonical_bytes_unchanged": true,
+    "all_own_storage_processes_actual_out": true,
+    "no_GPU_PPO_or_budget_writer": true
+  },
+  "current_stage": "H1_STEP270_REWARD_BOUNDARY_REPAIR_RESOURCE_V23_20261022",
+  "current_run_id": "H1_REWARD_E3_RESOURCE_DEFERRED_ORIGINAL_1792677697786486500",
+  "owner": {
+    "pid": 481369,
+    "creation": 1792677697.72,
+    "argv": [
+      "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+      "-u",
+      "-B",
+      "/mnt/mod4_linux_durable_20261013/H1step270_reward_boundary_2210v23/owner/three_slot_finite_owner_v1.py"
+    ],
+    "root": "/mnt/mod4_linux_durable_20261013/H1step270_reward_boundary_2210v23/owner"
+  },
+  "node": {
+    "detached_pid": 481374,
+    "root": "/mnt/mod4_linux_durable_20261013/H1step270_reward_boundary_2210v23/h1",
+    "role": "node"
+  },
+  "worker": {
+    "pid": 481398,
+    "creation": 1792677701.07,
+    "exe": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python3.12",
+    "argv": [
+      "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+      "-u",
+      "-B",
+      "/mnt/mod4_linux_durable_20261013/H1step270_reward_boundary_2210v23/h1/h1_step270_production_worker_v1.py",
+      "--phase",
+      "production"
+    ]
+  },
+  "actual_GO": {
+    "learning_started_epoch": 1792677700.908458,
+    "save_deadline": 1792681300.908458,
+    "nominal_end_epoch": 1792681600.908458,
+    "max_parent_seconds": 3900,
+    "exit_headroom_seconds": 300,
+    "source_SHA": "a4ae3f80ffb6a4204d369f6d473fe6f14ce215076ba09ca1b8b18525abc1490d",
+    "source_native_CPU_SHA": null,
+    "source_CPU_SHA": "3882bb1e026bc96fc2d9fc0138748f0b0b37d7d6fd1797866b1fc1dc3c6aa4e3",
+    "source_qualification_kind": "closed_same_backend_reward_migration",
+    "original_owner_pid": 481369,
+    "original_owner_creation": 1792677697.72,
+    "run_id": "H1_REWARD_E3_RESOURCE_DEFERRED_ORIGINAL_1792677697786486500",
+    "actual_H1_prelaunch_v2_scope_admitted": false,
+    "actual_H1_step270_scope_admitted": true
+  },
+  "first_PPO": {
+    "epoch": 1792677920.6939194,
+    "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_boundary_2210v23/h1/job0/production/model_update1.pt",
+    "bytes": 16867963,
+    "SHA": "757ec4a83aeaa2e4dbe409d624b0733312b99d9c645acfb65cd0a7a6eabf56e1",
+    "phase": "production",
+    "updates": 1,
+    "actual17Adam_steps": [
+      698940
+    ],
+    "failed_partial_prefix": false
+  },
+  "qualified_source": {
+    "SHA": "a4ae3f80ffb6a4204d369f6d473fe6f14ce215076ba09ca1b8b18525abc1490d",
+    "bytes": 16868251,
+    "Adam": 698920,
+    "updates": 121,
+    "path": "/mnt/mod4_linux_durable_20261013/H1step270_reward_H1only_2210v20/h1/job0/production/model_update121.pt"
+  },
+  "installed_source_CPU": {
+    "epoch": 1792677696.9604352,
+    "passed_CPU_only": true,
+    "key": "h1",
+    "source_SHA": "a4ae3f80ffb6a4204d369f6d473fe6f14ce215076ba09ca1b8b18525abc1490d",
+    "all17Adam": 698920,
+    "actor9_critic8_all6STD_and_D0_D7_finite_CPU": true,
+    "manifest_SHA": "71fec434a2cc02509bd160fb109ecd1370efb769def1209b1e503ff642e51347",
+    "actual_RSL_sources": [
+      {
+        "path": "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/rsl_rl/runners/on_policy_runner.py",
+        "SHA": "39358a0a60219fdb360df7acddf80f6a382837aa58e2ec0ccf875df4afee4825"
+      },
+      {
+        "path": "/home/egde/anaconda3/envs/fangzhen-isaaclab/lib/python3.12/site-packages/rsl_rl/algorithms/ppo.py",
+        "SHA": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+      }
+    ],
+    "actual_SDK_math": {
+      "path": "/home/egde/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/utils/math.py",
+      "SHA": "4ae6fe19d9b18c2747bf6546dc72f75cfe497ee2ba6046e95fabbeb33d958d33"
+    },
+    "actual_optimizer_saved_LR": 0.0008649755859375004,
+    "no_GPU_native_optimizer_or_GO": true,
+    "new_reward_integration_CPU": {
+      "passed": true,
+      "actual_runtime_class_CPU_callbacks": 400,
+      "strict_events": {
+        "takeoff": 1,
+        "landing": 1,
+        "recovery": 1
+      },
+      "strict_270mm_and_200callback_stability_preserved": true,
+      "reset_no_free_progress": true,
+      "actual_SDK_reward_compute_SHA": "6be44a98df5aed8a0ebac2913ebea33010633e007e816697a6d99f7ccfd731db",
+      "known_path2_forward_rate3_control_reward": 2.0299999713897705,
+      "no_Kit_PhysX_scene_actor_optimizer_RNG_or_GPU": true,
+      "synthetic_not_skill_evidence": true
+    },
+    "boundary_repair_integration_CPU": {
+      "passed": true,
+      "actual_installed_boundary_function_CPU": true,
+      "all_other_runtime_AST_exact": true,
+      "missing_queries_still_rejected_no_flat_fallback": true,
+      "ordinary_per_environment_exit_only": true,
+      "no_Kit_PhysX_GPU_actor_optimizer_RNG": true,
+      "not_future_GPU_success": true
+    },
+    "reward_runtime_SHA": "0ec7db1fc55ca0d552341e24237048a916d1cbb6b125905eb22b0001b60a8e34",
+    "reward_module_SHA": "d0f937e840790ddf0602974ff0dca8e5e3183365a6ca2d3afe92a1cdd112bc44"
+  },
+  "current_E3_resource": {
+    "epoch": 1792677501.6464555,
+    "RAM_available_bytes": 499214893056,
+    "RAM8_passed": true,
+    "durable_free_bytes": 29796720640,
+    "disk25_passed": true,
+    "expected_GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+    "GPU_free_MiB": 23595,
+    "GPU7000_passed": true,
+    "expected_GPU_empty": false,
+    "allocation_count_on_expected_GPU": 1,
+    "unknown_peer_identity_not_queried": true,
+    "pair19_remote_root_exists": false,
+    "no_mutation_GPU_evaluation_model_or_budget_write": true
+  },
+  "current_mode_paired": false,
+  "E3_no_GO_or_fee": true,
+  "next24_only_AST": true,
+  "no_skill_or_future_FINAL_claim": true
+}

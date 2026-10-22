@@ -1,0 +1,12 @@
+from pathlib import Path
+import ast,hashlib,json,time
+T=Path(__file__).resolve().parent;R=T/'reports';N=T/'H1_STEP270_E3_PAIR_V10_20261022';old=T/'H1_STEP270_E3_COMMAND_AUDIT_PAIR_V9_20261022/relocate_remaining_actual_closed_pair9_H1_peer_TLS_V100_V2_bounded_once.py'
+s=old.read_text('utf8').replace('PEER_TLS_REMAINING_V100_V2_','PEER_TLS_REMAINING_V101_').replace('REMAINING_V100_V2_PEER_FORENSICS_','REMAINING_V101_PEER_FORENSICS_')
+needle="        c=d.connect72(secret);d.code(c,d.PY72,ops.INSTALL,dict(root=ROOT72,parent='/home/lc01/Zonglin Li/zonglin2/forensic_originals'),timeout=30)\n";assert s.count(needle)==1
+extra="        put('REMAINING_V101_PEER_FORENSICS_TARGET_CAPACITY_SNAPSHOT_ACTUAL.json',d.code(c,d.PY72,\"import json,shutil,time;u=shutil.disk_usage(v['root']);print(json.dumps(dict(epoch=time.time(),target_total=u.total,target_free=u.free,planned_bytes=v['planned'],original_target_reserve_bytes=25*1024**3,projected_free_after_this_batch=u.free-v['planned'],snapshot_not_future_guarantee=True,no_new_guard=True)))\",dict(root=ROOT72,planned=inv['total_bytes']),timeout=30))\n"
+s=s.replace(needle,needle+extra);ast.parse(s);p=N/'relocate_remaining_actual_closed_pair10_H1_peer_TLS_V101_bounded_once.py';p.open('x',encoding='utf8').write(s)
+read=lambda p:json.loads(Path(p).read_bytes());proof=read(N/'reports/PAIR_COMPLETE_MODELS_AND_ORIGINAL_COST_CPU_ACTUAL.json');base=N/'current_pair_closed_text/h1';health=read(next(base.rglob('CLOCK_TRAINING_HEALTH.json')));stop=read(next(base.rglob('OWN_STORAGE_OR_UPDATE_BOUND_SAVED_STOP_ACTUAL.json')))
+assert proof['passed'] and proof['original_canonical_cost_settled']
+v=dict(epoch=time.time(),complete113_H1_and77_E3_CPU_passed=True,health=health,original_storage_savedstop=stop,H1_current_episode_snapshot=proof['models']['h1']['H1_current_episode_snapshot'],snapshot_not_whole_window_or_formal_frozen_evaluation=True,known_reference_floor_world_z=0.0,no_new_270mm_graduation_claim=True,remaining_storage_unused_source=str(p),remaining_storage_SHA=hashlib.sha256(p.read_bytes()).hexdigest(),only_remaining_closed_producer_files_up_to20GiB=True,skip_already_relocated_no_retransfer=True,target_disk_snapshot_only_no_new_threshold=True,no_new_GPU_native_query_or_protocol_CPU=True)
+with (R/'V101_H1_COMPLETE113_HEALTH_EPISODE_SNAPSHOT_REMAINING_STORAGE_SOURCE_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(v,f,indent=2)
+print(json.dumps(dict(complete113=True,non_gating_episode_snapshot=True,new_remaining_storage_unused=True)))

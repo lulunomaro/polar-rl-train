@@ -1,0 +1,15 @@
+from pathlib import Path
+import ast,hashlib,json,re,time
+T=Path(r'C:/Users/lulu/Desktop/claude/mjcf/MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021');P=T/'H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V52_20261024';N=T/'H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V53_20261024';B=T/'H1_STEP270_REWARD_PATH_V1_20261022'
+s=(P/'relocate_missing_closed43_45_after_closed52_TLS_V4_once.py').read_text('utf8');mapping={'CLOSED52_OLD43_44':'CLOSED53_OLD42_47','CLOSED52_OLD43_45':'CLOSED53_OLD42_47','CLOSED52':'CLOSED53','RESOURCE_V43_20261023':'RESOURCE_V42_20261023','RESOURCE_V45_20261023':'RESOURCE_V47_20261023',"('43' if batch==0 else '45')":"('42' if batch==0 else '47')"};pat=re.compile('|'.join(re.escape(x) for x in sorted(mapping,key=len,reverse=True)));s=pat.sub(lambda m:mapping[m[0]],s)
+a=s.index(' for stage in stages:');b=s.index(" assert read(T/'reports/V96_",a)
+s=s[:a]+''' for stage in stages:
+  h1only=(stage/'reports/H1_ONLY_COMPLETE_MODEL_ORIGINAL_COST_CPU_ACTUAL.json').is_file()
+  oldp=read(stage/'reports'/('H1_ONLY_COMPLETE_MODEL_ORIGINAL_COST_CPU_ACTUAL.json' if h1only else 'PAIR_COMPLETE_MODELS_AND_ORIGINAL_COST_CPU_ACTUAL.json'));assert oldp['passed'] and oldp['all_owner_nodes_children_actual_out'] and oldp['original_canonical_cost_settled']
+  oq=read(stage/'reports'/('H1_ONLY_ORIGINAL_ACCOUNT_DETACHED_ACTUAL.json' if h1only else 'PAIR_ORIGINAL_ACCOUNT_DETACHED_ACTUAL.json'));sources.append(dict(source_root=oq['roots']['h1'],owner_root=oq['owner_root'],private_lock=oq['specs']['h1']['private_lock'],stage=stage.name))
+'''+s[b:]
+m=json.loads((N/'payloads/h1/THREE_SLOT_COMPLETE_MANIFEST_V1.json').read_bytes());known=sum(x['bytes'] for x in m['files']);planning=known+16*1024**2;s=s.replace('63469820',str(known)).replace('80247036',str(planning));ast.parse(s)
+p=N/'relocate_missing_closed42_47_after_closed53_TLS_V4_once.py';assert not p.exists();p.write_text(s,'utf8');assert 'CLOSED53_OLD42_47_MINIMAL_VERIFIED' in s
+w=(B/'same_authorized_session_compressed_transport_v26.py').read_text('utf8');anchor="        'relocate_missing_closed43_45_after_closed52_TLS_V4_once.py',";assert w.count(anchor)==1;w=w.replace(anchor,anchor+"\n        '"+p.name+"',");ast.parse(w);wp=B/'same_authorized_session_compressed_transport_v27.py';assert not wp.exists();wp.write_text(w,'utf8')
+with (N/'reports/CLOSED53_OLD42_47_MISSING_ONLY_SOURCE_AST_AND_COPY_PLANNING_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),helper=str(p),helper_SHA=hashlib.sha256(p.read_bytes()).hexdigest(),source_clone=str(P/'relocate_missing_closed43_45_after_closed52_TLS_V4_once.py'),old42_H1only_old47_paired=True,aggregate_filename_matches_sources=True,known_H1_manifest_bytes=known,install_copy_planning_bytes=planning,copy_planning_not_training_gate=True,minimum_file_count_then_bytes=True,unselected_stat_only=True,TLS_source_unchanged=True,wrapper_adds_only_exact_basename=True,no_training_or_budget_mutation=True,not_executed_yet=True),f,indent=2)
+print(json.dumps({'helper':str(p),'known_bytes':known,'planning_bytes':planning}))

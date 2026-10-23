@@ -1,0 +1,9 @@
+Human request: continue replay of the current H1 vehicle and repair why it cannot jump onto the270mm step. The human explicitly clarified that “h3” means this H1 vehicle.
+
+New measured source: closed pair31 stochastic PPO prefixes117/118,48 control frames/.48s, not a frozen FINAL re-evaluation or physical-callback replay. Same-source USD kinematics show248mm lower wheel-bottom height while still329mm from the step in case10042, and only4mm wheel-bottom height at42mm gap in case2887. All20k recorded request frames have world-vx median .08447m/s. Selection and joint-order reconstruction limits are retained in full reports.
+
+The scalar reward repair makes reverse world-vx negative; adds a carrying bonus only when both actual wheels are raised and the trailing front advances near the edge; and multiplies the original positive push-vz reward by actual forward speed and a measured approach gate. Existing measured flight may retain forward reward after the short public request. It changes no command publisher, actor input, physics, action, success criteria, STD/Adam state, PPO or accounting.
+
+New CPU checks cover20k float32 cases, the actual400-callback task class, exact SDK RewardManager.compute and configured original SCUT push-wrapper. The stale2.03 fixture expectation, corrected2.09 expectation, import/path/permission and counterfactual eligibility errors are preserved. No CPU or first-PPO result is skill proof. Installed source checks and actual GO/PPO receipts are separate, recorded only when they exist.
+
+This unique annotated trial records the concrete human authorization, diagnosis, final reward/checker sources and CPU evidence. The immediate ordinary followup preserves the full text/source/error/cost/deployment/handoff collection, original1423 tag objects and peels. Binary originals stay at producer paths, with known producer SHA indexes; no archival model/raw rehash, GPU replay or ledger change.

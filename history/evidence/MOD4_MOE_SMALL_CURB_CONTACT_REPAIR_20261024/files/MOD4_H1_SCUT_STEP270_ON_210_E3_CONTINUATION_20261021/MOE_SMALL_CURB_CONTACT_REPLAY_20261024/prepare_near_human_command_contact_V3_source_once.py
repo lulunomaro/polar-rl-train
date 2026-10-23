@@ -1,0 +1,17 @@
+from pathlib import Path
+import ast,json,time
+D=Path(__file__).resolve().parent;T=D.parent;R=D/'reports'
+def write(p,s):
+ ast.parse(s)
+ with p.open('x',encoding='utf8') as f:f.write(s)
+v=json.loads((R/'4090_SMALL_CURB_V2_FROZEN_FINITE_RETURNED_ACTUAL.json').read_bytes());assert v['actual_returncode']==0 and v['actual_child_waited'] and v['own_eval_lock_released'] and len(v['final']['cases'])==6
+s=(D/'small_curb_actual_contact_worker_v2.py').read_text('utf8');assert s.count('for target in (.6,1.2):')==1;s=s.replace('for target in (.6,1.2):','for target in (.65,.8,1.0):').replace("B/'CONFIG_V2.json'","B/'CONFIG_V3.json'").replace('all6_initial_physical_states_literal_SHA_equal','all9_initial_physical_states_literal_SHA_equal')
+s=s.replace('*data.actuator_velocity.copy()])','*data.actuator_velocity.copy(),*data.qfrc_constraint[:6].copy(),*data.qfrc_actuator[:6].copy(),*data.qfrc_passive[:6].copy()])')
+s=s.replace("+[f'actuator_velocity{i}' for i in range(6)],geometry_names=names","+[f'actuator_velocity{i}' for i in range(6)]+[f'base_qfrc_constraint{i}' for i in range(6)]+[f'base_qfrc_actuator{i}' for i in range(6)]+[f'base_qfrc_passive{i}' for i in range(6)],geometry_names=names")
+write(D/'small_curb_actual_contact_worker_v3.py',s)
+s=(D/'deploy_small_curb_contact_V2_4090_unused_once.py').read_text('utf8');s=s.replace('small_curb_actual_contact_worker_v2.py','small_curb_actual_contact_worker_v3.py').replace('4090_SMALL_CURB_V2_','4090_SMALL_CURB_V3_').replace('SMALL_CURB_V2_4090_PAYLOAD.zip','SMALL_CURB_V3_4090_PAYLOAD.zip').replace("local=D/'actual_contact_V2_4090'","local=D/'actual_contact_V3_4090'").replace('CONFIG_V2.json','CONFIG_V3.json').replace('MoE_small_curb_contact_4090_2410v2','MoE_small_curb_contact_4090_2410v3')
+s=s.replace("old=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MoE_small_curb_contact_4090_2410v1')","old=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MoE_small_curb_contact_4090_2410v2')").replace("prior['actual_returncode']==1","prior['actual_returncode']==0").replace('speeds_m_s=[.6,1.2]','speeds_m_s=[.65,.8,1.0]')
+write(D/'deploy_small_curb_contact_V3_4090_unused_once.py',s)
+wrapper=T/'H1_STEP270_REWARD_PATH_V1_20261022/same_authorized_session_compressed_transport_v18.py';s=wrapper.read_text('utf8');needle="        'deploy_small_curb_contact_V2_4090_unused_once.py',";assert s.count(needle)==1;write(wrapper.with_name('same_authorized_session_compressed_transport_v19.py'),s.replace(needle,needle+"\n        'deploy_small_curb_contact_V3_4090_unused_once.py',"))
+with (R/'V2_PARTIAL_BOUNCE_REPRODUCED_AND_NEW_COMMAND_NEIGHBOUR_V3_PROTOCOL_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),V2_rc=0,V2_primary_MuJoCo='3.14.0',V2_primary_ORT='1.30.0',V2_cases=v['final']['cases'],scope='V2 reproduced stronger lift/tilt for auto/W35 thanE0, but not original53.7degree manual fall. Human last command0.636 is one coarse packet, command history absent.',new_V3_speeds=[.65,.8,1.0],new_cases_only_no_repeat_V2_speeds=True,reason='Bracket the retained near0.636 manual command and moderately faster flat-route driving, retaining original route-end guard. Add actual base generalized constraint forces to check large opposing local contact forces without assuming they equal a net impact.',no_new_physics_reward_policy_training_or_local_sim=True,not_complete_human_replay=True),f,indent=2)
+print('New near-human command cases prepared; V2 not rerun')

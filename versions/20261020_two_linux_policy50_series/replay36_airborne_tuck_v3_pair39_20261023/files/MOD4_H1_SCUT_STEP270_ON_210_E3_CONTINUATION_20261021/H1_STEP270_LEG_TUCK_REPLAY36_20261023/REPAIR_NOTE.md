@@ -1,0 +1,7 @@
+# Closed36 replay and airborne leg-tuck reward V3
+
+The human requested continued real H1 replay and repair, then pointed out extended legs during flight. New closed36 prefixes113/114 show selected airborne cases around447mm body-to-wheel length despite positive old tuck shaping. The .5 weight is restored to the original1.7; the original measured length formula is used during actual flight after request expiry, and stops once both wheels crossed or landed. Forward reward, physics, commands, policy inputs, strict270mm contact/stability goal, six STD, all17Adam, saving and accounting remain unchanged.
+
+New eight-case and20kfloat32 CPU checks exercise the actual configured leg function and SDK.compute locally and on the installed target. Unchanged400callback/strict-event/forward-push/native/query evidence is reused. No learned skill is claimed from CPU or PPO.
+
+The first deployment38 failed before owner creation because the new proof reference directory was not copied. Both installed roots were verified out, canonical unchanged, no GO or new cost. New39 adds that directory copy. Its first metadata reader then rejected the correct1.7 using stale.5; that error is preserved, and a new missing-only reader verified both actual GO/positivePPO/UUID/exe/argv/create. No training restart or refund followed the reader error. All source, errors, CPU, full closed36 costs/health/retention, exact old11 five-file relocation, installed39 and future40 handoff are archived.

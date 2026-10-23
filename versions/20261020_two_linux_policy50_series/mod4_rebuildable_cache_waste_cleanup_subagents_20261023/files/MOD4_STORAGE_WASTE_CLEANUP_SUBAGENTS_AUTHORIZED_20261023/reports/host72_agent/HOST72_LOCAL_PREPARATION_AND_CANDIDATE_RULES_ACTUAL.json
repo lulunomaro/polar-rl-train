@@ -1,0 +1,61 @@
+{
+  "stage": "storage-waste-cleanup-subagents-authorized-20261023",
+  "agent": "cleanup_72_storage_this_turn",
+  "scope": "Only this turn. Root dispatches remote audit sequentially through the authorized pinned transport. This child has made no host connection, mutation or deletion.",
+  "policy_sources_read": [
+    "C:/Users/lulu/Desktop/claude/mjcf/AGENTS.md",
+    "C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/AGENTS.md",
+    "C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/docs/ALL_TRIALS_AND_REPORTS_GIT_POLICY.md"
+  ],
+  "audit_source": "C:/Users/lulu/Desktop/claude/mjcf/MOD4_STORAGE_WASTE_CLEANUP_SUBAGENTS_AUTHORIZED_20261023/reports/host72_agent/host72_readonly_waste_audit_remote.py",
+  "audit_status": "prepared_not_executed_by_child",
+  "max_remote_seconds": 85,
+  "known_root": "/home/lc01/Zonglin Li/zonglin2",
+  "safe_first_candidate_classes": [
+    {
+      "paths": ["pkgs", "miniconda3/pkgs", "anaconda3/pkgs", "miniforge3/pkgs", ".conda/pkgs"],
+      "candidate": "Regular downloaded .conda and .tar.bz2 archives, if fresh audit proves the files exist in a package cache and are not linked into or referred to as experiment/source artifacts.",
+      "proof_needed": "Canonical path contained within the intended root, non-symlink regular file, exact metadata unchanged since intent, package-cache context, age or live-write exclusion, nlink and allocated blocks. Delete archives only; never entire package cache or extracted package directories.",
+      "expected_release_bytes": null,
+      "risk": "Extracted conda package directories can contain hardlinks or symlinks used by installed environments; they are protected in this task. Filename alone does not prove trash."
+    },
+    {
+      "paths": [".cache/pip", "cache/pip", "pip-cache", ".cache/uv", "cache/uv"],
+      "candidate": "Rebuildable pip HTTP/wheel cache bytes only, after current existence and cache semantics are verified.",
+      "proof_needed": "Exact contained regular-file list, no installed site-packages path, no experiment raw/model/asset source, no active writer evidence, per-file metadata and actual allocated blocks.",
+      "expected_release_bytes": null,
+      "risk": "Future package downloads may be required. Unknown archives outside a verified cache are not eligible from their extension alone."
+    },
+    {
+      "paths": ["root or tasks top-level package archives", "known exited TLS controller staging"],
+      "candidate": "Only immutable staging packages already represented by complete unpacked or producer-verified copies, or temporary controller residue proven to be useless after its own terminal receipt.",
+      "proof_needed": "Exact producer identity and content manifest, fully retained substitute, actual creator/process exit, no unique raw/model/source/error/fulltext/log/cost, no current task dependence. Any missing proof means retain.",
+      "expected_release_bytes": null,
+      "risk": "Numerous task packages are historical source/input evidence. A duplicated filename, old mtime, closed task or existing INDEX is insufficient."
+    }
+  ],
+  "hard_protection": [
+    "All forensic_originals including signed-ack TLS target originals (many are now the only original bytes).",
+    "Every FINAL, qualified or failed model/source, raw NPZ/preupdate not separately within explicit approved retention, native evaluation, errors, fulltext, logs, cost and immutable audit receipts.",
+    "Installed envs/mod4, compat/glibc240 and SDK/assets/runtime trees.",
+    "Unknown peer identities, PID/argv, locks, process signals and budget/canonical writers.",
+    "Consumed V112 cleanup and all earlier cleanup/TLS batches; no repeat deletion, retransmission or raw/PT rehash."
+  ],
+  "old72_cleanup_scope": {
+    "status": "already_consumed_not_candidate",
+    "explicit_scope": "15 old complete windows and 164 immutable input duplicates",
+    "released_bytes": 256202215424,
+    "removed_middle_files_irrecoverable": 1450,
+    "retained_associated_files": 90,
+    "audit_JSON_count": 1619,
+    "not_reaudited_or_rerun": true
+  },
+  "local_observed_error_preserved": {
+    "command": "rg --files -g '*72*inventory*.py' -g '*72*readonly*.py' -g '*storage*readonly*.py' -g '*closed_tasks*'",
+    "actual_stderr": "rg: ./rmuc2026_work\\unpack_verify_4zomhj13: 拒绝访问。 (os error 5)",
+    "scope": "Local path inventory permission error only; unrelated to training and no remote call."
+  },
+  "current_existence_or_reclaimable_capacity_claimed": false,
+  "credentials_accessed_or_logged": false,
+  "Git_status": "pending root stage archive; all this child saved reports and source must be included"
+}

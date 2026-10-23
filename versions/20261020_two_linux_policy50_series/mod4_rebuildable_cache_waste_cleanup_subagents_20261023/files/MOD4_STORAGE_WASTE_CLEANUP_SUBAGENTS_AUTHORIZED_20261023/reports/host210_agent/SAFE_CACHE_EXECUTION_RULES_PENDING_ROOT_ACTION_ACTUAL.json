@@ -1,0 +1,19 @@
+{
+  "schema": "host210_safe_cache_execution_rules_v1",
+  "execution_authority": "Human explicitly requested this turn's agents to inspect and clear useless storage waste. Root performs the single finite remote operation; this agent does not SSH or delete.",
+  "whitelisted_cache_archive_roots": ["/mnt/mod4_linux_durable_20261013/anaconda/pkgs", "/home/egde/anaconda3/pkgs"],
+  "whitelisted_pip_cache_root": "/home/egde/.cache/pip",
+  "required_before_each_unlink": [
+    "Root and all target ancestors resolve inside their intended exact cache directory, with no symlink traversal or filesystem crossing.",
+    "Target is an exact listed regular file, not a directory or symlink, with same device, inode, size, nlink=1, mtime_ns, mode, uid and gid as fresh metadata intent.",
+    "Complete conda .conda/.tar.bz2 archive is a direct child of a known conda package-cache directory; urls.txt is a regular sentinel and only URL path basename is matched in memory. Never print/save URL content.",
+    "mtime is at least 24 hours old at execution; future timestamps or files changed under 24 hours stay protected.",
+    "Fresh limited owner cache-use check if available; do not query unknown peer identities or scan process argv. If use cannot be excluded for a modified/recent file, leave it.",
+    "Immutable exact intent includes before stat and deletion rationale; per-target result records unlink success/error and post-absence without rerunning consumed cleanup.",
+    "Measure statvfs before/after by filesystem. Candidate sizes are estimates; only actual free-byte delta is actual release. Never add home-device release to durable-device release."
+  ],
+  "never_select": [".part/.partial/.download/.tmp without separately completed-source proof", "unpacked conda package directories/files", "installed env files", "training checkpoints/FINAL/raw/source/error/fulltext/log/cost/budget", "current43/future44 roots", "unknown datasets/applications or Recycle Bin originals", "symlinks or nlink>1"],
+  "read_only_missing_metadata_source": "remote_210_cache_missing_direct_archives_metadata_v2.py",
+  "existing_candidate_plan": "EXACT_CACHE_CANDIDATES_PENDING_FRESHSTAT_EXECUTION_ACTUAL.json",
+  "delete_executed_by_this_agent": false
+}

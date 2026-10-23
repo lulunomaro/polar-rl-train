@@ -1,0 +1,38 @@
+{
+  "epoch": 1792766518.4509783,
+  "passed": true,
+  "scope": "Forward-only complete text index format, not training or retention GPU/native/query audit",
+  "source": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\versions\\20261020_two_linux_policy50_series\\current_clearance_v4_closed46_pair47_20261023\\COMPLETE_FILE_CAPTURE_INDEX.json",
+  "source_bytes": 86468238,
+  "source_SHA": "e385e9dd544ac3a5bcba9bd3c459703fc88093e77f7af8a90701763d77349468",
+  "complete_entries": 89869,
+  "all_original_JSON_values_exact_after_reassembly": true,
+  "full_ordered_UTF8_parts": [
+    {
+      "bytes": 24000000,
+      "SHA": "a2563d0d55b83143f2ff9998a50ae70082a2a9489f1b1b5399a21d24576f7eca"
+    },
+    {
+      "bytes": 24000000,
+      "SHA": "e0b8679c0ef34d162d16f3e1057afce584e50fe32ed6d3d0f9c3f3f73bc2142e"
+    },
+    {
+      "bytes": 24000000,
+      "SHA": "6c84ff24bd2d84824dff628a85f47bd8a087e14426e0411386466aeb6d84134b"
+    },
+    {
+      "bytes": 14468238,
+      "SHA": "d77b3007e5ae72b6f7fb7b6d066eb0b63894cdbd9b3379ca4f7f8b1fcf00c642"
+    }
+  ],
+  "corrupt_missing_reordered_parts_rejected": {
+    "reversed": true,
+    "missing": true,
+    "changed": true
+  },
+  "algorithm_source": "def index_parts(raw,maximum=24000000):\n    result=[];offset=0\n    while offset<len(raw):\n        end=min(offset+maximum,len(raw))\n        while end<len(raw) and raw[end]&0xc0==0x80:end-=1\n        assert end>offset\n        block=raw[offset:end];block.decode('utf8');result.append(block);offset=end\n    return result\n\ndef reassemble_index(parts,rows,total,sha):\n    assert len(parts)==len(rows)\n    joined=hashlib.sha256();data=[];size=0\n    for block,row in zip(parts,rows):\n        assert len(block)==row['bytes'] and hashlib.sha256(block).hexdigest()==row['SHA']\n        block.decode('utf8');joined.update(block);size+=len(block);data.append(block)\n    assert size==total and joined.hexdigest()==sha\n    return json.loads(b''.join(data))\n",
+  "legacy_plain_JSON_unchanged": true,
+  "no_existing_Git_file_or_object_write": true,
+  "no_model_raw_GPU_host_or_ledger_read": true,
+  "no_new_training_gate": true
+}

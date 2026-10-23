@@ -1,0 +1,73 @@
+{
+  "epoch": 1792739509.3013222,
+  "finding": "V3 leg shaping uses existing goal air_ticks>0 but omits the stricter current wheel-height clause already used by runtime airborne. Recorded strongest contraction examples are near floor in kinematic visualization and have force history, so after-request positive shaping alone is not evidence of useful airborne tucking.",
+  "examples": [
+    {
+      "env_id": 13253,
+      "frame": 41,
+      "recorded_5ms_force_norm_N": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          130.1931610107422,
+          183.5152587890625
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "recorded_world_vz": -0.004146742634475231,
+      "request": false
+    },
+    {
+      "env_id": 18844,
+      "frame": 41,
+      "recorded_5ms_force_norm_N": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          251.45950317382812,
+          130.63209533691406
+        ],
+        [
+          27.8474063873291,
+          0.0
+        ]
+      ],
+      "recorded_world_vz": -0.17754724621772766,
+      "request": false
+    },
+    {
+      "env_id": 971,
+      "frame": 43,
+      "recorded_5ms_force_norm_N": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          43.83810043334961,
+          116.92191314697266
+        ]
+      ],
+      "recorded_world_vz": -0.061933960765600204,
+      "request": false
+    }
+  ],
+  "existing_runtime_airborne_wheel_bottom_predicate": "(lo[:,:,2]>.005).all(-1)",
+  "existing_goal_air_counter_continuous_not_cumulative": true,
+  "goal_air_counter_resets_on_support_but_latest5ms_mean_can_be_zero_at_near_ground_contact": true,
+  "not_a_1um_query_or_new_FP64_gate": true,
+  "repair_scope": "Reward-only reuse of the existing current both-wheel>5mm clause from last_measured step_wheel_min, with original1.7/.22 formula and release-at-crossed/landed retained. No runtime/goal/physics change.",
+  "first_v3_diagnosis_and_CPU_coverage_limits_preserved": true,
+  "no_original_raw_or_model_reread": true
+}

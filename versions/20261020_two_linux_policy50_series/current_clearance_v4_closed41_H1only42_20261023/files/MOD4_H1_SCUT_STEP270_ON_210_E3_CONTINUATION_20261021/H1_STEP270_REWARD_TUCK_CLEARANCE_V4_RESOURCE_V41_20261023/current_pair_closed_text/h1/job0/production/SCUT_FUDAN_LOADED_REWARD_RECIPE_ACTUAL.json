@@ -1,0 +1,106 @@
+{
+  "profile": {
+    "version": "scut_fudan_jump_reward_v1",
+    "tuck_leg_length_m": 0.22,
+    "extend_leg_length_m": 0.31,
+    "leg_exp_l1_gain": 4.0,
+    "zero_wheel_torque_sigma": 1.5,
+    "Fudan_weighted_rate_clip": 2.5,
+    "weights": {
+      "push_vz": 1.0,
+      "flight_vz": 6.0,
+      "flight": 0.15,
+      "leg_tuck": 1.7,
+      "takeoff_extend": 0.5,
+      "wheel_below_base": 2.0,
+      "air_wheel_zero_torque": 20.0,
+      "orientation": -25.0,
+      "angular_velocity_xy": -0.1
+    },
+    "geometry_adaptation": "body-to-wheel 3D lengths from actual MOD4 link poses; tuck .22 SCUT default, extend .31 Fudan target",
+    "no_assist_force_or_air_reset_or_privileged_actor_observation": true,
+    "flight_mask": "existing H1 air_ticks>0; measured both-wheel clearance, all34 clearance, nonwheel clean and positive-vz history; no new success threshold",
+    "active_scope": "H1 public4 request rows with an actual ready attempt; every normal action row retains its original reward"
+  },
+  "actual_loaded_terms": [
+    {
+      "name": "ang_vel_xy",
+      "weight": -0.05,
+      "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+      "params": "{'original_func': <function ang_vel_xy_jump_exempt at 0x70f140238c20>, 'original_params': {}}"
+    },
+    {
+      "name": "flat_orientation_y",
+      "weight": -1.0,
+      "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+      "params": "{'original_func': <function orientation at 0x70f1402396c0>, 'original_params': {'mode': 'pitch'}}"
+    },
+    {
+      "name": "flat_orientation_y_v",
+      "weight": -1.0,
+      "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+      "params": "{'original_func': <function orientation at 0x70f1402396c0>, 'original_params': {'mode': 'pitch_velocity'}}"
+    },
+    {
+      "name": "flat_orientation_x_v",
+      "weight": -1.0,
+      "func": "h1_scut_fudan_jump_reward_v1.mask_replaced_jump_cost",
+      "params": "{'original_func': <function orientation at 0x70f1402396c0>, 'original_params': {'mode': 'roll_velocity'}}"
+    },
+    {
+      "name": "h1_scut_fudan_push_vz",
+      "weight": 1.0,
+      "func": "h1_step270_path_reward_v1.forward_takeoff_rate",
+      "params": "{'original_func': <function measured_reward at 0x70f140058860>, 'original_params': {'name': 'push_vz'}}"
+    },
+    {
+      "name": "h1_scut_fudan_flight_vz",
+      "weight": 0.0,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'flight_vz'}"
+    },
+    {
+      "name": "h1_scut_fudan_flight",
+      "weight": 0.0,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'flight'}"
+    },
+    {
+      "name": "h1_scut_fudan_leg_tuck",
+      "weight": 1.7,
+      "func": "h1_step270_path_reward_v1.airborne_tuck_rate",
+      "params": "{}"
+    },
+    {
+      "name": "h1_scut_fudan_takeoff_extend",
+      "weight": 0.0,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'takeoff_extend'}"
+    },
+    {
+      "name": "h1_scut_fudan_wheel_below_base",
+      "weight": 0.5,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'wheel_below_base'}"
+    },
+    {
+      "name": "h1_scut_fudan_air_wheel_zero_torque",
+      "weight": 0.5,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'air_wheel_zero_torque'}"
+    },
+    {
+      "name": "h1_scut_fudan_orientation",
+      "weight": -25.0,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'orientation'}"
+    },
+    {
+      "name": "h1_scut_fudan_angular_velocity_xy",
+      "weight": -0.1,
+      "func": "h1_scut_fudan_jump_reward_v1.measured_reward",
+      "params": "{'name': 'angular_velocity_xy'}"
+    }
+  ],
+  "no_new_actor_input": true
+}

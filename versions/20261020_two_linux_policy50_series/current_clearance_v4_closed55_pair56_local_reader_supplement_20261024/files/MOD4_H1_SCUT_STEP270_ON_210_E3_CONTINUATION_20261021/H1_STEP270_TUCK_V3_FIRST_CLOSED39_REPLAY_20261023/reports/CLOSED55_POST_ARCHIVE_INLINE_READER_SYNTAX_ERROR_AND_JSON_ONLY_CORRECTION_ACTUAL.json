@@ -1,0 +1,58 @@
+{
+  "epoch": 1792799379.0421445,
+  "original_inline_source": "from pathlib import Path\nimport json\nT=Path('MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021');P=T/'H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V55_20261024';N=T/'H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V56_20261024';O=T/'H1_STEP270_TUCK_V3_FIRST_CLOSED39_REPLAY_20261023'\nr=lambda p:json.loads(p.read_bytes());p=r(P/'reports/PAIR_COMPLETE_MODELS_AND_ORIGINAL_COST_CPU_ACTUAL.json');a=r(N/'reports/PAIR_ACTUAL_GO_POSITIVE_PPO_UUID_CREATE_ARGV_VERIFIED_ACTUAL.json');h=r(O/'reports/CURRENT_CLEARANCE_TUCK_V4_CURRENT55_CLOSED_HEALTH_RETENTION_EPISODE_CPU_ACTUAL.json')\nprint(json.dumps(dict(models={k:dict(updates:v['updates'],Adam:v['Adam'],SHA:v['final']['SHA'],actual_cost:v['actual_cost']) for k,v in p['models'].items()},actual_cost_sumonce=p['actual_cost_sumonce'],remaining_closure_snapshot=p['remaining_actual_snapshot'],health={k:h['health'][k] for k in ('control_steps','actual_physics_callbacks','expected_physics_callbacks','unknown_task_reset_events','integrity_task_reset_events','stop_reason')},runid=a['run_id'],h1_first=a['source210']['current']['rows']['h1']['latest_save']['updates'],e3_first=a['source72']['latest_save']['updates'],gate_epoch=max(x['nominal_end_epoch'] for x in a['source210']['current']['go'].values())-900)))\n",
+  "original_stderr_verbatim_tool_return": "  File \"<stdin>\", line 5\n    print(json.dumps(dict(models={k:dict(updates:v['updates'],Adam:v['Adam'],SHA:v['final']['SHA'],actual_cost:v['actual_cost']) for k,v in p['models'].items()},actual_cost_sumonce=p['actual_cost_sumonce'],remaining_closure_snapshot=p['remaining_actual_snapshot'],health={k:h['health'][k] for k in ('control_steps','actual_physics_callbacks','expected_physics_callbacks','unknown_task_reset_events','integrity_task_reset_events','stop_reason')},runid=a['run_id'],h1_first=a['source210']['current']['rows']['h1']['la\n                                                ^\nSyntaxError: invalid syntax\n",
+  "original_returncode": 1,
+  "original_error_scope": "SyntaxError from colons in dict keyword arguments; parse failed before reading any report",
+  "no_original_host_query_or_model_read_or_budget_change": true,
+  "corrected_reader_source": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_TUCK_V3_FIRST_CLOSED39_REPLAY_20261023\\reports\\capture_post_archive_closed55_inline_reader_error_and_summary_CPU_once.py",
+  "corrected_reader_SHA": "4616dbcb18993282ec8b864d904d9606716d1b0a4ad489ad54b9b66b9d00a887",
+  "corrected_summary_from_existing_JSON": {
+    "models": {
+      "h1": {
+        "updates": 114,
+        "Adam": 761980,
+        "SHA": "dc47936facca862d2b3c395afef9b248118e0714dbe0c845051bc0312be2b4f0",
+        "actual_cost": {
+          "started_epoch": 1792794692.4382327,
+          "accounted_through_epoch": 1792798328.7331715,
+          "charged_seconds": 3636.294938802719,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792798328.7331715,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      },
+      "recovery": {
+        "updates": 75,
+        "Adam": 819040,
+        "SHA": "e8a91b4bdcf0ad62b1c42e64d751215c03c360fd5967048d39b9c9f13a1a173d",
+        "actual_cost": {
+          "started_epoch": 1792794692.4564512,
+          "accounted_through_epoch": 1792798328.7353919,
+          "charged_seconds": 3636.278940677643,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1792798328.7353919,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      }
+    },
+    "actual_cost_sumonce": 7272.573879480362,
+    "remaining_closure_snapshot": 140397.05792164803,
+    "health": {
+      "control_steps": 2736,
+      "actual_physics_callbacks": 10944,
+      "expected_physics_callbacks": 10944,
+      "unknown_task_reset_events": 0,
+      "integrity_task_reset_events": 0,
+      "stop_reason": null
+    },
+    "runid": "H1_STEP270_RECOVERY_ORIGINAL_1792798593937165100",
+    "h1_first": 1,
+    "e3_first": 1,
+    "gate_epoch": 1792801597.0632343
+  },
+  "not_new_training_or_rollout": true,
+  "needs_same_phase_ordinary_supplement": true
+}

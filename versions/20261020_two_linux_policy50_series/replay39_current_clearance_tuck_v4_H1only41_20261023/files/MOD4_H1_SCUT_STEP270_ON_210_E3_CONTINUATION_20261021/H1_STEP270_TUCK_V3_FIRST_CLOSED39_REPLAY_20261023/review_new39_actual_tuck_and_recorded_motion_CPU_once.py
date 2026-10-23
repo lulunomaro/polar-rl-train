@@ -1,0 +1,24 @@
+from pathlib import Path
+import json,time,traceback
+import numpy as np
+D=Path(__file__).resolve().parent;R=D/'reports';rd=lambda p:json.loads(Path(p).read_bytes())
+def put(n,v):
+    with (R/n).open('x',encoding='utf8') as f:json.dump(v,f,ensure_ascii=False,indent=2)
+try:
+    s=rd(R/'EXTRACTION_SOURCE_CPU_ACTUAL.json');g=rd(R/'RECORDED_USD_KINEMATICS_CPU_ACTUAL.json');names=g['body_names']
+    with np.load(D/'SELECTED_RECORDED_MOTION.npz',allow_pickle=False) as z,np.load(D/'RECORDED_KINEMATIC_RECONSTRUCTION.npz',allow_pickle=False) as k:
+        pos=k['body_pose'][:,:,:,:3,3];delta=np.take(pos,[names.index('left_wheel'),names.index('right_wheel')],axis=2)-pos[:,:,None,0,:];L=np.linalg.norm(delta,axis=-1);req=z['public_request'].astype(bool);con=z['reward_term_contribution'][:,:,s['reward_terms'].index('h1_scut_fudan_leg_tuck')];positive=con>0;after=positive&~req
+        def quant(a):return {str(q):float(np.quantile(a,q)) for q in (0,.1,.5,.9,1)} if a.size else None
+        cases=[]
+        for c in g['case_summaries']:
+            e=c['column'];active=np.where(positive[:,e])[0]
+            if not len(active):continue
+            f=int(active[np.argmin(L[active,e].mean(-1))]);ap=c['apex_row'];start=L[0,e];compact=L[f,e]
+            cases.append(dict(c,first_body_to_axle_m=start.tolist(),minimum_mean_length_while_actual_tuck_paid=dict(frame=f,control=int(z['control_rows'][f]),body_to_axle_m=compact.tolist(),actual_weighted_tuck=float(con[f,e]),request=bool(req[f,e]),wheel_bottom_min_m=float(k['wheel_min'][f,e,:,2].min()),front_gap_m=float(.35-k['wheel_max'][f,e,:,0].min())),first_to_this_mean_length_reduction_m=float(start.mean()-compact.mean()),length_at_wheel_apex_m=L[ap,e].tolist(),actual_tuck_at_apex=float(con[ap,e]),actual_tuck_positive_frames=int(positive[:,e].sum()),actual_tuck_positive_after_request_frames=int(after[:,e].sum())))
+        retracted=sorted(cases,key=lambda c:c['first_to_this_mean_length_reduction_m'],reverse=True)[:3];compact=sorted(cases,key=lambda c:np.mean(c['minimum_mean_length_while_actual_tuck_paid']['body_to_axle_m']))[:3]
+        predicted=.017*np.exp(-4*np.abs(L-.22).sum(-1));errors=np.abs(predicted[positive]-con[positive])
+        summary=dict(epoch=time.time(),passed_descriptive_CPU=True,scope='New closed39 first tuckV3 complete window, prefixes117/118 only:48 recorded100Hz frames/.48s. All20k scalar/root statistics, selected continuous request-or-tuck-positive cases. Not full-window totals, frozen FINAL evaluation, matched old/new trial, or callback replay.',sources=s['sources'],selected_artifact=rd(R/'EXTRACTION_LOCAL_COMPLETE_SHA_ACTUAL.json'),kinematic_artifact=g['artifact'],full20k_recorded_request_world_vx_quantiles=s['requested_world_vx_m_s_quantiles'],actual_weighted_tuck_all20k=s['actual_weighted_reward_contributions']['h1_scut_fudan_leg_tuck'],recorded_event_positive_increments=s['recorded_event_counter_positive_increments'],selected_cases_count=len(g['case_summaries']),selected_actual_tuck_positive_frames=int(positive.sum()),selected_actual_tuck_positive_after_request_frames=int(after.sum()),selected_paid_frame_body_to_axle_3D_m_quantiles=quant(L[positive]),selected_after_request_paid_body_to_axle_3D_m_quantiles=quant(L[after]),selected_largest_recorded_length_reduction_cases=retracted,selected_most_compact_paid_cases=compact,selected_highest_wheel_cases=sorted(g['case_summaries'],key=lambda c:c['both_wheel_bottom_max_m'],reverse=True)[:3],reconstructed_formula_abs_difference_max=float(errors.max()) if errors.size else None,reconstructed_formula_comparison_not_new_training_gate=True,interpretation='Positive measured tuck contributions outside public request confirm that the new reward scope actually ran. The listed leg lengths and within-clip changes describe these selected samples only; they do not establish global learning improvement or successful270mm crossing/landing. No direct old/new case comparison or peak comparison is made.',joint_order_derived_not_fresh_PhysX_readback=True,no_original_old31_old36_raw_reread=True,no_new_policy_model_optimizer_RNG_PhysX_or_GPU=True)
+    put('FIRST_CLOSED39_ACTUAL_TUCK_AFTER_REQUEST_AND_KINEMATIC_SCOPE_CPU_ACTUAL.json',summary)
+    print(json.dumps(dict(tuck_scalar=s['actual_weighted_reward_contributions']['h1_scut_fudan_leg_tuck'],selected_positive=int(positive.sum()),selected_positive_after_request=int(after.sum()),length_quantiles=summary['selected_paid_frame_body_to_axle_3D_m_quantiles'],retracted_examples=[dict(env=x['env_id'],reduction_m=x['first_to_this_mean_length_reduction_m'],start=x['first_body_to_axle_m'],finish=x['minimum_mean_length_while_actual_tuck_paid']) for x in retracted],not_skill_PASS=True)))
+except BaseException:
+    put('NEW39_TUCK_REVIEW_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(error=traceback.format_exc()));raise

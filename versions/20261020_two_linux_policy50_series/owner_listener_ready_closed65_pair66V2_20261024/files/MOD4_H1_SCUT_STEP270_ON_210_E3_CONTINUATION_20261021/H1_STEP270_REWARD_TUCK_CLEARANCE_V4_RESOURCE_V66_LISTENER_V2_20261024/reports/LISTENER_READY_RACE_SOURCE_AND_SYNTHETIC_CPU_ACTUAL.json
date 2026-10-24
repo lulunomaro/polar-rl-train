@@ -1,0 +1,37 @@
+{
+  "epoch": 1792847529.7693374,
+  "passed_source_AST_and_three_synthetic_CPU_cases": true,
+  "original_failed_namespace": "H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V66_20261024",
+  "new_namespace": "H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V66_LISTENER_V2_20261024",
+  "old_deployer_SHA": "1f947977c4896cd1a2f94906272f9f9e151284eeb1528cdc00e01b9973138ef4",
+  "new_deployer_SHA": "24ff2cba1639cce9065dad58badfafdf9a116286442237522e89d46bace636b5",
+  "exact_old_remote_ready_code": "from pathlib import Path;import json,psutil,socket,time;B=Path(v['root']);until=time.monotonic()+20\nwhile not (B/'OWNER_IDENTITY.json').exists() and time.monotonic()<until:time.sleep(.1)\np=psutil.Process(v['pid']);assert str(B/'three_slot_finite_owner_v1.py') in p.cmdline()\nwith socket.create_connection(('10.24.4.210',29754),timeout=5):pass\nprint(json.dumps(dict(epoch=time.time(),owner=json.loads((B/'OWNER_IDENTITY.json').read_bytes()),actual_listener_ready=True)))",
+  "exact_new_remote_ready_code": "from pathlib import Path;import json,psutil,socket,time;B=Path(v['root']);until=time.monotonic()+20\nwhile not (B/'OWNER_IDENTITY.json').exists() and time.monotonic()<until:time.sleep(.1)\np=psutil.Process(v['pid']);assert str(B/'three_slot_finite_owner_v1.py') in p.cmdline()\nwhile True:\n try:\n  with socket.create_connection(('10.24.4.210',29754),timeout=5):pass\n  break\n except ConnectionRefusedError:\n  assert time.monotonic()<until,'Own owner listener not ready within original20second readiness boundary'\n  time.sleep(.1)\nprint(json.dumps(dict(epoch=time.time(),owner=json.loads((B/'OWNER_IDENTITY.json').read_bytes()),actual_listener_ready=True)))",
+  "only_paired_deployer_listener_refusal_wait_within_original20s": true,
+  "original_owner_accounting_and_nodes_unchanged": true,
+  "owner_identity_written_before_socket_bind_source_observed": true,
+  "actual_old_owner_expired_unregistered_no_GO_and_canonical_unchanged": true,
+  "old_error_reader_schema_correction_all_retained": true,
+  "CPU_cases": [
+    {
+      "synthetic_refusals": 0,
+      "calls": 1,
+      "bounded_expiry": false,
+      "passed": true
+    },
+    {
+      "synthetic_refusals": 2,
+      "calls": 3,
+      "bounded_expiry": false,
+      "passed": true
+    },
+    {
+      "synthetic_refusals": 100000,
+      "calls": 201,
+      "bounded_expiry": true,
+      "passed": true
+    }
+  ],
+  "no_network_policy_physics_GPU_or_training_execution": true,
+  "no_NEW_GO_or_budget_write_yet": true
+}

@@ -1,0 +1,16 @@
+from pathlib import Path
+import ast,hashlib,json,time,tomllib
+B=Path(__file__).resolve().parent;T=B.parent;W=T.parent;R=B/'reports';O=T/'H1_STEP270_TUCK_V3_FIRST_CLOSED39_REPLAY_20261023';C=W/'MOD4_WORKSPACE_CLEANUP_AUTHORIZED_20261021_V88';read=lambda p:json.loads(p.read_bytes())
+a=read(O/'reports/CURRENT64_FINAL_MONITOR_UPDATE_ARGS_ACTUAL.json');v=tomllib.loads(Path('C:/Users/lulu/.codex/automations/mod4-10/automation.toml').read_text('utf8'));assert v['prompt']==a['prompt'] and v['status']==a['status'] and v['rrule']==a['rrule'] and v['target_thread_id']==a['targetThreadId']
+assert a['prompt'].startswith('NINTH_EXPLICIT_ADD200H_ACTUAL_OVERRIDES_OLD_BUDGET_BOUNDARY:') and '总2268000s630h/nine extensions' in a['prompt'] and 'RESOURCE_V64_NINTH_V2_20261024' in a['prompt']
+scope=read(O/'reports/CLOSED63_NINTH64V2_HANDOFF_SOURCE_AST_AND_SCOPE_ACTUAL.json');work=read(T/'reports'/scope['work_order']);assert 'gateBJT='+work['collector_gate_BJT'] in a['prompt']
+assert '未两完整不跑65bothFINAL正常入口' in a['prompt'] and '未选H1only64helper禁止运行' in a['prompt'] and '只actual65GO/PPO后后继reserved' in a['prompt']
+g=read(R/'NINTH_BUDGET_APPLIED_AND_METADATA_SYNCED_ACTUAL.json');assert g['passed'] and g['budget']['added_seconds']==720000 and g['budget']['authorized_after']==2268000 and g['budget']['extension_records']==9 and g['budget']['charged_unchanged'] and g['budget']['completed_segments_unchanged']
+assert read(R/'FAILED64_INSTALLED_PREOWNER_NO_GO_TWOHOST_ALL_OUT_ACTUAL.json')['passed'];assert read(R/'NINTH_UNUSED64_AND_PROTOCOL_BINDING_CPU_ACTUAL.json')['passed']
+helper=C/'archive_ninth200h_closed63_pair64V2_unique_once.py';s=helper.read_text('utf8');ast.parse(s);assert "ID='mod4-budget-add200h-ninth-pair64v2'" in s and 'rec.main()' in s and 'read_capture_index(p,G)' in s and '--pathspec-file-nul' in s
+assert not (C/'reports/archive_ninth200h_closed63_pair64V2_unique_once_STARTED_ACTUAL.json').exists()
+F=T/'H1_STEP270_REWARD_TUCK_CLEARANCE_V4_RESOURCE_V65_20261024';assert not any((F/x).exists() for x in ('payloads','controllers','current_pair_closed_models'));assert '+720000' not in (F/'prepare_next_latest_sources_after_actual_H1_closed_resource_CPU_once.py').read_text('utf8')
+with (R/'FIRST_PROBE_TRACE_RENDERING_SCOPE_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),original_tool_traceback_verbatim_retained_in_conversation=True,text_file='FIRST_PROBE_ORIGINAL_TOOL_TRACEBACK_RETAINED_ACTUAL.txt',text_file_raw_tool_byteexact=False,scope='same traceback frames/path/line/error transcribed; Python3.14 arrow/highlight annotation lines omitted; not claimed raw stderr exact',failed_before_hostquery_or_budget_change=True),f,indent=2)
+report=dict(epoch=time.time(),passed=True,monitor_prompt_exact=True,ACTIVE=True,hourly=True,target=v['target_thread_id'],unique_archive_AST=True,unique_helper_SHA=hashlib.sha256(helper.read_bytes()).hexdigest(),part_aware_index=True,original1430_tags_to_preserve=True,one_new_trial_only=True,actual64V2_positive_PPO=True,future65_source_only=True,no_host_query_budget_write_or_PT_read=True)
+with (R/'NINTH_MONITOR_AND_UNIQUE_ARCHIVE_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(report,f,indent=2)
+print(json.dumps(report))

@@ -1,0 +1,582 @@
+{
+  "schema_version": 1,
+  "review_id": "MOD4_T2Z_FUTURE_TRAINING_FEASIBILITY_20261025",
+  "review_type": "PRIMARY_SOURCE_READONLY_NOT_TRAINING",
+  "archive_status": "LOCAL_REPORTS_PENDING_ROOT_GIT",
+  "commit": "c72f051f5cffcb1f372a32bc488df273556d39b9",
+  "commit_utc": "2026-10-16T02:12:17Z",
+  "paper_version": "arXiv:2610.22364v1",
+  "date": "2026-10-25",
+  "decision": {
+    "current_H1": "DO_NOT_ADOPT_ORIGINAL_T2z_NOW",
+    "future": "Conditional hidden-environment identification after stable contact skill",
+    "lightweight_state_latent": "Separate method idea, not original visual T2-z reproduction",
+    "PPO_or_simulation_acceleration_proven": false,
+    "RTX4090_fit_verified": false
+  },
+  "official": {
+    "latent_dim": 32,
+    "needs": [
+      "Wan2.2-TI2V-5B base files",
+      "BWM initialization checkpoint",
+      "task RGB/action dataset",
+      "physical environment grouping",
+      "trained task model/context table"
+    ],
+    "not_required": [
+      "numeric physical factor labels",
+      "expert success labels",
+      "separate environment history encoder",
+      "online teacher"
+    ],
+    "objective": "video latent flow-matching MSE",
+    "training": "alternate shared DiT/action/context projector and environment latent updates",
+    "test": "freeze world-model, optimize32D latent40steps on support, reuse for disjoint same-env query",
+    "action_dim": 14,
+    "sim_action": "eef_delta",
+    "real_ball_action": "joint_target",
+    "fps": 20,
+    "friction_geometry": [
+      224,
+      224,
+      41
+    ],
+    "real_ball_geometry": [
+      320,
+      160,
+      61
+    ],
+    "precision": "bf16 world-model,fp32 test latent",
+    "test_steps": 40,
+    "query_denoising_steps": 25,
+    "gradient_checkpointing": true,
+    "offload_fp8_default": null,
+    "launcher_GPU_processes": {
+      "friction": 2,
+      "gravity": 2,
+      "real_ball": 2,
+      "real_soft": 2,
+      "mass_friction": 4,
+      "multi_background": 4
+    },
+    "override": "T2Z_NUM_PROCESSES",
+    "distributed": "Accelerator.prepare/DDP kwargs; bundled launcher specifies no model/optimizer sharding",
+    "common_task_budget": "2H200x24h per method",
+    "mass_friction_budget": "4H200x48h per method",
+    "multi_background_budget": "4H200x24h per method",
+    "budget_meaning": "offline task world-model+latent training; not robotic policy PPO and not each new environment adaptation",
+    "single_H200_adapt_plus_5query_compute_s": 18.09,
+    "profile_excludes": [
+      "model load",
+      "data reads",
+      "MP4 writing"
+    ],
+    "adaptation_only_latency_known": false,
+    "wheel_leg_jump_or_270mm_contact_validation_found": false
+  },
+  "compatibility_inferences": [
+    [
+      "state_raw",
+      "Original video VAE needs RGB;48frame replay not automatically training dataset"
+    ],
+    [
+      "actions",
+      "14D arm representation differs from leg/wheel/PD commands; padding not transfer"
+    ],
+    [
+      "clock",
+      "20fps spans20physics steps,5H1 or2.5E3 control steps; timestamp interval mapping required"
+    ],
+    [
+      "control",
+      "No20k100Hz evidence;40gradient+25denoise queries cannot be assumed10ms controller"
+    ],
+    [
+      "environment",
+      "Track stable physical configuration and resets, not permanent vector env_id"
+    ],
+    [
+      "PPO",
+      "No compatible actor/critic/17Adam interface; adding actor z is separate research"
+    ],
+    [
+      "contact",
+      "Pixels/peakheight do not certify actual both-wheel topcontact stable0.5s"
+    ],
+    [
+      "GPU",
+      "2/4process launch not24GBfit proof; DDP memory not pooled"
+    ]
+  ],
+  "project_context_from_parent_not_remeasured": {
+    "formal_source": "source67 complete",
+    "H1_Adam": 790000,
+    "H1_sha256": "d1dd187177a1878f007b05da26e39c5ee101e937d2d86f0948dde1ffd37f062e",
+    "E3_Adam": 837200,
+    "E3_sha256": "0487231c1feec62c9c60063b7f7227ebc7e859ef881a31879a719b0ef03196f7",
+    "envs": 20000,
+    "physics_dt_s": 0.0025,
+    "H1_hz": 100,
+    "H1_decimation": 4,
+    "E3_hz": 50,
+    "E3_decimation": 8,
+    "goal": "Both wheels jump270mm with real topcontact stable0.5s",
+    "graduated": false,
+    "problem": "Takeoff timing and edge-distance misaligned; crank clips",
+    "raw": "state-only; no raw reopened",
+    "hardware": "3RTX4090 24GB across2hosts; third unknownpeer not newly available"
+  },
+  "existing_M3_actual_verified": {
+    "h1_updates": 6,
+    "h1_trace_pct": 35.935040671938154,
+    "h1_reset_pct": 31.299030294533104,
+    "h1_physics_pct": 26.41177142342832,
+    "h1_NN_pct": 0.05806094906207723,
+    "E3_slot": "recovery",
+    "E3_reset_pct": 70.10600258151729,
+    "E3_physics_pct": 21.192477872589947,
+    "new_half_precision_result": false,
+    "not_new_benchmark": true
+  },
+  "proposals_not_run": [
+    {
+      "name": "A_light_state_dynamics_latent_idea",
+      "original_T2z": false,
+      "authorization": "NEW_OFFLINE_MODELING_SCOPE_REQUIRED",
+      "data": "Existing frozen state/action/contact only after schema/physical-group audit",
+      "baseline": [
+        "pooled same-size dynamics",
+        "same-size dynamics+32Dlatent alternating",
+        "same-budget history encoder",
+        "optional existing-label offline oracle"
+      ],
+      "seeds": 3,
+      "support_K": [
+        1,
+        2
+      ],
+      "adapt_steps": [
+        0,
+        5,
+        10,
+        40
+      ],
+      "horizons_s": [
+        0.01,
+        0.1,
+        0.5
+      ],
+      "split": "isolate physical configurations and episodes; disjoint same-env support/query",
+      "metrics": [
+        "heldout state error",
+        "contact timing",
+        "topcontact false positives/misses",
+        "height/edge-distance joint error",
+        "nonfinite",
+        "latency p50/p95",
+        "peakVRAM",
+        "pairedCI"
+      ],
+      "planning_transitions": [
+        100000,
+        1000000
+      ],
+      "parameter_cap": 1000000,
+      "planning_GPU": 1,
+      "planning_GPUhours_cap": 2,
+      "planning_derived_storage_cap_bytes": 1000000000,
+      "estimate": "unmeasured planning envelope",
+      "go_suggestion": ">=10% query error improvement,no worse contact false positives,3seed consistent; not production gate",
+      "no_PPO_actorinputs_PD_change": true,
+      "no_new_rollout": true
+    },
+    {
+      "name": "B_original_visual_T2z_reproduction",
+      "original_T2z": true,
+      "authorization": "SEPARATE_DOWNLOAD_RGB_DATA_HARDWARE_TRAINING_SCOPE_REQUIRED",
+      "needs": [
+        "two pretrained resources",
+        "license/disk plan",
+        "synchronizedH1RGB/actions",
+        "action adapter",
+        "task model fine-tuning",
+        "valid support/query"
+      ],
+      "first_benchmark": "single task peakVRAM and40latent updates+5query vsStandard visualWM",
+      "reference_H200_GPUh": [
+        48,
+        192
+      ],
+      "RTX4090_cost": "UNKNOWN"
+    }
+  ],
+  "unknowns": [
+    "4090peakVRAM/fit",
+    "4090walltime",
+    "full disk footprint",
+    "state physical-group coverage",
+    "wheel-leg shortcontact prediction",
+    "distilled high-rate control",
+    "current jump/edge failure benefit",
+    "PPO sample efficiency"
+  ],
+  "actual_actions": {
+    "browse_official": true,
+    "small_HTTP_sources_in_memory": true,
+    "local_read": true,
+    "clone": false,
+    "pip": false,
+    "weights_dataset_download": false,
+    "execute_upstream": false,
+    "GPU": false,
+    "rollout": false,
+    "SSH": false,
+    "production_budget_change": false,
+    "new_PPO_actorinputs": false,
+    "subdelegation": false,
+    "writes": "Only2Q/reports files"
+  },
+  "errors": [
+    {
+      "id": "READ_PYTHON_PIPE_EMPTY_EXIT1",
+      "chunk": "58968a",
+      "exit": 1,
+      "output": "empty",
+      "resolution": "PowerShell officialHTTP succeeded; Python cause unknown"
+    },
+    {
+      "id": "WEB_PROJECT_SITE_UNAVAILABLE",
+      "url": "https://t2-z-latent-optimization.github.io/",
+      "actual": "not accessible via tool",
+      "resolution": "OfficialGitHub/arXiv used"
+    },
+    {
+      "id": "PS_AUTO_MATCHES_COLLISION",
+      "chunk": "f73241",
+      "actual": "一个哈希表只能添加到另一个哈希表。",
+      "cause": "automatic$Matches collided",
+      "resolution": "renamed$matchLines,reread"
+    },
+    {
+      "id": "M3_SCHEMA_E3_NULL",
+      "chunk": "2042cd",
+      "wrong": "slots.e3",
+      "correct": "slots.recovery",
+      "verification_chunk": "97aa42"
+    },
+    {
+      "id": "GITHUB_API_403",
+      "chunk": "5c4dfb",
+      "actual": "rate limit exceeded",
+      "resolution": "No furtherAPI; raw200confirmed80ec76"
+    },
+    {
+      "id": "INDEX_LOCAL_PATH_ARRAY_FAILURE",
+      "chunk": "8f29dc",
+      "actual": "local paths concatenated into one nonexistent path",
+      "resolution": "JSON array/Join-Path fix; sourceSHA256unknown retained"
+    },
+    {
+      "id": "WINDOWS_COMMAND_LENGTH206",
+      "actual": "filename or extension too long before process launch",
+      "resolution": "smaller final payload; no command-side mutation occurred"
+    }
+  ],
+  "source_hash_limit": "Final sourceSHA256 hashes not saved after index packaging failures; unknown, not invented. Fixed commit and fulltext URLs identify content. Some official git blob hashes retained below. No fullsource snapshots saved; not exhaustive audit of every repository line.",
+  "primary_noncode": [
+    {
+      "url": "https://arxiv.org/html/2610.22364v1",
+      "sections": [
+        "3",
+        "4.1",
+        "AppendixA",
+        "AppendixB",
+        "AppendixC",
+        "AppendixD",
+        "AppendixE.4"
+      ],
+      "memory_figures_visually_read": false
+    },
+    {
+      "url": "https://api.github.com/repos/T2-z-latent-optimization/T2-z/commits/main",
+      "actual": "Succeeded pre-rate-limit"
+    },
+    {
+      "url": "https://api.github.com/repos/T2-z-latent-optimization/T2-z/git/trees/c72f051f5cffcb1f372a32bc488df273556d39b9?recursive=1",
+      "actual": "Discovery succeeded,partly truncated; final requery403"
+    }
+  ],
+  "git_owner": "root",
+  "git_required": "record_experiment.py unique annotated trial and verify remote main/tag/peeled",
+  "already_archived_claim": false,
+  "observed_utc": "2026-10-25T05:27:57.8022693Z",
+  "sources": [
+    {
+      "bytes": 8111,
+      "git_blob_sha1": "c9ae8f03be8bfbac219b3f31f3653c49c41a06d0",
+      "path": "README.md",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/README.md",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/README.md"
+    },
+    {
+      "bytes": 3745,
+      "git_blob_sha1": "3b16f1d3c8986c7be4693fbe538b4276c9d4256f",
+      "path": "configs/ours/sim_pushbox_friction.yaml",
+      "inspection": "L1-112",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/ours/sim_pushbox_friction.yaml",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/ours/sim_pushbox_friction.yaml"
+    },
+    {
+      "bytes": 854,
+      "git_blob_sha1": "44bf9abcb2d1c25a668f501daab3786202f6b61e",
+      "path": "configs/inference/sim_pushbox_friction.yaml",
+      "inspection": "L1-24",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/inference/sim_pushbox_friction.yaml",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/inference/sim_pushbox_friction.yaml"
+    },
+    {
+      "bytes": 4311,
+      "git_blob_sha1": "8c90db79de8f93353b873329154713f184adbbb0",
+      "path": "configs/ours/real_ball.yaml",
+      "inspection": "L1-127",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/ours/real_ball.yaml",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/ours/real_ball.yaml"
+    },
+    {
+      "bytes": 177,
+      "git_blob_sha1": "3b2ba50d00c9f4de239df68c673fa01050855310",
+      "path": "configs/model/wan2_2_ti2v_5b.yaml",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/model/wan2_2_ti2v_5b.yaml",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/configs/model/wan2_2_ti2v_5b.yaml"
+    },
+    {
+      "bytes": 168,
+      "git_blob_sha1": "0c23f542fe77fa05fbcd22447b06217446060e29",
+      "path": "launch/train_ours_sim_pushbox_friction.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_pushbox_friction.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_pushbox_friction.sh"
+    },
+    {
+      "bytes": 157,
+      "git_blob_sha1": "a8fbc2ebe6997090ef89009d553b8262f4f2a312",
+      "path": "launch/train_ours_real_ball.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_real_ball.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_real_ball.sh"
+    },
+    {
+      "bytes": 159,
+      "git_blob_sha1": "4cdf4dfbcd1b394c88b2c5f01133f376be9277d5",
+      "path": "launch/train_ours_sim_gravity.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_gravity.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_gravity.sh"
+    },
+    {
+      "bytes": null,
+      "git_blob_sha1": null,
+      "path": "launch/train_ours_sim_mass_friction.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_mass_friction.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_mass_friction.sh"
+    },
+    {
+      "bytes": null,
+      "git_blob_sha1": null,
+      "path": "launch/train_ours_sim_multi_background.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_multi_background.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_sim_multi_background.sh"
+    },
+    {
+      "bytes": 157,
+      "git_blob_sha1": "0631fcd656046474e27b9621e8bedaf853159500",
+      "path": "launch/train_ours_real_soft.sh",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_real_soft.sh",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/launch/train_ours_real_soft.sh"
+    },
+    {
+      "bytes": 264,
+      "git_blob_sha1": "ad912d91e3dc83849aade6d13cf3253e6a8a33cd",
+      "path": "requirements.txt",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/requirements.txt",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/requirements.txt"
+    },
+    {
+      "bytes": 1149,
+      "git_blob_sha1": "0b44a601fb6715922e3ca412d50aeb45c1fcec85",
+      "path": "docs/simulation_observation_capture.md",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/docs/simulation_observation_capture.md",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/docs/simulation_observation_capture.md"
+    },
+    {
+      "bytes": 2402,
+      "git_blob_sha1": "5d20501ee9980bdc10ca96768948ca96340bbe62",
+      "path": "t2z/data.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/data.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/data.py"
+    },
+    {
+      "bytes": null,
+      "git_blob_sha1": null,
+      "path": "t2z/train.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/train.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/train.py"
+    },
+    {
+      "bytes": 4210,
+      "git_blob_sha1": "56bd9a6ea5ae4a267a905c7265f6b22ffa784724",
+      "path": "t2z/infer.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/infer.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/infer.py"
+    },
+    {
+      "bytes": 93852,
+      "git_blob_sha1": null,
+      "path": "t2z/training/ours.py",
+      "inspection": "selected matches;L618-649,L1006-1037,L1182-1185,L1383-1417",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/training/ours.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/training/ours.py"
+    },
+    {
+      "bytes": 72444,
+      "git_blob_sha1": "e8969c8936de174d55714a12b9bccceeefffdf72",
+      "path": "t2z/inference/ours.py",
+      "inspection": "selected matches;L500-522,L555-592",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/inference/ours.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/inference/ours.py"
+    },
+    {
+      "bytes": 30390,
+      "git_blob_sha1": null,
+      "path": "wan_video_action/data/operators.py",
+      "inspection": "selected action adapterL418-745",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/data/operators.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/data/operators.py"
+    },
+    {
+      "bytes": 2500,
+      "git_blob_sha1": null,
+      "path": "wan_video_action/models/wan_video_action_encoder.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/models/wan_video_action_encoder.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/models/wan_video_action_encoder.py"
+    },
+    {
+      "bytes": 26091,
+      "git_blob_sha1": "7f7c9eb1e1c82cfc4751992f01b66bcbe194f929",
+      "path": "scripts/train.py",
+      "inspection": "selectedL108,L247-261,L283",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/scripts/train.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/scripts/train.py"
+    },
+    {
+      "bytes": 746,
+      "git_blob_sha1": "5544bf9d52017b49542ffe56a97f536862817584",
+      "path": "t2z/inference/selection.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/inference/selection.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/inference/selection.py"
+    },
+    {
+      "bytes": 1674,
+      "git_blob_sha1": null,
+      "path": "t2z/training/losses.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/training/losses.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/training/losses.py"
+    },
+    {
+      "bytes": null,
+      "git_blob_sha1": null,
+      "path": "t2z/metadata.py",
+      "inspection": "full",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/metadata.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/t2z/metadata.py"
+    },
+    {
+      "bytes": 11037,
+      "git_blob_sha1": null,
+      "path": "wan_video_action/models/physical_context.py",
+      "inspection": "selectedclass/forward/context/projector",
+      "url": "https://github.com/T2-z-latent-optimization/T2-z/blob/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/models/physical_context.py",
+      "sha256": null,
+      "full_text_url": "https://raw.githubusercontent.com/T2-z-latent-optimization/T2-z/c72f051f5cffcb1f372a32bc488df273556d39b9/wan_video_action/models/physical_context.py"
+    }
+  ],
+  "local_sources": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\AGENTS.md",
+      "sha256": "50aaa8ba2bce19c1013b2dfdef32c2a477ba98c794be771a252b8ac60ca8641d",
+      "bytes": 2372
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\AGENTS.md",
+      "sha256": "ce87772c6a914a45c5712633c61a68a158b3b7579ab5c85074879eee3356ce55",
+      "bytes": 2448
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\docs\\ALL_TRIALS_AND_REPORTS_GIT_POLICY.md",
+      "sha256": "9be2a515cd8167f2a154e2c24a3a668258f961ec34c96adf32a2887cf6e1d9fa",
+      "bytes": 3514
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\docs\\NEXT_AI_GIT_WORKFLOW.md",
+      "sha256": "d731b0929b4219703777426ba0e6afbb02c4430af275fdca9f5c02a68e0d7772",
+      "bytes": 2166
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\reports\\NEXT_ACTUAL_POST67_M3_FP32_PROFILE_CLOSED_V9_HALF_SCOPE_REPLAY67_WORK_ORDER.json",
+      "sha256": "f3d026bf0a340d1ac552836d648e368240cbf30d3f3f5f1cbfebd15872ce4d5c",
+      "bytes": 80389
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_AIRBORNE_FEASIBLE_V5_RESOURCE_V67_20261025\\payloads\\h1\\job0\\runtime\\isaac\\mod4\\train_H1_ground_prelaunch_fullstate_v2.py",
+      "sha256": "9ea83360989bd19c0b7b5f24116bd0e1812590d5e6e8908a778dfdbb795f08b2",
+      "bytes": 22209
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_REWARD_AIRBORNE_FEASIBLE_V5_RESOURCE_V67_20261025\\payloads\\h1\\job0\\runtime\\isaac\\mod4\\action_delay_sdk_adapter.py",
+      "sha256": "bfcf937c38d6fe83e31a38bdf90ec3b3a4dd54d33d5c8172b4b02133ad2bbd28",
+      "bytes": 5147
+    }
+  ],
+  "report": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_T2Z_FUTURE_TRAINING_FEASIBILITY_20261025\\reports\\FEASIBILITY_REVIEW_ACTUAL.md",
+    "sha256": "bc7e56ebd97bc4222d0f59936dd97a117d021cabbf05cb2cad0f09faacd73c54",
+    "bytes": 15462
+  }
+}

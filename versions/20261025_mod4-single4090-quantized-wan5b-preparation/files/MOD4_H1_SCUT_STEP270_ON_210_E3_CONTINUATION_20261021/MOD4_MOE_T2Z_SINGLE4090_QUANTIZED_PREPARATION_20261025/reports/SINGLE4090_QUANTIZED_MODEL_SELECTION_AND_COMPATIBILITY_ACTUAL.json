@@ -1,0 +1,44 @@
+{
+  "epoch": 1792912171.4057536,
+  "selection": "QuantStack/Wan2.2-TI2V-5B-GGUF/Wan2.2-TI2V-5B-Q8_0.gguf",
+  "revision": "57437632ddd08bdcbd1508c866aa22e126ed51d2",
+  "bytes": 5400179040,
+  "official_SHA": "57bece983817ab2f957546683bb670f13be7d99022d45674840cd999a050ea8f",
+  "requested_runtime_target": "One24GiB RTX4090 on dual4090 host72",
+  "download_only_this_quant_variant": true,
+  "old13_fullprecision_download_cancelled": true,
+  "no_11GB_dense_text_encoder_or_10GB_BWM_download": true,
+  "no_new_subagents": true,
+  "sources": [
+    {
+      "url": "https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF",
+      "fact": "Quantized original Wan5B, loader documented for ComfyUI-GGUF; Q8_0 core listed5.4GB"
+    },
+    {
+      "url": "https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF/blob/57437632ddd08bdcbd1508c866aa22e126ed51d2/Wan2.2-TI2V-5B-Q8_0.gguf",
+      "fact": "Pinned identity and SHA independently read from primary file page"
+    },
+    {
+      "url": "https://huggingface.co/BLM-Lab/Boundless-World-Model",
+      "fact": "BWM is separately action-conditioned trainable DiT+encoder; Wan quantized prior is not this learned checkpoint"
+    },
+    {
+      "url": "https://github.com/city96/ComfyUI-GGUF/blob/main/ops.py",
+      "fact": "Quantized weights may be dequantized for standard torch linear computation; no upstream T2z interoperability claim"
+    }
+  ],
+  "limitations": [
+    "Q8 core fits within nominal24GB capacity by file size only; peak runtime includes activations, decoder and temporary tensors; actual whole-model4090 fit remains untested.",
+    "Current pinned T2z/DiffSynth source does not have a validated GGUF loader; future full-modelkey mapping and MoE/action/z compatibility required.",
+    "Synthetic CPU prototype proves frozen-Q8 linear input/32dim latent gradient math, not complete model rollout, real adaptation quality or publication result.",
+    "No unquantized BWM checkpoint obtained; future quantum-Wan MoE transfer is a distinct initialization from original BWM-backed T2z and must be disclosed in paper comparisons.",
+    "WanTrainingModule supports enable_text=False in upstream scripts/train.py; action-only future mode can avoid full text encoder, but pipeline behavior must be validated."
+  ],
+  "network_attempts": [
+    "Direct host72 pinned Q8 URL timed out, zero bytes; retained original report.",
+    "Current fallback is Windows public HTTPS memory to SFTP72, no local weight disk copy."
+  ],
+  "primary_web_API_reader_error": "Official model API inaccessible via web tool; fetched metadata via publiccache API and verified selected SHA against primary model file page. Not a model failure.",
+  "training_ready": false,
+  "no_model_load_GPU_or_policy_physics_or_budget_change": true
+}

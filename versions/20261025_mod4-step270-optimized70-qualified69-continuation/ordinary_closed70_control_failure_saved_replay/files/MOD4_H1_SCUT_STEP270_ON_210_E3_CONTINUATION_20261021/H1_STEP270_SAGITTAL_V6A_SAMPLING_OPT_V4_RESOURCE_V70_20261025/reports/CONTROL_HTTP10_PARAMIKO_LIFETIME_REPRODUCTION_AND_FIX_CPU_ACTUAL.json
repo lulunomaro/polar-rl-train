@@ -1,0 +1,45 @@
+{
+  "epoch": 1792933019.335113,
+  "passed_CPU_reproduction_and_fix": true,
+  "paramiko_version": "5.0.0",
+  "actual70_control_errors": 210,
+  "actual_error_kinds": {
+    "HMAC_response_assertion": 166,
+    "other_transport_error": 44
+  },
+  "mechanism": "HTTP/1.0 response has will_close=True. HTTPConnection.getresponse closes its socket before caller reads body. Normal socket.makefile keeps underlying FD alive; Paramiko ChannelFile does not defer raw Channel.close. Body delivered in same packet may pass, split packet yields empty/truncated body and original HMAC assert. Borrowed socket view defers raw channel close to outer send finally without changing HMAC or stop rules.",
+  "old_split_response_reproduced": {
+    "body_bytes": 0,
+    "valid_HMAC": false,
+    "raw_channel_closed_before_read": true,
+    "raw_channel_closed_finally": true
+  },
+  "old_single_packet_may_pass": {
+    "body_bytes": 24,
+    "valid_HMAC": true,
+    "raw_channel_closed_before_read": true,
+    "raw_channel_closed_finally": true
+  },
+  "fixed_split_response": {
+    "body_bytes": 24,
+    "valid_HMAC": true,
+    "raw_channel_closed_before_read": false,
+    "raw_channel_closed_finally": true
+  },
+  "fixed_byte_fragments": {
+    "body_bytes": 24,
+    "valid_HMAC": true,
+    "raw_channel_closed_before_read": false,
+    "raw_channel_closed_finally": true
+  },
+  "tamper_still_rejected": true,
+  "missing_signature_still_rejected": true,
+  "truncated_body_still_rejected": true,
+  "original_module_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_SAGITTAL_V6A_SAMPLING_OPT_V4_RESOURCE_V70_20261025\\payloads\\recovery\\forwarded_original_owner_control_v1.py",
+  "original_module_SHA": "46372c53ad0987cf366ab906965e951fd4b87890750c913ed1ec3b4eb93833b7",
+  "new_module_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_SAGITTAL_V6A_SAMPLING_OPT_NET_V5_RESOURCE_V71_20261025\\forwarded_original_owner_control_v2.py",
+  "new_module_SHA": "07991cff1403e451ff084fdde8e5242a86eee218b2626f2f413cfab3ca892329",
+  "exact_module_change": "Add borrowed channel view; bind HTTPConnection.sock to it; always close raw channel in finally. All other AST including signatures/SSH pins/dependencies/timeouts/HTTP bytes unchanged.",
+  "no_remote_SSH_HTTP_owner_model_raw_GPU_or_training_action": true,
+  "new_source_only_not_installed": true
+}

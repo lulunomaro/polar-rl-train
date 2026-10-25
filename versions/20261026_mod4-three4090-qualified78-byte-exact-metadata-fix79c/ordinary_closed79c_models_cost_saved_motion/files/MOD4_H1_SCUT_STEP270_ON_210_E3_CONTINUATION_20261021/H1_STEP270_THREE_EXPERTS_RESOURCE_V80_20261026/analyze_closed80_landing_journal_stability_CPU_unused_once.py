@@ -1,0 +1,20 @@
+"""After exact small-case collection, describe landing tails without policy/physics/GPU."""
+from pathlib import Path
+import ast,hashlib,json,time,traceback
+import numpy as np
+N=Path(__file__).resolve().parent;R=N/'reports'
+try:
+ source=json.loads((R/'CLOSED80_LANDING_JOURNAL_SMALL_CASES_CPU_RETURNED_ACTUAL.json').read_bytes());assert source['status']=='COMPLETE_EXACT_SMALL_DERIVED_CASES_RETURNED'
+ goal=N/'payloads/h1/step270_goal_and_scut_rates_candidate.py';tree=ast.parse(goal.read_text('utf8'));contract=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='Contract');c={n.target.id:ast.literal_eval(n.value) for n in contract.body if isinstance(n,ast.AnnAssign)};speed=c['stable_speed_m_s'];tilt=c['stable_tilt_rad'];cases=[]
+ for a in source['files']:
+  p=Path(a['local_path'])
+  with np.load(p,allow_pickle=False) as z:
+   controls=z['recorded_control_no'];post=controls>=a['landing_control'];root=z['root13'];q=root[:,3:7];x,y,zz,w=q.T;roll=np.arctan2(2*(w*x+y*zz),1-2*(x*x+y*y));pitch=np.arcsin(np.clip(2*(w*y-zz*x),-1,1));planar=np.linalg.norm(root[:,7:9],axis=-1);vz=np.abs(root[:,9]);pose_ok=(np.abs(roll)<tilt)&(np.abs(pitch)<tilt);speed_ok=(planar<=speed)&(vz<=speed)
+   stable=z['step_stable_ticks'];success=z['step_success'];executed=z['executed6'];raw=z['raw_sampled6'];clip_ok=bool(np.array_equal(executed,np.clip(raw,-6,6)))
+   cases.append(dict(case_id=a['case_id'],env_id=a['env_id'],episode=a['episode'],frames=len(controls),post_landing_sampled_frames=int(post.sum()),landing_control=a['landing_control'],end_reason=a['closed_reason'],recorded_done_any=bool(z['done'].any()),recorded_success_any=bool(success.any()),recorded_stable_physics_callback_ticks_max=int(stable.max()),original_stable_callback_requirement=c['stable_callbacks'],minimum_post_planar_speed_m_s=float(planar[post].min()),post_planar_speed_above_original_bound_fraction=float((planar[post]>speed).mean()),post_vertical_speed_above_original_bound_fraction=float((vz[post]>speed).mean()),post_tilt_above_original_bound_fraction=float((~pose_ok[post]).mean()),post_known_necessary_speed_tilt_conditions_all_met_fraction=float((speed_ok[post]&pose_ok[post]).mean()),post_public_request_active_fraction=float(z['public_request'][post].mean()),raw_leg_clip_hit_fraction=np.mean(np.abs(raw[post,:4])>=6,axis=0).tolist(),executed6_equal_original_clip_raw6=clip_ok,full_platform_support_footprint_and_heading_error_not_reconstructed=True,not_frozen_policy_or_permanent_failure_from_censored_tail=True))
+ result=dict(epoch=time.time(),status='DESCRIPTIVE_SELECTED_LANDING_TAILS_ONLY',cases=cases,case_count=len(cases),source_journal_case_cap=source['original_index']['case_cap'],source_skipped_by_cap=source['original_index']['skipped_by_case_cap'],original_goal_source=str(goal),original_goal_source_SHA=hashlib.sha256(goal.read_bytes()).hexdigest(),original_stable_speed_m_s=speed,original_stable_tilt_rad=tilt,original_stable_callbacks=c['stable_callbacks'],recorded_success_cases=sum(c['recorded_success_any'] for c in cases),all_selected_executed6_clip_consistent=all(c['executed6_equal_original_clip_raw6'] for c in cases),interpretation='Necessary sampled root speed/tilt violations can explain lack of a stable tick at those samples, but platform support/footprint/heading and unsampled physical callbacks remain unknown. Censored finite tails and first64 selection are not whole-window/frozen success probabilities or a causal reward comparison.',no_checkpoint_original_raw_GPU_actor_policy_physics_remote_or_budget_action=True,no_new_training_or_success_threshold=True)
+ with (R/'CLOSED80_SELECTED_LANDING_TO_STABILITY_CPU_DESCRIPTIVE_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(result,f,indent=2)
+ print(json.dumps(dict(selected_landing_cases=len(cases),recorded_success_cases=result['recorded_success_cases'],not_frozen_graduation=True)))
+except BaseException:
+ with (R/('CLOSED80_LANDING_STABILITY_CPU_ORIGINAL_ERROR_'+str(time.time_ns())+'.json')).open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),error=traceback.format_exc(),no_same_once_or_training_mutation=True),f,indent=2)
+ raise

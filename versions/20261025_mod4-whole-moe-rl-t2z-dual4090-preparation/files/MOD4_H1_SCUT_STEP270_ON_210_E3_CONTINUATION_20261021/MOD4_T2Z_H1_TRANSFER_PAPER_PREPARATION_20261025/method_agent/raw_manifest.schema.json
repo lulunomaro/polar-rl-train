@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mod4.h1.t2z.raw.v1",
+  "title": "Proposed H1 native RGB / applied-action interchange manifest",
+  "description": "Structural schema only. contract_v1.py adds time/group/role invariants. Native provenance and file SHA require independent audit. Synthetic fixtures never authorize training.",
+  "type": "object",
+  "required": ["schema", "synthetic", "dataset_id", "action_order", "action_units", "episodes"],
+  "properties": {
+    "schema": {"const": "mod4.h1.t2z.raw.v1"},
+    "synthetic": {"type": "boolean"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "action_order": {"const": ["left_crank", "left_hip", "right_crank", "right_hip", "left_wheel_spin", "right_wheel_spin"]},
+    "action_units": {"const": ["rad", "rad", "rad", "rad", "rad/s", "rad/s"]},
+    "episodes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/episode"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "frame": {
+      "type": "object",
+      "required": ["sim_tick", "sim_time_ns", "available_at_tick", "uri", "sha256", "origin", "width", "height", "channels", "camera_calibration_sha256"],
+      "properties": {
+        "sim_tick": {"type": "integer", "minimum": 0},
+        "sim_time_ns": {"type": "integer", "minimum": 0},
+        "available_at_tick": {"type": "integer", "minimum": 0},
+        "uri": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "origin": {"enum": ["NATIVE_SIM_RGB", "SYNTHETIC_ONLY"]},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "channels": {"const": "RGB"},
+        "camera_calibration_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["start_tick", "end_tick", "target6", "issued_control_step", "provenance"],
+      "properties": {
+        "start_tick": {"type": "integer", "minimum": 0},
+        "end_tick": {"type": "integer", "minimum": 1},
+        "target6": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "number"}},
+        "issued_control_step": {"type": "integer", "minimum": 0},
+        "provenance": {"enum": ["ARTICULATION_TARGET_READBACK", "SYNTHETIC_ONLY"]}
+      }
+    },
+    "episode": {
+      "type": "object",
+      "required": ["episode_id", "source_episode_uuid", "physical_group_id", "simulator_run_id", "physics_profile_sha256", "action_contract_sha256", "policy_checkpoint_sha256", "clock", "frames", "applied_actions", "reset_ticks"],
+      "properties": {
+        "episode_id": {"type": "string", "minLength": 1},
+        "source_episode_uuid": {"type": "string", "minLength": 1},
+        "physical_group_id": {"type": "string", "minLength": 1},
+        "simulator_run_id": {"type": "string", "minLength": 1},
+        "physics_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "action_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "policy_checkpoint_sha256": {"$ref": "#/$defs/sha256"},
+        "clock": {"type": "object", "required": ["physics_dt_ns", "control_decimation", "video_frame_period_ns"], "properties": {"physics_dt_ns": {"const": 2500000}, "control_decimation": {"enum": [4, 8]}, "video_frame_period_ns": {"const": 50000000}}},
+        "frames": {"type": "array", "minItems": 5, "items": {"$ref": "#/$defs/frame"}},
+        "applied_actions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/action"}},
+        "reset_ticks": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "evaluation_only": {"type": "object", "description": "Never passed to model/adaptation. Includes native contact/state truth and private factors."}
+      }
+    }
+  }
+}

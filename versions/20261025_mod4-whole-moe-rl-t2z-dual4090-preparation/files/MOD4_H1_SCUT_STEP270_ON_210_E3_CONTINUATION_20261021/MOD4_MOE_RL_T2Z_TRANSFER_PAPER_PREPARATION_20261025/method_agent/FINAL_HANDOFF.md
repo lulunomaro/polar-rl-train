@@ -1,0 +1,25 @@
+# Whole-MoE method package final handoff
+
+Final local status: **whole-stack source/contract/adapter/binding and prospective protocol prepared; actual native/installed-Wan runtime not ready**. This is not a trained model, a full dependency import receipt or skill qualification. Root serially owns72environment/deployment/resource coordination and Git archive. Existing H1 must finish before its intended next training stage; no stage is launched here.
+
+Use `reports/REPRODUCIBILITY_INDEX_V2.json` as the final complete inventory. The earlier index is preserved as an earlier snapshot; V2includes the appended controller-initial-state amendment and latest test. Latest test ID `MOE_T2Z_CPU_INTERFACE_20261025T060703500077Z` passes12CPUtests +4CLIbehaviors; CUDA remains uninitialized. Earlier import failure and subsequent9/10/11-test passes remain separately stored with original source snapshots. V2is local/pendingrootGit, not already archived.
+
+Actual source scope is entire E0/W35/H1/E2/E3 + actualgate148. Current player H1/E3pair47/E2cohort52 differs from source67training references. `source_facts.json` preserves exact manifest and old4090routing negatives. No gate48 fact is asserted. The original player has hard whole6-action selection, not weighted action mixing or a new five-way learned gate; skill_qualification=false remains visible.
+
+The new source is actionable without training: safe whole-stack metadata views and train-only loader; backend-aware command/route and applied-diagnostic tensors; trainable temporal action adapter with Dreadfromactualencoder; source-hash verification; executable `ours`/`scripts.train` runtime binding and checkpoint-action-key filter; defaultdata-check/disabledtrain CLI; CPUstubcallpath tests of real fixed source bodies. It does not call originalt2z.train metadata preprocessing. Unported legacy frictioncurriculum/structuredsampler/oldcontextresume paths reject explicitly.
+
+Important appended scope correction: a visual command/route model cannot infer unknown expert hold/history/phase merely from future routing logs. Primary episodes now require a native collector's canonical controller/scheduler/history reset **before** the first frame, phase0, no past inference ticks and reset-contract SHA. The actual global physics tick is preserved. Arbitrary mid-episode clips with unknown controller state reject `CONTROLLER_INITIAL_STATE`; a history-conditioned continuation protocol is future work. This concerns only the proposed isolated collection's normal episode boundary, not resetting or editing current production. See `reports/INITIAL_CONTROLLER_STATE_SCOPE_AMENDMENT.json`.
+
+Main predictive branch uses only a command/route plan committed at decision time; actual future targets/gate outputs are audit/diagnostic evidence. Applied-conditioned diagnostics cannot be used for prospective candidate selection. Hidden delay is command-conditioned only. PhysX2.5ms/20ticksframe and MuJoCo0.5ms/100ticksframe are distinct backend contracts/models. Experts retain original inputs; zconditionsworldmodel first. Any newgate readingz is a new architecture/input research variant, never a hotpatch of currentPPOor original-gate baseline.
+
+Later72CPUimport command shape (unrun here, requires root's installed fixedcheckout and current synthetic receipt paths):
+
+```text
+python moe_train_entry.py --manifest <SYNTHETIC_MANIFEST_NOT_DATA.json> --splits <SYNTHETIC_SPLITS.json> --synthetic-contract-test --cpu-import-upstream <fixed-upstream-checkout>
+```
+
+This verifies fixed source hashes, imports and binds modules on CPU, and never invokes main/loadsweights. Synthetic/placeholder stats stay non-training. Actual model construction, VAE/DiT/flowloss temporal alignment, real pretraining key audit, newcontext checkpoint/resume, shared-weight-freeze/z-gradient check and4090fit still require their own concrete stage. No current file supplies a train-enable flag.
+
+All small source/report/error/synthetic artifacts under this package require root's unified archive. Interpreter `__pycache__` is the only cache exclusion. Also archive the earlier H1 `method_agent/integration_v1` source-read script and fixed-source snapshots/receipt as supplemental history: its source-read attempt completed while the human scope correction arrived, and the earlier H1v1index intentionally was not rewritten. Newpackage source_facts indexes those exact external files, so they can be Git-indexed at their retained paths without duplicate snapshots. No reports, original failed sources or reader errors should be omitted.
+
+Before any actual training, root still needs genuine native whole-stack data, synchronized actual actions/routing/clocks and physicalgroup/reset receipts, validated model/scorer namespace separation, task/contact observers/evaluators, actual installed upstream checks, hardware fit, a finite stage protocol/budget and actual process/save/resource release. Do not call local CPUstubor synthetic contract checks nativephysics results or completedT2-z transfer.

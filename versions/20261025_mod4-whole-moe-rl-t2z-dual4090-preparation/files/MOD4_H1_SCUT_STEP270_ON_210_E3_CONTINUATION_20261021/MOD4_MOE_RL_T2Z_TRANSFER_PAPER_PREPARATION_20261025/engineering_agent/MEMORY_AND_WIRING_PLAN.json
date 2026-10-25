@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "T2ZMOE_WHOLE_STACK_RESOURCE_AND_WIRING_PLAN_20261025_V1",
+  "status": "DESIGN_ONLY_NO_GPU_PROBE_NO_TRAINING",
+  "source_commit": "c72f051f5cffcb1f372a32bc488df273556d39b9",
+  "root": "/home/lc01/Zonglin Li/zonglin2/research/T2Z_MOE_RL_TRANSFER_PREP_20261025",
+  "scope": "Whole MoE plus RL T2-z; H1 is one expert",
+  "current_policy_registry": "MOE_POLICY_REGISTRY.json",
+  "existing_checkpoints_indexed_bytes": 101876943,
+  "checkpoint_bytes_read_or_copied": 0,
+  "policy_actor_structure_from_text": {
+    "input": 35,
+    "layers": [256, 128, 64, 6],
+    "activation": "ELU",
+    "single_deterministic_actor_parameters_arithmetic": 50758,
+    "five_deterministic_actor_parameters_arithmetic": 253790,
+    "float32_five_actor_bytes_arithmetic": 1015160,
+    "gate_parameter_count": "UNKNOWN_NO_WEIGHT_READ",
+    "source": "mod4-onnx-mujoco-launcher/export_latest_moe.py Mean35/ManualMoE text only",
+    "caveat": "Arithmetic excludes critic, distributions, optimizer, latent encoder, gate buffers, activations and all WM resources"
+  },
+  "bus_contract_to_be_implemented_by_method_stage": {
+    "policy": "Preserve each expert observation/action normalization, command mode and native clock",
+    "world_model_input": "Timestamped actual applied six-action targets plus mode/expert/checkpoint identity and synchronized observations; no14D padding shortcut",
+    "environment_identity": "Stable actual physical configuration/reset identity; shared environment latent may span experts but expert identity must not replace physical identity",
+    "routing": "Current gate148 trained only for E0/W35; explicit modes dispatch H1/E2/E3, no trainedfiveway claim",
+    "latent_integration": "New router or actor conditioning requires separate approved method/checkpoint interface; never hotpatch current35D actors",
+    "control_boundary": "Online z adaptation or visual queries not inserted into existing10ms H1 loop by this preparation"
+  },
+  "memory_options": [
+    {
+      "name": "Official5Bbf16DDP_reference",
+      "method_equivalence": "Official reference path if unmodified",
+      "per_gpu_static_lower_order_estimate_decimal_GB": {
+        "bf16_parameters_only": 10,
+        "parameters_gradients_two_bf16_Adam_moments": 40,
+        "parameters_gradients_two_fp32_Adam_moments": 60,
+        "optional_fp32_master_weights_extra": 20
+      },
+      "activation_and_frozen_modules_excluded": true,
+      "two24GB_pooling": false,
+      "fit": "NOT_PROVEN; ordinaryDDPnotadmitted as runnable24GBplan"
+    },
+    {
+      "name": "Checkpointing_and_frozen_module_precompute",
+      "change": "Retain gradient checkpointing; consider fixed VAE/T5 feature cache and CPU unload",
+      "limits": "Reduces activations/frozenmodules, not modelgradientAdam replication",
+      "cache_invalidation": "FixedsourceVAEtexttokenizergeometryprecisionandtaskinputs must be indexed",
+      "fit": "UNKNOWN"
+    },
+    {
+      "name": "FSDP_FULL_SHARD_or_ZeRO3_with_CPU_offload",
+      "change": "Shard trainableparametersgradientsoptimizer and offload optimizer/parameters to CPU as needed",
+      "engineering_unknowns": ["Alternatingmodelandzrequiresgradchanges", "Multipleoptimizerparamgroups", "Fullstatecheckpointresumeexport", "Peakallgatherbuffers", "DiTblockwrapping", "Offloadbandwidth", "CUDA12.8R535applicationcompatibility"],
+      "pure_two_way_bf16Adam_static_estimate_decimal_GB_per_gpu": 20,
+      "pure_two_way_fp32Adam_static_estimate_decimal_GB_per_gpu": 30,
+      "activations_transients_frozenmodules_not_included": true,
+      "fit": "UNKNOWN; shardingalone may still exceed24GB; CPUoffload needsreview"
+    },
+    {
+      "name": "FrozenDiT_plus_LoRA_or_context_action_only",
+      "change": "Trainselectedadapters with reducedtrainablestates",
+      "method_equivalence": "Explicitnewtrainingvariant; notofficialfullDiTbaseline",
+      "LoRA_rank_and_targets": "UNSELECTED_NO_AUTHORIZED_RUN",
+      "fit": "UNKNOWN"
+    },
+    {
+      "name": "State_latent_inspired_whole_MoE_RL_candidate",
+      "change": "Smallsharedphysicaldynamics/latentmethodseparatelydesignedforwholeMoE",
+      "method_equivalence": "InspiredbyT2z, notofficialvisualWMreproduction",
+      "resource_plan": "To be bound by methodagent; no current GPUbudget or launch",
+      "fit": "NO_MEASURED_RESULT"
+    }
+  ],
+  "future_admission": ["Existingtrainingcompleteandsafesave", "BothactualGPUUUIDsreleasedandownerconfirmed", "IndependentH1E0W35E2E3datasetcoverageandsupportquerysplit", "ApprovedMoEadapter/checkpointschema", "Explicitmemorystrategyanddrivercompatibilityplan", "SeparatetrainingGOandbudget"],
+  "no_driver_systemlibs_compat_or_mod4_env_changes": true,
+  "all_research_and_model_cost_estimates_unmeasured": true,
+  "archive_status": "PENDING_ROOT_GIT"
+}

@@ -1,0 +1,57 @@
+{
+  "record_id": "MOD4_SAMPLING_LOCAL_READER_ERRORS_20261025_V1",
+  "classification": "Local read/inventory errors, not training or numerical failures",
+  "original_errors_preserved": [
+    {
+      "id": "READ01",
+      "attempt": "Get-ChildItem Depth3 with Format-Table on M4 root",
+      "result": "Output paths were truncated and overall output was truncated; this inventory was not used as evidence of file identity.",
+      "repair": "Switched to targeted rg paths and exact source reads."
+    },
+    {
+      "id": "READ02",
+      "attempt": "Read h1 and recovery runtime/isaac/mod4/e3_fullstate_environment_v1.py",
+      "result": "Both guessed paths were absent (os error 2).",
+      "repair": "Actual recovery class is in runtime/isaac/mod4/e3_recovery_runtime_v1.py."
+    },
+    {
+      "id": "READ03",
+      "attempt": "Read runtime/isaac/mod4/chassis_pd_environment.py",
+      "result": "Guessed path was absent.",
+      "repair": "Read actual chassis_pd_training_env.py and followed its imports."
+    },
+    {
+      "id": "READ04",
+      "attempt": "Read runtime/isaac/mod4/physical_dr_mild.py",
+      "result": "Guessed path was absent (os error 2).",
+      "repair": "Read actual mild_dr.py."
+    },
+    {
+      "id": "READ05",
+      "attempt": "Stat M4 benchmark_closed_text/recovery/job0/runtime/isaac/mod4/MOD4_RESET_COLLISION_BANK.npz",
+      "result": "Binary bank absent from text collection. No actual bank data was loaded.",
+      "repair": "Located older V67 payload by name; stat size 32022178B and read its text JSON metadata only. Actual M4 run_manifest records bank SHA 78af9fa47686204ef370271a2da580d762aa9fda1c7a49844ced318b264e6b83. No equivalence of the older binary was asserted. CPU geometry test instead used private-generator synthetic 25200-point data."
+    },
+    {
+      "id": "READ06",
+      "attempt": "Invoke unqualified python -c to inspect small selected NPZ",
+      "result": "WindowsApps python alias returned no stdout; no NPZ metadata evidence was obtained from that attempt.",
+      "repair": "Resolved explicit C:/Users/lulu/miniconda3/python.exe, then read only the permitted 2.99MB selected derived NPZ."
+    },
+    {
+      "id": "INTERPRET01",
+      "attempt": "Initial inspection considered SpringPressureSDK.reset full RNG/other-row fixture audit as a possible hot-path cause.",
+      "result": "Production imports LearningSpringPressure, which overrides reset/apply and already removes fixture-only per-reset full-state audits.",
+      "repair": "Reported only production LearningSpringPressure methods as hot path; fixture claims were explicitly withdrawn in parent update."
+    },
+    {
+      "id": "WORDING01",
+      "attempt": "Parent progress message described E3 synthetic CPU tensor equality as byte equality.",
+      "result": "Actual E3 check uses torch.equal plus max_abs_error=0, not uint8 byte comparison; signed-zero/NaN-payload claims would exceed that evidence.",
+      "repair": "Immediately corrected parent message. E3 report keeps only CPU float32 equality. NPZ test separately does compare dtype, shape and tobytes, including special NaN payloads and signed zero."
+    }
+  ],
+  "no_SSH_GPU_policy_physics_GUI_kill_budget_Git_or_current_source_change": true,
+  "no_experiment_retry_or_old_once_replay": true,
+  "archive_status": "Pending root unified phase archive; no Git commit performed by this agent"
+}

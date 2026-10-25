@@ -1,0 +1,5 @@
+Post67 precision completion, V6A sagittal tuck correction, and lossless sampling implementation.
+
+M4 both half modes actually completed: BF16 observations are trajectory/reset-confounded, FP16 skipped Adam steps and is not an equivalent speed result. Production stays FP32. V6A68 paired installed/GO/PPO is actual, with unchanged physical/control/success standards. The new H1/E3 speed sources and CPU comparisons are prepared in unused69, not installed. The exact normal-save request failed before SSH210 connection; no request reached either slot. New72 evidence shows E3 independently complete-saved11 updates and exited after controller link loss, terminal handoff false. H1 final and original account settlement remain unknown until210 access returns. No benchmark snapshot promoted, ledger copied, refund, second writer or current runtime hotpatch. All originals and errors retained.
+
+This current subagent round has finished; subsequent work temporarily uses no subagents unless human reauthorizes.

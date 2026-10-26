@@ -1,0 +1,21 @@
+--- 83B_three_slot_common_v1.py
++++ owner_controller_templates/three_slot_common_v1.py
+@@ -19,6 +19,9 @@
+ def authenticated_row(raw,signature,token,run_id,specs,now):
+  assert 0<len(raw)<3000000 and hmac.compare_digest(signature,hmac.new(token,raw,hashlib.sha256).hexdigest());v=json.loads(raw);assert v['run_id']==run_id and abs(v['epoch']-now)<60;row=v['row'];key=row['key'];assert key in specs and row.get('manifest_SHA')==specs[key]['manifest_SHA'];return key,row
+ def valid_ready(row,spec):
++ if spec.get('finite_method_test'):
++  from mixed84_protocol_v1 import native_valid_ready
++  return native_valid_ready(row,spec)
+  if spec.get('policy_hz')==50:
+   q=row.get('closed_source_CPU') or {};v=q.get('value') or {};kind=('closed_cross_host_policy50_production' if spec.get('cross_host_qualified_source') else ('policy_clock_100_to_50_migration' if spec['source_policy_hz']==100 else 'closed_same_backend_policy50_production'))
+   return bool(row.get('key')==spec['key'] and spec['key'] in ('e2','recovery') and row.get('phase')=='ready' and q.get('actual_CPU_waited_EXIT0') and q.get('SHA')==hashlib.sha256(json.dumps(v,indent=2).encode()).hexdigest() and v.get('kind')==kind and v.get('passed') and v.get('explicit_policy_clock_50Hz_admitted') and ((spec['key']=='e2' and spec['execution_backend']=='target72' and v.get('explicit_cross_host_source_CPU_admitted')) if spec.get('cross_host_qualified_source') else True) and v.get('source_cost_original_account_ready') and v.get('source_account_reconciliation_receipt_SHA') and (v.get('policy_clock_native_CPU_SHA') if spec['source_policy_hz']==100 else v.get('same_clock_closed_production')) and v.get('source_SHA')==spec['source_SHA'] and v.get('GPU_UUID')==spec['GPU_UUID'] and v.get('execution_backend')==spec['execution_backend'] and v.get('all_source_model_runtime_finite_CPU') and v.get('old_complete_production_checkpoint_actual_EXIT0') and v.get('original_clip6_query_COM_closure_mimic_hardware_savedstop_guards_retained') and row.get('manifest_SHA')==spec['manifest_SHA'] and not row.get('original_error'))
+@@ -51,7 +54,7 @@
+ def spawn(spec,phase):
+  import psutil,shutil
+  assert phase in ('native','production') and not outdir(phase).exists();assert spec['key'] in CAPS
+- gpu=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode();line=next(x for x in gpu.splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
++ gpu=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode();line=next(x for x in gpu.splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' or spec.get('finite_method_test') else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
+  put(J/(phase+'_ACTUAL_GPU_RAM_DURABLE_RESOURCE.json'),dict(epoch=time.time(),GPU_line=line,RAM_available=psutil.virtual_memory().available,durable_free=shutil.disk_usage(B).free,other_processes_untouched=True));name=spec['production_script' if phase=='production' else 'native_script'];args=[spec['python'],'-u','-B',str(B/name)]
+  if spec['key']=='h1' and phase=='production':args+=['--phase','production']
+  elif spec['key']=='h1':pass

@@ -1,0 +1,30 @@
+--- 83B_collector.py
++++ collect_mixed84_finals_original_cost_TEMPLATE.py
+@@ -83,14 +83,14 @@
+                 put('THREE_'+key+'_PROCESSLIFETIME_LOG_MANIFEST_TRANSFER_AND_FRESH_SNAPSHOT_ACTUAL.json',dict(epoch=time.time(),original=original,fresh=dict(fresh,local_path=str(fp)),cause_unknown=True,original_manifest_time_bytes_unavailable=True,no_training_failure_or_refund_inferred=True))
+                 texts.append(dict(row,bytes=fresh['bytes'],SHA=fresh['SHA'],local_path=str(fp),original_manifest_and_transferred_log_preserved=original,one_fresh_snapshot_only=True))
+         for row in models:
+-            p=N/'current_three_closed_models'/key/PurePosixPath(row['path']).name;p.parent.mkdir(parents=True,exist_ok=True);assert not p.exists()
++            p=N/('current_native_H1_method_fullstate' if key=='e2' else 'current_baseline_closed_models')/key/PurePosixPath(row['path']).name;p.parent.mkdir(parents=True,exist_ok=True);assert not p.exists()
+             part=p.with_suffix('.pt.partial');sf.get(row['path'],str(part));assert part.stat().st_size==row['bytes'] and H(part)==row['SHA'];part.replace(p)
+             saved.append(dict(row,local_path=str(p),twohost_complete_SHA=True))
+     finally:sf.close()
+     return texts,saved
+ 
+ def main():
+-    metadata=json.loads((R/'THREE_EXPERT_ACTUAL_GO_POSITIVE_PPO_UUID_CREATE_ARGV_VERIFIED_ACTUAL.json').read_bytes());assert metadata['passed'] and metadata['actual_finite_returned']
++    metadata=json.loads((R/'MIXED84_ACTUAL_GO_BASELINES_AND_NATIVE_UUID_CREATE_ARGV_VERIFIED_ACTUAL.json').read_bytes());assert metadata['passed'] and metadata['actual_finite_returned']
+     assert max(x['nominal_end_epoch'] for x in metadata['source210']['current']['go'].values())-time.time()<=900,'Original <=900 closing boundary retained'
+     q=json.loads((R/'THREE_EXPERT_ORIGINAL_ACCOUNT_DETACHED_ACTUAL.json').read_bytes())
+     put('THREE_EXPERT_CLOSING_COLLECTOR_STARTED_ACTUAL.json',dict(epoch=time.time(),pid=os.getpid(),argv=sys.argv,actual_owner=q['owner_identity']))
+@@ -103,8 +103,8 @@
+         for key in ('e2','recovery'):
+             b=d.code(c,d.PY72,READ72,dict(q=q,key=key),timeout=210);target[key]=b;row=a['cohort']['rows'][key];final=row.get('final') or {};part,models=capture(c,b,[final['final']] if final.get('passed') else [],key,d.PY72);texts.extend(part);complete[key]=models
+             put('THREE_EXPERT_CLOSED_TARGET72_'+key.upper()+'_ACTUAL.json',b)
+-        result=dict(epoch=time.time(),actual_finite_transport_returned=True,source210=a,target72=target,complete_models=complete,all_texts=texts,original_canonical_cost_settled=True,not_skill_qualification=True)
+-        put('THREE_EXPERT_COMPLETE_FINALS_AND_ORIGINAL_COST_RETURNED_ACTUAL.json',result);print(json.dumps(dict(closed=True,complete_models={k:len(v) for k,v in complete.items()},original_cost_settled=True)))
++        result=dict(epoch=time.time(),actual_finite_transport_returned=True,source210=a,target72=target,complete_models={k:v for k,v in complete.items() if k!='e2'},native_H1_method_fullstate=complete['e2'],all_texts=texts,original_canonical_cost_settled=True,not_skill_qualification=True)
++        put('MIXED84_BASELINES_NATIVE_H1_AND_ORIGINAL_COST_RETURNED_ACTUAL.json',result);print(json.dumps(dict(closed=True,complete_models={k:len(v) for k,v in complete.items()},original_cost_settled=True)))
+     finally:
+         secret=None
+         if c:c.close()

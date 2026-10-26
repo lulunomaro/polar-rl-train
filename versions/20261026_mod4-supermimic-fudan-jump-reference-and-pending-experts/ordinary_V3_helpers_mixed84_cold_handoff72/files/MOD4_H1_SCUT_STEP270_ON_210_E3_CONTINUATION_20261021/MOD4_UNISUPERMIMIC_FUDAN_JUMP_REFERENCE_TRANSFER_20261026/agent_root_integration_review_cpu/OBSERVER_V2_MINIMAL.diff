@@ -1,0 +1,12 @@
+--- original_READ72
++++ fixed_READ72_V2
+@@ -1,7 +1,7 @@
+ 
+ from pathlib import Path
+-import json,psutil,subprocess,time
+-B=Path(v['root']);node=json.loads((B/'NODE_IDENTITY.json').read_bytes());np=psutil.Process(node['pid']);assert np.create_time()==node['creation'] and np.cmdline()==node['argv'];w=v['row']['worker'];p=psutil.Process(w['pid']);assert p.create_time()==w['creation'] and p.cmdline()==w['argv']
++import json,psutil,subprocess,time,sys
++B=Path(v['root']);sys.path.insert(0,str(B));node=json.loads((B/'NODE_IDENTITY.json').read_bytes());np=psutil.Process(node['pid']);assert np.create_time()==node['creation'] and np.cmdline()==node['argv'];w=v['row']['worker'];p=psutil.Process(w['pid']);assert p.create_time()==w['creation'] and p.cmdline()==w['argv']
+ method=None
+ if v['key']=='e2':
+  method=json.loads((B/'job0/production/FIRST_NATIVE_SUPERMIMIC_POLICY_UPDATE_POSITIVE_ACTUAL.json').read_bytes());startup=json.loads((B/'job0/production/ACTUAL_H1_NEW_METHOD_STARTUP_CONTRACT.json').read_bytes());assert method['policy_updates']>0 and method['world_updates']>0 and startup['actual_envs']==20000 and startup['physics_dt']==.0025 and startup['control_dt']==.01 and startup['actual_geometry']['height']==.27

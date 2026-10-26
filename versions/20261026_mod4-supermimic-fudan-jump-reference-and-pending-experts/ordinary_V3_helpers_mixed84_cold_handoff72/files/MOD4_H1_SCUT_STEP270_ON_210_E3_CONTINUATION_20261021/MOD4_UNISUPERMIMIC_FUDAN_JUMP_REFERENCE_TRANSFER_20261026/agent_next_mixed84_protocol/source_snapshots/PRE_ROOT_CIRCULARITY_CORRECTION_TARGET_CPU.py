@@ -1,0 +1,96 @@
+"""UNEXECUTED target CPU source template: reference/loss/dimensions, no learner.
+
+Requires the fresh target SDK report to contain its actual named joint order.
+It must reject until that evidence exists; geometry order is not relabeled SDK.
+"""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import sys
+import time
+
+import torch
+
+B = Path(__file__).resolve().parent
+sys.path[:0] = [str(B), str(B / 'source')]
+from mixed84_protocol_v1 import (SOURCES, require_native_manifest_pins,
+                                 validate_objective_contract)
+from supermimic_reference_adapter_v1 import read_json_reference, PartialReferenceImitationMdp
+from supermimic_vendor_v2.geometry import invariant_features, unflatten_state
+
+read = lambda path: json.loads(Path(path).read_bytes())
+H = lambda path: hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def main():
+    torch.set_num_threads(1)
+    assert not torch.cuda.is_initialized()
+    manifest = read(B / 'THREE_SLOT_COMPLETE_MANIFEST_V1.json')
+    manifest_sha = H(B / 'THREE_SLOT_COMPLETE_MANIFEST_V1.json')
+    bundle = read(B / 'MIXED84_REFERENCE_BINDING_ACTUAL.json')
+    require_native_manifest_pins(manifest, bundle)
+    sdk = read(B / 'TARGET_H1_STEP270_SOURCE_AND_CONTROLLERS_INSTALLED_CPU_ADMITTED_ACTUAL.json')
+    assert sdk['passed_CPU_only'] and sdk['manifest_SHA'] == manifest_sha
+    assert sdk['source_SHA'] == SOURCES['h1']['SHA'] and sdk['all17Adam'] == SOURCES['h1']['Adam']
+    names = sdk['actual_joint_names30']
+    assert sdk['actual_joint_names30_source'] == 'actual_target_SDK_joint_enumeration'
+    assert len(names) == len(set(names)) == 30
+    adapter = B / 'source/supermimic_reference_adapter_v1.py'
+    assert H(adapter) == bundle['adapter_CPU']['adapter_source_SHA']
+    artifact = B / bundle['reference']['artifact_relative']
+    # This reads only the newly authorized exported own-reference JSON on target,
+    # never any old raw/NPZ/pilot checkpoint. Source preparation does not run it.
+    reference = read_json_reference(artifact).for_sdk_joint_order(names)
+    assert reference.metadata['sdk_joint_order_verified'] is True
+    assert reference.metadata['clock_alignment']['native_frame_anchor'] == 100
+    assert reference.metadata['clock_alignment']['reference_time_anchor_s'] == .5
+    tree = ast.parse((B / 'source/h1_supermimic_bridge_v1.py').read_text('utf8'))
+    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'H1GoalMdp')
+    scope = dict(torch=torch, invariant_features=invariant_features)
+    exec(compile(ast.Module(body=[cls], type_ignores=[]), 'actual_installed_H1GoalMdp_AST_only', 'exec'), scope)
+    base = scope['H1GoalMdp'](torch.zeros(30), float(reference.states[0, 2]))
+    mdp = PartialReferenceImitationMdp(base, reference.torch_provider('cpu'))
+    frames = torch.tensor([0, 100], dtype=torch.int32)
+    goal = mdp.goal(frames, 1)
+    assert goal.shape == (2, 73) and torch.isfinite(goal).all()
+    raw = mdp.provider.raw_reference_at_frames(frames)
+    state = unflatten_state(raw)
+    actions = torch.zeros(2, 6)
+    result = mdp.reward(state, frames, actions, actions)
+    assert result.shape == (2,) and torch.isfinite(result).all()
+    context = torch.zeros(2, 49)
+    assert mdp.obs(state, actions, context, frames).shape == (2, 128)
+    contract = mdp.contract_manifest()
+    validate_objective_contract(contract)
+    proof_path = B / 'NATIVE_FINALIZATION_CPU_PROOF_ACTUAL.json'
+    assert H(proof_path) == bundle['finalization_CPU']['report_SHA']
+    proof = read(proof_path)
+    assert proof['passed'] and proof['passed_count'] == proof['count'] >= 21 and proof['CPU_only']
+    assert proof['source_SHA']['native_finalization_v1.py'] == bundle['candidate_pins']['finalization_source_SHA']
+    assert not proof['CUDA_initialized'] and not proof['real_model_or_pilot_checkpoint_content_read']
+    assert H(B / 'source/native_finalization_v1.py') == bundle['candidate_pins']['finalization_source_SHA']
+    contract_path = B / 'reports/NATIVE_FUDAN_REFERENCE_TARGET_CPU_OBJECTIVE_CONTRACT_ACTUAL.json'
+    with contract_path.open('x', encoding='utf8') as stream:
+        json.dump(contract, stream, indent=2)
+    value = dict(epoch=time.time(), passed=True, actual_installed_CPU_passed=True,
+                 CUDA_initialized=False, manifest_SHA=manifest_sha, source_SHA=SOURCES['h1']['SHA'],
+                 reference_artifact_SHA=bundle['reference']['reference_artifact_SHA'],
+                 adapter_CPU_report_SHA=bundle['adapter_CPU']['report_SHA'],
+                 objective_contract_SHA=bundle['adapter_CPU']['objective_contract_SHA'],
+                 runtime_objective_contract_SHA=H(contract_path), runtime_objective_contract=contract,
+                 actual_SDK_joint_order_verified=True,
+                 candidate_pins=bundle['candidate_pins'], original_physics_and_success_unchanged=True,
+                 finalization_lifecycle_CPU_passed=True, partial_mask_objective_actual_CPU_admitted=True,
+                 no_environment_learner_actor_forward_or_optimizer_step=True,
+                 reused_actual_finalization21_CPU_proof_not_rerun=True,
+                 not_dynamic_actuation_step270_or_skill_proof=True)
+    assert not torch.cuda.is_initialized()
+    with (B / 'reports/NATIVE_H1_FUDAN_REFERENCE_INSTALLED_CPU_V84_ACTUAL.json').open('x', encoding='utf8') as stream:
+        json.dump(value, stream, indent=2)
+    print(json.dumps(dict(passed=True, actual_installed_reference_loss_CPU=True,
+                          runtime_objective_contract_SHA=value['runtime_objective_contract_SHA'])))
+
+
+if __name__ == '__main__':
+    main()

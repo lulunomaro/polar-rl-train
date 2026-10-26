@@ -1,0 +1,15 @@
+--- READ_ONLY_REFERENCE
++++ normal_recovery_source_guard_TEMPLATE.py
+@@ -38,10 +38,10 @@
+  import psutil
+  B=Path(B);key=spec['key'];assert key in ('h1','e2','recovery') and not spec.get('cross_host_qualified_source') and not spec.get('reward_migration')
+  old=Path(spec['previous_runtime_root']);prior=read(B/'QUALIFIED_RUNTIME_BASE_MANIFEST.json');current=read(B/'THREE_SLOT_COMPLETE_MANIFEST_V1.json')
+- auth=read(B/'NORMAL_THREE_83B_PRODUCTION_SOURCE_AUTH_ACTUAL.json');assert auth['approved'] and auth['kind']=='actual_closed_production_pair_native_diagnostic_all3_cost_same_V8' and auth['source_SHA']==spec['source_SHA']
++ auth=read(B/'MIXED84_NORMAL_PRODUCTION_SOURCE_AUTH_ACTUAL.json');assert auth['approved'] and auth['kind']=='actual_closed83B_healthy_three_same_V8_baseline' and auth['source_SHA']==spec['source_SHA']
+  role='closed_production_continuation_CPU_v2.py' if key=='h1' else 'original_account_policy50_source_CPU.py'
+  assert H(B/role)==auth['guard_SHA'] and H(B/'same_optimized_source_contract_metadata_candidate_v1.py')==auth['metadata_SHA']
+- proof=read(B/'CURRENT_ORIGINAL_THREE_CLOSED_MODELS_COST_CPU_ACTUAL.json');assert key in ('h1','recovery') and proof['qualification_scope']=='production_h1_recovery_pair_and_separate_native_method_diagnostic' and set(proof['models'])=={'h1','recovery'} and set(proof['original_slots_cost'])=={'h1','e2','recovery'} and proof['native_method']['original_terminal']['original_error'] and proof['native_method']['present'] is False and abs(proof['actual_cost_sumonce']-sum(v['charged_seconds'] for v in proof['original_slots_cost'].values()))<1e-5 and all(v['duration_bound_passed'] for v in proof['original_slots_cost'].values())
++ proof=read(B/'CURRENT_ORIGINAL_THREE_CLOSED_MODELS_COST_CPU_ACTUAL.json');assert key in ('h1','recovery') and proof['passed'] and set(proof['models'])=={'h1','e2','recovery'} and proof['all_owner_nodes_children_actual_out'] and proof['original_canonical_cost_settled'] and proof['all_original_private_shared_locks_free'] and all(v['actual_cost']['duration_bound_passed'] for v in proof['models'].values()) and abs(proof['actual_cost_sumonce']-sum(v['actual_cost']['charged_seconds'] for v in proof['models'].values()))<1e-5
+  qualified=validate_closed69_metadata(proof,key,prior['source_Adamstep']);assert qualified['source_SHA']==spec['source_SHA'] and qualified['source_Adam']==spec['source_Adamstep']
+  exit=read(old/'NODE_EXIT_ACTUAL.json');terminal=read(old/'NODE_TERMINAL_ACTUAL.json')['row'];assert exit['actual_all_own_children_waited'] and exit['validation_fcntl_released_if_acquired'] and terminal['terminal_all_own_children_waited'] and terminal['returncode']==0 and not terminal['original_error'] and not terminal['errors'] and terminal['final']['passed'] and terminal['final']['final']['SHA']==spec['source_SHA']
+  assert not any(p.pid!=os.getpid() and any(x.startswith(str(old)+'/') for x in p.info['cmdline'] or []) for p in psutil.process_iter(['pid','cmdline']))

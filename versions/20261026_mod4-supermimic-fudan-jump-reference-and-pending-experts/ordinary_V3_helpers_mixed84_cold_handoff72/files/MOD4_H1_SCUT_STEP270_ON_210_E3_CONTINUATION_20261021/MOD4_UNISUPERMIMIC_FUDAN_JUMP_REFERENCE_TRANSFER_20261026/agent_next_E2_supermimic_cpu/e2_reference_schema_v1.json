@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E2 observed command interval / declared kinematic reference book",
+  "type": "object",
+  "required": ["schema", "reference_kind", "measured_demonstration", "source_kind", "control_dt_s", "physics_dt_s", "decimation", "plan_stride", "plan_table_fields", "plan_table", "foreign_or_planned_transitions_for_native_WM"],
+  "properties": {
+    "schema": {"const": "mod4.e2.declared_reference_book_json.v1"},
+    "reference_kind": {"const": "declared_command_kinematic_hypothesis"},
+    "measured_demonstration": {"const": false},
+    "source_kind": {"const": "E2_WORLD_MOVING_SIGNED4"},
+    "control_dt_s": {"const": 0.02},
+    "physics_dt_s": {"const": 0.0025},
+    "decimation": {"const": 8},
+    "plan_stride": {"const": 1024},
+    "plan_table_fields": {"const": ["mode", "world_direction_rad", "signed_yaw_rad_s", "world_cycle_progress_m_s", "body_speed_limit_m_s", "transition_anchor_phase_s", "anchor_actual_body_vx_m_s", "anchor_actual_body_vy_m_s", "anchor_actual_yaw_rad_s", "own_anchor_x_m", "own_anchor_y_m", "own_height_task_z_m", "own_anchor_heading_rad", "controls_before_unknown_resampling", "source_time_left_s", "source_environment_id"]},
+    "plan_table": {"type": "array", "items": {"type": "array", "minItems": 16, "maxItems": 16, "items": {"type": "number"}}},
+    "foreign_or_planned_transitions_for_native_WM": {"const": false}
+  },
+  "additionalProperties": false
+}

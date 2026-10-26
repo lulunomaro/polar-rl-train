@@ -1,0 +1,10 @@
+--- 83B_three_real_gpu_resource_v1.py
++++ native_controller_templates/three_real_gpu_resource_v1.py
+@@ -41,6 +41,6 @@
+   if spec['execution_backend']!='source210':
+    with (owned/'state/finite_environment_validation.lock').open('rb+') as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+   else:assert owned.is_mount()
+-  compute=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits']).decode();assert not any(spec['GPU_UUID'] in x for x in compute.splitlines());line=next(x for x in subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode().splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
++  compute=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits']).decode();assert not any(spec['GPU_UUID'] in x for x in compute.splitlines());line=next(x for x in subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode().splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' or spec.get('finite_method_test') else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
+   (B/'OWN_GPU_PREVIOUS_ACTUAL_OUT_FCNTL_ACQUIRED.json').write_text(json.dumps(dict(epoch=time.time(),path=spec['private_lock'],actual_private_GPU_fcntl_acquired=True,previous_root=str(old),actual_previous_scope_all_children_out=True,shared_validation_brief_only=True,compute_snapshot=compute,GPU_line=line,durable_free=shutil.disk_usage(B).free),indent=2));return lock
+  except BaseException:fcntl.flock(lock,fcntl.LOCK_UN);lock.close();raise

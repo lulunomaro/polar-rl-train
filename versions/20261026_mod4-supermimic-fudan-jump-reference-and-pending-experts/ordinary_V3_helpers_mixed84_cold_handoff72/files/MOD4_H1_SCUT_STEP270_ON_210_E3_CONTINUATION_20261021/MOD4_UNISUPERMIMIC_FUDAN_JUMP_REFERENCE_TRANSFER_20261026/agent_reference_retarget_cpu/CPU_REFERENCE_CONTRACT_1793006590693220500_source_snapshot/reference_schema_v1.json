@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MOD4 SuperMimic task-space demonstration / own native reference v1",
+  "description": "No foreign q/action/torque/transition vectors are canonical demonstration fields. Runtime cross-array checks are additionally enforced by the Python loader.",
+  "oneOf": [{"$ref": "#/$defs/taskspace_demo"}, {"$ref": "#/$defs/native_reference"}],
+  "$defs": {
+    "vector3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "quaternion_wxyz": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}},
+    "wheel_pair": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/vector3"}},
+    "contact_pair": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "boolean"}},
+    "taskspace_demo": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "source", "clock", "time_s", "chassis_position_m", "chassis_quaternion_wxyz", "wheel_center_m", "wheel_bottom_world_z_m", "wheel_contact", "provenance_kind"],
+      "properties": {
+        "schema": {"const": "mod4.supermimic.taskspace_demo.v1"},
+        "source": {
+          "type": "object",
+          "required": ["quaternion", "wheel_order", "foreign_transitions_for_native_world_model"],
+          "properties": {
+            "quaternion": {"const": "wxyz"},
+            "wheel_order": {"const": ["left", "right"]},
+            "foreign_transitions_for_native_world_model": {"const": false},
+            "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "commit": {"type": "string"},
+            "source_jump_validation": {"type": "string"}
+          }
+        },
+        "clock": {
+          "type": "object", "required": ["time_basis"],
+          "properties": {
+            "time_basis": {"const": "measured_simulation_time_s"},
+            "original_timestep": {"type": "number", "exclusiveMinimum": 0},
+            "actual_timestep": {"type": "number", "exclusiveMinimum": 0},
+            "target_control_dt_s": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "time_s": {"type": "array", "minItems": 2, "items": {"type": "number"}},
+        "chassis_position_m": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/vector3"}},
+        "chassis_quaternion_wxyz": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/quaternion_wxyz"}},
+        "wheel_center_m": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/wheel_pair"}},
+        "wheel_bottom_world_z_m": {"type": "array", "minItems": 2, "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}}},
+        "wheel_contact": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/contact_pair"}},
+        "provenance_kind": {"enum": ["measured_original_robot_reference", "synthetic_CPU_contract_fixture"]}
+      }
+    },
+    "native_reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "times_s", "packed73", "joint_names", "metadata"],
+      "properties": {
+        "schema": {"const": "mod4.supermimic.native_reference.v1"},
+        "times_s": {"type": "array", "minItems": 2, "items": {"type": "number"}},
+        "packed73": {"type": "array", "minItems": 2, "items": {"type": "array", "minItems": 73, "maxItems": 73, "items": {"type": "number"}}},
+        "joint_names": {"type": "array", "minItems": 30, "maxItems": 30, "uniqueItems": true, "items": {"type": "string"}},
+        "metadata": {
+          "type": "object",
+          "required": ["kinematic_pose_contract", "foreign_transitions_for_native_world_model", "provenance_kind", "target_control_dt_s", "conditioning_feature_mask73"],
+          "properties": {
+            "kinematic_pose_contract": {"const": "passed_for_all_exported_frames"},
+            "foreign_transitions_for_native_world_model": {"const": false},
+            "provenance_kind": {"enum": ["measured_original_robot_reference", "synthetic_CPU_contract_fixture"]},
+            "target_control_dt_s": {"type": "number", "exclusiveMinimum": 0},
+            "conditioning_feature_mask73": {"type": "array", "minItems": 73, "maxItems": 73, "items": {"type": "boolean"}},
+            "joint_position_range_scale30": {"type": "array", "minItems": 30, "maxItems": 30, "items": {"type": "number", "exclusiveMinimum": 0}},
+            "sdk_joint_order_verified": {"type": "boolean"},
+            "source_jump_validation": {"type": "string"},
+            "native_frame_zero_reference_time_s": {"type": "number"}
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+--- READ_ONLY_REFERENCE
++++ h1_unisupermimic_step270_worker_v84_TEMPLATE.py
+@@ -9,7 +9,7 @@
+ def put(p,v):
+  p=Path(p);q=p.with_suffix(p.suffix+'.partial');q.write_text(json.dumps(v,indent=2));q.replace(p)
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('--job',type=int,default=0);p.add_argument('--phase',choices=('production',),required=True);args=p.parse_args();phase=args.phase;task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/('GO_'+phase.upper()+'.json')).read_bytes());assert go['source_qualification_kind']=='UNISUPERMIMIC_ACTUAL_H1_STEP270_CROSSHOST_SOURCE_SDK_CPU' and go['max_parent_seconds']==3900 and go['exit_headroom_seconds']==300 and go['save_deadline']<go['nominal_end_epoch'];assert time.time()<go['save_deadline'];assert go['source_SHA']==task['source_SHA'];src=J/'source'/task['source_filename'];assert H(src)==go['source_SHA'];assert not (J/phase).exists();out=J/phase;out.mkdir();fresh=phase=='precheck128';N=128 if fresh else 20000
++ p=argparse.ArgumentParser();p.add_argument('--job',type=int,default=0);p.add_argument('--phase',choices=('production',),required=True);args=p.parse_args();phase=args.phase;task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/('GO_'+phase.upper()+'.json')).read_bytes());assert go['source_qualification_kind']=='UNISUPERMIMIC_FUDAN_H1_83B_CROSSHOST_SOURCE_SDK_CPU_V84' and go['max_parent_seconds']==3900 and go['exit_headroom_seconds']==300 and go['save_deadline']<go['nominal_end_epoch'];assert time.time()<go['save_deadline'];assert go['source_SHA']==task['source_SHA'];src=J/'source'/task['source_filename'];assert H(src)==go['source_SHA'];assert not (J/phase).exists();out=J/phase;out.mkdir();fresh=phase=='precheck128';N=128 if fresh else 20000
+  for k in list(os.environ):
+   if k.startswith('RM_') or k in ('RANK','LOCAL_RANK','WORLD_SIZE','MASTER_ADDR','MASTER_PORT'):del os.environ[k]
+  original=json.loads((J/'original_run_manifest.json').read_bytes())['env'];os.environ.update({k:str(v) for k,v in original.items() if k not in ('RM_RESCUE_DEADLINE','RM_RESCUE_STOP_FILE','RM_SLOPE_INITIAL_ADMISSION')});os.environ.update(RM_MOD4_USD=str(J/'assets/robot.usd'),RM_MOD4_TERRAIN='flat',RM_MOD4_MAP='',RM_JUMP_SCRIPT_PROB='0',RM_KEEP_STD='1',RM_RESCUE_STOP_FILE=str(out/'STOP_AFTER_SAVE.json'),OWN_E2_H1_KIND=task['kind'])

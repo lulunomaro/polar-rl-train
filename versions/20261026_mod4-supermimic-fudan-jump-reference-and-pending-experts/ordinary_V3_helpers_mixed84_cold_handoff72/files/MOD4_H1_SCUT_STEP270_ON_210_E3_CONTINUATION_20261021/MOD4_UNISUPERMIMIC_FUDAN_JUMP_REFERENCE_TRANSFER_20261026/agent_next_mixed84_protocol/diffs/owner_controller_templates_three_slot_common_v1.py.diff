@@ -1,0 +1,11 @@
+--- READ_ONLY_REFERENCE
++++ owner_controller_templates/three_slot_common_v1.py
+@@ -51,7 +51,7 @@
+ def spawn(spec,phase):
+  import psutil,shutil
+  assert phase in ('native','production') and not outdir(phase).exists();assert spec['key'] in CAPS
+- gpu=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode();line=next(x for x in gpu.splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
++ gpu=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,memory.free','--format=csv,noheader,nounits']).decode();line=next(x for x in gpu.splitlines() if spec['GPU_UUID'] in x);assert int(line.split(',')[-1])>(15669 if spec['key']=='h1' or spec.get('finite_method_test') else 7000) and psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(B).free>25*1024**3
+  put(J/(phase+'_ACTUAL_GPU_RAM_DURABLE_RESOURCE.json'),dict(epoch=time.time(),GPU_line=line,RAM_available=psutil.virtual_memory().available,durable_free=shutil.disk_usage(B).free,other_processes_untouched=True));name=spec['production_script' if phase=='production' else 'native_script'];args=[spec['python'],'-u','-B',str(B/name)]
+  if spec['key']=='h1' and phase=='production':args+=['--phase','production']
+  elif spec['key']=='h1':pass

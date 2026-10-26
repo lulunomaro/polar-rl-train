@@ -1,0 +1,64 @@
+--- installed82Q_candidate_source_v5/h1_supermimic_bridge_v1.py
++++ UNINSTALLED_native_finalization_v6/h1_supermimic_bridge_v1.py
+@@ -17,6 +17,7 @@
+ import time
+ import traceback
+ import torch
++from native_finalization_v1 import NativeCheckpointPublisher, run_native_lifecycle, source_sha as finalization_source_sha
+ from supermimic_vendor_v2.geometry import invariant_features, unflatten_state
+ from supermimic_vendor_v2.learner import SuperMimicConfig, SuperMimicLearner
+ from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY, SUPERMIMIC_TRANSITION_KEY
+@@ -195,14 +196,14 @@
+     bridge.learner = learner
+     oldsave = runner.save
+ 
++    publisher = NativeCheckpointPublisher(oldsave, learner, bridge, out, producer=dict(
++        bridge_source_SHA=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
++        finalization_source_SHA=finalization_source_sha(),
++        bootstrap_task_source_SHA=task['source_SHA'],
++        native_not_production_H1_or_E2_source=True))
++
+     def save(path, *args, **kwargs):
+-        oldsave(path, *args, **kwargs)
+-        state = torch.load(path, map_location='cpu', weights_only=False)
+-        state['UniSuperMimic_H1_test'] = learner._checkpoint(True)
+-        state['UniSuperMimic_obs_history'] = learner.obs_hist.detach().cpu()
+-        state['UniSuperMimic_bridge_ep_step'] = bridge.ep_step.detach().cpu()
+-        state['UniSuperMimic_test_contract'] = dict(state_joints=30, actions=6, obs_dim=128, goal_dim=73, original_physics_and_success_unchanged=True, original_RSL_core_frozen_bootstrap_only=True, not_production_expert_source=True, replay_not_saved_matching_upstream_resume_not_exact_PhysX_replay=True)
+-        torch.save(state, path)
++        return publisher(path, *args, **kwargs)
+     runner.save = save
+     runner.alg.act = lambda *args, **kwargs: None
+     from h1_production_control_prefix_trace_v1 import H1ControlPrefixTrace
+@@ -230,24 +231,10 @@
+     learner.wm_update = wm_update
+     learner.policy_update = pi_update
+     put(out / 'ACTUAL_H1_NEW_METHOD_STARTUP_CONTRACT.json', dict(epoch=time.time(), source_SHA=task['source_SHA'], source_Adam=task['source_Adamstep'], source_actor_critic_STD17Adam_literal_exact=True, actual_SDK_dt_probe=sdk, actual_envs=env.num_envs, physics_dt=env.physics_dt, control_dt=env.step_dt, actual_geometry=env.h1_phase.state_dict()['geometry'], new_actor128_history10_goal73_not_PPO35_matched_comparison=True, root_reference_is_not_successful_mocap_or_forced_action=True, actual_original_goal_machine_unchanged=True, actual_original_trace_sampler_retention_unchanged=True, source_G1_motion_library_not_used=True))
+-    failed = False
+-    try:
+-        learner.train()
+-    except OwnCompleteSavedStop:
+-        pass
+-    except BaseException:
+-        failed = True
+-        put(out / 'NATIVE_SUPERMIMIC_LEARN_ORIGINAL_ERROR.json', dict(epoch=time.time(), error=traceback.format_exc(), iteration=learner.iteration))
+-        raise
+-    finally:
+-        trace.persist()
+-        path = out / ('FAILED_PARTIAL_NATIVE_FULLSTATE.pt' if failed else 'native_supermimic_H1_final.pt')
+-        try:
+-            save(str(path))
+-        except BaseException:
+-            put(out / 'NATIVE_FULLSAVE_ORIGINAL_ERROR.json', dict(epoch=time.time(), error=traceback.format_exc(), original_primary_learning_error_preserved=failed, partial_file_retained=True))
+-            if not failed:
+-                raise
+-        else:
+-            final = dict(path=str(path), bytes=path.stat().st_size, SHA=hashlib.sha256(path.read_bytes()).hexdigest(), updates=learner.iteration, world_updates=bridge.wm_updates, policy_updates=bridge.pi_updates, original_H1_events=trace.lifetime_goal_counter.snapshot(), not_production_H1_or_E2_source=True)
+-            put(out / 'FAILED_PARTIAL_NATIVE_FULLSTATE_ACTUAL.json' if failed else 'FINAL.json', dict(epoch=time.time(), passed=not failed and bridge.pi_updates > 0, final=final, not_frozen_skill_graduation=True))
++    return run_native_lifecycle(
++        train=learner.train, stop_types=(OwnCompleteSavedStop,),
++        persist_trace=trace.persist, save=save, out=out,
++        iteration=lambda: learner.iteration,
++        world_updates=lambda: bridge.wm_updates,
++        policy_updates=lambda: bridge.pi_updates,
++        events=trace.lifetime_goal_counter.snapshot)

@@ -1,0 +1,75 @@
+--- C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\H1_STEP270_DUAL72_FUDAN_SUPERMIMIC_E3_MIGRATED_V85M2_20261026\payloads\e2\source\h1_supermimic_bridge_v1.py
++++ C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_UNISUPERMIMIC_FUDAN_JUMP_REFERENCE_TRANSFER_20261026\agent_native_Fudan_continuation86_cpu\h1_supermimic_bridge_continuation86_candidate.py
+@@ -17,7 +17,8 @@
+ import time
+ import traceback
+ import torch
+-from native_finalization_v1 import NativeCheckpointPublisher, run_native_lifecycle, source_sha as finalization_source_sha
++from native_finalization_v1 import NativeCheckpointPublisher, run_native_lifecycle, source_sha as finalization_source_sha, verify_native, atomic_json
++from native_continuation_v1 import (read_pinned_metadata_bundle, admit_closed_source, construct_preserving_post_reset_global_rng, restore_legacy85_new_episode, continuation_manifest_writer, BOOTSTRAP_SHA)
+ from supermimic_vendor_v2.geometry import invariant_features, unflatten_state
+ from supermimic_vendor_v2.learner import SuperMimicConfig, SuperMimicLearner
+ from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY, SUPERMIMIC_TRANSITION_KEY
+@@ -154,7 +155,7 @@
+             with (self.out / 'ACTUAL_H1_CONVERGENCE_CURVE.jsonl').open('a', encoding='utf8') as f:
+                 f.write(json.dumps(row) + '\n')
+             self.last_curve = self.learner.iteration
+-            if self.pi_updates > 0:
++            if self.pi_updates > self.window_start_pi_updates:
+                 checkpoint = self.trace.source_models[-1]
+                 positive = dict(checkpoint, updates=self.learner.iteration, world_updates=self.wm_updates, policy_updates=self.pi_updates, original_task_events=events, not_PPO_or_production_source=True)
+                 put(self.out / 'latest_complete.json', positive)
+@@ -215,7 +216,7 @@
+         stream.write(runtime_bytes)
+     runtime_partial.replace(runtime_path)
+     assert bridge.pi_updates == 0 and bridge.wm_updates == 0 and bridge.trace is None
+-    put(out / 'NATIVE_FUDAN_REFERENCE_RUNTIME_ORDER_ACTUAL.json', dict(
++    runtime_order = dict(
+         actual_runtime_order_readback=True, complete_named_permutation=True,
+         before_first_physical_step_and_Pi=True,
+         scope='before first native learning control/Pi; original environment construction/reset is separate',
+@@ -223,16 +224,34 @@
+         reference_artifact_SHA=reference_bundle['reference']['reference_artifact_SHA'],
+         runtime_objective_contract_SHA=runtime_contract_SHA,
+         source_SHA=task['source_SHA'], original_run_id=go['run_id'],
+-        actual_own_task_physics_commands_and_success_unchanged=True))
++        actual_own_task_physics_commands_and_success_unchanged=True)
++    put(out / 'NATIVE_FUDAN_REFERENCE_RUNTIME_ORDER_ACTUAL.json', runtime_order)
+     cfg = SuperMimicConfig(iterations=1000000, buffer_steps=64, utd=1 / 24, horizon=16, goal_frames=1, hist=10, z_dim=32, wm_hidden=(512, 512, 512), policy_hidden=(512, 256, 128), critic_hidden=(256, 128), wm_window=8, wm_batches=10, wm_batch=512, pi_batch=512, warmup_steps=48, wm_only_iters=10, critic_epochs=2, critic_minibatches=2, ckpt_every=1000000, log_every=1, amp='none', compile=False, log_backend='none', seed=20261026)
+-    learner = SuperMimicLearner(bridge, cfg, out / 'native_supermimic', device=env.device, backend='original_Isaac_MOD4_H1_step270')
++    # Mandatory closed native source admission; missing85M2 closure stays blocked.
++    binding, metadata = read_pinned_metadata_bundle(B / 'NATIVE_CONTINUATION_BINDING_ACTUAL.json')
++    admission = admit_closed_source(binding, current_runtime_order=runtime_order,
++        current_runtime_objective=runtime_objective, **metadata)
++    new_episode_proof = json.loads((Path(log_dir) / 'STEP270_FULLSTATE_RESUME_STARTUP_VERIFIED.json').read_bytes())
++    def restore_post_reset_rng(state):
++        torch.random.set_rng_state(state[0])
++        torch.cuda.set_rng_state_all(state[1])
++    learner = construct_preserving_post_reset_global_rng(
++        lambda: SuperMimicLearner(bridge, cfg, out / 'native_supermimic', device=env.device, backend='original_Isaac_MOD4_H1_step270'),
++        lambda: (torch.random.get_rng_state(), torch.cuda.get_rng_state_all()),
++        restore_post_reset_rng)
+     bridge.learner = learner
++    restore_receipt = restore_legacy85_new_episode(source, learner, bridge, admission,
++        new_episode_proof, verify_native)
++    put(out / 'NATIVE_CONTINUATION_STARTUP_ACTUAL.json', restore_receipt)
+     oldsave = runner.save
+ 
+     publisher = NativeCheckpointPublisher(oldsave, learner, bridge, out, producer=dict(
+         bridge_source_SHA=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+         finalization_source_SHA=finalization_source_sha(),
+-        bootstrap_task_source_SHA=task['source_SHA'],
++        bootstrap_task_source_SHA=BOOTSTRAP_SHA,
++        native_continuation_source_checkpoint_SHA=admission['checkpoint_SHA'],
++        native_continuation_source_run_id=admission['source_run_id'],
++        continuation_source_SHA=hashlib.sha256((B / 'native_continuation_v1.py').read_bytes()).hexdigest(),
+         reference_artifact_SHA=reference_bundle['reference']['reference_artifact_SHA'],
+         adapter_CPU_report_SHA=reference_bundle['adapter_CPU']['report_SHA'],
+         objective_contract_SHA=reference_bundle['adapter_CPU']['objective_contract_SHA'],
+@@ -274,4 +293,5 @@
+         iteration=lambda: learner.iteration,
+         world_updates=lambda: bridge.wm_updates,
+         policy_updates=lambda: bridge.pi_updates,
+-        events=trace.lifetime_goal_counter.snapshot)
++        events=trace.lifetime_goal_counter.snapshot,
++        write_manifest=continuation_manifest_writer(atomic_json, bridge, restore_receipt))

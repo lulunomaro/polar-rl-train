@@ -1,0 +1,141 @@
+{
+  "status": "SOURCE_COUNTEREXAMPLES_REPRODUCED_NOT_UNIQUE_RUNTIME_CAUSE",
+  "epoch": 1793017701.248513,
+  "scope": "actual installed source, existing small reference, synthetic CPU states only; no actor/model checkpoint/physics/GPU/remote reads",
+  "reference_SHA_from_existing_producer": "0b9d642f3530ad55bd353c19918a0778378746ecc250e1f22c10c58b8c095c94",
+  "bridge_SHA_from_existing_producer": "e01ff501d198f927cb634ccb381f1e0e71ecdb54214029aa04a0ac2a4275ed8c",
+  "cases": [
+    {
+      "frame": 95,
+      "identical_inputs": {
+        "obs": true,
+        "wm_input": true,
+        "critic_input": true
+      },
+      "goal_same_because_same_frame": true,
+      "cases": [
+        {
+          "x": 0.1,
+          "z": 0.337742301121,
+          "reward": 0.9512056112289429,
+          "d_reward_d_z": 6.803632913943147e-06,
+          "ascent": 1.0,
+          "support": 0.0,
+          "own_landing_height_cost": 0.0
+        },
+        {
+          "x": 0.4,
+          "z": 0.337742301121,
+          "reward": 0.449311763048172,
+          "d_reward_d_z": 3.213808213331504e-06,
+          "ascent": 1.0,
+          "support": 0.7849295735359192,
+          "own_landing_height_cost": 0.0
+        }
+      ]
+    },
+    {
+      "frame": 120,
+      "identical_inputs": {
+        "obs": true,
+        "wm_input": true,
+        "critic_input": true
+      },
+      "goal_same_because_same_frame": true,
+      "cases": [
+        {
+          "x": 0.1,
+          "z": 0.337742301121,
+          "reward": 0.7855947613716125,
+          "d_reward_d_z": 1.2221221923828125,
+          "ascent": 1.0,
+          "support": 0.0,
+          "own_landing_height_cost": 0.0
+        },
+        {
+          "x": 0.4,
+          "z": 0.337742301121,
+          "reward": 0.8368678689002991,
+          "d_reward_d_z": 1.3018124103546143,
+          "ascent": 1.0,
+          "support": 0.7849295735359192,
+          "own_landing_height_cost": 0.0
+        }
+      ]
+    },
+    {
+      "frame": 140,
+      "identical_inputs": {
+        "obs": true,
+        "wm_input": true,
+        "critic_input": true
+      },
+      "goal_same_because_same_frame": true,
+      "cases": [
+        {
+          "x": 0.1,
+          "z": 0.337742301121,
+          "reward": 0.24827155470848083,
+          "d_reward_d_z": 0.0,
+          "ascent": 0.0,
+          "support": 0.0,
+          "own_landing_height_cost": 0.0
+        },
+        {
+          "x": 0.4,
+          "z": 0.337742301121,
+          "reward": 0.3268413543701172,
+          "d_reward_d_z": 2.0789859294891357,
+          "ascent": 0.0,
+          "support": 0.7849295735359192,
+          "own_landing_height_cost": 0.8583205938339233
+        }
+      ]
+    },
+    {
+      "frame": 160,
+      "identical_inputs": {
+        "obs": true,
+        "wm_input": true,
+        "critic_input": true
+      },
+      "goal_same_because_same_frame": true,
+      "cases": [
+        {
+          "x": 0.1,
+          "z": 0.337742301121,
+          "reward": 0.21665489673614502,
+          "d_reward_d_z": 0.0,
+          "ascent": 0.0,
+          "support": 0.0,
+          "own_landing_height_cost": 0.0
+        },
+        {
+          "x": 0.4,
+          "z": 0.337742301121,
+          "reward": 0.30496570467948914,
+          "d_reward_d_z": 1.9399712085723877,
+          "ascent": 0.0,
+          "support": 0.7849295735359192,
+          "own_landing_height_cost": 0.8583205938339233
+        }
+      ]
+    }
+  ],
+  "proved": [
+    "same state except world X yields identical current actor observation, WM input and critic features while reward changes",
+    "at frame160 (after ascent mask), before step edge the own landing height term has exactly zero vertical reward derivative in this fixture",
+    "after step edge this same vertical displacement has a positive reward derivative"
+  ],
+  "limitations": [
+    "same instantaneous observation can still differ in real observation histories/contact; no claim every real trajectory is indistinguishable",
+    "invariant WM can model some flat terrain motion; this counterexample exposes omitted fixed step position, not a general claim translation invariance is wrong",
+    "zero late pre-edge vertical derivative does not prove all jump gradients zero: earlier ascent/leg/orientation/critic terms remain",
+    "dynamic feasibility of 90-percent-attenuated limb excursion was not proved by original static IK; no new physical rollout performed",
+    "not proof these omissions uniquely caused all zero events; actual phase occupancy/gradient alignment require separate evidence"
+  ],
+  "nominal_upright_softdone": 0.013592582195997238,
+  "nominal_constant_state_16step_survival": 0.8033434777572889,
+  "no_runtime_edits": true,
+  "no_training_started": true
+}

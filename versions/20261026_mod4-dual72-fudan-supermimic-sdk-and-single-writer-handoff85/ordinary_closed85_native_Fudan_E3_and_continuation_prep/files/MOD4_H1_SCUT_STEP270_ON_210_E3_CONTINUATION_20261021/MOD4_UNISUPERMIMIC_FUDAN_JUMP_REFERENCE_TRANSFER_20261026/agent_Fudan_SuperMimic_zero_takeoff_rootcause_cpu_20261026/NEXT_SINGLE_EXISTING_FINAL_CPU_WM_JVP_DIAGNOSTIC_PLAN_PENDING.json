@@ -1,0 +1,51 @@
+{
+  "schema": "mod4.native.single_cpu_existing_final_diagnostic_plan.v1",
+  "status": "PROPOSAL_ROOT_ONLY_NOT_EXECUTED_BY_SUBAGENT",
+  "source_final_producer_SHA": "94e7f272176b4a7c485b50c1ac61f95a3ecd4460ee6a73034f9e7a47a57045af",
+  "source_final_local_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_DUAL72_FUDAN_SUPERMIMIC_E3_MIGRATED_V85M2_20261026\\current_native_H1_method_fullstate\\e2\\native_supermimic_H1_final.pt",
+  "new_purpose": "Diagnose nativeWM action sensitivity, actual saved phase distribution, task-vs-regularizer gradients without policy inference or new rollouts",
+  "one_CPU_load": true,
+  "no_new_checkpoint_hash_or_old_once_reviewer_rerun": true,
+  "schema_paths": {
+    "native": "UniSuperMimic_H1_test:{wm,pi,critic,opt_wm,opt_pi,opt_v,iteration,wall_time,sim_steps,args,saved_at}",
+    "history": "UniSuperMimic_obs_history:[20000,10,128]",
+    "ep_step": "UniSuperMimic_bridge_ep_step:[20000]",
+    "age": "H1_step270_task_state.phase.tensors.age_control",
+    "last_applied_request": "H1_step270_task_state.phase.tensors.request_for_action",
+    "publication": "UniSuperMimic_publication:producer,native_iteration,world_updates,policy_updates,run_token,save_token"
+  },
+  "inputs": {
+    "wm": {
+      "num_joints": 30,
+      "context_dim": 49,
+      "action_dim": 6,
+      "in_dim": 128,
+      "out_dim": 72,
+      "hidden": [
+        512,
+        512,
+        512
+      ]
+    },
+    "history_latest_layout": {
+      "invariant_features73": "z[0],heading-neutral rotation first2columns6[1:7],body linear velocity[7:10],body angular velocity[10:13],q30[13:43],dq30[43:73]",
+      "a_prev6": "[73:79]",
+      "normalized_context49": "[79:128]=tanh(contact_history18,applied_torque30,public_request1)"
+    },
+    "reconstruct": "Use heading-neutral first2rotation columns plus crossproduct for third, convert body velocities to neutral-world frame, set worldXY arbitrary and explicitly mark unobservable. Verify invariant_features reproduces saved features within float32 precision. Do not label this a complete actual root pose.",
+    "never_inverse_tanh_context": "contact/torque tanh can saturate to1; feed saved normalized context directly toWM.step"
+  },
+  "measurements": [
+    "age/bridge ep_step histogram and consistency; fraction reaching100, fraction requested100..179, latestz/tilt distribution; distinguish last applied request at age-1 from newly computed current public request",
+    "Load only actual wm state into exact source WorldModel CPU; freeze its parameters, make6-action input requiregrad; use32 deterministic sampled saved-observation rows stratified by age/z; a_prev or zero conditioning explicitly is not next actual executed action",
+    "Measure d(next z,vz,orientation,q)/d(action) and bounded finite-difference checks at a_prev and0; report gains, clipping saturation and normalized source units",
+    "On same states compute actual PartialMDP task-only versus direct regularization action gradient with current age, and soft hazard z/tilt decomposition",
+    "Compare16step action-held WM rollout fixed initial xi versus source-formula request flip only; contact/torque future truth is not saved, so do not claim this resolves their dynamic mismatch",
+    "Return smallJSON with exact source/producer refs, all failures/nonfinite and no native source admission, controller, budget or GO"
+  ],
+  "limits": [
+    "No actual actor/pi forward; no optimizer training, GPU, physics, environment, raw/NPZ reads or new checkpoint hash.",
+    "No real85 trajectory one-step residual/heldout fit can be proven from saved obs histories alone; no replay was saved.",
+    "If actual learnedWM input Jacobian is weak, inconsistent or dominated by clipping/context, investigate before any further nativeGO. A positiveJ alone does not prove physically correct gradients."
+  ]
+}

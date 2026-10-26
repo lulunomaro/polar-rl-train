@@ -1,0 +1,41 @@
+--- review_V85M2_single72_native_E3_fullstate_CPU_V2_UNUSED.py
++++ review_V85M2_single72_native_E3_CPU_V3_one_load_partial_receipt_UNUSED.py
+@@ -1,5 +1,5 @@
+ from pathlib import Path
+-import json,time,torch,sys
++import json,time,torch,sys,traceback
+ N=Path(__file__).resolve().parent;R=N/'reports';sys.path.insert(0,str(N));read=lambda p:json.loads(Path(p).read_bytes())
+ 
+ def review_new_native_method(receipt,q,co,segment):
+@@ -49,7 +49,11 @@
+     torch.set_num_threads(2);models={}
+     for key in ('recovery',):
+         assert len(receipt['complete_models'][key])==1
+-        final=receipt['complete_models'][key][0];s=torch.load(final['local_path'],map_location='cpu',weights_only=False)
++        final=receipt['complete_models'][key][0]
++        original_terminal=co['rows'][key]
++        assert original_terminal['returncode']==0 and not original_terminal['original_error'] and not original_terminal['errors']
++        assert original_terminal['final']['passed'] and original_terminal['final']['final']['SHA']==final['SHA']
++        s=torch.load(final['local_path'],map_location='cpu',weights_only=False)
+         source=Path(q['payloads'][key])/'job0/source'/q['specs'][key]['source_filename']
+         old=torch.load(source,map_location='cpu',weights_only=False);counts=[0,0]
+         def finite(x):
+@@ -108,6 +112,8 @@
+                 snapshot.update(environments=len(recipe),currently_credited_fallen_envs=int((credited&(recipe!=12)).sum()),currently_credited_normal_envs=int((credited&(recipe==12)).sum()),per_recipe=cohorts)
+             models[key]['E3_current_retained_episode_recovery_snapshot']=snapshot
+     assert not torch.cuda.is_initialized()
++    baseline_proof=dict(epoch=time.time(),passed=True,qualification_scope='normal_E3_only_initial_load_before_native_review',models=models,original_canonical_cost_settled=True,all_owner_nodes_children_actual_out=True,all_original_private_shared_locks_free=True,normal_E3_original_terminal_no_error=True,no_native_model_or_skill_qualification_claim=True,whole_current_E3_model_loaded_once=True)
++    with (R/'E3_BASELINE_ONE_LOAD_CPU_QUALIFIED_BEFORE_NATIVE_REVIEW_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(baseline_proof,f,ensure_ascii=False,indent=2)
+     native=review_new_native_method(receipt,q,co,segment)
+     assert set(models)=={'recovery'}
+     result=dict(epoch=time.time(),passed=True,qualification_scope='normal83B_E3_and_separate_Fudan_native_H1_method_H1_PPO_deferred',models=models,native_method=native,normal_E2_83B_preserved_paused=dict(SHA='72f4cbefeb5bf02af6f39a9d2922faa8032e36e81cb9a142df45154158998c9f',Adam=857460),all_owner_nodes_children_actual_out=True,
+@@ -117,4 +123,8 @@
+                 no_query_native_replay=True,not_270mm_skill_or_graduation_proof=True)
+     with (R/'V85M2_SINGLE72_NATIVE_E3_AND_ACTUAL_COST_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+     print(json.dumps(dict(passed=True,models={k:v['final']['SHA'] for k,v in models.items()},original_cost_settled=True)))
+-if __name__=='__main__':main()
++if __name__=='__main__':
++    try:main()
++    except BaseException:
++        with (R/('V85M2_CLOSE_CPU_REVIEW_ORIGINAL_ERROR_'+str(time.time_ns())+'.json')).open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),error=traceback.format_exc(),one_load_baseline_receipt_may_already_exist=True,no_repeated_model_read_or_fee_rewrite=True),f,indent=2)
++        raise

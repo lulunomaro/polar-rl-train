@@ -1,0 +1,124 @@
+{
+  "candidate": true,
+  "actual_installed_SDK_admitted": false,
+  "module": "actual_DR_memory_getter_v1.py",
+  "module_SHA": "0ec5f754466c3dc16c21992e572cfed973c65a6a13b8eb8fa4ad77318ea2645f",
+  "api": [
+    "RuntimeOrderBinding(body_names,joint_names,leg_joint_names,wheel_joint_names,gas_joint_names,material_shape_count)",
+    "ActualDRMemoryGetter(env,binding).capture_initial()",
+    "reset_ids_since_capture(); refresh_after_resets(ids=None)",
+    "snapshot(); xi(); field_shapes()",
+    "read_old_processed_applied(env,issue_tick)"
+  ],
+  "xi_order": [
+    {
+      "name": "material_static_friction",
+      "memory_source": "D0.materials selected CPU rows; wheel slots <- D0.mu",
+      "shape": "N,M"
+    },
+    {
+      "name": "material_dynamic_friction",
+      "memory_source": "same; original D0 sets static==dynamic mu",
+      "shape": "N,M"
+    },
+    {
+      "name": "material_restitution",
+      "memory_source": "baseline nonwheel; wheel0 from exact original D0 write",
+      "shape": "N,M"
+    },
+    {
+      "name": "body_mass",
+      "memory_source": "D0.mass * D0.factor",
+      "shape": "N,B"
+    },
+    {
+      "name": "body_inertia",
+      "memory_source": "D0.inertia * D0.factor",
+      "shape": "N,B,9"
+    },
+    {
+      "name": "body_com",
+      "memory_source": "D7 original_pose XYZ + delta_m at chassis body_id",
+      "shape": "N,B,3"
+    },
+    {
+      "name": "joint_armature",
+      "memory_source": "robot.data.joint_armature existing buffer",
+      "shape": "N,30"
+    },
+    {
+      "name": "joint_friction",
+      "memory_source": "robot.data.joint_friction_coeff static effort existing buffer",
+      "shape": "N,30"
+    },
+    {
+      "name": "joint_stiffness",
+      "memory_source": "existing implicit buffer + explicit legs/wheels actuator coefficients; D5 crosscheck",
+      "shape": "N,30"
+    },
+    {
+      "name": "joint_damping",
+      "memory_source": "existing implicit buffer + explicit legs/wheels actuator coefficients; D6 crosscheck",
+      "shape": "N,30"
+    },
+    {
+      "name": "motor_episode_scale",
+      "memory_source": "actual legs.episode_scale4 + wheels.episode_scale2",
+      "shape": "N,6"
+    },
+    {
+      "name": "gas_preload_target",
+      "memory_source": "cfg.events.gas_spring_preload.params.targets, exact gas joint order",
+      "shape": "N,2"
+    },
+    {
+      "name": "action_lag_steps",
+      "memory_source": "original queue legs/wheels groups.lag_steps",
+      "shape": "N,2"
+    },
+    {
+      "name": "leg_encoder_episode_bias",
+      "memory_source": "_sensor_mild.bias",
+      "shape": "N,4"
+    }
+  ],
+  "correction": {
+    "old_frozen_catalog_motor_episode_scale_dim": 2,
+    "actual_motor_episode_scale_dim": 6,
+    "old_frozen_file_unchanged": true,
+    "new_layout_required": true,
+    "caller_rule": "Use actual getter.field_shapes(), not old static_layout motor-group width2; all14 field names retained."
+  },
+  "reset_contract": {
+    "after_all_original_reset_hooks": true,
+    "epochs": [
+      "D0",
+      "D1",
+      "D4legs",
+      "D4wheels",
+      "D5",
+      "D6",
+      "D7COM",
+      "D7PD"
+    ],
+    "rule": "Each selected epoch increments exactly1; nonselected epoch unchanged; refuse missing/multiple/partial reset",
+    "no_reset_friction_transfer": true,
+    "selected_rows_only_CPU_material_transfer": true,
+    "nonreset_cache_bytes_preserved": true,
+    "limitation": "Unselected source parameter drift without an episode-count change is not reread by this cache; original component selected-reset guards and actual admission remain required."
+  },
+  "dynamic_queue": {
+    "fields": "queue.groups legs.applied4 + wheels.applied2",
+    "request_policy_action_not_used": true,
+    "clock": "before submit, issue multiple4, last_apply=issue-1, no pending",
+    "first_initial_neutral_allowed": true
+  },
+  "pending": [
+    "Actual target SDK source/order/material-shape binding and backend equality qualification",
+    "Install getter only after complete original reset chain; constructor-time getters cannot preempt D7 reset",
+    "New model input/checkpoint schema must use motor gain6 and actual field dimensions",
+    "This is component-memory readout, not a fresh PhysX material/parameter readback or hardware calibration",
+    "Static catalog joint_friction is static effort; additional dynamic/viscous coefficients are outside these14 fields and must not be silently relabeled",
+    "No per-step motor noise supported here; active step_scale!=1 rejects, matching pinned MildDR audit"
+  ]
+}

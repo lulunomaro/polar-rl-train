@@ -1,0 +1,124 @@
+{
+  "schema": "paper_pinned_replication_and_MOD4_adapter_source_audit_v1",
+  "scope": "New read-only source audit. No PT/model load, actor forward, GPU/physics, SSH, budget write or training.",
+  "primary_sources": [
+    {
+      "url": "https://arxiv.org/pdf/2610.28480",
+      "section": "3.1-3.3, Appendix A.3,C,D",
+      "summary": "SuperMimic alternates collection, autoregressive dynamics fitting and policy gradients through a frozen learned model. Context contains episode-fixed physical parameters. Reference goals include future frames. Reset sampling revisits low-return motion regions. A critic bootstraps short imagined returns.",
+      "source_word_budget_note": "Short paraphrase only; no full paper copied."
+    },
+    {
+      "url": "https://github.com/Motphys/Uni-SuperMimic",
+      "classification": "Independent downstream reproduction as README explicitly states; not original authors' official code",
+      "pinned_commit": "faf7818e8abac3ec6abb8f00e6e904d3577f800b",
+      "license": "Apache-2.0, existing licenses retained"
+    },
+    {
+      "url": "https://supermimic.github.io/",
+      "classification": "Original paper project"
+    }
+  ],
+  "confirmed_adapter_differences": [
+    {
+      "id": "DYNAMIC_XI_FROZEN_IN_IMAGINATION",
+      "actual": "H1Bridge.current packs contact_history12 + applied_torque30 + public_request1. _wm_rollout uses logged context at each training step; policy_update fixes sampled start context across imagined steps.",
+      "upstream": "Episode-fixed friction/calibration/COM; holding this xi fixed is consistent there.",
+      "consequence": "Changing variables are supplied as future ground truth during dynamics fit but are stale during imagination. This is a semantic model-input mismatch.",
+      "limit": "Not proven sole cause of failed physical jumps; nonzero mathematical Jacobians already established."
+    },
+    {
+      "id": "SPATIAL_ALIAS",
+      "actual": "invariant_features drops root XY; H1GoalMdp.obs appends dynamic xi, but no step-relative displacement. Analytic goal exposes absolute reference X.",
+      "consequence": "States at different step distances can share actor and dynamics inputs, despite different terrain contact outcomes.",
+      "limit": "Prior source counterexample remains valid; no new physical causal test."
+    },
+    {
+      "id": "ACTION_QUEUE_HIDDEN_STATE",
+      "actual": "PhysicalActionQueue has per-episode legs/wheels delay0,2500,5000us, prior applied processed targets, pending state and physics ticks. Old WM sees ingress clipped6 action and physical state, not queue state/DR delay.",
+      "consequence": "Ingress action is legitimate only with enough actuator state/context. Calling it executed6 does not mean a single target was active during all four physical ticks.",
+      "limit": "Control period10000us is not fixed10000us latency."
+    },
+    {
+      "id": "PARTIAL_REFERENCE_OBJECTIVE",
+      "actual": "Current own root task and partial foreign pose reference, including masked XY/spins and post-apex Z/Vz; not full reference motion tracking.",
+      "limit": "Robot constraints require explicit retargeting; preserving paper learning loop does not make raw foreign actions valid."
+    },
+    {
+      "id": "SMOKE_SCALE_CONFIG",
+      "actual": {
+        "num_envs": 20000,
+        "buffer_steps": 64,
+        "utd": 0.041666666666666664,
+        "horizon": 16,
+        "goal_frames": 1,
+        "wm_hidden": [
+          512,
+          512,
+          512
+        ],
+        "policy_hidden": [
+          512,
+          256,
+          128
+        ],
+        "wm_batch": 512,
+        "pi_batch": 512,
+        "warmup_steps": 48,
+        "wm_only_iters": 10,
+        "critic_epochs": 2,
+        "critic_minibatches": 2,
+        "amp": "none",
+        "compile": false
+      },
+      "pinned_replication": {
+        "num_envs": 4096,
+        "buffer_steps": 1000,
+        "utd": 0.4,
+        "horizon": 32,
+        "goal_frames": 10,
+        "wm_hidden": [
+          2048,
+          2048,
+          2048
+        ],
+        "policy_hidden": [
+          2048,
+          1024,
+          512,
+          256
+        ],
+        "wm_batch": 2048,
+        "pi_batch": 4096,
+        "warmup_steps": 64,
+        "wm_only_iters": 500,
+        "critic_epochs": 5,
+        "critic_minibatches": 4,
+        "amp": "bf16",
+        "compile": true
+      },
+      "limit": "Config differences alone do not prove a root cause or justify unsafe wholesale default changes; buffer/reset/phase and4090 memory must be designed jointly. Existing FP32 and physical guards stay."
+    }
+  ],
+  "refuted_or_unproven": [
+    "Autograd is not established broken; saved WM action/task gradients were nonzero.",
+    "Wrong input quaternion hypothesis was refuted by actual SDK xyzw conversion.",
+    "Pre-request reference rootZ.337742 matches actual import_contract.spawn_height_m; collider mesh center is not root origin.",
+    "One N1 deterministic episode ended before request; exact termination term not captured.",
+    "Fudan standing-jump relative wheel lift.33667864m is not MOD4 step success."
+  ],
+  "repair_direction": {
+    "learning_method": "Keep collection→world-model fit→BPTT policy+critic; no unsolicited PPO auxiliary-loss hybrid.",
+    "contract": "Episode-static true DR in xi. Dynamic quantities predicted/analytically advanced as state. Expose task-relative terrain/reference geometry and actuator queue state consistently to real and imagined transitions.",
+    "admission": "New source namespace, explicit architecture/source migration and fresh actual SDK/resource/account/fullsave checks; no blanket guard bypass.",
+    "resource_priority": "All three cards reserved for H1 repair tasks. No new GO yet."
+  },
+  "lookups_failed": [
+    {
+      "url": "https://arxiv.org/html/2610.28480v1",
+      "result": "404; PDF used instead"
+    }
+  ],
+  "not_skill_success": true,
+  "goal_status": "active"
+}

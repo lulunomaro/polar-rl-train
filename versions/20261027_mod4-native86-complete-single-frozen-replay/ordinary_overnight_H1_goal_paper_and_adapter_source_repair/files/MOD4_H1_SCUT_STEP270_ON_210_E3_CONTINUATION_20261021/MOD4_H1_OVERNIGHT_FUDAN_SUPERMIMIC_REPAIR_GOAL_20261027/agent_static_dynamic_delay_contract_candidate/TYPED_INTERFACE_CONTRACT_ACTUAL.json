@@ -1,0 +1,127 @@
+{
+  "candidate": true,
+  "actual_SDK_admitted": false,
+  "version": "native_static_dynamic_delay_v1_new_interface",
+  "module": "static_dynamic_delay_contract_v1.py",
+  "module_SHA": "7d7b5e064516cb3eb58c9c141e6e4b0f351a0955984e3055a1dcb7299ce1939f",
+  "dynamic_aux": {
+    "dim": 54,
+    "fields": [
+      {
+        "name": "contact_history",
+        "offset": 0,
+        "width": 18,
+        "shape": [
+          "N",
+          3,
+          2,
+          3
+        ],
+        "order": "newest5msbin_first,left_right,xyz"
+      },
+      {
+        "name": "applied_torque",
+        "offset": 18,
+        "width": 30,
+        "shape": [
+          "N",
+          30
+        ],
+        "order": "actual_runtime_ordered_joint_names"
+      },
+      {
+        "name": "old_processed_applied",
+        "offset": 48,
+        "width": 6,
+        "shape": [
+          "N",
+          6
+        ],
+        "order": "original legs4 then wheels2"
+      }
+    ]
+  },
+  "request": {
+    "api": "request_from_age(age_int64_N)",
+    "rule": "100 <= age < 180",
+    "static_xi": false
+  },
+  "age_advance": {
+    "api": "advance_age(age,reset_mask)",
+    "rule": "after completed control increment once, then selected reset to0"
+  },
+  "task_relative": {
+    "api": "task_relative_observation(root_xyz,target_xyz,edge_x,platform_top_z,age)",
+    "dim": 7,
+    "fields": [
+      "target_dx",
+      "target_dy",
+      "target_dz",
+      "edge_dx",
+      "platform_top_dz",
+      "public_request",
+      "age_s"
+    ],
+    "same_position_coordinate_frame_required": true
+  },
+  "delay": {
+    "api": "unroll_processed_target_control(processed_targets,old_applied,lag_steps,issue_tick=...,last_apply_tick=...,pending_valid=...)",
+    "input_shapes": {
+      "processed_targets": [
+        "N",
+        6
+      ],
+      "old_applied": [
+        "N",
+        6
+      ],
+      "lag_steps": [
+        "N",
+        2
+      ]
+    },
+    "lag_order": [
+      "legs",
+      "wheels"
+    ],
+    "lag_values": [
+      0,
+      1,
+      2
+    ],
+    "lag_unit_us": 2500,
+    "control_us": 10000,
+    "output_shape": [
+      "N",
+      4,
+      6
+    ],
+    "clock_boundary": "issue_tick multiple4; last_apply_tick==issue_tick-1; no pending command",
+    "formula": "target if substep_index>=group_lag else old_applied",
+    "next_old_applied": "applied_substeps[:,-1,:]",
+    "original_queue_unchanged": true,
+    "processed_target_units": "legs original position rad; wheels original angular velocity rad/s"
+  },
+  "static": {
+    "api": "static_layout(...); EpisodeStaticContext(layout,values,episode_ids)",
+    "reset_api": "selected_reset(ids,new_full_batch_readback,new_episode_ids)",
+    "update_atomic": true,
+    "nonselected_values_exact": true,
+    "randomization_implemented": false,
+    "getter": "read_actual_episode_parameters(env) raises NotImplementedError",
+    "no_component_default_values": true,
+    "no_dynamic_contact_torque_request_in_xi": true
+  },
+  "CPU": {
+    "passed": true,
+    "passed_count": 23,
+    "total": 23
+  },
+  "pending": [
+    "Actual component getter/readback and ordered SDK body/joint/material mapping",
+    "After-all-reset-hooks static capture timing and real selected/nonselected readback",
+    "Any active aerodynamic, per-step motor gain or sensor-delay component mapping; do not silently freeze dynamic randomness",
+    "Root-owned augmented WM/learner/action-processing integration and new checkpoint/input schema",
+    "Actual installed SDK and plant admission; no fixture may serve as that proof"
+  ]
+}

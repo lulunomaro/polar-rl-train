@@ -1,0 +1,48 @@
+--- reviewed84
++++ review_dual72_V85_native_E3_fullstate_CPU_UNUSED.py
+@@ -44,10 +44,10 @@
+ 
+ def main():
+     q=read(R/'THREE_EXPERTS_LATEST_CLOSED_SOURCES_PAYLOADS_CPU_PREPARED_ACTUAL.json')
+-    receipt=read(R/'MIXED84_BASELINES_NATIVE_H1_AND_ORIGINAL_COST_RETURNED_ACTUAL.json');assert receipt['actual_finite_transport_returned']
+-    co=receipt['source210']['cohort'];segment=receipt['source210']['original_segment'];assert set(co['go'])==set(segment['experts'])=={'h1','e2','recovery'}
++    receipt=read(R/'DUAL72_V85_NATIVE_E3_AND_ORIGINAL_COST_RETURNED_ACTUAL.json');assert receipt['actual_finite_transport_returned']
++    co=receipt['source210']['cohort'];segment=receipt['source210']['original_segment'];assert set(co['go'])==set(segment['experts'])=={'e2','recovery'}
+     torch.set_num_threads(2);models={}
+-    for key in ('h1','recovery'):
++    for key in ('recovery',):
+         assert len(receipt['complete_models'][key])==1
+         final=receipt['complete_models'][key][0];s=torch.load(final['local_path'],map_location='cpu',weights_only=False)
+         source=Path(q['payloads'][key])/'job0/source'/q['specs'][key]['source_filename']
+@@ -107,28 +107,14 @@
+                     cohorts.append(dict(recipe=recipe_id,environments=int(mask.sum()),current_episode_credited=int(credited[mask].sum()),current_request=int(tensors['request'][mask].sum()),current_age_feedback_ticks_median=float(tensors['age'][mask].float().median()),current_peak_upright_median=float(tensors['peak'][mask].median()),current_stable_feedback_ticks_max=int(tensors['stable'][mask].max())))
+                 snapshot.update(environments=len(recipe),currently_credited_fallen_envs=int((credited&(recipe!=12)).sum()),currently_credited_normal_envs=int((credited&(recipe==12)).sum()),per_recipe=cohorts)
+             models[key]['E3_current_retained_episode_recovery_snapshot']=snapshot
+-    diagpath=N/'current_three_closed_text/h1/job0/production/control_prefix_raw/CONTROL_LIFETIME_GOAL_EVENTS_ACTUAL.json'
+-    diagnostic=dict(present=diagpath.is_file(),expected_complete_control_rows=models['h1']['updates']*24,not_a_model_training_or_skill_gate=True)
+-    if diagpath.is_file():
+-        try:
+-            value=read(diagpath);diagnostic['value']=value;diagnostic['complete_closed_window_accounting_valid']=(value.get('schema')=='completed_control_goal_events_v1' and value.get('diagnostic_valid') is True and value.get('complete_control_rows')==models['h1']['updates']*24 and value.get('environment_control_transitions')==models['h1']['updates']*24*20000)
+-        except (OSError,ValueError) as error:diagnostic.update(complete_closed_window_accounting_valid=False,read_error=str(error))
+-    models['h1']['lifetime_goal_event_diagnostic']=diagnostic
+-    jp=N/'current_three_closed_text/h1/job0/production/control_prefix_raw/CONTROL_LANDING_EVENT_JOURNAL_ACTUAL.json'
+-    jd=dict(present=jp.is_file(),not_a_model_or_skill_gate=True)
+-    if jp.is_file():
+-        try:
+-            jv=read(jp);jd.update(value=jv,complete_control_row_coverage_valid=jv.get('diagnostic_valid') is True and jv.get('completed_control_rows_seen')==models['h1']['updates']*24)
+-        except (OSError,ValueError) as error:jd.update(read_error=str(error),complete_control_row_coverage_valid=False)
+-    models['h1']['landing_event_journal_diagnostic']=jd
+     assert not torch.cuda.is_initialized()
+     native=review_new_native_method(receipt,q,co,segment)
+-    assert set(models)=={'h1','recovery'}
+-    result=dict(epoch=time.time(),passed=True,qualification_scope='normal83B_H1_E3_baselines_and_separate_Fudan_native_H1_method',models=models,native_method=native,normal_E2_83B_preserved_paused=dict(SHA='72f4cbefeb5bf02af6f39a9d2922faa8032e36e81cb9a142df45154158998c9f',Adam=857460),all_owner_nodes_children_actual_out=True,
++    assert set(models)=={'recovery'}
++    result=dict(epoch=time.time(),passed=True,qualification_scope='normal83B_E3_and_separate_Fudan_native_H1_method_H1_PPO_deferred',models=models,native_method=native,normal_E2_83B_preserved_paused=dict(SHA='72f4cbefeb5bf02af6f39a9d2922faa8032e36e81cb9a142df45154158998c9f',Adam=857460),all_owner_nodes_children_actual_out=True,
+                 original_canonical_cost_settled=True,all_original_private_shared_locks_free=True,
+                 actual_cost_sumonce=sum(v['charged_seconds'] for v in segment['experts'].values()),
+                 remaining_actual_snapshot=receipt['source210']['original_canonical_remaining'],
+                 no_query_native_replay=True,not_270mm_skill_or_graduation_proof=True)
+-    with (R/'MIXED84_BASELINES_NATIVE_METHOD_AND_ORIGINAL_COST_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
++    with (R/'DUAL72_V85_NATIVE_E3_AND_ORIGINAL_COST_CPU_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+     print(json.dumps(dict(passed=True,models={k:v['final']['SHA'] for k,v in models.items()},original_cost_settled=True)))
+ if __name__=='__main__':main()

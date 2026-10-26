@@ -1,0 +1,20 @@
+--- reviewed84
++++ controllers/three_slot_finite_owner_V85_pair_source_only.py
+@@ -10,7 +10,7 @@
+ 
+ def owner(cfg):
+ 
+- specs=cfg['experts'];assert set(specs)=={'h1','e2','recovery'} and all(s['key']==k and s['max_parent_seconds']==b.CAPS[k] and s['exit_headroom_seconds']==300 for k,s in specs.items());assert cfg['scheduling_authority']=='human_requested_available_experts' and cfg['deferred_experts']==[];token=cfg['token'].encode();shared=dict(rows={},last={},go={},stop={k:False for k in specs});mu=threading.Lock();locks=[];active=False;server=None;started=time.time();rows={}
++ specs=cfg['experts'];assert set(specs)=={'e2','recovery'} and all(s['key']==k and s['max_parent_seconds']==b.CAPS[k] and s['exit_headroom_seconds']==300 for k,s in specs.items());assert cfg['scheduling_authority']=='human_requested_available_experts' and cfg['deferred_experts']==['h1'];token=cfg['token'].encode();shared=dict(rows={},last={},go={},stop={k:False for k in specs});mu=threading.Lock();locks=[];active=False;server=None;started=time.time();rows={}
+ 
+  class Handler(http.server.BaseHTTPRequestHandler):
+ 
+@@ -86,7 +86,7 @@
+ 
+       continue
+ 
+-     locks=attempt;c=b.read(b.C);assert c['active_segment'] is None and c['authorized_training_seconds']==2268000 and len(c['budget_extensions'])==9 and c['remaining_training_seconds']>sum(b.CAPS[k] for k in specs)+9400.860692501068+512+64800
++     locks=attempt;c=b.read(b.C);assert c['active_segment'] is None and c['authorized_training_seconds']==2268000 and len(c['budget_extensions'])==9 and c['remaining_training_seconds']>max(86412.86069250107,sum(b.CAPS[k] for k in specs)+9400.860692501068+512+64800)
+ 
+     if not active:
+ 

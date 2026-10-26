@@ -1,0 +1,80 @@
+--- reviewed85
++++ bind_dual72_V85M_migrated_source_UNUSED.py
+@@ -11,10 +11,10 @@
+ import time
+ 
+ HERE=Path(__file__).resolve().parent
+-T=HERE.parent.parent
+-OLD=T/'H1_STEP270_MIXED_FUDAN_SUPERMIMIC_RESOURCE_V84_20261026'
+-N=T/'H1_STEP270_DUAL72_FUDAN_SUPERMIMIC_E3_RESOURCE_V85_20261026'
+-NS='H1step270_dual72_fudan_supermimic_E3_2610v85'
++T=HERE.parent.parent.parent
++OLD=T/'H1_STEP270_DUAL72_FUDAN_SUPERMIMIC_E3_RESOURCE_V85_20261026'
++N=T/'H1_STEP270_DUAL72_FUDAN_SUPERMIMIC_E3_MIGRATED_V85M_20261026'
++NS='H1step270_dual72_fudan_supermimic_E3_2610v85m'
+ read=lambda path:json.loads(Path(path).read_bytes())
+ H=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
+ 
+@@ -28,7 +28,7 @@
+     assert not list(N.glob('**/GO_PRODUCTION.json')) and not list(N.glob('**/OWNER_IDENTITY.json'))
+     N.mkdir(exist_ok=True);(N/'reports').mkdir(exist_ok=True)
+     old=read(OLD/'reports/THREE_EXPERTS_LATEST_CLOSED_SOURCES_PAYLOADS_CPU_PREPARED_ACTUAL.json')
+-    assert old['passed'] and set(old['specs'])=={'h1','e2','recovery'}
++    assert old['passed'] and set(old['specs'])=={'e2','recovery'}
+     assert old['sources']['e2']['source_expert']=='h1'
+     proof=read(OLD/'payloads/e2/CURRENT_ORIGINAL_THREE_CLOSED_MODELS_COST_CPU_ACTUAL.json')
+     assert proof['passed'] and set(proof['models'])=={'h1','e2','recovery'}
+@@ -36,7 +36,7 @@
+     assert proof['remaining_actual_snapshot']==595256.8240613937
+     assert proof['models']['h1']['Adam']==829700 and proof['models']['e2']['Adam']==857460 and proof['models']['recovery']['Adam']==860800
+     q=dict(old,epoch=time.time(),payloads={},specs={},sources={},roots={},
+-           owner_root='/mnt/mod4_linux_durable_20261013/'+NS+'/owner',
++           owner_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+NS+'/owner',
+            scheduled_experts=['e2','recovery'],deferred_experts=['h1'],
+            strict_three_cap_remaining=86412.86069250107,
+            preparation_scope='SOURCE_PREPARED_PAIR_NOT_LIVE_ACCOUNT_ADMITTED',
+@@ -46,6 +46,33 @@
+     for key in ('e2','recovery'):
+         base=Path(old['payloads'][key]);out=N/'payloads'/key
+         shutil.copytree(base,out,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
++        # Narrow independently authorised72-control delta; model/runtime are unchanged.
++        role='closed_production_continuation_CPU_v2.py' if key=='e2' else 'original_account_policy50_source_CPU.py'
++        before_control={};after_control={}
++        for control in ('three_slot_common_v1.py','forwarded_original_owner_control_v1.py'):
++            original=out/control
++            before_control[control]=H(original)
++            reference=out/'reference_sources'/('V85M_ORIGINAL_'+control+'.txt')
++            assert not reference.exists();shutil.copy2(original,reference)
++            candidate=HERE/'controllers'/control
++            if key=='recovery' and control=='three_slot_common_v1.py':
++                text=original.read_text('utf8')
++                text=text.replace("C=Path('/home/egde/rl_candidates/MOD4_native_floor_continue10h_20260930/TRAINING_BUDGET_10H.json')","C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')",1)
++                text=text.replace("LOCKS=(C.parent/'native_floor_supervisor.lock',Path('/home/egde/rl_candidates/MOD4_scut_spin_rate_20261002/autonomy_controller.lock'))","LOCKS=(C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock')",1)
++                original.write_text(text,'utf8')
++            else:shutil.copy2(candidate,original)
++            after_control[control]=H(original)
++        shutil.copy2(HERE/'guards'/(key+'_'+role),out/role)
++        if key=='recovery':
++            authpath=out/'MIXED84_NORMAL_PRODUCTION_SOURCE_AUTH_ACTUAL.json';auth=read(authpath)
++            auth['guard_SHA']=H(out/role);auth['migration72_control_only_guard_scope']=True
++            authpath.write_text(json.dumps(auth,indent=2),'utf8')
++        put(out/'MIGRATION72_CONTROL_SCOPE_V85M_ACTUAL.json',dict(authorised=True,
++            authority_generation='MOD4_SINGLE_WRITER72_20261026',
++            authorization_file_SHA256='fc029e1ec254bf64b86a0428be6695a564c23fbc67794daaea0b13b6adcd04cf',
++            candidate_delta='only_common_C_LOCKS_forwarder_send_close_and_source_guard',
++            before=before_control,after=after_control,
++            no_physics_reward_optimizer_sampling_trace_retention_change=True))
+         before=read(out/'THREE_SLOT_COMPLETE_MANIFEST_V1.json')
+         rows_by_rel={row['relative']:row for row in before['files']}
+         hist=out/'prebind85_exact_history';hist.mkdir()
+@@ -79,8 +106,8 @@
+         source=OLD/'reports'/name;target=N/'reports'/name
+         assert not target.exists();shutil.copy2(source,target)
+     put(N/'reports/THREE_EXPERTS_LATEST_CLOSED_SOURCES_PAYLOADS_CPU_PREPARED_ACTUAL.json',q)
+-    for name in ('install_dual72_V85_source_SDK_native_CPU_only_UNUSED.py',
+-                 'dual72_V85_resource_install_source_v1.py'):
++    for name in ('install_dual72_V85M_source_SDK_native_CPU_only_UNUSED.py',
++                 'dual72_V85M_resource_install_source_v1.py'):
+         assert not (N/name).exists();shutil.copy2(HERE/name,N/name)
+     assert not (N/'mixed84_protocol_v1.py').exists()
+     shutil.copy2(HERE/'controllers/mixed84_protocol_v1.py',N/'mixed84_protocol_v1.py')

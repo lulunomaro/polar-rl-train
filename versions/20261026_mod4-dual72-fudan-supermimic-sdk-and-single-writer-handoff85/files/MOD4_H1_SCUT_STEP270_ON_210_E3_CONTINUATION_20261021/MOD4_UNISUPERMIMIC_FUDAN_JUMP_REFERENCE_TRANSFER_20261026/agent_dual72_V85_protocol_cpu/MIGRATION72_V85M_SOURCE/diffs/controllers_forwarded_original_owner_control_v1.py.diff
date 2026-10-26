@@ -1,0 +1,44 @@
+--- reviewed85
++++ controllers/forwarded_original_owner_control_v1.py
+@@ -10,9 +10,7 @@
+ _dependencies_checked=False
+ 
+ def close():
+- global _client
+- if _client is not None:
+-  _client.close();_client=None
++ return None
+ 
+ def verify_dependencies():
+  global _dependencies_checked
+@@ -61,26 +59,12 @@
+     def close(self):pass
+ 
+ def send(spec,row,port):
+- assert row['key']==spec['key'] and port==29754
++ assert row['key']==spec['key'] and spec['key'] in ('e2','recovery') and port==29754
+  token=spec['token'].encode();raw=json.dumps(dict(epoch=time.time(),run_id=spec['run_id'],row=row)).encode()
+  assert len(raw)<2000000
+  headers={'X-Own-Signature':hmac.new(token,raw,hashlib.sha256).hexdigest()}
+- if spec['key']=='h1':
+-  req=urllib.request.Request('http://127.0.0.1:'+str(port)+'/',data=raw,headers=headers)
+-  with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(req,timeout=15) as response:
+-   body=response.read();signature=response.headers['X-Own-Signature']
+- else:
+-  assert spec['key'] in ('e2','recovery')
+-  channel=connection=None
+-  try:
+-   channel=_ssh(spec).get_transport().open_channel('direct-tcpip',('127.0.0.1',port),('127.0.0.1',0),timeout=12)
+-   channel.settimeout(15);connection=http.client.HTTPConnection('127.0.0.1',port,timeout=15);connection.sock=_ResponseOwnedChannelSocket(channel)
+-   connection.request('POST','/',body=raw,headers=headers)
+-   response=connection.getresponse();body=response.read();signature=response.getheader('X-Own-Signature');assert response.status==200
+-  except BaseException:
+-   close();raise
+-  finally:
+-   if connection is not None:connection.close()
+-   if channel is not None:channel.close()
++ req=urllib.request.Request('http://127.0.0.1:'+str(port)+'/',data=raw,headers=headers)
++ with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(req,timeout=15) as response:
++  body=response.read();signature=response.headers['X-Own-Signature']
+  assert signature and hmac.compare_digest(signature,hmac.new(token,body,hashlib.sha256).hexdigest())
+  return json.loads(body)

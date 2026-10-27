@@ -1,0 +1,39 @@
+"""R3 two-active source contract; no network/process/model operations on import."""
+from pathlib import PurePosixPath
+import native87_install_activate_support_v1 as original
+from native87_available_two_schedule_v1 import ACTIVE,DEFERRED,BOUNDARY_NAME,validate_boundary
+KEYS=ACTIVE
+ROOTS=dict(h1='/mnt/mod4_linux_durable_20261013/H1step270_own_fudan_native_2610v87r3/h1',
+ recovery='/home/lc01/Zonglin Li/zonglin2/tasks/H1step270_own_fudan_native_2610v87r3/recovery')
+OWNER='/home/lc01/Zonglin Li/zonglin2/tasks/H1step270_own_fudan_native_2610v87r3/owner'
+OWNER_SCRIPT='three_slot_finite_owner_NATIVE87_AVAILABLE_TWO_authority72.py'
+REMOTE_OWNER_CREATE=original.REMOTE_OWNER_CREATE.replace(
+ "tasks/H1step270_own_fudan_native_2610v87').resolve()",
+ "tasks/H1step270_own_fudan_native_2610v87r3').resolve()")
+assert REMOTE_OWNER_CREATE!=original.REMOTE_OWNER_CREATE
+def validate_prepared(q,protocol,boundary,boundary_SHA):
+ assert q['passed'] is True
+ assert set(q['specs'])==set(q['payloads'])==set(q['sources'])==set(q['roots'])==set(KEYS)
+ assert q['roots']==ROOTS and q['owner_root']==OWNER and q['owner_script']==OWNER_SCRIPT
+ assert q['controllers_relative']=='controllers_r3'
+ assert q['deferred_experts']==list(DEFERRED) and q['resource_boundary_SHA']==boundary_SHA
+ assert validate_boundary(boundary)
+ for key in KEYS:
+  spec=q['specs'][key]
+  assert spec['key']==key and protocol.validate_spec(spec)
+  assert q['sources'][key]['SHA']==original.SOURCE_SHA and q['sources'][key]['bytes']>0
+  assert not spec.get('preinstalled_CPU_proof_SHA'),'prepared input precedes actual CPU admission'
+ return True
+def validate_CPU(cpu,q,protocol,prepared_SHA):
+ assert cpu['passed'] is True and cpu['actual_finite_returned'] is True
+ assert cpu['prepared_source_report_SHA']==prepared_SHA
+ assert set(cpu['results'])==set(cpu['specs_with_preinstalled_CPU_proof'])==set(KEYS)
+ for key in KEYS:
+  r=cpu['results'][key];spec=cpu['specs_with_preinstalled_CPU_proof'][key]
+  assert {k:v for k,v in spec.items() if k!='preinstalled_CPU_proof_SHA'}==q['specs'][key]
+  assert protocol.sha(spec.get('preinstalled_CPU_proof_SHA')) and spec['preinstalled_CPU_proof_SHA']==r['preinstalled_CPU_proof_SHA']
+  envelope=r['ready_envelope']
+  assert r['passed'] is True and not r.get('original_error') and envelope['actual_CPU_waited_EXIT0'] is True
+  assert PurePosixPath(envelope['path'])==PurePosixPath(ROOTS[key])/'job0/NATIVE87_POLICY_ONLY_FRESH4096_SOURCE_SDK_CPU_ACTUAL.json'
+  assert protocol.native87_valid_ready(dict(key=key,phase='ready',manifest_SHA=spec['manifest_SHA'],closed_source_CPU=envelope,original_error=False),spec)
+ return True

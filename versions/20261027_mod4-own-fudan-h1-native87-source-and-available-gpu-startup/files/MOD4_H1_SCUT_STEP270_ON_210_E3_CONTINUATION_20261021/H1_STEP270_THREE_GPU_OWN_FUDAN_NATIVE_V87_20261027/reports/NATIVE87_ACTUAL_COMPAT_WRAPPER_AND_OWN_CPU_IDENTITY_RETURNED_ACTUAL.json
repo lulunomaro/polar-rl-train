@@ -1,0 +1,39 @@
+{
+  "epoch": 1793043594.6525865,
+  "actual_finite_returned": true,
+  "approved_compat_wrapper": {
+    "path": "/home/lc01/Zonglin Li/zonglin2/run-python-compat.sh",
+    "bytes": 1105,
+    "SHA": "5c3debdc6abf832d3ff1006a85a9c7bd41dbcd6eb4e049b89bd2b6df01f348a0",
+    "text": "#!/bin/bash\nset -euo pipefail\nulimit -c 0\nROOT=\"$(cd -- \"$(dirname -- \"${BASH_SOURCE[0]}\")\" && pwd -P)\"\nmkdir -p -- \"$ROOT/state/runtime\"\nchmod 700 -- \"$ROOT/state/runtime\"\nunset PYTHONPATH PYTHONHOME LD_LIBRARY_PATH\nexport HOME=\"$ROOT/home\"\nexport XDG_CACHE_HOME=\"$ROOT/cache\" XDG_CONFIG_HOME=\"$ROOT/config\"\nexport XDG_DATA_HOME=\"$ROOT/home/.local/share\" XDG_STATE_HOME=\"$ROOT/state\"\nexport XDG_RUNTIME_DIR=\"$ROOT/state/runtime\"\nexport TMPDIR=\"$ROOT/tmp\" TMP=\"$ROOT/tmp\" TEMP=\"$ROOT/tmp\"\nexport PIP_CACHE_DIR=\"$ROOT/cache/pip\" CONDA_PKGS_DIRS=\"$ROOT/cache/conda\"\nexport TORCH_HOME=\"$ROOT/cache/torch\" CUDA_CACHE_PATH=\"$ROOT/cache/cuda\"\nexport TRITON_CACHE_DIR=\"$ROOT/cache/triton\" WARP_CACHE_PATH=\"$ROOT/cache/warp\"\nexport NUMBA_CACHE_DIR=\"$ROOT/cache/numba\" MPLCONFIGDIR=\"$ROOT/cache/matplotlib\"\nexport PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1\nexport CONDA_PREFIX=\"$ROOT/envs/mod4\"\nexport PATH=\"$CONDA_PREFIX/bin:/usr/local/bin:/usr/bin:/bin\"\ncd -- \"$ROOT\"\nexec \"$ROOT/compat/glibc240/ld-linux-x86-64.so.2\" --library-path \"$ROOT/compat/glibc240:$CONDA_PREFIX/lib\" \"$CONDA_PREFIX/bin/python\" -B \"$@\"\n"
+  },
+  "logical_argv": [
+    "/home/lc01/Zonglin Li/zonglin2/run-python.sh",
+    "-u",
+    "-B",
+    "-c",
+    "import psutil,os,json;p=psutil.Process(os.getpid());print(json.dumps(dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),root=p.cwd(),own_CPU_only_no_SDK_model_GPU=True)))"
+  ],
+  "actual_own_CPU_identity": {
+    "pid": 498852,
+    "creation": 1793043594.07,
+    "exe": "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+    "argv": [
+      "/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2",
+      "--library-path",
+      "/home/lc01/Zonglin Li/zonglin2/compat/glibc240:/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib",
+      "/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python",
+      "-B",
+      "-u",
+      "-B",
+      "-c",
+      "import psutil,os,json;p=psutil.Process(os.getpid());print(json.dumps(dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),root=p.cwd(),own_CPU_only_no_SDK_model_GPU=True)))"
+    ],
+    "root": "/home/lc01/Zonglin Li/zonglin2",
+    "own_CPU_only_no_SDK_model_GPU": true
+  },
+  "actual_waited_EXIT0": true,
+  "stderr": "",
+  "one_new_interpreter_only_not_old_model_CPU_replay": true,
+  "no_unknown_peer_query_or_account_write": true
+}

@@ -1,0 +1,23 @@
+"""Real future CPU dispatcher: exact typed report, never old20k restore fallback."""
+from pathlib import Path
+import subprocess
+from native87_protocol_v1 import validate_spec,native87_valid_ready,digest
+
+def load(spec,B):
+    import three_slot_common_v1 as b
+    validate_spec(spec);B=Path(B)
+    script=B/spec['closed_source_CPU_script']
+    assert script.resolve().is_relative_to(B.resolve()) and not script.is_symlink()
+    assert b.H(script)==spec['candidate_pins'][spec['closed_source_CPU_script']]
+    args=[spec['python'],'-u','-B',str(script),'--slot',spec['key'],'--num-envs','4096','--seed',str(spec['seed']),
+          '--source-scope','policy_only_fresh_environment']
+    log=B/'job0/native87_SOURCE_CPU.log'
+    p=subprocess.Popen(args,cwd=B,env=b.environment(spec,True),stdout=log.open('xb'),stderr=subprocess.STDOUT,close_fds=True)
+    b.put(B/'job0/native87_SOURCE_CPU_STARTED_ACTUAL.json',b.ident(p.pid))
+    rc=p.wait();b.put(B/'job0/native87_SOURCE_CPU_WAITED_EXIT_ACTUAL.json',dict(returncode=rc,actual_waited=True));assert rc==0
+    report=B/'job0/NATIVE87_POLICY_ONLY_FRESH4096_SOURCE_SDK_CPU_ACTUAL.json'
+    v=b.read(report);envelope=dict(value=v,path=str(report),SHA=b.H(report),actual_CPU_waited_EXIT0=True)
+    assert envelope['SHA']==digest(v)
+    row=dict(key=spec['key'],phase='ready',manifest_SHA=spec['manifest_SHA'],closed_source_CPU=envelope,original_error=False)
+    assert native87_valid_ready(row,spec),'Fresh actual typed CPU/DR/source report rejected'
+    return envelope

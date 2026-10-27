@@ -1,0 +1,5 @@
+# E0 V2 uses the original8GiB runtime disk floor
+
+Frozen V1 remains unchanged. Its16GiB runtime stop floor was an unsolicited threshold and was rejected before target GO. V2 changes exactly `shutil.disk_usage(job).free<16*1024**3` to `<8*1024**3`. Inverse byte replacement reconstructs the entire V1 file; AST comparison finds exactly one Constant16→8. All actor/critic/STD/Adam/LR/fullrestore, reward/clock/gas parameters, sourceSHA, GO/accounting requirements and complete-update fullsave/exit behavior stay identical.
+
+Use E0_PPO50_gas400_finite_worker_v2_disk8_exact.py as the new stage source. Bind TASK.worker_SHA and the actual executed file to V2 SHA. The unchanged CPU admission script can read the new bytes installed at its expected root `E0_PPO50_gas400_finite_worker_v1.py` basename; record them explicitly as V2 content and never claim V1 target admission. No target GO/PPO occurred in this correction. E0 V1 frozen index remains historical, while this V2 proof/handoff is pending root ordinary Git supplementation.

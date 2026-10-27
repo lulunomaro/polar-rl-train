@@ -1,0 +1,7 @@
+# E0 CPU admission V2 preserves original CUDA RNG
+
+Actual89B V1 failed after the first newtyped CPU checkpoint load, before GPU scene/Task/GO/fee, because its CPU queue validator tried to load original CUDA16byte RNG state into a CPUGenerator requiring5056bytes. Keep that V1/error and source checkpoint unchanged.
+
+V2 performs CPU structural validation only. It derives the actual queue validator and retains every existing field/shape/dtype/finite/lag/timestamp/ordering check, replacing only the CUDA-to-CPU Generator.set_state statement with uint8[16] structural validation and explicit unchanged-byte proof. No fabricated CPU RNG is substituted into the checkpoint; no CUDA restoration is claimed. The worker must still execute the original real CUDA queue load/Generator.set_state and full D1-D7/private/global RNG restore.
+
+Use `CUDA_VISIBLE_DEVICES='' <actual_remote_python> -u -B E0_target_source_SDK_CPU_admission_v2_CUDA_structural_only.py --job-root <new_unused_root>`. It produces E0_SOURCE_SDK_CPU_ADMISSION_ACTUAL_V2.json. All other typed checkpoint/core/Adam/LR, original manifest, pressure/damping/COM-PD, exact reset-bank and actual USD CPU composition checks remain unchanged. Bind the actual V2 reportSHA to sole72 TASK/GO source_CPU_SHA, and retain E0 workerV3 SHA1858c6395083bb7104385ec82d3dce6db4f79898a6346a250916ad7217524152. New real source admission may reuse the already verified installed bytes in a new unused namespace; no model or producerhash was reread for this source repair/Git. Pending root ordinary supplementation.

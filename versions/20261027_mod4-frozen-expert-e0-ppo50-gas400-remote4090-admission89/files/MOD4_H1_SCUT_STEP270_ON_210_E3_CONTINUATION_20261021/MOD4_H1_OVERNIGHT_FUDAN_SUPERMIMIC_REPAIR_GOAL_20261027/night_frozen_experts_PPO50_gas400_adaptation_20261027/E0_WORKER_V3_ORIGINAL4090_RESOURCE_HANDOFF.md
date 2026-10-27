@@ -1,0 +1,5 @@
+# E0 V3 preserves the original resource bounds
+
+V1/V2 are retained. Their newly added worker checks free≥22000MiB and utilization≤5percent were rejected by root before target GO. V3 changes only `int(free)>=22000` to `int(free)>15669` and removes ` and int(util)<=5`. It retains zero selected compute UUID rows, fresh UUID/memory/utilization observation, and the corrected original8GiB runtime disk floor. The inverse changed-line replacement reconstructs V2 byte-for-byte; full AST comparison changes only the one resource assertion as specified.
+
+Use E0_PPO50_gas400_finite_worker_v3_original_resource_exact.py as new stage source. Bind TASK.worker_SHA and the actual executed bytes to the V3 SHA. The unchanged SDK CPU admission script may read these V3 bytes at its fixed root v1 basename; record this honestly as V3 content. Original actor35/critic38/STD/Adam/LR/D1-D7 restore,50Hz/400N physics, finite3900/3600save/300exit, and sole72 accounting remain unchanged. No GPU, remote operation, GO or canonical write was performed by this source correction. Pending root Git ordinary supplementation.

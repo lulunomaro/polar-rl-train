@@ -1,0 +1,40 @@
+--- C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\payloads\h1\source\converted_MOD4_jump_mdp_v4.py
+
++++ candidate/source/converted_MOD4_jump_mdp_v4.py
+
+@@ -4,6 +4,7 @@
+
+ imagined returns. The real plant, original hard termination, V8 trace and success
+ callbacks remain separate. No motion file is itself a successful physical case.
+ """
++from imagined_bad_orientation_alignment_v1 import (TILT_RZZ_BOUNDARY, HARD_TILT_LIMIT_RAD, HARD_ORIENTATION_SOURCE_SHA)
+ from dataclasses import dataclass
+ import torch
+ from supermimic_wheel_leg_v3.geometry import invariant_features, quat_to_mat
+@@ -138,10 +139,10 @@
+
+     def reward(self,state,frames,action,previous_action):
+         return self.objective_terms(state,frames,action,previous_action)['total']
+     def soft_termination(self,state,frames):
+-        # Original absolute physical low-height/tilt thresholds, using source-style
+-        # .02/.04 temperatures; actual hard callback truth remains independent.
++        # Source-pinned real hard angle mapped to Rzz; this remains a soft surrogate.
++        # Height/widths unchanged; actual hard callback truth remains independent.
+         height_failure=torch.sigmoid((.12-state[0][...,2])/.02)
+-        tilt_failure=torch.sigmoid((.3-state[1][...,2,2])/.04)
++        tilt_failure=torch.sigmoid((TILT_RZZ_BOUNDARY-state[1][...,2,2])/.04)
+         return 1-(1-height_failure)*(1-tilt_failure)
+     def valid_imagination_start(self,frames,horizon):
+         return torch.ones_like(frames,dtype=torch.bool)
+@@ -155,8 +156,8 @@
+
+             reward='same additive masked own-reference tracking head on actual and imagined state',
+             physical_V8_reward='unchanged original fulltrace, separate from native tracking return',
+             position_and_velocity_errors='masked squared coordinate sums',
+-            soft_survival=dict(height_threshold=.12,tilt_Rzz_threshold=.3,height_temperature=.02,tilt_temperature=.04),
+-            termination='original hard callbacks unchanged; calibrated analytic native soft approximation',
++            soft_survival=dict(height_threshold=.12,tilt_Rzz_threshold=TILT_RZZ_BOUNDARY,hard_angle_source_bound_rad=HARD_TILT_LIMIT_RAD,hard_angle_source_SHA=HARD_ORIENTATION_SOURCE_SHA,height_temperature=.02,tilt_temperature=.04,soft_surrogate_not_hard_predicate=True),
++            termination='original hard callbacks unchanged; source-bound angle with smooth surrogate, not equivalent hard predicate',
+             successful_skill=False,requires_actual_SDK_source_resource_admission=True)
+ 
+ 

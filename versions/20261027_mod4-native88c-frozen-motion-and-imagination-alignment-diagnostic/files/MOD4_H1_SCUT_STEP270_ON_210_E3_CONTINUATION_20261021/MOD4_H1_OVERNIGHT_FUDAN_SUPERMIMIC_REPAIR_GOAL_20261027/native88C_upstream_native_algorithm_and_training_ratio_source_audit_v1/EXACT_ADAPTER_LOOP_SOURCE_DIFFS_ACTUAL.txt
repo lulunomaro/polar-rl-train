@@ -1,0 +1,100 @@
+--- pinned/_imag_step
+
++++ actualC/_imag_step
+
+@@ -8,7 +8,7 @@
+
+         normalized_context: torch.Tensor,
+         goal: torch.Tensor,
+     ) -> tuple[State, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+-        action = self.pi(obs_hist, goal)
++        action = torch.clamp(self.pi(obs_hist, goal), -6, 6)
+         next_state = self.wm.step(state, action, normalized_context)
+         next_frames = frames + 1
+         obs = self.mdp.add_noise(self.mdp.obs(next_state, action, context, next_frames))
+--- pinned/_wm_rollout
+
++++ actualC/_wm_rollout
+
+@@ -10,11 +10,4 @@
+
+                 self.mdp.normalize_context(contexts[:, index]),
+             )
+             predictions.append(state)
+-        return (
+-            torch.stack([prediction[0] for prediction in predictions], 1),
+-            torch.stack([prediction[1] for prediction in predictions], 1),
+-            torch.stack([prediction[2] for prediction in predictions], 1),
+-            torch.stack([prediction[3] for prediction in predictions], 1),
+-            torch.stack([prediction[4] for prediction in predictions], 1),
+-            torch.stack([prediction[5] for prediction in predictions], 1),
+-        )
++        return tuple(torch.stack([prediction[i] for prediction in predictions], 1) for i in range(7))
+--- pinned/collect
+
++++ actualC/collect
+
+@@ -11,6 +11,8 @@
+
+             goal = self.mdp.goal(info["f"], self.cfg.goal_frames)
+             self.pi.obs_norm.update(obs)
+             self.pi.goal_norm.update(goal)
++            if hasattr(self.env,"before_action"):
++                self.env.before_action()
+             action = self.pi(self.obs_hist, goal)
+             action = torch.clamp(action + self.cfg.action_noise * torch.randn_like(action), -20, 20)
+             if self._bridged:
+--- pinned/train
+
++++ actualC/train
+
+@@ -63,7 +63,7 @@
+
+                     imag_rew: float | None = None
+                     pi_gradnorm: float | None = None
+                     imag_survival: float | None = None
+-                    if iteration >= self.cfg.wm_only_iters:
++                    if self.native88_migration.allow_policy_update(iteration):
+                         policy_loss, value_loss, imagined_reward, grad_norm, survival = (
+                             self.policy_update()
+                         )
+--- pinned/replay.py
+
++++ actualC/replay.py
+
+@@ -8,13 +8,15 @@
+
+ def _make_fields(
+     num_joints: int,
+     context_dim: int,
++    action_dim: int | None = None,
++    state_dim: int | None = None,
+ ) -> dict[str, tuple[int | tuple[()], torch.dtype]]:
+-    state_dim = 13 + 2 * num_joints
++    state_dim = 13 + 2 * num_joints if state_dim is None else state_dim
+     return {
+         "s": (state_dim, torch.float32),
+         "s1": (state_dim, torch.float32),
+-        "a": (num_joints, torch.float32),
+-        "a_prev": (num_joints, torch.float32),
++        "a": (num_joints if action_dim is None else action_dim, torch.float32),
++        "a_prev": (num_joints if action_dim is None else action_dim, torch.float32),
+         "xi": (context_dim, torch.float32),
+         "r": ((), torch.float32),
+         "f": ((), torch.long),
+@@ -34,11 +36,13 @@
+
+         device: str | torch.device,
+         num_joints: int = 29,
+         context_dim: int = 33,
++        action_dim: int | None = None,
++        state_dim: int | None = None,
+     ):
+         self.T = T
+         self.N = N
+         self.device = torch.device(device)
+-        self.fields = _make_fields(num_joints, context_dim)
++        self.fields = _make_fields(num_joints, context_dim, action_dim, state_dim)
+         self.data = {}
+         for key, (shape, dtype) in self.fields.items():
+             field_shape = (T, N) + ((shape,) if isinstance(shape, int) else shape)

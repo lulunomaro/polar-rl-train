@@ -1,0 +1,9 @@
+# FROZEN source-identity addendum
+
+Primary provenance INDEX `7780774b061d939a5a03906f2b0f72ccc5cdee69ed719d553086d07d7b23fcf4` remains unchanged and preserves `same_pinned_source=False`.
+
+Local original script SHA `97cf4d2852615b3c39b0febf74c4f6b0d7167182f6d7f291347fb5e5df23a2de` differs from actual producer receipt `7ab5041eb3f9b13f31e6ea87585c3f0f17f3be32f34bc2d9c6e997425e62c617`; CRLF0, so no line-ending excuse. Existing actual executed headless AST text `C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_UNISUPERMIMIC_FUDAN_JUMP_REFERENCE_TRANSFER_20261026\actual_72_reference_text\reference_capture\upstream_actual_default_dt_standing_jump\HEADLESS_REVIEWED_AST_SOURCE.py` SHA `b786301616ff7df3d37f1cbcafffbd12c5a990a7589b15c96ff99d715ef0b2d8` is available. All local named nonmain/nested functions match that actual headless AST; onlymain differs as expected for headless capture, but full byte identity must not be claimed.
+
+Also local XML SHA `faab32e2ed2b43c0195ea52ca0c98e3860f62b98d6fa540d401510c50cb2d2b9` differs from actual captured asset receipt `37d934a964acc66f3ebafcf74741fcb6302c5aa8856a7e4b99e97c864bbff0f0`. The primary report's local scene/body tree is not a fresh byte-certified actual producer geometry. Preserve that limitation for rendering; fullbody exact collider/name mapping needs pinned original XML content/semantic verification and exact mesh availability. This helper does not download or query remote to fill it. Root/wheel taskspace canonical JSON and recorded fullbody arrays are existing data, not actor/physics reruns; label any schematic view accordingly.
+
+No NPZ/npy/PT/ONNX/STL opened or hashed. No GPU/SDK/actor/physics/SSH/network/Git. This is a new additive source-read finding, not a new trial or training failure. Main frozen directory and all old data remain unchanged. OrdinaryGit supplement pendingroot.

@@ -1,0 +1,15 @@
+# Frozen source/scalar audit: singleC pre-request orientation termination
+
+Actual cached `bad_orientation=True` at control61/244callbacks (0.61s), seed20260928, age61/requestFalse. The other six termination terms areFalse. Policy/norms are literal unchanged. This is one frozen attempt, not a full-window success-rate estimate or unique-cause proof.
+
+The hard config is `.75rad` = 42.971835°. Observed tilt 0.7507237792rad = 43.013304° exceeds it by 0.0007237792rad. The actual cached term is authoritative; its SDK function was not recomputed.
+
+**Concrete mismatch:** imagined `sigmoid((.3-Rzz)/.04)` has its50% failure boundary at acos(.3) = 72.542397°, rather than the real42.971835°. At this actual terminal pose Rzz=0.7311953606, soft tilt failure=2.081358147e-05; with z=0.2997927964 height failure=0.0001246794511, union failure=0.0001454904375 and continuation=0.9998545096. Thus the native imagination treats this truly terminated pose as almost fully alive. The source comment calling these original tilt thresholds is inaccurate. This is a termination-model/threshold-type mismatch, not a detached gradient graph or brokenautograd.
+
+OwnwheelV2 posture style remains active before request. At age61 its reference tilt is0.00884897rad, orientation tracking term=0.46335959; weighted orientation deficit adds only0.00447200 to cost, bounded by.05/6=.00833333. Full reward was not computed. Always-active wheel geometry costs also depend on rootR, so orientation is not wholly absent. Support/footprint/contact/stable (including angular-velocity tracking) are all alpha0 at age61, become active after touch145, reachfull at165. Soft tilt/height and actual hard orientation have no request gate.
+
+Minimal future direction: parameterize imagined tilt boundary from the actual configured angle, i.e. Rzz threshold cos(.75)=0.7316888689; keep a declared smooth width. With current Rzz width.04 only as a scalar diagnostic, this terminal pose would yield tilt failure0.50308439. **Not implemented or deployed.** Do not weaken real hard termination/success, alter age/request/RNG/action or automatically add/reset anything. This mismatch is demonstrated; whether fixing it enables stepping remains unproved. Direct posture cost weighting is a separate candidate requiring review, not an automatic change.
+
+Original SDK xyzw→native wxyz mapping is correct and unchanged; quaternion-derived Rzz and negative projected-gravityZ agree within normal float representation (2.998e-08). Prior wrong-quaternion claims remain refuted. No new precision/physical graduation gate is introduced.
+
+`SINGLE_PREJUMP_HARD_SOFT_SCALAR_AUDIT_ACTUAL.json` contains all scalar inputs/results and exact code line/SHA anchors. `SOURCE_AND_JSON_LINEAGE_ACTUAL.json` lists10 source/JSON files. Source-reader truncation/missing local SDK folder are preserved in `SOURCE_READER_ERRORS_ACTUAL.json`; neither is a training failure. No PT/raw/NPZ, actor/WM forward, SDK/physics/GPU, SSH/network, Git or original-file edit occurred. Ordinary Git supplementation remains root-owned; no new trial/tag is created.

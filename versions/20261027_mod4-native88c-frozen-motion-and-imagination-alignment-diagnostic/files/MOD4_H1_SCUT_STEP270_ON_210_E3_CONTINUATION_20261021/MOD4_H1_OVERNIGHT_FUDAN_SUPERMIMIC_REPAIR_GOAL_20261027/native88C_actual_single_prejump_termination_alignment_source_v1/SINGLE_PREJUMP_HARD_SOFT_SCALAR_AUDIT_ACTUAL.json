@@ -1,0 +1,185 @@
+{
+  "schema": "mod4.native88C.actual_single_prejump_hard_soft_source_scalar_audit.v1",
+  "scope": "local source/status/reference JSON plus scalar arithmetic; no model/raw/SDK/forward/physics",
+  "case": {
+    "seed": 20260928,
+    "source_SHA": "a9bf6dca376e9d570ef0a6e2c15604f38656c4ebfedaa829a34830ee57c73aaf",
+    "source_updates": 6469,
+    "controls": 61,
+    "physics_callbacks": 244,
+    "elapsed_s": 0.61,
+    "public_age": 61,
+    "public_request": false,
+    "actual_cached_terms": {
+      "time_out": false,
+      "bad_orientation": true,
+      "base_contact": false,
+      "closure": false,
+      "mimic": false,
+      "low_base": false,
+      "h1_step270_arena_exit": false
+    },
+    "policy_and_norm_literal_unchanged": true
+  },
+  "hard": {
+    "config_limit_rad": 0.75,
+    "config_limit_deg": 42.97183463481174,
+    "observed_tilt_rad": 0.7507237792015076,
+    "observed_tilt_deg": 43.013304128357476,
+    "excess_rad": 0.0007237792015075684,
+    "excess_deg": 0.04146949354573242,
+    "observed_cached_bad_orientation": true,
+    "note": "Configured threshold and actual cached term verified. SDK bad_orientation implementation source was not acquired anew; no recomputation of actual term."
+  },
+  "soft": {
+    "formula": "sigmoid((.3-Rzz)/.04), union with sigmoid((.12-z)/.02)",
+    "fifty_percent_Rzz": 0.3,
+    "fifty_percent_tilt_rad": 1.2661036727794992,
+    "fifty_percent_tilt_deg": 72.54239687627792,
+    "actual_Rzz_from_original_quaternion": 0.7311953606019977,
+    "minus_projected_gravity_z": 0.731195330619812,
+    "consistency_difference": 2.998218573413425e-08,
+    "cos_observed_tilt": 0.7311953213095339,
+    "low_height_input_z": 0.2997927963733673,
+    "tilt_failure": 2.0813581474226613e-05,
+    "low_height_failure": 0.00012467945105668657,
+    "combined_failure": 0.00014549043750500257,
+    "continuation": 0.999854509562495,
+    "d_tilt_failure_d_tilt": 0.00035495167782696507,
+    "broken_autograd": false,
+    "classification": "angle-vs-Rzz termination boundary mismatch; soft model underrepresents observed hard failure"
+  },
+  "posture": {
+    "reference_age": 61,
+    "reference_wxyz": [
+      0.9999902112838447,
+      -7.4065536711147125e-06,
+      0.004424466789140218,
+      3.7084585709245196e-05
+    ],
+    "reference_tilt_rad": 0.008848974848198616,
+    "source_orientation_error_matrix_mean": 0.123080301163279,
+    "orientation_tracking_term": 0.4633595861985508,
+    "weighted_orientation_deficit_component": 0.004472003448345411,
+    "maximum_any_orientation_deficit_component": 0.008333333333333333,
+    "largest_possible_reward_drop_from_this_component_with_other_costs_zero": 0.0002671256202060254,
+    "actual_full_reward_not_computed": true,
+    "note": "All six tracking terms lie0..1; orientation contributes only1/6 inside bounded style deficit. R also influences always-active wheel FK costs; no claim orientation has no geometric effect."
+  },
+  "frame_gates": {
+    "age": 61,
+    "touch_age": 145,
+    "support_age": 165,
+    "alpha": 0,
+    "zero_at_this_age": [
+      "support",
+      "footprint",
+      "contact",
+      "stable including angular-velocity tracking"
+    ],
+    "always_active": [
+      "bottom",
+      "forward",
+      "lateral",
+      "wall",
+      "style_deficit including orientation"
+    ],
+    "soft_termination_frame_independent": true,
+    "hard_cfg_has_no_request_or_phase_gate": true
+  },
+  "source_only_candidate": {
+    "implemented_or_deployed": false,
+    "original_hard_threshold_unchanged": 0.75,
+    "minimal_direction": "Use the same configured hard angle as the imagined tilt boundary: Rzz threshold cos(limit_angle), maintaining an explicitly declared smooth width. This is a future typed objective/model change, not permission to weaken real termination.",
+    "diagnostic_same_width_Rzz": 0.04,
+    "diagnostic_aligned_tilt_failure": 0.5030843875737924,
+    "caveats": [
+      "This fixes a demonstrated semantic mismatch, not a proven sole cause or convergence guarantee.",
+      "Do not lower actual hard threshold or change actual success/age/request/RNG/action.",
+      "Review pre-request posture/survival sensitivity on saved same-state records before another training window; direct posture cost is a separate design choice, not automatically added.",
+      "No new test episode, actor/WM forward or toy rollout was run."
+    ]
+  },
+  "evidence": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\job0\\runtime\\isaac\\mod4\\mod4_task.py",
+      "SHA": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "lines": [
+        1785
+      ],
+      "anchor": "bad_orientation = DoneTerm"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\job0\\runtime\\isaac\\mod4\\mod4_task.py",
+      "SHA": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "lines": [
+        1786
+      ],
+      "anchor": "\"limit_angle\": 0.75"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\converted_MOD4_jump_mdp_v4.py",
+      "SHA": "e574888987f04dae1fd98d2d19faf696be479619d8266fb451a561e2f7815cfa",
+      "lines": [
+        144
+      ],
+      "anchor": "tilt_failure="
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\converted_MOD4_jump_mdp_v4.py",
+      "SHA": "e574888987f04dae1fd98d2d19faf696be479619d8266fb451a561e2f7815cfa",
+      "lines": [
+        119
+      ],
+      "anchor": "ori_error="
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\converted_MOD4_jump_mdp_v4.py",
+      "SHA": "e574888987f04dae1fd98d2d19faf696be479619d8266fb451a561e2f7815cfa",
+      "lines": [
+        125
+      ],
+      "anchor": "orientation=torch.exp"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\own_step_differentiable_objective_v1.py",
+      "SHA": "6219c812b41a13c584a4af1078bdc04953dce5e782b788a3850a468be35ae1c5",
+      "lines": [
+        24
+      ],
+      "anchor": "alpha="
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\own_step_differentiable_objective_v1.py",
+      "SHA": "6219c812b41a13c584a4af1078bdc04953dce5e782b788a3850a468be35ae1c5",
+      "lines": [
+        53
+      ],
+      "anchor": "style=(1-original"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\own_step_differentiable_objective_v2.py",
+      "SHA": "3d9f2834e85159eee120796b6ce6a57e50bd06da36fe7f07f131624bf45cc2ea",
+      "lines": [
+        17
+      ],
+      "anchor": "score=(1+cost).reciprocal()"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_OWN_STEP_GAS400_NATIVE_RESOURCE_V88C_20261027\\payloads\\h1\\source\\native_wheel_leg_bridge_v4.py",
+      "SHA": "46bc32bb6eb5af197b339920b7589426b101c0353695803dc121e2b9819f5bb7",
+      "lines": [
+        97
+      ],
+      "anchor": "root[:,3:7]=root[:,[6,3,4,5]]"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_NATIVE88C_GAS400_FROZEN_SINGLE_DIAGNOSTIC_SOURCE210_R3_20261027\\code\\native88C_frozen_acceptance_driver_v1.py",
+      "SHA": "12d14d15e2b9359a4b9612da89e22d7aa0ca559768eeba5f5b2745582ab3306f",
+      "lines": [
+        71
+      ],
+      "anchor": "tilt_rad="
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+"""UNUSED normal closing: original local+remote900, owner850, node180 bounds."""
+from pathlib import Path
+import json,time,importlib.util,hashlib,base64,sys,traceback
+N=Path(__file__).resolve().parent;T=N.parent;W=T.parent;R=N/'reports'
+old=T/'MOD4_E0_PPO50_GAS400_REMOTE4090_RESOURCE_V89C_20261027/collect_E0_89C_early_fee_allout_actual_owner_schema_V3_once.py'
+sp=importlib.util.spec_from_file_location('ending_text_primitives_only_not_old_main',old);m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+CODE=m.CODE
+CODE=CODE.replace("need=[owner/'COHORT_FINAL.json',owner/'OWNER_EXIT_ACTUAL.json',node/'NODE_EXIT_ACTUAL.json',node/'NODE_TERMINAL_ACTUAL.json']","need=[owner/'COHORT_FINAL.json',owner/'OWNER_EXIT_ACTUAL.json',node/'NODE_TERMINAL_ACTUAL.json']",1)
+CODE=CODE.replace("start=time.time()", "assert v['nominal_end_epoch']-time.time()<=900,'original remote900 gate'\nstart=time.time()",1)
+CODE=CODE.replace("time.time()-start<180", "time.time()-start<850",1)
+CODE=CODE.replace(" and terminal['original_error']", "",1)
+CODE=CODE.replace("incomplete_unpublished_startup_save_no_producer_SHA=True", "not_a_qualified_formal_policy=True,unknown_SHA_not_hashed=True,classification=('partial_save' if p.name.endswith('.partial') else 'component_or_other_binary')",1)
+CODE=CODE.replace("actual_early_error_ending_returned=True,original_error_not_skill_result=True", "actual_normal_finite_ending_returned=True,not_frozen_skill_result=True",1)
+CODE=CODE.replace("normal900_FINAL_collector_not_run_or_weakened=True,no_model_GPU_or_account_write=True", "original900_gate_and850_owner_bound_preserved=True,no_GPU_or_account_write=True",1)
+anchor="assert C.read_bytes()==raw\nprint(json.dumps("
+extra="""formal=read(out/'FINAL.json') if (out/'FINAL.json').is_file() else None
+published=None
+if formal and formal.get('passed') and not terminal.get('original_error') and not terminal.get('errors'):
+ row=formal['final'];p=Path(row['path']);assert p.resolve().is_relative_to(out.resolve()) and p.is_file() and not p.is_symlink()
+ a=p.stat();assert a.st_size==row['bytes']
+ with p.open('rb') as f:digest=hashlib.file_digest(f,'sha256').hexdigest()
+ b=p.stat();assert (a.st_size,a.st_mtime_ns)==(b.st_size,b.st_mtime_ns) and digest==row['SHA']
+ assert row['new_updates']>0 and row['Adam_step']==639560+20*row['new_updates']
+ published=dict(path=str(p),bytes=a.st_size,SHA=digest,original_producer=row,source_stat_before_after_unchanged=True)
+assert C.read_bytes()==raw
+print(json.dumps("""
+assert CODE.count(anchor)==1;CODE=CODE.replace(anchor,extra,1)
+CODE=CODE.replace("texts=texts,unpublished_incomplete_binaries=large", "texts=texts,unpublished_component_or_partial_binaries=large,formal= formal,published_complete_FINAL_model=published,formal_model_CPU_qualification_still_required=True",1)
+# Node EXIT follows its terminal receipt; preserve independent original180 bound.
+CODE=CODE.replace("assert read(node/'NODE_EXIT_ACTUAL.json')['actual_all_own_children_waited']", "node_wait=time.time()\nwhile not (node/'NODE_EXIT_ACTUAL.json').is_file():\n assert time.time()-node_wait<180;time.sleep(2)\nassert read(node/'NODE_EXIT_ACTUAL.json')['actual_all_own_children_waited']",1)
+
+def put(n,x):
+ with (R/n).open('x',encoding='utf8') as f:json.dump(x,f,indent=2)
+def main():
+ first=json.loads((R/'E0_FIRST_ACTUAL_4090_PPO_V5_FULLRESTORE_CLOCK_GAS400_RETURNED_ACTUAL.json').read_bytes());assert first['passed_first_PPO']
+ go=first['go'];assert go['nominal_end_epoch']-time.time()<=900,'original local900 gate; earliest20:33:48.209357BJT'
+ put('E0_89D_NORMAL_FINAL_CLOSING_STARTED_ACTUAL.json',dict(epoch=time.time(),original900_gate=True,owner850_then_node180=True,no_second_writer=True))
+ known=[dict(pid=x['pid'],creation=x['creation']) for x in first['snapshot']['known_own_processes']]
+ sys.path.insert(0,str(W/'MOD4_TWO_LINUX_POLICY50_COHORT_52_20261021'));import deploy_two50_reconciled_original_writer_once as d
+ sp=importlib.util.spec_from_file_location('E0_normalclose_secret_memory_only',W/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/run_authorized_cohort50_with_existing_hidden_stdin_memory.py');sec=importlib.util.module_from_spec(sp);sp.loader.exec_module(sec)
+ secret=sec.recover();c=None
+ try:
+  c=d.connect72(secret);secret=None;result=d.code(c,d.PY72,CODE,dict(root='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d',known_own=known,run_id=go['run_id'],nominal_end_epoch=go['nominal_end_epoch']),timeout=1080)
+  target=N/'actual_closed_text';target.mkdir();rows=[]
+  for row in result.pop('texts'):
+   raw=base64.b64decode(row.pop('base64'));assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+   p=target/(hashlib.sha256(row['relative'].encode()).hexdigest()[:16]+'_'+Path(row['relative']).name)
+   with p.open('xb') as f:f.write(raw)
+   rows.append(dict(**row,local_path=str(p)))
+  result['all_original_ending_texts']=rows;published=result.get('published_complete_FINAL_model')
+  if published:
+   p=N/'current_qualified_candidate/formal/model_final.pt';p.parent.mkdir(parents=True)
+   sf=c.open_sftp();sf.get_channel().settimeout(180)
+   try:
+    before=sf.stat(published['path']);sf.get(published['path'],str(p));after=sf.stat(published['path'])
+   finally:sf.close()
+   assert before.st_size==after.st_size==published['bytes'] and before.st_mtime==after.st_mtime
+   with p.open('rb') as f:h=hashlib.file_digest(f,'sha256').hexdigest()
+   assert h==published['SHA'];published.update(local_path=str(p),twohost_fullSHA_verified=True)
+  result['actual_finite_transport_returned']=True
+  put('E0_89D_COMPLETE_FINAL_OR_PARTIAL_ORIGINAL_COST_RETURNED_ACTUAL.json',result)
+  print(json.dumps(dict(actual_returned=True,model_collected=bool(published),original_fee_seconds=result['original_fee_seconds'],closed_remaining_snapshot=result['closed_remaining_snapshot'],whole_model_CPU_still_required=True)))
+ finally:
+  secret=None
+  if c:c.close()
+if __name__=='__main__':
+ try:main()
+ except BaseException:put('E0_NORMAL_CLOSING_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(traceback=traceback.format_exc(),no_kill_refund_or_second_writer=True));raise

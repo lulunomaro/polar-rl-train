@@ -1,0 +1,56 @@
+{
+  "attempt_id": "E0_PPO_INTERNAL_LR_SCALAR_GAP_REPAIRED_BEFORE_GO_V4_20261027",
+  "epoch": 1793099009.6647878,
+  "source_original_LR": 0.00038443359375000017,
+  "V3_retained": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_PPO50_gas400_finite_worker_v3_original_resource_exact.py",
+    "SHA": "1858c6395083bb7104385ec82d3dce6db4f79898a6346a250916ad7217524152"
+  },
+  "V4": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_PPO50_gas400_single72_controller_source_preparation_v1\\E0_PPO50_gas400_finite_worker_v4_preserved_LR_scalar.py",
+    "bytes": 12276,
+    "SHA": "87748712b51a0b36c2ec609cd56773471ac8b41ba60d35b21884403423462d19"
+  },
+  "only_replacement": {
+    "before": "'--learning_rate','.0001'",
+    "after": "'--learning_rate','.00038443359375000017'",
+    "count": 1
+  },
+  "inverse_entire_V3_bytes_exact": true,
+  "AST_one_string_constant_only": [
+    {
+      "path": "root.body[14].body[37].value.elts[11].value",
+      "before": ".0001",
+      "after": ".00038443359375000017"
+    }
+  ],
+  "semantic_gap": "PPO constructor sets self.learning_rate from CLI. PPO.load restores optimizer.param_groups but not internal scalar. Adaptive update writes paramgroups from scalar; V3 would silently start internal scalar1e-4 despite loaded optimizer LR. V4 constructs scalar from original recorded source LR.",
+  "cached_actual_installed_RSL_sources": {
+    "ppo": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_POWER_RESTORED_THREE_HOST_READONLY_CHECK_20261018\\actual_installed_RSL72_sources\\rsl_rl\\algorithms\\ppo.py",
+      "SHA": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c",
+      "lines": [
+        136,
+        282,
+        294,
+        444,
+        462
+      ]
+    },
+    "runner": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_POWER_RESTORED_THREE_HOST_READONLY_CHECK_20261018\\actual_installed_RSL72_sources\\rsl_rl\\runners\\on_policy_runner.py",
+      "SHA": "39358a0a60219fdb360df7acddf80f6a382837aa58e2ec0ccf875df4afee4825",
+      "lines": [
+        145,
+        158,
+        159,
+        161
+      ]
+    }
+  },
+  "no_PT_normalizer_checkpoint_model_GPU_or_SDK_read": true,
+  "no_remote_GO_or_ledger_IO": true,
+  "original_sourceCPU89C_workerV3_witness_retained": true,
+  "V4_actual_postcopy_small_source_delta_admission_required": true,
+  "Git_status": "pending_ordinary_supplement_existing89trial_no_new_tag"
+}

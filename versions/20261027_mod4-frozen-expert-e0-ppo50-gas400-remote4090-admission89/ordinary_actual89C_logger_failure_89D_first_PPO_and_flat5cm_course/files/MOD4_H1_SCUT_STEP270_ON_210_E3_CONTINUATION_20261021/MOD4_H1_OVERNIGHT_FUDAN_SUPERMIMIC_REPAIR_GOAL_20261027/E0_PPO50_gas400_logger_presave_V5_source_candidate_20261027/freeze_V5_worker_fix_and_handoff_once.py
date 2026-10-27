@@ -1,0 +1,24 @@
+"""Freeze the minimalV5 repair only; previous job settlement stays root-owned."""
+from pathlib import Path
+import hashlib,json,time
+HERE=Path(__file__).resolve().parent
+def H(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def main():
+ index=HERE/'E0_V5_LOGGER_FIX_FROZEN_INDEX_ACTUAL.json';assert not index.exists()
+ handoff=HERE/'E0_V5_LOGGER_PRESAVE_FIX_HANDOFF.md'
+ handoff.write_text('''# E0 V5 minimal logger presave repair
+
+V5 worker is E0_PPO50_gas400_finite_worker_v5_writer_before_presave.py,12278B,SHAec8eba0365f0129b2799ef4e1ae7f3673beb585f87d4e25d2c36cf7bdb33b08c. It moves the existing runner.logger.writer=None assignment from after native24 to the first statement of work, before any startup save. It removes that late occurrence. Inverse source replacement reconstructs entire V4 bytes, and the full AST is identical after removing the one moved assignment. LR scalar, actions, physics, original fullsave chain, optimizer, finite caps and accounting interfaces are unchanged.
+
+The CPU fixture uses a fake logger with the actual RSL writer guard. It reproduces V4's missing-writer AttributeError, executes the actual V5 first assignment, validates startup fake save, and confirms that a simulated later learn-created writer is not cleared before post-update save. No PT/normalizer, real save file, physics, SDK, GPU, remote connection or ledger was used.
+
+Actual235 failed in own_startup0 save before native24/newPPO after root observed successful GPU fullrestore. V4 and its complete original error stay unchanged. Any partial startup file from failed89C is not a new training model source. Model source remains the original typed54f checkpoint;89C failure is resource/cost evidence only. Root is separately collecting original early-terminal charge/allout/lock receipts. Do not relaunch, hotpatch, clear canonical or infer locks free from this source repair.
+
+Root must first verify actual89C settled cost and all own processes out, then bind a new unused89D job/source-only V5 migration and controller dispatch. The original charge_values/account/locks/strictreserve3900/3600/300 remain unchanged; no additional slot or writer. This package only freezes the minimal worker fix and proof. Future89D protocol/extension bindings require their own fresh source candidate, without modifying frozen89C/controller files or promoting its failed partial model. Ordinary Git supplementation of existing89trial, no new record/tag.
+''',encoding='utf8')
+ files=[dict(path=str(p),relative=p.name,bytes=p.stat().st_size,SHA=H(p),immutable=True) for p in sorted(HERE.iterdir()) if p.is_file() and p!=index]
+ index.write_text(json.dumps(dict(epoch=time.time(),frozen=True,files=files,only_worker_logger_assignment_move=True,
+  no_remote_lease_GPU_or_ledger_IO=True,actual_previous_job_settlement_pending_root=True,
+  future89D_binding_not_executed=True,Git_status='ordinary_supplement_existing89trial_no_new_tag'),indent=2),encoding='utf8')
+ print(json.dumps(dict(index=str(index),SHA=H(index),files=len(files))))
+if __name__=='__main__':main()

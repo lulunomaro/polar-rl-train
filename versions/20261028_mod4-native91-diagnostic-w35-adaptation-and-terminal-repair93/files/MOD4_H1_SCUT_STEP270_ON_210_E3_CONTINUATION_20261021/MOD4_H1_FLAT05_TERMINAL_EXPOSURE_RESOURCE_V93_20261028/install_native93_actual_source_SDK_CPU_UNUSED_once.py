@@ -1,0 +1,38 @@
+from pathlib import Path
+import json,sys,time,importlib.util,traceback,hashlib
+N=Path(__file__).resolve().parent;T=N.parent;W=T.parent;R=N/'reports';B=N/'payload'
+REMOTE='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_H1_FLAT05_TERMINAL_2610v93/h1'
+
+def put(name,v):
+ with (R/name).open('x',encoding='utf8') as f:json.dump(v,f,indent=2,allow_nan=False)
+
+PRE="from pathlib import Path,PurePosixPath\nimport json,hashlib,fcntl,psutil,subprocess,shutil\nB=Path(v['root']);owned=Path('/home/lc01/Zonglin Li/zonglin2/tasks');old=owned/'MOD4_H1_FLAT05_MASK_AWARE_2610v91/h1'\nassert B.resolve().is_relative_to(owned.resolve()) and not B.exists()\nC=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json');raw=C.read_bytes();c=json.loads(raw)\nassert c['active_segment'] is None and c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026' and c['budget_mode']=='finite_original_limits_restored_after_single4090_return'\nassert c['remaining_training_seconds']==v['closed_W35_remaining'] and c['remaining_training_seconds']>86412.86069250107\nfor path in (C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/'three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock',C.parent.parent/'finite_environment_validation.lock'):\n with path.open('rb+') as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)\ncohort=json.loads((old.parent/'owner/COHORT_FINAL.json').read_bytes());node=json.loads((old.parent/'node_h1/NODE_TERMINAL_ACTUAL.json').read_bytes())['row']\nassert cohort['original_cost_settled'] and (old.parent/'owner/OWNER_EXIT_ACTUAL.json').is_file() and node['terminal_all_own_children_waited'] and not node['original_error'] and node['returncode']==0 and node['final']['passed']\ngo=cohort['go']['h1'];assert go['original_owner_pid']==553988 and go['original_owner_creation']==1793115270.2\nsegments=[x for x in c['completed_segments'] if x['owner_parent_pid']==553988 and x['experts']['h1']['started_epoch']==go['learning_started_epoch']]\nassert len(segments)==1 and segments[0]['charged_expert_seconds']==4101.035485744476\nformal=node['final']['final'];assert formal['SHA']==v['native_SHA'] and formal['bytes']==256229065\nnative=Path(formal['path']);assert native.resolve().is_relative_to(old.resolve()) and native.is_file() and not native.is_symlink() and native.stat().st_size==formal['bytes']\ngpu='GPU-c27eecbd-6838-7290-1cd2-37e34522213d';line=subprocess.check_output(['nvidia-smi','-i',gpu,'--query-gpu=uuid,name,memory.free','--format=csv,noheader,nounits'],text=True).strip().split(',');apps=subprocess.check_output(['nvidia-smi','-i',gpu,'--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)\nassert line[0].strip()==gpu and line[1].strip()=='NVIDIA GeForce RTX 4090' and int(line[2])>15669 and gpu not in apps\nassert psutil.virtual_memory().available>32*1024**3 and shutil.disk_usage(owned).free>25*1024**3\nwroot=owned/'MOD4_W35_PPO50_GAS400_RETENTION_2610v92'\nwcf=json.loads((wroot/'owner/COHORT_FINAL.json').read_bytes());assert wcf['original_cost_settled'] and (wroot/'owner/OWNER_EXIT_ACTUAL.json').is_file()\nassert wcf['go']['w35']['original_owner_pid']==557831 and wcf['go']['w35']['original_owner_creation']==1793119787.14 and wcf['go']['w35']['learning_started_epoch']==1793119790.600079\nwt=json.loads((wroot/'node_w35/NODE_TERMINAL_ACTUAL.json').read_bytes())['row'];assert wt['terminal_all_own_children_waited']\nws=[s for s in c['completed_segments'] if s['owner_parent_pid']==557831 and s['experts']['w35']['started_epoch']==1793119790.600079]\nassert len(ws)==1 and ws[0]['charged_expert_seconds']==v['closed_W35_original_fee']\n\noldrows={r['relative']:r for r in json.loads((old/'THREE_SLOT_COMPLETE_MANIFEST_V1.json').read_bytes())['files']}\nB.mkdir(parents=True);need=[];copied=0\nfor row in v['manifest']['files']:\n rel=row['relative'];r=PurePosixPath(rel);dest=B/rel;src=old/rel;prior=oldrows.get(rel)\n assert not r.is_absolute() and '..' not in r.parts and '\\\\' not in rel and dest.resolve().is_relative_to(B.resolve())\n dest.parent.mkdir(parents=True,exist_ok=True)\n if rel=='job0/source/H1_native91_qualified_h1.pt':shutil.copy2(native,dest);copied+=1\n elif prior and prior['bytes']==row['bytes'] and prior['SHA']==row['SHA'] and src.is_file() and not src.is_symlink() and src.stat().st_size==row['bytes']:shutil.copy2(src,dest);copied+=1\n else:need.append(row)\nfor name in ('home','tmp','cache','config','data'):(B/'job0'/name).mkdir(exist_ok=True)\nassert shutil.disk_usage(B).free>25*1024**3 and C.read_bytes()==raw\nprint(json.dumps(dict(root=str(B),need_upload=need,files_reused=copied,resource=dict(GPU_UUID=gpu,free_MiB=int(line[2]),RAM_available=psutil.virtual_memory().available,disk_after_copy=shutil.disk_usage(B).free),C_SHA=hashlib.sha256(raw).hexdigest(),remaining=c['remaining_training_seconds'],actual91_original_fee_allout_terminal_passed=True,no_account_write=True,no_GO=True)))"
+
+def main():
+ put('NATIVE93_INSTALL_CONSUMED_ACTUAL.json',dict(epoch=time.time(),new_source_initial_CPU_purpose=True,no_GO=True))
+ prep=json.loads((R/'NATIVE93_SOURCE_PREPARED_ACTUAL.json').read_bytes());prep['manifest_SHA']=prep['h1_spec_pending_actual_CPU_and_controller']['payload_manifest_SHA'];wclosed=json.loads((T/'MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027/W35_fixed92_correct_normal900_collector_v1_source/reports/W35_FIXED92_COMPLETE_FINAL_OR_PARTIAL_ORIGINAL_COST_RETURNED_ACTUAL.json').read_bytes());assert wclosed['canonical_None'] and wclosed['actual_finite_returned'];manifest=json.loads((B/'THREE_SLOT_COMPLETE_MANIFEST_V1.json').read_bytes())
+ # Original actual child identity/wait/program wrapper preserved, no metadata-only surrogate.
+ old=T/'MOD4_H1_FLAT05_NATIVE_SINGLE72_RESOURCE_V90_20261027/install_flat90_parent_directory_fixed_source_CPU_V2_once.py'
+ sp=importlib.util.spec_from_file_location('prior_installer_definitions_only',old);m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+ sys.path.insert(0,str(W/'MOD4_TWO_LINUX_POLICY50_COHORT_52_20261021'));import deploy_two50_reconciled_original_writer_once as d
+ sp=importlib.util.spec_from_file_location('native91_session_secret_memory',W/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/run_authorized_cohort50_with_existing_hidden_stdin_memory.py');sec=importlib.util.module_from_spec(sp);sp.loader.exec_module(sec)
+ secret=sec.recover();c=None
+ try:
+  c=d.connect72(secret);secret=None
+  resource=d.code(c,d.PY72,PRE,dict(root=REMOTE,manifest=manifest,native_SHA=prep['task']['source_SHA'],closed_W35_remaining=wclosed['closing_remaining_snapshot'],closed_W35_original_fee=wclosed['original_fee_seconds']),timeout=120);put('NATIVE93_ACTUAL_PRECOPY_RESOURCE_RETURNED.json',resource)
+  sf=c.open_sftp();sf.get_channel().settimeout(120)
+  try:
+   for row in resource['need_upload']:sf.put(str(B/row['relative']),REMOTE+'/'+row['relative'])
+   sf.put(str(B/'THREE_SLOT_COMPLETE_MANIFEST_V1.json'),REMOTE+'/THREE_SLOT_COMPLETE_MANIFEST_V1.json')
+  finally:sf.close()
+  result=d.code(c,d.PY72,m.CPU,dict(root=REMOTE,manifest_SHA=prep['manifest_SHA']),timeout=300)
+  put('NATIVE93_ACTUAL_SOURCE_SDK_CPU_AND_RESOURCE_RETURNED_ACTUAL.json',dict(**result,resource=resource,actual_finite_returned=True))
+  assert result['passed'],dict(errors=result.get('errors'),stdout_tail=result.get('stdout_tail'))
+  print(json.dumps(dict(actual_CPU_passed=True,CPU_SHA=result['proof']['report_SHA'],CPU_proof_SHA=result['proof_SHA'],no_GO=True)))
+ finally:
+  secret=None
+  if c:c.close()
+
+if __name__=='__main__':
+ try:main()
+ except BaseException:put('NATIVE93_INSTALL_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(traceback=traceback.format_exc(),no_retry_or_GO=True));raise

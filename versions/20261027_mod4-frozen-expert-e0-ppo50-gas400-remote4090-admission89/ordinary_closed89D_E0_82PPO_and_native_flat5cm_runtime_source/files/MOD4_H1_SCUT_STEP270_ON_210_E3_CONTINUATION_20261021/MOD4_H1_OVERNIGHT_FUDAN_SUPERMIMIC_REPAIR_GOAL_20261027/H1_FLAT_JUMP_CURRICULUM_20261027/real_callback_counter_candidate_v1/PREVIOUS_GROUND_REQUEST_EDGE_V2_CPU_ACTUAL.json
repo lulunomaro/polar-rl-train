@@ -1,0 +1,32 @@
+{
+  "epoch": 1793105127.5239546,
+  "passed": true,
+  "V1_SHA": "aa27da21284af05de5a406e438b762330c8788d67e2653486434e5a64bdf7399",
+  "V2_SHA": "96d58629e9d399e6b81cedc7f3548d6120ac488b08d4f72fee55642081650f94",
+  "exact_inverse_V1_bytes": true,
+  "only_four_source_replacements": [
+    [
+      "'credited','previous_request','attempt_invalid'):",
+      "'credited','previous_request','attempt_invalid','previous_ground'):"
+    ],
+    [
+      "self._clear(ids);self.previous_request[ids]=False",
+      "self._clear(ids);self.previous_request[ids]=False;self.previous_ground[ids]=False"
+    ],
+    [
+      "  self._clear(fresh);self.active|=fresh;",
+      "  ground_before=self.previous_ground&fresh\n  self._clear(fresh);self.active|=fresh;"
+    ],
+    [
+      "  self.seen_ground|=eligible&floor&~self.had_takeoff",
+      "  self.seen_ground|=eligible&(floor|ground_before)&~self.had_takeoff\n  self.previous_ground.copy_(valid&floor)"
+    ]
+  ],
+  "prior_same_episode_floor_support_can_arm_request_first_callback_air": true,
+  "unseen_ground_env_cannot_credit": true,
+  "selected_reset_clears_previous_ground_but_preserves_lifetime": true,
+  "first_standing_callback_never_credits": true,
+  "V1_other_behavior_fixtures_not_reexecuted": true,
+  "no_PT_Actor_SDK_GPU_remote_or_ledger": true,
+  "actual_native_pending": true
+}

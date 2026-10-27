@@ -1,0 +1,90 @@
+--- C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\native88C_exact_reset_bank_lifecycle_source_v1\review_native88_finals_initial_CPU_unused_once.py
++++ C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\native88C_fullstate_qualification_reader_repair_v2\qualify_native88C_formal_fullstate_after_reader_name_fix_once.py
+@@ -5,11 +5,14 @@
+ """
+ from pathlib import Path
+ import sys
+-sys.path.insert(0,str(Path(__file__).resolve().parent))
++sys.path[:0]=[str(Path(__file__).resolve().parent),str(Path(__file__).resolve().parents[1]/'native88C_exact_reset_bank_lifecycle_source_v1')]
+ import argparse,os,json,hashlib,time,traceback,importlib.util
+ from native88_closing_protocol_v1 import (KEYS,SOURCES,BOOTSTRAP_SHA,require,validate_detached,validate_actual_GO_binding,validate_fees,native_window,verify_window,bind_prepared_detached)
+ from native88_initial_CPU_reader_primitives_v1 import (OneInitialLoadPool,PinnedSource,exact,finite,frozen_bootstrap,native_modules,original_physical_state,role_terminal)
+ from native88_event_curve_summary_v1 import read_curve
++import native88_initial_CPU_reader_primitives_v1 as repaired_primitives
++require(Path(repaired_primitives.__file__).resolve()==Path(__file__).resolve().parent/'native88_initial_CPU_reader_primitives_v1.py','exact new primitives import path')
++require(hashlib.sha256(Path(repaired_primitives.__file__).read_bytes()).hexdigest()=='da0c81ae801c768578f199f280d86c73c2fd69a86ed16c56d31b7560d991a63f','exact dependency-only source repair')
+ def read(p):return json.loads(Path(p).read_bytes())
+ def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ def put(R,name,v):
+@@ -85,19 +88,33 @@
+  require(receipt['prepared_report_SHA']==H(a.prepared_report) and receipt['detached_report_SHA']==H(a.detached_report),'closing prepared/deployment receipt pins')
+  eligible,meta_errors=eligible_formal_roles(receipt,q)
+  if not eligible:
+-  put(R,'NATIVE88_NO_FORMAL_FINAL_CPU_METADATA_ACTUAL.json',dict(passed=False,errors=meta_errors,no_checkpoint_or_bootstrap_model_read=True,original_canonical_cost_settled=receipt['original_canonical_cost_settled']));return False
++  put(R,'NATIVE88C_READER_REPAIRED_NO_FORMAL_FINAL_CPU_METADATA_ACTUAL.json',dict(passed=False,errors=meta_errors,no_checkpoint_or_bootstrap_model_read=True,original_canonical_cost_settled=receipt['original_canonical_cost_settled']));return False
+  expected=N.parent/'H1_STEP270_THREE_GPU_NATIVE_CONTINUATION_RESOURCE_V86B_20261026/current_baseline_closed_models/h1/model_update138.pt'
+  require(Path(a.bootstrap_witness).resolve()==expected.resolve() and a.bootstrap_bytes==16868635,'qualified normal86 witness exact original path/producer size')
+- intent=dict(epoch=time.time(),purpose='native88 changed-plant own-step FINAL initial CPU + frozen normal86 witness qualification',run_id=q['run_id'],
+-  each_new_FINAL_initial_load_maximum=1,shared_qualified_normal86_witness_initial_load_maximum=1,normal86_producer_SHA=BOOTSTRAP_SHA,
++ prior_path=R/'NATIVE88_TYPED_FINALS_AND_ORIGINAL_COST_CPU_ACTUAL.json'
++ prior=read(prior_path);records=prior['initial_model_load_records']
++ require(prior['passed'] is False and set(prior['errors'])==set(KEYS),'preserve exact original failed two-role reader')
++ require(all("NameError: name 'H' is not defined" in prior['errors'][k] for k in KEYS),'only exact source dependency failure admitted')
++ require(len(records)==1 and records[0]['completed'] is True and records[0]['producer_SHA']==BOOTSTRAP_SHA,'only old shared witness loaded; no NEW FINAL initial load was attempted')
++ require(receipt['all_active_node_collection_passed'] is True and not receipt['collection_errors'],'actual complete case-safe collection required')
++ # Actual source/metadata preflight before any required witness reread or NEW model load.
++ for key in KEYS:
++  spec=q['specs'][key];pins=PinnedSource(prepared['payloads'][key],spec)
++  protocol=load_pinned_module('native88_repaired_preflight_'+key,'native88_protocol_v1.py',pins)
++  envelope=cpu['results'][key]['ready_envelope']
++  require(envelope['value'].get('exact_gas400_reset_bank_source_CPU_passed') is True,'actual installed source CPU reset proof')
++  require(protocol.native88_valid_ready(dict(key=key,phase='ready',manifest_SHA=spec['manifest_SHA'],closed_source_CPU=envelope,original_error=False),spec),'original actual ready guard unchanged')
++ put(R,'NATIVE88C_READER_REPAIRED_SOURCE_METADATA_PREFLIGHT_ACTUAL.json',dict(passed=True,old_failed_reader_report=str(prior_path),old_report_SHA=H(prior_path),old_load_records=records,NEW_FINAL_initial_loads_before_this_entry=0,shared_witness_prior_loads=1,additional_shared_witness_read_required_for_literal_frozen_comparison=True,not_a_replay_of_old_once=True))
++ intent=dict(epoch=time.time(),purpose='complete actual88C formal qualification after pure-source H/read dependency repair; first2NEW FINAL loads plus1necessary shared witness reread',run_id=q['run_id'],
++  each_new_FINAL_initial_load_maximum=1,shared_witness_reads_in_this_new_purpose=1,prior_shared_witness_loads=1,necessary_witness_reread_reason='old reader process exited before both NEW FINAL loads; literal frozen comparison requires the shared witness in this process',normal86_producer_SHA=BOOTSTRAP_SHA,
+   R5_native_models_not_reloaded_or_rehashed=True,no_actor_WM_forward_GPU_scene_or_raw=True,no_retry_after_initial_error=True)
+- put(R,'NATIVE88_INITIAL_CPU_REVIEW_INTENT_ACTUAL.json',intent);put(R,'NATIVE88_INITIAL_CPU_ENTRY_CONSUMED_ACTUAL.json',dict(epoch=time.time(),pid=os.getpid(),argv=sys.argv,intent=intent))
++ put(R,'NATIVE88C_READER_REPAIRED_INITIAL_CPU_REVIEW_INTENT_ACTUAL.json',intent);put(R,'NATIVE88C_READER_REPAIRED_INITIAL_CPU_ENTRY_CONSUMED_ACTUAL.json',dict(epoch=time.time(),pid=os.getpid(),argv=sys.argv,intent=intent))
+  import torch
+  torch.set_num_threads(2);pool=OneInitialLoadPool();models={};errors=dict(meta_errors);fees=None;curves={};witness=None
+  try:fees=validate_fees(receipt['authority72'],receipt['authority72']['cohort']['go'],q['owner_identity'])
+- except BaseException:errors['original_fees']=traceback.format_exc();put(R,'NATIVE88_ORIGINAL_FEE_CPU_ERROR_ACTUAL.json',dict(error=errors['original_fees'],original_flags_unmodified=True))
++ except BaseException:errors['original_fees']=traceback.format_exc();put(R,'NATIVE88C_READER_REPAIRED_ORIGINAL_FEE_CPU_ERROR_ACTUAL.json',dict(error=errors['original_fees'],original_flags_unmodified=True))
+  try:witness=pool.load_qualified_shared_source(expected,16868635)
+- except BaseException:errors['shared_normal86_witness']=traceback.format_exc();put(R,'NATIVE88_SHARED_WITNESS_INITIAL_CPU_ORIGINAL_ERROR_ACTUAL.json',dict(error=errors['shared_normal86_witness'],no_second_initial_load=True))
++ except BaseException:errors['shared_normal86_witness']=traceback.format_exc();put(R,'NATIVE88C_READER_REPAIRED_SHARED_WITNESS_INITIAL_CPU_ORIGINAL_ERROR_ACTUAL.json',dict(error=errors['shared_normal86_witness'],no_second_initial_load=True))
+  seen=set()
+  for key in KEYS:
+   out=N/'current_native88_closed_text'/key/'job0/production';nodefinal=((receipt.get('nodes',{}).get(key,{}).get('node_terminal') or {}).get('row') or {}).get('final') or {}
+@@ -114,19 +131,19 @@
+    full=pool.load(path,row['SHA'],key+'_native88_FORMAL_FINAL');require(witness is not None,'normal86 frozen witness unavailable; no FINAL reload')
+    value=review_role(full,witness,role_terminal(receipt,key),spec,row,pins,out);value['original_actual_role_cost_unmodified']=receipt['authority72']['original_segment']['experts'][key]
+    value['event_curve']=curves[key];models[key]=value
+-   put(R,'NATIVE88_HEALTHY_'+key.upper()+'_INITIAL_CPU_ACTUAL.json',dict(passed=True,value=value,independent_healthy_role_only=True,not_overall_pass=True))
+-  except BaseException:errors[key]=traceback.format_exc();put(R,'NATIVE88_'+key.upper()+'_INITIAL_CPU_ORIGINAL_ERROR_ACTUAL.json',dict(error=errors[key],other_healthy_role_retained=True,no_second_initial_load=True))
++   put(R,'NATIVE88C_READER_REPAIRED_HEALTHY_'+key.upper()+'_INITIAL_CPU_ACTUAL.json',dict(passed=True,value=value,independent_healthy_role_only=True,not_overall_pass=True))
++  except BaseException:errors[key]=traceback.format_exc();put(R,'NATIVE88C_READER_REPAIRED_'+key.upper()+'_INITIAL_CPU_ORIGINAL_ERROR_ACTUAL.json',dict(error=errors[key],other_healthy_role_retained=True,no_second_initial_load=True))
+  require(not torch.cuda.is_initialized(),'CPU review initialized CUDA')
+  passed=set(models)==set(KEYS) and fees is not None and not errors
+  result=dict(schema='mod4.native88.two_native.changed_plant_own_step.initial_CPU.v1',epoch=time.time(),passed=passed,models=models,errors=errors,original_fees=fees,
+   original_canonical_cost_settled=receipt['original_canonical_cost_settled'],initial_model_load_records=pool.records,intent=intent,CUDA_initialized=False,
+   R5_native_models_not_reloaded_or_rehashed=True,no_new_fee_refund_clamp_or_secondwriter=True,not_skill_graduation=True)
+- put(R,'NATIVE88_TYPED_FINALS_AND_ORIGINAL_COST_CPU_ACTUAL.json',result)
+- put(R,'NATIVE88_EVENT_CURVE_TEXT_SUMMARY_ACTUAL.json',dict(curves=curves,diagnostic_errors=errors,not_model_or_skill_gate=True))
++ put(R,'NATIVE88C_READER_REPAIRED_TYPED_FINALS_AND_ORIGINAL_COST_CPU_ACTUAL.json',result)
++ put(R,'NATIVE88C_READER_REPAIRED_EVENT_CURVE_TEXT_SUMMARY_ACTUAL.json',dict(curves=curves,diagnostic_errors=errors,not_model_or_skill_gate=True))
+  lines=['Native88 events: actual completed controls x4096; interval censored; restored source counters are not new progress.']
+  for key,value in curves.items():
+   latest=value.get('latest_complete_snapshot') or {};lines.append(key+': '+json.dumps(dict(diagnostic_passed=value['diagnostic_passed'],complete_controls=latest.get('control'),environment_control_transitions=latest.get('control',0)*4096,events=latest.get('counts'),intervals=value['event_increment_intervals'])))
+- with (R/'NATIVE88_EVENT_CURVE_TEXT_SUMMARY_ACTUAL.txt').open('x',encoding='utf8') as f:f.write('\n'.join(lines)+'\n')
++ with (R/'NATIVE88C_READER_REPAIRED_EVENT_CURVE_TEXT_SUMMARY_ACTUAL.txt').open('x',encoding='utf8') as f:f.write('\n'.join(lines)+'\n')
+  print(json.dumps(dict(passed=passed,healthy_native=list(models),errors=list(errors))));return passed
+ if __name__=='__main__':
+  try:sys.exit(0 if main() else 1)
+@@ -134,5 +151,5 @@
+  except BaseException:
+   if '--stage' in sys.argv:
+    R=Path(sys.argv[sys.argv.index('--stage')+1])/'reports'
+-   if R.is_dir():put(R,'NATIVE88_REVIEW_ENTRY_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(error=traceback.format_exc(),no_second_initial_model_load=True))
++   if R.is_dir():put(R,'NATIVE88C_READER_REPAIRED_REVIEW_ENTRY_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(error=traceback.format_exc(),no_second_initial_model_load=True))
+   raise

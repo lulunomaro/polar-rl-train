@@ -1,0 +1,57 @@
+"""SOURCE ONLY: native R5 models + separate frozen normal86 RSL bootstrap; fresh400N physics.
+
+Never launches a native case or learns without the exact bounded H1 grant.
+"""
+from pathlib import Path
+import os,sys,argparse,json,time,hashlib,traceback,runpy
+B=Path(__file__).resolve().parent;J=B/'job0';sys.path[:0]=[str(B),str(B/'source'),str(B/'source/sm_deps')]
+def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def put(p,v):
+ p=Path(p);q=p.with_suffix(p.suffix+'.partial');q.write_text(json.dumps(v,indent=2));q.replace(p)
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--job',type=int,default=0);p.add_argument('--slot',choices=('h1','e2','recovery'),required=True);p.add_argument('--phase',choices=('production',),required=True);p.add_argument('--num-envs',type=int,required=True);p.add_argument('--seed',type=int,required=True);p.add_argument('--source-scope',choices=('native_models_only_fresh400N_environment',),required=True);args=p.parse_args();phase=args.phase;assert args.job==0 and args.num_envs==4096;task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/'GO_PRODUCTION.json').read_bytes());assert args.slot==task['key'] and args.seed==task['native_seed'];from native88_source_guard_v1 import check_payload,validate_task_go;checked=check_payload(B);validate_task_go(task,go,checked['manifest_SHA']);assert time.time()<go['save_deadline'];src=J/'source'/task['source_filename'];bootstrap=J/'source'/task['bootstrap_source_filename'];assert H(src)==go['source_SHA'] and H(bootstrap)==go['bootstrap_SHA'];assert not (J/phase).exists();out=J/phase;out.mkdir();fresh=False;N=4096
+ for k in list(os.environ):
+  if k.startswith('RM_') or k in ('RANK','LOCAL_RANK','WORLD_SIZE','MASTER_ADDR','MASTER_PORT'):del os.environ[k]
+ original=json.loads((J/'original_run_manifest.json').read_bytes())['env'];os.environ.update({k:str(v) for k,v in original.items() if k not in ('RM_RESCUE_DEADLINE','RM_RESCUE_STOP_FILE','RM_SLOPE_INITIAL_ADMISSION')});os.environ.update(RM_MOD4_USD=str(J/'assets/robot.usd'),RM_MOD4_TERRAIN='flat',RM_MOD4_MAP='',RM_JUMP_SCRIPT_PROB='0',RM_KEEP_STD='1',RM_RESCUE_STOP_FILE=str(out/'STOP_AFTER_SAVE.json'),OWN_E2_H1_KIND=task['kind'])
+ sys.path[:0]=[str(B/'lib'),str(J/'runtime/isaac/mod4')];entry=J/'runtime/isaac/mod4'/('train_H1_fresh128_preflight_v1.py' if fresh else 'train_H1_ground_prelaunch_fullstate_v2.py');sys.argv=[str(entry),'--headless','--device','cuda:0','--num_envs',str(N),'--seed',str(args.seed),'--steps_per_env','24','--learning_rate','.0001','--save_interval','25','--init_checkpoint',str(bootstrap),'--log_root',str(out/'logs'),'--run_name','H1_STEP270_SCUT_'+phase,'--additional_iterations','100000'];ns=runpy.run_path(str(entry),run_name='owned_H1_learner_config')
+
+ # New authorized task only. Existing sources and active controllers are untouched.
+ import h1_scut_fudan_jump_reward_v1 as scut
+ import h1_step270_sdk_runtime_candidate as terrain
+ original_rewards=scut.configure;scut.configure=lambda cfg:terrain.configure_rewards(cfg,original_rewards)
+ factory=ns['build_env'];original_cfg=ns['Mod4EnvCfg'];created=[None]
+ def step270_cfg():
+  c=original_cfg();c.scene.num_envs=N;c.seed=args.seed;c.episode_length_s=5.;c.sim.device='cuda:0';assert float(c.terminations.closure.params['threshold'])==.002 and float(c.terminations.mimic.params['threshold'])>=.01;c.terminations.mimic.params={**c.terminations.mimic.params,'threshold':.01};return c
+ factory.__globals__.update(Mod4Env=terrain.H1Step270Env,Mod4EnvCfg=step270_cfg)
+ def build_step270():
+  env=factory();created[0]=env;assert env._physics_action_delay.queue.control_us==10000;assert env.num_envs==4096 and env.physics_dt==.0025 and env.step_dt==.01 and env.cfg.decimation==4;return env
+ ns['main'].__globals__['build_env']=build_step270
+ import h1_fullstate_checkpoint_v1 as checkpoint_API
+ from h1_step270_fullstate_checkpoint_candidate_uninstalled import install_step270_save_contract
+ from native88_frozen_RSL_bootstrap_v1 import resume_RSL_witness_fresh400N as resume_policy_only_fresh4096
+ checkpoint_API.resume_h1_new_episode=resume_policy_only_fresh4096;checkpoint_API.install_h1_save_contract=install_step270_save_contract
+ import torch,rescue_training
+ from spring_pressure_checkpoint import exact
+ from h1_reward_scope_v1 import isolated_actual_SDK_dt_probe
+ class OwnSavedStop(Exception):pass
+ def learn(runner,n,log_dir):
+  from native88_source_guard_v1 import validate_precontrol_actual
+  admission=validate_precontrol_actual(runner,created[0],task,go,B)
+  created[0]._native88_actual_precontrol=admission
+  put(out/'NATIVE87_ACTUAL_BEFORE_FIRST_CONTROL_ADMISSION.json',admission)
+  from native_own_fudan88_gas400_training_v2 import run
+  return run(runner,n,log_dir,B,J,out,task,go,src,phase)
+ rescue_training.learn=learn
+ try:ns['main']()
+ except BaseException:put(out/'ORIGINAL_ERROR_BEFORE_APP_CLOSE.json',dict(epoch=time.time(),error=traceback.format_exc(),no_auto_retry=True));raise
+ finally:
+  if created[0] is not None:
+   try:created[0].close()
+   except BaseException:put(out/'ENV_CLOSE_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc()))
+  put(out/'APP_CLOSING.json',dict(epoch=time.time()));ns['app'].close()
+if __name__=='__main__':
+ try:main()
+ except BaseException:
+  try:put(B/('H1_PHASE_ORIGINAL_ERROR_'+str(time.time_ns())+'.json'),dict(epoch=time.time(),error=traceback.format_exc(),no_retry=True))
+  except BaseException:pass
+  raise

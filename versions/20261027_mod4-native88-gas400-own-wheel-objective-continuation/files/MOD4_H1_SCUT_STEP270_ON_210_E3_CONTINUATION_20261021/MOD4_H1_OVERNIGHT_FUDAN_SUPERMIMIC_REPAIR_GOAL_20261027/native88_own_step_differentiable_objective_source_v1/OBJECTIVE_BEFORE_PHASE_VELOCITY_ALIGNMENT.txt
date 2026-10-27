@@ -1,0 +1,67 @@
+"""Task-dominant own-wheel step objective; soft surrogates are NOT success.
+
+History/obs/goal/context/state, V8, actual success, action/RNG/physics untouched.
+Huber costs retain gradients far from the270mm/edge goal; style adds no easy
+positive credit capable of hiding wheel height/footprint failure.
+"""
+import torch
+from converted_MOD4_jump_mdp_v4 import ConvertedMOD4JumpMdp
+from supermimic_wheel_leg_v3.geometry import unflatten_state
+from own_step_differentiable_geometry_v1 import require
+def huber(x):
+ a=x.abs();return torch.where(a<=1,.5*x.square(),a-.5)
+class OwnStepDifferentiableMdp(ConvertedMOD4JumpMdp):
+ max_step_reward=.06
+ def __init__(self,provider,wheel_geometry,leg_encoder_joint_names=None):
+  super().__init__(provider,leg_encoder_joint_names);self.wheel_geometry=wheel_geometry.to(provider.device)
+  require(tuple(provider.names)==wheel_geometry.names,'geometry/reference named joint order')
+  self.touch=int(provider.metadata['first_touch_age']);self.support=int(provider.metadata['support_age'])
+  require(100<self.touch<self.support<300,'source own landing/splice clock required')
+  self.weights=dict(bottom=2.,forward=2.,lateral=.5,wall=4.,support=1.,footprint=1.,contact=.15,stable=.3,style_deficit=.05)
+ def to(self,device):return OwnStepDifferentiableMdp(self.provider.to(device),self.wheel_geometry.to(device),self.leg_encoder_joint_names)
+ def geometry_costs(self,state,frames,actual,target):
+  lo,hi=actual['low'],actual['high'];tl,th=target['low'],target['high'];bottom=lo[...,2];front=hi[...,0];rear=lo[...,0]
+  alpha=((frames-self.touch).float()/(self.support-self.touch)).clamp(0,1)
+  mean=lambda x:x.mean(-1)
+  bottom_cost=mean(huber((bottom-tl[...,2])/.10))
+  forward_cost=mean(huber((rear-tl[...,0])/.15))
+  lateral_cost=mean(huber((actual['centre'][...,1]-target['centre'][...,1])/.08))
+  # Positive penetration deficit, not a saturating reward product.5mm is a
+  # planning penalty margin only, never a new physical success/audit threshold.
+  crossing=torch.relu((front+.005-self.step_edge_x_m)/.05)
+  below=torch.relu((self.platform_top_z_m-bottom)/.10)
+  wall_cost=mean(crossing*below)
+  support_cost=alpha*mean(huber((bottom-self.platform_top_z_m)/.04))
+  inside=torch.stack((torch.relu((self.step_edge_x_m-rear)/.10),torch.relu((hi[...,0]-(self.step_edge_x_m+.8))/.10),torch.relu((-0.6-lo[...,1])/.10),torch.relu((hi[...,1]-.6)/.10)),-1)
+  footprint_cost=alpha*huber(inside).mean((-1,-2))
+  # Latest original world-Z contact history is a differentiable force proxy.
+  # It cannot identify the contacted platform face; geometry must also fit.
+  force_z=state[6][...,:6].reshape(*frames.shape,2,3)[...,2]
+  contact_cost=alpha*mean(huber(torch.relu(1.-force_z)))
+  # True stable criterion remains callbacks. This is only dense velocity-to0.
+  stable_cost=alpha*(huber(actual['centre_velocity']/.15).mean((-1,-2))+huber(state[2]/.15).mean(-1)+huber(state[3]/.5).mean(-1))
+  return dict(bottom=bottom_cost,forward=forward_cost,lateral=lateral_cost,wall=wall_cost,support=support_cost,footprint=footprint_cost,contact=contact_cost,stable=stable_cost,contact_blend=alpha)
+ def objective_terms(self,state,frames,action,previous_action):
+  require(len(state)==7 and state[0].shape[:-1]==frames.shape,'native state/frame shape')
+  reference,_=self.provider.query(frames)
+  target=unflatten_state(torch.cat((reference,torch.zeros_like(state[6])),-1))
+  actual_geometry=self.wheel_geometry(state);target_geometry=self.wheel_geometry(target)
+  costs=self.geometry_costs(state,frames,actual_geometry,target_geometry)
+  original=super().objective_terms(state,frames,action,previous_action)
+  style=(1-original['tracking_sum']/6).clamp(0,1)
+  loss=sum(self.weights[name]*costs[name] for name in ('bottom','forward','lateral','wall','support','footprint','contact','stable'))+self.weights['style_deficit']*style
+  task_score=1-loss
+  result={name+'_cost':value for name,value in costs.items()}
+  result.update(style_deficit=style,geometry_task_loss=loss,task_score_surrogate=task_score,old_tracking_fraction=original['tracking_sum']/6,
+   action_rate_cost=original['action_rate_cost'],total=.06*task_score-.01*original['action_rate_cost'])
+  require(all(torch.isfinite(v).all() for v in result.values()),'nonfinite own wheel objective')
+  return result
+ def reward(self,state,frames,action,previous_action):return self.objective_terms(state,frames,action,previous_action)['total']
+ def contract_manifest(self):
+  r=super().contract_manifest();r.update(schema='mod4.native88.own_wheel_step_objective.source_candidate.v1',native_reward_changed=True,physical_V8_and_success_unchanged=True,
+   task='own wheel bottom+full footprint reference tracking, earlywall penalty, soft support/contact/stability',weights=self.weights,
+   force_proxy='latest contact18 worldZ>=original1N is soft; not platform-contact truth',
+   shape='Huber dense non-saturating errors; no easy positive style credit; score is NOT success probability',
+   calibration='recorded tree FK error must be reported; closed-loop compliance/contact-model fidelity not certified',
+   actual_training_or_skill_gain=False)
+  return r

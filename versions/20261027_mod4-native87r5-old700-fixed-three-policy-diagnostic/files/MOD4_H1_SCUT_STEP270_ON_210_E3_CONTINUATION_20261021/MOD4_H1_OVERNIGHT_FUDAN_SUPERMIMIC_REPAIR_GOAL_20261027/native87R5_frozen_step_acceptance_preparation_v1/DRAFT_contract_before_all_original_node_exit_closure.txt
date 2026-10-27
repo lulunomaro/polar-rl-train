@@ -1,0 +1,59 @@
+"""Pure qualification/source choice. No models, tasks, GO, authority or transport."""
+SEEDS=(20260928,20260929,20260930)
+SOURCE_SHA='0c1edb9603c1cb84fbb894d242dae1b6a7c87fe3237d658dbc486ccbbad3d394'
+CANONICAL='/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json'
+GPU_BACKENDS={'GPU-c27eecbd-6838-7290-1cd2-37e34522213d':'target72','GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e':'source210'}
+def require(v,message):
+ if not v:raise ValueError(message)
+def qualified_roles(cpu,collection):
+ require(cpu['original_fees']['passed'] is True and cpu['original_canonical_cost_settled'] is True,'original fees unsettled')
+ a=collection['authority72']
+ require(a['all_authority72_owner_children_actual_out'] and a['canonical_active_segment'] is None and a['canonical_path']==CANONICAL,'original72 owner/children/canonical not closed')
+ require(len(a['original_locks'])==2 and all(x['actual_fcntl_free'] for x in a['original_locks']),'original72 locks not free')
+ eligible={}
+ for key,value in cpu['models'].items():
+  if key not in ('h1','recovery'):continue
+  if value.get('passed') is not True:continue
+  require(value['passed'] is True and value['source_SHA']==SOURCE_SHA and value['frozen_bootstrap']['Adam']==832460,'new native source CPU/frozen normal86 witness incomplete')
+  require(value['native_fullstate_finite'] and value['NATIVE_CONTRACT_strict_type_and_values'] and value['native_modules']['WM_Pi_Critic_strict_CPU_state_load'],'whole native FINAL CPU incomplete')
+  final=value['final'];rows=collection['native_H1_method_fullstate'][key]
+  require(len(rows)==1 and final==rows[0] and final['formal_manifest_passed'] and final['twohost_complete_SHA'],'formal twohost new FINAL missing')
+  terminal=collection['nodes'][key]['node_terminal']['row'];commit=terminal['final']
+  require(terminal['terminal_all_own_children_waited'] and not terminal['original_error'] and not terminal['errors'] and commit['passed'] and commit['final']['SHA']==final['SHA'],'formal original terminal failed')
+  require(final['policy_updates']>0 and final['world_updates']>0,'no actual new native learning')
+  loads=[r for r in cpu['initial_model_load_records'] if r['role']==key+'_native_FINAL' and r['producer_SHA']==final['SHA'] and r['completed'] and r['initial_load_attempted']]
+  require(len(loads)==1,'initial whole FINAL CPU load receipt missing')
+  eligible[key]=value
+ return eligible
+def select_source(cpu,collection,full_text_events):
+ """Predeclared lexicographic raw recovery, landing, leading-edge cross; h1 tie.
+
+ A positive event is only selection evidence, never frozen acceptance or proof
+ of full wheel-footprint landing. No qualifying event evidence fixes h1 diagnostic.
+ """
+ eligible=qualified_roles(cpu,collection);scores={};diagnostics={}
+ for key in eligible:
+  e=full_text_events.get(key)
+  valid=bool(e and e.get('schema')=='completed_control_goal_events_v1' and e.get('diagnostic_valid') is True and e.get('num_envs')==4096 and e.get('environment_control_transitions')==e.get('complete_control_rows',-1)*4096)
+  if valid:
+   score=(e['events']['recovery_count'],e['events']['landing_count'],e['both_leading_edges_cross_event_count'])
+   valid=all(type(x) is int and x>=0 for x in score)
+  if valid:scores[key]=score
+  diagnostics[key]=dict(valid=valid,original_event_receipt=e)
+ positive={k:v for k,v in scores.items() if any(v)}
+ if positive:key=max(positive,key=lambda k:(*positive[k],k=='h1'));scope='predeclared_original_event_rank_source_not_best_case_or_skill'
+ else:
+  require('h1' in eligible,'no event-qualified alternative; fixed h1 diagnostic source lacks formal CPU qualification')
+  key='h1';scope='fixed_h1_diagnostic_no_valid_recovery_landing_cross_evidence'
+ return dict(selected_key=key,source=eligible[key],selection_scope=scope,ranking_order=['recovery_count','landing_count','both_leading_edges_cross_event_count','h1_tie'],
+   diagnostics=diagnostics,planned_seeds=list(SEEDS),episodes_per_seed=1,max_controls=500,max_physics_callbacks=2000,
+   deterministic_native_mean=True,no_retry_no_seed_or_case_selection=True,not_frozen_skill_graduation=True)
+def validate_eval_binding(q):
+ require(q['purpose']=='MOD4_native87R5_formal_frozen_3seed_step_acceptance','new declared purpose required')
+ require(q['seeds']==list(SEEDS) and q['episodes_per_seed']==1 and q['max_controls']==500 and q['max_physics_callbacks']==2000,'fixed three single attempts /5s bound')
+ require(q['source_run_id'].startswith('AVAILABLE_TWO_H1_OWN_FUDAN_NATIVE87R5_'),'only newly qualified R5 source')
+ require(q['source_qualification']['formal_FINAL_passed'] is True and q['source_qualification']['initial_whole_CPU_passed'] is True and q['source_qualification']['original_fee_allout_passed'] is True,'formal FINAL/whole CPU/original allout prerequisites')
+ require(q['GPU_UUID'] in GPU_BACKENDS and q['execution_backend']==GPU_BACKENDS[q['GPU_UUID']],'only fresh empty c27 or937; unknown16828 untouched')
+ require(q['action_mode']=='deterministic_native_mean_no_collection_noise','frozen deterministic mean mode')
+ require(q['new_N1_fresh_episode_no_training_environment_restore'] is True and q['runtime_is_new_readonly_copy'] is True,'fresh N1 / qualified trainingroot readonly required')
+ return True

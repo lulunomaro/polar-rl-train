@@ -1,0 +1,57 @@
+{
+  "epoch": 1793068546.894705,
+  "purpose": "Source-derived original H1 completion criteria aligned with Fudan motion-transfer boundary for forthcoming declared frozen test",
+  "source_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_STEP270_THREE_GPU_OWN_FUDAN_NATIVE_V87_20261027\\payloads_r5\\h1\\step270_goal_and_scut_rates_candidate.py",
+  "source_SHA": "263b40e5ecf9d39a02f54c9dc794aa7a4198d53a5ea8c7c921326c4a81c08ebc",
+  "original_contract": {
+    "platform_top_m": 0.27,
+    "physics_dt_s": 0.0025,
+    "ready_callbacks": 80,
+    "air_callbacks": 16,
+    "landing_callbacks": 12,
+    "stable_callbacks": 200,
+    "support_N": 1.0,
+    "geometry_skin_m": 0.001,
+    "stable_speed_m_s": 0.03,
+    "stable_tilt_rad": 0.17453292519943295,
+    "stable_yaw_rad": 0.2
+  },
+  "original_predicates": {
+    "air": "self.attempt & self.positive_vz & (wheel_N <= c.support_N).all(-1) & nonwheel_clean",
+    "takeoff": "(self.air_ticks >= c.air_callbacks) & ~self.launched",
+    "actual_clear": "(wheel_bottom_world_z >= c.platform_top_m).all(-1)",
+    "on_top": "(wheel_N > c.support_N).all(-1) & wheel_contact_platform.all(-1) & wheel_footprints_inside_top.all(-1) & (wheel_bottom_world_z >= c.platform_top_m - c.geometry_skin_m).all(-1) & nonwheel_clean",
+    "landing": "(self.land_ticks >= c.landing_callbacks) & ~self.landed",
+    "stable": "self.landed & on_top & (root_vz.abs() <= c.stable_speed_m_s) & (planar_speed <= c.stable_speed_m_s) & (roll.abs() < c.stable_tilt_rad) & (pitch.abs() < c.stable_tilt_rad) & (yaw.abs() < c.stable_yaw_rad)",
+    "recovered": "(self.stable_ticks >= c.stable_callbacks) & ~self.success"
+  },
+  "original_physical_duration_s": {
+    "ready": 0.2,
+    "air": 0.04,
+    "landing": 0.03,
+    "stable": 0.5
+  },
+  "unchanged_training_or_skill_gate": true,
+  "new_runtime_code_or_test": false,
+  "Fudan_transfer_scope": "Standing-jump ascent/tuck/orientation experience is converted to own geometry; forward arrival and platform landing/recovery are MOD4 task additions, not foreign joint/torque/dynamics ground truth",
+  "acceptance": "Actual original takeoff, dual-wheel edge-clear/height, full authored wheel footprints inside top, real support/platform contact, original landing12 and stable200 callbacks; full original end-to-end attempt saved",
+  "not_sufficient": [
+    "peak height",
+    "leading-edge AABB alone",
+    "reference playback",
+    "loss",
+    "policy update count",
+    "command-velocity success metric"
+  ],
+  "callback_cache_paths": [
+    "h1_phase.last_measured.step_platform_contact",
+    "h1_phase.last_measured.step_footprint_inside",
+    "h1_phase.last_measured.step_first_cross_clear",
+    "h1_phase.last_measured.step_stable_ticks",
+    "h1_phase.last_measured.step_goal_success"
+  ],
+  "source_reset_scope": "Freeze must capture original physical callback caches and events before auto-reset; FINAL current episode and short retained fragments are not whole-window totals",
+  "full_goal_proven": false,
+  "no_automatic_training_or_unbounded_rollouts": true,
+  "original_source_discovery_note": "Initial broad full-path filename filter matched H1 parent directory and truncated; corrected basename-only/text search, no source mutation or training effect"
+}

@@ -1,0 +1,49 @@
+{
+  "deployed": false,
+  "hardware_curve_calibrated": false,
+  "old_runtime_or_Task_changed": false,
+  "nominal400_anchor_m": 0.2,
+  "anchor_is_explicit_approximation_convention_not_given_F1_measurement": true,
+  "one_anchor_does_not_identify_slope_and_virtual_target": "q_ref=q_at200+400/k; any chosen positive k gives the same single400N anchor",
+  "preserve_old_virtual_target_option": {
+    "q_ref_m": 0.22063944109012937,
+    "derived_k_N_per_m": 1999.9999915828723,
+    "approximate_k_N_per_m": 2000.0,
+    "force_at140_N": 519.9999994949724,
+    "force_at200_N": 400.0,
+    "assumption": "Retain old virtual rest geometry only as an engineering convention; this predicts520N at140mm, not measured."
+  },
+  "preserve_old_engineering_slope_option": {
+    "k_N_per_m": 3500.0,
+    "q_ref_m": 0.1349251545341309,
+    "force_at140_N": 610.0,
+    "force_at200_N": 400.0,
+    "assumption": "Retain unmeasured old3500N/m slope; predicts610N at140mm, not measured."
+  },
+  "constant_nominal_option": {
+    "axial_force_N": 400.0,
+    "force_stroke": "constant quasistatic surrogate only; does not invent progressivity or seal/damping law",
+    "joint_effort": "400*dL/dq N by virtual work"
+  },
+  "conservative_geometric_candidate": {
+    "q_limits_m": [
+      -0.0267046843609,
+      0.020639440248416612
+    ],
+    "eye_limits_m": [
+      0.1526558753906834,
+      0.2
+    ],
+    "travel_m": 0.04734412460931661,
+    "reason": "Intersection of existing source limits and human-inferred140..200: do not blindly expand existing CAD lower bound; cap old extension above200 only in a NEW explicitly approved plant.",
+    "does_not_prove_dynamic_reachability_contact_or_stop_force": true
+  },
+  "existing_adapter_couplings": [
+    "spring_pressure_index_runtime.SpringPressureSDK.nominal hardcodes3500 and verifies actual initial buffers",
+    "mod4_task reads contract stiffness/target/damping",
+    "NominalSpringReadback and original saved-source guards pin nominal3500/3",
+    "D5/static31/DR expected-value and whole-save source must be updated together in a new exact namespace if any nominal changes"
+  ],
+  "no_dropin_patch_or_bypass_provided": true,
+  "old_config_frozen_diagnostic_can_continue_honestly_without_hardware_alignment_claim": true
+}

@@ -1,0 +1,30 @@
+{
+  "errors": [
+    {
+      "kind": "FileNotFound source reader",
+      "path": "polar-rl-train/sources/remote/incoming/rm2025_mod4/reports/reference_manifest.json",
+      "original_error": "Get-Content: path not found",
+      "handling": "No data inferred. Current R5 authored pin/slide/closure JSON suffices; missing historical path not retried."
+    },
+    {
+      "kind": "historical different parameter rows",
+      "read_path": "polar-rl-train/sources/remote/incoming/rm2025_fixed/model_parameters.json",
+      "observed": "500N/2500N/m old starting-point rows",
+      "handling": "Retained as deprecated history. Current R5 nominal comes from its exact contract3500N/m; rm2025_mod4 provenance calls it700N candidate."
+    }
+  ],
+  "numeric_errata": [
+    {
+      "original_report": "EXISTING_R5_GAS_UNITS_EYE_MAPPING_AND_FORCE_AUDIT_ACTUAL.json",
+      "original_field": "source_limit_below_human_extended_cap_q_m",
+      "correction": "Name is reversed: positive0.014563894754...m means original UPPER limit exceeds the200mm human extension length; numeric value is correct. Original report/code preserved, not overwritten."
+    },
+    {
+      "original_field": "source_limit_above_human_compressed_floor_q_m",
+      "interpretation": "Positive0.012655875391...m means existing lower bound is152.656mm, above inferred140mm floor. Do not expand it without actual geometric evidence."
+    }
+  ],
+  "source_search_only_note": "rg also returned gas lines from rm2025_mod4/robot_hifi.xml as plain source text. No XML was compiled/loaded/hash-calculated; no USD/mesh/PT/raw was opened.",
+  "no_source_CPU_errors_or_runtime_failures": true,
+  "no_old_frozen_file_modified": true
+}

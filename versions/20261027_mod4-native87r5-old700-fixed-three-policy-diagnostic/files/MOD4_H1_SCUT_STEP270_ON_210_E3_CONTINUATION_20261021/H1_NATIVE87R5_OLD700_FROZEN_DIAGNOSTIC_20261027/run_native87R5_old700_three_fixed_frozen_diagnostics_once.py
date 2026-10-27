@@ -1,0 +1,134 @@
+"""One serial finite on72: three declared old700 R5 frozen diagnostics; no learning."""
+from pathlib import Path
+import hashlib,importlib.util,json,sys,time,traceback
+S=Path(__file__).resolve().parent;T=S.parent;W=T.parent;R=S/'reports'
+H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def put(name,value):
+ with (R/name).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,allow_nan=False)
+PREP="""from pathlib import Path
+import json,psutil,shutil,subprocess,time
+q=v['q'];root=Path(q['eval_root']);owned=Path('/home/lc01/Zonglin Li/zonglin2/tasks')
+assert root.resolve().is_relative_to(owned.resolve()) and not root.exists()
+c=json.loads(Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json').read_bytes())
+assert c['active_segment'] is None and c['remaining_training_seconds']==569553.363275528
+assert c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026' and c['budget_mode']=='finite_original_limits_restored_after_single4090_return'
+assert psutil.virtual_memory().available>8*1024**3 and shutil.disk_usage(owned).free>25*1024**3
+gpu=subprocess.check_output(['nvidia-smi','-i',q['GPU_UUID'],'--query-gpu=uuid,memory.free','--format=csv,noheader,nounits'],text=True).strip().split(',')
+assert gpu[0].strip()==q['GPU_UUID'] and int(gpu[1])>15669
+users=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)
+assert q['GPU_UUID'] not in users
+for row in q['known_qualified_own_processes']:
+ if row['role'].startswith('h1_'):continue
+ try:p=psutil.Process(row['pid']);assert p.create_time()!=row['creation'],row['role']
+ except psutil.NoSuchProcess:pass
+root.mkdir()
+print(json.dumps(dict(new_unused_root=str(root),canonical_None=True,original_closed_balance=c['remaining_training_seconds'],selected_GPU_empty=True,no_other_GPU_process_identity_queried=True,no_budget_write=True)))
+"""
+RUN="""from pathlib import Path
+import os,psutil,subprocess,time,json,hashlib,tarfile,traceback,fcntl
+q=v['q'];root=Path(q['eval_root']);archive=root/'PINNED_NEW_EVAL_INPUTS.tar'
+H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+assert archive.stat().st_size==v['archive']['bytes'] and H(archive)==v['archive']['SHA']
+expected={r['relative']:r for r in v['files']}
+with tarfile.open(archive,'r') as tar:
+ members=tar.getmembers()
+ assert len(members)==len(expected) and {m.name for m in members}==set(expected)
+ for member in members:
+  assert member.isfile() and not member.issym() and not member.islnk()
+  p=(root/member.name).resolve();assert p.is_relative_to(root.resolve()) and not p.exists()
+  assert member.size==expected[member.name]['bytes']
+  p.parent.mkdir(parents=True,exist_ok=True)
+  with p.open('xb') as out:out.write(tar.extractfile(member).read())
+# All current exact runtime sources and one new-purpose model-copy SHA.
+for rel,row in expected.items():
+ p=root/rel;assert p.stat().st_size==row['bytes'] and H(p)==row['SHA'],rel
+assert json.loads((root/'BINDING.json').read_bytes())==q
+canonical=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json');before=canonical.read_bytes()
+base=Path('/home/lc01/Zonglin Li/zonglin2')
+ld=str(base/'compat/glibc240/ld-linux-x86-64.so.2');lib=str(base/'compat/glibc240')+':'+str(base/'envs/mod4/lib');py=str(base/'envs/mod4/bin/python')
+rows=[];parent_error=None;started=time.time();all_out=True
+def write(name,value):
+ with (root/name).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,allow_nan=False)
+try:
+ for seed in q['seeds']:
+  assert time.time()-started<600
+  command=[ld,'--library-path',lib,py,'-u','-B',str(root/'code/native87R5_frozen_single_sdk_entry_unused_once.py'),'--binding',str(root/'BINDING.json'),'--seed',str(seed)]
+  env=dict(os.environ);env.update(CUDA_VISIBLE_DEVICES=q['GPU_UUID'],CUDA_DEVICE_ORDER='PCI_BUS_ID',PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1')
+  own={};identity=None;begin=time.time();seen_children={}
+  with (root/('seed_'+str(seed)+'_STDOUT.log')).open('xb') as out,(root/('seed_'+str(seed)+'_STDERR.log')).open('xb') as err:
+   child=subprocess.Popen(command,cwd=str(base),env=env,stdout=out,stderr=err,start_new_session=True,close_fds=True)
+   own=dict(pid=child.pid,creation=psutil.Process(child.pid).create_time())
+   deadline=time.time()+180
+   while child.poll() is None:
+    p=psutil.Process(child.pid);assert p.create_time()==own['creation']
+    argv=p.cmdline()
+    if argv==command:
+     identity=dict(own,exe=p.exe(),argv=argv,cwd=p.cwd())
+     assert identity['exe']==ld and identity['cwd']==str(base)
+    for x in p.children(recursive=True):
+     try:seen_children[x.pid]=dict(pid=x.pid,creation=x.create_time())
+     except psutil.NoSuchProcess:pass
+    if time.time()>deadline:raise TimeoutError('own fixed seed child exceeded180seconds; preserve and do not retry/kill')
+    time.sleep(.25)
+   rc=child.wait()
+  assert identity is not None,'exact own loader PID/create/exe/argv/cwd proof absent'
+  for x in [own,*seen_children.values()]:
+   try:
+    p=psutil.Process(x['pid'])
+    assert p.create_time()!=x['creation'],'own child still present'
+   except psutil.NoSuchProcess:pass
+  folder=root/('seed_'+str(seed));errors=[str(p.relative_to(root)) for p in folder.rglob('*.json') if 'ERROR' in p.name]
+  returned=folder/'FROZEN_SINGLE_CASE_FUNCTION_RETURNED_ACTUAL.json'
+  row=dict(seed=seed,returncode=rc,identity=identity,own_children=seen_children,all_recorded_own_out=True,wall_seconds=time.time()-begin,errors=errors,function_return=returned.is_file())
+  rows.append(row);write('seed_'+str(seed)+'_PARENT_EXIT_ACTUAL.json',row)
+  assert rc==0 and not errors and returned.is_file(),'actual case source/SDK/actor/close error; no next seed or retry'
+except BaseException:
+ parent_error=traceback.format_exc()
+ if 'child' in locals() and child.poll() is None:all_out=False
+ write('PARENT_ORIGINAL_ERROR_ACTUAL.json',dict(error=parent_error,all_recorded_own_out=all_out,no_kill_or_retry=True))
+finally:
+ assert canonical.read_bytes()==before,'readonly frozen canonical changed'
+ files=[]
+ if all_out:
+  for p in root.rglob('*'):
+   rel=p.relative_to(root)
+   if p.is_file() and not p.is_symlink() and rel.parts[0].startswith('seed_') and not any(x in rel.parts for x in ('private','home','tmp','cache','config','data','__pycache__')) and p.suffix in ('.json','.jsonl','.log'):
+    raw=p.read_bytes();files.append(dict(path=str(p),relative=rel.as_posix(),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+ result=dict(epoch=time.time(),hardware_scope=q['hardware_scope'],cases=rows,parent_original_error=parent_error,all_own_children_actual_out=all_out,no_learning_or_account_write=True,canonical_bytes_unchanged=True,canonical_SHA=hashlib.sha256(before).hexdigest(),files=files,wall_seconds=time.time()-started)
+ write('PARENT_FINITE_RESULT_ACTUAL.json',result)
+ print(json.dumps(result))
+"""
+def main():
+ q=json.loads((S/'BINDING.json').read_bytes());index=json.loads((S/'INPUT_TRANSFER_INDEX.json').read_bytes())
+ assert q['hardware_scope']=='OLD700_CONFIG_DIAGNOSTIC_NOT_400N_HARDWARE_ACCEPTANCE'
+ assert q['seeds']==[20260928,20260929,20260930] and q['selected_key']=='h1'
+ put('FINITE_STARTED_BEFORE_REMOTE_ACTUAL.json',dict(epoch=time.time(),hardware_scope=q['hardware_scope'],new_purpose='fixed old700 frozen motion diagnostic',no_learning_or_budget_write=True,no_retry=True))
+ sys.path.insert(0,str(W/'MOD4_TWO_LINUX_POLICY50_COHORT_52_20261021'));import deploy_two50_reconciled_original_writer_once as d
+ sp=importlib.util.spec_from_file_location('old700_R5_diagnostic_authorized_memory_only',W/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/run_authorized_cohort50_with_existing_hidden_stdin_memory.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+ secret=m.recover();c=None
+ try:
+  c=d.connect72(secret);secret=None
+  pre=d.code(c,d.PY72,PREP,dict(q=q),timeout=45);put('ACTUAL72_FRESH_PREFLIGHT_BEFORE_NEW_DIAGNOSTIC.json',pre)
+  sf=c.open_sftp();sf.get_channel().settimeout(180)
+  try:sf.put(index['archive']['path'],q['eval_root']+'/PINNED_NEW_EVAL_INPUTS.tar')
+  finally:sf.close()
+  value=d.code(c,d.PY72,RUN,dict(q=q,archive=index['archive'],files=index['files']),timeout=750)
+  put('ACTUAL72_FROZEN_PARENT_RAW_RETURNED.json',value)
+  local=[]
+  sf=c.open_sftp();sf.get_channel().settimeout(180)
+  try:
+   for row in value['files']:
+    rel=Path(row['relative']);assert not rel.is_absolute() and '..' not in rel.parts and row['bytes']<128*1024**2
+    p=S/'actual72'/rel;p.parent.mkdir(parents=True,exist_ok=True);assert not p.exists()
+    sf.get(row['path'],str(p));assert p.stat().st_size==row['bytes'] and H(p)==row['SHA']
+    local.append(dict(row,local_path=str(p),twohost_SHA_verified=True))
+  finally:sf.close()
+  put('FROZEN_OLD700_THREE_SEED_FINITE_RETURNED_ACTUAL.json',dict(value,actual_finite_transport_returned=True,local_files=local,source_SHA=q['source_model']['SHA'],not_400N_hardware_acceptance=True))
+  print(json.dumps(dict(actual_finite_returned=True,cases=len(value['cases']),all_own_out=value['all_own_children_actual_out'],parent_original_error=value['parent_original_error'])))
+ finally:
+  secret=None
+  if c:c.close()
+if __name__=='__main__':
+ try:main()
+ except BaseException:
+  put('LOCAL_FINITE_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(error=traceback.format_exc(),no_retry_or_kill=True));raise

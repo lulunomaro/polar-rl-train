@@ -1,0 +1,14 @@
+<unknown>:11: SyntaxWarning: invalid escape sequence '\S'
+Traceback (most recent call last):
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_H1_FLAT05_TASK_FOCUSED_2610v95/h1/h1_native_flat90_worker_v1.py", line 53, in <module>
+    try:main()
+        ^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_H1_FLAT05_TASK_FOCUSED_2610v95/h1/h1_native_flat90_worker_v1.py", line 12, in main
+    p=argparse.ArgumentParser();p.add_argument('--job',type=int,default=0);p.add_argument('--slot',choices=('h1','e2','recovery'),required=True);p.add_argument('--phase',choices=('production',),required=True);p.add_argument('--num-envs',type=int,required=True);p.add_argument('--seed',type=int,required=True);p.add_argument('--source-scope',choices=('native_models_only_fresh400N_environment',),required=True);args=p.parse_args();phase=args.phase;assert args.job==0 and args.num_envs==4096;task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/'GO_PRODUCTION.json').read_bytes());assert args.slot==task['key'] and args.seed==task['native_seed'];from native_flat90_source_guard_v1 import check_payload,validate_task_go;checked=check_payload(B);validate_task_go(task,go,checked['manifest_SHA']);assert time.time()<go['save_deadline'];src=J/'source'/task['source_filename'];bootstrap=J/'source'/task['bootstrap_source_filename'];assert H(src)==go['source_SHA'] and H(bootstrap)==go['bootstrap_SHA'];assert not (J/phase).exists();out=J/phase;out.mkdir();fresh=False;N=4096
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_H1_FLAT05_TASK_FOCUSED_2610v95/h1/native_flat90_source_guard_v1.py", line 25, in validate_task_go
+    require(task.get('logical_slot')=='h1' and task.get('canonical_worker_key')=='h1' and go.get('logical_slot')==task['logical_slot'] and go.get('canonical_worker_key')=='h1','exact physical target alias and native worker ABI')
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_H1_FLAT05_TASK_FOCUSED_2610v95/h1/native_flat90_source_guard_v1.py", line 13, in require
+    if not bool(v):raise ValueError(message)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: exact physical target alias and native worker ABI

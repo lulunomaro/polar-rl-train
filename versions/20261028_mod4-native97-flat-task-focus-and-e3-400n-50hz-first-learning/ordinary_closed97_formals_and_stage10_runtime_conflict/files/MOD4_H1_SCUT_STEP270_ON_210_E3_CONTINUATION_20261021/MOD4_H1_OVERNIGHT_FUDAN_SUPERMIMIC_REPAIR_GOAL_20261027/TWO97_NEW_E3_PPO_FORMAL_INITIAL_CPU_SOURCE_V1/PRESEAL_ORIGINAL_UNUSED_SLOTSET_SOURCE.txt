@@ -1,0 +1,90 @@
+"""Only one complete new E3 formal CPU load; no input checkpoint, actor or SDK."""
+from pathlib import Path
+from types import SimpleNamespace
+import hashlib,importlib.util,json,math,os,sys,time,traceback
+HERE=Path(__file__).resolve().parent;L=HERE.parent;R=HERE/'reports';S=L/'E3_PPO50_gas400_source_preparation_20261028';MOD=S/'runtime_candidate_v1/isaac/mod4';TARGET=L/'E3_97_GAS400_COMPLETE_RUNTIME_SOURCE_CPU_PREPARATION_V1'
+CLOSE=L/'TWO97_correct_normal900_dual_native_PPO_collector_source_v1';MODEL=CLOSE/'current_closed97_models/e3/formal/model_final.pt';COLLECTED=CLOSE/'reports/TWO97_COMPLETE_FINALS_OR_PARTIALS_ORIGINAL_COST_RETURNED_ACTUAL.json';NAME='E3_97_NEW_FORMAL_INITIAL_WHOLE_CPU_ACTUAL_V1'
+def read(p):return json.loads(Path(p).read_bytes())
+def H(p):
+ with Path(p).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+def put(name,v):
+ with (R/name).open('x',encoding='utf8') as f:json.dump(v,f,indent=2)
+def walk(v,torch,path=''):
+ if torch.is_tensor(v):yield path,v
+ elif isinstance(v,dict):
+  for k,x in v.items():yield from walk(x,torch,path+'/'+str(k))
+ elif isinstance(v,(tuple,list)):
+  for k,x in enumerate(v):yield from walk(x,torch,path+'/'+str(k))
+ elif isinstance(v,float):assert math.isfinite(v),path
+def closure_gate(v):
+ assert v['actual_finite_returned'] and v['actual_one72_finite_returned'] and v['canonical_None'] and v['original_private_shared_writer_locks_free'] and v['all_two_original_owner_nodes_workers_out']
+ assert v['cohort']['original_cost_settled'] and v['owner_exit']['original_cost_settled']
+ go=v['cohort']['go'];assert set(go)=={'h1','h1_210','e3'}
+ row=v['terminals']['e3'];assert row['returncode']==0 and not row['original_error'] and not row['errors'] and row['terminal_all_own_children_waited']
+ assert row['actual_exit']['actual_waited'] and row['actual_exit']['returncode']==0
+ a=v['unique_original_segment'];assert a['owner_parent_pid']==go['e3']['original_owner_pid'] and set(a['experts'])==set(go)
+ assert v['original_fee_seconds']==a['charged_expert_seconds']==sum(a['experts'][k]['charged_seconds'] for k in go)
+ assert all(a['experts'][k]['duration_bound_passed'] and 0<a['experts'][k]['charged_seconds']<=3900 for k in go)
+ formal=v['formals']['e3'];assert formal['passed'] and formal['source_SHA']=='59fa03e6e4d3ecf81153707082840df0347f6504508dd1a413dda7b714db6b75' and not formal['new_branch_skill_qualified']
+ saved=formal['final'];n=saved['new_updates'];assert type(n)is int and n>0 and saved['Adam_step']==864320+20*n and saved['not_skill_qualified']
+ pub=v['published']['e3'];assert pub['original_producer']==saved and pub['twohost_complete_SHA'] and pub['NEW_formal_transfer_count']==1 and pub['source_stat_unchanged'] and Path(pub['local_path']).resolve()==MODEL.resolve()
+ return n,pub
+def text(v,name):
+ rows=[r for r in v['all_original_texts_full_case_safe'] if r['relative']=='e3_slot/e3/adaptation/'+name];assert len(rows)==1;r=rows[0];assert H(r['local_path'])==r['SHA'];return read(r['local_path'])
+def main():
+ assert os.environ.get('CUDA_VISIBLE_DEVICES')==''
+ v=read(COLLECTED);n,pub=closure_gate(v)
+ clock=text(v,'CLOCK_GAS400_NATIVE34_ACTUAL.json');assert clock['passed'] and [clock[k] for k in ['controls','physics_callbacks','feedback_samples','actual_reward_compute_calls']]==[24,192,48,24] and clock['actual_RewardManager_dt_s']==.02 and clock['reward_dt_applied_once_no_manual_rescale']
+ restored=text(v,'SOURCE_FULLRESTORE_ZERO_VERIFIED.json');assert restored['original_actor9_critic8_STD_17Adam_LR_D1_D7_exact'] and restored['E3_13_recipe_phase_and_private_command_RNG_restored'] and restored['actual_algorithm_learning_rate']==6.666666666666667e-05;text(v,'APP_CLOSING.json')
+ base=read(S/'reports/E3_TYPED400_SOURCE_ORIGINAL_CLOCK_FULLSTATE_CPU_ACTUAL_V1.json');assert base['passed'] and base['all_fullstate_finite'] and base['inverse_entire_original_state_equal']
+ assert not (R/(NAME+'.json')).exists() and not (R/(NAME+'_STARTED.json')).exists()
+ put(NAME+'_STARTED.json',dict(epoch=time.time(),purpose='One NEW complete E3 formal initial whole CPU load after original97 two-slot closure',model=pub,no_input_PT_read=True))
+ assert MODEL.is_file() and not MODEL.is_symlink();before=MODEL.stat();assert before.st_size==pub['bytes'] and H(MODEL)==pub['SHA']
+ import torch
+ torch.set_num_threads(2);rng=torch.get_rng_state().clone();assert not torch.cuda.is_initialized();sys.path.insert(0,str(MOD))
+ ck=torch.load(MODEL,map_location='cpu',weights_only=False)
+ assert ck['PPO50_gas400_adaptation']==base['source'] and ck['PPO50_gas400_new_updates']==n and ck['iter']==43004+n-1
+ assert ck['PPO50_gas400_clock']==dict(policy_hz=50,physics_dt_s=.0025,decimation=8,feedback_hz=100,gamma=.9801,lam=.9025)
+ for key,inputs,outputs,distribution in [('actor_state_dict',35,6,True),('critic_state_dict',38,1,False)]:
+  state=ck[key];expected={f'mlp.{i}.{k}' for i in (0,2,4,6) for k in ('weight','bias')}|({'distribution.std_param'} if distribution else set());assert set(state)==expected
+  width=inputs
+  for i in (0,2,4,6):
+   w=state[f'mlp.{i}.weight'];b=state[f'mlp.{i}.bias'];assert w.ndim==2 and w.shape[1]==width and b.shape==(w.shape[0],);width=w.shape[0]
+  assert width==outputs
+ assert ck['actor_state_dict']['distribution.std_param'].shape==(6,)
+ opt=ck['optimizer_state_dict'];assert len(opt['state'])==17 and len(opt['param_groups'])==1 and {int(x['step']) for x in opt['state'].values()}=={864320+20*n}
+ group=opt['param_groups'][0];original=base['original_optimizer_param_groups'][0];assert set(group)==set(original) and math.isfinite(group['lr']) and group['lr']>0
+ for k,x in original.items():
+  if k!='lr':assert json.loads(json.dumps(group[k]))==x,k
+ shapes=[x.shape for name in ('actor_state_dict','critic_state_dict') for x in ck[name].values()]
+ for key,shape in zip(group['params'],shapes):
+  state=opt['state'][key];assert set(state)=={'step','exp_avg','exp_avg_sq'} and state['exp_avg'].shape==state['exp_avg_sq'].shape==shape
+ def cuda_rng(x):assert torch.is_tensor(x) and x.dtype==torch.uint8 and x.shape==(16,) and x.device.type=='cpu'
+ sensor=ck['sensor_DR_state'];assert sensor['version']==1 and sensor['n']==20000 and sensor['profile']=='noise_bias_mild_v1' and sensor['bias'].shape==(20000,4) and sensor['episode'].shape==(20000,) and sensor['episode'].dtype==torch.long
+ channels={'base_ang_vel':3,'projected_gravity':3,'leg_pos':4,'leg_vel':4,'wheel_vel':2};assert set(sensor['noise_rng'])==set(sensor['cache'])==set(sensor['draw_counts'])==set(channels);cuda_rng(sensor['bias_rng'])
+ for k,width in channels.items():
+  cuda_rng(sensor['noise_rng'][k]);last,noise=sensor['cache'][k];assert last.shape==(20000,) and noise.shape==(20000,width) and sensor['draw_counts'][k]>=0
+ global_rng=ck['sensor_global_rng_state'];assert global_rng['cpu'].dtype==torch.uint8 and global_rng['cpu'].shape==(5056,) and len(global_rng['cuda'])==1;cuda_rng(global_rng['cuda'][0])
+ assert set(ck['sensor_command_DR_rng_state'])=={'_mode_rng'};cuda_rng(ck['sensor_command_DR_rng_state']['_mode_rng'])
+ from feedback_delay_checkpoint import validate_delay_state
+ validate_delay_state(SimpleNamespace(n=20000,enabled=True),ck['feedback_delay_state']);cuda_rng(ck['feedback_delay_state']['rng'])
+ from action_delay_physics_queue import PhysicsActionQueue
+ spec=importlib.util.spec_from_file_location('E3_original_CPU_queue_structural_adapter',TARGET/'E3_target_source_SDK_CPU_admission_v1.py');adapter=importlib.util.module_from_spec(spec);spec.loader.exec_module(adapter)
+ queue=PhysicsActionQueue.__new__(PhysicsActionQueue);queue.n=20000;queue.device=torch.device('cpu');queue.enabled=True;queue.control_us=20000;queue_proof=adapter.validate_original_CUDA_queue_structure_CPU(queue,ck['physical_action_delay_state'])
+ assert ck['physical_action_delay_state']['control_us']==ck['physical_action_delay_recipe']['control_period_us']==20000
+ from spring_pressure_checkpoint import validate_saved_pressure
+ from gas_damping_checkpoint import validate_saved_damping
+ from chassis_pd_checkpoint import validate_saved_chassis_pd
+ validate_saved_pressure(ck['spring_pressure_state'],20000);validate_saved_damping(ck['gas_damping_state'],20000);validate_saved_chassis_pd(ck['chassis_PD_state'],20000)
+ assert ck['spring_pressure_recipe']['nominal_stiffness_N_m']==2000 and ck['spring_pressure_recipe']['actual_stiffness_bounds_N_m']==[1800,2200]
+ from e3_public_recovery_phase_v1 import RecoveryPhase
+ command=ck['E3_public_recovery_state'];assert command['version']==1;phase=RecoveryPhase(20000,'cpu');phase.load_state_dict(command['phase']);cuda_rng(command['private_command_rng'])
+ assert ck['E3_reset_contract']['public_request_normal_oneof13_and_twelve_fixed_fall_recipes'] is True and ck['E3_reset_contract']['legal_original_q30_bank_pose']==34
+ leaves=list(walk(ck,torch));assert leaves and all(x.device.type=='cpu' for _,x in leaves) and all(bool(torch.isfinite(x).all()) for _,x in leaves if x.is_floating_point() or x.is_complex())
+ fingerprints=[dict(path=p,shape=list(x.shape),dtype=str(x.dtype),SHA=hashlib.sha256(x.detach().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()) for p,x in leaves]
+ after=MODEL.stat();assert (before.st_size,before.st_mtime_ns)==(after.st_size,after.st_mtime_ns) and torch.equal(rng,torch.get_rng_state()) and not torch.cuda.is_initialized()
+ put(NAME+'.json',dict(passed=True,epoch=time.time(),model=pub,new_updates=n,Adam_step=864320+20*n,stored_iteration=ck['iter'],whole_model_all_tensors_finite=True,all_critical_D1_D7_and_E3_13recipe_phase_CPU_validated=True,actor9_critic8_STD6_original35_38=True,all17_Adam_and_original_nonLR_optimizer_settings=True,adaptive_LR=group['lr'],queue_CPU_structure=queue_proof,fingerprints=fingerprints,optional_unrecorded_input_top_level_keyset_equality_not_claimed=True,model_loads=dict(NEWformal=1,input_source=0),original_two_slot_fee=v['original_fee_seconds'],original_fee_by_slot=v['original_fee_by_slot'],no_actor_WM_forward_SDK_GPU_remote_or_account_IO=True,new_branch_skill_qualified=False,WM_transition_data_collection_executed=False))
+ print(json.dumps(dict(passed=True,new_updates=n,Adam=864320+20*n,formal_SHA=pub['SHA'],new_branch_skill_qualified=False)))
+if __name__=='__main__':
+ try:main()
+ except BaseException:put(NAME+'_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(epoch=time.time(),error=traceback.format_exc(),no_retry_or_partial_promotion=True));raise

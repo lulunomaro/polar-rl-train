@@ -1,0 +1,15 @@
+from pathlib import Path
+import json
+N=Path(__file__).resolve().parent;T=N.parent;L=T/'MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027';R=N/'reports'
+v=json.loads((L/'NEW_HOST_STAGE10_TINY_PACKAGING_TLS_SHA_CACHE_CONTINUE_V1/reports/STAGE10_DETACHED_INSTALLER_LAUNCHED_RETURNED_ACTUAL.json').read_bytes())
+assert v['passed_detached_launch_only'] and v['actual_startup_finite_returned']
+s=(R/'CURRENT_ACTUAL97_TWO_FIRST_UPDATES_AND_RESOURCE_USE_MONITOR_V8.txt').read_text('utf8')
+prefix='''LATEST_ACTUAL_STAGE10_DETACHED_AND_UNUSED_H1_FORMAL_REVIEWER_V2_20261028: Two97firstlearningPASS below remainlatestobservations, notcontinuousalive/fullFINAL. H1formalreviewer is nowFROZEN/UNUSED L/TWO97_NEW_H1_NATIVE_FORMAL_INITIAL_CPU_SOURCE_V1/review_NEW97_H1_formal_initial_whole_CPU_UNUSED_once_v2.py SHA4ee1e835402b4cab61221f597969a137acb4a514feeb4aad827a8f18513ae79c (selectedINDEX FROZEN_UNUSED_H1_REVIEWER_V2_INDEX.json). OriginalunusedV1 retained, V2onlyexplicitargs==admittedsourceargs. Env_isaaclab CPUtorch -B -Xutf8 CUDA_VISIBLE_DEVICES='' exactentry ONLYafteractualnew97collectorreturned/fullclosureguards. OneNEWnativeformal+one necessaryfrozen86witness/inputnative93PT0, strictfiniteWM/Pi/Critic/norms/threeopts/source/producer/counters/400100Hz/originaltwofees/allout; partial/errorguard BEFOREweights. No actorWMforward or optionalextra stats. NativeNOTPPO20periteration. E3newformalreviewer childsourcependinguntilfrozen, useactuallatestINDEX/HANDOFF.
+Stage10 NOTsourceonlyanymore: new86setup detachedACTUAL, startupfinite82329RETURNED0,1800s. NEVERrerunlaunchentry/oldsetuponce. Originalread-onlyterminalfulltextreader stilltoPREPARE forStage10knownidentities afterfiniteboundary, notmechanical5minpoll; iflatesttoolreceiptneweruseactualstate. NoGPU/model/GO/account on86, stillnotSDK/CUDA/PPOreadyuntilactualproof. Exactsource L/NEW_HOST_STAGE10_TINY_PACKAGING_TLS_SHA_CACHE_CONTINUE_V1, entrypinned86_launch_same_vendor_tiny_wheel_cache_continue_stdin_once_v10.py consumed, helperc1445bf7e8bb081f0b7e8bd845a3a783df574c788715e55ac13e4e2f2b8b3116, INDEX3614bb069116d8880ee3a527d45a3eb44ebbe38de27cadfde6f8f2c430e80d66. Same9runtime/metadata/source/caches/Kit/Torch/vision; onlytinyofficialpackaging26TLS+publishedSHA staging andboundednetworkretry3, jointall/install/pipcheckrequired, no dependencyignoring/systemDNSchanges. IdentitiesSNAPSHOTonly:
+'''+json.dumps({k:v[k] for k in ('supervisor','installer','root','epoch','budget_seconds')})+'''
+AllnewStage10source/startup andH1reviewersource/CPU-notexecuted need97uniquephasecapture; lateractualterminal/active210/E3reviewer supplementonactualHEADafterfreeze. Noold93/95/96tagagain. SOURCE210thirdfreeze-regression/tap remainspendingnotlaunched; prioritize realboundedregression iffullWMtapformatdelaysit; nofakeGO/optimizer/Cwrite undercurrent2slotowner. Twohealthy97jobsnotblockedforGit.
+
+'''
+p=R/'CURRENT_ACTUAL97_TWO_FIRST_UPDATES_STAGE10_DETACHED_MONITOR_V9.txt'
+with p.open('x',encoding='utf8') as f:f.write(prefix+s)
+print(str(p))

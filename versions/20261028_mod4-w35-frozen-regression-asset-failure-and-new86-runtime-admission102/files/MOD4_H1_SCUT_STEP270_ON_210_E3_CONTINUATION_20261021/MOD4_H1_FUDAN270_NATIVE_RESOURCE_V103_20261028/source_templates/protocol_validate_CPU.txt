@@ -1,0 +1,11 @@
+def validate_cpu_value(v,s):
+ require(v.get('passed') is True and v.get('kind')==KIND and v.get('source_SHA')==SOURCE,'actual typed Fudan103 CPU')
+ require(v.get('fudan_step_task')==s['fudan_step_task'] and v.get('physical_initial_seed')==s['native_seed'],'actual270 task and physical seed')
+ require(v.get('logical_slot')==KEY and v.get('canonical_worker_key')=='h1','native worker alias')
+ require(v.get('native_learning_seed')==27 and v.get('task_focused_real_replay')==s['task_focused_real_replay'],'actual prestep-recovery replay')
+ require(v.get('worker_SHA')==s['worker_SHA'] and v.get('payload_manifest_SHA')==s['payload_manifest_SHA'] and v.get('source_contract_SHA')==s['source_contract_SHA'],'actual worker/source fullSHA binding')
+ require(v.get('GPU_UUID')==GPU and v.get('execution_backend')=='target72' and v.get('num_envs')==4096 and v.get('source_progress')==PROGRESS,'actual CPU target/source counters')
+ require(v.get('runtime_clock')==dict(physics_dt_s=.0025,control_dt_s=.01,decimation=4,policy_hz=100) and v.get('nominal_gas_N')==400,'native100Hz and400N')
+ for k in ('own_FK_reward_and_goal_source_CPU_passed','task_focused_replay_source_CPU_passed','source_native_fullstate_finite','all_native_modules_norms_threeoptimizers_strict_restore_CPU_passed','frozen_RSL832460_exact','actual_source_SDK_CPU_passed','no_GPU_yet','fudan270_objective','source_native_args_exact'):
+  require(v.get(k) is True,'actual CPU evidence '+k)
+ return True

@@ -1,0 +1,1 @@
+New106 coherent20s task. These reader entries are frozen and unused. Direct exact entry only after fresh local exact CIM/global serial lease. First observer binds NEW106 owner; collector still normal900 owner850/node180/total1140, no time-only completion. Both NEW formals initialCPU once each with ONE shared frozen86 witness, input104 PT0. Read actual reports before old once.

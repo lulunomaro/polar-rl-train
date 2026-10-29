@@ -1,0 +1,74 @@
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:1: trailing whitespace.
++def _closure_cache(env):
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:2: trailing whitespace.
++    cache = getattr(env, "_mod4_closures", None)
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:3: trailing whitespace.
++    if cache is None:
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:4: trailing whitespace.
++        robot = env.scene["robot"]
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:5: trailing whitespace.
++        names = list(robot.body_names)
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:6: trailing whitespace.
++        cache = []
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:7: trailing whitespace.
++        for name, spec in CONTRACT["closures"].items():
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:8: trailing whitespace.
++            cache.append((name, names.index(spec["body0"]), names.index(spec["body1"]),
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:9: trailing whitespace.
++                          torch.tensor(spec["anchor0_m"], device=env.device),
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:10: trailing whitespace.
++                          torch.tensor(spec["anchor1_m"], device=env.device)))
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:11: trailing whitespace.
++        env._mod4_closures = cache
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:14: trailing whitespace.
++def closure_errors(env) -> dict:
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:15: trailing whitespace.
++    robot = env.scene["robot"]
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:16: trailing whitespace.
++    pos, quat = robot.data.body_pos_w, robot.data.body_quat_w
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:17: trailing whitespace.
++    out = {}
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:18: trailing whitespace.
++    for name, i, j, a0, a1 in _closure_cache(env):
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:19: trailing whitespace.
++        p0 = pos[:, i] + quat_apply(quat[:, i], a0.expand(env.num_envs, 3))
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:20: trailing whitespace.
++        p1 = pos[:, j] + quat_apply(quat[:, j], a1.expand(env.num_envs, 3))
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:21: trailing whitespace.
++        out[name] = (p0 - p1).norm(dim=-1)
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:24: trailing whitespace.
++def closure_broken(env, threshold: float = 0.002) -> torch.Tensor:
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:25: trailing whitespace.
++    """Terminate an environment whose loop-closure anchors separate beyond tolerance."""
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:26: trailing whitespace.
++    worst = torch.stack(list(closure_errors(env).values())).max(dim=0).values
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:27: trailing whitespace.
++    env._mod4_closure_now = worst          # read by log_plant_metrics (audit P0-5)
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:28: trailing whitespace.
++    env._mod4_max_closure = max(float(getattr(env, "_mod4_max_closure", 0.0)),
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:29: trailing whitespace.
++                                float(worst.max().item()))
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:32: trailing whitespace.
++def _past_spawn_grace(env) -> torch.Tensor:
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:33: trailing whitespace.
++    """[N] False during the first RM_SPAWN_GRACE_STEPS control steps of an episode.
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:34: trailing whitespace.
++
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:35: trailing whitespace.
++    A spawn impact is not a mechanism failure: the ramp_up spawns were putting the chassis into
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:36: trailing whitespace.
++    the ramp (2900-3400 N) and the 2 mm loop-closure guard then killed the episode within 1-2
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:37: trailing whitespace.
++    steps, which hid a training problem behind a physics artefact (measured 2026-09-11 21:55).
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:38: trailing whitespace.
++    """
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:39: trailing whitespace.
++    grace = int(os.environ.get("RM_SPAWN_GRACE_STEPS", "10"))
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:40: trailing whitespace.
++    if grace <= 0:
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:41: trailing whitespace.
++        return torch.ones(env.num_envs, dtype=torch.bool, device=env.device)
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:42: trailing whitespace.
++    # Isaac Lab keeps this per-env counter for us (manager_based_rl_env.py: +1 per step, 0 on
+versions/20261029_mod4-native116-latest-user-mujoco-actual-blue-imagination118/ordinary_source119120_core_failure_review_v1/files/36735776b121ac7754d0.txt:43: trailing whitespace.
++    # reset), so no extra bookkeeping event is needed.

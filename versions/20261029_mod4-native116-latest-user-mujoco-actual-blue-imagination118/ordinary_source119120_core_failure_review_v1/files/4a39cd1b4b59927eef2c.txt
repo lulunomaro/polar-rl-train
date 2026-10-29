@@ -1,0 +1,44 @@
+def _closure_cache(env):
+    cache = getattr(env, "_mod4_closures", None)
+    if cache is None:
+        robot = env.scene["robot"]
+        names = list(robot.body_names)
+        cache = []
+        for name, spec in CONTRACT["closures"].items():
+            cache.append((name, names.index(spec["body0"]), names.index(spec["body1"]),
+                          torch.tensor(spec["anchor0_m"], device=env.device),
+                          torch.tensor(spec["anchor1_m"], device=env.device)))
+        env._mod4_closures = cache
+    return cache
+
+def closure_errors(env) -> dict:
+    robot = env.scene["robot"]
+    pos, quat = robot.data.body_pos_w, robot.data.body_quat_w
+    out = {}
+    for name, i, j, a0, a1 in _closure_cache(env):
+        p0 = pos[:, i] + quat_apply(quat[:, i], a0.expand(env.num_envs, 3))
+        p1 = pos[:, j] + quat_apply(quat[:, j], a1.expand(env.num_envs, 3))
+        out[name] = (p0 - p1).norm(dim=-1)
+    return out
+
+def closure_broken(env, threshold: float = 0.002) -> torch.Tensor:
+    """Terminate an environment whose loop-closure anchors separate beyond tolerance."""
+    worst = torch.stack(list(closure_errors(env).values())).max(dim=0).values
+    env._mod4_closure_now = worst          # read by log_plant_metrics (audit P0-5)
+    env._mod4_max_closure = max(float(getattr(env, "_mod4_max_closure", 0.0)),
+                                float(worst.max().item()))
+    return (worst > threshold) & _past_spawn_grace(env)
+
+def _past_spawn_grace(env) -> torch.Tensor:
+    """[N] False during the first RM_SPAWN_GRACE_STEPS control steps of an episode.
+
+    A spawn impact is not a mechanism failure: the ramp_up spawns were putting the chassis into
+    the ramp (2900-3400 N) and the 2 mm loop-closure guard then killed the episode within 1-2
+    steps, which hid a training problem behind a physics artefact (measured 2026-09-11 21:55).
+    """
+    grace = int(os.environ.get("RM_SPAWN_GRACE_STEPS", "10"))
+    if grace <= 0:
+        return torch.ones(env.num_envs, dtype=torch.bool, device=env.device)
+    # Isaac Lab keeps this per-env counter for us (manager_based_rl_env.py: +1 per step, 0 on
+    # reset), so no extra bookkeeping event is needed.
+    return env.episode_length_buf >= grace

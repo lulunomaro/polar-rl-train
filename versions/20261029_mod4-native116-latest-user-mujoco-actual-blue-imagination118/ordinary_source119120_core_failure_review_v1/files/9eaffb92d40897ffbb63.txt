@@ -1,0 +1,10 @@
+def soft_termination(self,state,frames):
+        # Physical low_base is disabled at -1m; do not invent a .12m hard failure.
+        # Declare the sigmoid as a 32-control horizon risk (engineering surrogate),
+        # not the same full risk repeated every 10ms. Exact physical tilt/timeout
+        # masks remain certain here; all real physics termination functions stay unchanged.
+        cos_tilt=state[1][...,2,2]
+        horizon_risk=torch.sigmoid((math.cos(.75)-cos_tilt)/.04)
+        soft=-torch.expm1(torch.log1p(-horizon_risk.clamp_max(1-1e-6))/32.)
+        certain=(cos_tilt<math.cos(.75))|(decode_private_frame(frames)['public_age']>=2000)
+        return torch.where(certain,torch.ones_like(soft),soft)

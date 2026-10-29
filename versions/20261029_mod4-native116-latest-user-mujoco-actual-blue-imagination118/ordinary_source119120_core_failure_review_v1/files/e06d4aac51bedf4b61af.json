@@ -1,0 +1,203 @@
+{
+  "epoch": 1793278127.749846,
+  "phase": "ordinary118_source120_supplement",
+  "verified_actual116_entry_injects_same_task_MDP_into_learner": true,
+  "verified_imagined_stop_used_for_future_rewards_and_critic_survival": true,
+  "failure_step_current_reward_not_automatically_zeroed": true,
+  "source_call_chain": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_DIRECT_COMMAND_RESOURCE_V116_20261029\\payloads\\seed27\\source\\native_flat5cm_training_entry_candidate_v4_typed_producer.py",
+      "bytes": 17555,
+      "SHA256": "34026d6fd987bde8f2bf33f0ba173eeffa2a7a772ecee08b4dde516f3028c8ae",
+      "exact_line_excerpts": [
+        {
+          "first": 14,
+          "last": 20,
+          "lines": [
+            "BOOTSTRAP_SHA=\"0c1edb9603c1cb84fbb894d242dae1b6a7c87fe3237d658dbc486ccbbad3d394\"",
+            "BOOTSTRAP_ADAM=832460",
+            "from native_fudan_step_bridge_v1 import FudanStepBridge as NativeWheelLegBridge, install_fudan_step_request_and_command",
+            "from native_fudan_step_adapter_candidate_v2 import OwnFudanStepReference as OwnFlatJumpReference,OwnFudanStepMdp as OwnFlatJumpMdp",
+            "from actual_DR_memory_getter_v1 import RuntimeOrderBinding,indices",
+            "from native_finalization_own_flat5cm_v1 import NativeCheckpointPublisher,run_native_lifecycle,source_sha,atomic_json",
+            "from supermimic_wheel_leg_v3.learner import SuperMimicConfig,SuperMimicLearner"
+          ]
+        },
+        {
+          "first": 81,
+          "last": 88,
+          "lines": [
+            "    capture=env._integrated_contact",
+            "    if list(capture.sensor.body_names)!=['left_wheel','right_wheel'] or tuple(capture.history.shape)!=(env.num_envs,3,2,3):",
+            "        raise ValueError('original contact18 named order/history layout differs')",
+            "    provider=OwnFlatJumpReference(document,env.device).bind_named_order(names,scope='actual_SDK_readback')",
+            "    mdp=OwnFlatJumpMdp(provider,json.loads((J/'assets/import_contract.json').read_bytes()),geometry,encoder_names)",
+            "    if type(mdp) is not OwnFlatJumpMdp:raise ValueError('typed own flat5cm task required')",
+            "    flat_command_admission=install_fudan_step_request_and_command(env)",
+            ""
+          ]
+        },
+        {
+          "first": 130,
+          "last": 140,
+          "lines": [
+            "",
+            "    bridge=NativeWheelLegBridge(runner,trace,mdp,binding,before_action)",
+            "    holder['bridge']=bridge",
+            "    bridge.install_exact_pre_reset_aux_hook()",
+            "    bridge.wm_updates=0;bridge.pi_updates=0;bridge.last_wm=None;bridge.last_pi=None",
+            "",
+            "    # Learner construction must not reset the original post-reset global streams.",
+            "    cpu_rng=torch.random.get_rng_state();cuda_rng=torch.cuda.get_rng_state_all()",
+            "    try:",
+            "        learner=SuperMimicLearner(bridge,config_for(int(task['native_learning_seed'])),",
+            "            out/'native_supermimic',device=env.device,backend='original_Isaac_MOD4_own_fudan270_native_v1')"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_DIRECT_COMMAND_RESOURCE_V116_20261029\\payloads\\seed27\\source\\native_fudan_step_bridge_v1.py",
+      "bytes": 3500,
+      "SHA256": "276f8d114e25f1b75521bfb178a98c8079f5da510e832b606278e5f1b997ee3e",
+      "exact_line_excerpts": [
+        {
+          "first": 1,
+          "last": 12,
+          "lines": [
+            "\"\"\"New task request clock and command, preserving the exact original270 event truth.\"\"\"",
+            "import types",
+            "import torch",
+            "from native_wheel_leg_bridge_v4 import NativeWheelLegBridge",
+            "from supermimic_wheel_leg_v3.contract import SUPERMIMIC_STATE_KEY",
+            "from private_phase_frame_v1 import encode",
+            "",
+            "class FudanStepBridge(NativeWheelLegBridge):",
+            "    def __init__(self,*args,**kwargs):",
+            "        super().__init__(*args,**kwargs)",
+            "        self.own_env_ids=torch.arange(self.num_envs,device=self.device,dtype=torch.long)",
+            "        self._real_reward_tracking=None"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_DIRECT_COMMAND_RESOURCE_V116_20261029\\payloads\\seed27\\source\\native_wheel_leg_bridge_v4.py",
+      "bytes": 8245,
+      "SHA256": "46bc32bb6eb5af197b339920b7589426b101c0353695803dc121e2b9819f5bb7",
+      "exact_line_excerpts": [
+        {
+          "first": 55,
+          "last": 73,
+          "lines": [
+            "        if not callable(before_action_hook):",
+            "            raise ValueError('original fullsave/trace/deadline before-action hook required')",
+            "        self.runner=runner;self.vec=runner.env;self.real=self.vec.unwrapped",
+            "        self.trace=trace;self.mdp=mdp;self.pre_action_hook=before_action_hook",
+            "        self.num_envs=self.real.num_envs;self.device=torch.device(self.real.device)",
+            "        if self.real.physics_dt!=.0025 or self.real.step_dt!=.01 or self.real.cfg.decimation!=4:",
+            "            raise ValueError('original 2.5ms/100Hz/decimation4 required')",
+            "        if mdp.num_joints!=30 or mdp.auxiliary_dim!=54 or mdp.packed_state_dim!=127 or mdp.context_dim!=31 or mdp.action_dim!=6:",
+            "            raise ValueError('explicit physical30/dynamic54/static31/action6 MDP required')",
+            "        self.static=CompactStatic31Cache(self.real,runtime_order_binding)",
+            "        self.static.capture_initial()",
+            "        self.ep_step=torch.zeros(self.num_envs,device=self.device,dtype=torch.int32)",
+            "        self.state=None",
+            "        self._pre_reset_hook_installed=False",
+            "        self._terminal_aux54=None",
+            "",
+            "    @property",
+            "    def supermimic_mdp(self):return self.mdp",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_DIRECT_COMMAND_RESOURCE_V116_20261029\\payloads\\seed27\\source\\supermimic_wheel_leg_v3\\contract.py",
+      "bytes": 2547,
+      "SHA256": "8a4c9463b0b51c7428cf292d2d38818253b3d74e9a4450e3c10ef18163f0b261",
+      "exact_line_excerpts": [
+        {
+          "first": 78,
+          "last": 82,
+          "lines": [
+            "def get_supermimic_mdp(env: Any) -> SuperMimicMdpProtocol:",
+            "    \"\"\"Return the injected task MDP, failing closed for unsupported envs.\"\"\"",
+            "    if not isinstance(env, SupportsSuperMimicProtocol):",
+            "        raise TypeError(f\"{type(env).__name__} does not provide the SuperMimic MDP contract\")",
+            "    return env.supermimic_mdp"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_DIRECT_COMMAND_RESOURCE_V116_20261029\\payloads\\seed27\\source\\supermimic_wheel_leg_v3\\learner.py",
+      "bytes": 33321,
+      "SHA256": "1a5abe8141f02346be970b4e437e54abeedc257a6ea80b359a6af1acc7571ce3",
+      "exact_line_excerpts": [
+        {
+          "first": 117,
+          "last": 125,
+          "lines": [
+            "        self.env_device = torch.device(env.device)",
+            "        self.device = self.env_device if device is None else torch.device(device)",
+            "        # HOST_BRIDGE backends (e.g. MuJoCo) keep env tensors on CPU while the",
+            "        # learner may run on an accelerator (MPS on macOS); when the two differ,",
+            "        # the learner works on its own MDP copy and bridges tensors at the env",
+            "        # boundary. On CUDA/ROCm the devices always match and nothing changes.",
+            "        self._bridged = self.device != self.env_device",
+            "        mdp = get_supermimic_mdp(env)",
+            "        self.mdp = mdp.to(self.device) if self._bridged else mdp"
+          ]
+        },
+        {
+          "first": 290,
+          "last": 299,
+          "lines": [
+            "    def _reward_term(",
+            "        self,",
+            "        state: State,",
+            "        frames: torch.Tensor,",
+            "        action: torch.Tensor,",
+            "        previous_action: torch.Tensor,",
+            "    ) -> tuple[torch.Tensor, torch.Tensor]:",
+            "        return self.mdp.reward(state, frames, action, previous_action), self.mdp.soft_termination(",
+            "            state, frames",
+            "        )"
+          ]
+        },
+        {
+          "first": 428,
+          "last": 449,
+          "lines": [
+            "            all_states = cast(",
+            "                State, tuple(flatten([item[index] for item in states]) for index in range(7))",
+            "            )",
+            "            flat_frames = flatten(all_frames)",
+            "            rewards, dones = self._reward_term_fn(",
+            "                all_states, flat_frames, flatten(actions), flatten(previous_actions)",
+            "            )",
+            "            rewards = rewards.view(self.cfg.horizon, batch_size)",
+            "            dones = dones.view(self.cfg.horizon, batch_size)",
+            "            alive = torch.cumprod(1 - dones, 0)",
+            "            continuation = torch.cat((torch.ones(1, batch_size, device=self.device), alive[:-1]), 0)",
+            "            discount = self.cfg.gamma ** torch.arange(",
+            "                self.cfg.horizon, device=self.device, dtype=torch.float32",
+            "            ).unsqueeze(-1)",
+            "            objective = (discount * continuation * rewards).sum(0)",
+            "            survival = alive[-1]",
+            "            reward_sum = (continuation * rewards).detach().sum(0)",
+            "            detached_rewards, detached_dones = rewards.detach(), dones.detach()",
+            "            if not self.cfg.no_critic:",
+            "                objective = objective + (self.cfg.gamma**self.cfg.horizon) * survival * self.critic(",
+            "                    self._critic_input_fn(state, frames, normalized_context, goal)",
+            "                )"
+          ]
+        }
+      ]
+    }
+  ],
+  "no_runtime_import_checkpoint_raw_NPZ_SDK_GPU_or_physics": true,
+  "limits": "Static source binding, not proof a particular imagined branch visited the saved physical failure state."
+}

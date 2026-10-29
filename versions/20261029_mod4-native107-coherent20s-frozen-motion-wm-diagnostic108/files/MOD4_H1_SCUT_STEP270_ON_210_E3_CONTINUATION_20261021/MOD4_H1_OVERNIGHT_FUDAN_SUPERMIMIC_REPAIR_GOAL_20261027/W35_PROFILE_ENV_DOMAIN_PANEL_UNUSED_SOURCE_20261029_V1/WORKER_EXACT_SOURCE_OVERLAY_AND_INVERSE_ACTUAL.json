@@ -1,0 +1,70 @@
+{
+  "epoch": 1793218516.702638,
+  "base_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_210_FULL_PROFILE_OWN_STORAGE_METADATA_EXTENSION_SOURCE_V1\\evaluate_W35_adapted92_originalN20K_frozen_profiles_once_v1.py",
+  "base_bytes": 14642,
+  "base_SHA256": "ff8399b8e8969afd27e7c95bf1def43319c311f6a69d0fbd9cd7cb024ad66bfb",
+  "target_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PROFILE_ENV_DOMAIN_PANEL_UNUSED_SOURCE_20261029_V1\\evaluate_W35_adapted92_profile_env_domain_panel_UNUSED_once_v1.py",
+  "target_bytes": 14975,
+  "target_SHA256": "6d4f20fdddd963434c63a4990e320930a980d5774c8bd9344d30c2a3e1a1cf94",
+  "exact_changes": [
+    {
+      "old": "MOD4_W35_ADAPTED92_ORIGINAL_N20K_FROZEN_PROFILES_V1",
+      "new": "MOD4_W35_ADAPTED92_PROFILE_ENV_DOMAIN_PANEL_V1"
+    },
+    {
+      "old": "task['controls']==1200",
+      "new": "task['controls']==600"
+    },
+    {
+      "old": "import torch,numpy as np,rescue_training",
+      "new": "import torch,numpy as np,rescue_training\n from w35_profile_env_domain_panel_v1 import W35DomainPanel\n panel_state=[None]"
+    },
+    {
+      "old": "  ids=torch.arange(32,device=real.device);",
+      "new": "  panel=W35DomainPanel(real,torch,OUT,task);panel_state[0]=panel\n  ids=torch.arange(32,device=real.device);"
+    },
+    {
+      "old": "   age[~live]=0;turn[~live]=0;previous_key=",
+      "new": "   panel.terminal(ctx)\n   age[~live]=0;turn[~live]=0;previous_key="
+    },
+    {
+      "old": "for i in range(1200):",
+      "new": "for i in range(600):"
+    },
+    {
+      "old": "heading=tensor(robot.data.heading_w).clone());root=",
+      "new": "heading=tensor(robot.data.heading_w).clone());panel.begin(i,ctx);root="
+    },
+    {
+      "old": "requested=action[ids].clone();terminal[0]=None;",
+      "new": "requested=action[ids].clone();panel.requested(action,obs);terminal[0]=None;"
+    },
+    {
+      "old": "    row=dict(before_root13=",
+      "new": "    panel.after_step(done,info)\n    row=dict(before_root13="
+    },
+    {
+      "old": "  path=OUT/'selected32_full_motion_before_and_terminal.npz'",
+      "new": "  panel.finish()\n  path=OUT/'selected32_full_motion_before_and_terminal.npz'"
+    },
+    {
+      "old": "requested_controls=1200",
+      "new": "requested_controls=600"
+    },
+    {
+      "old": "wall_time_limited=completed<1200",
+      "new": "wall_time_limited=completed<600"
+    },
+    {
+      "old": " finally:put('APP_CLOSING.json',dict(epoch=time.time()));ns['app'].close()",
+      "new": " finally:\n  try:\n   if panel_state[0] is not None:panel_state[0].uninstall()\n  finally:put('APP_CLOSING.json',dict(epoch=time.time()));ns['app'].close()"
+    }
+  ],
+  "inverse_bytes_exact": true,
+  "AST_parse_passed": true,
+  "new_model_load_save_optimizer_calls": 0,
+  "preserved": "Original SDK/fullrestore/norm/17Adam/LR/40050/N20K/G3/nearest250/physics/actions/commands/reset criteria/integrity checks; no old worker edit",
+  "new_scope": "600 controls 100 warmup 500 steady; profile x env counters and selected domain diagnostics; not an identical1200 rerun",
+  "no_model_NPZ_USD_or_remote_read": true,
+  "actual_target_admission_pending": true
+}

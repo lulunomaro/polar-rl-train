@@ -1,0 +1,51 @@
+{
+  "epoch": 1793222194.8328187,
+  "passed": true,
+  "original_successful_installer_SHA": "27ee175dbbf5b38130975bb03927efe977a2ba2f1bf7ecfb3e7b85e217c259b9",
+  "original_AUTH_SHA": "025730475a6fd7423985d7926f4576379459c8d6760b6a94af225986cc464c9e",
+  "original_PRE_SHA": "a55443b80cb6d6841f6b658060508a3ddb5c72d5a7c1e350a8a933aac884f320",
+  "AUTH_PRE_exact_original_bytes": true,
+  "worker_v1_SHA": "6d4f20fdddd963434c63a4990e320930a980d5774c8bd9344d30c2a3e1a1cf94",
+  "worker_v2_SHA": "e736e61b87898af1db002ea5a1f8b9a1954b89998dda2c8a4b97ba5244478104",
+  "worker_exact_changes": [
+    {
+      "old": "panel=W35DomainPanel(real,torch,OUT,task);panel_state[0]=panel",
+      "new": "panel=W35DomainPanel(real,torch,OUT,task);panel_state[0]=panel;panel_apply_start=dict(real._physics_action_delay.calls)"
+    },
+    {
+      "old": "    if time.time()-last>=25:put('PROFILE_PROGRESS_'",
+      "new": "    if completed==24:\n     panel_apply_end=dict(real._physics_action_delay.calls);panel_delta={k:panel_apply_end[k]-panel_apply_start[k] for k in ('legs','wheels')};assert panel_delta=={'legs':192,'wheels':192} and panel.trace_controls[:24]==list(range(1,25))\n     put('ACTUAL_NATIVE24_W35_PROFILE_PANEL_CLOCK_QUEUE_ACTUAL.json',dict(passed=True,controls=24,physics_callbacks=192,feedback_samples=48,queue_apply_calls_per_group=panel_delta,queue_calls_at_start=panel_apply_start,queue_calls_after24=panel_apply_end,actual_first24_trace_controls=panel.trace_controls[:24],policy_hz=50,physics_us=2500,control_us=20000,source_SHA=MODEL_SHA,panel_worker_SHA=task['panel_worker_SHA'],panel_component_SHA=task['panel_component_SHA'],original_D1_D7_fullrestore_before_mean=True,Adam648360_unchanged=True,no_optimizer_norm_or_extra_actor_call=True))\n    if time.time()-last>=25:put('PROFILE_PROGRESS_'"
+    }
+  ],
+  "worker_inverse_bytes_exact": true,
+  "supervisor_original_v1_SHA": "320fd64ebe0c8fc2162d8dac7054259de87adea2b286acdfbf64c8111854e66b",
+  "supervisor_new_v2_SHA": "5022f4f2c238bfed564d2138022e6e58f9300f4743a883d05f10aa116b87a224",
+  "supervisor_only_worker_basename_inverse_bytes_exact": true,
+  "remote_RUN_exact_changes": [
+    {
+      "old": "for row in v['files']:\n p=(J/row['relative']).resolve();assert p.is_relative_to(J) and not p.is_symlink() and p.stat().st_size==row['bytes'] and H(p)==row['SHA']",
+      "new": "copyproof=v['copyproof'];assert copyproof['passed'] and copyproof['old_source_wholeCPU_and_closure_bound']\nlinked={x['relative']:x for x in copyproof['records'] if x['large_readonly_input_same_inode']}\nfor row in v['files']:\n p=(J/row['relative']).resolve();assert p.is_relative_to(J) and not p.is_symlink() and p.stat().st_size==row['bytes']\n if row['relative'] in linked:\n  old=Path(v['old'])/row['relative'];before=linked[row['relative']];assert os.path.samestat(old.stat(),p.stat()) and p.stat().st_mtime_ns==before['source_mtime_ns'] and before['producer_SHA']==row['SHA']\n else:assert H(p)==row['SHA']\nwitness=J/'W35_EXISTING_FORMAL_WHOLE_CPU_WITNESS.json';assert H(witness)==v['expected']['wholeCPU_SHA'];whole=json.loads(witness.read_bytes());assert whole['passed'] and whole['model']['SHA']==v['expected']['model_SHA'] and whole['model']['original_producer']['Adam_step']==648360\nassert H(J/'PANEL210_SEALED_INPUT_MANIFEST.json')==v['input_manifest_SHA']"
+    },
+    {
+      "old": "cpu=dict(passed=True,epoch=time.time(),scope='new target SDK source metadata and USD CPU, existing W35 final78 wholeCPU reused; no policy model decode',versions=versions,RSL_source_bytes_exact=True,SDK_math_source_bytes_exact=True,asset_parent_contract_route_exact=True,nominal400_USD_composition=True,source_model_GPU_fullrestore_still_pending=True)",
+      "new": "cpu=dict(passed=True,epoch=time.time(),scope='NEW profile-panel source/SDK/USD CPU metadata qualification; exact historical final78 wholeCPU witness, no model decode',versions=versions,RSL_source_bytes_exact=True,SDK_math_source_bytes_exact=True,asset_parent_contract_route_exact=True,nominal400_USD_composition=True,source_model_GPU_fullrestore_still_pending=True,wholeCPU_witness_SHA=v['expected']['wholeCPU_SHA'],source_model_SHA=v['expected']['model_SHA'],actual_model_CPU_decode_count=0,same_inode_producer_metadata_bound=copyproof['old_source_wholeCPU_and_closure_bound'],static_task_source_preserved=True,input_manifest_SHA=v['input_manifest_SHA'],panel_source_overlay=v['source_extension'])"
+    },
+    {
+      "old": "task=dict(kind='MOD4_W35_ADAPTED92_ORIGINAL_N20K_FROZEN_PROFILES_V1',source_SHA='ad504fec819b22f10fd1caf7befc59c1988c7609fe15373ab8851ef95942df3f',num_envs=20000,controls=1200,warmup_controls=100,maximum_worker_seconds=1680,no_optimizer_steps=True,actual_source210_SDK_admission_passed=True,actual_private_GPU_EX_held_by_parent=False,canonical72_known_owner_readonly_passed=v['authority']['passed'],known72_readonly_authority=v['authority'],actual_source210_python=v['python'],full_WM_tap_included=False)\n",
+      "new": "task=json.loads((J/v['static_task_input']).read_bytes());assert task['kind']=='MOD4_W35_ADAPTED92_PROFILE_ENV_DOMAIN_PANEL_V1' and task['controls']==600 and task['warmup_controls']==100 and task['num_envs']==20000 and task['source_SHA']==v['expected']['model_SHA']\nassert task['actual_source210_SDK_admission_passed'] is False and task['actual_private_GPU_EX_held_by_parent'] is False and task['canonical72_known_owner_readonly_passed'] is False and task['known72_readonly_authority'] is None\nassert task['panel_worker_SHA']==H(J/v['worker']) and task['panel_component_SHA']==H(J/'w35_profile_env_domain_panel_v1.py')\nassert v['authority']['passed'] and v['authority']['passed_readonly_original72_finite_authority']\ntask.update(actual_source210_SDK_admission_passed=True,canonical72_known_owner_readonly_passed=True,known72_readonly_authority=v['authority'],actual_source210_python=v['python'])\nassert not (J/'FROZEN_CASE_TASK_TEMPLATE.json').exists()\n"
+    },
+    {
+      "old": "str(J/'detached_W35_frozen_eval_private210_supervisor_once_v1.py')",
+      "new": "str(J/v['supervisor'])"
+    },
+    {
+      "old": "def H(p):\n with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()",
+      "new": "for key,name in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda'}.items():\n p=J/name;p.mkdir(parents=True,exist_ok=True);os.environ[key]=str(p)\nos.environ['PYTHONDONTWRITEBYTECODE']='1'\ndef H(p):\n with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()"
+    }
+  ],
+  "remote_RUN_inverse_bytes_exact": true,
+  "static_sealed_task_input_renamed_dynamic_grant_new_file": true,
+  "large_model_NPZ_USD_not_opened_or_hashed": true,
+  "local_source_only": true,
+  "no_remote_GPU_or_old_model_decode": true
+}

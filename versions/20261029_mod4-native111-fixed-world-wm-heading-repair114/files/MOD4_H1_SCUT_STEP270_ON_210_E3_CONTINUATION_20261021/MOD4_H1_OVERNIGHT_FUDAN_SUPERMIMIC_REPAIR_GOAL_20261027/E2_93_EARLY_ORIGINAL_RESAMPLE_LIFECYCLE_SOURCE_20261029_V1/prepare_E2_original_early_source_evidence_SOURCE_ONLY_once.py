@@ -1,0 +1,45 @@
+"""Existing .py/manifest/saved UTF8 JSON only. No SDK/model/raw/host access."""
+from pathlib import Path
+import ast,hashlib,json,time,traceback
+B=Path(__file__).resolve().parent;L=B.parent
+OLD=L/'E2_93_NEW86_ORIGINAL_FLAT_HEIGHT_PROVIDER_REPAIR_SOURCE_20261029_V4'
+E0=L/'E0_EARLY_ORIGINAL_RESAMPLE_LIFECYCLE_SOURCE_20261029_V1'
+def H(x):return hashlib.sha256(x).hexdigest()
+def put(n,v):
+ with (B/n).open('x',encoding='utf8',newline='\n') as f:json.dump(v,f,indent=2,allow_nan=False)
+def main():
+ m=json.loads((OLD/'E2_NEW86_COMPLETE_INPUT_MANIFEST_V1.json').read_bytes());rows={r['relative']:r for r in m['files']};sources={}
+ for name in ('e2_directional_spin_runtime_v1.py','e2_command_checkpoint_v1.py','sensor_resume_contract.py','feedback_delay_checkpoint.py','train_E2_full_resume_v1.py','spin_translation_math.py'):
+  row=rows['runtime/isaac/mod4/'+name];raw=Path(row['local_path']).read_bytes();assert len(raw)==row['bytes'] and H(raw)==row['SHA'];sources[name]=raw.decode()
+  with (B/('REFERENCE_ORIGINAL_'+name+'.txt')).open('xb') as f:f.write(raw)
+ reference={}
+ for name in ('command_manager.py','velocity_command.py'):
+  raw=(E0/('REFERENCE_OLD210_EXACT_UTF8_'+name+'.txt')).read_bytes();reference[name]=raw.decode()
+  with (B/('REFERENCE_SAVED_SDK_'+name+'.txt')).open('xb') as f:f.write(raw)
+ # Source-order statements are actual .py AST, not a synthetic resume proof.
+ tree=ast.parse(sources['e2_command_checkpoint_v1.py']);fields=ast.literal_eval(next(n.value for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='FIELDS' for t in n.targets)))
+ assert 'time_left' not in fields and 'command_counter' not in fields
+ resume=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='resume_e2_new_episode')
+ load=next(n for n in ast.walk(resume) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='load');base=next(n for n in ast.walk(resume) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='resume_chassis_pd_new_episode');assert load.lineno<base.lineno
+ st=ast.parse(sources['sensor_resume_contract.py']);fn=next(n for n in st.body if isinstance(n,ast.FunctionDef) and n.name=='resume_sensor_new_episode');reset=next(n for n in ast.walk(fn) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and isinstance(n.func.value,ast.Name) and n.func.value.id=='env' and n.func.attr=='reset');rng=[n for n in ast.walk(fn) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr in ('set_rng_state','set_rng_state_all')];assert len(rng)==2 and all(n.lineno<reset.lineno for n in rng)
+ assert not any(isinstance(n,ast.Attribute) and n.attr in ('time_left','command_counter') for n in ast.walk(fn))
+ et=ast.parse(sources['train_E2_full_resume_v1.py']);mainfn=next(n for n in et.body if isinstance(n,ast.FunctionDef) and n.name=='main');resumecall=next(n for n in ast.walk(mainfn) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='resume_chassis_pd_new_episode');workcall=next(n for n in ast.walk(mainfn) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='bounded_learn');assert resumecall.lineno<workcall.lineno
+ worker=(OLD/'evaluate_E2_adapted93_new86_frozen900_once_v1.py').read_bytes();wt=ast.parse(worker);work=next(n for n in ast.walk(wt) if isinstance(n,ast.FunctionDef) and n.name=='work');panelcall=next(n for n in ast.walk(work) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='E2Panel')
+ panel=(OLD/'e2_profile_domain_telemetry_v1.py').read_bytes();pt=ast.parse(panel);pc=next(n for n in pt.body if isinstance(n,ast.ClassDef) and n.name=='E2Panel');ctor=next(n for n in pc.body if isinstance(n,ast.FunctionDef) and n.name=='__init__');assert any(isinstance(n,ast.Assign) and any(isinstance(x,ast.Attribute) and x.attr=='written_valid' for x in n.targets) for n in ast.walk(ctor))
+ terminal=OLD/'reports/E2_V4_TERMINAL_ORIGINAL_RETURNED_ACTUAL.json';raw=terminal.read_bytes();v=json.loads(raw);texts={r['relative']:r for r in v['complete_original_own_stage_UTF8']}
+ evidence=[]
+ def saved(rel):
+  r=texts[rel];b=r['UTF8'].encode();assert H(b)==r['SHA'] and len(b)==r['bytes'];evidence.append({k:r[k] for k in ('path','relative','bytes','SHA')});return json.loads(b)
+ d=saved('frozen_regression/E2_PROFILE_DOMAIN_DIAGNOSTIC_ACTUAL.json');criteria=saved('frozen_regression/ORIGINAL_E2_COMMAND_AND_TERMINATION_CRITERIA.json');env=saved('frozen_regression/ORIGINAL_E2_ENV_AND_DECLARED_FORK_OVERRIDES.json');health=saved(next(k for k in texts if k.endswith('/CLOCK_TRAINING_HEALTH.json')));restore=saved(next(k for k in texts if k.endswith('/E2_COMMAND_RESUME_STARTUP_VERIFIED.json')))
+ warm=[r for r in d['profiles'] if r['phase']=='warmup' and r['profile'] in (6,7)];all_controls=sum(r['population_controls'] for r in warm);all_envs=sum(r['unique_exposed_env'] for r in warm);phase_controls=sum(sum(x) for x in d['transition_phase_controls'][0]);assert all_controls-phase_controls==all_envs==1920
+ assert all(r['population_controls']==r['unique_exposed_env']*100 for r in warm) and all(x==0 for x in health['termination_events_by_reason'].values())
+ # Existing actual86 SDK source binding is historical evidence, not a new target read.
+ ev=L/'E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2/reports/E0_V2_TERMINAL_ORIGINAL_RETURNED_ACTUAL.json';e=json.loads(ev.read_bytes());r=next(r for r in e['complete_original_own_stage_UTF8'] if r['relative']=='E0_TARGET_SOURCE_SDK_METADATA_ACTUAL.json');b=r['UTF8'].encode();assert len(b)==r['bytes'] and H(b)==r['SHA'];sdk=json.loads(b);actual=sdk['actual_target_method_CPU_lifecycle']['actual_target_command_source'];assert sdk['actual_target_CommandTerm_method_AST_passed'] and H(reference['command_manager.py'].encode())==actual['actual_target_command_source_SHA']
+ contract=dict(kind='E2_required_actual_target_original_method_domain_binding_v1',source_model_SHA=m['model_SHA'],E2_directional_SHA=rows['runtime/isaac/mod4/e2_directional_spin_runtime_v1.py']['SHA'],E2_checkpoint_SHA=rows['runtime/isaac/mod4/e2_command_checkpoint_v1.py']['SHA'],sensor_resume_SHA=rows['runtime/isaac/mod4/sensor_resume_contract.py']['SHA'],CommandTerm_method_AST_SHAs=actual['method_AST_SHAs'],E2_checkpoint_saved_fields=fields,original_moving_yaw_abs=4,original_timer_seconds=[12,16],original_progress_goal=.5,original_sampler_numerical_source_unchanged=True,prior_actual86_method_binding=dict(terminal_path=str(ev),CPU_relative=r['relative'],CPU_SHA=r['SHA'],actual_command_source_path=sdk['actual_command_source_path'],actual_command_source_SHA=sdk['actual_command_source_SHA']),new_target_actual_method_source_read_and_metadata_receipt='PENDING_NO_NEW_SDK_READ_THIS_PURPOSE')
+ put('REQUIRED_ACTUAL_E2_TARGET_METHOD_AND_DOMAIN_SOURCE_CONTRACT.json',contract)
+ put('E2_V4_INITIAL_RESAMPLE_GAP_SAVED_TEXT_AND_SOURCE_ORDER_EVIDENCE.json',dict(proven_source_gap=True,old_terminal_path=str(terminal),old_terminal_bytes=len(raw),old_terminal_SHA=H(raw),selected_saved_text_evidence=evidence,old_complete900_passed=v['passed_original_frozen_execution'] and v['requested900_controls_100warm_800steady_complete'],actual_old_fullrestore_and_E2_command_receipt={k:x for k,x in restore.items() if k!='original_D0_D7_full_source_restore'},old_original_criteria=criteria,old_actual_env=env,source_entry_SHA=rows['runtime/isaac/mod4/train_E2_full_resume_v1.py']['SHA'],entry_resume_line=resumecall.lineno,entry_late_work_line=workcall.lineno,worker_panel_constructor_inside_work_line=panelcall.lineno,old_worker_SHA=H(worker),old_panel_SHA=H(panel),old_initial_written_valid_unknown_flag=d['first_written_phase_valid_initially_unknown'],warmup_transition_population_controls=all_controls,warmup_transition_actual_phase_counts=phase_controls,warmup_transition_unique_env_1920=all_envs,missing_controls1920=True,missing_population_seconds=all_envs*.02,interpretation='Late panel omits the first control phase of each initially sampled transition env; complete original command instances are NOT recorded by E2 V4. This does not invalidate actual900/native24/skill metrics already measured.',no_old_complete_command_count_invented=True,global_RNG_restore_before_one_original_sensor_reset_lines=[n.lineno for n in rng]+[reset.lineno],E2_saved_timer_and_counter_absent=True,E2_saved_phase_flags_private_rng_restored_before_new_reset=True,old_900_profile_cycle_metrics_not_complete_command_lifetimes=True,new_early_observer_target_GPU_not_executed=True))
+ put('SOURCE_LOOKUP_MISSING_FILENAME_PRESERVED.json',dict(attempt='rg sensor_mild_checkpoint.py exact guessed filename',original_error='系统找不到指定的文件。 (os error 2)',resolved_from_real_manifest='runtime/isaac/mod4/sensor_resume_contract.py',no_remote_or_model_read=True))
+ print(json.dumps(dict(gap_proven=True,missing_initial_phase_population_controls=all_envs,E2_sampler_moving_abs4=True,full_caller_not_claimed=True)))
+if __name__=='__main__':
+ try:main()
+ except BaseException:put('LOCAL_E2_SOURCE_EVIDENCE_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(traceback=traceback.format_exc(),no_model_raw_or_remote=True));raise

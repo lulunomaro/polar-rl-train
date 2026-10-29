@@ -1,0 +1,114 @@
+"""E2 original callbacks only. No timer, sampler, RNG, model or physics call added."""
+from pathlib import Path
+import ast,hashlib,json,traceback
+MODEL='b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1'
+FIELDS={'time_left':'time_left','counter':'command_counter','phase':'phase_elapsed','command':'command','signed_yaw':'signed_yaw','direction':'world_direction','standing':'is_standing_env','pure':'is_pure_spin','moving':'is_moving_spin','transition':'is_transition_spin'}
+def method_AST_SHA(raw,cls,name):
+ c=next(n for n in ast.parse(raw).body if isinstance(n,ast.ClassDef) and n.name==cls);f=next(n for n in c.body if isinstance(n,ast.FunctionDef) and n.name==name)
+ if f.body and isinstance(f.body[0],ast.Expr) and isinstance(f.body[0].value,ast.Constant) and isinstance(f.body[0].value.value,str):f.body.pop(0)
+ return hashlib.sha256(ast.dump(f,include_attributes=False).encode()).hexdigest()
+def validate_actual_target_source(command_raw,directional_raw,e2_resume_raw,sensor_raw,contract):
+ got={n:method_AST_SHA(command_raw,'CommandTerm',n) for n in ('reset','_resample','compute')}
+ assert got==contract['CommandTerm_method_AST_SHAs']
+ for key,raw in [('E2_directional',directional_raw),('E2_checkpoint',e2_resume_raw),('sensor_resume',sensor_raw)]:assert hashlib.sha256(raw).hexdigest()==contract[key+'_SHA']
+ assert 'time_left' not in contract['E2_checkpoint_saved_fields'] and 'command_counter' not in contract['E2_checkpoint_saved_fields']
+ return dict(passed=True,actual_target_command_source_SHA=hashlib.sha256(command_raw).hexdigest(),CommandTerm_method_AST_SHAs=got,actual_E2_source_domain_pinned=True,original_E2_moving_signed_abs4_not_E0_abs1_to2=True,source_check_not_runtime_GPU_or_initial_event_proof=True)
+
+class E2EarlyObserver:
+ def __init__(self,t,out,expected_n=20000):
+  self.t=t;self.out=Path(out);self.n=expected_n;self.inner=None;self.outer=None;self.eligible=None;self.outer_receipt=None;self.reset_depth={};self.seen_terms={};self.events=[];self.errors=[];self.limited=False;self.undo=[]
+ def ids(self,term,ids):
+  allids=self.t.arange(term.num_envs,device=term.device)
+  return allids if ids is None else allids[ids] if isinstance(ids,slice) else self.t.as_tensor(ids,device=term.device,dtype=self.t.long)
+ def log(self,event,**values):
+  if len(self.events)>=256:self.limited=True;return
+  self.events.append(dict(event=event,**values))
+ def install(self,Command,sensor_module,e2_module):
+  obs=self;old_sample=Command._resample;old_reset=Command.reset;old_write=Command._write_dynamic;old_sensor=sensor_module.resume_sensor_new_episode;old_e2=e2_module.resume_e2_new_episode
+  inherited={k:k not in Command.__dict__ for k in ('_resample','reset','_write_dynamic')}
+  def write(term,ids):
+   obs.seen_terms[id(term)]=term;scope=obs.inner;phase=None;selected=None
+   try:
+    if scope and scope['env'] is term._env and obs.reset_depth.get(id(term),0):selected=obs.ids(term,ids);phase=term.phase_elapsed[selected].detach().clone()
+   except BaseException:obs.errors.append(traceback.format_exc())
+   value=old_write(term,ids)
+   try:
+    if phase is not None:scope['writes'].append(dict(term=term,ids=selected.detach().clone(),phase=phase,tick=int(term._env._sim_step_counter)))
+   except BaseException:obs.errors.append(traceback.format_exc())
+   return value
+  def sample(term,ids):
+   obs.seen_terms[id(term)]=term
+   value=old_sample(term,ids)
+   try:
+    selected=obs.ids(term,ids);scope=obs.inner
+    obs.log('ORIGINAL_E2_RESAMPLE_RETURNED',ids_count=len(selected),tick=int(term._env._sim_step_counter),in_original_postrestore_scope=bool(scope and obs.outer and scope['env'] is term._env and obs.outer['env'] is term._env))
+    if scope and obs.outer and scope['env'] is term._env and obs.outer['env'] is term._env and obs.reset_depth.get(id(term),0):
+     p={key:getattr(term,name)[selected].detach().clone() for key,name in FIELDS.items()};p.update(term=term,ids=selected.detach().clone(),tick=int(term._env._sim_step_counter));scope['packets'].append(p)
+   except BaseException:obs.errors.append(traceback.format_exc())
+   return value
+  def reset(term,*args,**kwargs):
+   obs.reset_depth[id(term)]=obs.reset_depth.get(id(term),0)+1
+   if obs.inner and obs.inner['env'] is term._env:obs.inner['resets']+=1
+   try:return old_reset(term,*args,**kwargs)
+   finally:obs.reset_depth[id(term)]-=1
+  def sensor(runner,env,path,log_dir):
+   assert obs.inner is None
+   s=dict(env=env,resets=0,packets=[],writes=[]);obs.inner=s
+   try:
+    value=old_sensor(runner,env,path,log_dir)
+    try:
+     valid=bool(obs.outer and obs.outer['env'] is env and value.get('source_sha256')==MODEL and value.get('new_physical_episode') and value.get('global_CPU_CUDA_streams_restored') and s['resets']==1 and len(s['packets'])==len(s['writes'])==1 and not obs.errors)
+     if valid:
+      p=s['packets'][0];w=s['writes'][0];ids=p['ids']
+      valid=bool(len(ids)==obs.n and obs.t.equal(ids,obs.t.arange(obs.n,device=ids.device)) and p['tick']==w['tick']==0 and obs.t.equal(ids,w['ids']) and w['term'] is p['term'] and bool((p['counter']==1).all()) and bool((p['phase']==0).all()) and obs.t.equal(w['phase'],p['phase']) and bool(((p['time_left']>=12)&(p['time_left']<=16)).all()))
+      moving=p['moving'];valid=valid and bool((p['signed_yaw'][moving].abs()==4).all())
+     obs.eligible=s['packets'][0] if valid else None
+     obs.log('ORIGINAL_E2_SENSOR_RESUME_RETURNED',new_initial_start_candidate=valid,actual_original_resets=s['resets'],actual_resample_batches=len(s['packets']),actual_write_batches=len(s['writes']))
+    except BaseException:obs.eligible=None;obs.errors.append(traceback.format_exc())
+    return value
+   finally:obs.inner=None
+  def e2(runner,env,path,log_dir):
+   assert obs.outer is None
+   obs.outer=dict(env=env)
+   try:
+    value=old_e2(runner,env,path,log_dir)
+    try:
+     valid=bool(value.get('source_SHA')==MODEL and value.get('source_has_E2_command_state') and value.get('command_CUDA_disk_roundtrip_exact') and value.get('new_physical_episode_not_PhysX_exactresume') and value.get('moving_yaw_cap')==4)
+     obs.outer_receipt={key:value.get(key) for key in ('source_SHA','source_has_E2_command_state','command_CUDA_disk_roundtrip_exact','new_physical_episode_not_PhysX_exactresume','moving_yaw_cap')}
+     if not valid:obs.eligible=None
+     obs.log('ORIGINAL_E2_COMPLETE_RESUME_RETURNED',source_and_E2_private_state_valid=valid,initial_start_eligible=obs.eligible is not None)
+    except BaseException:obs.eligible=None;obs.errors.append(traceback.format_exc())
+    return value
+   finally:obs.outer=None
+  Command._resample=sample;Command.reset=reset;Command._write_dynamic=write;sensor_module.resume_sensor_new_episode=sensor;e2_module.resume_e2_new_episode=e2
+  def restore():
+   for name,old in (('_resample',old_sample),('reset',old_reset),('_write_dynamic',old_write)):
+    if inherited[name]:delattr(Command,name)
+    else:setattr(Command,name,old)
+   sensor_module.resume_sensor_new_episode=old_sensor;e2_module.resume_e2_new_episode=old_e2
+   # Late E2Panel restores the early bound class method as an instance shadow.
+   # Remove ONLY that exact owned wrapper after panel.uninstall, never foreign hooks.
+   for term in obs.seen_terms.values():
+    shadow=term.__dict__.get('_write_dynamic')
+    if getattr(shadow,'__func__',None) is write:del term.__dict__['_write_dynamic']
+  self.undo.append(restore)
+ def verify_current_unchanged(self,term):
+  p=self.eligible
+  if p is None or self.outer_receipt is None or self.errors:return False
+  if p['term'] is not term or int(term._env._sim_step_counter)!=0 or term.manual_evaluation_mode or term._dt!=.02 or term.progress_goal!=.5:return False
+  return all(self.t.equal(p[k],getattr(term,name)[p['ids']]) for k,name in FIELDS.items())
+ def adopt_actual_written_start(self,panel,on_observed_start=None):
+  if not self.verify_current_unchanged(panel.cmd):self.log('NEW_E2_PANEL_START_NOT_ADOPTED_LEFT_CENSORED');return False
+  assert panel.real is panel.cmd._env
+  p=self.eligible;panel.written_phase[p['ids']]=p['phase'];panel.written_valid[p['ids']]=True
+  if on_observed_start is not None:on_observed_start(p)
+  self.log('NEW_E2_PANEL_ACTUAL_ORIGINAL_START_ADOPTED',ids_count=len(p['ids']),original_write_observed=True,no_command_or_timer_write=True)
+  return True
+ def finish(self):
+  for undo in reversed(self.undo):undo()
+  self.undo=[];self.out.mkdir(exist_ok=False)
+  result=dict(kind='E2_original_postrestore_resample_write_passthrough_observer_source_v1',source_SHA=MODEL,diagnostic_valid=not self.errors,errors=self.errors,events=self.events,event_retention_limited=self.limited,initial_start_eligible=self.eligible is not None,original_E2_resume_selected_fields=self.outer_receipt,old_V4_initial_unknown_reports_unchanged=True,no_extra_original_reset_sample_write_actor_RNG_physics=True,complete_command_instance_accumulator_NOT_included=True,not_skill_or_WM_qualification=True)
+  if self.eligible is not None:
+   p=self.eligible;result.update(ids_count=len(p['ids']),time_left_min=float(p['time_left'].min()),time_left_max=float(p['time_left'].max()),physics_tick=p['tick'],actual_written_phase_zero=bool((p['phase']==0).all()))
+  with (self.out/'E2_ORIGINAL_EARLY_RESAMPLE_WRITE_OBSERVER_ACTUAL.json').open('x',encoding='utf8') as f:json.dump(result,f,indent=2,allow_nan=False)
+  return result

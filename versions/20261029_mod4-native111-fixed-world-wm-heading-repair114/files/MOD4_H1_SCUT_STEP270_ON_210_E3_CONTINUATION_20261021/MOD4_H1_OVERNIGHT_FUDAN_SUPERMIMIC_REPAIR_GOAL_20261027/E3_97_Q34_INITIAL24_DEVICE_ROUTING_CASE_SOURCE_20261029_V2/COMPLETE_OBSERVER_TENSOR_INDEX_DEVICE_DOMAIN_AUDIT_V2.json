@@ -1,0 +1,72 @@
+{
+  "passed_source_audit": true,
+  "diagnostic_dynamic_router_calls": 19,
+  "domains": [
+    {
+      "value": "gas_limits original root_view.get_dof_limits return clone",
+      "index": "selected env IDs",
+      "actual_evidence": "V1 original RuntimeError proves targetCPU/indexCUDA",
+      "new": "diagnostic_select routes index to limits.device, preserves long",
+      "physical_value_not_moved_or_clamped": true
+    },
+    {
+      "value": "q34 cached _q gas slice vs actual selected limits",
+      "index": "static gas DOF list; not tensor device index",
+      "source_evidence": "E3ResetBankCache._q as_tensor(device=env.device,float32)",
+      "new": "q comparison copy only to limits.device, no dtype change; original q/limits untouched"
+    },
+    {
+      "value": "cached _quat/_minimum",
+      "index": "original recipe long tensor",
+      "source_evidence": "cache _geometry device follows original points/env",
+      "new": "diagnostic_select uses each cached tensor.device"
+    },
+    {
+      "value": "recovery.recipe / recovery.age / episode_length_buf",
+      "index": "selected IDs",
+      "source_evidence": "per-env buffers original environment device",
+      "new": "diagnostic_select even if future cached return device differs"
+    },
+    {
+      "value": "scene.env_origins / _rescue_reset_q",
+      "index": "selected IDs",
+      "source_evidence": "original cached buffers; no getter added",
+      "new": "diagnostic_select then static xyz column index"
+    },
+    {
+      "value": "original joint q,dq/root state write arguments",
+      "index": "bool membership mask",
+      "source_evidence": "original write arguments forwarded byte-for-byte/object identity as before",
+      "new": "membership reference IDs moved only to ids.device; mask moved to target arg.device preserving bool; original args unmodified"
+    },
+    {
+      "value": "original queue.apply return",
+      "index": "self.ids",
+      "source_evidence": "existing queue result once, original result object still returned",
+      "new": "diagnostic_select of returned tensor; no extra apply/receipt call"
+    },
+    {
+      "value": "ORIGINAL closure pos/quat cached getter values and residual result tensors",
+      "index": "self.ids",
+      "source_evidence": "closure_overlay original getters still once each; no extra SDK/body read",
+      "new": "each tensor routes index independently to own device; original authored math unchanged"
+    },
+    {
+      "value": "ids[isin mask] and ids[mask]",
+      "index": "same-device bool",
+      "source_evidence": "isin output device follows ids; both operands aligned to ids before isin",
+      "new": "intrinsically same target/index domain; retained original selection"
+    },
+    {
+      "value": "q[None], limits[:,:,0/1], quaternion static columns",
+      "index": "static None/slices/python ints",
+      "source_evidence": "device-independent indexing, no dynamic tensor device",
+      "new": "unchanged"
+    }
+  ],
+  "original_cache_module_SHA": "ba4f5cd584f911a9313de2f60f6465b1114f645a47c1ffcda5fcc9930dd8109a",
+  "original_cache_dtype_float32_and_env_device": true,
+  "original_limit_getter_count_unchanged": true,
+  "actual_CUDA_routing_still_needs_NEW_GPU_purpose": true,
+  "no_old_NPZ_PT_or_target_read": true
+}

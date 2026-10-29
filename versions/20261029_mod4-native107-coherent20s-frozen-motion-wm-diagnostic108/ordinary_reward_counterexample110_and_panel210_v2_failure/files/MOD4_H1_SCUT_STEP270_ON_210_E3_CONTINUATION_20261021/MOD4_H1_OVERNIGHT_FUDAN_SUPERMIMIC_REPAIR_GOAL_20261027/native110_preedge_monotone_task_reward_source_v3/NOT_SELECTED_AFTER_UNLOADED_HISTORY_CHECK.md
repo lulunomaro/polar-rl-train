@@ -1,0 +1,2 @@
+HistoricalV3sourceCPU passed scopedchecks; not deployed. SelectedV4 adds exactzero-unloaded support and actualplatform crossingband. See C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\native110_task_reward_contact_semantics_source_v4\HANDOFF.md
+Originalreports retained unchanged.

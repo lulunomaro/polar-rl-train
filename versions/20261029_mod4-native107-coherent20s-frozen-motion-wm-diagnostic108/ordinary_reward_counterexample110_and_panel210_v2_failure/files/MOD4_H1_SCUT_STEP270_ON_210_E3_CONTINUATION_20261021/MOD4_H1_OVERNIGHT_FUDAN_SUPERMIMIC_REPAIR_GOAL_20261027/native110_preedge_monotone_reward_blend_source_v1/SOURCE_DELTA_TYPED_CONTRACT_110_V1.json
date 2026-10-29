@@ -1,0 +1,52 @@
+{
+  "kind": "SOURCE_ONLY_NATIVE107_TO110_PREEDGE_MODE_BLEND_REPAIR_V1",
+  "epoch": 1793236485.702147,
+  "parent_source_SHA": "bbd37afbb6e59d12bf93353b6297cbd2e4237b58c202f435316ae5ab40dc0f1c",
+  "candidate_reward_SHA": "dc9fac6e95c40c3e411838c6939f93ed244f704ac9230ab7a6dbc4e1acdcdde9",
+  "reference_SHA": "1a03883127eae81ef815fbb6f7450bdee68f489561cd16a9d4b193a48243153e",
+  "adapter_SHA": "d068a6d012c7d7d0eeb8cb9337dbc98e71b2e3199a5c7e41341e8c8256fcb976",
+  "input_model_metadata_only": {
+    "SHA": "36059cd11b17097e82feb58fc48b259613bcf378376c4d219e20e2000baa21ef",
+    "bytes": 256234249,
+    "global_iteration": 17272,
+    "WM": 172720,
+    "Pi": 16632
+  },
+  "changes": [
+    "Replace blending two different total-reward baselines by original recovery common baseline plus nonnegative jump mode advantage.",
+    "Make near-edge gate monotone before the leading wheel reaches the edge; retain continuous decay after crossing and original top-support recovery."
+  ],
+  "algebra": {
+    "J": "sum of six nonnegative clipped jump bonuses",
+    "E": "recovery base_height + base_height_enhance + lin_vel_z - dt, always <=0",
+    "R": "original recovery reward",
+    "w": "original request-masked jump mode after corrected preedge gate",
+    "new": "R + w*(J-E) + dt*top_support*quiet",
+    "old": "w*jump_total + (1-w)*recovery_total + dt*top_support*quiet",
+    "derivative_wrt_w": "J-E >=0 for finite valid measurement domain",
+    "common_upper_bound": 0.02,
+    "jump_bonus_upper_bound": 0.0985,
+    "placement_upper_bound": 0.01,
+    "dt_restore": 0.01,
+    "total_upper_bound": 0.1385
+  },
+  "exact_inverse_source_bytes": true,
+  "reference_and_adapter_bytes_unchanged": true,
+  "unrelated_109_geometry_and_velocity_gate_changes_NOT_selected": true,
+  "preserved": [
+    "all instantaneous Fudan-derived formulas, original weights/clips/dt",
+    "extension0.31/tuck0.16/positive-vz takeoffgate unchanged for this bounded blend repair",
+    "20s/request200..1999/private4096/age_seconds/horizon32/goal10/focus sampler/architecture/learner/models/norms/threeopts",
+    "400plant/native100Hz/2.5msTGS32/4/FP32/PD/clip6/delay/DR/reset",
+    "actual270dualwheelcross/fullfootprint/topcontact12+stable200 and terminal goal"
+  ],
+  "validity": [
+    "Monotone positional claim is for an unchanged supported floor pose before leading-edge crossing, so top support is absent and command/support surface do not change.",
+    "No monotonicity claim across actual landing, top-support activation, command changes, collisions, resets, arbitrary inconsistent scene states or postedge decay.",
+    "Source algebra/CPU passing is not complete reward correctness, policy improvement, GPU admission or270mm success.",
+    "Native109 source-only calibration retained NOT_SELECTED because its unchanged total blend must be checked against the same counterexample.",
+    "No new force/action script/airborne reset/state/RNG/model read/raw decode/SDK/remote/GO/account operation."
+  ],
+  "actual_sourceSDK_fullstate_payload_producer_Task_GO_resource_admission_pending": true,
+  "source_only": true
+}

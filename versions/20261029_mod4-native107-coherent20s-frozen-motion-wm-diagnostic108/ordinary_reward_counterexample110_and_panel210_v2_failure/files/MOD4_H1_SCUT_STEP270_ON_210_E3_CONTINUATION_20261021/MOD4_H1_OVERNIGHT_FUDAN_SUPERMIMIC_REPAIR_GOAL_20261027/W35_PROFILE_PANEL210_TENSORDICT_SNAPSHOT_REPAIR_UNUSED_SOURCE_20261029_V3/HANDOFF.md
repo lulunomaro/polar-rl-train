@@ -1,0 +1,19 @@
+# FROZEN / UNUSED — v3 TensorDict快照类型修复
+
+Selected entry: `install_admit_detach_W35_profile_panel210_TENSORDICT_REPAIR_UNUSED_once_v3.py`。Python314 -B entry，可选`--known72-binding-json <当次真实owner/run_id/go>`；root先审源、fresh LOCAL exactCIM、协调global serial lease。本轮未执行入口或任何remote CODE/GPU/SDK/旧模型读取。新目标仅`/mnt/mod4_linux_durable_20261013/MOD4_W35_PROFILE_ENV_DOMAIN_PANEL_20261029v3/w35`，未创建；不重跑旧v1/v2 once，不热改旧目录。
+
+原v2事实：launcher修复及original CUDA fullrestore/ad504/17Adam648360通过；首次原mean actor动作输出后、第一次vec.step之前，requested->_snapshot(obs)拒绝实际TensorDict。normal85383真实returncode=0，但passed_frozen_execution=false/resultnull/无native24；原TypeError、allout/wait/private-release/integrity[]保持。rc0不当成功、不改写成rc1。完整原terminal/preclose/stdout在ORIGINAL_V2_TENSORDICT_FAILURE_RETURN0_NOT_SUCCESS_PRESERVED.json及原report的SHA引用中。
+
+Selected组件 `w35_profile_env_domain_panel_v1.py` SHA75d683ad48cf8d3981f5490e93db31eb68fb4dd067945113e89f7c414bf2e99e。仅新import Mapping/TensorDictBase、TensorDict/Mapping快照分支与typed-key编码；tensor选择/shape/dtype/value分支、actor/观测/RNG/物理/queue/reset方法均原样。逆bytes可精确还原旧4e2f。TensorDict记录concrete_type、original/snapshot batch、original_device、nested entries，每Tensor保留dtype/original_shape/selected shape/data。原obs不替换、不修改，不多调用actor、draw RNG或step。
+
+实际_domain源键审查：queue与feedback等固定str channel/group/field，tick是tensor值；D5/D6/COM顶层kwargs str、PD groups固定str；但sensor load_state_dict直接复用缓存/draw_counts keys，禁止读PT下不能证明恢复数据所有key为str。因此先前b2eca全面拒绝nonstr候选保留NOT_SELECTED，最终支持合法Python str/int/bool/finitefloat/None/tuple键，以typed_key_mapping entries无损保留1与"1"等区别，原str-key map仍保持相同JSON结构。未支持对象/非有限键明确TypeError，不静默str或补零。审查实际源码片段/producerSHA和final逆bytes在DOMAIN_MAPPING_KEY_SOURCE_AUDIT_AND_LOSSLESS_SELECTED_FIX.json。
+
+真实CPU synthetic：本机torch2.14.0+cpu/tensordict0.15.1（明确不是target2.10cu128的API等同证明）。21项通过：复现旧TypeError、真实TensorDictBase、35/38 selected batch/dtype/value、nestedTD与tuple路径、requested真实代码路径、nested Mapping、1/"1"/tuple等键JSON无损、输入object/data_ptr/version与CPU RNG不变、原str-dict快照一致与RNG排除、unsupported TD value/key/nonfinitekey/对象/越界索引明确拒绝。无saved model/NPZ/raw/SDK或GPUquery、无actorforward。源码test_real_CPU_TensorDict_snapshot_SOURCE_only_once.py与完整回执保留。
+
+安装源继承v2：caller bytes完全未变SHA34eefd0e2bb9160c6301075e905ad4e9c23d648d8e1233c6e9a79b3c3e2a1841；worker e736e61b87898af1db002ea5a1f8b9a1954b89998dda2c8a4b97ba5244478104、supervisor5022f4f2c238bfed564d2138022e6e58f9300f4743a883d05f10aa116b87a224、AUTH/PRE与physics/model/bank/norm/STD/17Adam648360/LR/D1-D7 guards均不变。469输入=5小overlay+464原输入；组件SHA已同步Task/manifest/source extension。launcher仅expected v2->v3 kit_isolation literal，SHAcfff40ca75d143a8013521b8911c708e6ff4f79a15beef408025bd80f6cacd67，原assert/is_dir/cooking/extra_args不改。
+
+COPY仍从原完整成功V3输入复制，原wholeCPU c633/modelad504来源不变；额外失败context明确绑定v2 sup1832354/worker1832368及exact terminalSHA、actualrc0/false/resultnull、preclose TypeError SHA与known ownout，不从失败结果提升模型。PT/NPZ/source700USD只sameinode/stat/producer，无CPU模型decode或重hash大内容；实际GPUworker原H(source)/完整restore照旧。原fresh lightGPU>15669MiB/util<=30、RAM32/disk25、私锁、1680worker/1800wait+30/15、metadata300边界、onlynewnamespace HOME/XDG/cache、原canonical实时只读/known active绑定均保留，不写C/不新writer或GO。
+
+RUN只新增actual_target_tensordict_version=md.version('tensordict')与source API fixture来源metadata；原exact Torch2.10cu128/SDK/RSL/math/USD检查不改，不把本机2.14/0.15强设到target。源Task仍false/null，静态输入不覆盖，运行时grant另写。实际版本/新App/fullCUDArestore/native24+queue legs/wheels192/trace1..24/600coverage/模型norm17Adam不变仍须真实验证，不能因本CPU fixture宣称target API或技能通过。新component SHA需新first reader在实际v3startup后绑定；本轮不准备/执行新first，旧first/normal不重用。600诊断不毕业、不完整WM数据。
+
+所有源/NOT_SELECTED候选/旧错误均保留。选定源inverse/namespace证据见V3_NAMESPACE_SOURCE_INVERSE_AND_GUARD_PRESERVATION_ACTUAL.json；actual root fixture/model flags在FINAL_SOURCE_BINDING_AND_UNUSED_STATE_ACTUAL.json。未创建trial/tag，普通Git supplement pending root；source冻结后idle，不自动拿lease或执行下一项。

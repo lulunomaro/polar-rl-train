@@ -1,0 +1,83 @@
+{
+  "kind": "SOURCE_ONLY_NATIVE107_TO109_SUPPORTED_EXTENSION_CALIBRATION_V1",
+  "epoch": 1793236145.9194245,
+  "source_native107": {
+    "SHA": "36059cd11b17097e82feb58fc48b259613bcf378376c4d219e20e2000baa21ef",
+    "bytes": 256234249,
+    "iteration": 17272,
+    "WM": 172720,
+    "Pi": 16632
+  },
+  "source_files": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_EPISODE20_PRODUCER_FIX_RESOURCE_V107_20261029\\payloads_v2\\seed27\\source\\mod4_fudan_contact_phase_reward_candidate_v2.py",
+      "bytes": 6808,
+      "SHA": "bbd37afbb6e59d12bf93353b6297cbd2e4237b58c202f435316ae5ab40dc0f1c"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_EPISODE20_PRODUCER_FIX_RESOURCE_V107_20261029\\payloads_v2\\seed27\\source\\OWN_FUDAN_STEP_TERMINAL_GOAL_CANDIDATE_V2.json",
+      "bytes": 6917,
+      "SHA": "1a03883127eae81ef815fbb6f7450bdee68f489561cd16a9d4b193a48243153e"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_FUDAN270_EPISODE20_PRODUCER_FIX_RESOURCE_V107_20261029\\payloads_v2\\seed27\\source\\native_fudan_step_adapter_candidate_v2.py",
+      "bytes": 9724,
+      "SHA": "d068a6d012c7d7d0eeb8cb9337dbc98e71b2e3199a5c7e41341e8c8256fcb976"
+    }
+  ],
+  "candidate_files": [
+    {
+      "relative": "mod4_fudan_contact_phase_reward_candidate_v2.py",
+      "bytes": 6844,
+      "SHA": "bec936b72986ea15ccf91aca0000761ef8541f1a5448beaf67499e22985eb3f5"
+    },
+    {
+      "relative": "OWN_FUDAN_STEP_TERMINAL_GOAL_CANDIDATE_V2.json",
+      "bytes": 6918,
+      "SHA": "08b124c23afe1e7ca3d681822f825d65e2e6268401a07b1f2af6bdb3eb2233c8"
+    },
+    {
+      "relative": "native_fudan_step_adapter_candidate_v2.py",
+      "bytes": 9724,
+      "SHA": "d068a6d012c7d7d0eeb8cb9337dbc98e71b2e3199a5c7e41341e8c8256fcb976"
+    }
+  ],
+  "changes": [
+    {
+      "field": "contact_and_step_modes.takeoff",
+      "old": "ground*sigmoid((root_vz-.15)/.05)",
+      "new": "ground",
+      "reason": "Remove prior-upward-velocity self-gate on the extension term. Active request and near/flight jump mixture remain original."
+    },
+    {
+      "field": "reference.bound_own_step_reward.extension_length_m",
+      "old": 0.31,
+      "new": 0.346,
+      "reason": "Use observed own late standing sagittal hip-wheel length, not the Fudan robot length. Engineering shaping reference, not measured maximum extension or an airborne reference."
+    }
+  ],
+  "exact_inverse_reward_and_reference_bytes": true,
+  "adapter_bytes_unchanged": true,
+  "preserved": [
+    "20s/2000controls and request200..1999",
+    "private4096/age_seconds/horizon32/goal10/taskfocus50percent/max8/fallback",
+    "all other reward formulas/weights/clipping/dt/topquiet/softdone/real270acceptance",
+    "all networks/normalizers/threeoptimizers/counters/architecture/learner",
+    "native100Hz/400N/2.5msTGS32/4/FP32/PD/actionclip6/queue/DR/reset/sourceSDK"
+  ],
+  "limits": [
+    "This jointly changes a support gate and a geometry target; no isolated causal attribution.",
+    "It supplies supported extension shaping; it does not add a separate crouch phase or promise a complete jump.",
+    "Near-edge blend still attenuates the jump component far from the edge. Existing forward tracking remains unchanged.",
+    "Observed0.346m is not proof of maximum mechanical reach, dynamic launch feasibility, a force curve, a teacher motion, or270mm skill.",
+    "Candidate has no scripted action/force/airborne reset, no added state/phase/RNG stream.",
+    "No payload/producer/Task/GO/sourceSDK/fullstate/resource/canonical admission or GPU training done. Do not install into old namespaces."
+  ],
+  "geometry_evidence_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\H1_NATIVE107_COHERENT20S_FROZEN_MOTION_WM_N1_V108_20261029\\reports\\NEW108_REWARD_BLEND_GATE_AND_LEG_TARGET_SOURCE_CPU_ACTUAL.json",
+  "exact_input_schema_and_producer_binding_pending": true,
+  "source_only": true,
+  "saved_model_reads": 0,
+  "raw_reads": 0,
+  "remote_calls": 0,
+  "successful_skill": false
+}

@@ -1,0 +1,51 @@
+{
+  "kind": "SOURCE_ONLY_NATIVE107_TO110V2_TASK_REWARD_COUNTEREXAMPLE_REPAIR",
+  "epoch": 1793236910.3298852,
+  "source_model_metadata_only": {
+    "SHA": "36059cd11b17097e82feb58fc48b259613bcf378376c4d219e20e2000baa21ef",
+    "bytes": 256234249,
+    "iteration": 17272,
+    "WM": 172720,
+    "Pi": 16632
+  },
+  "baseline_reward_SHA": "bbd37afbb6e59d12bf93353b6297cbd2e4237b58c202f435316ae5ab40dc0f1c",
+  "baseline_adapter_SHA": "d068a6d012c7d7d0eeb8cb9337dbc98e71b2e3199a5c7e41341e8c8256fcb976",
+  "candidate_reward_SHA": "8f5f091c79481fc660b9b6acfbe2042863b0e8630c27710bd0afd56e91cd6206",
+  "candidate_adapter_SHA": "be9e7201d032955229b701cbe4fa72e7e5cfa70b5c030c761ec58e33eb2421cc",
+  "reference_unchanged_SHA": "1a03883127eae81ef815fbb6f7450bdee68f489561cd16a9d4b193a48243153e",
+  "changes": [
+    "Use original recovery common baseline plus nonnegative mode advantage, not blend different total baselines.",
+    "Approach mode monotone before leading-edge crossing, continuous decay after edge, original top-support recovery.",
+    "Task planar velocity error is worldXY versus (+0.5,0) before top support and (0,0) on top, matching fixed platform goal. Original actual raw command/observations and body-frame diagnostics remain unchanged.",
+    "Top quiet placement includes vertical speed as well as planar speed and angular speed.",
+    "Placement weight12 gives0.12/control, strictly greater than bounded six jump bonuses0.0985/control. Conservative total bound0.15; max_step_reward changed only for log normalization."
+  ],
+  "algebra": {
+    "J_nonnegative_upper": 0.0985,
+    "E_nonpositive": "base_height_clipped + base_height_enhance + lin_vel_z - dt",
+    "common_upper": 0.02,
+    "w_bounds": "0<=w<=1-P where P=top_support",
+    "total": "C+dt+(1-w)*E+w*J+12*dt*P*quiet",
+    "upper": ".03+.0985*(1-P)+.12*P <=.15",
+    "perfect_quiet_top_can_reach": 0.15,
+    "any_zero_top_support_upper": 0.1285,
+    "placement_coefficient_is_engineering_selection_not_measured_or_optimal": true
+  },
+  "scope": [
+    "Not unchanged Fudan reward; task-specific adaptation with explicit source/adapter frame binding.",
+    "Preedge positional monotonicity holds for unchanged supported floor pose with no top support/command change. No claim across physical landing/contact/reset or postedge decay.",
+    "Priority repair is the user-provided mode-blend counterexample.109 geometry/vz gate proposal is NOT_SELECTED; extension0.31/tuck0.16/old positive-vz extension gate stay unchanged here.",
+    "No new force/action trajectory/airborne reset/network/RNG/replay/physics/normalizer/optimizer.20s/request200..1999/private4096/horizon32/goal10/native100Hz/400plant/actual270acceptance retained.",
+    "Source bounded algebra and synthetic checks cannot prove physical success, all reward correctness, WM accuracy or learned-policy gain.",
+    "No candidate payload/producer/Task/GO or actualSDK/fullstate/resource admission yet; GPU training remains prohibited until those checks."
+  ],
+  "adapter_exact_inverse_bytes": true,
+  "reward_exact_inverse_to_V1_bytes": true,
+  "reference_bytes_unchanged": true,
+  "saved_model_reads": 0,
+  "raw_reads": 0,
+  "remote_calls": 0,
+  "source_only": true,
+  "CPU_tests_pending": true,
+  "actual_training_not_authorized_by_source_alone": true
+}

@@ -1,0 +1,20 @@
+{
+  "epoch": 1793238129.1413982,
+  "base": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PROFILE_ENV_DOMAIN_PANEL_UNUSED_SOURCE_20261029_V1\\w35_profile_env_domain_panel_v1.py",
+  "base_SHA": "4e2f4b92786e1987cdd843be7252d81e8cedb91ca28a32f3675976c5ec75e5c4",
+  "new_SHA": "b2eca53ef8eb8e937a5ed1930c5159b8baeba328945555978647f875dba4f044",
+  "changes": [
+    {
+      "old": "import types\nfrom pathlib import Path",
+      "new": "import types\nfrom collections.abc import Mapping\nfrom tensordict import TensorDictBase\nfrom pathlib import Path"
+    },
+    {
+      "old": "        if isinstance(value, dict):\n            return {str(k): self._snapshot(v, path + '/' + str(k)) for k, v in value.items()}",
+      "new": "        if isinstance(value, TensorDictBase):\n            items = list(value.items())\n            if not all(isinstance(k, str) for k, _ in items):\n                raise TypeError('Non-string TensorDict key at ' + path)\n            original_batch = list(value.batch_size)\n            selected_batch = list(original_batch)\n            if original_batch and original_batch[0] == self.real.num_envs and not any(x in path.lower() for x in ('rng', 'generator')):\n                selected_batch[0] = len(self.selected)\n            return dict(container_type='tensordict.TensorDictBase',\n                        concrete_type=type(value).__module__ + '.' + type(value).__qualname__,\n                        original_batch_size=original_batch, snapshot_batch_size=selected_batch,\n                        original_device=str(value.device) if value.device is not None else None,\n                        entries={k: self._snapshot(v, path + '/' + k) for k, v in items})\n        if isinstance(value, Mapping):\n            items = list(value.items())\n            if not all(isinstance(k, str) for k, _ in items):\n                raise TypeError('Non-string Mapping key at ' + path + '; refusing lossy key conversion')\n            return {k: self._snapshot(v, path + '/' + k) for k, v in items}"
+    }
+  ],
+  "inverse_bytes_exact": true,
+  "AST_passed": true,
+  "no_tensor_branch_actor_or_RNG_change": true,
+  "source_only_unexecuted": true
+}

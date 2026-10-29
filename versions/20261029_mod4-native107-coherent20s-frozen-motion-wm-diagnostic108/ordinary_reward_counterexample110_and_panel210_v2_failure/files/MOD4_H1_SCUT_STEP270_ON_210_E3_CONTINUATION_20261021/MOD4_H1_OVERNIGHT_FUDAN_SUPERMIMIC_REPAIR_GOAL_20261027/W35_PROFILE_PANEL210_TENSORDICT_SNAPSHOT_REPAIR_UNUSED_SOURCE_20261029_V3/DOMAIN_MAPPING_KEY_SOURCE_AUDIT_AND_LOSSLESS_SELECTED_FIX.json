@@ -1,0 +1,89 @@
+{
+  "epoch": 1793238480.9396615,
+  "source_audit": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\action_delay_physics_queue.py",
+      "producer_SHA": "a4238c581611ef7cdb710692291ddac48e076364b0587f631eb71fd6a7d15eb8",
+      "source_API_snippets": [
+        "def state_dict(self):\n        return dict(version=1,n=self.n,enabled=self.enabled,physics_us=self.physics_us,control_us=self.control_us,rng={k:g.get_state().clone() for k,g in self.rng.items()},groups={k:{f:v.clone() for f,v in g.items()} for k,g in self.groups.items()})",
+        "def load_state_dict(self,state):\n        self.validate_state(state)\n        self.groups={k:{f:v.to(self.device).clone() for f,v in g.items()} for k,g in state['groups'].items()}\n        for key,generator in self.rng.items():generator.set_state(state['rng'][key].cpu())"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\chassis_com_component.py",
+      "producer_SHA": "7954ccf5fb391b820b970ee0d1f47c1db04b7f3f2036f475f9fa3333634a6502",
+      "source_API_snippets": [
+        "def state_dict(self):\n        return dict(version=1,profile=PROFILE,enabled=self.enabled,num_envs=self.num_envs,delta_m=self.delta_m.clone(),\n                    episode=self.episode.clone(),private_xyz_RNG=[g.get_state().clone() for g in self.generators])",
+        "def load_state_dict(self,state):\n        if state['version']!=1 or state['profile']!=PROFILE or state['enabled']!=self.enabled or state['num_envs']!=self.num_envs:raise ValueError('COM state scope mismatch')\n        delta=state['delta_m'].to(self.device);episode=state['episode'].to(self.device)\n        if delta.shape!=(self.num_envs,3) or episode.shape!=(self.num_envs,) or episode.dtype!=torch.long:raise ValueError('COM state shape/type mismatch')\n        if not bool(torch.isfinite(delta).all()) or bool((delta.abs()>.005001).any()) or bool((episode<0).any()):raise ValueError('Invalid COM state')\n        if not self.enabled and bool((delta!=0).any()):raise ValueError('Disabled COM state must be zero')\n        if len(state['private_xyz_RNG'])!=3:raise ValueError('Three private axis RNG states required')\n        self.delta_m.copy_(delta);self.episode.copy_(episode)\n        for g,s in zip(self.generators,state['private_xyz_RNG']):g.set_state(s.cpu())"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\explicit_pd_component.py",
+      "producer_SHA": "e636e6ea50ef2b0a643bcd0ae052deb784d35fff2df06517511301663363ab93",
+      "source_API_snippets": [
+        "def state_dict(self):\n        return dict(version=1,profile=PROFILE,num_envs=self.num_envs,enabled=self.enabled,\n                    factor={k:v.clone() for k,v in self.factor.items()},episode=self.episode.clone(),\n                    private_group_RNG={k:g.get_state().clone() for k,g in self.generators.items()})",
+        "def load_state_dict(self,state):\n        if state['version']!=1 or state['profile']!=PROFILE or state['num_envs']!=self.num_envs or state['enabled']!=self.enabled:raise ValueError('PD state scope mismatch')\n        if state['factor'].keys()!=self.factor.keys() or state['private_group_RNG'].keys()!=self.generators.keys():raise ValueError('PD state groups mismatch')\n        values={k:v.to(self.device) for k,v in state['factor'].items()};episodes=state['episode'].to(self.device)\n        if episodes.shape!=(self.num_envs,) or episodes.dtype!=torch.long or bool((episodes<0).any()):raise ValueError('PD episode state invalid')\n        for k,v in values.items():\n            if v.shape!=self.factor[k].shape or not bool(torch.isfinite(v).all()) or bool(((v<.949999)|(v>1.050001)).any()):raise ValueError('PD factor invalid')\n            if not self.enabled and bool((v!=1).any()):raise ValueError('Disabled PD factor must be1')\n        for k,v in values.items():self.factor[k].copy_(v)\n        self.episode.copy_(episodes)\n        for k,g in self.generators.items():g.set_state(state['private_group_RNG'][k].cpu())"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\feedback_delay_checkpoint.py",
+      "producer_SHA": "06b8cfcf3360ca38cb6c0dbba264cde89ba84fb8341ad2bd2681e8d46e33b952",
+      "source_API_snippets": [
+        "def validate_delay_state(d,s):\n    assert s['version']==1 and s['n']==d.n and s['enabled']==d.enabled\n    assert s['delay'].shape==s['episode'].shape==(d.n,)\n    assert s['delay'].dtype==s['episode'].dtype==torch.long\n    assert bool(((s['delay']==0)|(s['delay']==1)).all()) and bool((s['episode']>=0).all())\n    assert set(s['cache'])==set(WIDTHS) if d.enabled else not s['cache']\n    for key,c in s['cache'].items():\n        assert set(c)=={'last','cur','out','sample_tick','ready'}\n        assert c['cur'].shape==c['out'].shape==(d.n,WIDTHS[key])\n        assert bool(torch.isfinite(c['cur']).all()) and bool(torch.isfinite(c['out']).all())\n        assert c['last'].shape==c['sample_tick'].shape==c['ready'].shape==(d.n,)\n        assert c['last'].dtype==c['sample_tick'].dtype==torch.long and c['ready'].dtype==torch.bool\n        live=c['last']>=0\n        assert bool((c['sample_tick'][live]<=c['last'][live]).all())\n        age=c['last'][live]-c['sample_tick'][live];assert bool(((age==0)|(age==1)).all())\n    return True"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\feedback_delay_mild.py",
+      "producer_SHA": "90b339a6d3690294798befefb33e7f27cb7c3bfa0d8e38c98312e207685b5665",
+      "source_API_snippets": [
+        "def state_dict(self):\n  return dict(version=1,n=self.n,enabled=self.enabled,delay=self.delay.clone(),episode=self.episode.clone(),rng=self.rng.get_state(),cache={k:{a:b.clone() for a,b in c.items()} for k,c in self.cache.items()})",
+        "def load_state_dict(self,s):\n  assert s['version']==1 and s['n']==self.n and s['enabled']==self.enabled and bool(((s['delay']==0)|(s['delay']==1)).all())\n  assert set(s['cache']).issubset(WIDTHS)\n  self.delay=s['delay'].to(self.device).clone();self.episode=s['episode'].to(self.device).clone();self.rng.set_state(s['rng'].cpu())\n  self.cache={k:{a:b.to(self.device).clone() for a,b in c.items()} for k,c in s['cache'].items()}"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\gas_damping_factor.py",
+      "producer_SHA": "d81b956099720028543edfa1f2f2e94cee56701a3418b6f218636ebbafcb561f",
+      "source_API_snippets": [
+        "def state_dict(self):\n        state=self.math.state_dict();state['physical_parameter']=PROFILE\n        state['scope']='Gas damping3Ns/m times independent episode.9-1.1; separate from PD derivative and joint friction; engineering only'\n        return state",
+        "def load_state_dict(self,state):\n        if state.get('physical_parameter')!=PROFILE:raise ValueError('D6 damping parameter scope differs; cannot load D5 stiffness state')\n        self.math.load_state_dict(state)"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\sensor_mild_math.py",
+      "producer_SHA": "aa853a74a2c2d8840d003caab13a853bade0d761cf7966e4d13c200b929817b8",
+      "source_API_snippets": [
+        "def state_dict(self):\n        return dict(version=1,n=self.n,profile=self.profile,bias=self.bias.clone(),episode=self.episode.clone(),\n                    bias_rng=self.bias_rng.get_state(),noise_rng={k:g.get_state() for k,g in self.noise_rng.items()},\n                    cache={k:(a.clone(),b.clone()) for k,(a,b) in self.cache.items()},draw_counts=dict(self.draw_counts))",
+        "def load_state_dict(self,s):\n        assert s['version']==1 and s['n']==self.n and s['profile']==self.profile\n        assert s['bias'].shape==(self.n,4) and torch.isfinite(s['bias']).all()\n        self.bias=s['bias'].to(self.device).clone();self.episode=s['episode'].to(self.device).clone()\n        self.bias_rng.set_state(s['bias_rng'].cpu())\n        for k,g in self.noise_rng.items():g.set_state(s['noise_rng'][k].cpu())\n        self.cache={k:(a.to(self.device).clone(),b.to(self.device).clone()) for k,(a,b) in s['cache'].items()}\n        self.draw_counts=dict(s['draw_counts'])"
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\W35_PPO50_gas400_source_preparation_20261027\\runtime_candidate_v1\\isaac\\mod4\\spring_pressure_component.py",
+      "producer_SHA": "1dc1cfd018351a3d7677a51dcf31d8c9ed8ba3987eedceb2eeed589428fd2d94",
+      "source_API_snippets": [
+        "def state_dict(self):\n        return dict(version=1,n=self.n,enabled=self.enabled,rng_device_type=self.device.type,\n            factor=self.factor.clone(),episode=self.episode.clone(),rng=[g.get_state().clone() for g in self.rng],\n            scope='Independent per-episode engineering stiffness factor.9–1.1; preload/damping unchanged; nothardware calibrated')",
+        "def load_state_dict(self,state):\n        if state['version']!=1 or state['n']!=self.n or state['enabled']!=self.enabled or state['rng_device_type']!=self.device.type:\n            raise ValueError('scope/device RNG codec differs; actualCUDA resume must be independently verified')\n        f=state['factor'];e=state['episode'];streams=state['rng']\n        if f.shape!=(self.n,2) or e.shape!=(self.n,) or len(streams)!=2 or not torch.isfinite(f).all() or bool(((f<.9)|(f>1.1)).any()) or bool((e<0).any()):\n            raise ValueError('invalid saved pressure state')\n        if not self.enabled and not torch.equal(f,torch.ones_like(f)):raise ValueError('off must be exact unity')\n        self.factor.copy_(f.to(self.device));self.episode.copy_(e.to(self.device))\n        for g,saved in zip(self.rng,streams):g.set_state(saved.cpu())"
+      ]
+    }
+  ],
+  "findings": "Constructed queue/channel/PD maps use fixed string names; timestamps are tensor values. Sensor load_state_dict reuses cache/draw_counts keys without strict key checks, so actual restored key set cannot be proved without forbidden model read. Support legal scalar/tuple keys losslessly instead of broad rejection.",
+  "no_model_state_read": true,
+  "prior_candidate_SHA": "b2eca53ef8eb8e937a5ed1930c5159b8baeba328945555978647f875dba4f044",
+  "prior_candidate_status": "NOT_SELECTED; source-only broad rejection removed before runtime",
+  "selected_SHA": "75d683ad48cf8d3981f5490e93db31eb68fb4dd067945113e89f7c414bf2e99e",
+  "changes": [
+    {
+      "old": "import types\nfrom pathlib import Path",
+      "new": "import types\nfrom collections.abc import Mapping\nfrom tensordict import TensorDictBase\nfrom pathlib import Path"
+    },
+    {
+      "old": "\n\nclass ProfileBook:",
+      "new": "\n\ndef encode_snapshot_mapping_key(key):\n    if key is None:return dict(kind='none')\n    if isinstance(key,bool):return dict(kind='bool',value=key)\n    if isinstance(key,int):return dict(kind='int',value=key)\n    if isinstance(key,str):return dict(kind='str',value=key)\n    if isinstance(key,float) and math.isfinite(key):return dict(kind='float',value=key)\n    if isinstance(key,tuple):return dict(kind='tuple',items=[encode_snapshot_mapping_key(k) for k in key])\n    raise TypeError('Unsupported snapshot mapping key type: ' + type(key).__name__)\n\n\nclass ProfileBook:"
+    },
+    {
+      "old": "        if isinstance(value, dict):\n            return {str(k): self._snapshot(v, path + '/' + str(k)) for k, v in value.items()}",
+      "new": "        if isinstance(value, TensorDictBase):\n            items = list(value.items())\n            if not all(isinstance(k, str) for k, _ in items):\n                raise TypeError('Non-string TensorDict key at ' + path)\n            original_batch = list(value.batch_size)\n            selected_batch = list(original_batch)\n            if original_batch and original_batch[0] == self.real.num_envs and not any(x in path.lower() for x in ('rng', 'generator')):\n                selected_batch[0] = len(self.selected)\n            return dict(container_type='tensordict.TensorDictBase',\n                        concrete_type=type(value).__module__ + '.' + type(value).__qualname__,\n                        original_batch_size=original_batch, snapshot_batch_size=selected_batch,\n                        original_device=str(value.device) if value.device is not None else None,\n                        entries={k: self._snapshot(v, path + '/' + k) for k, v in items})\n        if isinstance(value, Mapping):\n            items = list(value.items())\n            if all(isinstance(k, str) for k, _ in items):\n                return {k: self._snapshot(v, path + '/' + k) for k, v in items}\n            return dict(container_type='typed_key_mapping',\n                        concrete_type=type(value).__module__ + '.' + type(value).__qualname__,\n                        entries=[dict(key=encode_snapshot_mapping_key(k), value=self._snapshot(v, path + '/' + str(k))) for k, v in items])"
+    }
+  ],
+  "inverse_bytes_exact": true,
+  "tensor_branch_actor_RNG_physics_unchanged": true
+}

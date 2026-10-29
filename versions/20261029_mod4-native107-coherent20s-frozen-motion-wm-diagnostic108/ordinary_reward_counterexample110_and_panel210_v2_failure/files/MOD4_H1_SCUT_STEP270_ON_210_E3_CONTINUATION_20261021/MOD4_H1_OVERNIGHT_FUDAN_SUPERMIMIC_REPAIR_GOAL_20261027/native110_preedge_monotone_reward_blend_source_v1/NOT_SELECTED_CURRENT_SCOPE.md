@@ -1,0 +1,3 @@
+NOT_SELECTED: intermediate source only; top bound/vertical quiet/task-frame checks incomplete.
+Evidence: C:\Users\lulu\Desktop\claude\mjcf\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\native110_preedge_monotone_task_reward_source_v3\reports\REWARD_COUNTEREXAMPLES_DOMAIN_AND_BOUND_CPU_ACTUAL_V3.json
+Original source/reports unchanged.

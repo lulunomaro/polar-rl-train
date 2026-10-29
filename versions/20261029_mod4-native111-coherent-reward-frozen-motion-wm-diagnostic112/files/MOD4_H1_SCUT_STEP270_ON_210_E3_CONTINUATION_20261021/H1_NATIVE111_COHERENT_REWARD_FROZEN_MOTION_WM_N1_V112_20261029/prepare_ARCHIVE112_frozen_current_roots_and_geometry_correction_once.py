@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,time
+S=Path(__file__).resolve().parent;T=S.parent;N=T/"MOD4_H1_FUDAN270_REWARD_COHERENCE_RESOURCE_V111_20261029";L=T/"MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027";G=T.parent/"polar-rl-train";R=S/"reports"
+prior=json.loads((G/"versions/20261029_mod4-native-fudan270-coherent-world-reward-and-heading111/COMPLETE_FILE_CAPTURE_INDEX.json").read_bytes());known={x["path"] for x in prior["entries"]}
+new=[p for p in (N/"reports").rglob("*") if p.is_file() and str(p) not in known]
+assert all("ROOT_E2_V4_ORIGINAL_INGRESS_ERROR_" in p.name for p in new),[str(x) for x in new]
+E0=L/"E0_82_NEW86_N20K_LONG_COMMAND_FROZEN_SOURCE_20261029_V1";E3=L/"E3_V4_FINAL_SAVED_TEXT_RECIPE_PHASE_REVIEW_20261029_V1"
+f=json.loads((E0/"reports/E0_V4_FIRST_ORIGINAL_RETURNED_ACTUAL.json").read_bytes());assert f["passed_first_actual_E0_CUDA_fullrestore_native24_queue"] and not f["original_errors"] and not f["integrity"]
+w=json.loads((R/"CURRENT_ACTUAL112_COHERENT_REWARD_FROZEN_MOTION_AND_NEXT_WORK_ORDER.json").read_bytes())
+w["epoch"]=time.time();w["E0_NEXT_source_status"]="ActualtargetSDK/constructor/entry/0PTCPU witness and NEWfullrestore17Adam641200/native24queue FIRST PASS; finite1000 pending, no learner/GO/Cwrite, no continuousalive claim."
+w["body_position_inference_correction"]="BodyrootX<.35 does not alone prove wheels remained distant. NEW dedicated geometry/processed-queue purpose checks actual frontgap: one callback onefront-.715um F32-level, no substantivecross inference; bothfront closest104.1855mm short. Originalcountercross0. Negative wheel command means alone do not establish sign error without jointaxes/transmission/worldprojection."
+w["next_root_work_order"]="Check actualwheel-front/axes and WM actual-action rootX/worldVx accuracy before choosing stage gating; saved112 validation only recordedZ. Any new CPUformal read must be explicit new sealed counted purpose, not stats/Git. Nextreward still needs declared counterexamples/ownFK/direction/contact/finitebounds/targetSDK fullstate/readback/newTaskGO/resources/singlewriter BEFOREuse. No blind unchanged training or force/script/fakeairreset."
+with (R/"CURRENT_ACTUAL112_GEOMETRY_CLARIFIED_E0_NATIVE24_AND_NEXT_WORK_ORDER_V2.json").open("x",encoding="utf8") as z:json.dump(w,z,indent=2)
+v=dict(epoch=time.time(),roots=[str(S),str(E0),str(E3)],new_N111_actual_error_report_extras=[str(x) for x in new],actual112_complete=True,E0_actual_target_and_GPU_native24_pass=True,E0_full1000_pending=True,E0_supervisor=f["supervisor_state"]["expected"],E0_worker=f["worker_state"]["expected"],E3_full600_text340checks=True,E3_not_skill_qualified="141credits/414048attempt-profile exposures notsuccessrate;closure395685/reset396509/6445resetenvs;0/5/11zero;reason overlaps and segmented maxduration retained.",raw_only_existing_producer_index_for_Git=True,plot_native_visual_checked=True,geometry_scope_correction=w["body_position_inference_correction"],next_root_work=w["next_root_work_order"],active_child_E3_next_SOURCE="EXPLICIT_PENDING excluded until freeze; LOCAL source/text only.")
+with (R/"ARCHIVE112_FROZEN_ROOT_SELECTION_AND_ACTUAL_STATUS.json").open("x",encoding="utf8") as z:json.dump(v,z,indent=2)
+with (R/"LOCAL_ARCHIVE112_PATCH_PREWRITE_QUOTE_MISMATCH_ERROR_ACTUAL.json").open("x",encoding="utf8") as z:json.dump(dict(original_tool_error="apply_patch expected ns['run_stage'] but actual source ns[doublequote run_stage]; patch refused before edits. Correct exact line then continued, no Git or experiment action before correction.",original_tool_receipt_in_conversation=True),z,indent=2)
+print(json.dumps(dict(roots=len(v["roots"]),new_N111_error_reports=len(new),actual112_and_E0first_before_archive=True)))
+

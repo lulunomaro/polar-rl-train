@@ -1,0 +1,26 @@
+Selected E0 source-only handoff (UNUSED, 2026-10-29)
+
+Entry: upload_admit_detach_NEW86_E0_final82_long_command_secure_stdin_UNUSED_once_v1.py
+SHA256: 951447d489f6a14e21923e18311c35d0238984421902d8c48f3f3efe6ae2bed8
+Target: /data/robemo/polar-rl-train/evaluation_runs/E0_ADAPTED82_LONG_COMMAND_20261029v1/e0
+Input manifest: E0_NEW86_COMPLETE_INPUT_MANIFEST_V1.json, SHA256 26c93fcc7532ab7c3f47e447236e7cbc48f25a80c0eeab6a325c76ec8fc26b27, 482 files / 28883944 bytes.
+Source: E0 adapted89D final82, a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a,14,031,973B; existing wholeCPU1364e84c…; 17 Adam states step641200, RSL iteration31984, final LR .00038443359375000017.
+
+Run root secure noecho stdin only after fresh seriallease/resource/authority review:
+  python -u -B <thisdir>/upload_admit_detach_NEW86_E0_final82_long_command_secure_stdin_UNUSED_once_v1.py [--known72-binding-json <fresh actual owner/run/go JSON>]
+Only stdin JSON host/username/password. Original72 read-only CNone or exact current-known-owner binding, close72, then pinned86. No new writer/GO/Cwrite. Target existing directory refused; all HOME/XDG/TMP/cache/state/log/checkpoints project-owned; proven clone direct glibc loader; no pip/global writes.
+
+Design: original N20k strict D1-D7 and source4096 projection REJECTED; 1000controls/20s (100warm,900steady), original20s physical episodes, original12..16s command resampling. Worker1680/supervisor1800 unchanged. Saved E2V4 throughput linear estimate1012.703s; not guarantee, W35 prior906/1680 partial retained. Both 4096/40s and20k40s are NOT_SELECTED; no checkpoint population migration.
+
+True original entry runtime/isaac/mod4/train_chassis_pd_resume_ppo.py/f7ab426f…; CLI/real entry learner import INSIDE main/worker rescue_training.learn patch before main/static dependency closure checked. Frozen mean actor only; no optimizer/norm update. Original STD/model/norm/17Adam fingerprints before and literal equality after; original D1-D7 restore chain/CUDA RNG/queue/reset contracts unchanged.
+
+E0 original domain: body-frame straight vx[-1.5,1.5], actual-zero standing source flag .1, pure .3 (within-pure transition1/3), moving .2 with signed yaw ABS1..2 rad/s (NOT E2 ±4); pure abs1..4pi; moving world-direction reference .5m/s via body cos projection. Original12s ramp/hold/brake/stop/reverse schedule; source-bound rate/transition proof. Authored flat root-height original API/fallback, no injected ground, no E2/native-H1 capture attribute required. Original task runtime terms/params retained: orientation .75rad, floor chassis contact50N, closure2mm per-env, mimic .05rad, low_base -1 disabled, timeout20s; these are environment terms, no invented MAE skill thresholds.
+
+Telemetry: per original profile/whole,warm,steady population-control denominators, unique exposed/terminated/truncated envs, per-reason events. Moving measured same-command/episode signed2pi sampled window displacement/time vs integrated command reference is separate from instantaneous body-v errors/cos^2. Transition per-bin error sums and denominators. NEW observed command instances: initial start UNKNOWN/left-censored; hooks passthrough actual resample/reset once; known resample→resample counts separate from reset/window-end incomplete and sampled2pi windows, per-env/uid/episode records and complete-instance error denominators. Zero complete commands or missing phase exposure remains PENDING;20s cannot promise complete12..16s instance coverage for every env. Instance record cap80k (4×20k), explicit retention flag; selected domain trace256MiB cap; not full WM data. No extra actor/RNG/SDK/raycast/physics calls.
+
+Local actual selected constructor physical/begin/requested/terminal/after+real original CPU queue lifecycle, reset/resample observer, positive/negative source call guard, actual writer→sup→first/normal receipt graph and E0 saved witness assert AST PASS. Local Torch2.14CPU/TD0.15.1 differ from target2.10cu128/TD0.14.1; TARGET API/wholeCPU-witness metadata admission and actual CUDA fullrestore/native24 remain UNEXECUTED. Existing full-model witness reused without PT CPUreload. All source preparatory errors and outputs retained.
+
+First: read_E0_new86_FIRST_native24_queue_secure_stdin_UNUSED_once_v1.py --actual-startup-json <actual report> --actual-startup-SHA <actual SHA>; one360s remote wait/420s channel; require actual24controls/192physics/48feedback, legs192+wheels192 queueapply, trace1..24, RewardManager24×dt.02 plus source/core/17Adam/LR.
+Normal: collect_E0_new86_TERMINAL_fulltext_secure_stdin_UNUSED_once_v1.py same actual startup arguments; local+remote supervisor+1800 remaining<=900, original850s wait, exact known creation/exe/argv/cwd, waited/out/private released/full UTF8 and binary stat-only metadata. rc0 alone not success; partial/error no promotion, no repeatfirst/launch. Actual startup identity/SHA unknown until root executes; none fabricated.
+
+No remote/GPU/SDK/old PT/raw/NPZ/USD content reads in this source preparation. Skill qualification and complete WM dataset remain false. Root ordinary Git supplement pending; no new trial/tag. After handoff source stays immutable and child idles until a distinct parent task.

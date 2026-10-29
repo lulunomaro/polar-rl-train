@@ -1,0 +1,32 @@
+from pathlib import Path
+import json,time,hashlib,statistics
+S=Path(__file__).resolve().parent;R=S/"reports";T=S.parent;N=T/"MOD4_H1_FUDAN270_REWARD_COHERENCE_RESOURCE_V111_20261029";L=T/"MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027"
+def read(p):return json.loads(p.read_bytes())
+def H(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def put(p,v):
+ with p.open("x",encoding="utf8") as f:json.dump(v,f,indent=2,ensure_ascii=False,allow_nan=False)
+a=read(R/"NEW112_ACTUAL20S_MOTION_CONTACT_CLOCK_AND_CONTIGUOUS_WM_ANALYSIS_ACTUAL.json")
+d=read(R/"NEW112_DERIVED_CONTROL_CURVES_FOR_PLOT_ONLY.json")["rows"]
+def sc(v):
+ while isinstance(v,list) and len(v)==1:v=v[0]
+ assert isinstance(v,(int,float));return v
+def metric(rows):
+ if not rows:return {"controls":0,"means":None}
+ terms=["total","nonnegative_jump_bonus","nonpositive_recovery_extra","mode_advantage","task_alignment","own_top_support_quiet_placement"]
+ return {"controls":len(rows),"means":{k:statistics.fmean(sc(x["actual_task_reward_objective"][k]) for x in rows) for k in terms},"mean_jump_mode_weight":statistics.fmean(sc(x["actual_task_reward_objective"]["contact_step_modes"]["jump"]) for x in rows),"world_vx_mean":statistics.fmean(x["world_velocity3"][0] for x in rows)}
+active=[x for x in d if x["request_for_action"]]
+bins={"all_request":metric(active),"far_low_speed_request_rootx_lt02_absvx_lt005":metric([x for x in active if x["root_x"]<.2 and abs(x["world_velocity3"][0])<.05]),"actual_clean_airborne_control_endpoints":metric([x for x in active if x["actual_phase"]["airborne_both_above5mm_and_unloaded"]]),"actual_both_supported_control_endpoints":metric([x for x in active if x["actual_phase"]["both_supported"]])}
+summary={"epoch":time.time(),"derived_only_no_raw_reread":True,"bins":bins,"scope":"One fixed frozenmean case, conditionally sampled states not causal counterfactual pairs. Jump terms can reward low hops far from edge; this is measured reward allocation and task failure, not proven unique root cause.","next_source_candidate_not_implemented":"Audit/narrowly gate jump-specific nonnegative advantages by actual own wheel front distance before the leading edge while retaining common motion baseline and platform reward. Check fixed-floor approach monotonicity, nonrequest literal, crossing/landing contacts, finite bounds/gradients on actual own FK-derived states and normalized velocity/heading direction BEFORE any runtime use. No blind coefficient escalation or unchanged learning window."}
+put(R/"NEW112_DERIVED_REAL_REWARD_ALLOCATION_AND_FORWARD_STALL_ACTUAL.json",summary)
+actual=read(R/"FROZEN112_SINGLE_CASE_AND_WM_DIAGNOSTIC_RETURNED_ACTUAL.json")
+transfer=read(R/"FROZEN112_CASE_FULL_TEXT_AND_NEW_RAW_TRANSFER_ACTUAL.json")
+assert actual["actual_finite_returned"] and actual["actual_waited_exit"]==0 and actual["case"]["passed"] and transfer["passed"]
+e3path=L/"E3_97_SOURCE210_ENTRY_RECEIPT_CLI_CLOSURE_REPAIR_SOURCE_20261029_V4/reports/E3_SOURCE210_TERMINAL_ORIGINAL_RETURNED_ACTUAL.json"; e3=read(e3path)
+assert e3["passed_original_frozen_execution"] and e3["requested600_controls_100warm_500steady_complete"] and e3["original_terminal_and_allownout_proven"]
+work={"epoch":time.time(),"actual112_complete":True,"actual_source111_model_loads_new_purpose":1,"no_old107_108_model_or_raw_replay":True,"source111_formal_SHA":a["source111_formal_SHA"],"qualified_NATIVE_METHOD_remains111_not_skill":True,"actual_finite_wait0":True,"owned_identity":actual["owned_identity"],"privateEX_and_env_closed_by_original_case_function":True,"controls":a["controls"],"physics_callbacks":a["physics_callbacks"],"termination":a["original_termination_terms"],"clock_all_actual_controls_aligned":not a["clock_mismatches"],"root_net_forward_m":a["root_net_forward_m"],"root_x_range_m":a["root_x_range_m"],"task_edge_x_m":.35,"goal_root_x_m":.75,"actual_request_motion":a["actual_request_motion"],"simultaneous_both_wheel_peak_m":a["both_wheel_simultaneous_peak_m"],"clean_above5mm_segments":len(a["above5mm_clean_contact_flight_segments"]),"clean_above5mm_callbacks":a["airborne_both_above5mm_callbacks"],"total_clean_above5mm_seconds":.0025*a["airborne_both_above5mm_callbacks"],"original270":a["original270"],"physical_short_flight_not_original_counter_success":"Original readiness latch0 does not negate179 brief clean>5mm segments; not179 successful jumps or 5s continuousflight. No20cm/27cm/topland/stable success.","new_WM_actualaction_8_32":a["contiguous_actual_action_WM"],"frozen_models_norms_literal":a["frozen_Pi_WM_Critic_norms_unchanged"],"world_model_scope":"Lowhop case only, 8step air endpoint max2.540mm/32step10.618mm; not unseen27cm accuracy or unique WM cause. This frozen case did not train WM; replay air fraction remains unknown.","reward_allocation":summary,"original_new_raw_producer_index":a["raw_producer_files"],"no_more_model_or_raw_decode_for_stats_Git_or_replay":True,"E2_V4_full900_and126_saved_text_checks":True,"E3_V4_actual_full600":dict(report=str(e3path),SHA=H(e3path),execution_passed=True,allownout=True,skill_graduation=False),"E0_NEXT_source_status":"LOCAL preparation/20k1000controls20s/100warm900steady; original20k per-env D1-D7 fullrestore prevents4096 shortcut, projection NOT_SELECTED;40s deferred throughput risk. No actual E0 newcase yet, child exact frozen handoff required.","no_H1_current_learning_window":True,"next_root_work_order":summary["next_source_candidate_not_implemented"],"no_new_training_until_declared_reward_checks_targetSDK_fullstate_readback_newsourceTaskGO_freshresource_solewriter_pass":True,"ultimate270_skill":False}
+put(R/"CURRENT_ACTUAL112_COHERENT_REWARD_FROZEN_MOTION_AND_NEXT_WORK_ORDER.json",work)
+old=read(N/"reports/ARCHIVE111_FROZEN_ROOT_SELECTION_AND_ACTUAL_STATUS.json");old["epoch"]=time.time();old["E3_V4"]="Actual full600 frozen execution/native24/coreSTDnormAdam866060 literal PASS, originalallout/wait0/privateEXrelease/errors[]/integrity[], skill pending saved-text recipe/phase acceptance."
+old["pending_excluded"]["NEW112"]="Actual separate frozen20s case completed2000/8000/timeoutonly/oneNEW111load/noCwrite. Root+0.1308m/peak11.882mm/worldvx.00830vs.5/no270. All own112 source/fulltexts/rawindices/analysis get their own unique112 phase, excluded from111 full capture."
+put(N/"reports/ARCHIVE111_FROZEN_ROOT_SELECTION_AND_ACTUAL_STATUS_V2.json",old)
+print(json.dumps({"reward_allocation":bins,"112actual_complete":True,"E3full600":True},indent=2))
+

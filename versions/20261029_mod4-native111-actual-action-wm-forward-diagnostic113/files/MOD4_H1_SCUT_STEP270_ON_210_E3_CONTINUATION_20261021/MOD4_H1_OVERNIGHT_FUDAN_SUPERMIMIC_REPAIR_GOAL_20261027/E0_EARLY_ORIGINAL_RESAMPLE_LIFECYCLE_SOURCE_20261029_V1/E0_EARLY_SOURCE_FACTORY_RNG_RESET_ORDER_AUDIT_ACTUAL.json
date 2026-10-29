@@ -1,0 +1,60 @@
+{
+  "kind": "E0_initial_command_observability_source_audit_v1",
+  "epoch": 1793255120.7206562,
+  "source_rows": {
+    "train_chassis_pd_resume_ppo.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\train_chassis_pd_resume_ppo.py",
+      "SHA": "f7ab426fe81444b1c5d0bae7db8173e1309dbbe4fec9eea16006cb7404aad135",
+      "bytes": 21180
+    },
+    "sensor_resume_contract.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\sensor_resume_contract.py",
+      "SHA": "0409919cca3ef500bfcf30309aa8d75a6ef77ca026489131cefe6cc858af52e9",
+      "bytes": 3959
+    },
+    "feedback_delay_checkpoint.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\feedback_delay_checkpoint.py",
+      "SHA": "06b8cfcf3360ca38cb6c0dbba264cde89ba84fb8341ad2bd2681e8d46e33b952",
+      "bytes": 4218
+    },
+    "chassis_pd_checkpoint.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\chassis_pd_checkpoint.py",
+      "SHA": "7bab3ef36537cecc3ea2bdccde0a412d4426f5d4efbe5edc072f450ee58295e3",
+      "bytes": 4180
+    },
+    "directional_spin_runtime.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\directional_spin_runtime.py",
+      "SHA": "8fed717b0d2ba77491c252b183f9462f49457402d96927cc441c88ecd36b1cd8",
+      "bytes": 8385
+    },
+    "spin_commands.py": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\night_frozen_experts_PPO50_gas400_adaptation_20261027\\E0_runtime50_gas400_candidate_v1\\isaac\\mod4\\spin_commands.py",
+      "SHA": "ddf1de5d8fc52e1624d4adb02b7dc3540bdf2f5cbb1ef4c84ae797292052ea1f",
+      "bytes": 4242
+    }
+  },
+  "env_factory": {
+    "class_name": "ChassisPDMod4Env as Mod4Env",
+    "function": "build_env",
+    "source_line": 138
+  },
+  "entry_flow": {
+    "source_resume_line": 249,
+    "late_observer_work_line": 372,
+    "late_observer_after_restore": true
+  },
+  "sensor_custom_restore": {
+    "named_restore_source": "def restore_named(obj, saved):\n    actual = {k: v for k, v in vars(obj).items() if isinstance(v, torch.Generator)}\n    assert set(actual) == set(saved), ('Named RNG schema differs', set(actual), set(saved))\n    for k, g in actual.items():\n        g.set_state(saved[k].cpu())\n    assert all((torch.equal(g.get_state().cpu(), saved[k].cpu()) for k, g in actual.items()))\n    return sorted(actual)",
+    "command_state_restored": "named Torch.Generator private state only in this custom source; CPU/CUDA global streams restored before one REAL env.reset",
+    "command_timer_command_tensor_not_loaded_by_this_resume": true,
+    "subsequent_reset_overwrites_timer_from_actual_sampler": true
+  },
+  "original_DirectionalSpin_resample_source": "def _resample_command(self, env_ids):\n    super()._resample_command(env_ids)\n    ids = torch.as_tensor(env_ids, dtype=torch.long, device=self.device)\n    u = torch.rand((len(ids), 5), generator=self._mode_rng, device=self.device)\n    available = ~self.is_standing_env[ids]\n    pure_end = self.pure_fraction / (1 - self.cfg.rel_standing_envs)\n    moving_end = pure_end + self.moving_fraction / (1 - self.cfg.rel_standing_envs)\n    pure = available & (u[:, 0] < pure_end)\n    moving = available & (u[:, 0] >= pure_end) & (u[:, 0] < moving_end)\n    transition = pure & (u[:, 4] < self.transition_within_pure)\n    self.is_pure_spin[ids] = pure\n    self.is_moving_spin[ids] = moving\n    self.is_transition_spin[ids] = transition\n    self.is_heading_env[ids] = False\n    sign = torch.where(u[:, 2] < 0.5, -1.0, 1.0)\n    rate = torch.where(moving, 1 + u[:, 1], 1 + (self.pure_max - 1) * u[:, 1])\n    self.signed_yaw[ids] = torch.where(pure | moving, sign * rate, 0.0)\n    self.world_direction[ids] = 2 * math.pi * u[:, 3] - math.pi\n    self.phase_elapsed[ids] = 0.0\n    self.vel_command_b[ids, 2] = self.signed_yaw[ids]\n    self.vel_command_b[ids[pure], :2] = 0.0\n    self._write_dynamic(ids)",
+  "actual_target_method_binding": "PENDING: saved210 SDK method-AST reference is not proof of86 bytes/API",
+  "original_complete_command_zero_interpretation": "Old observer installed after initial postrestore reset, conservatively initial-left-censored; original12..16s resampling and20s timeout/window can end later known samples before next resample. Definition correctly refuses full-instance credit. This is an observability gap, not proof of policy failure.",
+  "selected_fix": "NEW source before original env build + source sensor resume dispatch, capture actual original reset/resample and adopt only unchanged actual0clock sourceSHA-qualified event; never call extra reset/resample or infer oldstart",
+  "old_reports_not_relabelled": true,
+  "actual_new_GPU_command_completion": "NOT EXECUTED/UNKNOWN",
+  "model_optimizer_STD_norm_DR_physics_clock_changes": 0,
+  "JSONL_producer_index": "NEW stream hashes bytes while writing, then index path/bytes/SHA/rowcount/cap/source and metadata-only default; no oldraw read or default content transfer"
+}

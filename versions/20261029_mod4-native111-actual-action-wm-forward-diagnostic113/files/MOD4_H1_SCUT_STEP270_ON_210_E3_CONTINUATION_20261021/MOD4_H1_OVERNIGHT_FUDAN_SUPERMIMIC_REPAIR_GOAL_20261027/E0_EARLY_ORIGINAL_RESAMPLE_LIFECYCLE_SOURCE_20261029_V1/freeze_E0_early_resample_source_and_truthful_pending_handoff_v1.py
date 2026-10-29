@@ -1,0 +1,53 @@
+"""Freeze saved source audit and CPU proof. No model/artifact/SDK/host access."""
+from pathlib import Path
+import ast,hashlib,json,time
+B=Path(__file__).resolve().parent;L=B.parent
+def H(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def put(n,v):
+ with (B/n).open('x',encoding='utf8') as f:json.dump(v,f,indent=2,allow_nan=False)
+proof=json.loads((B/'ACTUAL_ORIGINAL_METHOD_CPU_LIFECYCLE_RNG_RETURN_PROOF.json').read_bytes());assert proof['passed'] and proof['target_method_AST_admission_pending']
+m=json.loads((L/'E0_82_NEW86_N20K_LONG_COMMAND_FROZEN_SOURCE_20261029_V1/E0_NEW86_COMPLETE_INPUT_MANIFEST_V1.json').read_bytes());rows={r['relative']:r for r in m['files']}
+sources={};text={}
+for name in ('train_chassis_pd_resume_ppo.py','sensor_resume_contract.py','feedback_delay_checkpoint.py','chassis_pd_checkpoint.py','directional_spin_runtime.py','spin_commands.py'):
+ r=rows['runtime/isaac/mod4/'+name];p=Path(r['local_path']);raw=p.read_bytes();assert hashlib.sha256(raw).hexdigest()==r['SHA'];sources[name]=dict(path=str(p),SHA=r['SHA'],bytes=len(raw));text[name]=raw
+entry=ast.parse(text['train_chassis_pd_resume_ppo.py']);main=next(n for n in entry.body if isinstance(n,ast.FunctionDef) and n.name=='main');build=next(n for n in entry.body if isinstance(n,ast.FunctionDef) and n.name=='build_env')
+assert any(isinstance(n,ast.ImportFrom) and n.module=='chassis_pd_training_env' and any(x.name=='ChassisPDMod4Env' and x.asname=='Mod4Env' for x in n.names) for n in entry.body)
+factory=next(n for n in ast.walk(build) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='Mod4Env')
+restore=next(n for n in ast.walk(main) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='resume_chassis_pd_new_episode');learn=next(n for n in ast.walk(main) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='bounded_learn');assert restore.lineno<learn.lineno
+delay=ast.parse(text['feedback_delay_checkpoint.py']);dresume=next(n for n in delay.body if isinstance(n,ast.FunctionDef) and n.name=='resume_delay_new_episode');assert any(isinstance(n,ast.ImportFrom) and n.module=='sensor_resume_contract' and any(x.name=='resume_sensor_new_episode' for x in n.names) for n in dresume.body)
+sensor=ast.parse(text['sensor_resume_contract.py']);named=next(n for n in sensor.body if isinstance(n,ast.FunctionDef) and n.name=='restore_named');sresume=next(n for n in sensor.body if isinstance(n,ast.FunctionDef) and n.name=='resume_sensor_new_episode')
+assert not any(isinstance(n,ast.Attribute) and n.attr in ('time_left','command_counter','vel_command_b') for n in ast.walk(sresume))
+directional=ast.parse(text['directional_spin_runtime.py']);cls=next(n for n in directional.body if isinstance(n,ast.ClassDef) and n.name=='DirectionalSpinCommand');resample=next(n for n in cls.body if isinstance(n,ast.FunctionDef) and n.name=='_resample_command')
+assert isinstance(resample.body[-1],ast.Expr) and isinstance(resample.body[-1].value,ast.Call) and isinstance(resample.body[-1].value.func,ast.Attribute) and resample.body[-1].value.func.attr=='_write_dynamic'
+for p in B.glob('*.py'):ast.parse(p.read_bytes())
+audit=dict(kind='E0_initial_command_observability_source_audit_v1',epoch=time.time(),source_rows=sources,env_factory=dict(class_name='ChassisPDMod4Env as Mod4Env',function='build_env',source_line=factory.lineno),entry_flow=dict(source_resume_line=restore.lineno,late_observer_work_line=learn.lineno,late_observer_after_restore=True),sensor_custom_restore=dict(named_restore_source=ast.unparse(named),command_state_restored='named Torch.Generator private state only in this custom source; CPU/CUDA global streams restored before one REAL env.reset',command_timer_command_tensor_not_loaded_by_this_resume=True,subsequent_reset_overwrites_timer_from_actual_sampler=True),original_DirectionalSpin_resample_source=ast.unparse(resample),actual_target_method_binding='PENDING: saved210 SDK method-AST reference is not proof of86 bytes/API',original_complete_command_zero_interpretation='Old observer installed after initial postrestore reset, conservatively initial-left-censored; original12..16s resampling and20s timeout/window can end later known samples before next resample. Definition correctly refuses full-instance credit. This is an observability gap, not proof of policy failure.',selected_fix='NEW source before original env build + source sensor resume dispatch, capture actual original reset/resample and adopt only unchanged actual0clock sourceSHA-qualified event; never call extra reset/resample or infer oldstart',old_reports_not_relabelled=True,actual_new_GPU_command_completion='NOT EXECUTED/UNKNOWN',model_optimizer_STD_norm_DR_physics_clock_changes=0,JSONL_producer_index='NEW stream hashes bytes while writing, then index path/bytes/SHA/rowcount/cap/source and metadata-only default; no oldraw read or default content transfer')
+put('E0_EARLY_SOURCE_FACTORY_RNG_RESET_ORDER_AUDIT_ACTUAL.json',audit)
+helper='e0_early_original_resample_passthrough_observer_v1.py';contract='REQUIRED_TARGET_COMMANDTERM_METHOD_SOURCE_CONTRACT_V1.json'
+body=f'''FROZEN E0 early-original-resample SOURCE ONLY handoff
+
+Helper {helper} SHA {H(B/helper)}
+Target method contract {contract} SHA {H(B/contract)}
+CPU proof ACTUAL_ORIGINAL_METHOD_CPU_LIFECYCLE_RNG_RETURN_PROOF.json SHA {H(B/'ACTUAL_ORIGINAL_METHOD_CPU_LIFECYCLE_RNG_RETURN_PROOF.json')}
+Source audit E0_EARLY_SOURCE_FACTORY_RNG_RESET_ORDER_AUDIT_ACTUAL.json SHA {H(B/'E0_EARLY_SOURCE_FACTORY_RNG_RESET_ORDER_AUDIT_ACTUAL.json')}
+
+Source facts: true E0 entrybuild_env→ChassisPDMod4Env, runnerload+originalD1-D7 resume→late rescue_training.learn callback. sensor_resume restores named commandTorchGenerators and globalCPU/CUDA streams, then ONE realenv.reset. This custom source does not loadtime_left/command_counter/command tensor; originalSDK CommandTerm.reset clearscounter, invokes_resample, draws timer12..16 thenoriginalE0command draw andcounter++ . E0source_resample phase0 ends actual_write_dynamic. Old lateobserver misses initial reset; old20000 leftcensored classification and0complete remainunchanged.20s timeout/window can then truncate subsequent samples. No extraresampling/duration/population/model change proposed.
+
+Selected helper is NOT a runnable caller/installer. In a NEW case after rootreview:
+1. Actual target CPU metadata MUST read real installedCommandTerm source and call validate_actual_target_source(rawbytes,contract), store actualfileSHA/methodAST proof and bindnewTask/manifest. Included reference210 captured SDK texts are not86current proof. Refusingchanged actualmethodAST is intentional; no fallback. All originalsource/modela92c9e…/N20k/17Adam641200/LR.00038443359375000017/STD/norm/DR/40050/queue/fullrestore/native24/authority/resource/private/project-only/1680+1800 remain required by NEWcaller.
+2. Install EarlyResampleObserver BEFORE original ns.main/build_env (after sourceimports), wrapping exactly DirectionalSpinCommand inheritedreset/_resample and sensor_resume_contract.resume_sensor_new_episode. Its dynamically imported sensorresume alias is inside feedback_delay_checkpoint function; originaldispatch sees wrapper. Each originalmethod calledonce; returns preserved. Scope observes realpostrestore reset; no extra actor/reset/resample/RNG/physics. Constructor/earlier scopefalse events never qualify.
+3. On NEWpanel initialcontrol, adopt_only_actually_observed_start ONLY if verify_current_unchanged_at_first_control true and actual originalSENSORresume proof matchesa92…/globalRNGrestored/newphysicalepisode, observedone reset/onebatch/allorderedIDs/counter1/phase0/physics0, sampled timer andcommands stillliteralunchanged. Else RETAINleftcensored; no fabricatedstart. Actual event logs must show this and later truecompletecommand before any skill claim. No retrospectivechange to oldcase.
+4. finally observer.finish restores methods and emits actualstart receipt plus NEW typedJSONL/producerindex pathbytesSHA/rows/source/cap. Future instance writer uses produce_typed_instance_JSONL_with_stream_SHA so .jsonl.PRODUCER_INDEX_ACTUAL.json is selected as smallfulltext; JSONLcontents defaultfalse/metadata-only option, explicitNEWpurpose needed for contenttransfer. OldmissingJSONL not read/moved/rehash-forGit.
+
+Executed LOCALsource/freshCPU only: saved actualCommandTerm reset/_resample/compute, originalUniform reset/sampler, actualE0Directional class/puremath; synthetic26constructor/metrics API buffers, noSDKimport. Baseline vs hook originalCPUglobal/private_mode_rng byte states, actualsampledtimers/commands/modes/counters, originalresume returnobject andresetreturn values identical; oneoriginalreset each. Realmethods825compute steps reached nextoriginalresample for all26 initialtimers (SOURCE fixture, NOT GPUskill/exposure). Changedtimer, late/noevent, mutatedsourcecounter rejected; originalerror propagated; actualfrozen CommandInstances adopted onlyobservedstart; allmethodsrestored. LocalTorch2.14CPU differsactualtarget2.10cu128; targetAPI/GPU actualproofstillPENDING. InitialString-vsbytes and WindowsCRLF sourcefixture errors retained; NEWexactbytecopies bind original producerSHAs, oldbadcopies not overwritten. Selectedhelper unchanged through correction.
+
+This SOURCE scope contains no new remote/SDK/GPU/model/PT/raw/NPZ/gzip reads. New caller/SDKmethodactualreceipt/manifest/firstnormalreaders/execution remainpending; no currentGO/learningwriter. Source andreports nowimmutable; rootordinarysupplementpending, no newtrial/tag. Afterhandoffchildidle untilfollowup.
+'''
+(B/'HANDOFF_FROZEN_E0_EARLY_REAL_RESAMPLE_SOURCE.md').write_text(body,encoding='utf8')
+files=[]
+for p in sorted(B.rglob('*')):
+ if p.is_file():
+  assert p.suffix not in ('.pt','.npz','.usd','.zip','.gz')
+  files.append(dict(relative=p.relative_to(B).as_posix(),bytes=p.stat().st_size,SHA=H(p),kind='fresh_CPU_synthetic_JSONL_only' if p.suffix=='.jsonl' else 'full_source_or_saved_text_or_error'))
+idx=dict(kind='FROZEN_E0_EARLY_ACTUAL_RESAMPLE_LIFECYCLE_SOURCE_ONLY_V1',frozen=True,epoch=time.time(),files=files,helper_SHA=H(B/helper),target_method_contract_SHA=H(B/contract),CPU_source_lifecycle_passed=True,actual_target_method_binding_or_GPU_execution=False,caller_installer_readers_pending=True,no_old_model_raw_NPZ_SDK_host_access=True,old_completeinstance0_and_leftcensor_immutable=True,source_fixture_errors_retained=True,Git_status='PENDING_ROOT_ORDINARY_SUPPLEMENT')
+put('FROZEN_E0_EARLY_ORIGINAL_RESAMPLE_LIFECYCLE_SOURCE_INDEX_V1.json',idx)
+print(json.dumps(dict(frozen=True,index_SHA=H(B/'FROZEN_E0_EARLY_ORIGINAL_RESAMPLE_LIFECYCLE_SOURCE_INDEX_V1.json'),helper_SHA=H(B/helper),contract_SHA=H(B/contract),files=len(files))))

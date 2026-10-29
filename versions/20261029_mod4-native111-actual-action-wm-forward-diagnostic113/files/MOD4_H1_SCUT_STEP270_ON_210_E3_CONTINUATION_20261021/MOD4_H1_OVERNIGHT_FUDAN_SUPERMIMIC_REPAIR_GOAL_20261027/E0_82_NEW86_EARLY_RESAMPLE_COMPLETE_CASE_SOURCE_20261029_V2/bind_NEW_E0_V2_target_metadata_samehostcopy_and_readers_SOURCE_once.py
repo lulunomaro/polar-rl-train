@@ -1,0 +1,85 @@
+"""LOCAL source wiring only; no network/SDK/model/artifact calls."""
+from pathlib import Path
+import ast,hashlib,json
+B=Path(__file__).resolve().parent;L=B.parent
+OLD=L/'E0_82_NEW86_N20K_LONG_COMMAND_FROZEN_SOURCE_20261029_V1'
+JOB='/data/robemo/polar-rl-train/evaluation_runs/E0_ADAPTED82_EARLY_RESAMPLE_20261029v2/e0'
+OLDJOB='/data/robemo/polar-rl-train/evaluation_runs/E0_ADAPTED82_LONG_COMMAND_20261029v1/e0'
+def sub(s,a,b):assert a in s,a;return s.replace(a,b)
+def edit(name,fn):
+ p=B/name;old=p.read_bytes();s=fn(old.decode('utf8'));p.write_text(s,encoding='utf8',newline='\n');return dict(name=name,before_SHA=hashlib.sha256(old).hexdigest(),after_SHA=hashlib.sha256(p.read_bytes()).hexdigest())
+changes=[]
+oldkind='MOD4_E0_ADAPTED82_NEW86_FROZEN_PROFILE_DOMAIN_V1';newkind='MOD4_E0_ADAPTED82_NEW86_EARLY_RESAMPLE_FROZEN_PROFILE_DOMAIN_V2'
+for p in B.glob('*.py'):
+ if p.name.startswith(('build_NEW','bind_NEW')):continue
+ s=p.read_text(encoding='utf8')
+ if oldkind in s:p.write_text(s.replace(oldkind,newkind),encoding='utf8',newline='\n')
+def cpu(s):
+ a=" # Actual target TensorDict API validation uses only fresh CPU synthetic values."
+ b=""" prior_path=J/'E0_PREVIOUS_SAMEHOST_FULL1000_WITNESS.json';assert H(prior_path)==m['samehost_V1_witness_SHA'];prior=json.loads(prior_path.read_bytes());pv=prior['original_terminal'];pr=pv['result']
+ assert prior['source_SHA']==MODEL_SHA and prior['old_job']=='"""+OLDJOB+"""' and prior['source_GPU_case_complete'] and not prior['original_errors'] and not prior['integrity']
+ assert pv['actual_worker_waited'] and pv['returncode']==0 and pv['private_EX_released'] and pv['passed_frozen_execution'] and pr['controls']==1000 and pr['num_envs']==20000 and pr['core_actor_critic_STD_norm_optimizer_literal_unchanged'] and pr['all17_Adam_steps']==641200 and pr['actual_LR_unchanged']==.00038443359375000017
+ from E0_actual_target_method_lifecycle_CPU_fixture_v2 import run_fixture
+ command_file=Path(modules['isaaclab']).parent/'managers/command_manager.py';velocity_file=Path(modules['isaaclab']).parent/'envs/mdp/commands/velocity_command.py'
+ command_raw=command_file.read_bytes();velocity_raw=velocity_file.read_bytes()
+ early_API=run_fixture(J,torch,command_raw,velocity_raw,J/'CPU_E0_ACTUAL_TARGET_METHOD_LIFECYCLE')
+ assert early_API['passed'] and not torch.cuda.is_initialized()
+"""+a
+ s=sub(s,a,b)
+ s=sub(s,'kind=\'MOD4_E0_ADAPTED82_NEW86_SOURCE_SDK_METADATA_WHOLECPU_WITNESS_V1\'',"kind='MOD4_E0_ADAPTED82_NEW86_EARLY_SOURCE_SDK_METADATA_WHOLECPU_WITNESS_V2'")
+ s=sub(s,'selected_constructor_fresh_CPU_API_fixture=constructor_proof,','selected_constructor_fresh_CPU_API_fixture=constructor_proof,actual_target_CommandTerm_method_AST_passed=True,actual_target_method_CPU_lifecycle=early_API,actual_target_method_CPU_lifecycle_helper_SHA=H(J/"e0_early_original_resample_passthrough_observer_v1.py"),actual_command_source_path=str(command_file),actual_command_source_SHA=H(command_file),actual_velocity_source_path=str(velocity_file),actual_velocity_source_SHA=H(velocity_file),samehost_qualified_V1_case_witness_SHA=H(prior_path),')
+ return s
+changes.append(edit('E0_new86_target_source_SDK_metadata_admission_v2_early.py',cpu))
+def remote(s):
+ a=" assert shutil.disk_usage(ROOT).free>25*1024**3;J.mkdir(parents=True,mode=0o700)"
+ b=""" O=Path('"""+OLDJOB+"""');assert O.resolve()==O and O.is_relative_to(ROOT/'evaluation_runs') and H(O/'E0_NEW86_COMPLETE_INPUT_MANIFEST_V1.json')==v['old_manifest_SHA']
+ old_wait=json.loads((O/'FROZEN_E0_ORIGINAL_WAITED_TERMINAL_ACTUAL.json').read_bytes());assert old_wait==v['samehost_previous_terminal'] and old_wait['passed_frozen_execution'] and old_wait['actual_worker_waited'] and old_wait['returncode']==0 and old_wait['private_EX_released'] and old_wait['result']['controls']==1000
+"""+a
+ s=sub(s,a,b)
+ anchor="put(J,'OWN_NEW86_E0_FROZEN_PROFILE_SCOPE.json',dict(root=str(J),source='qualified E0 adapted89D final82',no_training_GO_or_C_write=True));return dict(passed=True,epoch=time.time(),job_root=str(J),normal_robot_native24_prior_actual_proof=True,no_current_GPU_idle_claim=True)"
+ replacement="""put(J,'OWN_NEW86_E0_FROZEN_PROFILE_SCOPE.json',dict(root=str(J),source='qualified E0 adapted89D final82',no_training_GO_or_C_write=True))
+ copied=[]
+ for row in v['samehost_reuse_rows']:
+  rel=PurePosixPath(row['relative']);assert not rel.is_absolute() and '..' not in rel.parts;src=O/rel;dst=J/rel
+  assert src.resolve().is_relative_to(O) and not src.is_symlink() and src.stat().st_size==row['bytes'] and not dst.exists();dst.parent.mkdir(parents=True,exist_ok=True,mode=0o700);shutil.copyfile(src,dst);copied.append(row['relative'])
+ put(J,'SAMEHOST_PRIOR_VERIFIED_INPUTS_COPY_ACTUAL.json',dict(passed=True,old_job=str(O),old_manifest_SHA=v['old_manifest_SHA'],copied=sorted(copied),no_old_outputs_Task_GO_or_log_copy=True,postcopy_all_new_target_input_fullSHA_still_required=True))
+ return dict(passed=True,epoch=time.time(),job_root=str(J),normal_robot_native24_prior_actual_proof=True,no_current_GPU_idle_claim=True,samehost_copied_relative=sorted(copied))"""
+ s=sub(s,anchor,replacement)
+ s=sub(s,"full_WM_tap_included=False,population_contract=", "full_WM_tap_included=False,early_observer_SHA=H(J/'e0_early_original_resample_passthrough_observer_v1.py'),actual_target_CommandTerm_method_AST_passed=True,typed_JSONL_collection='producer_metadata_only_no_contents',population_contract=")
+ return s
+changes.append(edit('remote_E0_new86_early_command_install_and_detach_v2.py',remote))
+def upload(s):
+ a=" known=json.loads(a.known72_binding_json.read_bytes()) if a.known72_binding_json else None"
+ b=""" prior_path=B/'E0_PREVIOUS_SAMEHOST_FULL1000_WITNESS.json';assert H(prior_path)==index['samehost_V1_witness_SHA'];prior=json.loads(prior_path.read_bytes());assert prior['source_GPU_case_complete'] and prior['original_terminal']['passed_frozen_execution']
+"""+a
+ s=sub(s,a,b)
+ s=sub(s,"put('NEW86_PROJECT_AND_PROVEN_RUNTIME_PRE_ACTUAL.json',remote('pre',dict(clone_complete=clone['complete'],normal_whole_result=normal),45))", "pre=remote('pre',dict(clone_complete=clone['complete'],normal_whole_result=normal,old_manifest_SHA=index['old_input_manifest_SHA'],samehost_previous_terminal=prior['original_terminal'],samehost_reuse_rows=[{k:r[k] for k in ('relative','bytes','SHA')} for r in manifest['files'] if r.get('reuse_prior_samehost')]),45);put('NEW86_PROJECT_AND_PROVEN_RUNTIME_PRE_ACTUAL.json',pre)")
+ s=sub(s,"sf.get_channel().settimeout(30);made={STAGE}","sf.get_channel().settimeout(30);made={STAGE}\n  for name in pre['samehost_copied_relative']:\n   q=PurePosixPath(STAGE)/PurePosixPath(name).parent\n   while str(q).startswith(STAGE):made.add(str(q));q=q.parent")
+ s=sub(s,"   for i,row in enumerate(manifest['files']):\n    assert", "   for i,row in enumerate(manifest['files']):\n    if row.get('reuse_prior_samehost'):continue\n    assert")
+ return s
+changes.append(edit('upload_admit_detach_NEW86_E0_final82_early_command_secure_stdin_UNUSED_once_v2.py',upload))
+def code(s):
+ s=sub(s,"resource=read(J/'FRESH_PRIVATE_HELD_UUID_ONLY_BEFORE_FROZEN_WORKER.json')", "assert cpu['actual_target_CommandTerm_method_AST_passed'] and cpu['actual_target_method_CPU_lifecycle']['passed']\n assert task['early_observer_SHA']==cpu['actual_target_method_CPU_lifecycle_helper_SHA']==v['early_observer_SHA']\n resource=read(J/'FRESH_PRIVATE_HELD_UUID_ONLY_BEFORE_FROZEN_WORKER.json')")
+ s=sub(s,"restore=F/'ACTUAL_E0_82_CUDA_FULLRESTORE_BEFORE_MEAN_ACTION.json';native=", "early_path=F/'ACTUAL_E0_EARLY_POSTRESTORE_RESAMPLE_BEFORE_MEAN_ACTION.json'\nrestore=F/'ACTUAL_E0_82_CUDA_FULLRESTORE_BEFORE_MEAN_ACTION.json';native=")
+ s=sub(s,"if restore.exists() and native.exists() or errors", "if restore.exists() and native.exists() and early_path.exists() or errors")
+ s=sub(s,"admission=input_admission();rr=read(restore);nn=read(native);passed_native=", "early_value=read(early_path)\nadmission=input_admission();rr=read(restore);nn=read(native);passed_native=")
+ s=sub(s,"large=[]", """large=[]
+jsonl_indexes=[]
+if mode=='terminal' and F.exists():
+ for index_path in sorted(F.rglob('*.jsonl.PRODUCER_INDEX_ACTUAL.json')):
+  assert index_path.resolve().is_relative_to(F) and not index_path.is_symlink();producer=read(index_path);p=Path(producer['path']);assert p.resolve().is_relative_to(F) and p.suffix=='.jsonl' and not p.is_symlink()
+  assert producer['source_SHA']==MODEL and producer['producer_stream_SHA_no_reread'] and producer['collector_mode']=='producer_path_bytes_SHA_metadata_only' and not producer['content_transfer_default'] and len(producer['SHA'])==64
+  actual=p.stat();assert actual.st_size==producer['bytes'];jsonl_indexes.append(producer);large.append(dict(path=str(p),bytes=actual.st_size,SHA=producer['SHA'],SHA_scope='original_producer_stream_not_reader_rehash',rows=producer['rows'],producer_index=str(index_path),contents_not_read_rehashed_or_transferred=True))
+""")
+ s=sub(s,"print(json.dumps(dict(epoch=time.time(),purpose=mode,", "early_pass=bool(early_value and early_value['source_SHA']==MODEL and early_value['observer_SHA']==v['early_observer_SHA'] and early_value['actual_original_postrestore_event_adopted'] and not early_value['initial_left_censored'] and early_value['observed_ids_count']==20000 and early_value['actual_phase_zero'] and early_value['actual_physics_tick']==0 and not early_value['diagnostic_errors'])\nprint(json.dumps(dict(early_original_resample=early_value,passed_actual_early_observation_and_adoption=early_pass,typed_JSONL_producer_indexes_metadata_only=jsonl_indexes,epoch=time.time(),purpose=mode,")
+ s=sub(s,"]+[restore,native]+errors", "]+[restore,native,early_path]+errors")
+ return s
+changes.append(edit('E0_frozen_actual_receipts_readonly_CODE_v2_early.py',code))
+# Readonly caller supplies actual early-helper source pin from frozen index.
+changes.append(edit('run_E0_new86_readonly_secure_stdin_v2_early.py',lambda s:sub(s,"code=code))+chr(10)","early_observer_SHA=index['executable_source_SHAs']['e0_early_original_resample_passthrough_observer_v1.py'],code=code))+chr(10)")))
+for p in B.glob('*.py'):
+ ast.parse(p.read_bytes())
+ if p.name=='E0_frozen_actual_receipts_readonly_CODE_v2_early.py':
+  container=ast.parse(p.read_bytes());code=next(ast.literal_eval(n.value) for n in container.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='CODE' for x in n.targets));ast.parse(code)
+with (B/'SOURCE_TARGET_METADATA_SAMEHOSTCOPY_READER_WIRING_V2.json').open('x',encoding='utf8') as f:json.dump(dict(passed_SOURCE_AST_only=True,changes=changes,actual_target_GPU_SDK_or_remote_executed=False),f,indent=2)
+print(json.dumps(dict(passed_source_wiring_only=True,files=len(changes))))

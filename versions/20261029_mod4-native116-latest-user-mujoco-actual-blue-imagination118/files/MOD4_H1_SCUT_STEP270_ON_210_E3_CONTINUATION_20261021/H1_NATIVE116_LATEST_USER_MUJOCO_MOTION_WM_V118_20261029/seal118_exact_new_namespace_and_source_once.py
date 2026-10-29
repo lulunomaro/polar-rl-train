@@ -1,0 +1,14 @@
+from pathlib import Path
+import ast,hashlib,json,time
+S=Path(__file__).resolve().parent
+original=S/'run_NEW118_qualified116_fixed20s_Fudan270_motion_paired_WM_UNUSED_once.py';raw=original.read_bytes();a=b'MOD4_H1_NATIVE116_FUDAN270_FROZEN_MOTION_WM_DIAG_20261029v112';b=b'MOD4_H1_NATIVE116_FUDAN270_FROZEN_MOTION_WM_DIAG_20261029v118'
+assert raw.count(a)==1;new=raw.replace(a,b);assert new.replace(b,a)==raw
+selected=S/'run_NEW118_qualified116_fixed20s_Fudan270_motion_paired_WM_V2_UNUSED_once.py';assert not selected.exists();selected.write_bytes(new);ast.parse(new.decode('utf8'))
+for p in (S/'code').glob('*.py'):ast.parse(p.read_text(encoding='utf8'))
+fixture=json.loads((S/'reports/SOURCE118_PHASE_CONTIGUITY_8_32_CPU_SYNTHETIC_ACTUAL.json').read_bytes());assert fixture['passed_source_CPU_only'] and fixture['actual_SDK_GPU_actor_WM_checkpoint_reads']==0
+helper=(S/'code/run_native118_frozen_flat_WM_N1_once.py').read_text(encoding='utf8');assert helper.count('torch.load(')==1 and "native['iteration']==20809" in helper and '78f5840ec3db38a3fe2c8c16852b81a5bc7f02b445acd4a7901dafc7078d9976' in helper
+handoff='NEW118 user explicitly requested latest116 in MuJoCo. One unused fixedseed20260928/20s/2000nativecontrols/8000callbacks own400N PhysX frozenmean+pairedWM case, new118 root, qualified116h1 SHA78f5840e...78d9976/global20809-208090WM-19977Pi. SelectedV2 only corrects generated remote namespace suffixv112→v118 before network, originaldraft NOT_SELECTED preserved. SourceCPU synthetic phase/actual-action contiguous8/32 passed; actualfreshSDK/RSL/source/reset/preload/resources/privateEX/CNone checks still required before one NEWpurpose model load. No training/optimizer/normupdates/GO/account/force/script/fakeairreset. Exact270acceptance unchanged. Following fullnewcase return, NEWlocal frozen116 Pi/WM display purpose will read only new118 control data and one116checkpoint for blue branches; existing actualMOD4 277meshvisuals reused with same immutable assetmanifest metadata, no collisionprimitive replacement. Gray will be actual118 PhysX recording, blue same116WM closedloopprediction, labels explicit. No old112 raw/model/case replay. Never rerun this once after marker; fulloriginalUTF8/errors/newraw purpose counted; binaries metadataonly forGit.'
+(S/'HANDOFF_FROZEN_UNUSED118_LATEST116_USER_DISPLAY.md').write_text(handoff,encoding='utf8')
+rows=[dict(path=str(p),bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted(S.rglob('*')) if p.is_file()]
+with (S/'FROZEN_UNUSED118_LATEST116_DISPLAY_SOURCE_INDEX.json').open('x',encoding='utf8') as f:json.dump(dict(epoch=time.time(),frozen=True,selected_entry=str(selected),selected_entry_SHA=hashlib.sha256(new).hexdigest(),source_only=True,model_raw_GPU_SSH_reads=0,files=rows),f,indent=2)
+print(json.dumps(dict(frozen=True,entry=str(selected))))

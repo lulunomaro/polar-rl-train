@@ -1,0 +1,62 @@
+"""Future <=300s serial72 readonly ->close->strict210 upload/CPU/detach."""
+from pathlib import Path,PurePosixPath
+import argparse,ast,hashlib,importlib.util,json,os,sys,threading,time,traceback
+B=Path(__file__).resolve().parent;R=B/'reports';L=B.parent;T=L.parent;W=T.parent
+JOB='/mnt/mod4_linux_durable_20261013/MOD4_E3_ADAPTED97_RECIPE_DOMAIN_20261029v4/e3';GPU='GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e'
+def H(raw):return hashlib.sha256(raw).hexdigest()
+def put(n,x):
+ R.mkdir(exist_ok=True)
+ with (R/n).open('x',encoding='utf8') as f:json.dump(x,f,indent=2)
+def module(n,p):
+ s=importlib.util.spec_from_file_location(n,p);m=importlib.util.module_from_spec(s);sys.modules[n]=m;s.loader.exec_module(m);return m
+def worker_python_from_control_alias(control_python):
+ alias='/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python'
+ canonical='/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python3.12'
+ assert control_python in (alias,canonical),'Unexpected original210 control Python alias'
+ return canonical
+
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--known72-binding-json',type=Path);a=p.parse_args();index=json.loads((B/'FROZEN_E3_97_SOURCE210_RECIPE_DOMAIN_SOURCE_INDEX_V4.json').read_bytes());mf=B/'E3_SOURCE210_COMPLETE_INPUT_MANIFEST_V1.json';raw=mf.read_bytes();assert H(raw)==index['manifest_SHA'];manifest=json.loads(raw);known=json.loads(a.known72_binding_json.read_bytes()) if a.known72_binding_json else None
+ if known is not None:assert set(known)=={'owner','run_id','go'}
+ codes={}
+ for n,sha in index['local_source_SHAs'].items():assert H((B/n).read_bytes())==sha
+ for n in ('AUTH72_CURRENT_KNOWN_OWNER_READONLY_CODE_v1.py','PRE210_UNUSED_MOUNT_LIGHT_RESOURCE_CODE_v1.py','remote_E3_source210_verify_metadata_CPU_and_detach_v4_exactEntryReceipt.py'):codes[n]=(B/n).read_text();ast.parse(codes[n])
+ put('E3_SOURCE210_INSTALL_CONSUMED_BEFORE_NETWORK.json',dict(epoch=time.time(),job=JOB,source_model_SHA=manifest['model_SHA'],maximum_seconds300=True,no_training_GO_or_accountwrite=True));deadline=time.monotonic()+300
+ def cap(n):
+  remaining=deadline-time.monotonic();assert remaining>5,'original finite source startup budget reached; partial retained';return min(n,remaining)
+ wrapper=module('E3_source210_existing_compressed_memory_transport_only',T/'H1_STEP270_REWARD_PATH_V1_20261022/same_authorized_session_compressed_transport_v227.py');transport,previous=wrapper.install();sys.path.insert(0,str(W/'MOD4_TWO_LINUX_POLICY50_COHORT_52_20261021'));import deploy_two50_reconciled_original_writer_once as d
+ sys.path.insert(0,str(T/'MOD4_MOE_T2Z_SINGLE4090_QUANTIZED_PREPARATION_20261025'));import strict_user_forwarded_original210_transport_v1 as route
+ sec=module('E3_source210_sole72_readonly_existing_memory',W/'MOD4_BUDGET_ADD100H_EIGHTH_20261021/run_authorized_cohort50_with_existing_hidden_stdin_memory.py');secret=None;client=None;stop=threading.Event()
+ def progress():
+  while not stop.wait(25):print(json.dumps(dict(stage='SAME_FINITE_E3_SOURCE210_INPUT_METADATA',epoch=time.time(),model_CPU_decode=0)),flush=True)
+ thread=threading.Thread(target=progress,daemon=True);thread.start()
+ try:
+  secret=sec.recover();client=d.connect72(secret);secret=None;authority=d.code(client,d.PY72,codes['AUTH72_CURRENT_KNOWN_OWNER_READONLY_CODE_v1.py'],dict(known_binding=known),timeout=cap(30));assert authority['passed_readonly_original72_finite_authority'];put('E3_CURRENT72_AUTHORITY_READONLY_ACTUAL.json',authority);client.close();client=None
+  put('E3_V3_CONTROL_ROUTE_AND_SUBMITTED_WORKER_PYTHON_ACTUAL.json',dict(epoch=time.time(),control_route_PY=route.PY,submitted_workerpython=worker_python_from_control_alias(route.PY),target_JOB_literal=JOB,control_transport_uses_original_route_PY=True,strict_remote_predicate_unchanged=True,no_secret=True))
+  client=route.connect();pre=d.code(client,route.PY,codes['PRE210_UNUSED_MOUNT_LIGHT_RESOURCE_CODE_v1.py'],dict(job=JOB,GPU=GPU),timeout=cap(30));put('E3_FRESH210_UNUSED_MOUNT_AND_LIGHT_RESOURCE_ACTUAL.json',pre)
+  sf=client.open_sftp();sf.get_channel().settimeout(cap(30));made={JOB}
+  try:
+   for i,row in enumerate(manifest['files']):
+    assert deadline-time.monotonic()>150,'CPU actual-wait reserve not available; preserve partial new job'
+    rel=PurePosixPath(row['relative']);assert not rel.is_absolute() and '..' not in rel.parts;target=PurePosixPath(JOB)/rel;parents=[];q=target.parent
+    while str(q) not in made:parents.append(q);q=q.parent
+    for q in reversed(parents):sf.mkdir(str(q),mode=0o700);made.add(str(q))
+    source=Path(row['local_path']);assert source.resolve().is_relative_to(W.resolve()) and source.stat().st_size==row['bytes'];digest=hashlib.sha256();sent=0
+    with source.open('rb') as f,sf.open(str(target),'wx') as out:
+     out.set_pipelined(True)
+     while True:
+      block=f.read(1024**2)
+      if not block:break
+      assert deadline-time.monotonic()>150;out.write(block);digest.update(block);sent+=len(block)
+    assert sent==row['bytes'] and digest.hexdigest()==row['SHA'],row['relative']
+    if i%100==0:print(json.dumps(dict(stage='E3_SOURCE210_INPUT_UPLOAD',files=i+1,total=len(manifest['files']))),flush=True)
+   with sf.open(JOB+'/E3_SOURCE210_COMPLETE_INPUT_MANIFEST_V1.json','wx') as f:f.write(raw)
+  finally:sf.close()
+  value=d.code(client,route.PY,codes['remote_E3_source210_verify_metadata_CPU_and_detach_v4_exactEntryReceipt.py'],dict(job=JOB,python=worker_python_from_control_alias(route.PY),control_route_PY=route.PY,authority=authority,manifest_SHA=index['manifest_SHA'],worker_SHA=index['local_source_SHAs']['evaluate_E3_adapted97_source210_frozen600_once_v1.py']),timeout=cap(155));put('E3_SOURCE210_ACTUAL_METADATA_CPU_AND_FINITE_DETACHED_RETURNED_ACTUAL.json',value);print(json.dumps({k:v for k,v in value.items() if k!='complete_original_UTF8'}),flush=True)
+ finally:
+  secret=None;stop.set();thread.join(1)
+  if client:client.close()
+  transport.SESSION=previous
+if __name__=='__main__':
+ try:main()
+ except BaseException:put('E3_SOURCE210_INSTALL_ORIGINAL_ERROR_'+str(time.time_ns())+'.json',dict(traceback=traceback.format_exc(),no_retry_or_source_promotion=True));raise

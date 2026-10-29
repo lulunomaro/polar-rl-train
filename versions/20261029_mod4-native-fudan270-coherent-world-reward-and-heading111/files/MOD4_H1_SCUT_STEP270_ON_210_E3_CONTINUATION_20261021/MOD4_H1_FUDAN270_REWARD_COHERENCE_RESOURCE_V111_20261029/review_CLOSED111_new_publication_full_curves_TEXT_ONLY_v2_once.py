@@ -1,0 +1,39 @@
+from pathlib import Path
+import json,hashlib,time,statistics
+B=Path(__file__).resolve().parent; R=B/"reports"; L=B.parent/"MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027"; Q=L/"TWO111_FUDAN270_COHERENT_REWARD_FIRST_CLOSING_INITIAL_CPU_SOURCE_V3"
+def read(p):return json.loads(p.read_bytes())
+def H(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def put(n,v):
+ with (R/n).open("x",encoding="utf8") as f:json.dump(v,f,indent=2,ensure_ascii=False)
+collector=Q/"reports/TWO111_COMPLETE_FINALS_OR_PARTIALS_ORIGINAL_COST_RETURNED_V2_ACTUAL.json"; p=read(collector)
+cpu=Q/"reports/TWO111_INITIAL_TWO_FORMAL_CPU_QUALIFIED_ACTUAL.json"; c=read(cpu)
+assert c["passed"] and c["NEW_formal_loads"]==2 and c["shared_normal86_loads"]==1 and c["input_native107_loads"]==0
+for k in ["canonical_None","all_two_original_owner_nodes_workers_out","original_private_shared_writer_locks_free","original_owner_private72_shared_locks_free","actual_one72_finite_returned"]:assert p[k],k
+assert p["original_fee_seconds"]==sum(p["original_fee_by_slot"].values())
+out=dict(epoch=time.time(),run_id="TWO111_FUDAN270_COHERENT_REWARD_1793244475423217800",fully_closed=True,collector=str(collector),collector_SHA=H(collector),initialCPU_report=str(cpu),initialCPU_SHA=H(cpu),initialCPU=c,original_fees=p["original_fee_by_slot"],independent_raw_sum_once=p["original_fee_seconds"],closing_snapshot_not_live_balance=p["closing_remaining_snapshot"],canonical_None_at_collection=True,all_original_owner_nodes_workers_out_at_collection=True,private_shared_locks_free_at_collection=True,roles={},curves={},not_permanent_resource_availability=True)
+for role,seed in [("h1",27),("h1_seed28",28)]:
+ f=p["formals"][role]["final"]; pub=p["published"][role]; r=read(Q/("reports/NATIVE111_seed"+str(seed)+"_NEW_FORMAL_INITIAL_WHOLE_CPU_QUALIFIED_ACTUAL.json")); assert r["passed"] and pub["twohost_complete_SHA"] and pub["NEW_formal_transfer_count"]==1
+ e=f["original_H1_events"]["original270_completed_control_events"]; assert e["diagnostic_valid"] and e["invalid_rows"]==0
+ out["roles"][role]=dict(formal={k:pub[k] for k in ["local_path","path","bytes","SHA","twohost_complete_SHA","NEW_formal_transfer_count"]},global_counters={k:f[k] for k in ["updates","world_updates","policy_updates"]},new_window_counters=f["native88_migration_window"]["counters"],physical_events=e,complete_physics_callbacks=e["complete_control_rows"]*4,last_control_population_reward=f["original_H1_events"]["fudan_real_reward_tracking"],initialCPU_report_SHA=H(Q/("reports/NATIVE111_seed"+str(seed)+"_NEW_FORMAL_INITIAL_WHOLE_CPU_QUALIFIED_ACTUAL.json")),qualified_METHOD_not_PPO_or_skill=True)
+for x in p["all_original_texts_full_case_safe"]:
+ if not x["relative"].endswith("/ACTUAL_H1_CONVERGENCE_CURVE.jsonl"):continue
+ role="h1" if x["relative"].startswith("h1_slot/") else "h1_seed28"
+ rows=[json.loads(line) for line in Path(x["local_path"]).read_text(encoding="utf8").splitlines() if line.strip()]
+ comps=[r for r in rows if isinstance(r["fudan_real_reward_tracking"]["components"],dict)]
+ selected=[r for r in comps if r["fudan_real_reward_tracking"]["components"]["contact_step_modes"]["command_forward_velocity"]>.45]
+ assert len(selected)>=200
+ def metrics(rs):
+  cc=[r["fudan_real_reward_tracking"]["components"] for r in rs]
+  return dict(records=len(rs),total_reward_mean=statistics.fmean(x["total"] for x in cc),recovery_velocity_two_terms_mean=statistics.fmean(x["recovery_terms"]["tracking_lin_vel"]+x["recovery_terms"]["tracking_lin_vel_enhance"] for x in cc),jump_velocity_two_terms_mean=statistics.fmean(x["jump_terms"]["tracking_lin_vel"]+x["jump_terms"]["tracking_lin_vel_enhance"] for x in cc),top_support_placement_mean=statistics.fmean(x["own_top_support_quiet_placement"] for x in cc),task_alignment_mean=statistics.fmean(x["task_alignment"] for x in cc),world_forward_command_mean=statistics.fmean(x["contact_step_modes"]["command_forward_velocity"] for x in cc))
+ first=next((r for r in rows if r["events"]["events"]["takeoff_count"]>0),None)
+ out["curves"][role]=dict(source=x,rows=len(rows),reward_rows=len(comps),selected_command_gt045_rows=len(selected),first100=metrics(selected[:100]),last100=metrics(selected[-100:]),last_curve_completed_controls=rows[-1]["completed_control_rows"],formal_complete_controls=out["roles"][role]["physical_events"]["complete_control_rows"],first_positive_counter_curve=None if first is None else {k:first[k] for k in ["completed_control_rows","policy_updates","GO_elapsed_s"]},scope="Irregular overall-window curve samples of last actual control population means, not episode ages, per-env returns, exact event times, or measured worldVX. Last curve is not entire formal coverage.")
+out["takeoff_scope"]="Original Step270Events contact-release latch: readiness/history, request, observed positive root_vz, both wheels and nonwheel <=1N, positive clearance under unload and16callbacks40ms. It does not require wheelbottom>5mm or27cm. Counts are events, unique-env fields are per role across its window, not trial success rates."
+out["ultimate270_success"]=False
+out["observed_platform_cross_landing_recovery_all_zero"]=all(v["physical_events"]["both_leading_edges_cross_event_count"]==0 and v["physical_events"]["events"]["landing_count"]==0 and v["physical_events"]["events"]["recovery_count"]==0 for v in out["roles"].values())
+out["next_root_work_order"]="No blind identical learning window. NEW purpose qualified111 h1 own-plant20s frozen motion+actual command/worldheading/contact/actions and heldout contiguous8/32 WM diagnostic, with new unused sealed source/producer/SDK/resource/privateEX/CNone admission; keep all norms/3opts/counters and exact physical270 acceptance. Do not reload old107/108 model/raw for stats. This task-combination reward passed its declared counterexamples/domain/readback, not universal reward or mechanical/WM accuracy."
+out["expert_state_at_report"]="E2 V4 NEW86 full900 frozen execution and native24 PASS, all own out, skill pending saved-text qualification; E3 V3 original missing dynamic entry beforeApp/model fullterminal returned, NEWV4 precise entry/receipt metadata source pending child freeze."
+put("CURRENT_CLOSED111_TWO_QUALIFIED_COHERENT_REWARD_FORMALS_REAL_EVENT_SCOPE_ACTUAL.json",out)
+put("CLOSED111_NEW_FULL_CURVES_REWARD_COMPONENT_SCOPE_TEXT_ONLY_ACTUAL.json",dict(epoch=time.time(),curves=out["curves"],actual_formal_events={r:v["physical_events"] for r,v in out["roles"].items()},no_model_raw_or_remote_read=True,not_success_from_total_reward=True))
+put("ROOT_SECURE_INGRESS_STALE_H1_HELD_LABEL_AND_COMPLETED_CPU_HANDLE_SCOPE_ACTUAL.json",dict(epoch=time.time(),original_startup_flag_kept=True,correction="ROOT E2V4 startup marker inherited H1_training_still_held=True, but actual known72 proof already correctly bound live111. Flag is descriptive stale metadata, never authority/GO gating. First/terminal helper flags False. H1 later fully closed per collector; no active111 claim now.",CPU15343="Initial reviewer completed passed reports 2NEW+1shared/input1070; subsequent same-handle write_stdin Unknown process id confirms closed handle only; never reran reviewer.",local_inspection_output_truncation="PowerShell whole-tree JSON output truncated in conversation, no report/source/model altered; compact explicit Python extraction used for this saved result.",no_rewrite_original_false=True))
+print(json.dumps(dict(passed=True,formal_roles={r:dict(global_counters=v["global_counters"],controls=v["physical_events"]["complete_control_rows"],events=v["physical_events"]["events"],unique=v["physical_events"]["unique_env_ids_with_event"]) for r,v in out["roles"].items()},curves={r:{k:v[k] for k in ["rows","first100","last100","first_positive_counter_curve"]} for r,v in out["curves"].items()},no270success=True),indent=2))
+

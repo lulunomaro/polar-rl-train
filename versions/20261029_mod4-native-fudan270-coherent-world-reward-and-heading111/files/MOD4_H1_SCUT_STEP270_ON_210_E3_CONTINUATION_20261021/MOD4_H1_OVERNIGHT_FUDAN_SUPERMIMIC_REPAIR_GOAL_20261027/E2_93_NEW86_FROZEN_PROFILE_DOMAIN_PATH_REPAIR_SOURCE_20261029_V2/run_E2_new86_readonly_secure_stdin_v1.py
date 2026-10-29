@@ -1,0 +1,32 @@
+"""Future read-once actual-bound first/normal collection; no launch or source read."""
+from pathlib import Path
+import argparse,ast,hashlib,json,os,shlex,socket,sys,time,traceback
+import paramiko
+B=Path(__file__).resolve().parent;R=B/'reports'
+PIN='8adc87f3e75eb307a2429fa97b68761e09c0636b0eea684c71894438757c788b'
+JOB='/data/robemo/polar-rl-train/evaluation_runs/E2_ADAPTED93_PROFILE_DOMAIN_20261029v2/e2'
+def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def put(n,x):
+ R.mkdir(exist_ok=True)
+ with (R/n).open('x',encoding='utf8') as f:json.dump(x,f,indent=2)
+def main(mode):
+ p=argparse.ArgumentParser();p.add_argument('--actual-startup-json',type=Path,required=True);p.add_argument('--actual-startup-SHA',required=True);a=p.parse_args();assert H(a.actual_startup_json)==a.actual_startup_SHA
+ index=json.loads((B/'FROZEN_E2_93_NEW86_PROFILE_DOMAIN_SOURCE_INDEX_V2.json').read_bytes());assert index['target_stage']==JOB
+ actual=json.loads(a.actual_startup_json.read_bytes());assert actual['passed_source_CPU_and_detached_only'] and actual['detached']['actual_detached']
+ cpu=actual['source_CPU_actual_wait'];assert cpu['passed'] and cpu['actual_waited'] and cpu['returncode']==0 and cpu['report_value']['source_SHA']==index['source_model_SHA']
+ sup=actual['detached']['identity'];assert sup['pid']>0 and sup['creation']>0 and sup['cwd']==JOB and JOB in sup['argv'] and any(str(x).endswith('/detached_E2_new86_frozen_profile_supervisor_once_v1.py') for x in sup['argv'])
+ if mode=='terminal':assert sup['creation']+1800-time.time()<=900,'original local supervisor1800 remaining<=900 gate closed; once unconsumed'
+ codefile=B/'E2_frozen_actual_receipts_readonly_CODE_v1.py';assert H(codefile)==index['readonly_source_SHAs'][codefile.name]
+ code=next(ast.literal_eval(x.value) for x in ast.parse(codefile.read_bytes()).body if isinstance(x,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='CODE' for t in x.targets));ast.parse(code)
+ put('E2_V2_'+mode.upper()+'_DISTINCT_READ_CONSUMED_BEFORE_STDIN.json',dict(epoch=time.time(),purpose=mode,actual_startup_report_SHA=a.actual_startup_SHA,known_supervisor=sup,remote_maximum_wait_seconds=110 if mode=='first' else 850,no_launcher_rerun_or_account_or_model=True))
+ print('READY_FOR_SINGLE_STDIN_JSON',flush=True);req=json.loads(sys.stdin.readline());assert set(req)=={'host','username','password'} and req['host']=='10.50.0.86' and req['username']=='robemo';secret=req.pop('password');t=None
+ try:
+  sock=socket.create_connection((req['host'],22),timeout=10);t=paramiko.Transport(sock);t.banner_timeout=10;t.auth_timeout=10;t.start_client(timeout=10);assert hashlib.sha256(t.get_remote_server_key().asbytes()).hexdigest()==PIN,'PIN_MISMATCH_BEFORE_AUTH';t.auth_password(req['username'],secret,fallback=False);secret=None
+  ch=t.open_session(timeout=10);ch.exec_command('/usr/bin/python3 -B -c '+shlex.quote("import json,sys;v=json.loads(sys.stdin.readline());exec(v['code'])"));ch.settimeout(150 if mode=='first' else 900)
+  try:
+   f=ch.makefile_stdin('wb');f.write((json.dumps(dict(job=JOB,mode=mode,supervisor=sup,manifest_SHA=index['manifest_SHA'],worker_SHA=index['executable_source_SHAs']['evaluate_E2_adapted93_new86_frozen900_once_v1.py'],code=code))+chr(10)).encode());f.flush();ch.shutdown_write();out=ch.makefile('rb').read().decode();err=ch.makefile_stderr('rb').read().decode();rc=ch.recv_exit_status();assert rc==0,(rc,err,out);value=json.loads(out);put('E2_V2_'+mode.upper()+'_ORIGINAL_RETURNED_ACTUAL.json',value);print(json.dumps({k:x for k,x in value.items() if k not in ('complete_original_own_stage_UTF8','original_terminal','restore')}))
+  finally:ch.close()
+ finally:
+  secret=None
+  if t:t.close()
+if __name__=='__main__':raise RuntimeError('Use exactly one frozen first or terminal entry')

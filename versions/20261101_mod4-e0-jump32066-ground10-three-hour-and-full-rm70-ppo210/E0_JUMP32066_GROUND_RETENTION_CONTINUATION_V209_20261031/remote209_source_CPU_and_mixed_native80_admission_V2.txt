@@ -1,0 +1,95 @@
+from pathlib import Path
+import fcntl,hashlib,json,os,psutil,shutil,subprocess,time,traceback
+B=Path(v['root']).resolve();owned=Path('/home/lc01/Zonglin Li/zonglin2').resolve()
+assert B==owned/'tasks/MOD4_E0_JUMP32066_GROUND10_400N50_20261031v209/e0_72' and B.is_relative_to(owned)
+P72=owned/'run-python.sh'
+def put(n,row):
+ with (B/n).open('x',encoding='utf8') as f:json.dump(row,f,indent=2,allow_nan=False)
+for row in v['files']:
+ p=B/row['relative'];assert p.resolve().is_relative_to(B) and p.stat().st_size==row['bytes']
+ with p.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+ assert sha==row['SHA'],str(p)
+put('POSTCOPY209_COMPLETE_SOURCE_INPUT_SHA_ACTUAL.json',dict(epoch=time.time(),passed=True,source_files=len(v['files']),models_read=0))
+source=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_82_FUDAN_JUMP72_400N50_20261031v198/e0_72/production/model_final_complete.pt')
+assert source.stat().st_size==17519967
+def env(gpu):
+ e=dict(os.environ,CUDA_VISIBLE_DEVICES=gpu or '',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+ for key in ('PYTHONHOME','PYTHONPATH','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE','MASTER_ADDR','MASTER_PORT'):e.pop(key,None)
+ for key,name in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp'}.items():
+  p=B/'private_admission'/name;p.mkdir(parents=True,exist_ok=True);e[key]=str(p)
+ return e
+CPU="""from pathlib import Path
+import sys,json
+sys.path.insert(0,sys.argv[1])
+import torch
+from importlib import metadata
+from jump194_boundary import LiteralJump194
+from literal_original_config import LiteralOriginalConfig,class_to_dict
+k=LiteralJump194(2,'cpu',.02,['chassis','left_wheel','right_wheel']+['fixture_'+str(i) for i in range(28)])
+t=json.loads((Path(sys.argv[1])/'TASK209.json').read_bytes())
+assert len(k.reward_names)==16 and k.cfg.rewards.clip_single_reward==2.5
+assert class_to_dict(LiteralOriginalConfig.rewards.scales)==t['reward_selected16']
+assert not torch.cuda.is_initialized() and t['worker_role']=='e0_72' and t['source_Adam_step']==642840
+print(json.dumps(dict(passed=True,versions={x:metadata.version(x) for x in ('torch','rsl-rl-lib','isaaclab','isaacsim')},CUDA_initialized=False,model_reads=0)))
+"""
+workers=[]
+def run(name,args,e,timeout,fd=None):
+ with (B/(name+'_FULL_STDOUT_STDERR.log')).open('xb') as log:
+  p=subprocess.Popen(args,cwd=B,env=e,stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,close_fds=True,pass_fds=(() if fd is None else (fd,)),start_new_session=True)
+  workers.append(p);q=psutil.Process(p.pid);identity=dict(pid=p.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),cwd=q.cwd())
+  put(name+'_ORIGINAL_IDENTITY_BEFORE_WAIT.json',identity)
+  try:rc=p.wait(timeout=timeout)
+  except subprocess.TimeoutExpired:
+   put(name+'_ORIGINAL_TIMEOUT_CHILD_NOT_RELAUNCHED.json',dict(epoch=time.time(),identity=identity,timeout=timeout,no_fake_waitout_or_lock_free=True))
+   raise
+ put(name+'_ORIGINAL_WAITED_EXIT.json',dict(epoch=time.time(),returncode=rc,actual_waited=True,identity=identity))
+ return rc
+cpu_rc=None;gpu_rc=None;error=None;lock=None;resource=None;selected=None
+try:
+ cpu_rc=run('CPU209',[str(P72),'-u','-B','-c',CPU,str(B)],env(None),120)
+ assert cpu_rc==0
+ lines=subprocess.check_output(['nvidia-smi','--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).splitlines()
+ candidates={a[0]:a for a in ([s.strip() for s in line.split(',')] for line in lines)}
+ for gpu in ('GPU-16828f91-2b45-b646-8dc0-9481138e2842','GPU-c27eecbd-6838-7290-1cd2-37e34522213d'):
+  a=candidates.get(gpu)
+  if not a or a[1]!='NVIDIA GeForce RTX 4090' or int(a[2])<=15669 or int(a[3])>30:continue
+  path=owned/'state'/('three_expert_v2_'+gpu+'.lock')
+  f=path.open('rb+')
+  try:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  except BlockingIOError:f.close();continue
+  selected=gpu;lock=f;break
+ assert lock is not None,'No admitted free72 GPU/privateEX; no unknownPID query or interference'
+ with (owned/'state/finite_environment_validation.lock').open('rb+') as shared:
+  fcntl.flock(shared,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(shared,fcntl.LOCK_UN)
+ line=subprocess.check_output(['nvidia-smi','-i',selected,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();a=[s.strip() for s in line.split(',')]
+ ram=psutil.virtual_memory().available;disk=shutil.disk_usage(B).free
+ resource=dict(epoch=time.time(),GPU_UUID=selected,GPU_line=line,RAM_available=ram,disk_free=disk,private_EX=True,private_lock=str(path),only_light_GPU_resource_no_PID_query=True)
+ put('ACTUAL209_SELECTED72_RESOURCE_PRIVATE_EX.json',resource)
+ assert a[0]==selected and a[1]=='NVIDIA GeForce RTX 4090' and int(a[2])>15669 and int(a[3])<=30 and ram>32*1024**3 and disk>25*1024**3
+ gpu_rc=run('GPU209_NATIVE80',[str(P72),'-u','-B',str(B/'run209_mixed_E0_JUMP_worker.py'),'--mode','admission','--num-envs','80','--run-id','E0_JUMP72_SOURCE209_0PT','--out',str(B/'admission80')],env(selected),900,lock.fileno())
+except BaseException:
+ error=traceback.format_exc();put('PARENT209_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=error,no_automatic_retry=True))
+finally:
+ waited=all(p.poll() is not None for p in workers)
+ if lock is not None:
+  if waited:fcntl.flock(lock,fcntl.LOCK_UN)
+  lock.close()
+ put('PRIVATE209_EX_EXIT_SCOPE.json',dict(epoch=time.time(),all_own_children_waited=waited,private_EX_released=waited,if_timeout_original_child_inherits_private_FD_until_own_exit=True))
+function=B/'admission80/FUNCTION_RETURNED.json';result=B/'admission80/ACTUAL209_0PT_SOURCE_SDK_NATIVE8_ADMISSION.json'
+value=json.loads(result.read_bytes()) if result.is_file() else None
+f=json.loads(function.read_bytes()) if function.is_file() else None
+errors=[str(p) for p in (B/'admission80').glob('*ERROR*.json')]
+passed=bool(cpu_rc==0 and gpu_rc==0 and not error and waited and value and value.get('passed') and value.get('controls')==8 and value.get('physics_callbacks')==64 and value.get('feedback_samples')==16 and f and f.get('passed') and not errors)
+texts=[]
+for root in (B,B/'admission80'):
+ for p in sorted(root.iterdir()) if root.is_dir() else []:
+  if not p.is_file() or p.suffix not in ('.json','.log'):continue
+  raw=p.read_bytes();texts.append(dict(path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),UTF8=raw.decode('utf8','replace')))
+admission=dict(epoch=time.time(),passed=passed,kind='E0_JUMP32066_MIXED_GROUND10_JUMP90_NATIVE8_ACTUAL_SOURCE_ADMISSION',role='e0_72',
+ manifest_SHA=v['manifest_SHA'],source_SHA='2df106412ade7c0993f5a51871a4505624600aac7489c011011d9fd24d3ca610',
+ source_iteration=32066,source_Adam_step=642840,num_envs=20000,admission_envs=80,actual_target_CPU_returncode=cpu_rc,actual_target_GPU0PT_returncode=gpu_rc,
+ actual_native_controls=value.get('controls') if value else None,actual_physics_callbacks=value.get('physics_callbacks') if value else None,actual_feedback_samples=value.get('feedback_samples') if value else None,
+ selected_GPU=selected,resource=resource,all_own_children_waited=waited,private_EX_released=waited,model_checkpoint_reads=0,new_PPO_updates=0,
+ historical_E0_fullstate_CPU_report=v['source_CPU_proof'],actual_CUDA_model_restore_required_before_new_control=True,worker_errors=errors,parent_error=error)
+put('ADMISSION209_ACTUAL.json',admission)
+print(json.dumps(dict(epoch=time.time(),passed_execution=passed,admission=admission,result=value,CPU_returncode=cpu_rc,GPU_returncode=gpu_rc,parent_error=error,all_own_children_waited=waited,private_EX_released=waited,full_UTF8=texts)))

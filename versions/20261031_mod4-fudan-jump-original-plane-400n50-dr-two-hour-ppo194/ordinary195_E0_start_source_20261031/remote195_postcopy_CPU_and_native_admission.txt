@@ -1,0 +1,60 @@
+from pathlib import Path
+import fcntl,hashlib,json,os,psutil,shutil,subprocess,sys,time,traceback
+B=Path(v['root']);assert B==Path('/mnt/mod4_linux_durable_20261013/MOD4_E0_82_LITERAL_FUDAN_JUMP_PLANE40050_20261031v195/seed27')
+def put(n,value):
+ with (B/n).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,allow_nan=False)
+for row in v['files']:
+ p=B/row['relative'];assert p.resolve().is_relative_to(B) and p.stat().st_size==row['bytes']
+ with p.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+ assert sha==row['SHA'],str(p)
+put('ACTUAL195_POSTCOPY_COMPLETE_INPUTS_VERIFIED.json',dict(passed=True,files=len(v['files']),models=0))
+def env(gpu):
+ e=dict(os.environ,CUDA_VISIBLE_DEVICES='GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e' if gpu else '',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+ for k in ('PYTHONHOME','PYTHONPATH','LD_PRELOAD'):e.pop(k,None)
+ for k,n in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp'}.items():
+  p=B/'private_admission'/n;p.mkdir(parents=True,exist_ok=True);e[k]=str(p)
+ return e
+CPU="""import sys,json,ast
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()))
+import torch
+from jump195_boundary import LiteralJump195
+t=json.loads(Path('TASK195.json').read_bytes());assert t['reward_weights_and_functions_no_edits'] and t['policy_hz']==50 and t['decimation']==8 and t['gas_nominal_k']==2000 and t['TGS']==[32,4]
+k=LiteralJump195(2,'cpu',.02,['chassis','left_wheel','right_wheel']+['fixture_'+str(i) for i in range(28)]);assert len(k.reward_names)==16 and not torch.cuda.is_initialized()
+from literal_original_config import LiteralOriginalConfig,class_to_dict
+assert class_to_dict(LiteralOriginalConfig.rewards.scales)==t['reward_selected16']
+print(json.dumps(dict(passed=True,actual_target_Torch=torch.__version__,source_reward_count=16,model_reads=0,SDK_GPU_or_training_calls=0,CUDA_initialized=False)))
+"""
+lock=None;cpu_rc=None;gpu_rc=None;error=None;resource=None
+def run(name,args,e,timeout):
+ with (B/(name+'_COMPLETE_STDOUT_STDERR.log')).open('xb') as f:
+  p=subprocess.Popen(args,cwd=B,env=e,stdout=f,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,close_fds=True)
+  q=psutil.Process(p.pid);identity=dict(pid=p.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),cwd=q.cwd())
+  put(name+'_IDENTITY_BEFORE_WAIT.json',identity);rc=p.wait(timeout=timeout)
+ put(name+'_ORIGINAL_WAITED_EXIT.json',dict(epoch=time.time(),returncode=rc,actual_waited=True,identity=identity))
+ return rc
+try:
+ cpu_rc=run('CPU',[sys.executable,'-u','-B','-c',CPU],env(False),120)
+ assert cpu_rc==0
+ lock=Path('/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock').open('rb+');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ line=subprocess.check_output(['nvidia-smi','-i','GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e','--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();a=[x.strip() for x in line.split(',')]
+ ram=psutil.virtual_memory().available;disk=shutil.disk_usage(B).free
+ resource=dict(epoch=time.time(),GPU_line=line,RAM_available=ram,disk_free=disk,private_EX_held=True,no_other_PID_query=True)
+ put('ACTUAL195_FRESH_RESOURCES_PRIVATE_EX.json',resource)
+ assert a[0]=='GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e' and int(a[2])>15669 and int(a[3])<=30 and ram>32*1024**3 and disk>25*1024**3
+ gpu_rc=run('GPU_NATIVE',[sys.executable,'-u','-B',str(B/'run195_literal_jump_plane_worker.py'),'--mode','admission','--num-envs','64','--run-id','STAIRS3_195_0PT_ADMISSION','--out',str(B/'admission64')],env(True),900)
+except BaseException:
+ error=traceback.format_exc();put('ACTUAL195_PARENT_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=error,no_retry=True))
+finally:
+ if lock is not None:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()
+put('ACTUAL195_PRIVATE_EX_RELEASED.json',dict(epoch=time.time(),released=True))
+function=B/'admission64/FUNCTION_RETURNED.json';proof=B/'admission64/ACTUAL195_0PT_SOURCE_SDK_NATIVE8_ADMISSION.json'
+f=json.loads(function.read_bytes()) if function.is_file() else None;r=json.loads(proof.read_bytes()) if proof.is_file() else None
+errors=[str(p) for p in (B/'admission64').glob('*ERROR*.json')]
+texts=[]
+for p in sorted(B.rglob('*')):
+ if not p.is_file() or any(x in p.relative_to(B).parts for x in ('payload','private_admission','kit_isolation','original_source')):continue
+ if p.suffix not in ('.json','.log'):continue
+ raw=p.read_bytes();texts.append(dict(relative=p.relative_to(B).as_posix(),path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),UTF8=raw.decode('utf8','replace')))
+passed=bool(cpu_rc==0 and gpu_rc==0 and error is None and not errors and f and f.get('passed') and r and r.get('controls')==8 and r.get('physics_callbacks')==64)
+print(json.dumps(dict(epoch=time.time(),passed_execution=passed,CPU_returncode=cpu_rc,returncode=gpu_rc,parent_error=error,worker_errors=errors,result=r,resource=resource,private_EX_released=True,full_UTF8=texts,model_reads=0,training_updates=0,account_writes=0)))

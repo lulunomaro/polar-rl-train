@@ -1,0 +1,47 @@
+from pathlib import Path
+import fcntl,hashlib,json,os,psutil,shutil,subprocess,sys,time,traceback
+B=Path(v['root']);assert str(B)=='/mnt/mod4_linux_durable_20261013/MOD4_PRIMARY_E0_EVAL_ONLY_ZERO_YAW_20261031v207'
+def put(n,x):
+ with (B/n).open('x',encoding='utf8') as f:json.dump(x,f,indent=2,allow_nan=False)
+for row in v['files']:
+ p=B/row['relative'];assert p.resolve().is_relative_to(B) and p.stat().st_size==row['bytes']
+ with p.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+ assert sha==row['SHA']
+put('ACTUAL207_INPUT_SOURCE_POSTCOPY.json',dict(passed=True,source_files=len(v['files']),model_copies_or_input_hashes=0))
+lock=None;cases={};identities={};waits={};resources={};parent_error=None
+try:
+ lock=Path('/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock').open('rb+')
+ fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ for role in ('primary','e0'):
+  D=B/role;gpu='GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e'
+  line=subprocess.check_output(['nvidia-smi','-i',gpu,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();cols=[x.strip() for x in line.split(',')]
+  resources[role]=dict(epoch=time.time(),GPU_line=line,RAM_available=psutil.virtual_memory().available,disk_free=shutil.disk_usage(B).free,no_GPU_PID_scan=True)
+  put(role+'/ACTUAL207_FRESH_N1_RESOURCES.json',resources[role])
+  assert cols[0]==gpu and cols[1]=='NVIDIA GeForce RTX 4090' and int(cols[2])>15669 and int(cols[3])<=30
+  assert resources[role]['RAM_available']>8*1024**3 and resources[role]['disk_free']>25*1024**3
+  env=dict(os.environ,CUDA_VISIBLE_DEVICES=gpu,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+  for key in ('PYTHONHOME','PYTHONPATH','LD_PRELOAD'):env.pop(key,None)
+  for key,leaf in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp'}.items():
+   p=D/'private'/leaf;p.mkdir(parents=True,exist_ok=True);env[key]=str(p)
+  args=[sys.executable,'-u','-B',str(B/'evaluate207_qualified_actor_zero_yaw_once.py'),'--task',str(D/'TASK207.json')]
+  with (D/'ACTUAL207_STDOUT_STDERR.log').open('xb') as log:
+   child=subprocess.Popen(args,cwd=D,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,close_fds=True)
+   q=psutil.Process(child.pid);identity=dict(pid=child.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),cwd=q.cwd());identities[role]=identity
+   put(role+'/ACTUAL207_WORKER_IDENTITY_BEFORE_WAIT.json',identity)
+   rc=child.wait(timeout=900);waits[role]=dict(epoch=time.time(),returncode=rc,original_waited=True,identity=identity)
+  put(role+'/ACTUAL207_WAITED_EXIT.json',waits[role])
+  out=D/'actual_capture';p=out/'CAPTURE207_ACTUAL_RESULT.json';case=json.loads(p.read_bytes()) if p.is_file() else None
+  errors=[str(x) for x in out.glob('*ERROR*.json')] if out.is_dir() else []
+  cases[role]=dict(passed=bool(rc==0 and case and case.get('passed') and not errors),case=case,errors=errors)
+except BaseException:
+ parent_error=traceback.format_exc();put('ACTUAL207_ORIGINAL_PARENT_ERROR.json',dict(epoch=time.time(),error=parent_error,no_retry=True))
+finally:
+ if lock is not None:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()
+put('ACTUAL207_PRIVATE_EX_RELEASED_AFTER_WAIT.json',dict(epoch=time.time(),released=True,original_waits=waits))
+texts=[]
+for p in sorted(B.rglob('*')):
+ if not p.is_file() or any(x in p.relative_to(B).parts for x in ('private','kit_isolation')):continue
+ if p.suffix.lower() not in ('.json','.log','.txt'):continue
+ raw=p.read_bytes();texts.append(dict(path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),UTF8=raw.decode('utf8','replace')))
+passed=bool(parent_error is None and set(cases)=={'primary','e0'} and all(x['passed'] for x in cases.values()))
+print(json.dumps(dict(epoch=time.time(),passed_execution=passed,cases=cases,workers=identities,waits=waits,resources=resources,parent_error=parent_error,private_EX_released=True,full_UTF8=texts,new_training_updates=0,account_writes=0,artifact_transfers=0)))

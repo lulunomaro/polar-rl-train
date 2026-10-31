@@ -1,0 +1,105 @@
+"""Native SuperMimic WM pretraining from frozen own-MOD4 PPO teacher controls.
+
+Only the original WM tensor kernels/replay semantics are reused. This stage does
+not pretend that WM warmup has already trained or qualified a native policy.
+"""
+from pathlib import Path
+import importlib,sys,types
+import torch
+
+
+def load_native_kernels(source):
+    name='supermimic_wheel_leg_v3'
+    if name not in sys.modules:
+        module=types.ModuleType(name);module.__path__=[str(Path(source)/name)]
+        sys.modules[name]=module
+    geometry=importlib.import_module(name+'.geometry')
+    world=importlib.import_module(name+'.augmented_wheel_leg_world_model_v1')
+    replay=importlib.import_module(name+'.replay')
+    return geometry,world,replay
+
+
+class FlatTeacherWorldModel:
+    """Build the original augmented WM with flat-ground coordinate features."""
+    @staticmethod
+    def make(base,context_dim,hidden):
+        class FlatModel(base):
+            def terrain_relative(self,state):
+                p=state[0]
+                # Original E0/E2 flat local ground z=0. No fictitious H1 edge.
+                return torch.stack((torch.zeros_like(p[...,0]),torch.zeros_like(p[...,1]),-p[...,2]),-1)
+        return FlatModel(context_dim=context_dim,hidden=hidden,num_joints=30,
+                         auxiliary_dim=54,action_dim=6,edge_x_m=0,platform_top_z_m=0)
+
+
+class TeacherWM50:
+    def __init__(self,source,device,*,seed,envs=2048,window=32,batch=1024,
+                 hidden=(512,512,512),learning_rate=1e-4):
+        self.device=torch.device(device);self.envs=envs;self.window=window;self.batch=batch
+        self.geometry,world,replay=load_native_kernels(source)
+        devices=[self.device.index or 0] if self.device.type=='cuda' else []
+        # Initialization and replay sampling never consume the teacher's streams.
+        with torch.random.fork_rng(devices=devices):
+            torch.manual_seed(seed)
+            self.model=FlatTeacherWorldModel.make(world.AugmentedWheelLegWorldModel,31,hidden).to(self.device)
+        self.optimizer=torch.optim.Adam(self.model.parameters(),lr=learning_rate)
+        self.generator=torch.Generator(device=self.device);self.generator.manual_seed(seed+1)
+        self.buffer=replay.ReplayBuffer(64,envs,self.device,num_joints=30,context_dim=31,action_dim=6,state_dim=127)
+        self.floor=world.learner_error_floor(world.WheelLegStateLayout()).to(self.device)
+        self.updates=0;self.controls=0
+        self.protocol=dict(kind='NATIVE_SUPERMIMIC_WM50_FROZEN_PPO_TEACHER',
+            physics_us=2500,policy_us=20000,physics_callbacks=8,
+            state127=True,static31=True,actions6=True,window=window,batch=batch,
+            time_loss_reduction='sum time / batch, original native loss semantics',
+            gradient_clip=1.0,hidden=list(hidden),new_WM_parameters_and_optimizer=True,
+            original_PPO_actor_critic_STD_17Adam_frozen=True,policy_BPTT_updates=0)
+
+    def add(self,transition):
+        assert set(self.buffer.fields)<=set(transition)
+        fields={key:transition[key][:self.envs].detach() for key in self.buffer.fields}
+        assert all(value.shape[0]==self.envs for value in fields.values())
+        s=self.geometry.unflatten_state(fields['s']);s1=self.geometry.unflatten_state(fields['s1'])
+        # Original output labels and norm updates come only from real transitions.
+        from compact_episode_static31_v1 import normalize_static31
+        self.model.in_norm.update(self.model.inputs(s,fields['a'],normalize_static31(fields['xi'])))
+        self.model.out_norm.update(self.model.targets(s,s1))
+        self.buffer.add(fields);self.controls+=1
+
+    def sample(self):
+        b=self.buffer;k=self.window
+        assert b.size>=k
+        start=torch.randint(0,b.size-k+1,(self.batch,),device=self.device,generator=self.generator)
+        env=torch.randint(0,b.N,(self.batch,),device=self.device,generator=self.generator)
+        rows=b._row(start[:,None]+torch.arange(k,device=self.device))
+        ids=env[:,None].expand_as(rows)
+        out={key:b.data[key][rows,ids] for key in ('s','s1','a','xi','done')}
+        done=out['done'].float()
+        out['mask']=torch.cumprod(torch.cat((torch.ones(self.batch,1,device=self.device),1-done[:,:-1]),-1),-1)
+        return out
+
+    def update(self):
+        from compact_episode_static31_v1 import normalize_static31
+        batch=self.sample();state=self.geometry.unflatten_state(batch['s'][:,0]);states=[]
+        for i in range(self.window):
+            state=self.model.step(state,batch['a'][:,i],normalize_static31(batch['xi'][:,i]));states.append(state)
+        prediction=tuple(torch.stack([value[i] for value in states],1) for i in range(7))
+        scale=torch.maximum(self.model.out_norm.std(),self.floor)
+        error=(self.model.state_error(prediction,self.geometry.unflatten_state(batch['s1']))/scale).square().mean(-1)
+        loss=(error*batch['mask']).sum()/self.batch
+        assert torch.isfinite(loss)
+        self.optimizer.zero_grad(set_to_none=True);loss.backward()
+        norm=torch.nn.utils.clip_grad_norm_(self.model.parameters(),1.)
+        assert torch.isfinite(norm)
+        assert all(parameter.grad is None or torch.isfinite(parameter.grad).all() for parameter in self.model.parameters())
+        self.optimizer.step();self.updates+=1
+        assert all(torch.isfinite(parameter).all() for parameter in self.model.parameters())
+        return dict(world_updates=self.updates,loss=float(loss.detach()),preclip_grad_L2=float(norm),
+                    replay_controls=self.buffer.size,window=self.window,
+                    source='real own-MOD4 teacher transitions only',policy_updates=0)
+
+    def checkpoint(self):
+        return dict(world_model=self.model.state_dict(),world_optimizer=self.optimizer.state_dict(),
+                    dedicated_sampling_rng=self.generator.get_state(),world_updates=self.updates,
+                    physical_controls=self.controls,protocol=self.protocol,replay_saved=False,
+                    replay_resume_scope='fresh replay; full WM weights/norms/optimizer/counters retained',
+                    complete_native_policy_conversion=False)

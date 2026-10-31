@@ -1,0 +1,56 @@
+from pathlib import Path
+import fcntl, hashlib, json, os, psutil, shutil, subprocess, sys, time, traceback
+
+B=Path(v['root'])
+assert B==Path('/mnt/mod4_linux_durable_20261013/MOD4_JUMP197_FINAL5367_USER_VIEW_20261031v200')
+def put(name, value):
+ with (B/name).open('x',encoding='utf8') as f:json.dump(value,f,indent=2,allow_nan=False)
+for row in v['files']:
+ p=B/row['relative']
+ assert p.resolve().is_relative_to(B) and p.stat().st_size==row['bytes'],str(p)
+ with p.open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+ assert actual==row['SHA'],str(p)
+put('ACTUAL200_POSTCOPY_RUNTIME_INPUTS_VERIFIED.json',dict(passed=True,files=len(v['files']),previous_models_copied_or_read=0,for_actual_deployment_not_archival=True))
+lock=None;resource=None;rc=None;identity=None;error=None;actual_wait=False;released=False
+try:
+ lock=Path('/mnt/mod4_linux_durable_20261013/H125_1710n1/OWN_SOURCE_GPU_NATIVE_ONLY.lock').open('rb+')
+ fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ gpu='GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e'
+ line=subprocess.check_output(['nvidia-smi','-i',gpu,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip()
+ fields=[s.strip() for s in line.split(',')]
+ ram=psutil.virtual_memory().available;disk=shutil.disk_usage(B).free
+ resource=dict(epoch=time.time(),GPU_line=line,RAM_available=ram,durable_disk_free=disk,private_EX_held=True,other_process_PID_queries=0)
+ put('ACTUAL200_FRESH_RESOURCES_BEFORE_ONE_FROZEN_ACTOR.json',resource)
+ assert fields[0]==gpu and fields[1]=='NVIDIA GeForce RTX 4090'
+ assert int(fields[2])>15669 and int(fields[3])<=30
+ assert ram>8*1024**3 and disk>25*1024**3
+ e=dict(os.environ,CUDA_VISIBLE_DEVICES=gpu,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+ for key in ('PYTHONHOME','PYTHONPATH','LD_PRELOAD'):e.pop(key,None)
+ for key,name in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp'}.items():
+  p=B/'private'/name;p.mkdir(parents=True,exist_ok=True);e[key]=str(p)
+ args=[sys.executable,'-u','-B',str(B/'capture200_final197_literal_jump_plane_once.py')]
+ with (B/'ACTUAL200_COMPLETE_STDOUT_STDERR.log').open('xb') as log:
+  p=subprocess.Popen(args,cwd=B,env=e,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,close_fds=True)
+  process=psutil.Process(p.pid)
+  identity=dict(pid=p.pid,creation=process.create_time(),exe=process.exe(),argv=process.cmdline(),cwd=process.cwd())
+  put('ACTUAL200_OWN_WORKER_IDENTITY_BEFORE_WAIT.json',identity)
+  rc=p.wait(timeout=900);actual_wait=True
+ put('ACTUAL200_ORIGINAL_WAITED_EXIT.json',dict(epoch=time.time(),identity=identity,returncode=rc,actual_waited=actual_wait))
+except BaseException:
+ error=traceback.format_exc();put('ACTUAL200_PARENT_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=error,no_retry=True))
+finally:
+ if lock is not None:
+  fcntl.flock(lock,fcntl.LOCK_UN);lock.close();released=True
+ else:released=True
+put('ACTUAL200_PRIVATE_EX_RELEASED_AFTER_PARENT.json',dict(epoch=time.time(),released=released,original_worker_waited=actual_wait))
+out=B/'actual_capture';result_path=out/'CAPTURE200_ACTUAL_RESULT.json';function_path=out/'FUNCTION_RETURNED.json'
+result=json.loads(result_path.read_bytes()) if result_path.is_file() else None
+function=dict(passed=True) if result and result.get('passed') else None
+error_paths=[str(p) for p in out.glob('*ERROR*.json')] if out.is_dir() else []
+texts=[]
+for p in sorted(B.rglob('*')):
+ if not p.is_file() or any(x in p.relative_to(B).parts for x in ('private','kit_isolation','payload')):continue
+ if p.suffix.lower() not in ('.json','.log','.txt'):continue
+ raw=p.read_bytes();texts.append(dict(path=str(p),relative=p.relative_to(B).as_posix(),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),UTF8=raw.decode('utf8',errors='replace')))
+strict=bool(actual_wait and rc==0 and error is None and not error_paths and function and function.get('passed') and result and result.get('passed') and released)
+print(json.dumps(dict(epoch=time.time(),passed_execution=strict,actual_worker_identity=identity,original_waited=actual_wait,returncode=rc,parent_error=error,worker_errors=error_paths,result=result,resource=resource,private_EX_released=released,full_UTF8=texts,training_updates=0,account_writes=0)))

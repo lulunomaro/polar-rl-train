@@ -1,0 +1,110 @@
+{
+  "epoch": 1793501060.1583946,
+  "human_selected": "ONNX exported from checkpoint model_2050",
+  "host": "LULU/lulunomaro@10.24.4.249, original pinned SSH",
+  "selected_export": "D:/claude2/fangzhen/train/deploy/mod4_fudan_recovery_model2050.onnx",
+  "export_sidecar_iteration": 2050,
+  "export_actor_obs": 35,
+  "export_actions": 6,
+  "export_hidden": [
+    128,
+    64,
+    32
+  ],
+  "export_activation": "elu",
+  "export_sidecar_checkpoint": "D:/claude2/fangzhen/train/deploy/mod4_fudan_recovery_model2050.pt",
+  "matching_training_run": "D:/claude2/fangzhen/runs3060/fudan_stairs_actual/logs/2026-10-31_23-24-22_fudan_pyramid_stairs_up_fullDR_3060",
+  "matching_run_model2050": "metadata inventory only; PT/ONNX bytes not opened or hashed",
+  "cryptographic_identity_between_run_PT_deploy_PT_and_ONNX": "UNKNOWN; no export source SHA in the selected sidecar",
+  "training_source_iteration": 2000,
+  "training_source_SHA": "21975e677b1cd65e14bd5fdc75e6401e66f8c98b1ef680c9a6a13862d46885ed",
+  "training_num_envs": 2048,
+  "training_policy_Hz": 100,
+  "training_physics_dt": 0.001,
+  "training_TGS": [
+    32,
+    32
+  ],
+  "nominal_training_gas": {
+    "left_gas_slide": {
+      "target_position_m": 0.22063944109012937,
+      "stiffness_n_m": 3500.0,
+      "damping_n_s_m": 3.0
+    },
+    "right_gas_slide": {
+      "target_position_m": 0.2206394410901294,
+      "stiffness_n_m": 3500.0,
+      "damping_n_s_m": 3.0
+    }
+  },
+  "training_DR_OFF": false,
+  "training_DR_implementation": "Original SCUT EventCfg/noise/delay, not our current D0white_v3+D1-D7 exact recipe",
+  "DR_active_log_and_source": true,
+  "all_randomized_actual_setter_values_not_independently_readback": true,
+  "DR_terms_source": [
+    "mass/inertia",
+    "COM x+-40mm/y,z+-20mm",
+    "wheel friction .7..1.3",
+    "PD and motor effort",
+    "joint armature/friction",
+    "sensor noise/bias/delay",
+    "target delay",
+    "gas stiffness .8..1.2/damping .7..1.3",
+    "velocity-setting push and external wrench"
+  ],
+  "playback": {
+    "policy_Hz": 50,
+    "physics_dt": 0.0025,
+    "gas_k": 3500,
+    "DR_sampling_in_captured_player": false,
+    "course_step_height": 0.11,
+    "tread": 0.7,
+    "root_at_t3": {
+      "z": 0.5981809885758279,
+      "terrain_top": 0.22,
+      "local_height": 0.37818098857582794
+    },
+    "maximum_recorded_advance": 2.226625117168544,
+    "final_live_log_reset_count": 19,
+    "bilateral_air_contacts_or_landing_stability_not_recorded": true,
+    "single270mm_jump_not_verified": true,
+    "action": "raw ONNX -> constant PD -> torque clip, once each20ms then hold8 MuJoCo steps",
+    "CAD_diff_projection": false,
+    "action_clip6_in_player": false,
+    "torque_speed_curve_in_player": false,
+    "player_reset": "tilt >70deg or root < local_top+.07; no closure/mimic termination check in this script"
+  },
+  "training_guards": {
+    "closure_m": 0.002,
+    "mimic_rad": 0.05,
+    "bad_orientation_rad": 1.4706289056333368,
+    "low_base_threshold": -1.0,
+    "base_contact_disabled_FUDAN_EXACT": true
+  },
+  "reward_same16weights": true,
+  "reward_byte_literal_identical": false,
+  "reward_source_differences": [
+    "manual Fudan function port",
+    "reset_fudan_state clears last_contacts and base_air_time; our literal branch preserves upstream cross-reset memory",
+    "L0/theta use WORLD thigh/wheel vertical delta and atan2; our adapter uses own hip anchors/wheel BODY geometry"
+  ],
+  "old_our_E0_branch": {
+    "status": "Retired for future training by human, originals preserved",
+    "nominal_gas_k": 2000,
+    "policy_Hz": 50,
+    "physics_dt": 0.0025,
+    "TGS": [
+      32,
+      4
+    ],
+    "mimic_rad": 0.01,
+    "starting_model": "Frozen E0 walking expert a92, not the other branch trained jump checkpoint2000",
+    "inherited_left_crank_saturation": "Actual220/221/223/224: e629 mean below-6 all1000 controls; original a92 also below-6 on same32 NEW223 inputs; source STD23.36029 predates3h",
+    "independent_repair225_short_test": "Actual230:9 sampled bilateral wheel-air runs, heading drift/nonwheel contacts; not stable270",
+    "old_model_or_raw_reopened_for_this_comparison": false
+  },
+  "conclusion": "DR alone is not established as the reason our E0 branch failed. Starting actor saturation is direct evidence; nominal spring, timing, guards, adapter and test terrain also differ. No single-variable causal proof.",
+  "DR0_status": "Two off-only source packages frozen, actual0PT/model/learning/GO not selected or run. Human now reviewing2050 route; no automatic start or adoption of other stronger spring/looser guards.",
+  "new_learning_or_SDK_or_model_binary_actions": 0,
+  "all_ROOT_SSH_closed": true
+}

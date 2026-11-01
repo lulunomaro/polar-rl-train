@@ -1,0 +1,1 @@
+'/home/lc01/Zonglin Li/zonglin2/run-python.sh' -c 'import sys,importlib.util;print(sys.version);print({x:importlib.util.find_spec(x) is not None for x in ["numpy","scipy","mujoco","torch","mujoco_mjx","warp"]})'

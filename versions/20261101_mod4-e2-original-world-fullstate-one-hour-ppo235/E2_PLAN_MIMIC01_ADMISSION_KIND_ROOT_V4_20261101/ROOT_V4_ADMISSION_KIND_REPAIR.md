@@ -1,0 +1,3 @@
+Independent ROOT V4: original V3 refused before Task/GO/SDK/model because admission.kind used its new report prefix while the reused base contract expects ROOT_E2_SOLO_FRESH_CNONE_CIM_RESOURCE_ACTUAL.
+Only this metadata-kind literal changes. All worker/entry/helper/guard01 protocol/normal/CPU source bytes stay identical. Existing ROOT_E2_GUARD01_V3 report and lease prefixes remain under this independent V4 root; they never refer to the failed V3 root.
+Same V3 HANDOFF arguments, but new actual run/J/O/purpose and this new INDEX SHA. Source-only schema check uses saved actual metadata, never a fresh admission. Actual launcher must obtain fresh CIM/CNone/resources again. Original V3 source/INDEX/error/finally remain untouched.

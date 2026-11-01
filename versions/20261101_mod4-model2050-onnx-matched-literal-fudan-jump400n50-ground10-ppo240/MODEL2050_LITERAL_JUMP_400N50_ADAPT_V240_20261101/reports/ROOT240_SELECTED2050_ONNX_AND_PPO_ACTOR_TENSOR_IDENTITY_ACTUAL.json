@@ -1,0 +1,217 @@
+{
+  "epoch": 1793501615.0204818,
+  "all8_actor_linear_weight_and_bias_tensors_equal": true,
+  "source_actor_linear_keys": [
+    "mlp.0.bias",
+    "mlp.0.weight",
+    "mlp.2.bias",
+    "mlp.2.weight",
+    "mlp.4.bias",
+    "mlp.4.weight",
+    "mlp.6.bias",
+    "mlp.6.weight"
+  ],
+  "matched_keys": [
+    "mlp.0.bias",
+    "mlp.0.weight",
+    "mlp.2.bias",
+    "mlp.2.weight",
+    "mlp.4.bias",
+    "mlp.4.weight",
+    "mlp.6.bias",
+    "mlp.6.weight"
+  ],
+  "initializers": [
+    {
+      "ONNX_name": "mlp.0.bias",
+      "shape": [
+        128
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.0.bias",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.2.bias",
+      "shape": [
+        64
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.2.bias",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.4.bias",
+      "shape": [
+        32
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.4.bias",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.6.weight",
+      "shape": [
+        6,
+        32
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.6.weight",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.6.bias",
+      "shape": [
+        6
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.6.bias",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.0.weight",
+      "shape": [
+        128,
+        35
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.0.weight",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.2.weight",
+      "shape": [
+        64,
+        128
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.2.weight",
+          "transform": "identity"
+        }
+      ]
+    },
+    {
+      "ONNX_name": "mlp.4.weight",
+      "shape": [
+        32,
+        64
+      ],
+      "matches": [
+        {
+          "actor_key": "mlp.4.weight",
+          "transform": "identity"
+        }
+      ]
+    }
+  ],
+  "graph_nodes": [
+    {
+      "op": "Gemm",
+      "inputs": [
+        "obs",
+        "mlp.0.weight",
+        "mlp.0.bias"
+      ],
+      "outputs": [
+        "linear"
+      ]
+    },
+    {
+      "op": "Elu",
+      "inputs": [
+        "linear"
+      ],
+      "outputs": [
+        "val_4"
+      ]
+    },
+    {
+      "op": "Gemm",
+      "inputs": [
+        "val_4",
+        "mlp.2.weight",
+        "mlp.2.bias"
+      ],
+      "outputs": [
+        "linear_1"
+      ]
+    },
+    {
+      "op": "Elu",
+      "inputs": [
+        "linear_1"
+      ],
+      "outputs": [
+        "val_8"
+      ]
+    },
+    {
+      "op": "Gemm",
+      "inputs": [
+        "val_8",
+        "mlp.4.weight",
+        "mlp.4.bias"
+      ],
+      "outputs": [
+        "linear_2"
+      ]
+    },
+    {
+      "op": "Elu",
+      "inputs": [
+        "linear_2"
+      ],
+      "outputs": [
+        "val_12"
+      ]
+    },
+    {
+      "op": "Gemm",
+      "inputs": [
+        "val_12",
+        "mlp.6.weight",
+        "mlp.6.bias"
+      ],
+      "outputs": [
+        "actions"
+      ]
+    }
+  ],
+  "input": [
+    {
+      "name": "obs",
+      "shape": [
+        1,
+        35
+      ]
+    }
+  ],
+  "output": [
+    {
+      "name": "actions",
+      "shape": [
+        1,
+        6
+      ]
+    }
+  ]
+}

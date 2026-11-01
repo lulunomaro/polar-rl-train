@@ -1,0 +1,440 @@
+{
+  "epoch": 1793502302.5098965,
+  "passed_execution": true,
+  "returncode": 0,
+  "parent_error": null,
+  "result": {
+    "passed": true,
+    "controls": 8,
+    "physics_callbacks": 64,
+    "feedback_samples": 16,
+    "num_envs": 80,
+    "literal_original_reward_calls": 8,
+    "source_reward_no_edits": true,
+    "measured_mapping": {
+      "original_jump_binding": {
+        "body_names": [
+          "chassis",
+          "left_thigh",
+          "left_input",
+          "left_drive_hip",
+          "left_drive_input",
+          "right_thigh",
+          "right_input",
+          "right_drive_hip",
+          "right_drive_input",
+          "guide_roller_00",
+          "guide_roller_01",
+          "guide_roller_02",
+          "guide_roller_03",
+          "guide_roller_04",
+          "guide_roller_05",
+          "guide_roller_06",
+          "guide_roller_07",
+          "left_rocker",
+          "left_shin",
+          "left_gas_inner",
+          "left_coupler",
+          "right_rocker",
+          "right_shin",
+          "right_gas_inner",
+          "right_coupler",
+          "left_distal",
+          "left_wheel",
+          "left_gas_barrel",
+          "right_distal",
+          "right_wheel",
+          "right_gas_barrel"
+        ],
+        "contact_body_order": [
+          0,
+          1,
+          8,
+          10,
+          11,
+          12,
+          19,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          2,
+          4,
+          6,
+          9,
+          13,
+          15,
+          17,
+          20,
+          3,
+          5,
+          7,
+          14,
+          16,
+          18
+        ],
+        "original_penalized_patterns": [
+          "lf",
+          "rf",
+          "base"
+        ],
+        "MOD4_equivalent_nonwheel_bodies": [
+          "chassis",
+          "left_thigh",
+          "left_input",
+          "left_drive_hip",
+          "left_drive_input",
+          "right_thigh",
+          "right_input",
+          "right_drive_hip",
+          "right_drive_input",
+          "guide_roller_00",
+          "guide_roller_01",
+          "guide_roller_02",
+          "guide_roller_03",
+          "guide_roller_04",
+          "guide_roller_05",
+          "guide_roller_06",
+          "guide_roller_07",
+          "left_rocker",
+          "left_shin",
+          "left_gas_inner",
+          "left_coupler",
+          "right_rocker",
+          "right_shin",
+          "right_gas_inner",
+          "right_coupler",
+          "left_distal",
+          "left_gas_barrel",
+          "right_distal",
+          "right_gas_barrel"
+        ],
+        "geometry": "own MOD4 authored hip local_pos0 on chassis -> actual main-wheel BODY ORIGIN/axis; v_b=R_chassis^T*(p_wheel-p_chassis)-hip_anchor_b; L0=sqrt(v_b.x^2+v_b.z^2) metres; theta0=atan2(down=-v_b.z,forward=v_b.x)-pi/2 radians, zero downward, positive wheel rearward on downward branch; retain original unwrapped atan2-minus-pi/2 convention even upside; sagittal projection ignores lateral offset; no Fudan rods or retargeted constants",
+        "hip_anchors_m": [
+          [
+            -1.8606201997712554e-17,
+            0.18129658699035645,
+            0.0
+          ],
+          [
+            0.0,
+            -0.18129658699035645,
+            0.0
+          ]
+        ],
+        "quaternion_order": "actual installed SDK xyzw",
+        "base_linear_velocity": "position finite difference rotated into currentBODY as pinned original",
+        "root_vertical_velocity": "actual SDK WORLD root_state_w[:,9]",
+        "torque": "SDK applied_torque named six efforts, not measured hardware torque",
+        "source_original_methods_unchanged": true,
+        "source_reward_dt_once": true,
+        "outer_Lab_dt_cancelled_only": true,
+        "command_vx": [
+          -2.1,
+          2.1
+        ],
+        "command_yaw": [
+          -2.0,
+          2.0
+        ],
+        "command_height": [
+          0.12,
+          0.15
+        ],
+        "resample_s": 20.0,
+        "original_contact_filter_and_base_air_time_preserved_across_reset": true,
+        "physical_guard_terminations_are_MOD4_not_Fudan_original_and_unchanged": true
+      },
+      "flat_envs": 8,
+      "jump_envs": 72,
+      "task_modes": {
+        "ground": 0,
+        "jump": 1
+      },
+      "flat_command": "Original E0_DIRECTIONAL_SPIN_V1, standing .1, pure .3, moving .2; resample12..16s",
+      "flat_height_m": 0.25,
+      "jump_resample_s": 20.0,
+      "ground_terms": {
+        "track_lin_vel": {
+          "weight": 1.0,
+          "params": {
+            "command_name": "twist",
+            "std": 0.25
+          },
+          "function": "scut_flat_rescue.linear_exp"
+        },
+        "track_lin_vel_tight": {
+          "weight": 0.2,
+          "params": {
+            "command_name": "twist",
+            "std": 0.01
+          },
+          "function": "scut_flat_rescue.linear_exp"
+        },
+        "track_lin_vel_huge_gap": {
+          "weight": -1.0,
+          "params": {
+            "command_name": "twist",
+            "gap": 0.5
+          },
+          "function": "scut_flat_rescue.linear_gap"
+        },
+        "track_lin_vel_square": {
+          "weight": -1.0,
+          "params": {
+            "command_name": "twist",
+            "sigma": 0.25
+          },
+          "function": "scut_flat_rescue.linear_square"
+        },
+        "track_ang_vel": {
+          "weight": 0.5,
+          "params": {
+            "command_name": "twist",
+            "std": 0.25
+          },
+          "function": "scut_flat_rescue.yaw_exp"
+        },
+        "track_ang_vel_square": {
+          "weight": -1.0,
+          "params": {
+            "command_name": "twist",
+            "sigma": 0.25
+          },
+          "function": "mod4_task.track_ang_vel_square_gated"
+        },
+        "height": {
+          "weight": 0.7,
+          "params": {
+            "sigma": 0.01
+          },
+          "function": "mod4_task.height_track"
+        },
+        "height_tight": {
+          "weight": 0.3,
+          "params": {
+            "sigma": 0.001
+          },
+          "function": "mod4_task.height_track"
+        },
+        "height_both_wheels": {
+          "weight": 0.3,
+          "params": {
+            "sigma": 0.1
+          },
+          "function": "mod4_task.height_track_both_wheels"
+        },
+        "lin_vel_z": {
+          "weight": -0.5,
+          "params": {},
+          "function": "skills_isaac.lin_vel_z_l2_jump_exempt"
+        },
+        "ang_vel_xy": {
+          "weight": -0.05,
+          "params": {},
+          "function": "skills_isaac.ang_vel_xy_jump_exempt"
+        },
+        "flat_orientation_y": {
+          "weight": -1.0,
+          "params": {
+            "mode": "pitch"
+          },
+          "function": "scut_flat_rescue.orientation"
+        },
+        "flat_orientation_y_v": {
+          "weight": -1.0,
+          "params": {
+            "mode": "pitch_velocity"
+          },
+          "function": "scut_flat_rescue.orientation"
+        },
+        "flat_orientation_x_v": {
+          "weight": -1.0,
+          "params": {
+            "mode": "roll_velocity"
+          },
+          "function": "scut_flat_rescue.orientation"
+        },
+        "no_fork": {
+          "weight": -1.0,
+          "params": {
+            "axis": 0
+          },
+          "function": "scut_flat_rescue.no_fork"
+        },
+        "no_fork_z": {
+          "weight": -2.0,
+          "params": {
+            "axis": 2
+          },
+          "function": "scut_flat_rescue.no_fork"
+        },
+        "wheel_motor_z_axis_align_exp": {
+          "weight": 0.1,
+          "params": {
+            "sigma": 0.01
+          },
+          "function": "scut_flat_rescue.leg_gravity_alignment"
+        },
+        "wheel_motor_z_axis_align_exp_tight": {
+          "weight": 0.1,
+          "params": {
+            "sigma": 0.001
+          },
+          "function": "scut_flat_rescue.leg_gravity_alignment"
+        },
+        "action_rate": {
+          "weight": -0.01,
+          "params": {},
+          "function": "skills_isaac.action_rate_jump_exempt"
+        },
+        "action_acc": {
+          "weight": -0.05,
+          "params": {},
+          "function": "skills_isaac.action_acc_l2"
+        },
+        "torques": {
+          "weight": -1e-05,
+          "params": {
+            "joint_names": [
+              "left_crank",
+              "left_hip",
+              "right_crank",
+              "right_hip",
+              "left_wheel_spin",
+              "right_wheel_spin"
+            ]
+          },
+          "function": "skills_isaac.joint_torques_l2_motors"
+        },
+        "joint_power": {
+          "weight": -0.0001,
+          "params": {},
+          "function": "scut_flat_rescue.wheel_power"
+        },
+        "spin_contact_consistency": {
+          "weight": -0.3,
+          "params": {
+            "speed_scale": 0.15,
+            "yaw_min": 3.5,
+            "support_weight": 0.25
+          },
+          "function": "rolling_consistency.spin_contact_consistency"
+        },
+        "world_cycle_cross": {
+          "weight": -0.3,
+          "params": {
+            "command_name": "twist",
+            "scale": 0.1,
+            "max_cost": 4.0
+          },
+          "function": "world_drift_isaac.WorldCycleCrossReward"
+        }
+      },
+      "reward_routing": "disjoint per-environment original E0 or original FudanJUMP, no blended terms",
+      "original_frozen_E0_file_untouched": true,
+      "trainable_input": "Human-selected model2050/ONNX-identical actor, fullcriticSTD17Adam; no E0 weights",
+      "all_physical_guards_unchanged": true
+    },
+    "model_loads": 0,
+    "NN_constructors": 0,
+    "optimizer_steps": 0,
+    "account_writes": 0,
+    "not_skill_or_policy_success": true
+  },
+  "full_UTF8": [
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ADMISSION80V2_FULL_STDOUT_STDERR.log",
+      "bytes": 18949,
+      "SHA": "45e45236ddde042e091883a7ad4c5c609c769b7eab257e4da5efa5e9febb1e8f",
+      "UTF8": "The '--headless' CLI argument is deprecated. Omit '--viz' for default headless. If config visualizers are enabled and you want to force headless, use '--viz none'.\nLoading user config located at: '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2/kit_isolation/data/user.config.json'\n2026-11-01T03:04:44Z [0ms] [Warning] [omni.kit.app.plugin] No crash reporter present, dumps uploading isn't available.\n2026-11-01T03:04:44Z [12ms] [Warning] [omni.ext.plugin] [ext: isaaclab_visualizers] Extensions config 'extension.toml' doesn't exist '/home/lc01/Zonglin Li/zonglin2/src/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab_visualizers' or '/home/lc01/Zonglin Li/zonglin2/src/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab_visualizers/config'\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nE0000 00:00:1793502284.763567 1018577 descriptor_database.cc:633] File already exists in database: grpc/health/v1/health.proto\nW0000 00:00:1793502284.763613 1018577 message.cc:301] Protobuf GeneratedMessageFactory: File is already registered: grpc/health/v1/health.proto\n2026-11-01T03:04:45Z [632ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX\n2026-11-01T03:04:45Z [748ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.\n[ISAACLAB] AppLauncher initialization complete\n[INFO]: Base environment:\n\tEnvironment device    : cuda:0\n\tEnvironment seed      : 27\n\tPhysics step-size     : 0.0025\n\tRendering step-size   : 0.02\n\tEnvironment step-size : 0.02\n[INFO]: Registered backend 'physx' for factory Articulation.\n[INFO]: Registered backend 'physx' for factory FrameView.\n[INFO]: Registered backend 'physx' for factory ContactSensor.\n[INFO]: Physics scene prim path: /physicsScene\n[INFO]: Time taken for scene creation Last: 0.656790 s, Mean: 0.656790 s, Std: 0.000000 s, N: 1\n[INFO]: Scene manager:  <class InteractiveScene>\n\tNumber of environments: 80\n\tEnvironment spacing   : 3.0\n\tSource prim name      : /World/envs/env_0\n\tGlobal prim paths     : []\n\tReplicate physics     : True\n2026-11-01T03:04:58Z [14,332ms] [Warning] [usdrt.population.plugin] Last global time was not created. Did you call setEnableUsdNoticeHandling?\n[INFO]: Simulation parameters for joints in /World/envs/env_.*/Robot:\n+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n|                                                        Simulation Joint Information (Prim path: /World/envs/env_.*/Robot)                                                       |\n+-------+------------------------+-----------+---------+----------+-----------------+------------------+------------------+---------------------+-----------------+---------------+\n| Index | Name                   | Stiffness | Damping | Armature | Static Friction | Dynamic Friction | Viscous Friction |   Position Limits   | Velocity Limits | Effort Limits |\n+-------+------------------------+-----------+---------+----------+-----------------+------------------+------------------+---------------------+-----------------+---------------+\n|   0   | left_hip               |   0.000   |  0.000  |  0.025   |      0.000      |      0.000       |      0.000       |   [-0.500, 0.500]   |     1.0e+03     |    1.0e+09    |\n|   1   | left_crank             |   0.000   |  0.000  |  0.025   |      0.000      |      0.000       |      0.000       |   [-1.200, 0.900]   |     1.0e+03     |    1.0e+09    |\n|   2   | left_drive_hip_spin    |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.500, 0.500]   |     1.0e+03     |    1.0e+06    |\n|   3   | left_drive_input_spin  |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-1.200, 0.900]   |     1.0e+03     |    1.0e+06    |\n|   4   | right_hip              |   0.000   |  0.000  |  0.025   |      0.000      |      0.000       |      0.000       |   [-0.500, 0.500]   |     1.0e+03     |    1.0e+09    |\n|   5   | right_crank            |   0.000   |  0.000  |  0.025   |      0.000      |      0.000       |      0.000       |   [-1.200, 0.900]   |     1.0e+03     |    1.0e+09    |\n|   6   | right_drive_hip_spin   |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.500, 0.500]   |     1.0e+03     |    1.0e+06    |\n|   7   | right_drive_input_spin |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-1.200, 0.900]   |     1.0e+03     |    1.0e+06    |\n|   8   | guide_roller_00        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   9   | guide_roller_01        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   10  | guide_roller_02        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   11  | guide_roller_03        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   12  | guide_roller_04        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   13  | guide_roller_05        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   14  | guide_roller_06        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   15  | guide_roller_07        |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+06    |\n|   16  | left_rocker_pin        |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.783, 0.706]   |     1.0e+03     |    1.0e+06    |\n|   17  | left_knee              |   0.000   |  0.080  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.761, 0.720]   |     1.0e+03     |    1.0e+06    |\n|   18  | left_gas_pin           |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.012, 0.156]   |     1.0e+03     |    1.0e+06    |\n|   19  | left_coupler_pin       |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.880, 0.903]   |     1.0e+03     |    1.0e+06    |\n|   20  | right_rocker_pin       |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.783, 0.706]   |     1.0e+03     |    1.0e+06    |\n|   21  | right_knee             |   0.000   |  0.080  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.761, 0.720]   |     1.0e+03     |    1.0e+06    |\n|   22  | right_gas_pin          |   0.000   |  0.005  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.012, 0.156]   |     1.0e+03     |    1.0e+06    |\n|   23  | right_coupler_pin      |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.880, 0.903]   |     1.0e+03     |    1.0e+06    |\n|   24  | left_distal_pin        |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.733, 0.815]   |     1.0e+03     |    1.0e+06    |\n|   25  | left_wheel_spin        |   0.000   |  0.000  |  0.001   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+09    |\n|   26  | left_gas_slide         |  2.0e+03  |  3.000  |  0.002   |      0.000      |      0.000       |      0.000       |   [-0.027, 0.021]   |     1.0e+03     |    2.0e+03    |\n|   27  | right_distal_pin       |   0.000   |  0.025  |  0.000   |      0.000      |      0.000       |      0.000       |   [-0.733, 0.815]   |     1.0e+03     |    1.0e+06    |\n|   28  | right_wheel_spin       |   0.000   |  0.000  |  0.001   |      0.000      |      0.000       |      0.000       | [-3.4e+38, 3.4e+38] |     1.0e+03     |    1.0e+09    |\n|   29  | right_gas_slide        |  2.0e+03  |  3.000  |  0.002   |      0.000      |      0.000       |      0.000       |   [-0.027, 0.021]   |     1.0e+03     |    2.0e+03    |\n+-------+------------------------+-----------+---------+----------+-----------------+------------------+------------------+---------------------+-----------------+---------------+\n2026-11-01T03:04:59Z [14,830ms] [Warning] [omni.physx.tensors.plugin] DEPRECATED: Please use getDofFrictionProperties instead.\n[INFO]: Time taken for simulation start Last: 1.947573 s, Mean: 1.947573 s, Std: 0.000000 s, N: 1\n[INFO] Command Manager:  <CommandManager> contains 1 active terms.\n+---------------------------------+\n|       Active Command Terms      |\n+-------+-------+-----------------+\n| Index | Name  |       Type      |\n+-------+-------+-----------------+\n|   0   | twist | Mixed209Command |\n+-------+-------+-----------------+\n\n[INFO] Event Manager:  <EventManager> contains 2 active terms.\n+--------------------------------------+\n| Active Event Terms in Mode: 'reset'  |\n+--------+-----------------------------+\n| Index  | Name                        |\n+--------+-----------------------------+\n|   0    | reset_scene                 |\n|   1    | reset_delay_lines           |\n|   2    | reset_history               |\n|   3    | reset_base                  |\n|   4    | consistent_start            |\n|   5    | mild_dr_white               |\n|   6    | sensor_mild_episode_bias    |\n+--------+-----------------------------+\n+------------------------------------+\n| Active Event Terms in Mode: 'step' |\n+---------+--------------------------+\n|  Index  | Name                     |\n+---------+--------------------------+\n|    0    | plant_metrics            |\n|    1    | ground_track             |\n|    2    | gas_spring_preload       |\n+---------+--------------------------+\n\n[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.\n+---------------------+\n| Active Recorder Terms |\n+-----------+---------+\n|   Index   | Name    |\n+-----------+---------+\n+-----------+---------+\n\n[INFO]: Resolved joint names for the action term DelayedJointPositionAction: ['left_crank', 'left_hip', 'right_crank', 'right_hip'] [[1, 0, 5, 4]]\n[INFO]: Resolved joint names for the action term DelayedJointVelocityAction: ['left_wheel_spin', 'right_wheel_spin'] [[25, 28]]\n[INFO] Action Manager:  <ActionManager> contains 2 active terms.\n+----------------------------------+\n|  Active Action Terms (shape: 6)  |\n+---------+----------+-------------+\n|  Index  | Name     |   Dimension |\n+---------+----------+-------------+\n|    0    | legs     |           4 |\n|    1    | wheels   |           2 |\n+---------+----------+-------------+\n\n[INFO] Observation Manager: <ObservationManager> contains 2 groups.\n+---------------------------------------------------------+\n| Active Observation Terms in Group: 'policy' (shape: (35,)) |\n+-----------+---------------------------------+-----------+\n|   Index   | Name                            |   Shape   |\n+-----------+---------------------------------+-----------+\n|     0     | commands                        |    (3,)   |\n|     1     | height_command                  |    (1,)   |\n|     2     | base_ang_vel                    |    (3,)   |\n|     3     | projected_gravity               |    (3,)   |\n|     4     | leg_pos                         |    (4,)   |\n|     5     | wheel_pos_slots                 |    (2,)   |\n|     6     | leg_vel                         |    (4,)   |\n|     7     | wheel_vel                       |    (2,)   |\n|     8     | last_action                     |    (6,)   |\n|     9     | mode_onehot                     |    (7,)   |\n+-----------+---------------------------------+-----------+\n+---------------------------------------------------------+\n| Active Observation Terms in Group: 'critic' (shape: (38,)) |\n+-----------+---------------------------------+-----------+\n|   Index   | Name                            |   Shape   |\n+-----------+---------------------------------+-----------+\n|     0     | commands                        |    (3,)   |\n|     1     | height_command                  |    (1,)   |\n|     2     | base_ang_vel                    |    (3,)   |\n|     3     | base_lin_vel                    |    (3,)   |\n|     4     | projected_gravity               |    (3,)   |\n|     5     | leg_pos                         |    (4,)   |\n|     6     | wheel_pos_slots                 |    (2,)   |\n|     7     | leg_vel                         |    (4,)   |\n|     8     | wheel_vel                       |    (2,)   |\n|     9     | last_action                     |    (6,)   |\n|     10    | mode_onehot                     |    (7,)   |\n+-----------+---------------------------------+-----------+\n\n[INFO] Termination Manager:  <TerminationManager> contains 6 active terms.\n+------------------------------------+\n|      Active Termination Terms      |\n+-------+-----------------+----------+\n| Index | Name            | Time Out |\n+-------+-----------------+----------+\n|   0   | time_out        |   True   |\n|   1   | bad_orientation |  False   |\n|   2   | base_contact    |  False   |\n|   3   | closure         |  False   |\n|   4   | mimic           |  False   |\n|   5   | low_base        |  False   |\n+-------+-----------------+----------+\n\n[INFO] Reward Manager:  <RewardManager> contains 35 active terms.\n+------------------------------------------------------+\n|                 Active Reward Terms                  |\n+-------+------------------------------------+---------+\n| Index | Name                               |  Weight |\n+-------+------------------------------------+---------+\n|   0   | track_lin_vel                      |     1.0 |\n|   1   | track_lin_vel_tight                |     0.2 |\n|   2   | track_lin_vel_huge_gap             |    -1.0 |\n|   3   | track_lin_vel_square               |    -1.0 |\n|   4   | run_velocity_error                 |     0.0 |\n|   5   | track_ang_vel                      |     0.5 |\n|   6   | track_ang_vel_square               |    -1.0 |\n|   7   | height                             |     0.7 |\n|   8   | height_tight                       |     0.3 |\n|   9   | height_both_wheels                 |     0.3 |\n|   10  | height_square                      |     0.0 |\n|   11  | lin_vel_z                          |    -0.5 |\n|   12  | ang_vel_xy                         |   -0.05 |\n|   13  | flat_orientation_y                 |    -1.0 |\n|   14  | flat_orientation_y_v               |    -1.0 |\n|   15  | flat_orientation_x_v               |    -1.0 |\n|   16  | no_fork                            |    -1.0 |\n|   17  | no_fork_z                          |    -2.0 |\n|   18  | wheel_motor_z_axis_align_exp       |     0.1 |\n|   19  | wheel_motor_z_axis_align_exp_tight |     0.1 |\n|   20  | action_rate                        |   -0.01 |\n|   21  | action_acc                         |   -0.05 |\n|   22  | torques                            |  -1e-05 |\n|   23  | joint_power                        | -0.0001 |\n|   24  | dof_pos_limits                     |     0.0 |\n|   25  | leg_symmetry                       |     0.0 |\n|   26  | alive                              |     0.0 |\n|   27  | termination                        |     0.0 |\n|   28  | wheel_contact                      |     0.0 |\n|   29  | base_contact                       |     0.0 |\n|   30  | height_deficit                     |     0.0 |\n|   31  | height_error_l1                    |     0.0 |\n|   32  | spin_contact_consistency           |    -0.3 |\n|   33  | world_cycle_cross                  |    -0.3 |\n|   34  | original_jump209                   |     1.0 |\n+-------+------------------------------------+---------+\n\n[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.\n+----------------------+\n| Active Curriculum Terms |\n+-----------+----------+\n|   Index   | Name     |\n+-----------+----------+\n+-----------+----------+\n\n[INFO]: Completed setting up the environment...\nCONTACT_CAPTURE_CONFIG {\"enabled\": true, \"period_s\": 0.005, \"physics_dt\": 0.0025, \"stride\": 2, \"history_length\": 3, \"semantics\": \"instantaneous sensor force at 5 ms endpoints; not accumulated impulses or continuous contact\"}\nCONTACT_INTEGRATED_CONFIG {\"enabled\": true, \"period_s\": 0.005, \"physics_dt\": 0.0025, \"stride\": 2, \"history_length\": 3, \"semantics\": \"instantaneous sensor force at 5 ms endpoints; not accumulated impulses or continuous contact\", \"integrated_enabled\": true, \"raw_capture_period_s\": 0.0025, \"bin_period_s\": 0.005, \"bin_samples\": 2, \"history_bins\": 3, \"crossbin\": false, \"force_between_solver_callbacks\": \"piecewise constant step-average; not measured substep timing\", \"reward_source\": \"mean vector force = summed physical impulse /5ms; >1N per-wheel history maximum\", \"peak_source\": \"diagnostic only; not reward or graduation\", \"adaptation\": \"Aligned legacy kernel retained;2ms solver impulse apportioned by exact integer-time overlap into fixed5ms bins\"}\nROLLING_CONSISTENCY_CONFIG {\"version\": \"loaded_rolling_v1\", \"geometry\": [{\"center_link_m\": [0.0, 0.0, 0.0], \"axle_link\": [-0.0, 0.9999999999999999, 0.0], \"input_mesh_radius_m\": 0.0637000010492304, \"half_width_m\": 0.00999999977648258}, {\"center_link_m\": [0.0, 0.0, 0.0], \"axle_link\": [-0.0, 0.9999999999999999, 0.0], \"input_mesh_radius_m\": 0.0637000010492304, \"half_width_m\": 0.00999999977648258}], \"load_source\": \"actual 0.0025s impulse /10ms\", \"point_source\": \"input-mesh midplane circle bottom; not manifold\", \"evaluation_gate_changed\": false, \"dynamics_changed\": true}\nCOMMAND_AUDIT {\"control_step\": 1, \"gyro_curriculum_enabled\": false, \"configured_yaw_range\": [-12.566370614359172, 12.566370614359172], \"actual_command_yaw_abs_max\": 1.9786239862442017, \"actual_command_yaw_abs_mean\": 1.0767136812210083, \"actual_command_vx_min\": -2.0656204223632812, \"actual_command_vx_max\": 2.0904486179351807, \"spin_command_audit\": {\"stage\": \"directional_spin_v1\", \"command_frame\": \"body\", \"manual_frozen_evaluation\": false, \"world_progress_goal_m_s\": 0.5, \"projection_error_m_s\": 0.0, \"pure_fraction_actual\": 0.03750000149011612, \"moving_fraction_actual\": 0.012500000186264515, \"transition_fraction_actual\": 0.03750000149011612, \"stand_fraction_actual\": 0.0, \"pure_max_rad_s\": 12.566370614359172, \"moving_yaw_max_rad_s\": 2.0, \"world_progress_achieved\": \"unmeasured; actual displacement and complete cycles required\"}}\n[INFO]: SimulationContext cleared\n"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80_ORIGINAL_PARENT_ERROR.json",
+      "bytes": 177,
+      "SHA": "a56fcd7eabe23fce2ea885df967382e8fd43846189a92ac5e4b3053190cc883e",
+      "UTF8": "{\n  \"epoch\": 1793502211.887992,\n  \"error\": \"Traceback (most recent call last):\\n  File \\\"<string>\\\", line 32, in <module>\\nAssertionError\\n\",\n  \"no_auto_retry_or_signal\": true\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80_ORIGINAL_WAIT.json",
+      "bytes": 824,
+      "SHA": "96d38b47207feedc6cde4da088484b47aac4c321a0e51e84af63be616f89bb14",
+      "UTF8": "{\n  \"epoch\": 1793502211.8868337,\n  \"returncode\": 1,\n  \"original_waited\": true,\n  \"identity\": {\n    \"pid\": 1018520,\n    \"creation\": 1793502211.23,\n    \"exe\": \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python3.12\",\n    \"argv\": [\n      \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python\",\n      \"-u\",\n      \"-B\",\n      \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/run240_model2050_mixed_literal_worker.py\",\n      \"--mode\",\n      \"admission\",\n      \"--num-envs\",\n      \"80\",\n      \"--run-id\",\n      \"MODEL2050_TARGET240_0PT80\",\n      \"--out\",\n      \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80\"\n    ],\n    \"cwd\": \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72\"\n  }\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80_WORKER_IDENTITY_BEFORE_WAIT.json",
+      "bytes": 691,
+      "SHA": "ad2f21cdbd979a9525b1fc1ef16178d78a3f3337b55ebaebb0a6751d78e63b18",
+      "UTF8": "{\n  \"pid\": 1018520,\n  \"creation\": 1793502211.23,\n  \"exe\": \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python3.12\",\n  \"argv\": [\n    \"/home/lc01/Zonglin Li/zonglin2/envs/mod4/bin/python\",\n    \"-u\",\n    \"-B\",\n    \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/run240_model2050_mixed_literal_worker.py\",\n    \"--mode\",\n    \"admission\",\n    \"--num-envs\",\n    \"80\",\n    \"--run-id\",\n    \"MODEL2050_TARGET240_0PT80\",\n    \"--out\",\n    \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80\"\n  ],\n  \"cwd\": \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72\"\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80V2_RESOURCE_HELD.json",
+      "bytes": 254,
+      "SHA": "bbb4f02a2e09e35b2e1b05be1f4d1affbef8b7e0daccb5743df49667c0c579f8",
+      "UTF8": "{\n  \"epoch\": 1793502283.7898586,\n  \"GPU_line\": \"GPU-16828f91-2b45-b646-8dc0-9481138e2842, NVIDIA GeForce RTX 4090, 24203, 0\",\n  \"RAM_available\": 532713361408,\n  \"disk_free\": 374502850560,\n  \"private_and_validation_EX_held\": true,\n  \"no_PID_query\": true\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80V2_ALL_WAITED_EX_RELEASED.json",
+      "bytes": 194,
+      "SHA": "6a51f95003324d30356fb8ee6fa9b5ba529259723b04c2465d3fde5f0207ea88",
+      "UTF8": "{\n  \"epoch\": 1793502302.507588,\n  \"all_own_children_waited\": true,\n  \"returncode\": 0,\n  \"private_and_validation_EX_acquired\": true,\n  \"private_and_validation_EX_released\": true,\n  \"signals\": 0\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80_RESOURCE_HELD.json",
+      "bytes": 254,
+      "SHA": "8e60d1550de6ab7ebe3be8139daa3111e7bbb7e1730f5998ee9fe2803221947f",
+      "UTF8": "{\n  \"epoch\": 1793502211.4659557,\n  \"GPU_line\": \"GPU-16828f91-2b45-b646-8dc0-9481138e2842, NVIDIA GeForce RTX 4090, 24203, 0\",\n  \"RAM_available\": 532713877504,\n  \"disk_free\": 374502944768,\n  \"private_and_validation_EX_held\": true,\n  \"no_PID_query\": true\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80_ALL_WAITED_EX_RELEASED.json",
+      "bytes": 195,
+      "SHA": "73de6e89552997a9b9e2beb14ae85fee772091f3d24ed8c0e4791d5421b79cfe",
+      "UTF8": "{\n  \"epoch\": 1793502211.8882794,\n  \"all_own_children_waited\": true,\n  \"returncode\": 1,\n  \"private_and_validation_EX_acquired\": true,\n  \"private_and_validation_EX_released\": true,\n  \"signals\": 0\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80V2_ORIGINAL_WAIT.json",
+      "bytes": 796,
+      "SHA": "0c3e0c0344761f2ad1f1ca6ceff4a5090b3c72e594fe2cffe2dba0e450f7f3c5",
+      "UTF8": "{\n  \"epoch\": 1793502302.5052538,\n  \"returncode\": 0,\n  \"original_waited\": true,\n  \"identity\": {\n    \"pid\": 1018577,\n    \"creation\": 1793502283.55,\n    \"exe\": \"/usr/bin/bash\",\n    \"argv\": [\n      \"/bin/bash\",\n      \"/home/lc01/Zonglin Li/zonglin2/run-python.sh\",\n      \"-u\",\n      \"-B\",\n      \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/run240_model2050_mixed_literal_worker.py\",\n      \"--mode\",\n      \"admission\",\n      \"--num-envs\",\n      \"80\",\n      \"--run-id\",\n      \"MODEL2050_TARGET240_0PT80\",\n      \"--out\",\n      \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2\"\n    ],\n    \"cwd\": \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72\"\n  }\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/ACTUAL240_ADMISSION80V2_WORKER_IDENTITY_BEFORE_WAIT.json",
+      "bytes": 661,
+      "SHA": "9d5056bd37ba713515bfa2dd4bb5c68cfd0d9f9a441b397a846df2b7cbce79da",
+      "UTF8": "{\n  \"pid\": 1018577,\n  \"creation\": 1793502283.55,\n  \"exe\": \"/usr/bin/bash\",\n  \"argv\": [\n    \"/bin/bash\",\n    \"/home/lc01/Zonglin Li/zonglin2/run-python.sh\",\n    \"-u\",\n    \"-B\",\n    \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/run240_model2050_mixed_literal_worker.py\",\n    \"--mode\",\n    \"admission\",\n    \"--num-envs\",\n    \"80\",\n    \"--run-id\",\n    \"MODEL2050_TARGET240_0PT80\",\n    \"--out\",\n    \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2\"\n  ],\n  \"cwd\": \"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72\"\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2/ACTUAL_SOURCE240_LITERAL_REWARD_AND_TARGET_PLANT_BEFORE_ACTION.json",
+      "bytes": 28089,
+      "SHA": "b464077c6f628ef3c9f12f1c1bd206a8abe27584c6308f3f86029236a720702a",
+      "UTF8": "{\n  \"epoch\": 1793502299.887951,\n  \"passed\": true,\n  \"num_envs\": 80,\n  \"literal_reward_functions\": [\n    \"action_rate\",\n    \"ang_vel_xy\",\n    \"base_height_flight\",\n    \"collision\",\n    \"encourage_jump\",\n    \"flight\",\n    \"leg_tuck\",\n    \"line_z\",\n    \"nominal_state\",\n    \"orientation\",\n    \"pen_theta_no0\",\n    \"takeoff_extend\",\n    \"torques\",\n    \"tracking_ang_vel\",\n    \"tracking_lin_vel\",\n    \"tracking_lin_vel_enhance\"\n  ],\n  \"original_reward_scales_per_second\": {\n    \"action_rate\": -0.04,\n    \"ang_vel_xy\": -0.1,\n    \"base_height_flight\": 6.0,\n    \"collision\": -1.0,\n    \"encourage_jump\": 1.0,\n    \"flight\": 0.15,\n    \"leg_tuck\": 1.7000000000000002,\n    \"line_z\": 6.0,\n    \"nominal_state\": -1.0,\n    \"orientation\": -25.0,\n    \"pen_theta_no0\": -2.0,\n    \"takeoff_extend\": 0.5,\n    \"torques\": -5.000000000000001e-05,\n    \"tracking_ang_vel\": 1.0,\n    \"tracking_lin_vel\": 1.0,\n    \"tracking_lin_vel_enhance\": 1.0\n  },\n  \"original_clip_single_reward\": 2.5,\n  \"original_total_positive_clip\": false,\n  \"outer_SDK_dt_cancelled_only\": true,\n  \"physics_dt\": 0.0025,\n  \"policy_hz\": 50,\n  \"feedback_hz\": 100,\n  \"TGS\": [\n    32,\n    4\n  ],\n  \"source_input_training_hz\": 100,\n  \"discount_gamma\": 0.9801,\n  \"discount_lam\": 0.9025,\n  \"spring\": {\n    \"profile\": \"gas_stiffness_independent_episode_090_110_v1\",\n    \"nominal_stiffness_N_m\": 2000,\n    \"independent_two_episode_factor_bounds\": [\n      0.9,\n      1.1\n    ],\n    \"actual_stiffness_bounds_N_m\": [\n      1800,\n      2200\n    ],\n    \"preload_damping_force_limit_armature_unchanged\": true,\n    \"actor_critic_observations_unchanged\": true,\n    \"hardware_force_stroke_calibration\": false,\n    \"SDK_computed_applied_effort_is_approximate_not_measured_drive_force\": true\n  },\n  \"damping\": {\n    \"profile\": \"gas_damping_independent_episode_090_110_v1\",\n    \"nominal_damping_Ns_m\": 3.0,\n    \"independent_two_episode_factor_bounds\": [\n      0.9,\n      1.1\n    ],\n    \"actual_damping_bounds_Ns_m\": [\n      2.7,\n      3.3\n    ],\n    \"D5_stiffness_pressure_retained\": true,\n    \"joint_friction_and_motor_PD_unchanged\": true,\n    \"actor35_cleancritic38_actions6_unchanged\": true,\n    \"hardware_calibration\": false,\n    \"not_full_D6_joint_friction_coverage\": true\n  },\n  \"chassisPD\": {\n    \"version\": 1,\n    \"COM_profile\": \"chassis_link_local_independent_xyz_5mm_v1\",\n    \"PD_profile\": \"explicit_motor_PD_independent_095_105_v1\",\n    \"chassis_link_local_delta_m\": [\n      -0.005,\n      0.005\n    ],\n    \"chassis_only\": true,\n    \"PD_factor\": [\n      0.95,\n      1.05\n    ],\n    \"leg_kp_nominal\": 60.0,\n    \"leg_kd_nominal\": 2.0,\n    \"wheel_kd_nominal\": 0.6,\n    \"wheel_kp0\": true,\n    \"independent_COM_xyz_and_PD_groups\": true,\n    \"motor_implicit_drive_zero\": true,\n    \"complete_D0_D6_retained\": true,\n    \"engineering_pressure_not_hardware_calibration\": true\n  },\n  \"sensor\": {\n    \"profile\": \"noise_bias_mild_v1\",\n    \"raw_pre_scale_uniform_bounds\": {\n      \"base_ang_vel\": 0.125,\n      \"projected_gravity\": 0.025,\n      \"leg_pos\": 0.005,\n      \"leg_vel\": 0.25,\n      \"wheel_vel\": 0.5\n    },\n    \"raw_units\": {\n      \"base_ang_vel\": \"rad/s\",\n      \"projected_gravity\": \"dimensionless\",\n      \"leg_pos\": \"rad\",\n      \"leg_vel\": \"rad/s\",\n      \"wheel_vel\": \"rad/s\"\n    },\n    \"episode_leg_encoder_bias_bound_rad\": 0.0075,\n    \"wheel_position_slots_remain_zero\": true,\n    \"wheel_position_zero_bias_not_claimed_as_actor_feedback\": true,\n    \"noise_draw_counts\": {\n      \"base_ang_vel\": 160,\n      \"projected_gravity\": 160,\n      \"leg_pos\": 160,\n      \"leg_vel\": 160,\n      \"wheel_vel\": 160\n    },\n    \"max_abs_actual_bias_rad\": 0.007490793243050575,\n    \"bias_finite\": true,\n    \"observation_delay_control_steps\": 0,\n    \"action_delay_control_steps\": 0,\n    \"engineering_pressure_not_hardware_calibration\": true\n  },\n  \"feedback\": {\n    \"profile\": \"control_0_10ms_v1\",\n    \"actor_feedback_channels\": [\n      \"base_ang_vel\",\n      \"projected_gravity\",\n      \"leg_pos\",\n      \"leg_vel\",\n      \"wheel_vel\"\n    ],\n    \"control_period_us\": 10000,\n    \"requested_delay_us\": [\n      0,\n      10000\n    ],\n    \"sample_before_original_manager_scale\": true,\n    \"noise_and_episode_bias_before_queue\": true,\n    \"clean_critic\": true,\n    \"commands_last_action_height_mode_wheel_position_not_delayed\": true,\n    \"BODY_components_kept_in_sample_frame_no_apply_frame_rotation\": true,\n    \"reset_warmup_actual_age_us\": 0,\n    \"no_50Hz_sampling_claimed\": true,\n    \"action_delay_us\": 0,\n    \"engineering_pressure_not_hardware_calibration\": true\n  },\n  \"action_delay\": {\n    \"profile\": \"physical_target_0_2500_5000us_v1\",\n    \"physics_period_us\": 2500,\n    \"control_period_us\": 20000,\n    \"actual_transition_delay_us\": [\n      0,\n      2500,\n      5000\n    ],\n    \"sub_ms_exact_timing_claimed\": false,\n    \"leg_four_targets_coherent\": true,\n    \"wheel_two_targets_coherent\": true,\n    \"leg_and_wheel_per_environment_episode_RNG_independent\": true,\n    \"queue_values\": \"Original processed joint-position rad / joint-velocity rad_s targets\",\n    \"original_scale_offset_CAD_guard_and_gain_after_torque_speed_envelope_unchanged\": true,\n    \"reset_initial_target\": \"Caller real default leg q and zero wheel velocity; stale commands cleared\",\n    \"holding_age_is_distinct_from_first_transition_latency\": true,\n    \"engineering_pressure_not_hardware_calibration\": true,\n    \"actual_runtime\": \"processed target before physical integration\",\n    \"original_action_process_apply_actuator_path\": true,\n    \"SDK_clock\": \"issue=counter; apply=counter-1 before sim.step\",\n    \"actor_last_action\": \"Original requested policy action, no privileged queue observation\",\n    \"initial_admission_has_predecessor_action_queue\": false\n  },\n  \"actual_gas_k_N_m\": [\n    [\n      1841.0657958984375,\n      1939.5130615234375\n    ],\n    [\n      2123.71875,\n      1945.689453125\n    ],\n    [\n      1929.2286376953125,\n      1842.6661376953125\n    ],\n    [\n      2160.075439453125,\n      2041.384033203125\n    ],\n    [\n      2017.7872314453125,\n      2009.59130859375\n    ],\n    [\n      2191.843994140625,\n      1802.351806640625\n    ],\n    [\n      1960.4022216796875,\n      2156.068115234375\n    ],\n    [\n      2083.936767578125,\n      2129.572509765625\n    ],\n    [\n      1962.4781494140625,\n      2157.06982421875\n    ],\n    [\n      1928.8016357421875,\n      2004.15283203125\n    ],\n    [\n      2148.737060546875,\n      2130.890380859375\n    ],\n    [\n      1946.2982177734375,\n      2041.7242431640625\n    ],\n    [\n      1881.4984130859375,\n      1908.6278076171875\n    ],\n    [\n      1861.1829833984375,\n      2072.9580078125\n    ],\n    [\n      2001.5428466796875,\n      1982.2684326171875\n    ],\n    [\n      2061.146484375,\n      1910.7640380859375\n    ],\n    [\n      1991.7291259765625,\n      1800.8544921875\n    ],\n    [\n      2059.189697265625,\n      1908.2958984375\n    ],\n    [\n      2129.73828125,\n      1855.3209228515625\n    ],\n    [\n      1986.244873046875,\n      1981.5777587890625\n    ],\n    [\n      2131.715576171875,\n      1872.107421875\n    ],\n    [\n      1922.831787109375,\n      2190.28173828125\n    ],\n    [\n      2046.8406982421875,\n      1986.8841552734375\n    ],\n    [\n      2078.332763671875,\n      2125.888427734375\n    ],\n    [\n      2127.49462890625,\n      1881.8919677734375\n    ],\n    [\n      2059.924560546875,\n      2087.723388671875\n    ],\n    [\n      1903.1258544921875,\n      1884.5950927734375\n    ],\n    [\n      1847.102294921875,\n      2163.951904296875\n    ],\n    [\n      1830.432373046875,\n      1989.5916748046875\n    ],\n    [\n      1935.87646484375,\n      1802.529541015625\n    ],\n    [\n      2002.53125,\n      2062.655029296875\n    ],\n    [\n      1848.704345703125,\n      2019.3331298828125\n    ],\n    [\n      1809.4329833984375,\n      2004.4202880859375\n    ],\n    [\n      2082.34423828125,\n      1934.7864990234375\n    ],\n    [\n      2176.910888671875,\n      1987.9923095703125\n    ],\n    [\n      2199.156982421875,\n      2190.159912109375\n    ],\n    [\n      2128.276123046875,\n      1835.092529296875\n    ],\n    [\n      1923.1788330078125,\n      1838.6702880859375\n    ],\n    [\n      1958.0938720703125,\n      1940.2779541015625\n    ],\n    [\n      2084.526123046875,\n      1890.445556640625\n    ],\n    [\n      1928.768310546875,\n      1828.974853515625\n    ],\n    [\n      1924.833251953125,\n      1945.735595703125\n    ],\n    [\n      2011.9490966796875,\n      2051.5234375\n    ],\n    [\n      2102.332275390625,\n      2067.890380859375\n    ],\n    [\n      1878.888427734375,\n      1812.52099609375\n    ],\n    [\n      2185.40185546875,\n      2162.872314453125\n    ],\n    [\n      1821.612548828125,\n      2081.636474609375\n    ],\n    [\n      1857.998291015625,\n      2092.914794921875\n    ],\n    [\n      1892.97705078125,\n      1965.2474365234375\n    ],\n    [\n      1837.5948486328125,\n      1818.169677734375\n    ],\n    [\n      1952.3082275390625,\n      2101.309326171875\n    ],\n    [\n      1939.46142578125,\n      2192.4814453125\n    ],\n    [\n      2162.423095703125,\n      1950.972412109375\n    ],\n    [\n      1882.40380859375,\n      2057.60302734375\n    ],\n    [\n      2131.09814453125,\n      1953.1685791015625\n    ],\n    [\n      1892.063720703125,\n      1943.140625\n    ],\n    [\n      2018.4609375,\n      1860.703125\n    ],\n    [\n      2121.81787109375,\n      2141.71826171875\n    ],\n    [\n      2154.288330078125,\n      1947.609375\n    ],\n    [\n      1802.0208740234375,\n      2076.030029296875\n    ],\n    [\n      2116.228515625,\n      2068.627197265625\n    ],\n    [\n      1976.4344482421875,\n      1855.220458984375\n    ],\n    [\n      1866.5096435546875,\n      1993.7943115234375\n    ],\n    [\n      2121.9130859375,\n      1983.088623046875\n    ],\n    [\n      2040.9508056640625,\n      1950.608642578125\n    ],\n    [\n      1824.349853515625,\n      2083.98291015625\n    ],\n    [\n      1858.5933837890625,\n      2182.155517578125\n    ],\n    [\n      2084.5869140625,\n      1944.540283203125\n    ],\n    [\n      2117.487060546875,\n      1885.6539306640625\n    ],\n    [\n      1947.131103515625,\n      2139.125\n    ],\n    [\n      2060.535888671875,\n      2132.968994140625\n    ],\n    [\n      2089.53173828125,\n      2122.1474609375\n    ],\n    [\n      1978.322509765625,\n      2154.2177734375\n    ],\n    [\n      1872.9364013671875,\n      2012.5050048828125\n    ],\n    [\n      1801.0037841796875,\n      2040.01708984375\n    ],\n    [\n      2070.650390625,\n      1871.3763427734375\n    ],\n    [\n      2116.603271484375,\n      1812.8194580078125\n    ],\n    [\n      2047.8050537109375,\n      1867.052978515625\n    ],\n    [\n      2107.115966796875,\n      2148.473876953125\n    ],\n    [\n      1918.5975341796875,\n      2084.23193359375\n    ]\n  ],\n  \"Fudan_terrain\": {\n    \"mesh_type\": \"plane\",\n    \"static_friction\": 0.5,\n    \"dynamic_friction\": 0.5,\n    \"restitution\": 0.5\n  },\n  \"measured_mapping\": {\n    \"original_jump_binding\": {\n      \"body_names\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_wheel\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_wheel\",\n        \"right_gas_barrel\"\n      ],\n      \"contact_body_order\": [\n        0,\n        1,\n        8,\n        10,\n        11,\n        12,\n        19,\n        21,\n        22,\n        23,\n        24,\n        25,\n        26,\n        27,\n        28,\n        29,\n        30,\n        2,\n        4,\n        6,\n        9,\n        13,\n        15,\n        17,\n        20,\n        3,\n        5,\n        7,\n        14,\n        16,\n        18\n      ],\n      \"original_penalized_patterns\": [\n        \"lf\",\n        \"rf\",\n        \"base\"\n      ],\n      \"MOD4_equivalent_nonwheel_bodies\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_gas_barrel\"\n      ],\n      \"geometry\": \"own MOD4 authored hip local_pos0 on chassis -> actual main-wheel BODY ORIGIN/axis; v_b=R_chassis^T*(p_wheel-p_chassis)-hip_anchor_b; L0=sqrt(v_b.x^2+v_b.z^2) metres; theta0=atan2(down=-v_b.z,forward=v_b.x)-pi/2 radians, zero downward, positive wheel rearward on downward branch; retain original unwrapped atan2-minus-pi/2 convention even upside; sagittal projection ignores lateral offset; no Fudan rods or retargeted constants\",\n      \"hip_anchors_m\": [\n        [\n          -1.8606201997712554e-17,\n          0.18129658699035645,\n          0.0\n        ],\n        [\n          0.0,\n          -0.18129658699035645,\n          0.0\n        ]\n      ],\n      \"quaternion_order\": \"actual installed SDK xyzw\",\n      \"base_linear_velocity\": \"position finite difference rotated into currentBODY as pinned original\",\n      \"root_vertical_velocity\": \"actual SDK WORLD root_state_w[:,9]\",\n      \"torque\": \"SDK applied_torque named six efforts, not measured hardware torque\",\n      \"source_original_methods_unchanged\": true,\n      \"source_reward_dt_once\": true,\n      \"outer_Lab_dt_cancelled_only\": true,\n      \"command_vx\": [\n        -2.1,\n        2.1\n      ],\n      \"command_yaw\": [\n        -2.0,\n        2.0\n      ],\n      \"command_height\": [\n        0.12,\n        0.15\n      ],\n      \"resample_s\": 20.0,\n      \"original_contact_filter_and_base_air_time_preserved_across_reset\": true,\n      \"physical_guard_terminations_are_MOD4_not_Fudan_original_and_unchanged\": true\n    },\n    \"flat_envs\": 8,\n    \"jump_envs\": 72,\n    \"task_modes\": {\n      \"ground\": 0,\n      \"jump\": 1\n    },\n    \"flat_command\": \"Original E0_DIRECTIONAL_SPIN_V1, standing .1, pure .3, moving .2; resample12..16s\",\n    \"flat_height_m\": 0.25,\n    \"jump_resample_s\": 20.0,\n    \"ground_terms\": {\n      \"track_lin_vel\": {\n        \"weight\": 1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_tight\": {\n        \"weight\": 0.2,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_huge_gap\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"gap\": 0.5\n        },\n        \"function\": \"scut_flat_rescue.linear_gap\"\n      },\n      \"track_lin_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_square\"\n      },\n      \"track_ang_vel\": {\n        \"weight\": 0.5,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.yaw_exp\"\n      },\n      \"track_ang_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"mod4_task.track_ang_vel_square_gated\"\n      },\n      \"height\": {\n        \"weight\": 0.7,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_tight\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_both_wheels\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.1\n        },\n        \"function\": \"mod4_task.height_track_both_wheels\"\n      },\n      \"lin_vel_z\": {\n        \"weight\": -0.5,\n        \"params\": {},\n        \"function\": \"skills_isaac.lin_vel_z_l2_jump_exempt\"\n      },\n      \"ang_vel_xy\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.ang_vel_xy_jump_exempt\"\n      },\n      \"flat_orientation_y\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_y_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_x_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"roll_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"no_fork\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"axis\": 0\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"no_fork_z\": {\n        \"weight\": -2.0,\n        \"params\": {\n          \"axis\": 2\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"wheel_motor_z_axis_align_exp\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"wheel_motor_z_axis_align_exp_tight\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"action_rate\": {\n        \"weight\": -0.01,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_rate_jump_exempt\"\n      },\n      \"action_acc\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_acc_l2\"\n      },\n      \"torques\": {\n        \"weight\": -1e-05,\n        \"params\": {\n          \"joint_names\": [\n            \"left_crank\",\n            \"left_hip\",\n            \"right_crank\",\n            \"right_hip\",\n            \"left_wheel_spin\",\n            \"right_wheel_spin\"\n          ]\n        },\n        \"function\": \"skills_isaac.joint_torques_l2_motors\"\n      },\n      \"joint_power\": {\n        \"weight\": -0.0001,\n        \"params\": {},\n        \"function\": \"scut_flat_rescue.wheel_power\"\n      },\n      \"spin_contact_consistency\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"speed_scale\": 0.15,\n          \"yaw_min\": 3.5,\n          \"support_weight\": 0.25\n        },\n        \"function\": \"rolling_consistency.spin_contact_consistency\"\n      },\n      \"world_cycle_cross\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"scale\": 0.1,\n          \"max_cost\": 4.0\n        },\n        \"function\": \"world_drift_isaac.WorldCycleCrossReward\"\n      }\n    },\n    \"reward_routing\": \"disjoint per-environment original E0 or original FudanJUMP, no blended terms\",\n    \"original_frozen_E0_file_untouched\": true,\n    \"trainable_input\": \"Human-selected model2050/ONNX-identical actor, fullcriticSTD17Adam; no E0 weights\",\n    \"all_physical_guards_unchanged\": true\n  },\n  \"unchanged_motor6_action_and_2mm_perenv_guard\": true,\n  \"measured_state_bridge\": {\n    \"original_jump_binding\": {\n      \"body_names\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_wheel\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_wheel\",\n        \"right_gas_barrel\"\n      ],\n      \"contact_body_order\": [\n        0,\n        1,\n        8,\n        10,\n        11,\n        12,\n        19,\n        21,\n        22,\n        23,\n        24,\n        25,\n        26,\n        27,\n        28,\n        29,\n        30,\n        2,\n        4,\n        6,\n        9,\n        13,\n        15,\n        17,\n        20,\n        3,\n        5,\n        7,\n        14,\n        16,\n        18\n      ],\n      \"original_penalized_patterns\": [\n        \"lf\",\n        \"rf\",\n        \"base\"\n      ],\n      \"MOD4_equivalent_nonwheel_bodies\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_gas_barrel\"\n      ],\n      \"geometry\": \"own MOD4 authored hip local_pos0 on chassis -> actual main-wheel BODY ORIGIN/axis; v_b=R_chassis^T*(p_wheel-p_chassis)-hip_anchor_b; L0=sqrt(v_b.x^2+v_b.z^2) metres; theta0=atan2(down=-v_b.z,forward=v_b.x)-pi/2 radians, zero downward, positive wheel rearward on downward branch; retain original unwrapped atan2-minus-pi/2 convention even upside; sagittal projection ignores lateral offset; no Fudan rods or retargeted constants\",\n      \"hip_anchors_m\": [\n        [\n          -1.8606201997712554e-17,\n          0.18129658699035645,\n          0.0\n        ],\n        [\n          0.0,\n          -0.18129658699035645,\n          0.0\n        ]\n      ],\n      \"quaternion_order\": \"actual installed SDK xyzw\",\n      \"base_linear_velocity\": \"position finite difference rotated into currentBODY as pinned original\",\n      \"root_vertical_velocity\": \"actual SDK WORLD root_state_w[:,9]\",\n      \"torque\": \"SDK applied_torque named six efforts, not measured hardware torque\",\n      \"source_original_methods_unchanged\": true,\n      \"source_reward_dt_once\": true,\n      \"outer_Lab_dt_cancelled_only\": true,\n      \"command_vx\": [\n        -2.1,\n        2.1\n      ],\n      \"command_yaw\": [\n        -2.0,\n        2.0\n      ],\n      \"command_height\": [\n        0.12,\n        0.15\n      ],\n      \"resample_s\": 20.0,\n      \"original_contact_filter_and_base_air_time_preserved_across_reset\": true,\n      \"physical_guard_terminations_are_MOD4_not_Fudan_original_and_unchanged\": true\n    },\n    \"flat_envs\": 8,\n    \"jump_envs\": 72,\n    \"task_modes\": {\n      \"ground\": 0,\n      \"jump\": 1\n    },\n    \"flat_command\": \"Original E0_DIRECTIONAL_SPIN_V1, standing .1, pure .3, moving .2; resample12..16s\",\n    \"flat_height_m\": 0.25,\n    \"jump_resample_s\": 20.0,\n    \"ground_terms\": {\n      \"track_lin_vel\": {\n        \"weight\": 1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_tight\": {\n        \"weight\": 0.2,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_huge_gap\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"gap\": 0.5\n        },\n        \"function\": \"scut_flat_rescue.linear_gap\"\n      },\n      \"track_lin_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_square\"\n      },\n      \"track_ang_vel\": {\n        \"weight\": 0.5,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.yaw_exp\"\n      },\n      \"track_ang_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"mod4_task.track_ang_vel_square_gated\"\n      },\n      \"height\": {\n        \"weight\": 0.7,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_tight\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_both_wheels\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.1\n        },\n        \"function\": \"mod4_task.height_track_both_wheels\"\n      },\n      \"lin_vel_z\": {\n        \"weight\": -0.5,\n        \"params\": {},\n        \"function\": \"skills_isaac.lin_vel_z_l2_jump_exempt\"\n      },\n      \"ang_vel_xy\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.ang_vel_xy_jump_exempt\"\n      },\n      \"flat_orientation_y\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_y_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_x_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"roll_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"no_fork\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"axis\": 0\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"no_fork_z\": {\n        \"weight\": -2.0,\n        \"params\": {\n          \"axis\": 2\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"wheel_motor_z_axis_align_exp\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"wheel_motor_z_axis_align_exp_tight\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"action_rate\": {\n        \"weight\": -0.01,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_rate_jump_exempt\"\n      },\n      \"action_acc\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_acc_l2\"\n      },\n      \"torques\": {\n        \"weight\": -1e-05,\n        \"params\": {\n          \"joint_names\": [\n            \"left_crank\",\n            \"left_hip\",\n            \"right_crank\",\n            \"right_hip\",\n            \"left_wheel_spin\",\n            \"right_wheel_spin\"\n          ]\n        },\n        \"function\": \"skills_isaac.joint_torques_l2_motors\"\n      },\n      \"joint_power\": {\n        \"weight\": -0.0001,\n        \"params\": {},\n        \"function\": \"scut_flat_rescue.wheel_power\"\n      },\n      \"spin_contact_consistency\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"speed_scale\": 0.15,\n          \"yaw_min\": 3.5,\n          \"support_weight\": 0.25\n        },\n        \"function\": \"rolling_consistency.spin_contact_consistency\"\n      },\n      \"world_cycle_cross\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"scale\": 0.1,\n          \"max_cost\": 4.0\n        },\n        \"function\": \"world_drift_isaac.WorldCycleCrossReward\"\n      }\n    },\n    \"reward_routing\": \"disjoint per-environment original E0 or original FudanJUMP, no blended terms\",\n    \"original_frozen_E0_file_untouched\": true,\n    \"trainable_input\": \"Human-selected model2050/ONNX-identical actor, fullcriticSTD17Adam; no E0 weights\",\n    \"all_physical_guards_unchanged\": true\n  },\n  \"no_scripted_forces_root_or_velocity_injection\": true\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2/FUNCTION_RETURNED.json",
+      "bytes": 103,
+      "SHA": "261ffc427a9ab837625fd02f892b4ab6ee4db9b01046cd196fa0bf81f7933f36",
+      "UTF8": "{\n  \"passed\": true,\n  \"mode\": \"admission\",\n  \"model_loads\": 0,\n  \"actual_controls\": 8,\n  \"errors\": []\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2/APP240_CLOSING.json",
+      "bytes": 95,
+      "SHA": "fb5530072a757ee40bc6b76677376e2111bb93a2ba5fe8805bf8d870a1891b0f",
+      "UTF8": "{\n  \"epoch\": 1793502302.1839397,\n  \"ENV_close_requested\": true,\n  \"APP_close_requested\": true\n}"
+    },
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MODEL2050_LITERAL_JUMP_400N50_20261101v240/jump_72/admission80v2/ACTUAL240_0PT_SOURCE_SDK_NATIVE8_ADMISSION.json",
+      "bytes": 8945,
+      "SHA": "bd3d5162934d12d5ef934261cc2f2d1897637797fa2f3db219a473e6ecb54d30",
+      "UTF8": "{\n  \"passed\": true,\n  \"controls\": 8,\n  \"physics_callbacks\": 64,\n  \"feedback_samples\": 16,\n  \"num_envs\": 80,\n  \"literal_original_reward_calls\": 8,\n  \"source_reward_no_edits\": true,\n  \"measured_mapping\": {\n    \"original_jump_binding\": {\n      \"body_names\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_wheel\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_wheel\",\n        \"right_gas_barrel\"\n      ],\n      \"contact_body_order\": [\n        0,\n        1,\n        8,\n        10,\n        11,\n        12,\n        19,\n        21,\n        22,\n        23,\n        24,\n        25,\n        26,\n        27,\n        28,\n        29,\n        30,\n        2,\n        4,\n        6,\n        9,\n        13,\n        15,\n        17,\n        20,\n        3,\n        5,\n        7,\n        14,\n        16,\n        18\n      ],\n      \"original_penalized_patterns\": [\n        \"lf\",\n        \"rf\",\n        \"base\"\n      ],\n      \"MOD4_equivalent_nonwheel_bodies\": [\n        \"chassis\",\n        \"left_thigh\",\n        \"left_input\",\n        \"left_drive_hip\",\n        \"left_drive_input\",\n        \"right_thigh\",\n        \"right_input\",\n        \"right_drive_hip\",\n        \"right_drive_input\",\n        \"guide_roller_00\",\n        \"guide_roller_01\",\n        \"guide_roller_02\",\n        \"guide_roller_03\",\n        \"guide_roller_04\",\n        \"guide_roller_05\",\n        \"guide_roller_06\",\n        \"guide_roller_07\",\n        \"left_rocker\",\n        \"left_shin\",\n        \"left_gas_inner\",\n        \"left_coupler\",\n        \"right_rocker\",\n        \"right_shin\",\n        \"right_gas_inner\",\n        \"right_coupler\",\n        \"left_distal\",\n        \"left_gas_barrel\",\n        \"right_distal\",\n        \"right_gas_barrel\"\n      ],\n      \"geometry\": \"own MOD4 authored hip local_pos0 on chassis -> actual main-wheel BODY ORIGIN/axis; v_b=R_chassis^T*(p_wheel-p_chassis)-hip_anchor_b; L0=sqrt(v_b.x^2+v_b.z^2) metres; theta0=atan2(down=-v_b.z,forward=v_b.x)-pi/2 radians, zero downward, positive wheel rearward on downward branch; retain original unwrapped atan2-minus-pi/2 convention even upside; sagittal projection ignores lateral offset; no Fudan rods or retargeted constants\",\n      \"hip_anchors_m\": [\n        [\n          -1.8606201997712554e-17,\n          0.18129658699035645,\n          0.0\n        ],\n        [\n          0.0,\n          -0.18129658699035645,\n          0.0\n        ]\n      ],\n      \"quaternion_order\": \"actual installed SDK xyzw\",\n      \"base_linear_velocity\": \"position finite difference rotated into currentBODY as pinned original\",\n      \"root_vertical_velocity\": \"actual SDK WORLD root_state_w[:,9]\",\n      \"torque\": \"SDK applied_torque named six efforts, not measured hardware torque\",\n      \"source_original_methods_unchanged\": true,\n      \"source_reward_dt_once\": true,\n      \"outer_Lab_dt_cancelled_only\": true,\n      \"command_vx\": [\n        -2.1,\n        2.1\n      ],\n      \"command_yaw\": [\n        -2.0,\n        2.0\n      ],\n      \"command_height\": [\n        0.12,\n        0.15\n      ],\n      \"resample_s\": 20.0,\n      \"original_contact_filter_and_base_air_time_preserved_across_reset\": true,\n      \"physical_guard_terminations_are_MOD4_not_Fudan_original_and_unchanged\": true\n    },\n    \"flat_envs\": 8,\n    \"jump_envs\": 72,\n    \"task_modes\": {\n      \"ground\": 0,\n      \"jump\": 1\n    },\n    \"flat_command\": \"Original E0_DIRECTIONAL_SPIN_V1, standing .1, pure .3, moving .2; resample12..16s\",\n    \"flat_height_m\": 0.25,\n    \"jump_resample_s\": 20.0,\n    \"ground_terms\": {\n      \"track_lin_vel\": {\n        \"weight\": 1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_tight\": {\n        \"weight\": 0.2,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.linear_exp\"\n      },\n      \"track_lin_vel_huge_gap\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"gap\": 0.5\n        },\n        \"function\": \"scut_flat_rescue.linear_gap\"\n      },\n      \"track_lin_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.linear_square\"\n      },\n      \"track_ang_vel\": {\n        \"weight\": 0.5,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"std\": 0.25\n        },\n        \"function\": \"scut_flat_rescue.yaw_exp\"\n      },\n      \"track_ang_vel_square\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"sigma\": 0.25\n        },\n        \"function\": \"mod4_task.track_ang_vel_square_gated\"\n      },\n      \"height\": {\n        \"weight\": 0.7,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_tight\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"mod4_task.height_track\"\n      },\n      \"height_both_wheels\": {\n        \"weight\": 0.3,\n        \"params\": {\n          \"sigma\": 0.1\n        },\n        \"function\": \"mod4_task.height_track_both_wheels\"\n      },\n      \"lin_vel_z\": {\n        \"weight\": -0.5,\n        \"params\": {},\n        \"function\": \"skills_isaac.lin_vel_z_l2_jump_exempt\"\n      },\n      \"ang_vel_xy\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.ang_vel_xy_jump_exempt\"\n      },\n      \"flat_orientation_y\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_y_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"pitch_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"flat_orientation_x_v\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"mode\": \"roll_velocity\"\n        },\n        \"function\": \"scut_flat_rescue.orientation\"\n      },\n      \"no_fork\": {\n        \"weight\": -1.0,\n        \"params\": {\n          \"axis\": 0\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"no_fork_z\": {\n        \"weight\": -2.0,\n        \"params\": {\n          \"axis\": 2\n        },\n        \"function\": \"scut_flat_rescue.no_fork\"\n      },\n      \"wheel_motor_z_axis_align_exp\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.01\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"wheel_motor_z_axis_align_exp_tight\": {\n        \"weight\": 0.1,\n        \"params\": {\n          \"sigma\": 0.001\n        },\n        \"function\": \"scut_flat_rescue.leg_gravity_alignment\"\n      },\n      \"action_rate\": {\n        \"weight\": -0.01,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_rate_jump_exempt\"\n      },\n      \"action_acc\": {\n        \"weight\": -0.05,\n        \"params\": {},\n        \"function\": \"skills_isaac.action_acc_l2\"\n      },\n      \"torques\": {\n        \"weight\": -1e-05,\n        \"params\": {\n          \"joint_names\": [\n            \"left_crank\",\n            \"left_hip\",\n            \"right_crank\",\n            \"right_hip\",\n            \"left_wheel_spin\",\n            \"right_wheel_spin\"\n          ]\n        },\n        \"function\": \"skills_isaac.joint_torques_l2_motors\"\n      },\n      \"joint_power\": {\n        \"weight\": -0.0001,\n        \"params\": {},\n        \"function\": \"scut_flat_rescue.wheel_power\"\n      },\n      \"spin_contact_consistency\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"speed_scale\": 0.15,\n          \"yaw_min\": 3.5,\n          \"support_weight\": 0.25\n        },\n        \"function\": \"rolling_consistency.spin_contact_consistency\"\n      },\n      \"world_cycle_cross\": {\n        \"weight\": -0.3,\n        \"params\": {\n          \"command_name\": \"twist\",\n          \"scale\": 0.1,\n          \"max_cost\": 4.0\n        },\n        \"function\": \"world_drift_isaac.WorldCycleCrossReward\"\n      }\n    },\n    \"reward_routing\": \"disjoint per-environment original E0 or original FudanJUMP, no blended terms\",\n    \"original_frozen_E0_file_untouched\": true,\n    \"trainable_input\": \"Human-selected model2050/ONNX-identical actor, fullcriticSTD17Adam; no E0 weights\",\n    \"all_physical_guards_unchanged\": true\n  },\n  \"model_loads\": 0,\n  \"NN_constructors\": 0,\n  \"optimizer_steps\": 0,\n  \"account_writes\": 0,\n  \"not_skill_or_policy_success\": true\n}"
+    }
+  ],
+  "private_and_validation_EX_released": true,
+  "all_own_children_waited": true,
+  "models_or_NN_or_PPO_or_account_writes": 0
+}

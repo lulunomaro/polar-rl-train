@@ -1,0 +1,93 @@
+{
+  "epoch": 1793522967.9230957,
+  "status": "SOURCE_REVIEW_AND_TEACHER_ROUTE_PREPARATION_ONLY",
+  "human_request": "Use existing successful LQR/MPC as teachers for depth-camera SuperMimic stair learning",
+  "selected_route": "Freeze both traditional controllers; successful motion reference + explicitly separate imitation supervision; student uses current proprioception/depth; real WM replay only own target physics",
+  "teacher_source": {
+    "branch": "lqr",
+    "commit": "5848b45a99b8c32af02eb61b507c3f95ab39e4ad",
+    "task": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_MUJOCO_LQR_MPC_STEP270_20261101",
+    "existing_verified_success_cases": [
+      "nominal LQR stable2.95s",
+      "nominal MPC stable2.79s",
+      "LQR fullDR5047 stable1.74s/nonwheel0 at100Hz",
+      "MPC fullDR5063 stable2.69s/nonwheel0 at100Hz"
+    ],
+    "teacher_engine_control": "MuJoCo3.12/.5msphysics/100Hzcontrol",
+    "teacher_inputs_privileged": "known step geometry, WORLD position/velocity/yaw and contact phase"
+  },
+  "existing_local_source_findings": {
+    "source_snapshots": [
+      {
+        "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\prepare_reference.py",
+        "snapshot": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\LQR_MPC_DEPTH_SUPERMIMIC_TEACHER_ROUTE_SOURCE_REVIEW_V279_20261101\\source_snapshots\\prepare_reference.py",
+        "bytes": 1863,
+        "SHA": "e37abfb625d000aa93674e9680366c96efbbfdd3b7e3146d1b4fe3415a7440bd",
+        "source_changed_during_read": false
+      },
+      {
+        "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\train_supermimic.py",
+        "snapshot": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\LQR_MPC_DEPTH_SUPERMIMIC_TEACHER_ROUTE_SOURCE_REVIEW_V279_20261101\\source_snapshots\\train_supermimic.py",
+        "bytes": 6906,
+        "SHA": "eb7a7c0965a84f31b9cab13cc840fbbad4347613695299af1f833ed9d19a0056",
+        "source_changed_during_read": false
+      },
+      {
+        "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\lqr_reference_mdp.py",
+        "snapshot": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\LQR_MPC_DEPTH_SUPERMIMIC_TEACHER_ROUTE_SOURCE_REVIEW_V279_20261101\\source_snapshots\\source\\lqr_reference_mdp.py",
+        "bytes": 3587,
+        "SHA": "40c846b9959c83db7080b513a0c4c6af0e205328fdd9f5a5c38fc4448727d8e4",
+        "source_changed_during_read": false
+      },
+      {
+        "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\isaac_bridge.py",
+        "snapshot": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\LQR_MPC_DEPTH_SUPERMIMIC_TEACHER_ROUTE_SOURCE_REVIEW_V279_20261101\\source_snapshots\\source\\isaac_bridge.py",
+        "bytes": 5587,
+        "SHA": "07e1003f325b03ef3aab1d6901c80cfc9b2296ced59d8210d259a00f32843a8a",
+        "source_changed_during_read": false
+      },
+      {
+        "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\step_env.py",
+        "snapshot": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\LQR_MPC_DEPTH_SUPERMIMIC_TEACHER_ROUTE_SOURCE_REVIEW_V279_20261101\\source_snapshots\\source\\step_env.py",
+        "bytes": 2918,
+        "SHA": "33b5bff786a015cbed5e5ebf893fedbcc20199249891280ab774aebd2f8c3be1",
+        "source_changed_during_read": false
+      }
+    ],
+    "reference50Hz_state73_preparation_exists": true,
+    "source_uses_stride2_and_records_original_times": true,
+    "reference_only_not_target_WM_replay": true,
+    "action_cloning": false,
+    "existing_DSH_reward_is_custom_reference_tracking_not_literal_Fudan": true,
+    "existing_DSH_bridge_has_no_D435i": true,
+    "not_a_claim_about_current_remote_DSH_runtime_version": true
+  },
+  "integration": {
+    "teacher_freeze": true,
+    "old_frozen_E0_and_retired_branches_not_automatically_reselected": true,
+    "current_base_source": "qualified2135/0f5de75a488b79bfe9513b2cd01664d8bf98450800b785b8e787301276552a07; preserve original",
+    "actor_inputs": "original35 prefix+current typed depth9 provisional44; actual277 mapping still requires real identity purpose",
+    "critic_inputs": "original38+depth9 provisional47; no implicit new architecture claim",
+    "camera_goal": "D435i current observed support relative pose/height/bearing/age; randomize approach bearing/distance/step placement so student cannot solve by episode clock only",
+    "loss_scope": "Fudan19methods/fullconfig16weights unchanged. Any BC/reference auxiliary is an explicitly new supervised actor objective with its own coefficient/schedule, not secretly inserted into reward.",
+    "teacher_state_and_future_reference": "Training labels/targets only; no teacher WORLD state, future camera, GT map or future contact in student actor or imagined depth context",
+    "WM_data": "Measured transitions from own400N50Hz target environment only; MuJoCo reference cannot be inserted as PhysX s,a,s1 dynamics samples",
+    "actions": "Never copy torque6 or average100Hz torques as normalized50Hz policy actions. Derive labels only after named motor/order/units/PD/clip/target-queue mapping; until then reference-state supervision only.",
+    "time_alignment": "Retain actual reference times/initial phase; 100Hz->50Hz state reference is not proof of50Hz controller transfer. Do not run the consumed old prepare_reference or validation entry.",
+    "physical_scope": "400N engineeringk2000/D0-D7/50policy100feedback400physics2.5msTGS32/4F32/closure10mm/mimic.01/real closed joints and motor limits remain",
+    "evaluation": "Independent true270 first-air fullwheel footprint/top-support/stable.5s, plus small flat standing/forward/reverse retention and randomized depth approach; teacher result is not student score"
+  },
+  "next_order": [
+    "Let current276V3 complete original save/exit and qualifying formal CPU using frozen original collectors; no hotadd or extraGO.",
+    "Freeze a separate teacher-reference/label capture purpose with exact model/geometry/joint names/time/current-depth packet provenance. Use strict successful examples for imitation; retain failures for WM/terminal supervision without labeling them successful actions.",
+    "Qualify actual reference/action interface and loss/terminal/reward gradients. Interface finite/clock/mapping checks are required; do not invent a prerequisite that the teacher must already complete the entire target PhysX task before RL may learn.",
+    "Train the independent depth student with separate declared supervised warm-start/auxiliary plus original SuperMimic/Fudan objective, then reduce teacher dependence and test autonomous approach/jump/landing on held-out layouts."
+  ],
+  "current276_unchanged": true,
+  "new_GO": false,
+  "new_learning_or_migration": false,
+  "source_AST_files": 5,
+  "model_raw_trajectory_NPZ_SDK_GPU_optimizer_remote_reads": 0,
+  "reference_dataset_read_pending": true,
+  "teacher_loss_coefficients_not_selected": true
+}

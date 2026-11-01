@@ -1,0 +1,229 @@
+--- historical/runtime/isaac/mod4/reset208_v3.py
++++ new/runtime/isaac/mod4/reset208_v3.py
+@@ -28,9 +28,9 @@
+     mod = Path(task.__file__).resolve().parent
+     if not hasattr(env, '_rough_probe_bank'):
+         meta = json.loads((mod / 'MOD4_RESET_COLLISION_BANK.json').read_text())
+-        from W35_gas400_exact_selected_reset_compatibility_v2 import (
+-            require_W35_exact_four_scalar_asset, verify_original_W35_selected_bank)
+-        env._w35_gas400_asset_compatibility = require_W35_exact_four_scalar_asset(
++        from mod4v1_w35_asset_compat import (
++            require_mod4v1_asset_and_original_bank_geometry, verify_original_W35_selected_bank)
++        env._mod4v1_asset_compatibility = require_mod4v1_asset_and_original_bank_geometry(
+             meta, mod / 'MOD4_RESET_COLLISION_BANK.json', task.USD_PATH,
+             task.MOD4_ISAAC / 'import_contract.json')
+         with np.load(mod / 'MOD4_RESET_COLLISION_BANK.npz') as bank:
+--- historical/runtime/isaac/mod4/train_mod4v1_w35.py
++++ new/runtime/isaac/mod4/train_mod4v1_w35.py
+@@ -76,8 +76,10 @@
+     RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg)
+ from rsl_rl.runners import OnPolicyRunner  # noqa: E402
+ 
++from mod4v1_fresh_dr_guard import (bind_before_task_import, verify_task_module, configure_new_task, FreshDRNominalGuard)
++MOD4V1_IDENTITY = bind_before_task_import(os.environ['MOD4V1_ASSET_DIR'])
+ from learning208_v3 import RetentionLearningEnv as Mod4Env
+-from config214_training import configure208 as configure_intro  # noqa: E402
++from config_mod4v1_w35 import configure208 as configure_intro  # noqa: E402
+ import mod4_task  # noqa: E402
+ from mod4_task import Mod4EnvCfg, contract_report  # noqa: E402
+ 
+@@ -135,6 +137,9 @@
+               flush=True)
+     cfg.seed = args.seed
+     configure_intro(cfg)
++    verify_task_module(mod4_task, MOD4V1_IDENTITY)
++    configure_new_task(cfg, MOD4V1_IDENTITY)
++    assert cfg.sim.physics is not None  # actual SDK6.1 field, not mock physx
+     # Mod4Env = ManagerBasedRLEnv + the per-step event mode (gas-spring preload, air state,
+     # SCUT push and actuator noise) that stock Isaac Lab never applies; see mod4_env.py.
+     env = Mod4Env(cfg=cfg)
+@@ -241,16 +246,21 @@
+     # the legacy `policy` block through this helper (same call as scripts/rsl_rl/train.py).
+     cfg = handle_deprecated_rsl_rl_cfg(cfg, metadata.version("rsl-rl-lib"))
+     runner = OnPolicyRunner(vec_env, cfg.to_dict(), log_dir=log_dir, device=cfg.device)
+-    if args.init_checkpoint:
+-        warm = _warm_start_with_reset_std(args.init_checkpoint, RM_INIT_STD)
+-        from source_cache208_v3 import runner_source_load_scope
+-        with runner_source_load_scope():
+-            runner.load(warm)
+-        print("[mod4-isaac] warm start from " + args.init_checkpoint
+-              + ("" if warm == args.init_checkpoint else " (std reset copy: %s)" % warm),
+-              flush=True)
+-    from checkpoint_cache208_v3 import resume_e1_new_episode
+-    resume_e1_new_episode(runner,env,args.init_checkpoint,log_dir)
++    from mild_dr import tensor as nominal_tensor
++    nominal_guard = FreshDRNominalGuard(env, MOD4V1_IDENTITY, torch_module=torch, tensor_converter=nominal_tensor)
++    env._mod4v1_fresh_dr_guard = nominal_guard
++    with nominal_guard.around_original_fullstate_restore():
++        if args.init_checkpoint:
++            warm = _warm_start_with_reset_std(args.init_checkpoint, RM_INIT_STD)
++            from source_cache208_v3 import runner_source_load_scope
++            with runner_source_load_scope():
++                runner.load(warm)
++            print("[mod4-isaac] warm start from " + args.init_checkpoint
++                  + ("" if warm == args.init_checkpoint else " (std reset copy: %s)" % warm),
++                  flush=True)
++        from checkpoint_cache208_v3 import resume_e1_new_episode
++        resume_e1_new_episode(runner,env,args.init_checkpoint,log_dir)
++    Path(log_dir,'MOD4V1_FRESH_DR_NOMINAL_ACTUAL.json').write_text(json.dumps(nominal_guard.receipt(),indent=2))
+     from checkpoint_cache208_v3 import install_e1_save_contract
+     install_e1_save_contract(runner,env)
+     # audit P3: every run records what it actually trained on -- config, asset hash, warm-start
+@@ -348,7 +358,8 @@
+     manifest["fresh_128_sensor_feedback_action_streams"]=False
+     manifest["sensor_recipe"]=env._sensor_mild.receipt()
+     manifest["feedback_delay_recipe"]=env.feedback_delay_recipe()
+-    manifest["source_map"]=json.loads((Path(__file__).resolve().parents[2]/"reports/SOURCE_FREEZE.json").read_text())["sha256"]
++    manifest["historical_source_map"]=json.loads((Path(__file__).resolve().parents[2]/"reports/SOURCE_FREEZE.json").read_text())["sha256"]
++    manifest["mod4v1_derivation_index"]=json.loads((Path(os.environ["MOD4_NEW208_JOB_ROOT"])/"MOD4V1_DERIVATION_INDEX.json").read_text())
+     manifest["spring_pressure_recipe"]=env.spring_pressure_recipe()
+     for name in ("spring_pressure_component.py","spring_pressure_index_runtime.py","spring_pressure_audit_runtime.py","spring_nominal_sdk_readback.py","spring_pressure_training_env.py","spring_pressure_checkpoint.py","train_spring_resume_ppo.py"):
+         shutil.copy2(Path(__file__).parent/name,snapshot_dir/name);snapshot[name]=_sha256(Path(__file__).parent/name)
+@@ -361,7 +372,7 @@
+         shutil.copy2(Path(__file__).parent/name,snapshot_dir/name);snapshot[name]=_sha256(Path(__file__).parent/name)
+     from checkpoint_cache208_v3 import current_state,identity
+     manifest["E1_terrain_identity"]=identity(current_state(env))
+-    manifest["active_expert"]="W35_RM70_FULL208"
++    manifest["active_expert"]="W35_MOD4V1_FULLD0D7_RM70"
+     manifest["full_D0_D7_inherited_no_repeated_DR_curriculum"]=True
+     for name in ('e1_rough_recipe.py', 'e1_rough_reset_tensor.py', 'e1_rough_ground.py', 'e1_chunked_terrain.py', 'e1_full_pose_reset.py', 'e1_terrain_runtime.py', 'e1_terrain_state.py', 'e1_terrain_training_env.py', 'e1_terrain_checkpoint.py', 'train_e1_terrain_resume_ppo.py', 'MOD4_RESET_COLLISION_BANK.json', 'ROUGH_V1_RESOLVED_RECIPE.json'):
+         shutil.copy2(Path(__file__).parent/name,snapshot_dir/name);snapshot[name]=_sha256(Path(__file__).parent/name)
+@@ -377,6 +388,10 @@
+     manifest['legacy_terrain_command_ranges_describe_noneligible_gentle_only']=True
+     for name in ('retention_flat_runtime_named_owned.py', 'train_e1_retention_sdk_reviewed_resume_ppo.py', 'train_e1_retention_sdk_reviewed_fresh_preflight_ppo.py'):
+         shutil.copy2(Path(__file__).parent/name,snapshot_dir/name);snapshot[name]=_sha256(Path(__file__).parent/name)
++    for name in ("train_mod4v1_w35.py", "config_mod4v1_w35.py", "reset208_v3.py", "mod4v1_fresh_dr_guard.py", "mod4v1_w35_asset_compat.py", "mod4v1_w35_protocol.py"):
++        shutil.copy2(Path(__file__).parent/name,snapshot_dir/name);snapshot[name]=_sha256(Path(__file__).parent/name)
++    manifest["mod4v1_asset_identity"]=dict(USD_SHA=MOD4V1_IDENTITY.usd_sha256,contract_SHA=MOD4V1_IDENTITY.contract_sha256,closure_episode_m=.01,mimic_rad=.01)
++    manifest["D6_scope"]="original_gas_damping_not_all_joint_friction"
+     manifest["src_sha256"] = snapshot
+     Path(log_dir, "run_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf8")
+     print("[mod4-isaac] manifest: " + json.dumps(manifest, indent=2)[:1200], flush=True)
+--- historical/worker_mod4v1_w35.py
++++ new/worker_mod4v1_w35.py
+@@ -6,9 +6,9 @@
+ from pathlib import Path
+ import argparse,hashlib,json,os,runpy,shutil,subprocess,sys,time,traceback
+ 
+-SHA='343e0fd8f4950ffea2b09808a3bf88d9dd68e14b06f84c7bdaad462dbc8a51bd'
+-BYTES=17619269; ADAM=649720; ITER=32404; LR=.00017085937500000009
+-KIND='MOD4_W35_FULL_RM70_QUALIFIED343E_CONTINUE227'
++SHA='2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b'
++BYTES=17619333; ADAM=651260; ITER=32481; LR=.0002562890625000001
++KIND='MOD4V1_W35_LATEST32481_FULLD0D7_RM70_V1'
+ GENERATION='MOD4_SINGLE_WRITER72_20261026'
+ MANIFEST_SHA='0543b0c47c53e15da0d7d017693d2b69f7f6354ef088c3a1b8ed2b9cc56e2beb'
+ OUT=None
+@@ -29,29 +29,9 @@
+ 
+ 
+ def validate(task,go,args,job):
+-    assert args.mode=='train' and args.num_envs==20000
+-    assert args.out.resolve()==job/'production' and args.run_id==task['run_id']==go['run_id']
+-    assert task['kind']==KIND and task['source_SHA']==SHA and task['source_bytes']==BYTES
+-    assert task['source_iteration']==ITER and task['source_Adam_step']==ADAM and task['source_LR']==LR
+-    assert task['num_envs']==20000 and task['original_canonical_generation']==GENERATION
+-    assert go['role_key']==task['role_key'] and go['source_model_SHA']==SHA
+-    assert go['source_iteration']==ITER and go['input_Adam']==ADAM
+-    assert go['one_original_writer'] is True and go['num_envs']==20000
+-    assert go['actor_obs']==35 and go['critic_obs']==38 and go['action_dim']==6
+-    assert go['physics_dt']==.0025 and go['TGS']==[32,4]
+-    assert go['policy_hz']==50 and go['feedback_hz']==100
+-    assert go['max_parent_seconds']==3900
+-    assert go['save_deadline']==go['learning_started_epoch']+3600
+-    assert go['nominal_end_epoch']==go['learning_started_epoch']+3900
+-    assert task['actual_private_EX_held_by_parent'] is True
+-    assert task['actual_scene0PT211_passed'] is True and task['actual_robot0PT212_passed'] is True
+-    assert task['selected219V3_fullstate_CPU_proof_reused'] is True
+-    assert task['new_RM70_geometry_course_and_xyzw_source_reviewed'] is True
+-    assert task['actual_shared_material20k0PT_passed'] is True
+-    assert task['actual_material_limit_error_count']==0
+-    assert task['source_read_purpose']==dict(physical_byte_opens=1,decodes=1,source_bytes=BYTES)
+-    assert os.environ.get('CUDA_VISIBLE_DEVICES')==task['GPU_UUID']
+-    assert time.time()<go['save_deadline']
++    sys.path.insert(0,str(job/'runtime/isaac/mod4'))
++    from mod4v1_w35_protocol import validate_new_job
++    return validate_new_job(task,go,args,job)
+ 
+ 
+ def main():
+@@ -97,33 +77,38 @@
+     (storage/'data/user.config.json').write_text('{}')
+     os.environ['MOD4_W35_OWN_KIT_STORAGE_ROOT']=str(storage)
+     runtime=job/'runtime';mod=runtime/'isaac/mod4';sys.path[:0]=[str(mod),str(runtime)]
++    from mod4v1_fresh_dr_guard import bind_before_task_import
++    asset_identity=bind_before_task_import(task['asset_dir'])
++    os.environ['MOD4V1_ASSET_DIR']=task['asset_dir']
+     source=Path(task['model_path'])
+     import torch
+     from source_cache208_v3 import PinnedSource208,selected_source,cached_load
+     cache=PinnedSource208(torch,source,SHA,BYTES)
+-    assert cache.state['iter']==ITER and cache.state['actual_new_PPO_updates']==68
+-    assert cache.state['typed_W35_RM70_task']['kind']=='MOD4_W35_FULL_RM70_MATERIAL_SHARED214'
++    assert cache.state['iter']==ITER and cache.state['actual_new_PPO_updates']==77
++    assert cache.state['typed_W35_RM70_task']['kind']=='MOD4_W35_FULL_RM70_QUALIFIED343E_CONTINUE227'
+     typed=dict(kind=KIND,source_SHA=SHA,source_bytes=BYTES,source_iteration=ITER,
+         source_Adam_step=ADAM,nominal_gas_N_each=400,policy_hz=50,feedback_hz=100,
+         physics_dt=.0025,TGS=[32,4],num_envs=20000,actor_obs=35,critic_obs=38,action_dim=6,
+         original_W35_reward_and_fixed_SI_observations=True,
+         original_full_D0_D7_restore_then_one_new_physical_episode=True,
+         same_RM70_course_assignment_and_command_fullstate_restored=True,
+-        new_physical_episode_and_query_cache_after_restore=True,source_prior_new_PPO_updates=68,
++        new_physical_episode_and_query_cache_after_restore=True,source_prior_new_PPO_updates=77,
++        new_asset_USD_SHA=asset_identity.usd_sha256,new_asset_contract_SHA=asset_identity.contract_sha256,
++        closure_episode_m=.01,mimic_rad=.01,D6_scope='original_gas_damping_not_all_joint_friction',
+         old_G3_assignment_not_restored_into_new_mesh=True,root_quaternion_order='xyzw',
+         original_plane_retained_W35_source_stays_frozen=True,
+         full_SuperMimic_conversion=False,full_RM70_skill=False)
+     put('SOURCE208_V3_CACHE_BEFORE_SDK.json',cache.receipt())
+-    entry=mod/'train_full214.py'
++    entry=mod/'train_mod4v1_w35.py'
+     sys.argv=[str(entry),'--headless','--device','cuda:0','--num_envs','20000','--seed','20260928',
+         '--steps_per_env','24','--learning_rate',str(LR),'--save_interval','25',
+         '--init_checkpoint',str(source),'--log_root',str(OUT/'logs'),
+-        '--run_name','W35_QUALIFIED343E_RM70_CONTINUE227','--additional_iterations','100000']
++        '--run_name','W35_LATEST32481_MOD4V1_FULLDR_RM70','--additional_iterations','100000']
+     ns=None;runner_holder=[None];updates=[0];last_complete=[None];last_saved=[time.time()]
+     class SavedStop(Exception):pass
+     with selected_source(cache):
+         try:
+-            ns=runpy.run_path(str(entry),run_name='owned_W35_RM70_qualified227_config')
++            ns=runpy.run_path(str(entry),run_name='owned_W35_MOD4V1_config')
+             import rescue_training
+             from spring_pressure_checkpoint208_v3 import exact
+             def work(runner,n,log_dir):
+@@ -140,7 +125,9 @@
+                 assert len(steps)==17 and set(steps)=={ADAM}
+                 assert real.spring_pressure_recipe()['nominal_stiffness_N_m']==2000
+                 assert real._w35_gas400_selected_bank_compatibility['selected_pose_index']==34
+-                assert len(real._w35_gas400_asset_compatibility['authorized_four_scalar_changes'])==4
++                assert real._mod4v1_asset_compatibility['new_contract_SHA']==asset_identity.contract_sha256
++                assert set(real._mod4v1_asset_compatibility['authorized_changed_bodies'])=={'chassis','left_shin','right_shin'}
++                assert real._mod4v1_fresh_dr_guard.restore_completed
+                 required={'SENSOR_RESUME_STARTUP_VERIFIED.json','DELAY_RESUME_STARTUP_VERIFIED.json',
+                     'ACTION_DELAY_RESUME_STARTUP_VERIFIED.json','SPRING_PRESSURE_RESUME_STARTUP_VERIFIED.json',
+                     'GAS_DAMPING_RESUME_STARTUP_VERIFIED.json','CHASSIS_PD_RESUME_STARTUP_VERIFIED.json',
+@@ -156,9 +143,9 @@
+                     state['iter']=ITER+completed
+                     state['typed_W35_RM70_task']=typed
+                     state['actual_new_PPO_updates']=completed
+-                    state['PPO50_gas400_adaptation']=full['PPO50_gas400_adaptation']
+-                    state['PPO50_gas400_new_updates']=completed
+-                    state['PPO50_gas400_clock']=dict(policy_hz=50,physics_dt_s=.0025,decimation=8,feedback_hz=100,gamma=.9801,lam=.9025)
++                    from mod4v1_w35_asset_compat import record_historical_source_metadata
++                    record_historical_source_metadata(state,full)
++                    state['mod4v1_clock']=dict(policy_hz=50,physics_dt_s=.0025,decimation=8,feedback_hz=100,gamma=.9801,lam=.9025)
+                     current=[int(v['step']) for v in state['optimizer_state_dict']['state'].values()]
+                     assert len(current)==17 and set(current)=={ADAM+20*completed}
+                     for key in ('sensor_DR_state','sensor_global_rng_state','sensor_command_DR_rng_state',
+@@ -182,7 +169,9 @@
+                     original_D0_D7_and_command_private_RNG_restore_before_one_new_episode=True,
+                     same_RM70_profile_terrain_assignment_and_command_restored=True,source_cache=cache.receipt(),
+                     full_startup_complete=startup,actual_startup_receipts={name:str(receipts[name]) for name in required}))
+-                obs=vec.get_observations();physics0=int(real._integrated_contact.tick)
++                obs=vec.get_observations();real._mod4v1_fresh_dr_guard.check_observations(obs)
++                put('MOD4V1_FRESH_DR_NOMINAL_ACTUAL.json',real._mod4v1_fresh_dr_guard.receipt())
++                physics0=int(real._integrated_contact.tick)
+                 feedback0=int(real._feedback_100hz_tick);apply0=dict(real._physics_action_delay.calls)
+                 reward_dt=[];old_reward=real.reward_manager.compute
+                 def reward(*args,**kwargs):

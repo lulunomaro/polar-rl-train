@@ -1,0 +1,49 @@
+{
+  "schema":"mod4v1.expert_normalization.registry.v1",
+  "human_scope":"All frozen experts use the newly enhanced MOD4v1 plant; user confirmed W25 means W35/E1_WAVE35; seek two truly free GPUs, preserve active tasks and original canonical.",
+  "target_asset":{
+    "local_directory":"F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets",
+    "USD_SHA256":"2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3",
+    "contract_SHA256":"bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755",
+    "asset_provenance_commit":"72cbf1bc67377cdf57f8b2447d8e6b8db4fb062f",
+    "not_old_wrapper_SHA":"bce9a7740fd9a2e2252d34a09c1fef7dab70e2a65f9d0ee2e422cec5f12c60e4",
+    "known_nominal_mass_kg":14.294140288606286,
+    "full_current_CAD_group_calibration_completed":false
+  },
+  "common_runtime":{
+    "actor_observation_dim":35,"critic_observation_dim":38,"action_dim":6,
+    "physics_dt_s":0.0025,"TGS_iterations":[32,4],"policy_hz":50,"feedback_hz":100,
+    "closure_episode_reset_m":0.01,"mimic_threshold_rad":0.01,
+    "normalization":"Preserve each original expert's fixed SI scales, command semantics and fullstate; do not pool or fabricate running statistics.",
+    "preserve":["actor","critic","learned STD","17 Adam states","source LR and counters","original private RNG and command state","correctly timed delay/feedback queues"],
+    "fresh_physical_nominals":"Existing constructors capture masses/inertias/COM from NEW asset. Existing resume restores RNG then ONE fresh episode reset. Sidecar guard verifies identity/new caches, not a fabricated old-mass restore bug."
+  },
+  "DR_contract":{
+    "definition":"Actual existing original white_v3/D0-D7, not vendor recipe expansion or a generic hardware-full-coverage label",
+    "D0":"per-env common all-body mass/inertia factor0.9-1.1; six motor gain0.9-1.1; wheel mu0.7-1.0",
+    "D1":"original raw sensor noise and per-episode leg encoder bias",
+    "queues":"feedback0/10ms; physical action0/2.5/5ms, legs4 and wheels2 episode groups with original independent RNG; do not invent a second D3 delay",
+    "D5":"per-gas-spring stiffness nominal2000 scaled0.9-1.1",
+    "D6":"gas-spring damping nominal3 scaled0.9-1.1; not complete joint-friction coverage",
+    "D7":"chassis COM XYZ plus/minus5mm; original PD factor0.95-1.05",
+    "real_parameters_readback_required":true,"mod4v1_full_DR_passed":false
+  },
+  "selected_formals":[
+    {"expert":"E0","skill":"flat standing/running/turning and original-world retention","expected_source_SHA256":"a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a","source_bytes":14031973,"source_iteration":31984,"source_Adam_step":641200,"source_LR":0.00038443359375000017,"source_local":"C:/Users/lulu/Desktop/claude/mjcf/MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021/MOD4_E0_PPO50_GAS400_REMOTE4090_RESOURCE_V89D_20261027/current_qualified_candidate/formal/model_final.pt","status":"SOURCE_METADATA_BOUND_MOD4V1_ADAPTATION_NOT_RUN","expected_slot":"GPU0 queue"},
+    {"expert":"W35","human_alias":"W25 confirmed by user","skill":"E1_WAVE35 into original-CAD RM70","expected_source_SHA256":"2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b","source_bytes":17619333,"source_iteration":32481,"source_Adam_step":651260,"source_LR":0.0002562890625000001,"source_remote":"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_W35_QUALIFIED343E_CONTINUE227D_20261101_0712/w35_72/production/model_final_complete.pt","status":"SOURCE_METADATA_BOUND_MOD4V1_ADAPTATION_NOT_RUN","expected_slot":"Second actually free GPU; do not displace current GPU1 task"},
+    {"expert":"E2","skill":"world-direction motion and signed yaw","expected_source_SHA256":"b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1","source_bytes":14615089,"source_iteration":42822,"source_Adam_step":859300,"source_LR":0.00022500000000000002,"source_LR_evidence":"Exact saved LR from FORMALS213/selected CPU proof; initial rounded registry value retained in phase1 Git", "source_remote":"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt","status":"SOURCE_METADATA_BOUND_MOD4V1_ADAPTATION_NOT_RUN","expected_slot":"GPU0 queue"},
+    {"expert":"E3","skill":"original13-recipe fallen recovery","expected_source_SHA256":"1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8","source_bytes":14715029,"source_iteration":43090,"source_Adam_step":866060,"source_LR":0.0002562890625000001,"source_remote":"/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt","status":"SOURCE_METADATA_BOUND_MOD4V1_ADAPTATION_NOT_RUN","expected_slot":"GPU0 queue"}
+  ],
+  "legacy_frozen_lineages_needing_exact_current_producer_join":["H1_normal_PPO86B","E1_CURB20","E1_SLOPE5"],
+  "inventory_boundary":"4 are currently exact selected400N50 formals, not proof all historical frozen lineages have been resolved. Historical18 is an E0 evaluation matrix, not18 independent actors. No candidate is promoted by maximum iteration alone.",
+  "budget_binding":{
+    "canonical":"/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json",
+    "generation":"MOD4_SINGLE_WRITER72_20261026","read_at_local":"2026-11-01T23:17:22+08:00",
+    "authorized_seconds":2268000,"charged_seconds_at_read":1881124.7016320229,"remaining_seconds_at_read":386875.29836797714,"strict_minimum_remaining_seconds":86412.86069250107,
+    "snapshot_not_current_admission":true,"new_ledger_or_budget_extension_created":false,
+    "production_requirement":"Actual fresh original single-writer Task/GO/cost/save-close-childwait receipts; idle-card permission is not a new time budget."
+  },
+  "native_asset_admission":{"passed":true,"scope":"Pinned new MOD4v1 asset import and8native physics steps only; NOT fullDR or expert adaptation","actual_GPU_UUID":"GPU-16828f91-2b45-b646-8dc0-9481138e2842","worker_pid":1415813,"physical_bodies":31,"joint_coordinates":30,"physical_closures":6,"physics_dt_s":0.0025,"actual_CUDA_pose":true,"mass_max_error_kg":0.0,"COM_max_error_m":0.0,"parent_wait_returncode":0,"all_own_children_waited":true,"original_App_close_bridge":true,"private_locks_released":true,"model_opens":0,"optimizer_updates":0,"canonical_writes":0,"evidence":"reports/native_snapshot_20261102_001017.json","raw_resource_field_note":"V3 RESOURCE_ACTUAL canonical_before=null is inherited template text, not a global CNone admission. Actual V3 scope allowed the unchanged existing owner on the other GPU and used no writer; consult PARALLEL_MODEL_FREE_SCOPE.json. Preserve raw record."},
+  "current_stage":"New MOD4v1 nominal asset passed GPU0 target-native import/8physics steps and clean close; fullDR restore/observation readback and expert adaptation remain pending. GPU1 is busy; do not displace it. No expert checkpoint opened in this phase. Inventory/auth/native scripts, failures, new hook, registry and root AGENTS update await this new stage Git archival; W35 source derivation is in progress.",
+  "evidence_basis":"Source SHAs and counters above are from frozen manifest/CPU/INDEX references identified by read-only subagent, not newly decoded or raw-hashed PT in this phase."
+}

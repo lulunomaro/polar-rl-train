@@ -1,0 +1,91 @@
+ xi=static31();episodes=torch.zeros(80,device=real.device,dtype=torch.int64)
+ binding_path=OUT/'ACTUAL276_FRESH_MEASURED_SCHEMA_BINDING.json'
+ put(binding_path.name,dict(passed=True,body_names=body_names,joint_names=joint_names,motor_ids=real.motor_ids194,contact_order=real.contact_order194,terrain=sdk.DATA['metadata'],state224_LAYOUT=LAYOUT,actual_resource_admission_SHA=TASK['actual_resource_admission_SHA']))
+ from future_safe_wm_warm273 import FutureSafeWarmWM273,FrozenTeacherContract273
+ from measured_state224_v268 import MeasurementBinding268,SCHEMA_ID
+ wmbinding=MeasurementBinding268(tuple(joint_names),tuple(body_names),tuple(real.motor_ids194),'ACTUAL_OWN_MOD4_ROBOT_NAME_AND_MOTOR_ID_BINDING',hashlib.sha256(binding_path.read_bytes()).hexdigest());wmbinding.validate()
+ wm=FutureSafeWarmWM273(str(Path(__file__).resolve().parent/'kernel'),torch.device(real.device),teacher_contract=FrozenTeacherContract273(TASK['model_SHA'],TASK['teacher_whole_CPU_receipt_SHA'],True),binding=wmbinding,seed=27,envs=80,batch=1024,window=32,hidden=(512,512,512),synthetic_CPU_test=False)
+ def finite(v):
+  if torch.is_tensor(v):
+   if v.is_floating_point()or v.is_complex():assert torch.isfinite(v).all()
+  elif isinstance(v,dict):
+   for x in v.values():finite(x)
+  elif isinstance(v,(list,tuple)):
+   for x in v:finite(x)
+ finite(ck)
+ assert float(ck['optimizer_state_dict']['param_groups'][0]['lr'])==.0019461950683593758
+ put('ACTUAL276_FROZEN_TEACHER_FULLSTATE_AND_NEW_WM_BEFORE_CONTROL.json',dict(passed=True,source_SHA=TASK['model_SHA'],source_byte_reads=1,source_GPU_decodes=1,source_iteration=2135,source_Adam17=steps,source_LR=float(ck['optimizer_state_dict']['param_groups'][0]['lr']),actor8_tensors_exact=True,Critic_STD_full17Adam_retained_frozen=True,teacher_optimizer_constructed=False,new_optimizer_count=1,new_optimizer_scope='WM only',new_WM_seed=27,WM_input=273,WM_output=223,state224=224,H32=32,batch=1024,hidden=[512,512,512],fresh_physics_DR_queues_and_WM_not_exact_PhysX_resume=True,original_reward_text_unchanged=True,closure_m=.01,mimic_rad=.01))
+ controls=0;last_saved=0.;first=None;terminated_count=0;truncated_count=0;valid_input=0;previous_tick=None
+ previous_action=torch.zeros(80,6,device=real.device);epstep=torch.zeros(80,dtype=torch.int32,device=real.device)
+ def reward_memory():
+  return dict(episode_sums=copied(real.literal.episode_sums),base_air_time=copied(real.literal.base_air_time),last_contacts=copied(real.literal.last_contacts),contact_filt=copied(real.literal.contact_filt),was_in_flight=copied(real.literal.was_in_flight),last_actions=copied(real.last_actions),last_root=copied(real.last_root))
+ def command_memory():
+  cmd=real.command_manager.get_term('twist');names=('vel_command_b','time_left','command_counter','is_standing_env','is_heading_env','is_pure_spin','is_moving_spin','is_transition_spin','world_direction','signed_yaw','phase_elapsed','command_uid209')
+  trackers={}
+  for name in real.reward_manager.active_terms:
+   inner=getattr(real.reward_manager.get_term_cfg(name).func,'original',None);tracker=getattr(inner,'tracker',None)
+   if tracker is not None:trackers[name]={k:copied(v)for k,v in vars(tracker).items()}
+  return dict(fields={k:copied(getattr(cmd,k))for k in names if hasattr(cmd,k)},generators={k:v.get_state().cpu()for k,v in vars(cmd).items()if isinstance(v,torch.Generator)},flat_mask=copied(real._mixed209_flat),mode=copied(real._mod4_mode_bit),height=copied(real._mod4_height_cmd),ground_episode_sums=copied(real.reward_manager._episode_sums),stateful_ground_rewards=trackers)
+ def full_DR():
+  mild=real._mild_dr
+  return dict(components=complete_component_memory(),physical_snapshot=copied(dr.snapshot()),mild=dict(factor=copied(mild.factor),nominal=copied(mild.nominal),mu=copied(mild.mu),reset_count=copied(mild.reset_count),private_GPU_rng=mild.generator.get_state().cpu(),private_CPU_rng=mild.cpu_generator.get_state(),motor_output=copied(mild.output)),global_CPU_rng=torch.random.get_rng_state(),global_CUDA_rng=torch.cuda.get_rng_state_all())
+ def save(label):
+  global last_saved
+  assert wm.updates>0 and all(torch.equal(v,actor.state_dict()[k])for k,v in weights.items())
+  assert all(float(x['step'])==42940 for x in ck['optimizer_state_dict']['state'].values())
+  state=dict(kind='OWN_DEPTH_WM_ONLY_WARM276_COMPLETE',typed_WM_WARM276_task=TASK,original_finite_owner_GO=go,teacher_full_PPO_state=ck,teacher_source_SHA=TASK['model_SHA'],teacher_saved_iteration=2135,teacher_Adam17_step=42940,actual_new_WM_updates=wm.updates,actual_new_PPO_updates=0,actual_Pi_Critic_STD_updates=0,world_model=wm.checkpoint(),target_DR_state=full_DR(),mixed_ground_JUMP_state=command_memory(),original_jump_reward_memory=reward_memory(),current_measured_state224=copied(state_now()),current_static31=copied(xi),current_episodes=copied(episodes),current_episode_steps=copied(epstep),previous_clipped_action=copied(previous_action),controls=controls,own_transitions=controls*80,physics_callbacks=controls*8,feedback_samples=controls*2,full_physics_resume_claimed=False,complete_three_optimizer_conversion=False,actual_Pi_runtime_qualified=False,replay_dataset_scope='original64-control WM ring, fresh replay on resume; no full population dataset saved')
+  finite(state);dest=OUT/(label+'.pt');temp=dest.with_suffix('.pt.partial');torch.save(state,temp);os.replace(temp,dest)
+  with dest.open('rb')as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+  wmsteps=[int(v['step'])for v in wm.optimizer.state.values()];assert wmsteps and min(wmsteps)==max(wmsteps)==wm.updates
+  epoch=time.time()
+  row=dict(epoch=epoch,save_epoch=epoch,path=str(dest),bytes=dest.stat().st_size,SHA=sha,actual_new_WM_updates=wm.updates,saved_WM_updates=wm.updates,WM_Adam_step_min=min(wmsteps),WM_Adam_step_max=max(wmsteps),actual_new_PPO_updates=0,controls=controls,own_transitions=controls*80,teacher_source_SHA=TASK['model_SHA'],teacher_saved_iteration=2135,teacher_iteration=2135,teacher_Adam_step=42940,teacher_LR=.0019461950683593758,teacher_Adam_min=42940,teacher_Adam_max=42940,typed_WM_only_task_present=True,full_WM_tree_finite=True,frozen_teacher_fullstate_preserved=True,replay_saved=False,complete_three_optimizer_conversion=False,full_teacher_WM_Adam_norm_RNG_DR_reward_memory_saved=True)
+  put('latest_complete.json',row);last_saved=time.time();return row
+ original=real.literal.measured_step;pending={}
+ def measured(frame,tick):
+  assert not pending
+  pending.update(s1=state_now(frame),depth=depth_now(controls*.02),terminated=real.termination_manager.terminated.clone(),truncated=real.termination_manager.time_outs.clone())
+  return original(frame,tick)
+ real.literal.measured_step=measured
+ obs=vec.get_observations();tick0=int(real._integrated_contact.tick);fb0=int(real._feedback_100hz_tick);calls0=real.literal.calls;depth=depth_now(0.)
+ while time.time()<deadline and not(OUT/'STOP_AFTER_SAVE.json').exists()and shutil.disk_usage(P).free>=8*1024**3:
+  controls+=1;start_state=state_now();start_depth=depth;start_episode=episodes.clone();sxi=xi.clone();pending.clear()
+  with torch.inference_mode():actions=actor(obs['policy'])
+  obs,physical_reward,done,extra=vec.step(actions);assert pending and torch.isfinite(obs['policy']).all()and torch.isfinite(physical_reward).all()
+  tick=int(real._integrated_contact.tick)-tick0;union=pending['terminated']|pending['truncated'];assert torch.equal(union,done.bool())and tick==controls*8
+  assert int(real._feedback_100hz_tick)-fb0==controls*2 and real.literal.calls-calls0==controls
+  row=dict(producer_kind='ACTUAL_OWN_MOD4_FULLSTATE_DEPTH_PRODUCER',plant='own_MOD4_live_USD',run_id=TASK['run_id'],generation=TASK['generation'],source_admission_SHA=TASK['actual_resource_admission_SHA'],physics_us=2500,physics_callbacks=8,feedback_samples=2,policy_us=20000,physics_end_tick=tick,depth_age_seconds=(controls-1)*.02-start_depth['sensor_time'],s=start_state,s1=pending['s1'],xi31=sxi,depth9=start_depth['features'],a=actions.clamp(-6.,6.))
+  validate_transition(row,previous_tick=previous_tick);previous_tick=tick
+  times=torch.full((80,),start_depth['sensor_time'],device=real.device,dtype=torch.float32);ct=torch.full((80,),(controls-1)*.02,device=real.device,dtype=torch.float32)
+  producer=Producer271('ACTUAL_OWN_MOD4_CURRENT_DEPTH263_PACKET','own_MOD4_live_USD',TASK['run_id'],TASK['generation'],TASK['actual_resource_admission_SHA'],'D435i_front_fixed',tuple(range(80)),tuple(int(x)for x in start_episode.cpu().tolist()))
+  packet=CurrentDepthPacket271(producer,f"{TASK['run_id']}:start{tick-8}",start_depth['found'],start_depth['features'],start_depth['visible_floor_z_m'],times,ct,times.clone(),start_depth['sensor_pose_native13'],real.scene.env_origins.clone(),start_depth['T_world_heading'],FRAME,'native_wxyz')
+  fields=dict(s=start_state,s1=pending['s1'],a=row['a'],a_prev=previous_action,xi=torch.cat((sxi,start_depth['features']),-1),r=physical_reward,f=torch.full((80,),controls-1,device=real.device,dtype=torch.int64),ep_step=epstep,done=done.bool())
+  witness=dict(kind='ACTUAL_OWN_MOD4_FULLSTATE_DEPTH_PRODUCER',plant='own_MOD4_live_USD',state_schema=SCHEMA_ID,binding_witness_SHA=wmbinding.witness_SHA,measured_fields=['own_L0_theta4','contact_forces_BODY31x3'],s_physics_end_tick=tick-8,s1_physics_end_tick=tick,run_id=TASK['run_id'],generation=TASK['generation'],source_admission_SHA=TASK['actual_resource_admission_SHA'],max_depth_age_seconds=float((ct-times).max()))
+  ingress=wm.add(fields,actual_anchor=packet,physics_end_tick=tick,physics_us=2500,feedback_samples=2,producer=witness)
+  terminated_count+=int(pending['terminated'].sum());truncated_count+=int(pending['truncated'].sum());valid_input+=int(start_depth['found'].sum())
+  previous_action=row['a'].clone();previous_action[done.bool()]=0;epstep=torch.where(done.bool(),0,epstep+1).to(torch.int32)
+  if bool(done.any()):
+   dr.refresh_after_resets(torch.where(done)[0]);xi=static31();episodes+=done.long();depth=depth_now(controls*.02)
+  else:depth=pending['depth']
+  if controls==24:put('NATIVE24_WM_WARM276_ACTUAL.json',dict(passed=True,controls=24,physics_callbacks=192,feedback_samples=48,fullstate_depth_ingress=24*80,WM_updates=0,teacher_updates=0,original_literal_calls=24,closure_m=.01,mimic_rad=.01))
+  if wm.ready_for_update():
+   diagnostic=wm.update()
+   if first is None:
+    first=save('model_first_complete');assert wm.updates==1
+    from wm_task275 import FIRST_KIND,validate_first
+    receipt=dict(epoch=time.time(),kind=FIRST_KIND,passed=True,source_SHA=TASK['model_SHA'],run_id=TASK['run_id'],actual_new_WM_updates=1,actual_new_PPO_updates=0,actual_new_Pi_updates=0,actual_new_critic_updates=0,actual_new_STD_updates=0,actual_Pi_Critic_teacher_updates=0,actual_Pi_Critic_STD_updates=0,num_envs=80,controls=controls,new_completed_controls=controls,new_environment_transitions=controls*80,physics_callbacks=controls*8,feedback_samples=controls*2,teacher_iteration=2135,teacher_saved_iteration=2135,teacher_Adam_step=42940,teacher_LR=.0019461950683593758,teacher_Adam17_step=42940,teacher_source_byte_reads=1,teacher_source_decodes=1,WM_optimizer_count=1,new_WM_optimizer_count=1,teacher_actor_critic_STD_full17Adam_unchanged=True,finite_WM_loss_grad_params_optimizer=True,convert_actor44_critic47=False,complete_three_optimizer_conversion=False,diagnostic=diagnostic,first_complete=first,first_current_anchor_only=True,original_JUMP_reward_unchanged=True,not_navigation_jump270_or_fullSuperMimic=True)
+    receipt['actual_resource_admission_SHA']=TASK['actual_resource_admission_SHA']
+    validate_first(receipt,TASK,go);put('FIRST_ACTUAL_NEW_WM_UPDATE.json',receipt)
+   elif time.time()-last_saved>=120:save('model_latest_complete')
+   put('LATEST_PROGRESS.json',dict(epoch=time.time(),actual_new_WM_updates=wm.updates,actual_new_PPO_updates=0,controls=controls,own_transitions=controls*80,depth_valid_input_environment_controls=valid_input,terminated=terminated_count,truncated=truncated_count,diagnostic=diagnostic,teacher_frozen=True,original_JUMP_diagnostic=real.stats194))
+ assert wm.updates>0 and first is not None
+ final=save('model_final_complete')
+ from wm_task275 import FINAL_KIND
+ receipt=dict(receipt,epoch=time.time(),kind=FINAL_KIND,actual_new_WM_updates=wm.updates,controls=controls,new_completed_controls=controls,new_environment_transitions=controls*80,physics_callbacks=controls*8,feedback_samples=controls*2,final=final,original_finite_owner_GO=go,stop_file_seen=(OUT/'STOP_AFTER_SAVE.json').exists(),disk_guard_triggered=shutil.disk_usage(P).free<8*1024**3,no_navigation_or_270skill_claim=True)
+ receipt.pop('first_complete');receipt.pop('diagnostic');put('FINAL.json',receipt)
+except BaseException:
+ put('ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),no_automatic_retry=True));raise
+finally:
+ if real is not None:
+  try:real.close();put('ENV276_CLOSE_RETURNED.json',dict(closed=True))
+  except BaseException:put('ENV276_CLOSE_ORIGINAL_ERROR.json',dict(error=traceback.format_exc()))
+ if ns is not None:put('APP276_CLOSING.json',dict(close_call_next=True,post_return_marker_optional=True));ns['app'].close()

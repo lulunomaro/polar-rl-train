@@ -1,0 +1,27 @@
+ from observed_support_context271 import Producer271,CurrentDepthPacket271,make_anchor,FRAME
+ import native_geometry272 as geometry
+ camera_reads=0;anchor_validated=0
+ def depth_now(control_time):
+  global camera_reads,anchor_validated
+  camera.update(real.step_dt,force_recompute=True);camera_reads+=1
+  images=tensor(camera.data.output['distance_to_image_plane']).detach().cpu().numpy().copy().reshape(80,48,84)
+  Ks=tensor(camera.data.intrinsic_matrices).detach().cpu().numpy().copy();positions=tensor(camera.data.pos_w).cpu().numpy().copy();quats=tensor(camera.data.quat_w_ros).cpu().numpy().copy();roots=tensor(robot.data.root_state_w).detach().clone();root=roots.cpu().numpy().copy()
+  Ts=[];worldTs=[];features=[];floors=[];found=[]
+  for j in range(80):
+   q=root[j,3:7];yaw=float(np.arctan2(2*(q[3]*q[2]+q[0]*q[1]),1-2*(q[1]*q[1]+q[2]*q[2])));c,s=np.cos(yaw),np.sin(yaw);R_heading=np.array([[c,s,0.],[-s,c,0.],[0.,0.,1.]],dtype=np.float32)
+   T=np.eye(4,dtype=np.float32);T[:3,:3]=R_heading@rotation(quats[j]);T[:3,3]=R_heading@(positions[j]-np.array([root[j,0],root[j,1],0.],dtype=np.float32))
+   W=np.eye(4,dtype=np.float32);W[:3,:3]=R_heading.T;W[:3,3]=[root[j,0],root[j,1],0.]
+   target=target_from_depth(images[j],Ks[j],T,sensor_time=control_time,control_time=control_time,pixel_center_offset=.5)
+   Ts.append(T);worldTs.append(W);features.append(target['features']);found.append(bool(target['found']));floors.append(target.get('visible_floor_z_m',float('nan')))
+  features=torch.tensor(np.stack(features),device=real.device);found=torch.tensor(found,device=real.device,dtype=torch.bool);floors=torch.tensor(floors,device=real.device,dtype=torch.float32);W=torch.tensor(np.stack(worldTs),device=real.device)
+  roots[:,:3]-=real.scene.env_origins;roots[:,3:7]=roots[:,[6,3,4,5]]
+  ids=torch.where(found)[0]
+  if len(ids):
+   index=ids.cpu().tolist();producer=Producer271('ACTUAL_OWN_MOD4_CURRENT_DEPTH263_PACKET','own_MOD4_live_USD',TASK['run_id'],TASK['generation'],TASK['actual_resource_admission_SHA'],'D435i_front_fixed',tuple(index),tuple(int(x)for x in episodes[ids].cpu().tolist()))
+   times=torch.full((len(ids),),control_time,device=real.device,dtype=torch.float32)
+   packet=CurrentDepthPacket271(producer,f"{TASK['run_id']}:t{control_time:.6f}",found[ids],features[ids],floors[ids],times,times.clone(),times.clone(),roots[ids],real.scene.env_origins[ids].clone(),W[ids],FRAME,'native_wxyz')
+   anchor=make_anchor(packet,static31_raw=xi[ids],geometry=geometry);state=state_now();subset=tuple(v[ids]for v in geometry_state272(state));ctx=anchor.context40(subset,producer=producer,imagination_step=0,geometry=geometry)
+   assert torch.isfinite(ctx['context40_raw']).all()and ctx['context40_raw'].shape==(len(ids),40);anchor_validated+=len(ids)
+  return dict(image=images,K=Ks,T=np.stack(Ts),T_world_heading=W,visible_floor_z_m=floors,sensor_pose_native13=roots,features=features,found=found,sensor_time=control_time)
+ def geometry_state272(packed):
+  return(packed[:,:3],geometry.quat_to_mat(packed[:,3:7]),packed[:,7:10],packed[:,10:13],packed[:,13:43],packed[:,43:73],packed[:,73:])

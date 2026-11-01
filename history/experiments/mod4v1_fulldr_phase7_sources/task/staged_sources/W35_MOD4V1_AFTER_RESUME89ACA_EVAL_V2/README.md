@@ -1,0 +1,3 @@
+# Future full32 after89aca resume — SOURCE_ONLY
+
+Not old89aca evaluation replay. Parent must complete currentfiniteoriginalwindow, savecomplete/settle/wait/release first. Bindnewcheckpointproducer.source_SHA89aca, iter32561+newN,17Adam652860+20newN/newactualbytesSHA; newLRfromsamecachedoptimizer, nooldLRassumption. InputtypedkindMOD4V1_W35_RESUME32561_FULLD0D7_RM70_V3. Original1600controls/12800phys/3200feedback32s, core/STD17Adamexact/zeroopt/onecachedsourcepurpose, noqualificationfrommereexecutionpass. OldV1copiedREADME/indexkeptonlyasrecord, notsourceproof. NoTask/GO/modelreads/SDKcalls bythissealer.

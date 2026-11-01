@@ -1,0 +1,33 @@
+{
+  "kind": "CPU_SOURCE_AND_MOCK_ATTEMPT_HISTORY_NOT_TARGET_EXPERT_RESULTS",
+  "initial_source_candidate": {
+    "path": "W35_MOD4V1_SOURCE_V1",
+    "status": "PRESERVED_NOT_DISPATCHED_SUPERSEDED_BY_EXPLICIT_THRESHOLD_V2",
+    "original_generator_snapshot": "build_w35_mod4v1_sources_v1_snapshot.py",
+    "finding": "The original W35 mod4_task raw cfg declares mimic .05. Higher-level actual cfg was not SDK-evaluated here. V1 relied on the FreshGuard precondition of .01; V2 must explicitly assign current requested mimic .01 and closure .01 before constructor, while recording previous cfg values only as history.",
+    "PT_opens": 0,
+    "SDK_or_training_executed": false
+  },
+  "pre_final_V2_source_review": {
+    "path": "W35_MOD4V1_SOURCE_V2",
+    "generator_snapshot": "build_w35_mod4v1_sources_v2_pre_final_snapshot.py",
+    "status": "CPU_STATIC_CHECKED_PRESERVED_SUPERSEDED_BY_V2_FINAL_REPORT_LABEL_CORRECTION",
+    "observed_static_scope": "8 Python ASTs,13 output hashes,14 input hashes; overwrite/wrong-env negative tests; no PT or SDK",
+    "finding": "Original E1 health already treats closure as ordinary per-environment reset and does not globally stop on a finite closure peak. Its closure_2mm_still_resets_only_this_environment report key is stale for a new10mm task; FINAL derives only report labels/active threshold disclosure, leaving all actual health/stop logic unchanged."
+  },
+  "reader_error_preserved": {
+    "scope": "LOCAL_CPU_STATIC_READER_ONLY",
+    "cause": "Three new source read_text calls omitted encoding on Windows; platform default GBK was used for UTF-8 Chinese comments.",
+    "original_stderr": "Traceback (most recent call last):\n  File \"<string>\", line 10, in <module>\n  File \"C:\\Users\\lulu\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\Lib\\pathlib.py\", line 1028, in read_text\n    return f.read()\n           ^^^^^^^^\nUnicodeDecodeError: 'gbk' codec can't decode byte 0x8e in position 3036: illegal multibyte sequence\n[exit code: 1]",
+    "correction": "Use explicit encoding='utf-8' for all new-source static review reads; do not reclassify this as robot or SDK failure."
+  },
+  "previous_adapter_checks": {
+    "path": "../adapters/test_mod4v1_fresh_dr_guard_synthetic.py",
+    "scope": "CPU_MOCK_NUMPY_API_DOUBLES_ONLY",
+    "observed_check_count": 16,
+    "status": "SYNTHETIC_CHECKS_PASSED_NOT_REAL_EXPERT_ACCEPTANCE",
+    "Torch_or_SDK_or_PhysX_or_real_model_executed": false,
+    "PT_opens": 0
+  },
+  "scope_boundary": "No source generation/static parsing/mock test establishes Native0PT, fullD0-D7 runtime coverage, neural adaptation, skill graduation, resource admission, canonical ownership or GO. Parent owns all target receipts, recording and dispatch."
+}

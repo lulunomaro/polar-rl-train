@@ -1,0 +1,126 @@
+{
+  "epoch": 1793539607.5418212,
+  "kind": "SOURCE_AND_SAVED_TEACHER_OBJECTIVE_DIAGNOSTIC",
+  "user_requests": [
+    "Training must have a problem; why Fudan rewards when a teacher exists? Think carefully.",
+    "SuperMimic uses BPTT to replace PPO for task tracking, correct?"
+  ],
+  "source_files": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101\\source\\teacher_student292.py",
+      "bytes": 18340,
+      "SHA": "73ec7cee9b7bcf12c630c4f10b66edd3a2b4fb706b86bf71c4f93cc9dde87176"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101\\source\\reference292.py",
+      "bytes": 5350,
+      "SHA": "5ffcfa854dc901a76159639bbac84635b65fdf6e78a28a7ae10a0350dd95256c"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101\\source\\terrain292.py",
+      "bytes": 4672,
+      "SHA": "42e5c01b37ce717cbb572046ba16d0bf6670549811393f637b30d761966899c7"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101\\source\\literal_original_config.py",
+      "bytes": 3545,
+      "SHA": "7e2dda3e5e84c2cb621d79369442b4d2507ed742e0ea6a25cc7d9fb973a99e52"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101\\source\\literal_original_methods.py",
+      "bytes": 9175,
+      "SHA": "36d460884b6c7e3e0fb0b259e7984e60f1f55e2fc3db8725c8d3a84db97df1b2"
+    }
+  ],
+  "teacher_terminal_evidence": [
+    {
+      "case": "fullDR_lqr",
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\fullDR_lqr\\trajectory.json",
+      "bytes": 1366260,
+      "SHA": "68e955161a6b6862f3faf25ea7bb9408ac2b914352b51d7cdf36fa0e5661766b",
+      "rows": 500,
+      "last_time": 4.9999999999999485,
+      "final_root_xyz": [
+        0.8010632853570928,
+        -0.012129382311255358,
+        0.5427012555268792
+      ],
+      "final_velocity6": [
+        -0.014086598132927891,
+        0.008547729329582988,
+        -0.011052913300675815,
+        -0.036126389539898086,
+        0.07891535817947073,
+        -0.04097669717564407
+      ],
+      "final_halfsecond_vx_mean": -0.011335204803036585,
+      "final_halfsecond_max_abs_vz": 0.031439611225721746,
+      "purpose": "Necessary terminal-goal audit of saved JSON teacher, no trajectory rerun or PT/NPZ read"
+    },
+    {
+      "case": "fullDR_mpc",
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\fullDR_mpc\\trajectory.json",
+      "bytes": 1367393,
+      "SHA": "5fb5e88acdfcbdd69cd23de500cdf371e5e92d0aded587eedbb8384a0ebeba5e",
+      "rows": 500,
+      "last_time": 4.9999999999999485,
+      "final_root_xyz": [
+        0.579572504129587,
+        -0.015795546819013014,
+        0.5359537598895041
+      ],
+      "final_velocity6": [
+        -0.0006096626676663752,
+        0.009790513071091847,
+        0.0047899860035956685,
+        -0.0342156552045734,
+        0.03463715649041756,
+        0.019739805983091684
+      ],
+      "final_halfsecond_vx_mean": -0.0011739711824479866,
+      "final_halfsecond_max_abs_vz": 0.018426671691894443,
+      "purpose": "Necessary terminal-goal audit of saved JSON teacher, no trajectory rerun or PT/NPZ read"
+    }
+  ],
+  "actual_current_algorithm": "H32 BPTT through frozen-in-policy-update learned WM, actor and critic; no PPO update. Original PPO constructor is used only for preserved optimizer identity migration.",
+  "current_actor_objective": "negative old Fudan imagined reward return + negative old Fudan critic bootstrap + decaying teacher_state_loss/H32 + originalpolicy ground distillation + overflow loss",
+  "current_critic_objective": "Only old Fudan rewards; teacher tracking excluded from targets",
+  "confirmed_mismatch": "Fixed1.4m/s throughout stair episode versus successful teacher terminal near0m/s. Tracking target and command reward disagree during landing stabilization.",
+  "reference_limitations": [
+    "Only two saved5s MuJoCo successful trajectories,250reference states each at50Hz. Not a privileged action teacher callable on arbitrary PhysX student states.",
+    "Phase is independently chosen from nearest rootxyz eachstart; no explicit per-episode monotonic phase or reference sequence input to actor35+depth9.",
+    "Pointwise nearest-root phase can be ambiguous near stationary takeoff/landing. This is a design risk, not a newly measured cause.",
+    "Teacher contact support/manifold tracking is absent from state_supervision; strict outcome only evaluated later."
+  ],
+  "decision": "Reject unchanged286/292mixed-objective continuation. New standalone route: reference-conditioned motion/task tracking, BPTT policy updates, own transition WM, matching tracking critic. Current frozen292 still saves and independent293evaluates; no hotpatch/kill/replay.",
+  "permitted_this_diagnostic": "Read local source/saved teacher JSON, prepare concrete design and update continuing workorder. No new reward-version GPU GO, no budget modifications.",
+  "papers": [
+    {
+      "title": "SuperMimic",
+      "paper": "arXiv:2610.28480",
+      "project": "https://supermimic.github.io/",
+      "sections": [
+        "3.1goalconditionedpolicy",
+        "3.3BPTT/criticEq2",
+        "AppendixAtrackingreward and K10reference",
+        "AppendixBseparatevelocityinterface"
+      ]
+    }
+  ],
+  "distinction": "BPTT replaces policygradient estimator/optimizer route, not task definition. Reference tracking still needs a scalar trackingreward/loss. Critic is compatible with BPTT and must value that same task.",
+  "code_bugs_disclosed": [
+    {
+      "id": "local294-git-cwd",
+      "result": "Exploratory git status ran from workspace root and failed notgitrepo; later explicitpolar workdir succeeded."
+    },
+    {
+      "id": "local294-rg-cwd",
+      "result": "Exploratory relative source rg ran frompolar and pathnotfound; subsequent absolute/source reads succeeded."
+    }
+  ],
+  "model_reads": 0,
+  "SDK_runs": 0,
+  "optimizer_steps": 0,
+  "GO": 0,
+  "account_writes": 0
+}

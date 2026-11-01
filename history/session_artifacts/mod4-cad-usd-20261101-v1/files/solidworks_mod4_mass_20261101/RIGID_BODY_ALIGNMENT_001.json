@@ -1,0 +1,39 @@
+{
+  "scope": "Align MOD4 parameter identification with simulation rigid-body/link granularity, not individual SolidWorks CAD-part granularity.",
+  "solidworks_piece_level_work_stopped": true,
+  "prepared_SwReadMotorContext_was_not_executed": true,
+  "geometry_or_RL_changes_in_this_alignment_step": false,
+  "confirmed_motor_inputs": [
+    {"model": "DM-J8009P-2EC", "count": 4, "nominal_mass_kg_each": 0.963, "source": "OEM manual V1.3 2026-09-10; explicit correction of earlier921g; old hardware matching20240809CAD; includes original reducer and integrated driver"},
+    {"model": "DM-S3519-1EC retained motor after original reducer removal", "count": 2, "mass_kg_each": 0.131, "source": "Human supplied131g in answer to per-unit weighing question", "factory396g_complete_module_applied": false, "custom_P15_8_gearbox_is_separate": true}
+  ],
+  "fudan_current_jump_asset": {
+    "file": "C:/Users/lulu/Desktop/claude/mjcf/reference_repos/fudan_rl_wheel_leg/jump/resources/robots/infantry_V4/urdf/infantry_V4_increase.urdf",
+    "declared_links": ["base_link", "rf0_Link", "rf1_Link", "r_wheel_Link", "lf0_Link", "lf1_Link", "l_wheel_Link"],
+    "link_count": 7,
+    "revolute_joint_count": 6,
+    "collapse_fixed_joints": true,
+    "note": "The selected URDF already contains7links and no fixed joints. The loader also enables fixed-joint collapsing;7is not a measured runtime result of collapsing this SolidWorks model.",
+    "body_mass_inertia_scale_range": [0.8, 1.2],
+    "additional_base_mass_kg_range": [-2.0, 3.0]
+  },
+  "scut_V14": {
+    "parameterization": "base_link; front1-4/rear1-2/spring1-2 links; wheel links; optional gimbal links, rather than a CAD BOM entry per simulation body",
+    "leg_and_wheel_mass_scale_range": [0.9, 1.1],
+    "base_mass_scale_range": [0.9, 1.3],
+    "active_leg_armature_kg_m2": 0.015795,
+    "armature_definition": "1.95e-4*9*9, as assigned in wheelbipe_V14_2.py",
+    "binary_USD_body_count_not_claimed": true
+  },
+  "MOD4_rules": [
+    "Use the existing MJCF/URDF dynamic-body list as the aggregation boundary; do not force MOD4 into Fudan7links.",
+    "Merge all CAD components rigidly fixed together and assign one group mass, center of mass, and inertia tensor.",
+    "Retain independently moving passive members and loop-closure bodies; do not collapse an entire closed-chain leg to one rigid body.",
+    "Assign motor housings/stators, fixed gearbox cases, bolts and bearings to their mounting rigid body; rotating wheel/output members to the corresponding rotating body.",
+    "Use measured/OEM motor total masses as group corrections without separately counting imported rotor/stator aliases; use armature for rotor reflected inertia when modeling it.",
+    "Treat batteries and electronics fixed to the chassis as part of the base rigid body, except any deliberately articulated gimbal.",
+    "Verify large known nominal changes in grouped mass/COM/inertia first, then apply coherent body-level DR to remaining uncertainty. Do not useDR to conceal an already known material or payload change.",
+    "Small hardware need not have individual verified mass inputs if their grouped properties are captured; preserve a reasonable residual uncertainty budget."
+  ],
+  "next_action_if_requested": "Map currentMOD4dynamic bodies to SolidWorks rigid groups, export one mass/COM/inertia tuple per group, sanity-check totalmass and known actuator contributions, then choose body-levelDR ranges."
+}

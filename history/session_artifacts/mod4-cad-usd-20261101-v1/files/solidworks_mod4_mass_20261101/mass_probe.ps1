@@ -1,0 +1,8 @@
+$ErrorActionPreference='Stop'
+[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)
+Add-Type -Path 'D:\SOLDWORKS\SOLIDWORKS\api\redist\SolidWorks.Interop.sldworks.dll'
+Add-Type -TypeDefinition @'
+using System;using System.Collections.Generic;using System.Runtime.InteropServices;using SolidWorks.Interop.sldworks;
+public static class SwMassProbe{public static object Run(){ISldWorks s=(ISldWorks)Marshal.GetActiveObject("SldWorks.Application");IModelDoc2 d=(IModelDoc2)s.ActiveDoc;var r=new Dictionary<string,object>();int status=0;try{Console.WriteLine("PROBE legacy mass array");r["legacy_si"]=d.Extension.GetMassProperties2(1,out status,false);r["legacy_status"]=status;}catch(Exception e){r["legacy_error"]=e.Message;}IMassProperty2 m=null;try{Console.WriteLine("PROBE CreateMassProperty2");m=d.Extension.CreateMassProperty2() as IMassProperty2;r["created"]=m!=null;}catch(Exception e){r["create_error"]=e.Message;}if(m!=null){try{Console.WriteLine("PROBE system units");m.UseSystemUnits=true;r["mass_kg"]=m.Mass;r["volume_m3"]=m.Volume;r["com_m"]=m.CenterOfMass;r["inertia_com"]=m.GetMomentOfInertia(0);r["include_hidden_default"]=m.IncludeHiddenBodiesOrComponents;r["selected_items"]=m.SelectedItems;}catch(Exception e){r["property_error"]=e.Message;}try{IMassPropertyOverrideOptions o=m.GetOverrideOptions() as IMassPropertyOverrideOptions;r["override_mass"]=o.OverrideMass;r["override_com"]=o.OverrideCenterOfMass;r["override_inertia"]=o.OverrideMomentsOfInertia;}catch(Exception e){r["override_error"]=e.Message;}}return r;}}
+'@ -ReferencedAssemblies 'D:\SOLDWORKS\SOLIDWORKS\api\redist\SolidWorks.Interop.sldworks.dll'
+[SwMassProbe]::Run() | ConvertTo-Json -Depth 8

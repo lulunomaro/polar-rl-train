@@ -1,0 +1,101 @@
+{
+  "schema_ID": "OWN_MOD4_PHYSICAL73_AUX151_MEASURED224_V268",
+  "state_dim": 224,
+  "physical_dim": 73,
+  "auxiliary_dim": 151,
+  "native_quaternion_order": "wxyz",
+  "SDK_ingress_quaternion": "xyzw must explicitly convert once",
+  "fields": [
+    {
+      "name": "position_env_origin_local_world_axes",
+      "start": 0,
+      "stop": 3,
+      "unit": "m"
+    },
+    {
+      "name": "quaternion_wxyz",
+      "start": 3,
+      "stop": 7,
+      "unit": "unit quaternion"
+    },
+    {
+      "name": "linear_velocity_world",
+      "start": 7,
+      "stop": 10,
+      "unit": "m/s"
+    },
+    {
+      "name": "angular_velocity_world",
+      "start": 10,
+      "stop": 13,
+      "unit": "rad/s"
+    },
+    {
+      "name": "q30",
+      "start": 13,
+      "stop": 43,
+      "unit": "original joint units"
+    },
+    {
+      "name": "dq30",
+      "start": 43,
+      "stop": 73,
+      "unit": "original joint units/s"
+    },
+    {
+      "name": "original_contact_history18",
+      "start": 73,
+      "stop": 91,
+      "aux_start": 0,
+      "aux_stop": 18,
+      "unit": "unchanged original base127 history units/order; not the new force suffix"
+    },
+    {
+      "name": "applied_torque30",
+      "start": 91,
+      "stop": 121,
+      "aux_start": 18,
+      "aux_stop": 48,
+      "unit": "N m, SDK applied effort"
+    },
+    {
+      "name": "old_processed_applied6",
+      "start": 121,
+      "stop": 127,
+      "aux_start": 48,
+      "aux_stop": 54,
+      "unit": "original processed action units"
+    },
+    {
+      "name": "own_L0_left_right",
+      "start": 127,
+      "stop": 129,
+      "aux_start": 54,
+      "aux_stop": 56,
+      "unit": "m"
+    },
+    {
+      "name": "own_theta0_left_right",
+      "start": 129,
+      "stop": 131,
+      "aux_start": 56,
+      "aux_stop": 58,
+      "unit": "rad, original atan2-minus-pi/2 branch"
+    },
+    {
+      "name": "contact_forces_BODY_31x3",
+      "start": 131,
+      "stop": 224,
+      "aux_start": 58,
+      "aux_stop": 151,
+      "unit": "actual N / fixed400N",
+      "flatten_order": "robot.body_names then xyz"
+    }
+  ],
+  "added97": "own L0/theta4 + BODY31x3 forces93",
+  "force_scale_N": 400.0,
+  "applied_efforts": "applied_torque30[:, measured motor IDs in original reward order]; no new six labels",
+  "measurements_missing": "reject; never zero-pad/hold/derive fake contact",
+  "context40": "unchanged static31 + depth9; dynamic measurements are not context",
+  "known_environment_origin": "add actual static env_origins back only when reconstructing original WORLD root frame"
+}

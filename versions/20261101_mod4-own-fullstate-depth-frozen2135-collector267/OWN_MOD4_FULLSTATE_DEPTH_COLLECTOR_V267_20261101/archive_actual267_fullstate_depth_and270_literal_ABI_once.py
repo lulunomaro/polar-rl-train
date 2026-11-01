@@ -1,0 +1,55 @@
+"""One actual data-collection phase, not a new learner; binaries metadata only."""
+from pathlib import Path
+import base64,hashlib,json,subprocess,sys,time,tomllib
+N=Path(__file__).resolve().parent;T=N.parent;W=T.parent;R=N/'reports';G=W/'polar-rl-train'
+ID='mod4-own-fullstate-depth-frozen2135-collector267';TAG='trial-20261101-'+ID;V=G/'versions'/('20261101_'+ID)
+def read(p):return json.loads(Path(p).read_bytes())
+def git(*a):return subprocess.run(['git','-C',str(G),*a],capture_output=True,text=True,encoding='utf8',check=True).stdout.strip()
+def refs(s):return{x.split()[1]:x.split()[0]for x in s.splitlines()if x.strip()}
+def put(p,x):
+ with p.open('x',encoding='utf8')as f:json.dump(x,f,indent=2,ensure_ascii=False,allow_nan=False)
+assert not V.exists()and not git('status','--porcelain')and not git('tag','--list','*'+ID+'*'),'Existing phase objects must be continued, never re-recorded'
+x=read(R/'CURRENT_ACTUAL267_270_OWN_FULLSTATE_DEPTH_LITERAL_ABI_AND_NEXT_SUPERMIMIC_WORK_ORDER.json');assert x['actual']['passed']and not x['new_learning_GO']and not x['new_visual_WM_or_Pi_training_started']
+assert read(T/'OWN267_LITERAL_ABI_DEPENDENCY_REPAIR_V270_20261101/reports/ROOT270_EXACT_TEXT_ALL_SSH_CLOSED_SESSION_RESTORED_FREE.json')['global_serial_control_client_lease']=='FREE'
+req=read(R/'AUTOMATION_ACTUAL267_270_FULLSTATE_DEPTH_UPDATE_REQUEST.json');app=tomllib.loads(Path('C:/Users/lulu/.codex/automations/mod4-10/automation.toml').read_text('utf8'))
+assert app['prompt']==req['prompt'].rstrip('\n')and app['status']=='ACTIVE'and app['rrule']==req['rrule']and app['target_thread_id']==req['targetThreadId']
+old=refs(git('show-ref','--tags','-d'));remote=refs(git('ls-remote','--tags','origin'));assert len([k for k in old if not k.endswith('^{}')])==1516 and all(remote.get(k)==v for k,v in old.items())
+put(R/'RECORD267_ACTUAL_FULLSTATE_DEPTH_ONCE_CONSUMED.json',dict(epoch=time.time(),ID=ID,TAG=TAG,protected1516_old_objects_peels=True,old246_tag_consumed_never_retagged=True,model_raw_GPU_reads_or_experiments_for_Git=0))
+names=['OWN_MOD4_FULLSTATE_DEPTH_COLLECTOR_V267_20261101','DEPTH_SUPERMIMIC_MEASURED224_WM50_SOURCE_FROM255_V268_20261101','OWN267_MEASURED224_LITERAL_FRAME_CPU_V269_20261101','OWN267_LITERAL_ABI_DEPENDENCY_REPAIR_V270_20261101']
+if x['source271']['status']=='SOURCE_FROZEN_ONLY':
+ p=Path(x['source271']['path']);assert hashlib.sha256(p.read_bytes()).hexdigest()==x['source271']['SHA'];names.extend([Path(x['source271']['original_V1_root']).name,p.parent.name])
+roots=[(name,T/name)for name in names];assert all(p.is_dir()for _,p in roots)
+scope=R/'CAPTURE267_FROZEN_DATA_AND_NATIVE_LITERAL_ABI_SCOPE.json';put(scope,dict(epoch=time.time(),phase=ID,roots=[dict(archive_label=k,path=str(p))for k,p in roots],includes='All267 source/sourceCPU/admission/actual actor-only data/fullUTF8;268 frozen224 WM and syntheticCPU;269 original source-import false before raw;270 dependency repair/import-onlyCPU/actual one-pass data-frame-reward ABI and exact original smallUTF8 receipts;271 only if frozen INDEX; app request+receipt.',binary_policy='No model/raw/NPZ/PT/USD/GPU reading or hashing for Git. Actual producer metadata only.',pending=x['next']))
+note=R/'ACTUAL267_FULLSTATE_DEPTH_AND270_LITERAL_ABI_EXPERIMENT_NOTE.md'
+with note.open('x',encoding='utf8')as f:f.write('''This phase advances the user-directed D435i front-fixed SuperMimic stair task by collecting real own-MOD4 full-state/depth pairs. It is not new policy/WM learning, a skill pass, or a request to rerun the previous camera tests. All1516 previous annotated tag objects/peels remain unchanged, including the consumed10mm/depth246 phase.
+
+New267 frozen-actor collector passed once on the selected4090 with actual freshCNone/resource/private+shared admission. It read/decoded the qualified2135 formal0f5de75a...552a07 once for the necessary actor purpose and preserved all eight actor parameter tensors. N1 completed64controls/64own transitions,512physics callbacks and128feedback samples,65camera reads and64valid input depth frames; original terminated/truncated counts were zero. No optimizer, training GO, account write, Critic/WM forward or skill claim. Original Fudan19methods/config16weights/flight-memory semantics and400N engineeringk2000/50policy100feedback400physics2.5msTGS32/4F32/clip6/PD/delay/D0-D7 remain. Effective closure10mm/mimic.01 were checked. All original SDK children waited0, ENVclose returned, APPclose requested, private/shared locks and root SSH released/restored.
+
+The producer saved37 NPZ fields including measured224 state pairs, rawstatic31, depth9 and camera K/T, actual action, original reward's complete measured frame and before/after air-contact-action memory, original35/38 observations, episode/reset unions and actual clocks.224 retains physical73/history18/applied_torque30/old_processed6 and adds ownL0/theta4 plus31 BODY-force vectors/400. The force scale is a label scale, not a force limit/injection. Full sensor/feedback/physics-action/spring/damping/COM/PD and static memory were retained in a separate data PT.224 alone is not declared a complete sensor Markov state. The NPZ is612372B SHA6aa1b3d1dd62ba99aee4346486e1f117e3a3afe1976ba0255143568102a3c531; component data PT1848341B SHA4fd4d20bb0f099562cd9f2728b76a3bac1d738e6a393f8ff6c81c653bf6f176f. These are actual remote data producers, not checkpoints or a complete population dataset. The267 runtime validator labelled its worker-source SHA as source_admission_SHA; this label is explicitly scoped rather than rewritten. The workorder separately binds the actual parent resource-admission receipt and actual body/motor witness SHAs.
+
+Child268 froze a new224/aux151 measured WM source with input273/output223/context40. Original native SE3/H32 time-summed supervised loss/replay/clip1 are retained. Its five groups/15rejections/64synthetic pairs/one synthetic update are source-only. The original torque30 supplies the six original reward-order efforts by actual named motor IDs; no invented force/torque channel is used. Original255 and259 remain unchanged. Inherited per-step recorded depth is explicitly supervised replay context only, never future camera truth for Pi; policy_imagination_context_ready remains false until the future-safe observed-support anchor and actual caller are qualified.
+
+New269 attempted a necessary first raw-data ABI integration, but a missing native contract source dependency failed at import before opening the NPZ or any model. It is preserved as false. Independent270 added the geometry contract and extracted the original unchanged native dataclass layout, avoiding unused network/oldMATLAB goal dependencies. Its new import-only CPU check passed without replaying old fixtures. The actual270 CPU then made exactly one forward byte/hash/np.load pass through NEW267 NPZ and read all37members once, no download/componentPT/model/SDK/GPU/optimizer. All64 measured224 pairs reconstructed the original Fudan frame through the new268 adapter; original reward error was at most1.4901161193847656e-8, air-memory error0 and contact-memory exact. Effort and ownL0/theta residuals were0; reconstructed WORLD-force residual was at most3.0517578125e-5N and other BODY-state residuals below8e-7. These float32 ABI checks are not a new universal physical health tolerance or independently measured hardware torque. Actual original reward-order IDs are[1,0,25,5,4,28]. CUDA was uninitialized and global RNG unchanged. The single pilot had no resets, so it does not validate runtime reset cases. Three exact original small269/270JSON receipts were subsequently collected once for full UTF8 preservation, with fresh authority/CIM and no model/raw/SDK/GPU read or experiment rerun.
+
+The current target remains autonomous depth-guided approach/acceleration/jump/landing with the literal Fudan reward preserved. The new source-only observed-static-support anchor is included only if its frozen INDEX is present. No future depth/GT-map fallback, guessed floor0, certified true front edge or complete footprint is inferred. A real future-safe caller, broader own data/WM warmup, actual44/47actor/critic and optimizer-ID migration, original-reward H32 gradients, and the original solewriter finite contract remain before new visual learner execution. No old E0/native checkpoints or automatic3h/newgrant/secondwriter are selected. True270 stable landing, W35/E2/E3 complete skills and complete SuperMimic conversion remain unfinished. All sources, original false classifications, full saved reports, receipts and app update are archived; binaries and raw remain existing producer metadata only.
+''')
+# Reuse only the already-recorded text capture utility source, never its entry.
+capture_source=(T/'D435I_DEPTH270_BOUND_SOURCE_V266_20261101/archive_actual10mm_depth_supermimic246_once.py').read_text('utf8')
+a=capture_source.index("sys.path.insert(0,str(G/'archive_tools'));from capture_history import redact")
+b=capture_source.index("index=V/'CAPTURE_INDEX.json'",a)
+exec(compile(capture_source[a:b],'<reused-text-only-capture-engine>','exec'),globals())
+index=V/'CAPTURE_INDEX.json';index.write_text(json.dumps(dict(epoch=time.time(),phase=ID,files=rows,actual267_270=x['actual'],source271=x['source271'],pending=x['next'],model_raw_GPU_experiment_reads_for_Git=0,protected1516_old_objects_peels=True),indent=2,ensure_ascii=False),encoding='utf8');selected.append(index.relative_to(G).as_posix())
+import record_experiment as recorder
+original_git=recorder.git
+def batch(*a):
+ if a[:2]==('add','--'):
+  for i in range(2,len(a),24):original_git('add','--',*a[i:i+24])
+  return''
+ return original_git(*a)
+recorder.git=batch
+note_gp=next(r['Git_path']for r in rows if r['path']==str(note))
+sys.argv=[str(G/'archive_tools/record_experiment.py'),'--id',ID,'--title','Collect own-MOD4 frozen2135 fullstate-depth data and qualify measured224 original Fudan reward ABI; no new learner','--kind','evaluation','--note-file',str(G/note_gp),'--validation','267N1/64ownpairs512physics128feedback65depth/actor1GPUreadexact/0optimizer0GO/fullpre-resetfields/wait0SSHFREE;268synthetic224WM sourceonly;269dependencyfalsebeforeRaw;270importfixandoneNEW267NPZpass37members/64originalreward-framepairs/rewarderror1.49e-8/air0/contactexact/CPUCUDAuninitialized;3originalsmallUTF8receiptscaptured;271onlyifINDEXfrozen;protect1516oldobjectspeels/no modelrawGPU reads forGit','--files',*selected,'--push'];recorder.main()
+after=refs(git('show-ref','--tags','-d'));remote=refs(git('ls-remote','--tags','origin'));assert all(after.get(k)==v and remote.get(k)==v for k,v in old.items())
+head=git('rev-parse','HEAD');obj=git('rev-parse','refs/tags/'+TAG)
+assert remote['refs/tags/'+TAG]==obj and remote['refs/tags/'+TAG+'^{}']==head and git('ls-remote','origin','refs/heads/main').split()[0]==head and not git('status','--porcelain')
+print(json.dumps(dict(passed=True,HEAD=head,tag=TAG,tag_object=obj,protected1516_old_objects_peels=True,tag_count=1517,indexed_files=len(rows),new_full_files=len(selected),clean=True)))

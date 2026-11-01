@@ -1,0 +1,55 @@
+"""Independent source build; source286 owns frozen original policy plus ownWM7087."""
+from pathlib import Path
+import ast,hashlib,importlib.util,json,shutil,time
+N=Path(__file__).resolve().parent;T=N.parent;O=T/'DEPTH_STUDENT_RETENTION_REPAIR_V292_20261101';R=N/'reports';R.mkdir(exist_ok=True)
+S=N/'source';shutil.copytree(O/'source',S,ignore=shutil.ignore_patterns('__pycache__'))
+H=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def write(p,s):p.write_bytes(s.encode());ast.parse(s,filename=str(p))
+def rep(s,a,b):assert a in s,a;return s.replace(a,b)
+for name in('tracking_reference295.py','tracking_learner295.py','tracking_wm295.py'):shutil.copyfile(N/name,S/name)
+spec=importlib.util.spec_from_file_location('ref295',N/'tracking_reference295.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+reference=m.prepare(N/'reference295.npz','F:/RMPOLAR-RL/traditional_control_20261101')
+(R/'REFERENCE295_PRODUCER.json').write_text(json.dumps(reference,indent=2),encoding='utf8')
+terrain=(O/'source/terrain292.py').read_text('utf8').replace('292','295')
+terrain=rep(terrain,"targets.append([float(rng.uniform(.65,1.35)),float(rng.uniform(-.12,.12)),.27,float(rng.uniform(-.12,.12))])", "targets.append([.8,0.,.27,0.])")
+terrain=terrain.replace('        if i%10==0:continue','')
+terrain=rep(terrain,"self.target295=torch.tensor(targets,device=self.device);self.ready295=True", "self.target295=torch.tensor(targets,device=self.device);self._mixed209_flat[:]=False;self._mixed209_mode[:]=1;self.ready295=True")
+terrain=terrain.replace("[1.4,0.,0.]","[0.,0.,0.]").replace("task.height_cmd(self._env)[jump,0]=.135","task.height_cmd(self._env)[jump,0]=.25").replace("task.height_cmd(self)[jump,0]=.135","task.height_cmd(self)[jump,0]=.25")
+terrain=terrain.replace("original_Fudan_terrain=False,height_m=.27,", "original_Fudan_terrain=False,height_m=.27,reference_tracker_fixed_course=True,layout_edge_x=.8,all80_reference_task=True,")
+terrain=terrain.replace("edge_distance_range=[.65,1.35],lateral_range=[-.12,.12],edge_yaw_range=[-.12,.12]", "edge_distance_range=[.8,.8],lateral_range=[0.,0.],edge_yaw_range=[0.,0.]")
+write(S/'terrain295.py',terrain)
+worker=(O/'source/worker292.py').read_text('utf8').replace('292','295')
+worker=worker.replace('from future_safe_wm_warm273 import FutureSafeWarmWM273,FrozenTeacherContract273','from future_safe_wm_warm273 import FrozenTeacherContract273\n from tracking_wm295 import TrackingWM295')
+worker=worker.replace('wm=FutureSafeWarmWM273(', 'wm=TrackingWM295(')
+worker=rep(worker,' from reference295 import Reference295\n from teacher_student295 import TeacherStudent295,forward\n from literal_imagination259 import snapshot_actual\n reference=Reference295(P/\'reference295.npz\',TASK[\'reference\'],joint_names,real.device)\n learner=TeacherStudent295(wm,carrier,reference,real,wmbinding,TASK[\'carrier_CPU_receipt_SHA\'],put)',
+''' from tracking_reference295 import Reference295,tracking_cost295
+ from tracking_learner295 import TrackingLearner295
+ reference=Reference295(P/'reference295.npz',TASK['reference'],joint_names,real.device,real.hip_anchors194)
+ learner=TrackingLearner295(wm,carrier,reference,real,wmbinding,TASK['carrier_CPU_receipt_SHA'],put)''')
+worker=worker.replace("learning_scope='teacher_assisted_depth_SuperMimic'", "learning_scope='reference_conditioned_tracking_BPTT'")
+worker=worker.replace("critic_steps)==42940+learner.critic_updates", "critic_steps)==learner.critic_updates")
+worker=worker.replace("original_JUMP_reward_unchanged=True", "original_JUMP_reward_unchanged=False,reference_tracking_objective=True,Fudan_rewards_used=False")
+worker=rep(worker,"start_memory=snapshot_actual(real)","start_phase=epstep.long().clone()")
+worker=rep(worker,"actions=learner.action(obs['policy'],start_depth['features'])", "actions=learner.action(obs['policy'],start_depth['features'],start_state,start_phase)")
+worker=rep(worker,"learner.add_metadata((wm.buffer.ptr-1)%64,start_obs,start_critic,start_commands,start_memory,real.scene.env_origins)", "learner.add_metadata((wm.buffer.ptr-1)%64,start_obs,start_critic,start_phase)")
+worker=rep(worker,"  return original(frame,tick)", '''  real.literal.calls+=1;real.literal.last_tick=tick
+  real.literal.base_air_time.zero_();real.literal.last_contacts=frame['contact_forces'][:,learner.wheelbodies,2]>1.
+  label=reference.labels(epstep.long()+1,torch.arange(80,device=real.device),real.target295)
+  cost,terms=tracking_cost295(wm.measured_layout.unpack(pending['s1']),label,learner.legs,learner.wheelbodies,previous_action,frame['actions'][:,[0,1,3,4,2,5]])
+  actual_tracking_costs.append(float(cost.mean().detach()))
+  return 1.-cost''')
+# Disable all inherited ground rewards. Original wrapper calls our new measured
+# tracking function once; physical measurements and terminations are untouched.
+worker=rep(worker," original=real.literal.measured_step;pending={}"," actual_tracking_costs=[]\n original=real.literal.measured_step;pending={}")
+worker=rep(worker," obs=vec.get_observations();tick0=", " real._mixed209_flat[:]=False\n obs=vec.get_observations();tick0=")
+worker=rep(worker,"original_reward_functions_unchanged=True", "original_reward_functions_unchanged=False,tracking_reward_only=True")
+worker=worker.replace("original_reward_text_unchanged=True", "original_reward_text_unchanged=False,tracking_reward_only=True")
+worker=worker.replace("original_JUMP_diagnostic=real.stats194", "tracking_cost_mean_last32=sum(actual_tracking_costs[-32:])/max(1,len(actual_tracking_costs[-32:])),inherited_measurement_diagnostic=real.stats194")
+worker=worker.replace("policy_rollback_source='frozen2135 full17Adam; failed student286 preserved in source carrier'", "policy_rollback_source='frozen2135 actor Adam plus59zero goal columns; NEW tracking critic Adam0; old all preserved'")
+worker=worker.replace("kind='LQR_MPC_DEPTH_TEACHER_STUDENT295_COMPLETE'", "kind='REFERENCE_TRACKING_BPTT295_COMPLETE'")
+worker=worker.replace("student_skill_not_yet_evaluated=True", "student_skill_not_yet_evaluated=True,tracker_scope='planned reference conditioned, not autonomous depth student'")
+worker=worker.replace("replay_saved=False,policy_rollback_source=", "reference_phase_steps=copied(epstep),replay_saved=False,policy_rollback_source=")
+write(S/'worker295.py',worker)
+for p in S.rglob('*.py'):ast.parse(p.read_text('utf8'))
+(R/'SOURCE295_BUILD_PROTOCOL.json').write_text(json.dumps(dict(epoch=time.time(),passed_AST=True,reference=reference,actor_dim=103,critic_dim=106,goal_dim=59,actor_migration='original2135 actor44+59zero goal columns,moments padded once',critic='new tracking return fresh Adam0, zero output bootstrap',objective='1-weightedstate/supportcost-smallactionregularization; identical actor/critic return',Fudan_used=False,command_reward_used=False,phase='episode stepsclamp249',layout='80fixed270edge.8 allreference',ownWM7087_inherited=True,world_anchor_memory='last actual observed sameepisode support, no GT fallback',physical='400N50Hz100feedback2.5msTGS32/4fullDRclosure10mm',new_go=False),indent=2),encoding='utf8')
+print(json.dumps(dict(passed=True,reference=reference,worker_SHA=H(S/'worker295.py'))))

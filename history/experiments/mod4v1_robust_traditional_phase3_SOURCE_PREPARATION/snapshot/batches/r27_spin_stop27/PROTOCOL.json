@@ -1,0 +1,45 @@
+{
+  "kind": "PAIRED_STOP_TRAIN_NOT_H2RETUNE",
+  "variants": {
+    "accel_only": [
+      true,
+      false
+    ],
+    "capture_only": [
+      false,
+      true
+    ],
+    "both": [
+      true,
+      true
+    ]
+  },
+  "schedule": [
+    {
+      "name": "positive4pi",
+      "start_s": 1.0,
+      "end_s": 10.0,
+      "w_rad_s": 12.566370614359172
+    },
+    {
+      "name": "first_stop",
+      "start_s": 10.0,
+      "end_s": 13.0
+    },
+    {
+      "name": "negative4pi",
+      "start_s": 13.0,
+      "end_s": 22.0,
+      "w_rad_s": -12.566370614359172
+    },
+    {
+      "name": "final_stop",
+      "start_s": 22.0,
+      "end_s": 26.0
+    }
+  ],
+  "base_gate": "unchangedR26transitiongrader",
+  "lowspin_gain_rule": "gyro_z<2andshaped_w<2 ->accelgain1.5else0",
+  "capture_rule": "command0/refw<2/estimatedw<2for10ticks->P25capture+200msconvexblend",
+  "new_ref_is_estimated_only": true
+}

@@ -1,0 +1,86 @@
+"""One necessary frozen-final CPU decode to diagnose actual clipping evidence.
+
+Run only after local controller/serial admission. No SDK, GPU, optimizer, random
+state restore, parent teacher PT open, or new physics. The complete source root
+remains intact; actor copies use the embedded final teacher and residual.
+"""
+from pathlib import Path
+import argparse,hashlib,io,json,os,sys,time
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job',required=True,type=Path)
+    q.add_argument('--output',required=True,type=Path);a=q.parse_args()
+    assert os.environ.get('CUDA_VISIBLE_DEVICES')==''
+    assert not a.output.exists();a.output.mkdir(parents=True)
+    J=a.job.resolve();final=json.loads((J/'production/FINAL.json').read_bytes());c=final['checkpoint']
+    assert final['native_BPTT_steps']==1019 and c['SHA']=='d12e17e7f47fbbaf27ce22d5c15105a005fb312a5f60841e3e7dc7b04a0056e9'
+    sys.path[:0]=[str(J/'source'),str(J/'sm_deps')]
+    import torch
+    torch.set_num_threads(4)
+    from tensordict import TensorDict
+    from rsl_rl.models import MLPModel
+    from supermimic_vendor_v2.networks import Policy
+    from standing_core_v1 import StandingResidualPolicy
+    raw=Path(c['path']).read_bytes()
+    assert len(raw)==c['bytes']and hashlib.sha256(raw).hexdigest()==c['SHA']
+    source=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True);del raw
+    def versions(value):
+        if torch.is_tensor(value):return [(value,value._version)]
+        if isinstance(value,dict):return [r for v in value.values()for r in versions(v)]
+        if isinstance(value,(list,tuple)):return [r for v in value for r in versions(v)]
+        return []
+    original_versions=versions(source)
+    counts=source['context_reward_extension']['counts'];assert counts['pi_bptt_optimizer_steps']==1019
+    cfg=source['args'];obs=TensorDict(dict(policy=torch.zeros(2,35),critic=torch.zeros(2,38)),batch_size=[2])
+    teacher=MLPModel(obs,dict(actor=['policy'],critic=['critic']),'actor',6,[256,128,64],'elu',
+        distribution_cfg=dict(class_name='rsl_rl.modules.distribution:GaussianDistribution',init_std=1.,std_type='scalar'))
+    residual=Policy(44,3,hist=cfg['hist'],z_dim=cfg['z_dim'],num_joints=6,hidden=cfg['policy_hidden'])
+    policy=StandingResidualPolicy(residual,teacher,1.)
+    policy.load_state_dict(source['pi'],strict=True);policy.eval().requires_grad_(False)
+    replay=source['context_reward_extension']['replay'];T,N=replay['T'],replay['N']
+    assert T==256 and N==512 and replay['size']>=cfg['hist']
+    samples=[];history=[]
+    for age in range(cfg['hist']-1,replay['size'],8):
+        for env in [0,1,2,3,40,41,80,127,255,383,511]:
+            row=(replay['ptr']-replay['size']+age)%T
+            indices=[(row-cfg['hist']+1+k)%T for k in range(cfg['hist'])]
+            history.append(replay['data']['xi'][indices,env,:44])
+            samples.append(dict(row=row,env=env,frame=int(replay['data']['f'][row,env]),behavior_action=replay['data']['a'][row,env].tolist()))
+    h=torch.stack(history).clone();x=h[:,-1,:35].clone();goal=x[:,:3].clone()
+    with torch.no_grad():
+        base=teacher(TensorDict(dict(policy=x),batch_size=[len(x)]),stochastic_output=False)
+        latent=residual(h,goal);delta=latent.tanh();raw_sum=base+delta;output=policy(h,goal)
+        assert torch.equal(output,raw_sum.clamp(-6,6))
+        counter=x.clone();counter[:,28:35]=0;counter[:,28]=1
+        base_mode0=teacher(TensorDict(dict(policy=counter),batch_size=[len(x)]),stochastic_output=False)
+    def stats(value):
+        return dict(min=value.min(0).values.tolist(),max=value.max(0).values.tolist(),mean=value.mean(0).tolist(),std=value.std(0).tolist())
+    z=latent.detach().clone().requires_grad_(True)
+    gradient=torch.autograd.grad((base.detach()+z.tanh()).clamp(-6,6).sum(),z)[0]
+    # Exact algebraic action reachability with bounded residual scale1.
+    unrecoverable=(base+1<=-6)|(base-1>=6)
+    row_samples=[]
+    for i in range(min(16,len(samples))):
+        row_samples.append(dict(samples[i],actor44=h[i,-1].tolist(),base=base[i].tolist(),latent=latent[i].tolist(),
+              residual=delta[i].tolist(),sum_before_clip=raw_sum[i].tolist(),current_final_action=output[i].tolist(),
+              grad_wrt_latent=gradient[i].tolist(),mode0_teacher=base_mode0[i].tolist()))
+    assert all(t._version==v for t,v in original_versions)
+    assert not torch.cuda.is_initialized()
+    report=dict(kind='V6_FROZEN_FINAL_AND_REAL_REPLAY_ACTION_DECOMPOSITION_CPU_V7',passed=True,epoch=time.time(),
+       checkpoint=c,decoded_once=True,physical_byte_opens=1,whole_root_tensors_unchanged=True,counts=counts,
+       replay_samples=len(samples),sample_source='retained actual last256 controls,11 deterministic env IDs; histories may include previous episode; not fresh independent rollout',
+       saved_behavior_action_policy_may_be_older_than_final=True,
+       base=stats(base),latent=stats(latent),residual=stats(delta),unclipped_sum=stats(raw_sum),current_output=stats(output),
+       clip_fraction=(raw_sum.abs()>=6).float().mean(0).tolist(),
+       irrecoverable_by_scale1_fraction=unrecoverable.float().mean(0).tolist(),
+       zero_policy_latent_action_gradient_fraction=(gradient==0).float().mean(0).tolist(),
+       actor_command_min=x[:,:4].min(0).values.tolist(),actor_command_max=x[:,:4].max(0).values.tolist(),
+       actual_mode_values=torch.unique(x[:,28:35],dim=0).tolist(),mode0_teacher=stats(base_mode0),
+       mode0_teacher_difference_absmax=float((base_mode0-base).abs().max()),samples=row_samples,
+       source_teacher_PT_opens=0,optimizer_steps=0,SDK_GPU_newphysics_C_writes=0,
+       skill_acceptance='independentV6 already0/80; CPU decomposition is causal algebra diagnosis, not native skill proof')
+    dest=a.output/'ACTION_DECOMPOSITION.json';dest.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(result=str(dest),bytes=dest.stat().st_size,SHA=hashlib.sha256(dest.read_bytes()).hexdigest(),
+        clip_fraction=report['clip_fraction'],irrecoverable_fraction=report['irrecoverable_by_scale1_fraction'])))
+
+if __name__=='__main__':main()

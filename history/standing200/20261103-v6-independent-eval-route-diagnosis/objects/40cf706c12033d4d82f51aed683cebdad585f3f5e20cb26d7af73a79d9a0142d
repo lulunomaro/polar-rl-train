@@ -1,0 +1,53 @@
+"""V1 render fix: retain authored USD cylinders for guide rollers.
+
+This only tessellates the actual declared cylinder dimensions/transforms for
+display. There is no replacement robot model, neural inference, or physics.
+"""
+from pathlib import Path
+import numpy as np
+import render_standing_recorded_v1 as base
+
+def mesh_visuals(usd,names):
+    from pxr import Usd,UsdGeom,UsdPhysics
+    stage=Usd.Stage.Open(str(usd));cache=UsdGeom.XformCache()
+    bodies={str(p.GetName()):p for p in stage.Traverse()if p.HasAPI(UsdPhysics.RigidBodyAPI)}
+    vfs={};elements=[]
+    for name in names:
+        body=bodies[name];inverse=cache.GetLocalToWorldTransform(body).GetInverse()
+        vertices=[];faces=[];offset=0
+        children=list(Usd.PrimRange(body))
+        has_visual=any(p.IsA(UsdGeom.Mesh)and not p.HasAPI(UsdPhysics.CollisionAPI)for p in children)
+        for p in children:
+            if p.IsA(UsdGeom.Mesh):
+                if has_visual and p.HasAPI(UsdPhysics.CollisionAPI):continue
+                m=UsdGeom.Mesh(p);points=np.asarray(m.GetPointsAttr().Get(),dtype=np.float64)
+                counts=np.asarray(m.GetFaceVertexCountsAttr().Get());indices=np.asarray(m.GetFaceVertexIndicesAttr().Get())
+                local_faces=[];cursor=0
+                for count in counts:
+                    f=indices[cursor:cursor+count];cursor+=count
+                    for j in range(1,len(f)-1):local_faces.append((int(f[0]),int(f[j]),int(f[j+1])))
+            elif not has_visual and p.IsA(UsdGeom.Cylinder):
+                c=UsdGeom.Cylinder(p);radius=float(c.GetRadiusAttr().Get());height=float(c.GetHeightAttr().Get())
+                axis=str(c.GetAxisAttr().Get());n=64;angle=np.arange(n)*2*np.pi/n
+                ring=np.stack((radius*np.cos(angle),radius*np.sin(angle)),axis=-1)
+                points=np.concatenate((np.column_stack((ring,np.full(n,-height/2))),np.column_stack((ring,np.full(n,height/2)))),axis=0)
+                if axis=='X':points=points[:,[2,0,1]]
+                elif axis=='Y':points=points[:,[0,2,1]]
+                local_faces=[]
+                for j in range(n):
+                    k=(j+1)%n;local_faces.extend([(j,k,n+k),(j,n+k,n+j)])
+                for j in range(1,n-1):local_faces.extend([(0,j+1,j),(n,n+j,n+j+1)])
+            else:continue
+            matrix=np.asarray(cache.GetLocalToWorldTransform(p)*inverse)
+            points=points@matrix[:3,:3]+matrix[3,:3]
+            vertices.append(points);faces.extend((a+offset,b+offset,c+offset)for a,b,c in local_faces);offset+=len(points)
+        assert vertices and faces,('Original authored display geometry absent',name)
+        vertices=np.concatenate(vertices)
+        lines=['v %.8g %.8g %.8g'%tuple(p)for p in vertices]
+        lines+=['f %d %d %d'%(a+1,b+1,c+1)for a,b,c in faces]
+        filename=name+'.obj';vfs[filename]=('\n'.join(lines)+'\n').encode();elements.append((name,filename))
+    return elements,vfs
+
+if __name__=='__main__':
+    base.mesh_visuals=mesh_visuals
+    base.main()

@@ -1,0 +1,82 @@
+"""Analyze actual saved first episodes and draw curves; no model or simulation."""
+from pathlib import Path
+import csv,hashlib,json
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+R=Path(__file__).resolve().parent
+J=R/'actual_closed/MOD4_STANDING200_RLBPTT_V6_1793639156617427400'
+E=J/'evaluation';O=J/'diagnosis_v1'
+
+def main():
+    O.mkdir(exist_ok=False)
+    meta=json.loads((E/'REPLAY_METADATA.json').read_bytes());result=json.loads((E/'RESULT.json').read_bytes())
+    origin=np.asarray(meta['origins']);cases=[];csvrows=[]
+    fig,ax=plt.subplots(3,2,figsize=(13,12));ax=ax.flatten()
+    for row in meta['replay']:
+        p=E/Path(row['path']).name;raw=p.read_bytes();assert hashlib.sha256(raw).hexdigest()==row['SHA']
+        with np.load(p,allow_pickle=False)as z:data={k:z[k].copy()for k in z.files}
+        t=data['time'];root=data['root'];root[:,:3]-=origin[row['env']]
+        lower=data['lower'];upper=data['upper'];euler=data['euler'];depth=data['depth'];action=data['action']
+        valid=depth[:,8]>.5;detected=valid&(depth[:,0]<.65)&(depth[:,1]>.08)&(depth[:,1]<.24)
+        label='env%d'%row['env']
+        ax[0].plot(root[:,0],root[:,1],label=label)
+        ax[1].plot(t,np.rad2deg(euler[:,2]),label=label)
+        ax[2].plot(t,np.minimum(lower[:,0,2],lower[:,1,2]),label=label)
+        ax[3].plot(t,root[:,2],label=label)
+        ax[4].plot(t,action[:,0],label=label)
+        ax[5].plot(t,depth[:,0],label=label)
+        case=dict(env=row['env'],controls=len(t),first_root=root[0,:3].tolist(),final_root=root[-1,:3].tolist(),
+          root_x_range=[float(root[:,0].min()),float(root[:,0].max())],root_z_range=[float(root[:,2].min()),float(root[:,2].max())],
+          yaw_deg_range=np.rad2deg([euler[:,2].min(),euler[:,2].max()]).tolist(),
+          roll_pitch_absmax_deg=np.rad2deg(np.abs(euler[:,:2]).max(0)).tolist(),
+          each_wheel_bottom_peak_m=lower[:,:,2].max(0).tolist(),lower_of_two_wheels_bottom_peak_m=float(lower[:,:,2].min(-1).max()),
+          whole_footprint_clear_any=bool((lower[:,:,0]>.8).all(-1).any()),any_front_wheel_edge_x=float(upper[:,:,0].max()),
+          top_force_peak_N=float(data['top'].max()),left_crank_minus6_count=int((action[:,0]<=-5.9999).sum()),
+          first_depth=depth[0].tolist(),valid_depth_fraction=float(valid.mean()),height_assist_detection_controls=int(detected.sum()),
+          first_assist_detection_s=float(t[np.flatnonzero(detected)[0]])if detected.any()else None,
+          action_mean=action.mean(0).tolist(),action_min=action.min(0).tolist(),action_max=action.max(0).tolist())
+        cases.append(case)
+        for k in range(len(t)):
+            csvrows.append(dict(env=row['env'],time_s=float(t[k]),x_m=float(root[k,0]),y_m=float(root[k,1]),z_m=float(root[k,2]),
+                 roll_deg=float(np.rad2deg(euler[k,0])),pitch_deg=float(np.rad2deg(euler[k,1])),yaw_deg=float(np.rad2deg(euler[k,2])),
+                 left_wheel_bottom_m=float(lower[k,0,2]),right_wheel_bottom_m=float(lower[k,1,2]),
+                 left_crank_action=float(action[k,0]),left_wheel_action=float(action[k,4]),right_wheel_action=float(action[k,5]),
+                 depth_valid=bool(valid[k]),edge_distance_m=float(depth[k,0]),step_height_m=float(depth[k,1]),
+                 top_left_force_N=float(data['top'][k,0]),top_right_force_N=float(data['top'][k,1])))
+    ax[0].axvline(.8,color='black',ls='--',label='edge .8m');ax[0].set(title='Actual path (fixed 200mm step)',xlabel='x (m)',ylabel='y (m)')
+    ax[1].set(title='Actual yaw',xlabel='time (s)',ylabel='deg')
+    ax[2].axhline(.2,color='black',ls='--',label='platform .20m');ax[2].set(title='Lower of both authored wheel bottoms',xlabel='time (s)',ylabel='m')
+    ax[3].set(title='Actual chassis origin height',xlabel='time (s)',ylabel='m')
+    ax[4].set(title='Left crank action: constant lower clip',xlabel='time (s)',ylabel='normalized action')
+    ax[5].set(title='Current depth edge distance (zero = invalid)',xlabel='time (s)',ylabel='m')
+    for a in ax:a.grid(alpha=.25);a.legend()
+    fig.tight_layout();fig.savefig(O/'ACTUAL_STANDING_V6_ROUTE_ACTION_CLEARANCE_CURVES.png',dpi=140);plt.close(fig)
+    with(O/'ACTUAL_FOUR_CASES.csv').open('w',encoding='utf-8',newline='')as f:
+        w=csv.DictWriter(f,fieldnames=list(csvrows[0]));w.writeheader();w.writerows(csvrows)
+    curves=json.loads((E/'CURVES.json').read_bytes())['rows']
+    fig,ax=plt.subplots(2,1,figsize=(12,8));time=np.array([r['control']*.02 for r in curves])
+    ax[0].plot(time,[r['reward_mean']for r in curves],label='actual mean reward')
+    for term in ['progress','height','wheel_lift','yaw_error','supported_top']:
+        ax[0].plot(time,[r['terms'][term]for r in curves],label=term)
+    ax[1].plot(time,[r['actual_top_cases']for r in curves],label='actual both-wheel top cases')
+    ax[1].plot(time,[r['stable_peak_ticks']*.0025 for r in curves],label='stable peak seconds')
+    for a in ax:a.grid(alpha=.25);a.legend();a.set_xlabel('time (s)')
+    fig.tight_layout();fig.savefig(O/'ACTUAL_ALL80_REWARD_AND_TOP_CURVES.png',dpi=140);plt.close(fig)
+    manifold=json.loads((E/'ACTUAL_MANIFOLD.json').read_bytes())['contact_rows']
+    summary=dict(kind='ACTUAL_V6_STANDING200_SAVED_POSE_AND_CURVES_DIAGNOSIS_V1',checkpoint=result['checkpoint'],
+      all80=dict(strict=result['strict_successes'],cases=80,mean_seconds=result['mean_seconds'],
+        full10s=sum(r['seconds']>=10 for r in result['results']),terminated=sum(r['terminated']for r in result['results']),
+        max_both_top_cases=max(r['actual_top_cases']for r in curves),stable_peak_s=max(r['stable_peak_ticks']for r in curves)*.0025),
+      selected_cases=cases,selected_manifold=dict(rows=len(manifold),max_contact_point_z=max([p[2]for r in manifold for p in r['point']],default=None)),
+      inference=['All80 independent episodes: no both-wheel top support or stable success. Selected4 approach riser but never lift wheel bottoms near200mm.',
+        'All2000 selected control frames have left-crank action exactly-6. Raw teacher and residual components were not saved; cannot yet assign its origin or sole causality.',
+        'Initial depth detects .2m in all4; missing depth later is not initial blindness. Depth height assist detects later but physical chassis remains below.28m.',
+        'Next targeted diagnosis: frozen final and replay CPU decode once, inspect base/residual/raw clipping and actor input mode. Do not launch unchanged training.'],
+      source_PT_reads=0,new_physics_or_SDK=0)
+    (O/'ANALYSIS.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(summary))
+
+if __name__=='__main__':main()

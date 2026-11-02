@@ -1,0 +1,14 @@
+--- stage_frozen_e3_w35_microbatch_after_preflight_once.py
++++ stage_frozen_e3_w35_microbatch_v2_after_preflight_once.py
+@@ -1,9 +1,10 @@
++# NEW V2 dependency-complete evaluation purpose; do not replay consumed failedV1.
+ """Stage one fresh frozen quality batch, preserving original static dependencies.
+ No parent/SDK/model/C/lock operation; actual admission is a separate next step.
+ """
+ from pathlib import Path
+ import json,sys,time,hashlib,shlex
+-R=Path(__file__).resolve().parent;out=R/'reports/FROZEN_E3_W35_BATCH_V1_ACTUAL_SOURCE_STAGE_V1.json';marker=R/'FROZEN_E3_W35_BATCH_V1_NONPT_STAGE_ONCE.json';assert not out.exists()and not marker.exists();p=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V1_SOURCE_PREFLIGHT_V1.json').read_bytes());assert p['returncode']==0 and p['preflight']['passed']and p['preflight']['staged']is False and p['preflight']['parent_launches']==0;argv=list(p['argv']);assert argv[-1]=='--preflight-only';argv[-1]='--stage';v=dict(kind='ACTUAL_NEW_FROZEN_MICROBATCH_SOURCE_STAGE_NOT_ADMISSION',root=p['root'],group_id=p['group_id'],input_root=p['input_root'],argv=argv,epoch=time.time());marker.write_text(json.dumps(v,indent=2),encoding='utf-8');sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
++R=Path(__file__).resolve().parent;out=R/'reports/FROZEN_E3_W35_BATCH_V2_ACTUAL_SOURCE_STAGE_V1.json';marker=R/'FROZEN_E3_W35_BATCH_V2_NONPT_STAGE_ONCE.json';assert not out.exists()and not marker.exists();p=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V2_SOURCE_PREFLIGHT_V1.json').read_bytes());assert p['returncode']==0 and p['preflight']['passed']and p['preflight']['staged']is False and p['preflight']['parent_launches']==0;argv=list(p['argv']);assert argv[-1]=='--preflight-only';argv[-1]='--stage';v=dict(kind='ACTUAL_NEW_FROZEN_MICROBATCH_SOURCE_STAGE_NOT_ADMISSION',root=p['root'],group_id=p['group_id'],input_root=p['input_root'],argv=argv,epoch=time.time());marker.write_text(json.dumps(v,indent=2),encoding='utf-8');sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+ c=connect72();s=c.open_sftp()
+ try:
+  i,o,e=c.exec_command(shlex.quote('/home/lc01/Zonglin Li/zonglin2/run-python.sh')+' -u -B '+' '.join(map(shlex.quote,argv)),timeout=240);i.close();text=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status();v.update(returncode=rc,stdout=text,stderr=err);out.write_text(json.dumps(v,indent=2),encoding='utf-8');assert rc==0,err;stage=json.loads(text);assert stage['staged']is True and stage['parent_launches']==0 and stage['model_stat_hash_open_decode']==0 and stage['C_lock_SDK_GPU_GO_operations']==0

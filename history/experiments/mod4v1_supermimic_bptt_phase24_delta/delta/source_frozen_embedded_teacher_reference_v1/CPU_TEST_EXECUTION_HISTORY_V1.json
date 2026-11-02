@@ -1,0 +1,33 @@
+{
+  "kind": "SOURCE_ONLY_TEST_HISTORY_EMBEDDED_TEACHER_REFERENCE_V1",
+  "runs": [
+    {
+      "receipt": "CPU_TEST_RESULTS_V1.json",
+      "tests_run": 39,
+      "failures": 1,
+      "errors": 0,
+      "classification": "New fake Tensor.clamp used Python min/max which swallowed NaN into a clipping boundary. Real adapter finite-output check was already present and unchanged for this correction.",
+      "exact_failure": "FAIL: test_bad_action_nan (__main__.Tests.test_bad_action_nan); AssertionError: ValueError not raised",
+      "fix": "Only new fake Tensor.clamp now propagates NaN like Torch.clamp. Added exclusive test output argument; no old source edit and no actual model test."
+    },
+    {
+      "receipt": "CPU_TEST_RESULTS_FINAL_V1.json",
+      "tests_run": 39,
+      "failures": 0,
+      "errors": 0,
+      "passed": true
+    },
+    {
+      "receipt": "CPU_TEST_RESULTS_HARDENED_V1.json",
+      "tests_run": 42,
+      "failures": 0,
+      "errors": 0,
+      "passed": true,
+      "change": "Added terminal actual RSL source mismatch, missing producer state-guard metadata and Boolean original-boundary count negatives; hardened only NEW terminal policy-component validator."
+    }
+  ],
+  "Torch_imported": false,
+  "actual_native_or_Torch_CPU_runs": 0,
+  "actual_Torch_math_result": null,
+  "actual_frozen_reference_evaluation": null
+}

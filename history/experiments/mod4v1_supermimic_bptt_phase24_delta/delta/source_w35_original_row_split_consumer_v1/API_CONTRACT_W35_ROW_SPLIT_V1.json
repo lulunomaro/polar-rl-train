@@ -1,0 +1,62 @@
+{
+  "kind": "SOURCE_ONLY_W35_ORIGINAL_POSITIONAL_ROW_GRADING_API_V1",
+  "runtime": {
+    "file": "w35_original_row_split_consumer_v1.py",
+    "bytes": 26594,
+    "SHA256": "8b593a95c62981434dc99fc2475f1b7808b30f809109897e54c9db1f7d9ce879",
+    "dependencies": "Python >=3.9 stdlib only; recommended python -S -B",
+    "role": "W35 only, original N80/1600-control evaluation case",
+    "does_not_import": ["torch", "numpy", "isaacsim", "isaaclab", "original observer", "original row writer"],
+    "opens_checkpoints_or_calls_environment": false
+  },
+  "CLI": {
+    "required": ["--input NEW_OWN_W35_POSITIONAL_JSONL", "--case-root NEW_OWN_W35_CASE_ROOT", "--expected-role W35", "--expected-source-sha ACTUAL_A1_CHECKPOINT_SHA", "--expected-group ACTUAL_NEW_GROUP_ID", "--output NEW_UNUSED_JSON"],
+    "optional": {"--case-final": "defaults to case-root/FINAL.json", "--schema": "defaults to producer.schema_path from that FINAL"},
+    "source_sha_meaning": "Actual candidate checkpoint/model SHA bound by FINAL.source_cache.source_SHA, header.source_model_SHA and each target row.source_SHA; NOT the Python d841 source hash.",
+    "root_binding": "resolved FINAL, input and schema must all be files inside explicit own case-root; producer.path and producer.schema_path must exactly resolve to those input files",
+    "producer_location": "FINAL['skill']['original_RM70_interval_route_facts']['producer']",
+    "events_location": "FINAL['skill']['original_RM70_interval_route_facts']['events']",
+    "case_binding": ["FINAL.role=W35", "FINAL.group_id=expected-group", "FINAL.passed_execution is True", "FINAL.num_envs exact int80", "FINAL.controls exact int1600", "FINAL.source_cache.source_SHA=expected-source-sha"],
+    "data_io": "one binary open, one forward stream/hash pass; no seek/reopen",
+    "metadata_io": "FINAL once; exact schema bytes once; header constants decoded without row-field loss",
+    "output": "full JSON on stdout and exclusive NEW JSON file; no overwrites or producer edits",
+    "return_0": "artifact-bound retained original Boolean facts consumed; inspect unknown/drop fields before any population statement",
+    "return_2": "input/binding/format/hash/producer-integrity failure; structural n/N may be observed but rates are null when integrity is unverified",
+    "admission_or_actual_parent_wait": "not asserted by consumer; parent must use its already-reviewed actual closure/wait gate"
+  },
+  "stream_consume": {
+    "signature": "stream_consume(stream, *, schema, expected_role, expected_source_sha, producer=None, case_metadata=None, expected_group_id=None, schema_raw=None, data_basename=None)",
+    "stream": "caller-owned binary file-like object implementing readline; function neither opens paths nor closes caller stream",
+    "schema": "parsed original RM70_SAME_UID_COMMAND_AND_ROUTE_SCHEMAS227.json header dict",
+    "schema_raw": "the very same original header bytes, required for byte attestation; do not serialize a substitute",
+    "producer": "exact rows.finish() producer receipt, not recomputed/fabricated expectations",
+    "case_metadata": "newly closed original worker FINAL, not an inferred role hint",
+    "output_paths_opened_by_API": 0,
+    "missing_binding": "target records quarantined as unknown; no inferred role/source/UID",
+    "missing_bytes_attestation": "observed n/N retained but rate null; explicit metadata evidence gap"
+  },
+  "grading": {
+    "format": "mod4.227.lossless_fieldset_positional_jsonl.v1",
+    "row_encoding": "[schema_id,[values in schema positional_fields order]] plus exact schema.constants",
+    "only_record_type": "same_UID_original_RM70_command",
+    "group": "standing must be an actual bool: True=>standing, False=>moving, missing/nonbool=>unknown_standing; never derive from vx",
+    "N": "retained, source/UID/integrity-valid target rows with original natural_complete_nonterminal_interval is True",
+    "n": "those N rows with original complete_interval_bounds_fact is True",
+    "false": "those N rows with original complete_interval_bounds_fact is False",
+    "partial": "valid target rows with original natural_complete_nonterminal_interval is False; excluded from conditional N, not relabeled as passes",
+    "unknown": "missing or malformed relevant UID/Boolean/source/counter evidence, contradictions or duplicates; never imputed",
+    "identity": ["env_id", "episode_uid", "command_uid", "same_UID_segment"],
+    "original_source_counters_preserved": ["source_E1_episode", "original_command_counter"],
+    "duplicate_policy": "all same-identity copies are unknown; prior n/N/partial contribution is revoked, not first-pass preferred",
+    "integrity_only_checks_not_new_skill_thresholds": ["complete_interval_bounds_fact == complete AND original_kinematic_bounds_met", "complete implies start_observed and no ter/tru", "natural complete end is original_resample", "original tick span is 8*controls", "source-declared N80/1600 counters"],
+    "never_recomputed": ["standing", "original velocity/yaw numeric threshold", "original kinematic predicate", "natural timer mask", "full-expert acceptance"],
+    "rate": "n/N for artifact-attested retained valid rows, null when N=0 or integrity attestation fails",
+    "wilson95": "descriptive 95% Wilson interval for that retained n/N, not an acceptance threshold; N=0 null",
+    "all_original_complete_population_rate": "null if any unknown, drops, metadata gap, format error or integrity failure; also null for N=0",
+    "drops": "global original producer dropped_rows/attempted_rows retained; no guessed moving/standing allocation",
+    "always_null": ["relative", "mother_actual_reference", "full_expert_skill_rate"],
+    "raw_preservation": "input untouched; full data SHA plus ordered original UID/source/flags/end-reason provenance SHA, per-group partial/ter/tru/end reasons, original reason flags, bounded unknown line/UID examples"
+  },
+  "source_tests": {"tests": 37, "passed": true, "failures": 0, "errors": 0, "seconds": 0.05863800000224728, "actual_JSONL_or_PT_NPZ_reads": 0, "SDK_Torch_GPU_native_operations": 0},
+  "current_actual_grading_result": null
+}

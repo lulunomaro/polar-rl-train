@@ -1,0 +1,185 @@
+--- SEALED_V1/stage_a1_microbatch_eval_v1.py
++++ NEW_V2/stage_a1_microbatch_eval_v2.py
+@@ -1,4 +1,4 @@
+-"""Stdlib ONLY: preflight or one NEW E3/W35 frozen-eval source stage. NEVER dispatch.
++"""V2 stdlib ONLY: original thirteen plus complete close dependency; one NEW stage, NEVER dispatch.
+ 
+ Index Windows paths are provenance only; actual input sources are flat basenames.
+ No selected/mother checkpoint stat, hash, read, copy, decode, SDK, C or lock access.
+@@ -12,6 +12,7 @@
+ import copy
+ import hashlib
+ import io
++import importlib.util
+ import json
+ import os
+ from pathlib import Path, PurePosixPath
+@@ -26,7 +27,7 @@
+ REQUESTED = ('E3', 'W35')
+ CONTROLS = dict(E0=1000, E2=1200, E3=160, W35=1600, CURB_PROTECTED878=750,
+                 CURB_INDEPENDENT113=750, SLOPE135=750, SLOPE_INDEPENDENT50=1000)
+-INDEX_PIN = (4529, '42e4714c8adf4361351e052d4006f863452fbad557343cc22f9dbad21951beaf')
++INDEX_PIN = (4886, '69688e86528e400f188de3f147614cde5c66f86985adaceed805af800819dc50')
+ ORIGINAL_GROUP_ID = 'MOD4V1_NINE_N80_SINGLE_GPU_PARALLEL_V8_20261102_101426_1793585666425343700'
+ NATIVE_RUN_ID = 'MOD4V1_A1_RAW35_V6_ADMISSION2_20261102_231937_1793632777470828000'
+ USD = '2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'
+@@ -37,7 +38,7 @@
+     'worker_sources/e1/e1_fresh_runtime_bridge.py', 'a1_frozen_eval_runtime_v2.py',
+     'frozen_a1_raw35_v1.py', 'pose_cache_runtime_adapter_v3.py', 'app_close_semantics_v5.py',
+     'native_supermimic_bridge.py', 'supermimic_vendor_v2/networks.py',
+-    'supermimic_vendor_v2/geometry.py', 'supermimic_vendor_v2/contract.py'}
++    'supermimic_vendor_v2/geometry.py', 'supermimic_vendor_v2/contract.py', 'resume_runtime_contracts_v3.py'}
+ MODEL_SUFFIXES = {'.pt', '.pth', '.ckpt', '.safetensors', '.onnx', '.pt2', '.pkl', '.pickle'}
+ DENIED_SUFFIXES = MODEL_SUFFIXES | {'.pyc', '.pyo', '.partial', '.jsonl', '.log', '.lock'}
+ DENIED_NAMES = {'model', 'models', 'adaptation', 'production', 'checkpoint', 'checkpoints',
+@@ -47,6 +48,8 @@
+ COUNTS = ('policy_attempts', 'pi_optimizer_steps', 'pi_bptt_optimizer_steps', 'pi_unverified_steps',
+           'pi_skipped_nonfinite', 'pi_skipped_zero', 'wm_optimizer_steps', 'aux_optimizer_steps', 'critic_optimizer_steps')
+ POSE_SHA = '7357827a72a03f6300ce3f7c6da3ad2a05a551480a1aad04a91dbaac4a497e2f'
++DEPENDENCY_PIN = (22337, 'dc4bc67193457a4fb72b125d23fa482cd3d686363bd1a93eb07268f4e4e26cb7')
++APP_CLOSE_PIN = (27769, '3d2d75196fb98fdb45c80a79b5b8bb69873e7c0c2c0b0f6f6610eb11a8c63c39')
+ 
+ 
+ def need(value, message):
+@@ -151,9 +154,9 @@
+ 
+ def source_mappings(source_dir, source_index):
+     index, raw = metadata(source_index)
+-    need((len(raw), H(raw)) == INDEX_PIN, 'sealed thirteen-mapping index pin differs')
+-    need(index.get('kind') == 'SOURCE_ONLY_13_MAPPINGS_NEW_MICROBATCH_NOT_INSTALLED', 'index schema differs')
+-    entries = index.get('entries'); need(type(entries) is list and len(entries) == 13, 'exact thirteen mappings required')
++    need((len(raw), H(raw)) == INDEX_PIN, 'sealed fourteen-mapping index pin differs')
++    need(index.get('kind') == 'SOURCE_ONLY_14_MAPPINGS_MICROBATCH_CLOSE_DEPENDENCY_V2_NOT_INSTALLED', 'index schema differs')
++    entries = index.get('entries'); need(type(entries) is list and len(entries) == 14, 'exact fourteen mappings required')
+     result = {}; basenames = set(); source_dir = Path(source_dir)
+     for entry in entries:
+         rel = safe_relative(entry['relative'])
+@@ -165,7 +168,7 @@
+         need((info['bytes'], info['SHA']) == (entry['bytes'], entry['SHA256']), 'flat source pin differs: ' + basename)
+         ast.parse(path.read_bytes())  # Validate complete module; never slice/transform it.
+         result[rel] = (path, info)
+-    need(set(result) == ALIASES, 'all thirteen installed aliases required once')
++    need(set(result) == ALIASES, 'original thirteen plus one close dependency required once')
+     return result, dict(path=str(source_index), bytes=len(raw), SHA=H(raw), provenance_paths_not_dereferenced=True)
+ 
+ 
+@@ -341,6 +344,51 @@
+         metadata_validation=validation)
+ 
+ 
++def verify_close_dependency_imports(app_source, base_source):
++    """Real full-module imports, no stubs or SDK instance/close calls."""
++    app_source, base_source = Path(app_source), Path(base_source)
++    receipts = {}
++    for label, path, pin, extra in (
++        ('contracts', base_source, DEPENDENCY_PIN, set()),
++        ('AppV6', app_source, APP_CLOSE_PIN, {'resume_runtime_contracts_v3'})):
++        raw = path.read_bytes()
++        need((len(raw), H(raw)) == pin, 'close dependency source pin differs: ' + label)
++        parsed = ast.parse(raw)
++        roots = set()
++        for node in ast.walk(parsed):
++            if isinstance(node, ast.Import): roots.update(a.name.split('.')[0] for a in node.names)
++            elif isinstance(node, ast.ImportFrom) and node.module: roots.add(node.module.split('.')[0])
++        need(roots <= set(sys.stdlib_module_names) | {'__future__'} | extra,
++             'unexpected non-stdlib close dependency import: ' + label)
++        receipts[label] = dict(path=str(path), bytes=len(raw), SHA256=H(raw), import_roots=sorted(roots),
++                               full_original_module=True, AST_cropped_or_stubbed=False)
++    names = ('app_close_semantics_v5', 'resume_runtime_contracts_v3')
++    before = {name: sys.modules.get(name) for name in names}
++    try:
++        for name in names: sys.modules.pop(name, None)
++        base_spec = importlib.util.find_spec('resume_runtime_contracts_v3')
++        need(base_spec is not None and Path(base_spec.origin).resolve() == base_source.resolve(),
++             'real base dependency must resolve in the actual source/stage root')
++        base = importlib.import_module('resume_runtime_contracts_v3')
++        need(Path(base.__file__).resolve() == base_source.resolve(), 'actual contracts import origin differs')
++        app_spec = importlib.util.spec_from_file_location('app_close_semantics_v5', app_source)
++        app = importlib.util.module_from_spec(app_spec)
++        sys.modules['app_close_semantics_v5'] = app
++        app_spec.loader.exec_module(app)  # Entire unchanged helper, including its real import at line 23.
++        need(app._base is base and base.FINAL_KIND == 'MOD4V1_SUPERMIMIC_FULL_EXECUTION_FINAL_V3'
++             and callable(base.evaluate_waited_worker), 'helper must bind real complete contracts module')
++        need(app.SOURCE_CODE_VERSION == 'V6_PUBLISHED_SIMULATIONAPP_EXPORT_ALIASES', 'actual AppV6 version differs')
++        need(not any(name in sys.modules for name in ('torch', 'isaacsim', 'omni')), 'dependency check imported native package')
++        return dict(kind='REAL_COMPLETE_APP_V6_CONTRACTS_IMPORT_CHECK_V2', passed=True,
++                    modules=receipts, helper_base_is_actual_imported_contracts=True,
++                    model_C_lock_SDK_GPU_operations=0, actual_SimulationApp_binding=None,
++                    actual_close_or_wait_performed=False)
++    finally:
++        for name, old in before.items():
++            if old is None: sys.modules.pop(name, None)
++            else: sys.modules[name] = old
++
++
+ def metadata_validate(root, *, plan_bytes=None):
+     """Execute the COMPLETE pinned metadata CLI, never parent/worker or cropped AST.
+ 
+@@ -351,7 +399,7 @@
+     root = Path(root); old_path = list(sys.path); old_argv = sys.argv; old_bytecode = sys.dont_write_bytecode
+     old_resolve, old_open, old_io_open = Path.resolve, builtins.open, io.open
+     old_stat, old_lstat = os.stat, os.lstat
+-    watched = ('a1_frozen_eval_runtime_v2', 'frozen_eval_microbatch_runtime_v1')
++    watched = ('a1_frozen_eval_runtime_v2', 'frozen_eval_microbatch_runtime_v1', 'app_close_semantics_v5', 'resume_runtime_contracts_v3')
+     old_modules = {name: sys.modules.get(name) for name in watched}; avoided = []
+     def resolve(path, *args, **kwargs):
+         if model_path(path): avoided.append(str(path)); return lexical(path)
+@@ -373,13 +421,16 @@
+         for name in watched: sys.modules.pop(name, None)
+         Path.resolve = resolve; builtins.open = guarded(old_open); io.open = guarded(old_io_open)
+         os.stat = guarded(old_stat); os.lstat = guarded(old_lstat)
++        dependency = verify_close_dependency_imports(
++            root / ('app_close_semantics_v6.py' if plan_bytes is not None else 'app_close_semantics_v5.py'),
++            root / 'resume_runtime_contracts_v3.py')
+         with contextlib.redirect_stdout(output):
+             runpy.run_path(str(root / 'frozen_eval_microbatch_runtime_v1.py'), run_name='__main__')
+         result = json.loads(output.getvalue())
+         need(result.get('requested_roles') == list(REQUESTED) and result.get('resources_acquired') == result.get('model_opens') == 0,
+              'sealed metadata CLI did not validate exact requested batch')
+         need('torch' not in sys.modules and 'isaacsim' not in sys.modules, 'metadata CLI imported native package')
+-        result.update(model_path_resolve='LEXICAL_METADATA_ONLY_NO_LSTAT', model_lstats_avoided=len(avoided),
++        result.update(dependency_completeness=dependency, model_path_resolve='LEXICAL_METADATA_ONLY_NO_LSTAT', model_lstats_avoided=len(avoided),
+                       physical_checkpoint_containment_observed=None, parent_or_worker_executed=False)
+         return result
+     finally:
+@@ -402,7 +453,7 @@
+ 
+ 
+ def preflight_summary(prepared):
+-    return dict(kind='SOURCE_MICROBATCH_PREFLIGHT_ONLY_NO_ADMISSION_V1', passed=True,
++    return dict(kind='SOURCE_MICROBATCH_PREFLIGHT_ONLY_NO_ADMISSION_V2', passed=True,
+         new_root=str(prepared['new_root']), requested_roles=list(REQUESTED), deferred_roles=list(ROLES[2:]),
+         files=len(prepared['materials']), source_index=prepared['source_index'], native_boundary=prepared['boundary'],
+         native_vendor=prepared['native_vendor'], original_plan_SHA=prepared['original_plan_SHA'],
+@@ -413,7 +464,7 @@
+ def stage(prepared):
+     root = prepared['new_root']; need(not root.is_symlink() and not root.exists(), 'actual stage root already exists')
+     root.mkdir(parents=False, exist_ok=False)  # once only; no automatic cleanup or overwrite after failure
+-    put_json(root / 'STAGE_BEGIN_MICROBATCH_V1.json', preflight_summary(prepared))
++    put_json(root / 'STAGE_BEGIN_MICROBATCH_V2.json', preflight_summary(prepared))
+     try:
+         rows = []
+         for rel, (source, info) in sorted(prepared['materials'].items()):
+@@ -427,18 +478,18 @@
+             rows.append(dict(relative=rel, **info))
+         put_once(root / 'GROUP_PLAN.json', prepared['encoded_plan'])
+         validation = metadata_validate(root)
+-        put_json(root / 'STAGED_STATIC_FILES_MICROBATCH_V1.json', dict(files=rows, source_index=prepared['source_index'],
++        put_json(root / 'STAGED_STATIC_FILES_MICROBATCH_V2.json', dict(files=rows, source_index=prepared['source_index'],
+             actual_source_index_aliases=sorted(ALIASES), native_boundary=prepared['boundary']))
+-        receipt = dict(kind='SOURCE_MICROBATCH_STAGE_COMPLETE_NOT_DISPATCH_V1', staged=True,
++        receipt = dict(kind='SOURCE_MICROBATCH_STAGE_COMPLETE_NOT_DISPATCH_V2', staged=True,
+             group_id=prepared['plan']['group_id'], root=str(root), requested_roles=list(REQUESTED),
+             source_files=len(rows), metadata_validation=validation, native_boundary=prepared['boundary'],
+             original_plan_SHA=prepared['original_plan_SHA'], model_stat_hash_open_decode=0,
+             C_lock_SDK_GPU_GO_operations=0, parent_launches=0, resource_admission=None,
+             actual_frozen_evaluation=None, comparison=None, overall_eight_pass_rate=None)
+-        put_json(root / 'STAGE_COMPLETE_MICROBATCH_V1.json', receipt)
++        put_json(root / 'STAGE_COMPLETE_MICROBATCH_V2.json', receipt)
+         return receipt
+     except BaseException:
+-        put_json(root / 'STAGE_ERROR_MICROBATCH_V1.json', dict(error=traceback.format_exc(), dispatch=False,
++        put_json(root / 'STAGE_ERROR_MICROBATCH_V2.json', dict(error=traceback.format_exc(), dispatch=False,
+             root_consumed_no_same_root_retry=True, parent_launches=0))
+         raise
+ 

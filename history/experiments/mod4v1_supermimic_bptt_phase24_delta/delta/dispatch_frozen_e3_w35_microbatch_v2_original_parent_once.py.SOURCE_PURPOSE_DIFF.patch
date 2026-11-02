@@ -1,0 +1,15 @@
+--- dispatch_frozen_e3_w35_microbatch_original_parent_once.py
++++ dispatch_frozen_e3_w35_microbatch_v2_original_parent_once.py
+@@ -1,10 +1,11 @@
++# NEW V2 dependency-complete evaluation purpose; do not replay consumed failedV1.
+ """Dispatch exactly one fresh original-gated E3/W35 frozen-quality parent.
+ Original privateEX/finiteEX/canonical-readiness gates remain in pinned parent.
+ This dispatcher does not read/write C, acquire locks, open models or import SDK.
+ """
+ from pathlib import Path
+ import json,sys,shlex,time
+-R=Path(__file__).resolve().parent;marker=R/'FROZEN_E3_W35_BATCH_V1_PARENT_DISPATCH_ONCE.json';out=R/'reports/FROZEN_E3_W35_BATCH_V1_ACTUAL_PARENT_DISPATCH_V1.json';assert not marker.exists()and not out.exists();stage=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V1_ACTUAL_SOURCE_STAGE_V1.json').read_bytes());assert stage['returncode']==0 and stage['stage']['staged']and stage['stage']['parent_launches']==0;root=stage['root'];gid=stage['group_id'];expected=stage['stage_complete_SHA'];assert root.endswith('/'+gid)and gid.startswith('MOD4V1_A1_FROZEN_E3_W35_BATCH_V1_')
++R=Path(__file__).resolve().parent;marker=R/'FROZEN_E3_W35_BATCH_V2_PARENT_DISPATCH_ONCE.json';out=R/'reports/FROZEN_E3_W35_BATCH_V2_ACTUAL_PARENT_DISPATCH_V1.json';assert not marker.exists()and not out.exists();stage=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V2_ACTUAL_SOURCE_STAGE_V1.json').read_bytes());assert stage['returncode']==0 and stage['stage']['staged']and stage['stage']['parent_launches']==0;root=stage['root'];gid=stage['group_id'];expected=stage['stage_complete_SHA'];assert root.endswith('/'+gid)and gid.startswith('MOD4V1_A1_FROZEN_E3_W35_BATCH_V2_')
+ code='''from pathlib import Path
+ import json,time,os,subprocess,hashlib
+ root=Path(ROOT);expected=EXPECTED;assert root.name==__GROUP_ID__ and root.parent==Path('/home/lc01/Zonglin Li/zonglin2/tasks');raw=(root/'STAGE_COMPLETE_MICROBATCH_V1.json').read_bytes();assert hashlib.sha256(raw).hexdigest()==expected;stage=json.loads(raw);assert stage['staged']and stage['parent_launches']==0

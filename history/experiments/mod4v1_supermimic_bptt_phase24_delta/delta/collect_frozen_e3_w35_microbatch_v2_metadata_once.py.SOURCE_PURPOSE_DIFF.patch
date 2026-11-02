@@ -1,0 +1,23 @@
+--- collect_frozen_e3_w35_microbatch_metadata_once.py
++++ collect_frozen_e3_w35_microbatch_v2_metadata_once.py
+@@ -1,9 +1,10 @@
++# NEW V2 dependency-complete evaluation purpose; do not replay consumed failedV1.
+ """Single observer: published own frozen-eval JSON, then closed own logs once.
+ Never models/raw JSONL/SDK/GPU/C; no signal/resource mutations or work replay.
+ """
+ from pathlib import Path
+ import sys,json,time,shlex
+-R=Path(__file__).resolve().parent;guard=R/'FROZEN_E3_W35_BATCH_V1_OBSERVER_STARTED_ONCE.json';assert not guard.exists();d=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V1_ACTUAL_PARENT_DISPATCH_V1.json').read_bytes());assert d['returncode']==0;m=d['receipt'];root=d['root'];pid=m['parent']['pid'];ticks=str(m['parent']['linux_start_ticks']);folder=R/'reports'/('ACTUAL_FROZEN_E3_W35_BATCH_V1_'+time.strftime('%Y%m%d_%H%M%S'));folder.mkdir();pointer=R/'FROZEN_E3_W35_BATCH_V1_LATEST_METADATA_WATCH.json';guard.write_text(json.dumps(dict(root=root,folder=str(folder),epoch=time.time(),one_published_metadata_observer=True),indent=2),encoding='utf-8');sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
++R=Path(__file__).resolve().parent;guard=R/'FROZEN_E3_W35_BATCH_V2_OBSERVER_STARTED_ONCE.json';assert not guard.exists();d=json.loads((R/'reports/FROZEN_E3_W35_BATCH_V2_ACTUAL_PARENT_DISPATCH_V1.json').read_bytes());assert d['returncode']==0;m=d['receipt'];root=d['root'];pid=m['parent']['pid'];ticks=str(m['parent']['linux_start_ticks']);folder=R/'reports'/('ACTUAL_FROZEN_E3_W35_BATCH_V2_'+time.strftime('%Y%m%d_%H%M%S'));folder.mkdir();pointer=R/'FROZEN_E3_W35_BATCH_V2_LATEST_METADATA_WATCH.json';guard.write_text(json.dumps(dict(root=root,folder=str(folder),epoch=time.time(),one_published_metadata_observer=True),indent=2),encoding='utf-8');sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+ c=connect72();s=c.open_sftp();last=None
+ roots=('PARENT_STARTED.json','BOUNDED_ORIGINAL_RESOURCE_WAIT.json','ACTUAL_GROUP_ADMISSION.json','CHILDREN.json','GROUP_BARRIER_STATUS.json','GROUP_EVAL_START.json','TERMINAL_ROWS.json','FINAL.json','GROUP_ABORT.json','PARENT_ORIGINAL_ERROR.json','PARENT_EXIT_SCOPE.json');case_names=('WORKER_SCENE_READY.json','WORKER_EVAL_STARTED.json','PROGRESS.json','FINAL.json','WORKER_ERROR.json','A1_EVAL_PRIMARY_ERROR_V2.json')
+ def get(rel):
+@@ -39,7 +40,7 @@
+      with s.open(root+'/'+rel,'rb')as f:raw=f.read()
+     except FileNotFoundError:continue
+     assert len(raw)<32*1024**2;dest=folder/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw);copied.append(dict(relative=rel,bytes=len(raw)))
+-   value['copied_files']=copied;(folder/'CLOSED_RESULT.json').write_text(json.dumps(value,indent=2),encoding='utf-8');(R/'FROZEN_E3_W35_BATCH_V1_LATEST_CLOSED_RESULT_PATH.json').write_text(json.dumps(dict(root=root,path=str(folder/'CLOSED_RESULT.json'),early_parent_dead=earlydead),indent=2),encoding='utf-8');print('FROZEN_QUALITY_CLOSED_RESULT '+str(folder/'CLOSED_RESULT.json'),flush=True);break
++   value['copied_files']=copied;(folder/'CLOSED_RESULT.json').write_text(json.dumps(value,indent=2),encoding='utf-8');(R/'FROZEN_E3_W35_BATCH_V2_LATEST_CLOSED_RESULT_PATH.json').write_text(json.dumps(dict(root=root,path=str(folder/'CLOSED_RESULT.json'),early_parent_dead=earlydead),indent=2),encoding='utf-8');print('FROZEN_QUALITY_CLOSED_RESULT '+str(folder/'CLOSED_RESULT.json'),flush=True);break
+   time.sleep(20)
+  else:raise TimeoutError('Own metadata observation cap, native evaluation not signalled or replayed')
+ finally:s.close();c.close()

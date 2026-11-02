@@ -1,0 +1,24 @@
+"""Prepare NEW dependency-complete purpose; preserve consumed failed V1.
+Original13 sources unchanged; only complete sourcecontracts dependency added.
+No remote/stage/parent/model/SDK/C/resource operation.
+"""
+from pathlib import Path,PureWindowsPath
+import json,hashlib,ast,difflib
+R=Path(__file__).resolve().parent;P=R/'payload_frozen_microbatch_v2';report=R/'reports/FROZEN_MICROBATCH14_LOCAL_SOURCE_PAYLOAD_V2.json';build=R/'reports/FROZEN_MICROBATCH_V2_CALLER_SOURCE_BUILD_V1.json';assert not P.exists()and not report.exists()and not build.exists();source=R/'source_stage_a1_microbatch_eval_v2/MICROBATCH_STAGE_INDEX_V2.json';raw=source.read_bytes();assert len(raw)==4886 and hashlib.sha256(raw).hexdigest()=='69688e86528e400f188de3f147614cde5c66f86985adaceed805af800819dc50';idx=json.loads(raw);old=json.loads((R/'payload_frozen_microbatch_v1/MICROBATCH_STAGE_INDEX_V1.json').read_bytes());assert idx['entries'][:13]==old['entries']and len(idx['entries'])==14;(P/'source').mkdir(parents=True);files=[];names=set()
+for e in idx['entries']:
+ p=Path(e['path']);name=PureWindowsPath(e['path']).name;assert name not in names;names.add(name);b=p.read_bytes();assert len(b)==e['bytes']and hashlib.sha256(b).hexdigest()==e['SHA256'];ast.parse(b);(P/'source'/name).write_bytes(b);files.append(dict(file='source/'+name,bytes=len(b),SHA=e['SHA256'],installed_alias=e['relative'],original_source=e['path']))
+(P/'MICROBATCH_STAGE_INDEX_V2.json').write_bytes(raw);report.write_text(json.dumps(dict(kind='PARENT_14_SEALED_SOURCE_DEPENDENCY_COMPLETE_PAYLOAD_NOT_STAGED_V2',directory=str(P),original13unchanged=True,files=files,index=dict(bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()),model_SDK_C_remote_operations=0),indent=2),encoding='utf-8')
+pairs=[('upload_preflight_frozen_e3_w35_microbatch_v1_once.py','upload_preflight_frozen_e3_w35_microbatch_v2_once.py'),('stage_frozen_e3_w35_microbatch_after_preflight_once.py','stage_frozen_e3_w35_microbatch_v2_after_preflight_once.py'),('dispatch_frozen_e3_w35_microbatch_original_parent_once.py','dispatch_frozen_e3_w35_microbatch_v2_original_parent_once.py'),('collect_frozen_e3_w35_microbatch_metadata_once.py','collect_frozen_e3_w35_microbatch_v2_metadata_once.py')]
+replacements=[('FROZEN_E3_W35_BATCH_V1','FROZEN_E3_W35_BATCH_V2'),('payload_frozen_microbatch_v1','payload_frozen_microbatch_v2'),('FROZEN_MICROBATCH13_LOCAL_SOURCE_PAYLOAD_V1','FROZEN_MICROBATCH14_LOCAL_SOURCE_PAYLOAD_V2'),('source_stage_a1_microbatch_eval_v1/stage_a1_microbatch_eval_v1.py','source_stage_a1_microbatch_eval_v2/stage_a1_microbatch_eval_v2.py'),('stage_a1_microbatch_eval_v1.py','stage_a1_microbatch_eval_v2.py'),('MICROBATCH_STAGE_INDEX_V1.json','MICROBATCH_STAGE_INDEX_V2.json'),('len(b)==29335','len(b)==32953'),('dff8143d2464f82f720497ddfe4c241cfd4846e938a9f975962defdaac8c893b','9c788fc5435dcbe2af25d13390c2fb008be77c23fbe83104b170d8091cb72952'),('len(idx)==4529','len(idx)==4886'),('42e4714c8adf4361351e052d4006f863452fbad557343cc22f9dbad21951beaf','69688e86528e400f188de3f147614cde5c66f86985adaceed805af800819dc50'),("len(manifest['files'])==13","len(manifest['files'])==14")]
+closure_gate="""
+# Previous physical V1 is consumed and fully waited; V2 changes one missing source dependency.
+prior_pointer=json.loads((R/'FROZEN_E3_W35_BATCH_V1_LATEST_CLOSED_RESULT_PATH.json').read_bytes());prior=json.loads(Path(prior_pointer['path']).read_bytes());prior_exit=prior['top']['PARENT_EXIT_SCOPE.json'];assert all(prior_exit[k]is True for k in('all_own_children_waited','original_single_GPU_private_EX_released','original_global_finite_EX_released'));assert len(prior['rows'])==2 and all('resume_runtime_contracts_v3'in x['WORKER_ERROR']['error']for x in prior['rows'])
+"""
+rows=[]
+for old_name,new_name in pairs:
+ dest=R/new_name;assert not dest.exists();s=(R/old_name).read_text(encoding='utf-8');new=s
+ for a,b in replacements:new=new.replace(a,b)
+ if old_name.startswith('upload_'):
+  token="run='MOD4V1_A1_FROZEN_E3_W35_BATCH_V2_'";assert new.count(token)==1;new=new.replace(token,closure_gate+'\n'+token)
+ new='# NEW V2 dependency-complete evaluation purpose; do not replay consumed failedV1.\n'+new;ast.parse(new);dest.write_text(new,encoding='utf-8');patch=R/(new_name+'.SOURCE_PURPOSE_DIFF.patch');patch.write_text(''.join(difflib.unified_diff(s.splitlines(True),new.splitlines(True),fromfile=old_name,tofile=new_name)),encoding='utf-8');rows.append(dict(path=str(dest),bytes=len(new.encode()),SHA=hashlib.sha256(new.encode()).hexdigest(),diff=str(patch)))
+build.write_text(json.dumps(dict(kind='NEW_FROZEN_V2_CALLERS_AND_ONE_DEPENDENCY_SOURCE_ONLY',source_files=len(files),original13unchanged=True,added_dependency=idx['entries'][-1],rows=rows,SDK_model_remote_C_operations=0),indent=2),encoding='utf-8');print(json.dumps(dict(payload=str(P),source_files=14,source_bytes=sum(x['bytes']for x in files),new_parent_callers=len(rows),not_stage_or_native=True),indent=2))

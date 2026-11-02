@@ -1,0 +1,24 @@
+"""Append-only cachecontainerfix seal. No model/SDK/import/compute run."""
+from pathlib import Path
+import ast,hashlib,json
+B=Path(__file__).resolve().parent;T=B.parent;V1=T/'E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V1';H=lambda b:hashlib.sha256(b).hexdigest()
+def info(p):
+ raw=p.read_bytes();return dict(path=str(p),bytes=len(raw),SHA=H(raw))
+def put(p,v):
+ with p.open('x',encoding='utf-8') as f:json.dump(v,f,ensure_ascii=False,indent=2)
+ return info(p)
+proof=json.loads((B/'FOUR_E1_SOURCE_ONLY_ORDEREDDICT_MOCK_FINAL_V4.json').read_bytes());assert proof['passed'] and proof['check_count']==60
+for name,sha in proof['source_file_SHA'].items():assert H((B/name).read_bytes())==sha,name
+oldhandoff=json.loads((T/'E1_N80_FRESH_FULLDR_PARALLEL_FOUR_WORKERS_SOURCE_HANDOFF_V1.json').read_bytes());rows=[];changes=[]
+for r in oldhandoff['runtime_files_to_stage_same_directory']:
+ old=Path(r['path']);new=B/old.name;z=info(new);z['basename']=new.name;rows.append(z)
+ if z['SHA']!=r['SHA']:changes.append(dict(basename=new.name,old_SHA=r['SHA'],new_SHA=z['SHA']))
+assert [x['basename'] for x in changes]==['e1_identity_cache.py']
+AST=[]
+for p in B.glob('*.py'):
+ tr=ast.parse(p.read_bytes(),filename=str(p));compile(tr,str(p),'exec');AST.append(dict(**info(p),AST_SHA=H(ast.dump(tr,include_attributes=False).encode())))
+correction=put(B/'CACHE_ORDEREDDICT_IDENTITY_SOURCE_CORRECTION_V2.json',dict(kind='SOURCE_REVIEW_DEFECT_FIXED_BEFORE_ANY_GROUP_PTSKD_RUN',original_V1_problem='type(x)isdict treatedTorchstate_dictOrderedDictasopaque, soorderedactor/criticnestedTensoridentitywasnotrecursivelychecked; originalMOCKusedplaindictandmissedtypecoverage.',actual_models_inspected=0,change='isinstance(x,dict) recursivelyfreezesdictsubclasses+orderedkeys/tensors; immutableunknownNaNcomparesidentityorvalue withoutchangingmodeltensorfiniteness',changed_runtime_file=changes,unchanged_other_runtime_files=12,MOCK_proof=info(B/'FOUR_E1_SOURCE_ONLY_ORDEREDDICT_MOCK_FINAL_V4.json'),MOCK_scope='Actor/critic/unknownnestedOrderedDict+unknownNaN fixtures; same60checksincludecriticnestedTensornegative, noTorch/PT/SDK.',old_V1_sources_indexes_and_proofs_untouched=True,no_physical_factory_recipe_seed_queue_model_field_or_task_interface_change=True,source_api_lookup_errors=[dict(path='spring_pressure_factor.py',error='notfound',resolved='spring_pressure_audit_runtime.py->spring_pressure_index_runtime.py exactexistingcomponent chain'),dict(path='explicit_pd_factor.py',error='notfound',resolved='explicit_pd_component.py actualenabledattr sourcejoined')],origin_source_correction='Native/gpu1isresultsonly; exactcompleteRemoteRootdelta67a7cb20 hascorrectparentroots andfullstagefilemetadata, no binaryread',operations=dict(model_stat_read_hash_decode=0,SDK_GPU_SSH_canonical_GO_PPO=0,Git=0)))
+index=put(B/'FINAL_FOUR_E1_PARALLEL_N80_SOURCE_INDEX_V2.json',dict(kind='FOUR_E1_CHILD_SOURCE_ONLY_V2_ORDEREDDICT_COMPLETE_CACHE_IDENTITY',runtime_files_to_stage_same_directory=rows,AST=AST,correction=correction,previous_full_source_and88deps_index=info(V1/'FINAL_FOUR_E1_PARALLEL_N80_SOURCE_INDEX_V1.json'),exact_originalfactoryASTdiff_unchanged=info(V1/'FOUR_E1_ORIGINAL_FACTORY_AST_DIFF_PROOF_V1.json'),remote_nonPT_origin_delta=info(T/'E1_FOUR_WORKERS_REMOTE_NONPT_ORIGIN_DELTA_V1.json'),full_case_interface=info(V1/'FOUR_E1_WORKER_PARENT_INTERFACE_FINAL_V2.json'),descriptor_templates=info(V1/'UNUSED_DESCRIPTOR_TEMPLATES_FINAL_V2/SOURCE_ONLY_DESCRIPTOR_EMISSION_INDEX.json'),physicalSourceSDK_or_actual_N80caseexecuted=False,not_GPUpermission=True,parent_owns5otherworkers_singleGPUgroup_supervisor_sourceadmission_andonce=True))
+handoff=put(T/'E1_N80_PARALLEL_FOUR_WORKERS_SOURCE_CORRECTION_HANDOFF_V2.json',dict(kind='USE_V2_RUNTIME_FILES_NOT_V1_CACHE_PRESERVE_OLD_SEALS',source_root=str(B),index=index,runtime_files_to_stage_same_directory=rows,roles=['CURB_PROTECTED878','CURB_INDEPENDENT113','SLOPE135','SLOPE_INDEPENDENT50'],CLI='python -B WORKER --task CASE/task.json --group-root GROUP_ROOT',sourceonly=True,MOCK60_PASS=True,actual_group_dispatched_bychild=False,changed_files=changes,whole_PT_cache_one_read_SHA_decode_andraw_unknown_root_preserved=True,saved20k_DR_physically_applied=False,remote_nonPT_source_roots=info(T/'E1_FOUR_WORKERS_REMOTE_NONPT_ORIGIN_DELTA_V1.json'),archive_phase9_append_pending=True,gitcommitpush=False))
+archive=put(T/'E1_N80_PARALLEL_FOUR_WORKERS_SOURCE_V2_DELTA_ALL_ERRORS_ARCHIVE_PENDING.json',dict(kind='APPEND_ONLY_SOURCE_V2_TYPE_COVERAGE_AND_REMOTE_ROOT_CORRECTION',files=[info(p) for p in sorted(B.glob('*')) if p.is_file()]+[handoff,info(T/'E1_FOUR_WORKERS_REMOTE_NONPT_ORIGIN_DELTA_V1.json')],oldV1_anderrors_retained=True,PT_SDK_operations=0,parentphase9_archivepending=True))
+print(json.dumps(dict(handoff=handoff,index=index,archive=archive,runtime_files=13,changed='ONLY e1_identity_cache.py',MOCK60=True,PT_SDK_operations=0),indent=2))

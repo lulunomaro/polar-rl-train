@@ -1,0 +1,72 @@
+{
+  "schema": "mod4.E2_W35.measurement_source_evidence.v1",
+  "status": "SOURCE_ONLY_CPU_SYNTHETIC_NO_REAL_EXPERT_PASS",
+  "scope": {
+    "new_output_root": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_measurement_review_v1",
+    "existing_source_writes": false,
+    "existing_runtime_source_imports": false,
+    "old_JSONL_raw_NPZ_checkpoint_reads": false,
+    "remote_SDK_GPU_actual_frozen_evaluation": false,
+    "new_dependencies_installed": false,
+    "matching_catalog_skill": null,
+    "used_host_tools": ["working_directory", "read", "glob", "grep", "pwsh", "write", "edit", "load_workspace_dependencies"],
+    "tool_choice": "Office and ACL skills do not match RL source review; filesystem tools and existing host Python CLI, stdlib only"
+  },
+  "original_predicates": {
+    "E2": {
+      "selection": "original profile8 or9, moving Boolean and signed_yaw sign; never speed proxy",
+      "span_identity": "same profile, observer episode_uid, command_uid, world_direction, sign(signed_yaw); consecutive original controls, 8 physics substeps of .0025s each",
+      "completion": "actual_signed_yaw*sign >= 2*pi at sampled endpoint; no interpolation or overshoot carry",
+      "acceptance": "seconds>0 && complete && !terminated && !truncated && abs(along_speed-.5)<=.05 && abs(cross_speed)<=.05 && abs((turn-commanded_yaw_integral)/seconds)<=.2",
+      "conditional_denominator": "every complete sampled2pi event, including complete terminal/timeout events as false",
+      "phase_boundary": "warmup(control<100)/steady crossing is recorded, not a span break",
+      "groups": ["moving_yaw_minus4", "moving_yaw_plus4"]
+    },
+    "W35": {
+      "axis": "sampled _command_heading + pi if sampled BODYvx<0, never retained random direction",
+      "nominal": "abs(sampled BODYvx)",
+      "kinematic": "abs(along_speed-v)<=max(.03,.1*abs(BODYvx)) && abs(cross_speed)<=same_tolerance && abs((turn-integral_commanded_yaw)/seconds)<=.2",
+      "complete": "count>0 && natural outer resample(timer_before<=0 && !within_reset) && original_start_observed && !terminated && !truncated",
+      "acceptance": "complete && original_kinematic_bounds_met",
+      "groups": "original is_standing_env Boolean sampled at command open, moving and standing separate",
+      "partials": "unknown start, reset, termination, timeout, parameter/source episode change, window end outside original conditional denominator; remain in attempt ledger"
+    }
+  },
+  "source_evidence": [
+    {"id":"contract", "path":"F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_acceptance_review\\EXPERT_90_PERCENT_ACCEPTANCE_CONTRACT_SOURCE_V1.json", "lines":"157-217;280-347", "finding":"Original atomic predicates, complete/partial denominator distinctions, necessary groups and missing runtime frame/cache/cohort proof."},
+    {"id":"e2_bridge", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\minimal_e2_cycles_bridge.py", "lines":"7-18", "finding":"Old observer patches reset/resample for UIDs; begin and terminal both root_pos_w+heading_w. New entry never installs these patches."},
+    {"id":"e2_cycles", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\e2_cycles213.py", "lines":"44-127", "finding":"8-tick timing, same-UID projection and wrapped turn, sampled2pi completion before terminal closure, exact .5/.05/.2 predicate; hardcoded b3 actor source label is not actual candidate identity."},
+    {"id":"e2_catalog", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\e2_original_profile_catalog_candidate_v1.py", "lines":"5-15", "finding":"Original Boolean classification key8/9 uses moving and signed_yaw sign, not measured speed."},
+    {"id":"w35_intervals", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\rm70_intervals227.py", "lines":"36-126;138-170", "finding":"Outer timer/reset nesting boundary, exact initial packet test, sample/open body+axis+standing+counter, _e1_episode check, pre-reset root xyzw heading; fixed-axis predicate and natural complete ledger."},
+    {"id":"worker", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\worker_five_original_n80.py", "lines":"49-51;69-107", "finding":"W35 arm pre-loop; original termination wrapper delivers W35 frame then E2 terminal before autoreset; begin before env.step; physics8 and feedback2 per control totals."},
+    {"id":"w35_split", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\source_assess_pair4_v1\\observer_w35_split_v1\\rm70_published_split_observer_v1.py", "lines":"1-37", "finding":"Published split counts original row Booleans; not a new world predicate, actor source_cache identity separate from constructor label."},
+    {"id":"native_bridge", "path":"F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_runtime\\native_supermimic_bridge.py", "lines":"84-147", "finding":"pack root_state_w minus env_origins and xyzw->wxyz; _termination_capture stores pre-reset s1 and masks. context command loop lacks original complete E2/W35 acceptance identity/flags; step next state/context are postreset and xi1 done rows zero. No acceptance UID ledger."},
+    {"id":"getter_factory", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\diagnostics\\W35_SDK_DATA_GETTER_ORIGIN_SOURCE_V1\\actual_module_spec_v2\\1\\articulation_data.py", "lines":"1-23", "finding":"Factory only; selects BaseArticulationData or PhysXArticulationData, actual backend getter/cache implementation not in this source snapshot."},
+    {"id":"getter_base", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\diagnostics\\W35_SDK_DATA_GETTER_ORIGIN_SOURCE_V1\\base_factory_v4\\assets\\articulation\\base_articulation_data.py", "lines":"470-540;803-812;873-928;1148-1194", "finding":"root_pos_w->root_link_pos_w actor position. root_state_w doc: root_link_pose_w + root_com_vel_w. root_com_pos_w is COM position; heading assumes forward x. Backend properties abstract, freshness not established."},
+    {"id":"w35_learning", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\diagnostics\\W35_MOTION_WIRING_SOURCE_V2\\learning208_v3.py", "lines":"1-21", "finding":"Diagnostic wiring uses root_pos_w/heading_w begin and pre_reset_frame[root] after; does not by itself prove source cache error."},
+    {"id":"w35_terrain", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\diagnostics\\W35_MOTION_WIRING_SOURCE_V2\\terrain208_v3.py", "lines":"89-142", "finding":"refresh_ground keyed _sim_step_counter, touches root_pos_w before original termination; captures root_state_w.clone after original termination; frame has no explicit tick. Terrain-query tick checks prove terrain phase only, not robot getter freshness."},
+    {"id":"projection_candidate", "path":"F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\diagnostics\\W35_MOTION_WIRING_SOURCE_V2\\retained_flat_command_math.py", "lines":"1;32-37", "finding":"Explicitly undeployed candidate: BODYvx=cos(heading-world_direction), vy0. Ideal .5 world along is full-rotation average, not constant instantaneous .5. Active E2 command update implementation not established from this file."}
+  ],
+  "verifiable_hypotheses_not_runtime_findings": [
+    {"id":"H1_cache_or_update_phase", "hypothesis":"W35 mixed root_pos_w begin vs frame[root] endpoint and heading getters may expose different backend cached phases; E2 may also reuse stale root_pos_w/heading despite using same API on both ends.", "future_test":"Same physical endpoint clone all original getter buffers plus already-available backend actor/COM transforms, real cache stamps and read-order, integrated tick and _sim_step_counter; compare exact position/heading residuals at both begin and endpoint. Separate no-extra-getter baseline from probe pass because lazy getters themselves may refresh caches.", "falsifier":"Actual backend proves same point and current stamp at each endpoint, with zero alias residual at captured precision; no invented numerical acceptance threshold.", "actual_cause_proven":null},
+    {"id":"H2_point_actor_COM", "hypothesis":"A real backend/adapter could mix actor and COM positions, but local base alias explicitly says actor, so the COM explanation is not yet evidence.", "future_test":"Capture p_actor,p_COM,actor quaternion and actual local link-to-COM transform; test p_COM=p_actor+R*offset. A rotating offset explains point difference; a time-lag pattern supports cache hypothesis instead. root_state velocity COM semantics do not make root_state position COM.", "actual_cause_proven":null},
+    {"id":"H3_reference_semantics", "hypothesis":"Published nominal-world and projected BODY reference statistics may measure different quantities even with correct getters.", "future_test":"Accumulate actual displacement, original command BODY projection integral and commanded yaw integral under the same UID/ticks. Preserve nominal E2 .5 and W35 sampled abs(vx) criteria; separate tracking-reference error as diagnostic. Confirm actual E2 command update source/hash before applying undeployed cosine math.", "actual_cause_proven":null},
+    {"id":"H4_clock_or_pre_reset", "hypothesis":"Wrong control interval/heading layout or postreset sample can create apparent world/reference mismatch.", "future_test":"Capture 8 physics ticks and 2 feedback ticks per .02s control, pre-reset term/trunc and source episode; compare raw xyzw to native packed wxyz after restoring env_origin. Preserve wrapped per-control yaw. Do not multiply speeds by8 or add new physics/reward thresholds.", "actual_cause_proven":null},
+    {"id":"H5_policy_dependent_cohorts", "hypothesis":"Different natural reset/resample histories change W35 populations, consistent with old18/61 vs post18/64 moving even though both numerators18; this is not matched UID proof or getter-fix proof.", "future_test":"New preregistered pair namespace+command event UID, source episode/counter, sampled packet hash, actual actor SHA and all attempted starts/closures. Exact packet join and explicit left/right-only populations; local UID/count equality alone yields pending.", "actual_cause_proven":null}
+  ],
+  "unfilled_runtime_evidence": {
+    "actual_backend_type_module_file_SHA": null,
+    "actual_root_actor_COM_getter_timestamps": null,
+    "reference_frame_and_sample_phase_validated": null,
+    "active_E2_command_projection_update_source_identity": null,
+    "active_W35_diagnostic_source_identity": null,
+    "actual_candidate_actor_SHA": null,
+    "new_command_UID_population_SHA": null,
+    "actual_E2_per_sign_rates": null,
+    "actual_W35_moving_standing_rates": null,
+    "matched_policy_cohort": null,
+    "real_expert_pass": null,
+    "actual_frozen_evaluation_result": null,
+    "global_fullskill_or_outer90_rule": null
+  }
+}

@@ -1,0 +1,11 @@
+# MINIHOP_AUDIT_V2 — independent read-only grading
+
+New writes belong only to this directory. The unchanged MINIHOP_V1 controller, original V3/rm_buffer motor/observer bodies, v1 hooks/runner/preflight, old R39 artifacts and all earlier sealed/blocked components remain read-only. No prior trial is replayed, rescored or repaired.
+
+- Correct air grading: sum **every** finite positive normal world-body↔robot contact first, including each sub-1 N point; declare air only while that total is <=1 N continuously for >=20 ms. Main wheels, guide rollers and hard parts all contribute. All positive landing contacts remain available with identities and coordinates.
+- The two existing hook signatures are retained. Removing exactly those hook statements from each derived apply_torque_request must restore its original full AST. Controller, estimator schedule, processed-target path, per-tick motor limits and actuation are unchanged. No raw-servo hook expansion in this drop.
+- Captured dq6 and bounded tau6, contact force/frame/position and mesh geometry caches are labeled pre-integration stage. Root qpos after integration is separately timestamped. Invalid instrumentation latches an explicit error and preserves the last good streamed prefix; NaN/Inf are never replaced by zero.
+- A small **private physics-row diagnostic** sums world-frame force3 with robot-side sign, actual post-DR model body-mass sum (not cached self.mass), and existing cached root rotation/subtree COM when available. It excludes self/world-world external-force contributions. It is not named complete true COM proper acceleration, and never enters a public sensor/controller/cue/confidence projection.
+- Run new mock-force/schema/read-only/clock tests first, then fresh full-model flat/rm construction/reset/forward admission with mj_step forbidden. The boot is initialization admission, not an episode, trajectory, contact/flight validation or physics score.
+- No simulation episode, GPU, Git, agent, goal mutation, blocked-IO build/SDK/worker, or active ROOT world_leg modification. Future parent DR4221..4224 work is pending and is not launched here.
+- Operator-enable stays default false. No new contact/FSM/MPC permission or confidence cap. PH5/later cutoff pending; current PH4 cutoff excludes this v2 audit.

@@ -1,0 +1,36 @@
+PORTABLE_POWER_ALLOCATOR_V1 source bundle
+=========================================
+Files pa1_allocator.c and pa1_allocator.h form the standalone runtime closure.
+No old C3/ASQP/robot-model/IO module or calibration is required or supplied.
+The bundled JSON files describe the mathematical assumptions and original
+numerical budget. All real calibration/current/voltage/temperature/evidence
+bindings default UNBOUND: zero-initialized calibration returns invalid.
+
+Host C99 object (example of the actual strict host options):
+  gcc -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse -c pa1_allocator.c -o pa1_allocator.o
+Link a caller with the C object and the platform math/runtime library (-lm
+where required). C++ callers include the header using its extern-C guard;
+compile the C implementation as C. No runnable robot application is bundled.
+Host evidence used MinGW 6.3 i386, binary64 round-to-nearest, FTZ/DAZ disabled.
+
+Scheduled target compile-only commands used armclang 6.10.1, common options:
+  --target=arm-arm-none-eabi -mthumb -mfloat-abi=hard -std=c99 -O2 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -c pa1_allocator.c
+M4: -mcpu=cortex-m4 -mfpu=fpv4-sp-d16
+M7: -mcpu=cortex-m7 -mfpu=fpv5-sp-d16
+These are SP-hard ABI objects containing binary64 arithmetic. They require
+AEABI double/memory helpers and hardfp fabs/fmax/fmin/nextafter. No target
+math/runtime/BSP link, numerical execution, FPSCR/gradual-underflow, stack,
+ISR or WCET qualification was performed. Object success is not certification
+of interval enclosures on the target: validate runtime arithmetic first.
+
+The mathematical certificate requires IEEE binary64 round-to-nearest,
+gradual underflow, correct nextafter, no fast-math and no contraction. A new
+compiler/platform must establish those assumptions independently.
+
+Use caller-owned disjoint context/input/options/workspace/result/clock ranges.
+The callback must not access context/workspace or run a concurrent allocation.
+Both tau0 reserve and tau1 request must be qualified explicitly. Invalid zero
+output is not a reserve or permission to apply zero in a braking box. Check
+status AND valid. An aliased output is unusable. Final cooperative clock poll
+covers execution only to that sample; driver enqueue/hold expiry stays external.
+No electrical/thermal/battery/HIL/stability/actuator protection is qualified.

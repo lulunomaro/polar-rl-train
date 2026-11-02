@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "world_environment": "all geom_bodyid == 0, independent of contype/conaffinity; exactly one world endpoint",
+  "normal_aggregation": "math.fsum(max(0, fn)) over ALL world\u2194robot points BEFORE threshold",
+  "air_total_normal_N_lte": 1.0,
+  "minimum_air_interval_s": 0.02,
+  "physics_dt_s": 0.0005,
+  "air_duration": "contiguous tick count * physics_dt; no per-contact cutoff",
+  "landing_contacts": "every positive world\u2194robot point, including sub-1N; original ci and both geom/body identities",
+  "contact_force_world": "force on geom2 = ct.frame.reshape(3,3).T @ local_force[:3]; robot geom1 negates",
+  "nonfinite": "explicit latched instrumentation error, last good streamed prefix retained; never zero fill",
+  "stage_clock_tolerance_s": 1e-08,
+  "clock_tolerance_does_not_change_force_or_duration_threshold": true,
+  "private_diagnostic": "force sum + actual model body-mass sum + optional existing cached pre-stage root rotation/subtreeCOM; not complete trueCOMproper",
+  "public_projection_changed": false,
+  "controller_changed": false,
+  "operator_default_enabled": false,
+  "contact_FSM_MPC_permission_added": false,
+  "PH5_and_later_pending": true,
+  "current_PH4_cutoff_excludes_v2": true
+}

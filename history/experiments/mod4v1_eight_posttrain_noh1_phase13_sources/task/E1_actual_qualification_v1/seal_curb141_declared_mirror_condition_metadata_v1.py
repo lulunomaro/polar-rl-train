@@ -1,0 +1,10 @@
+"""Saved declared-mirror review only; no PT reads/hash/stat or network."""
+from pathlib import Path
+import hashlib,json
+B=Path(__file__).resolve().parent;T=B.parent;W=Path(r'C:\Users\lulu\Desktop\claude\mjcf')
+p=W/'MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016/train_payload/TRAIN_PACKAGE_MANIFEST.json';raw=p.read_bytes();m=json.loads(raw);sources=[r for r in m['rows'] if r['relative'].endswith('/source/source.pt')]
+expected='7b70032fcb577390cee01c887b57c1e3d9818f9bf87f54977444d592c033db43';assert not any(r['SHA']==expected for r in sources)
+report=dict(kind='CURB141_EXACT7B_DECLARED_MIRROR_METADATA_CONDITION_NOT_MODEL_MISSING',expected_source_SHA=expected,explicit_train_manifest=dict(path=str(p),SHA=hashlib.sha256(raw).hexdigest(),source_rows=sources),host_grep_exact7b_all_JSON_results=[dict(root=str(W/'MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016'),result='No matches found'),dict(root=str(W/'MOD4_HOST72_THREE_GPU_SINGLE_PPO_7H_20261016'),result='No matches found'),dict(root=str(W/'MOD4_HOST72_E1_CURB_SLOPE_TRAINING_ASSIGNMENT_20261016'),result='No matches found'),dict(root=str(W/'MOD4_THREE4090_CURB_DIRECTION_AND_E3_RECOVERY_20261016'),result='No matches found'),dict(root=str(W/'MOD4_CURB140_E2_58_HEALTHY_CONTINUATION_ADMISSION_20261016'),result='No matches found')],not_inferred_from_Actor_tensor_identity_or_latest=True,original210_direct_and_authorized72route_stat_unobtained_network=True,exact_physical7b_path_not_yet_verified=True,no_selected_source7b_byte_read_SHA_decode=True,no_actual7b_CPUtyped_or_SDK=True,all_old_failure_records_retained=True,condition='Needs network to sameoriginal210 or exact7b saveddeclared fullPTphysicalcopy; do not substitute otherCURB',network_retries_paused=True)
+out=B/'CURB141_DECLARED_MIRROR_METADATA_CONDITION_V1.json'
+with out.open('x',encoding='utf-8') as f:json.dump(report,f,ensure_ascii=False,indent=2)
+print(json.dumps(dict(report=str(out),manifest_sources=sources,CURB_CPU_SDK_done=False,network_modelmissing_claim=False),indent=2))

@@ -1,0 +1,15 @@
+{
+  "status": "PROPOSED_MINIMUM_BINDINGS_NOT_NEW_PARENT_CODE_OR_HARDWARE_CALIBRATION",
+  "items": [
+    "Keep per-channel true acquisition/aperture begin/end/center, weights, sample sequence, arrival and duplicate state; queueepoch alone is not simultaneous input.",
+    "Either supply same-time q/qd/IMU point samples with declared filters, or same-window moments/derivative estimates with effective times and physically justified motion/jerk bounds.",
+    "Bind encoder q4 absolute output zero/sign/ratio, velocity-estimator algorithm/noise/filter/group delay, and derivative error/time model; do not infer these from a complete control run.",
+    "Bind origin-to-IMU position and orientation (.03,0,.04 is current nominal lever), proper reference and alpha used for lever compensation, all with error/latency.",
+    "Provide alpha from calibrated synchronized high-rate gyro or an explicitly delayed estimator with covariance/bounds;60ms LP is not instantaneous.",
+    "For current20sample projection retain aperture; to evaluate nonlinear corrections at center need measured/justified curvature/covariance, not only count20 and sharedtime.",
+    "For optional wheel phase use actual encoder binding; otherwise retain nominal radial-COM fullphase geometric bound plus declared wheel rate/acc errors, not a balanced-wheel assumption.",
+    "Keep truth grading separate in parent; do not use contact/root/world/DR receipts to choose these error parameters or remove missed boundaries."
+  ],
+  "do_not_lower_FSM_thresholds_or_force_point8": true,
+  "H1_H2_immutable": true
+}

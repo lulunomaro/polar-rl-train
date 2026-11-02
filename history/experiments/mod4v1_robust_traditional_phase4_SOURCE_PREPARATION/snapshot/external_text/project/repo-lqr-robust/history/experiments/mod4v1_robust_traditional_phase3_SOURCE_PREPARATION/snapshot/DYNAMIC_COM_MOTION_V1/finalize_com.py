@@ -1,0 +1,40 @@
+"""Seal already-passed COM results; only new nominal math examples, no SDK/tests."""
+from pathlib import Path
+import ast,dataclasses,hashlib,json,math,re,sys
+import numpy as np
+R=Path(__file__).resolve().parent;TASK=R.parent
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def new(p,v):assert not p.exists(),str(p);p.write_text(json.dumps(v,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+def meta(p):return {'path':str(p),'relative':p.relative_to(R).as_posix(),'bytes':p.stat().st_size,'SHA':sha(p)}
+def main():
+    assert not (R/'INDEX.json').exists()
+    check=json.loads((R/'attempts/001/RESULT.json').read_text(encoding='utf-8'));assert check['all_passed'] and check['synthetic_units']['tests']==23
+    for e in check['source_files']:assert sha(R/e['name'])==e['SHA'],e['name']+' changed after tests'
+    for p,h in check['protected_hashes'].items():assert sha(Path(p))==h,'protected prior source changed'
+    sys.path.insert(0,str(TASK));sys.path.insert(0,str(R));from com_motion import Config,Geometry,MovingCOM,Sample,Valid,CORE,ROLE
+    imports=[]
+    for node in ast.walk(ast.parse((R/'com_motion.py').read_text(encoding='utf-8'))):
+        if isinstance(node,ast.Import):imports += [a.name for a in node.names]
+        if isinstance(node,ast.ImportFrom):imports.append(node.module)
+    assert not any(x and any(b in x.lower() for b in ('mujoco','isaac','torch')) for x in imports)
+    c=Config(model_confidence_cap=1.,min_cue_confidence=.5,nominal_COM_position_error_m=0.,nominal_COM_velocity_error_m_s=0.,nominal_COM_acceleration_error_m_s2=0.);g=Geometry(c);q=g.base.q_nominal;motion=g.motion(q,np.zeros(4),np.zeros(4));r=motion['r_B'];w=np.array([0.,0.,4*math.pi]);origin=-np.cross(w,np.cross(w,r))
+    def sample(proper,omega):
+        return Sample(0.,CORE|Valid.ALPHA|Valid.QDD4,tuple(q),(0.,)*4,tuple(proper),tuple(omega),'chassis_origin',alpha_B3=(0.,)*3,qdd4=(0.,)*4,q_error_rad4=(0.,)*4,qd_error_rad_s4=(0.,)*4,qdd_error_rad_s24=(0.,)*4,proper_error_m_s23=(0.,)*3,omega_error_rad_s3=(0.,)*3,alpha_error_rad_s23=(0.,)*3,encoder_calibration_confidence=1.,imu_frame_calibration_confidence=1.,derivative_confidence=1.,wheel_angle2=(0.,)*2,wheel_rate2=(0.,)*2,wheel_acc2=(0.,)*2,wheel_angle_error_rad2=(0.,)*2,wheel_rate_error_rad_s2=(0.,)*2,wheel_acc_error_rad_s22=(0.,)*2,wheel_binding_id='synthetic_nominal_only_not_measured_calibration')
+    rotation=MovingCOM(c).update(sample(origin,w),0.);support=MovingCOM(c).update(sample([0,0,9.81],[0,0,0]),0.)
+    missing=dataclasses.replace(sample(origin,w),wheel_binding_id='',wheel_angle2=None,wheel_rate2=None,wheel_acc2=None,wheel_rate_abs_bound_rad_s2=(60.,)*2,wheel_acc_abs_bound_rad_s22=(10000.,)*2)
+    vals,errs,details,reasons=MovingCOM(c)._wheel(missing,q,np.zeros(4),np.zeros(4));dr,drd,drdd=errs;wn=float(np.linalg.norm(w));wheel_specific=wn*wn*dr+2*wn*drd+drdd
+    examples={'role':'synthetic_nominal_math_examples_not_hardware_or_contact_calibration','nominal_COM_B3':r.tolist(),'nominal_mass_kg':g.total_mass,'rotating_freefall':{'omega_B3':w.tolist(),'proper_origin_B3':origin.tolist(),'proper_origin_norm_m_s2':float(np.linalg.norm(origin)),'proper_COM_B3':rotation.proper_COM_B3,'cue':int(rotation.cue),'confidence_context':'EXACT NOMINAL SYNTHETIC ONLY, not raised runtime default'},'guide_supported_fixture':{'proper_origin_B3':[0.,0.,9.81],'proper_COM_B3':support.proper_COM_B3,'cue':int(support.cue),'contact_identity_not_observed':True},'wheel_missing_under_EXPLICIT_assumed_bounds':{'relative_rate_abs_bound_rad_s2':[60.,60.],'relative_acc_abs_bound_rad_s22':[10000.,10000.],'root_omega_norm_rad_s':wn,'root_alpha_norm_rad_s2':0.,'r_error_radius_m':dr,'rDot_error_radius_m_s':drd,'rDDot_error_radius_m_s2':drdd,'specific_force_missing_radius_m_s2':wheel_specific,'details':details,'not_actual_dynamic_balance_or_impulse_bound_calibration':True}}
+    new(R/'NOMINAL_VECTOR_EXAMPLES.json',examples)
+    new(R/'PROPOSED_CONFIG.json',{'role':ROLE,'defaults':dataclasses.asdict(Config()),'not_user_acceptance':True,'not_probability_or_complete_global_DR_bound':True,'default_max_model_confidence':.60})
+    new(R/'PROPOSED_SENSOR_CAPTURE.json',{'status':'PROPOSED_NEW_CAPTURE_SCHEMA_NO_PARENT_LOGGER_EDIT','required_sensor_only_fields':['acquisition_time_s_per_imu_and_encoder','arrival_time_s','encoder_q4_absolute_Lhip_Lcrank_Rhip_Rcrank','encoder_qd4_same_order','gyro_B3','proper_origin_B3_or_raw_imu_with_reference_and_lever_metadata','qdd_estimate4_and_estimate_time_method_bound','alpha_B3_and_estimate_time_filter_method_bound','valid_bits_seq_calibration_binding_id'],'wheel_optional_fields':['relative_output_joint_wheel_angle2','relative_output_joint_wheel_rate2','relative_output_joint_wheel_acc2','declared_measurement_or_absolute_motion_bounds'],'do_not_substitute':['post_step_row_time_for_acquisition_time','root_qpos_qvel_qacc_GT','contacts_for_cue','episode_DR_parameters'],'old_R16_log_gap':'No packet.time_s/raw encoder tuple; est14rates and gyro only support apparent arrival-grid derivative diagnostic.','H1_H2_immutable':True,'no_new_physics_or_logger_changes_by_this_module':True})
+    validation={'status':'MOVING_COM_KINEMATIC_VECTOR_AND_STATIC_QA_PASS_SENSOR_DERIVATIVES_UNCERTAIN','tests':check['synthetic_units'],'static_QA':check['static_QA'],'source_hash_bound_to_first_pass':True,'runtime_imports':imports,'new_physics_steps':0,'new_robot_episodes':0,'actual_source_derivative_assessment':'R16 TRAIN sensor-derived rates only; no acquisition timestamps, no pure-noise/current-alpha/qdd calibration; uncertain','sensor_diagnostic':'attempts/001/sensor_diagnostic.json','prior8protected_SHA_unchanged':check['protected_hashes'],'PH2_commit_not_replayed':'02b5ff84b905a4e40f207a44b0491aeff2f79b7e','Git_state':'PH3pending new module, no Git action','not_qualified':['contact identity','whole-surface airborne truth','force calibration','global DR error bounds','hardware or real-time','270mm/RM/whole Goal']}
+    new(R/'VALIDATION.json',validation)
+    files=sorted(p for p in R.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.name!='INDEX.json')
+    index={'module':'DYNAMIC_COM_MOTION_V1','status':validation['status'],'runtime':meta(R/'com_motion.py'),'README':meta(R/'README.md'),'validation':meta(R/'VALIDATION.json'),'public_nominal_model_dependency_SHA':check['protected_hashes'][str(TASK/'CONTACT_PROXY_NOMINAL_V1/nominal_model.py')],'public_constants_SHA':check['protected_hashes'][str(TASK/'CONTACT_PROXY_NOMINAL_V1/PUBLIC_NOMINAL_CONSTANTS.json')],'observable':'nominal moving-COM specific-force vector/cue only; no force/contact identity/air/actuation','all_terms':['proper_origin','alpha_cross_r','omega_cross_omega_cross_r','2omega_cross_rDot','rDDot_including_Jqdd_and_convective'],'wheel_radial_MCI_nonzero_and_missing_motion_bound_explicit':True,'confidence_proposed_not_measured_probability':True,'sensor_derivatives_reliability':'uncertain; real recorded packet acquisition timestamps absent; no rootGT reconstruction','first_attempt':check,'administrative_reader_events':'ADMIN_AND_READER_EVENTS.json','source_read_allowlist_in_training_trace':['time','gyro','estimated14rate_fields10..13'],'phase3_pending':True,'overall_Goal_active':True,'files':[meta(p) for p in files]}
+    new(R/'INDEX.json',index)
+    count=0
+    for p in R.glob('*.md'):
+        for link in re.findall(r'\]\(<([^>]+)>\)',p.read_text(encoding='utf-8')):
+            target=p.parent/link.split('#')[0];assert target.exists(),(p,link);count+=1
+    print(json.dumps({'runtime':meta(R/'com_motion.py'),'README':meta(R/'README.md'),'INDEX':meta(R/'INDEX.json'),'VALIDATION':meta(R/'VALIDATION.json'),'synthetic_units':check['synthetic_units'],'static_QA':check['static_QA'],'nominal_COM_B3':r.tolist(),'wheel_missing_specific_force_radius_example':wheel_specific,'rotating_freefall_example':examples['rotating_freefall'],'links_checked':count,'protected8unchanged':True,'new_physics_steps':0,'phase3_pending':True},ensure_ascii=False,indent=2))
+if __name__=='__main__':main()

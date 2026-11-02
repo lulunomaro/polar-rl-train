@@ -1,0 +1,272 @@
+{
+  "magic": "ABQPIO",
+  "version": 1,
+  "max_n": 16,
+  "max_frame_bytes": 32768,
+  "max_tokens": 400,
+  "boot_fields": [
+    "max_n",
+    "pointer_bits",
+    "uint64_bits",
+    "float_mantissa",
+    "clock_source",
+    "float_environment",
+    "core_sha256",
+    "header_sha256"
+  ],
+  "solve_prefix": [
+    "n",
+    "max_pivots",
+    "tolerance",
+    "budget_us",
+    "warm_present",
+    "H_count",
+    "vector_count"
+  ],
+  "solve_data_order": [
+    "H_rowmajor_nxn",
+    "f_n",
+    "lo_n",
+    "hi_n",
+    "warm_n_only_if_present"
+  ],
+  "solve_count": "7+n*n+3*n+(warm_present?n:0)",
+  "header": [
+    "magic",
+    "version",
+    "operation",
+    "sequence_u64",
+    "payload_token_count_u32"
+  ],
+  "request_operations": {
+    "S": "SOLVE",
+    "Q": "QUIT, zero payload"
+  },
+  "response_operations": {
+    "B": "BOOT, seq0",
+    "R": "SOLVE reply, 42 fields",
+    "E": "fatal protocol reply, 42 fields",
+    "A": "QUIT ack, zero payload"
+  },
+  "reply_fields": [
+    {
+      "name": "status",
+      "type": "u32"
+    },
+    {
+      "name": "valid",
+      "type": "u32"
+    },
+    {
+      "name": "fatal",
+      "type": "u32"
+    },
+    {
+      "name": "request_n",
+      "type": "u32"
+    },
+    {
+      "name": "result_n",
+      "type": "u32"
+    },
+    {
+      "name": "warm_present",
+      "type": "u32"
+    },
+    {
+      "name": "clock_failed",
+      "type": "u32"
+    },
+    {
+      "name": "diagnostic_valid",
+      "type": "u32"
+    },
+    {
+      "name": "cost",
+      "type": "f32"
+    },
+    {
+      "name": "kkt_estimate",
+      "type": "f32"
+    },
+    {
+      "name": "kkt_upper",
+      "type": "f32"
+    },
+    {
+      "name": "maximum_gradient_roundoff_bound",
+      "type": "f32"
+    },
+    {
+      "name": "diagnostic_kkt_estimate",
+      "type": "f32"
+    },
+    {
+      "name": "diagnostic_kkt_upper",
+      "type": "f32"
+    },
+    {
+      "name": "pivots",
+      "type": "u32"
+    },
+    {
+      "name": "factorizations",
+      "type": "u64"
+    },
+    {
+      "name": "factor_cells",
+      "type": "u64"
+    },
+    {
+      "name": "releases",
+      "type": "u64"
+    },
+    {
+      "name": "bound_hits",
+      "type": "u64"
+    },
+    {
+      "name": "gradient_evaluations",
+      "type": "u64"
+    },
+    {
+      "name": "clock_polls",
+      "type": "u64"
+    },
+    {
+      "name": "last_phase",
+      "type": "u32"
+    },
+    {
+      "name": "abort_phase",
+      "type": "u32"
+    },
+    {
+      "name": "start_us",
+      "type": "u64"
+    },
+    {
+      "name": "last_us",
+      "type": "u64"
+    },
+    {
+      "name": "elapsed_us",
+      "type": "u64"
+    },
+    {
+      "name": "z0",
+      "type": "f32"
+    },
+    {
+      "name": "z1",
+      "type": "f32"
+    },
+    {
+      "name": "z2",
+      "type": "f32"
+    },
+    {
+      "name": "z3",
+      "type": "f32"
+    },
+    {
+      "name": "z4",
+      "type": "f32"
+    },
+    {
+      "name": "z5",
+      "type": "f32"
+    },
+    {
+      "name": "z6",
+      "type": "f32"
+    },
+    {
+      "name": "z7",
+      "type": "f32"
+    },
+    {
+      "name": "z8",
+      "type": "f32"
+    },
+    {
+      "name": "z9",
+      "type": "f32"
+    },
+    {
+      "name": "z10",
+      "type": "f32"
+    },
+    {
+      "name": "z11",
+      "type": "f32"
+    },
+    {
+      "name": "z12",
+      "type": "f32"
+    },
+    {
+      "name": "z13",
+      "type": "f32"
+    },
+    {
+      "name": "z14",
+      "type": "f32"
+    },
+    {
+      "name": "z15",
+      "type": "f32"
+    }
+  ],
+  "status_names": [
+    "CONVERGED",
+    "MAX_PIVOTS",
+    "DEADLINE",
+    "CLOCK_ERROR",
+    "BAD_ARGUMENT",
+    "BAD_SHAPE",
+    "BAD_OPTIONS",
+    "BAD_ALIAS",
+    "NONFINITE",
+    "ASYMMETRIC",
+    "NOT_SPD",
+    "NUMERIC",
+    "NO_PROGRESS",
+    "CYCLE",
+    "ROUNDOFF_LIMIT",
+    "BAD_BOX"
+  ],
+  "protocol_status": {
+    "1001": "BAD_HEADER",
+    "1002": "BAD_COUNT",
+    "1003": "BAD_INTEGER",
+    "1004": "BAD_SHAPE",
+    "1005": "BAD_SEQUENCE",
+    "1006": "BAD_FLOAT",
+    "1007": "BAD_OPTION",
+    "1008": "TRUNCATED",
+    "1009": "OVERSIZE",
+    "1010": "BAD_ASCII",
+    "1011": "HOST_CLOCK_FAILURE",
+    "1012": "HOST_FP_ENV",
+    "1013": "BAD_OPERATION"
+  },
+  "fatal_solver_statuses": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    15
+  ],
+  "core_sha256": "b726c0acf09a13fe0114da1e1161fb2a7f57a4e138c7caf239c5fdd157ec653e",
+  "header_sha256": "e8b52347608370314dff3e48d5b4de1f4821b7b0e5f978a2ffae66958a0f8cba",
+  "acceptance": "status0 AND valid1 only; all non0 accepted z/cost/KKT0, stats retained; diagnostics separately labeled",
+  "sequence": "first positive uint64 arbitrary; subsequent exactly previous+1, no wrap; Q obeys same rule; SDK EOF-closes at exhaustion",
+  "clock": "QPC absolute monotonic us; exact checked integer conversion; relative ASQP START budget, cooperative only",
+  "SDK_wall": "solve-entry through full response validation/lifecycle, perf_counter_ns; NOT complete parent cycle deadline qualification"
+}

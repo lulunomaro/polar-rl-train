@@ -1,0 +1,10 @@
+# Host resident adapter — attempts/errors retained
+
+- [prepare_01.log](<prepare_01.log>): froze377 read-only dependencies, generated typed INIT51/STEP51/REPLY71 schema. No physics/import of a plant.
+- [build_01.log](<build_01.log>): first strict C99/Wall/Wextra/Werror/pedantic/Wvla/no-fast-math host build exit0. [Original C attempt](<revisions/build_attempt_01/p25_host_adapter.c>) and [protocol header](<revisions/build_attempt_01/io_protocol.h>) preserved. No compile failure or toolchain installation.
+- [gcc_version_01.log](<gcc_version_01.log>) and [target](<gcc_target_01.log>): existing MinGW6.3.0/mingw32, exit0. [BUILD_RECEIPT.json](<BUILD_RECEIPT.json>) preserves exact invocation/current source/executable hashes; capture does not rebuild.
+- [selftest_01.log](<selftest_01.log>): first protocol selftest passed41,632 checks,3200roundtrips,0bit differences vs direct C mathematical state/torque. [Attempt source](<revisions/selftest_attempt_01/selftest_io.py>), [SDK](<revisions/selftest_attempt_01/p25_stdio.py>) and [predeclared criteria](<TEST_CRITERIA.json>) remain.
+- Nine deliberately invalid software cases all returned expected errors with entire payload zero and latch: bad wire seq1006, reinit/preinit1007, invalid mean9, unknown op1003, count1004, nonfinite token1005, clock rollback23, truncated EOF1008/exit2. These are expected negative-test results, not hidden unexpected failures. Corresponding stderr logs retained.
+- [ROUNDTRIP_01.jsonl](<ROUNDTRIP_01.jsonl>) preserves every reply. Guarded vs original signed-DC double max1.64470e−6Nm; **pre/post point-DC τ differ up to4.53119Nm**, explicitly not a precision error or silently interchangeable output.
+
+All tests were local software. No failed robot episodes were replaced, no new physics/H1/H2 selection, network/CAN/BSP, ARM runtime/WCET, Git/new agent or old V3 source edits. PH3 physical integration is pending in the parent; PH2 cutoff stays frozen. [README](<README.md>)/[PROTOCOL](<PROTOCOL.md>) state virtual clocks/quality metadata/driver boundaries.

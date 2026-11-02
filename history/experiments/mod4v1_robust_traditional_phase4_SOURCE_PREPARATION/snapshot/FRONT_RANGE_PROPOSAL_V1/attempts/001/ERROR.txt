@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\FRONT_RANGE_PROPOSAL_V1\static_qa.py", line 39, in <module>
+    try:run()
+        ~~~^^
+  File "F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\FRONT_RANGE_PROPOSAL_V1\static_qa.py", line 27, in run
+    plant.d.qpos[0]=x;mujoco.mj_forward(plant.m,plant.d);now=index*.01;packet=sensor.sample(plant.d,now);support=SupportView(now,np.eye(3),q4,True,.010,.005);result=infer_front(packet,support,chart,now);check(packet is not None and packet.valid,'validfloorrange');check(not result['qualified_for_actuation'],'neverqualifyactuation');rows.append(dict(x_m=float(x),range_m=packet.range_m,result=result))
+                                                                                                                                                                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\FRONT_RANGE_PROPOSAL_V1\front_geometry.py", line 57, in infer_front
+    wheel_points = [geometry.wheel_kinematics(q[2*i], q[2*i+1], 0., 0., 0., np.zeros(3), i)[1] for i in range(2)]
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\sensor_core.py", line 54, in wheel_kinematics
+    r,knee=self.pose(hip,crank,side);eps=1e-5;der=[]
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\sensor_core.py", line 49, in pose
+    p=self.pins[side];L=lambda a,b:float(np.linalg.norm(p[a]-p[b]));cross=lambda a,b:a[0]*b[1]-a[1]*b[0]
+      ~~~~~~~~~^^^^^^
+KeyError: 0

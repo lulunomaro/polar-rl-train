@@ -1,0 +1,13 @@
+# Portable control v3-current — staged port of frozen V4/P25 mathematics
+
+This drop implements stages 1+2 only: current sensor_core_v4 packet math and the actual P25 exported normal-controller K/profile. It is not old R00 C1 renamed, a BSP, firmware, selected final control architecture, or new robot qualification.
+
+- New writes only here. Every old source/index/manifest stays read-only. Reuse sealed C2 only for pure closed-chain FK/wheel kinematics; radius and f32 FD epsilon remain external declared parameters, not measured calibration.
+- Read/freeze sensor_core_v4.py, ground_controller_v4.py, P25 CONTROLLER_PACK/PROTOCOL and STATE14_SCHEMA_ERRATUM. Read H2 source/protocol for boundary/reference only; H2 common-wheel torque20/cap1.8 feedback is NOT included in this first drop. Estimator may expose same-packet FK/gyro lateral proxy as a diagnostic assumption, never a world-position or independent slip sensor.
+- 100Hz packet-level mathematics only. No window collector, no claim of physical 2kHz CAN/encoder sampling. Caller supplies an immutable coherent queue epoch, aperture/count/mean-quality metadata; consistency is checked, metadata itself does not prove hardware sampling. Position-at-window-end vs averaged gyro/rates remains explicit.
+- Explicit supported-upright or static-gravity arming; no silent upright fallback for undeclared unsettled IMU. Duplicate timestamp with changed payload/epoch is a fault. Stamp/age/overrun/nonfinite/invalid mean/init faults zero outputs, valid=0, latch until explicit reset/rearm.
+- Current V4 quaternion, lever-origin, optional wheel-midpoint centrifugal reference, vector innovation gate, Joseph v/b KF, heading unwrap and one-time age view; delta columns are crank-minus-hip, not passive FK knee.
+- P25: actual exported K, 120/4 fixed leg PID, yawPI .8/.5/I15, rateFF .052 plus frozen acceleration FF .08, command jerk/accel, leash1 and original speed/effort/DC envelopes. Output rows Lhip,Lcrank,Lwheel,Rhip,Rcrank,Rwheel. Wheel-first mathematical order explicitly [Lwheel,Rwheel,Lhip,Lcrank,Rhip,Rcrank], not a guessed physical front/rear or CAN binding.
+- Pure torque math and an abstract single-enqueue dispatch gate are separate. Shipping bindings remain unbound. No DM3519 CAN bytes, IDs, reducer/sign conversions or board identity are invented.
+- Offline reference may import ONLY inspected pure sensor/controller math with -B (no parent pycache); never import physics_bridge/mujoco or instantiate/step a plant. Fixed TRAIN raw packet streams or synthetic numerical vectors only. No H1/H2 result-driven parameter choice.
+- Strict host C99/math tests and existing armclang M4/M7 compile-only are allowed. No BSP link/BIN/board/ARM runtime/WCET/Git/new agents, toolchain installs or license workarounds.

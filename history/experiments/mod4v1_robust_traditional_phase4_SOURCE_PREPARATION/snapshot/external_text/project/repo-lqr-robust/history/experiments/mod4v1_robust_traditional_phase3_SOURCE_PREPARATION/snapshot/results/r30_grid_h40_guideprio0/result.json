@@ -1,0 +1,767 @@
+{
+  "kind": "R03_MOD4V1_SUPPORTEDUPRIGHT_AND_YAWPI_SCREEN",
+  "upright_arming_prior": true,
+  "initial_orientation_scope": "Supporteduprightcasearmingprior; NOTarbitraryunknownattitudequalification",
+  "sensor_frontend": "2kHzIMUandencoderrateboxcar_to100Hz_thenD1noise_D3delay; explicitnewfrontend",
+  "highrate_IMU_samples": 26000,
+  "attitude_accel_reference": "wheel_midpoint",
+  "initial_mesh_support": {
+    "root_dz_m": 0.0001361826636122332,
+    "plane_z_m": 0.0,
+    "requested_clearance_m": 0.0,
+    "two_tire_lowest_z_difference_m": 4.163336342344337e-17,
+    "meaning": "minimal nonpenetrating tire-only initialization shift; not a physical equilibrium or a runtime root correction"
+  },
+  "tail_physics_mean_wheel_force_N2": [
+    64.4669297132227,
+    169.90818219239117
+  ],
+  "physics_nonwheel_contact_ticks": 8,
+  "impulse_support_gate": true,
+  "whole_sensor_control_chain_ms_max": 3.9267,
+  "whole_sensor_control_chain_ms_p99": 2.485777,
+  "config": {
+    "case_id": "r30_grid_h40_guideprio0",
+    "seed": 0,
+    "nominal": true,
+    "duration_s": 13.0,
+    "command_at_s": 1.0,
+    "brake_at_s": 8.5,
+    "mode": "forward",
+    "forward_m_s": 1.0,
+    "start_x_m": 0.8,
+    "controller": {
+      "position_weight": 25.0,
+      "position_leash": 1.0,
+      "yaw_kp": 0.8,
+      "yaw_ki": 0.5,
+      "yaw_integral_limit": 15.0,
+      "yaw_rate_ff": 0.052
+    },
+    "accel_reference": "wheel_midpoint",
+    "upright_arming_prior": true,
+    "feedback": "sensors",
+    "terrain_difficulty": 0.5,
+    "terrain_seed": 9001,
+    "guide_priority_variant": false,
+    "purpose": "newnamedcontactblockerdiagnosticnotarchivalreplay"
+  },
+  "model_SHA": "0e9ca6854285dc73465a198656fdedd992ffbf205c4ea9ed9d3ce88b905bf324",
+  "nominal": true,
+  "DR": {
+    "schema": "mod4.mujoco400N.full_D0_D7.v1",
+    "seed": 0,
+    "nominal": true,
+    "actuator_order": [
+      "left_hip",
+      "left_crank",
+      "left_wheel_spin",
+      "right_hip",
+      "right_crank",
+      "right_wheel_spin"
+    ],
+    "leg_feedback_order": [
+      "left_crank",
+      "left_hip",
+      "right_crank",
+      "right_hip"
+    ],
+    "physics_dt_s": 0.0005,
+    "feedback_period_s": 0.01,
+    "D0": {
+      "profile": "white_v3",
+      "D0_only_nominal_episode": true,
+      "nominal_probability": 0.2,
+      "all_moving_bodies_shared_mass_inertia_factor": 1.0,
+      "motor_gain6": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wheel_sliding_mu": 0.9,
+      "wheel_friction_bucket_index": 0,
+      "wheel_friction_buckets": [
+        0.9,
+        0.7,
+        0.7096774193548386,
+        0.7193548387096774,
+        0.7290322580645161,
+        0.7387096774193548,
+        0.7483870967741935,
+        0.7580645161290323,
+        0.7677419354838709,
+        0.7774193548387096,
+        0.7870967741935484,
+        0.7967741935483871,
+        0.8064516129032258,
+        0.8161290322580645,
+        0.8258064516129032,
+        0.8354838709677419,
+        0.8451612903225807,
+        0.8548387096774194,
+        0.864516129032258,
+        0.8741935483870967,
+        0.8838709677419355,
+        0.8935483870967742,
+        0.9032258064516129,
+        0.9129032258064516,
+        0.9225806451612903,
+        0.932258064516129,
+        0.9419354838709677,
+        0.9516129032258065,
+        0.9612903225806452,
+        0.9709677419354839,
+        0.9806451612903226,
+        0.9903225806451613,
+        1.0
+      ],
+      "tire_geom_ids": [
+        222,
+        292
+      ],
+      "tire_priority_before": [
+        0,
+        0
+      ],
+      "tire_priority_after": [
+        1,
+        1
+      ],
+      "explicit_tire_pairs_updated": [],
+      "nonwheel_friction_unchanged": true,
+      "gain_application": "signed DC clip -> motor_gain6 -> signed DC clip"
+    },
+    "D1": {
+      "raw_uniform_half_widths": {
+        "omega3": 0.125,
+        "gravity3": 0.025,
+        "legq4": 0.005,
+        "legqd4": 0.25,
+        "wheelqd2": 0.5
+      },
+      "enabled": false,
+      "sample_hz": 100,
+      "units": {
+        "omega3": "rad/s",
+        "gravity3": "dimensionless",
+        "legq4": "rad",
+        "legqd4": "rad/s",
+        "wheelqd2": "rad/s"
+      }
+    },
+    "D2": {
+      "episode_leg_bias4_rad": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "true_joint_state_unchanged": true
+    },
+    "D3": {
+      "shared_feedback_delay_ticks100Hz": 0,
+      "requested_delay_us": 0,
+      "noise_bias_before_queue": true,
+      "first_sample_age_us": 0,
+      "only_five_feedback_channels_delayed": true,
+      "BODY_components_kept_in_sample_frame": true
+    },
+    "D4": {
+      "action_delay_ticks6": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "action_delay_us6": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "independent_leg_and_wheel_episode_lags": true,
+      "queued_values": "processed leg position rad / wheel velocity rad_s; current-state PD after queue",
+      "reset_initial": "caller actual/default leg q and zero wheel velocity; all stale samples cleared"
+    },
+    "D5": {
+      "gas_joint_names": [
+        "left_gas_slide",
+        "right_gas_slide"
+      ],
+      "stiffness_factor2": [
+        1.0,
+        1.0
+      ],
+      "stiffness_N_m2": [
+        2000.0,
+        2000.0
+      ],
+      "springref_m2": [
+        0.22063944109012937,
+        0.2206394410901294
+      ],
+      "preload_reference_unchanged": true
+    },
+    "D6": {
+      "gas_damping_factor2": [
+        1.0,
+        1.0
+      ],
+      "gas_damping_Ns_m2": [
+        3.0,
+        3.0
+      ],
+      "joint_friction_randomization": false
+    },
+    "D7": {
+      "chassis_local_COM_delta_m3": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "leg_kp_factor4_actuator_leg_order": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "leg_kd_factor4_actuator_leg_order": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "wheel_kd_factor2": [
+        1.0,
+        1.0
+      ],
+      "KP6": [
+        60.0,
+        60.0,
+        0.0,
+        60.0,
+        60.0,
+        0.0
+      ],
+      "KD6": [
+        2.0,
+        2.0,
+        0.6,
+        2.0,
+        2.0,
+        0.6
+      ],
+      "inertia_tensor_about_COM_unchanged_by_D7": true
+    },
+    "model_constants_refreshed": true,
+    "engineering_pressure_not_hardware_calibration": true,
+    "legacy_push_armature_joint_friction_DR_enabled": false,
+    "historical_CUDA_RNG_bit_identity_claimed": false
+  },
+  "queue_receipt": {
+    "physics_tick": 25999,
+    "actual_first_transition_delay_ticks6": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "applied_command_sample_age_ticks6": [
+      19,
+      19,
+      19,
+      19,
+      19,
+      19
+    ],
+    "pending_groups": {
+      "legs": 0,
+      "wheels": 0
+    },
+    "feedback_samples100Hz": 1300,
+    "last_feedback_actual_age_us": 0
+  },
+  "source_root_state_writes_after_initialization": 0,
+  "root_assist_forces": 0,
+  "full_D0_D7_on_control_path": false,
+  "legacy_gravity3_channel_is_raw_minus_accel_over_g_not_truth_gravity": true,
+  "actual_feedback": "sensors",
+  "truth_used_for_control": false,
+  "terrain": "flat",
+  "mode": "forward",
+  "physics_callbacks": 26000,
+  "controls": 1300,
+  "duration_actual_s": 13.000000000004396,
+  "control_dt_s": 0.01,
+  "physics_dt_s": 0.0005,
+  "stop_reason": "complete",
+  "complete": true,
+  "tail_sample_count": 201,
+  "tail_velocity_mean_m_s": -0.0019437316194601429,
+  "tail_yawrate_mean_rad_s": 0.001218400528802094,
+  "tail_v_tracking_RMSE": 0.002281490929909241,
+  "tail_w_tracking_RMSE": 0.001446746783751926,
+  "tail_pitch_RMS": 0.07920529152809928,
+  "tail_roll_RMS": 0.0162105266543159,
+  "estimator_velocity_RMSE": 0.004383980253914117,
+  "estimator_pitch_RMSE": 0.001218669852120918,
+  "actual_yaw_turns": 0.0058904140486109886,
+  "xy_displacement_m": 6.5038794945446,
+  "max_pitch_abs": 0.5740215799723011,
+  "max_roll_abs": 0.17824078664479356,
+  "max_closure": 1.3619873554603485e-05,
+  "max_mimic": 2.3694742870672414e-05,
+  "nonwheel_ground_contact_control_samples": 1,
+  "peak_positive_mechanical_power_W": 493.37445722491884,
+  "power_scope": "Mechanicalonly; copper/bus/thermalparametersunbound; notelectricalqualification",
+  "max_actual_tau6": [
+    20.683977461839095,
+    27.333832680334982,
+    5.775909774436091,
+    21.758198008801394,
+    20.755446654502038,
+    5.775909774436091
+  ],
+  "max_controller_compute_ms": 0.31589999999999996,
+  "command_envelope_clips": 0,
+  "proposed_engineering_gate_not_user_ratified": true,
+  "proposed_gate_passed": false,
+  "real_robot_or_board_claim": false,
+  "world_truth_control_bypasses": false,
+  "imu_offset_scope": "Explicitvirtualtestextrinsic; notconfirmedphysicalmount",
+  "collision_radius_m": 0.06369999796152115,
+  "nominal_hardware_radius_spec_m": 0.0625,
+  "actuation_mapping": "OriginalinversePDprocessedtargets/DR; finalDMCANbindingnotyetconfirmed",
+  "wall_s": 8.820568399998592,
+  "yaw_score_frame": "EulerheadingratefrombodygyroandtrueRPY, notbodygyro_zalone",
+  "cohort": "train",
+  "contact_audit": {
+    "first_nonwheel": {
+      "stage_s": 4.707500000000111,
+      "robot_geom": "guide_wheel_04",
+      "robot_body": "guide_roller_04",
+      "environment_geom": "ground",
+      "kind": "guide_roller",
+      "normal_N": 8342.740408217254,
+      "contact_point_m": [
+        3.7560543315875226,
+        -0.07577277625591097,
+        -0.00013503765380006374
+      ],
+      "normal_geom1_to2": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "effective_friction5": [
+        1.0,
+        1.0,
+        0.003,
+        0.0001,
+        0.0001
+      ]
+    },
+    "first_bar_tire": {
+      "stage_s": 2.5675000000000248,
+      "robot_geom": "right_tire",
+      "robot_body": "right_wheel",
+      "environment_geom": "rm_bar_011",
+      "kind": "main_wheel",
+      "normal_N": 5714.097268339556,
+      "contact_point_m": [
+        1.6520296579819582,
+        -0.20882786327915642,
+        0.03996701694242754
+      ],
+      "normal_geom1_to2": [
+        -0.964088203909834,
+        6.737310186357571e-05,
+        0.2655822481695184
+      ],
+      "effective_friction5": [
+        0.9,
+        0.9,
+        0.003,
+        0.0001,
+        0.0001
+      ]
+    },
+    "contact_stats": {
+      "left_tire|ground": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 33939,
+        "normal_impulse_Ns": 773.7284793499027,
+        "peak_N": 3800.8796346175272,
+        "first_stage_s": 0.0005,
+        "last_stage_s": 12.999500000004396
+      },
+      "right_tire|ground": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 29313,
+        "normal_impulse_Ns": 890.3002457818253,
+        "peak_N": 4159.3899695195605,
+        "first_stage_s": 0.0005,
+        "last_stage_s": 12.999500000004396
+      },
+      "right_tire|rm_bar_011": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 149,
+        "normal_impulse_Ns": 18.768082180116878,
+        "peak_N": 5714.097268339556,
+        "first_stage_s": 2.5675000000000248,
+        "last_stage_s": 2.8305000000001126
+      },
+      "left_tire|rm_bar_011": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 135,
+        "normal_impulse_Ns": 18.334724231759733,
+        "peak_N": 3324.3902105019615,
+        "first_stage_s": 2.568000000000025,
+        "last_stage_s": 2.819500000000109
+      },
+      "left_tire|rm_bar_012": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 324,
+        "normal_impulse_Ns": 27.20771452120073,
+        "peak_N": 3159.359813608639,
+        "first_stage_s": 4.4550000000002505,
+        "last_stage_s": 4.957499999999972
+      },
+      "right_tire|rm_bar_012": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 174,
+        "normal_impulse_Ns": 25.393077851212507,
+        "peak_N": 2140.6145869581533,
+        "first_stage_s": 4.51050000000022,
+        "last_stage_s": 4.860000000000026
+      },
+      "guide_wheel_04|ground": {
+        "kind": "guide_roller",
+        "body": "guide_roller_04",
+        "ticks": 16,
+        "normal_impulse_Ns": 12.117859053294941,
+        "peak_N": 8342.740408217254,
+        "first_stage_s": 4.707500000000111,
+        "last_stage_s": 4.740500000000092
+      },
+      "right_tire|rm_bar_013": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 214,
+        "normal_impulse_Ns": 21.776504732025273,
+        "peak_N": 3370.7067743142043,
+        "first_stage_s": 6.601499999999061,
+        "last_stage_s": 6.973499999998855
+      },
+      "left_tire|rm_bar_013": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 495,
+        "normal_impulse_Ns": 31.61845752742048,
+        "peak_N": 3862.989664103274,
+        "first_stage_s": 6.786999999998958,
+        "last_stage_s": 7.329999999998657
+      },
+      "left_tire|rm_bar_009": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 285,
+        "normal_impulse_Ns": 26.636518135509416,
+        "peak_N": 3526.127979859718,
+        "first_stage_s": 8.123499999998437,
+        "last_stage_s": 8.588499999999005
+      },
+      "right_tire|rm_bar_009": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 7828,
+        "normal_impulse_Ns": 317.6333706439914,
+        "peak_N": 2505.039149186077,
+        "first_stage_s": 8.621999999999046,
+        "last_stage_s": 12.999500000004396
+      },
+      "right_tire|rm_bar_014": {
+        "kind": "main_wheel",
+        "body": "right_wheel",
+        "ticks": 205,
+        "normal_impulse_Ns": 6.997684407016637,
+        "peak_N": 1588.1255497496109,
+        "first_stage_s": 9.349999999999936,
+        "last_stage_s": 9.479500000000094
+      },
+      "left_tire|rm_bar_014": {
+        "kind": "main_wheel",
+        "body": "left_wheel",
+        "ticks": 114,
+        "normal_impulse_Ns": 5.69488907789913,
+        "peak_N": 1512.7506664357536,
+        "first_stage_s": 9.358999999999947,
+        "last_stage_s": 9.469500000000082
+      }
+    },
+    "guide_priority_variant": false,
+    "grading_only": true
+  },
+  "scene": {
+    "kind": "EXACT_PINNED_SCUT_TINY_STEP_BOX_GEOMETRY_ONE_OF11_NOT_CAD_ARENA",
+    "upstream_commit": "b8ff79f3df855faf9dc92f4a282bd80c42649466",
+    "pinned_source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E1_actual_qualification_v1\\SLOPE135_ACTUAL_TYPED_SOURCE_V1\\runtime\\isaac\\mod4\\pinned_source\\height_field.py",
+    "pinned_SHA": "5f444236205f6ab4a56e0c76387b388d5d2d5a7a83ab63386f5cf15ae5b68d0e",
+    "recipe_SHA": "c8fbf4c0426d54b6113fbae85e0385900f54aad0e1867ed9e60e11affc028408",
+    "family": "tiny_step",
+    "original_parameters": {
+      "proportion": 0.2,
+      "num_horizontal_range": [
+        2,
+        4
+      ],
+      "num_vertical_range": [
+        2,
+        4
+      ],
+      "randomize_bar_count_difficulty": true,
+      "force_unequal_counts": false,
+      "force_even_counts": true,
+      "bar_width_range": [
+        0.05,
+        0.2
+      ],
+      "randomize_bar_width_difficulty": true,
+      "bar_height_range": [
+        0.02,
+        0.06
+      ]
+    },
+    "defaults_source_lines": "598-643:bar_length_ratio.95/ground_thickness.05",
+    "scene_config": {
+      "seed": 9001,
+      "difficulty": 0.5
+    },
+    "origin_authored": [
+      4.5,
+      4.5,
+      0.039999999999999994
+    ],
+    "coordinate_translation_m": [
+      0.0,
+      -4.5,
+      0.0
+    ],
+    "full_bar_height_range_m": [
+      0.02,
+      0.06
+    ],
+    "actual_bar_height_m": 0.04,
+    "boxes": [
+      {
+        "size_m": [
+          9.0,
+          9.0,
+          0.05
+        ],
+        "position_m": [
+          4.5,
+          0.0,
+          -0.025
+        ]
+      },
+      {
+        "size_m": [
+          1.4269099264225122,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          0.9384549632112563,
+          -1.5308520793914795,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.6519099054497,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          2.662977397441864,
+          -1.5308520793914795,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.651910263077569,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          4.5,
+          -1.5308520793914795,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.6519097862404113,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          6.337022542953491,
+          -1.5308520793914795,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.4269100456318027,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          8.061544977184099,
+          -1.5308520793914795,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.4269099264225122,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          0.9384549632112563,
+          1.5308523178100586,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.6519099054497,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          2.662977397441864,
+          1.5308523178100586,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.651910263077569,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          4.5,
+          1.5308523178100586,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.6519097862404113,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          6.337022542953491,
+          1.5308523178100586,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          1.4269100456318027,
+          0.18511251829450154,
+          0.039999999999999994
+        ],
+        "position_m": [
+          8.061544977184099,
+          1.5308523178100586,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          0.18511251829450154,
+          8.55,
+          0.039999999999999994
+        ],
+        "position_m": [
+          1.7444661855697632,
+          8.881784197001252e-16,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          0.18511251829450154,
+          8.55,
+          0.039999999999999994
+        ],
+        "position_m": [
+          3.581488609313965,
+          8.881784197001252e-16,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          0.18511251829450154,
+          8.55,
+          0.039999999999999994
+        ],
+        "position_m": [
+          5.418511390686035,
+          8.881784197001252e-16,
+          0.019999999999999997
+        ]
+      },
+      {
+        "size_m": [
+          0.18511251829450154,
+          8.55,
+          0.039999999999999994
+        ],
+        "position_m": [
+          7.255533695220947,
+          8.881784197001252e-16,
+          0.019999999999999997
+        ]
+      }
+    ],
+    "infinite_plane": false,
+    "other10families_present": false,
+    "Isaac_PhysX_runtime_equivalence_claim": false,
+    "full_CAD_package_not_found_in_workspace_search": true,
+    "effective_scene_xml_SHA": "9db2443751dd77eb96ceaff5a8917cfd7e918b6af5556c192e9cfca9a8053956"
+  },
+  "rough_progress_m": 6.293377133450634,
+  "rough_max_y_m": 1.6587416639429198,
+  "rough_case_pass": false,
+  "trace_artifact": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\results\\r30_grid_h40_guideprio0\\trace.jsonl",
+    "bytes": 4426642,
+    "SHA": "4b8b67011a73337ae201fce7a7b53bdc28bbcdf02e9b59141cc428da95bb7144",
+    "producer_streamed_once": true
+  }
+}

@@ -1,0 +1,20 @@
+Native supervisor C99 + C++ interface source closure
+
+Source bundle preserves sibling layout:
+ NATIVE_C_MPC_SUPERVISOR_V1/nm1_supervisor.{c,h}
+ NATIVE_C_MPC_SUPERVISOR_V1/nm1_model.{c,h}
+ ACTIVE_BOX_QP_V3/active_box_qp.{c,h}  (exact sealed bytes)
+
+Compile the three .c translation units, not .cpp, and link libm plus the platform C/runtime. nm1_supervisor.h exposes extern-C functions for C++. No C3/Python/SDK is a runtime dependency; a real caller still must obtain validated C3 base/drive inputs and bind a monotonic clock. No board/driver binding is supplied.
+
+Reproduced host flags:
+-std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse
+C++ smoke: same warnings/FP flags, -std=c++11; link the C objects.
+
+Target candidate object flags (compile only, no SSE):
+--target=arm-arm-none-eabi -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -std=c99 -O2 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -c
+M7 substitution: -mcpu=cortex-m7 -mfpu=fpv5-sp-d16
+
+Supervisor condensing/DC/KKT uses IEEE binary64; the unchanged QP uses IEEE binary32. Both assume round-to-nearest/no-fast-math. SP-hard ABI is not SP-only arithmetic. Real double/libm/__aeabi_uldivmod dependencies, FPSCR/FTZ, stack, deadlines and driver behavior require separate binding and measurement. The final supervisor poll does not include the rest of the return or actuator submission.
+
+Tests here are compiled fixed fixtures and in-process direct ASQP calls. Their printed JSON is evidence output, not a protocol/parser/worker. Build scripts stop if any command exits0 but lacks its expected artifact. Do not use them as attempts to revive blocked old stdio artifacts.

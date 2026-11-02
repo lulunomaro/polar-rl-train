@@ -1,0 +1,48 @@
+/* In-process tests/JSON evidence only. No input parser, SDK or worker. */
+#include "nm1_supervisor.h"
+#include "nm1_model.h"
+#include "nm1_fixtures.h"
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+static unsigned checks=0,failures=0;
+#define CHECK(v) do{checks++;if(!(v)){failures++;fprintf(stderr,"CHECK line=%u failed: %s\n",(unsigned)__LINE__,#v);}}while(0)
+typedef struct {uint64_t now;unsigned target,kp,unit,mode,fired,calls;} test_clock;
+static int clockfn(void *v,nm1_phase ph,uint32_t kp,uint32_t it,uint32_t unit,uint64_t *now){test_clock *c=(test_clock*)v;(void)it;c->calls++;if(c->mode&&!c->fired&&(unsigned)ph==c->target&&(ph!=NM1_PHASE_KERNEL||kp==c->kp)&&unit>=c->unit){c->fired=1;if(c->mode==1){c->now+=3000000u;}else if(c->mode==2){c->now--;}else{return 0;}}*now=c->now;return 1;}
+static void vf(const float *v,unsigned n){unsigned j;printf("[");for(j=0;j<n;j++){printf("%s%.9g",j?",":"",(double)v[j]);}printf("]");}
+static void vd(const double *v,unsigned n){unsigned j;printf("[");for(j=0;j<n;j++){printf("%s%.17g",j?",":"",v[j]);}printf("]");}
+static void reset(nm1_context *c,test_clock *t){nm1_config cfg;memset(t,0,sizeof(*t));memset(&cfg,0,sizeof(cfg));cfg.clock=clockfn;cfg.clock_context=t;cfg.cycle_budget_us=3000;CHECK(nm1_init(c,&cfg)==NM1_ACCEPTED);}
+static void check_fallback(const nm1_output *o,const nm1_input *in){unsigned j;CHECK(o->valid==1);CHECK(o->mpc_accepted==0);for(j=0;j<6;j++){CHECK(o->tau6[j]==(double)in->guarded_tau6[j]);}for(j=0;j<15;j++){CHECK(o->accepted_z[j]==0);}}
+static void unit_tests(void){nm1_context c,before;nm1_workspace w;nm1_output o;nm1_input in;test_clock t;nm1_config cfg;unsigned mode,ph,kp,j;double measured;ab3_result r;float f[15];
+ in=nm1_fixtures[0].input;reset(&c,&t);CHECK(nm1_select(&c,&in,&w,&o)==NM1_ACCEPTED);CHECK(o.mpc_accepted&&o.valid&&o.clock_valid&&!o.deadline_missed&&c.accepted==1);CHECK(nm1_check_solution(w.f,o.common_lo,o.common_hi,&w.qp_result,&measured));
+ r=w.qp_result;memcpy(f,w.f,sizeof(f));r.z[0]=100.f;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.kkt_upper=NAN;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.kkt_upper=.003f;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.n=16;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.valid=2;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.z[1]=NAN;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));r=w.qp_result;r.z[0]+=1.f;CHECK(!nm1_check_solution(f,o.common_lo,o.common_hi,&r,&measured));CHECK(!nm1_check_solution(NULL,0,1,&r,&measured));CHECK(!nm1_check_solution(f,0,1,&r,(double*)f));
+ /* Every native phase and all sealed kernel poll phases: deadline, backward,
+  * unavailable. Source tuple deliberately has a genuine nonzero free step. */
+ for(mode=1;mode<=3;mode++){for(ph=0;ph<=NM1_PHASE_FINAL;ph++){for(kp=0;kp<(ph==NM1_PHASE_KERNEL?9u:1u);kp++){
+  reset(&c,&t);in=nm1_fixtures[0].input;t.now=1000;in.cycle_start_ns=1000;t.target=ph;t.kp=kp;t.mode=mode;t.unit=(ph==NM1_PHASE_KERNEL&&(kp==AB3_PHASE_FULL_FACTOR||kp==AB3_PHASE_FACE_FACTOR))?16u:0u;before=c;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(t.fired==1);check_fallback(&o,&in);CHECK(c.accepted==before.accepted);CHECK(memcmp(c.warm,before.warm,sizeof(c.warm))==0);CHECK(c.last_u==.5*((double)in.guarded_tau6[2]+in.guarded_tau6[5]));CHECK(t.calls>0);if(mode==1){CHECK(!c.fault_latched);CHECK(o.clock_valid&&o.deadline_missed);}else{CHECK(c.fault_latched&&!o.clock_valid&&o.reason==NM1_R_CLOCK);}
+  printf("{\"kind\":\"clock_test\",\"mode\":%u,\"phase\":%u,\"kernel_phase\":%u,\"fired\":%u,\"reason\":%u,\"qp_called\":%u,\"qp_status\":%u,\"factor_cells\":%llu,\"valid\":%u,\"accepted\":%u}\n",mode,ph,kp,t.fired,(unsigned)o.reason,o.qp_called,(unsigned)o.qp_status,(unsigned long long)o.qp_stats.factor_cells,o.valid,o.mpc_accepted);
+ }}}
+ reset(&c,&t);in=nm1_fixtures[0].input;t.now=500000;CHECK(nm1_select(&c,&in,&w,&o)==NM1_ACCEPTED);CHECK(o.kernel_remaining_us==2500);before=c;t.target=NM1_PHASE_FINAL;t.mode=1;t.now=0;t.fired=0;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_DEADLINE_FINAL);CHECK(c.accepted==before.accepted&&memcmp(c.warm,before.warm,sizeof(c.warm))==0);check_fallback(&o,&in);
+ /* An unavailable clock latches only the MPC path; original fallback survives. */
+ reset(&c,&t);in=nm1_fixtures[0].input;t.target=NM1_PHASE_PRE_QP;t.mode=3;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);t.mode=0;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_LATCHED&&!o.qp_called);check_fallback(&o,&in);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.valid=0;in.state14[0]=NAN;c.last_u=2;c.warm[0]=1;before=c;CHECK(nm1_select(&c,&in,&w,&o)==NM1_INVALID);CHECK(!o.valid&&!o.qp_called&&t.calls==0&&c.last_u==0);CHECK(c.accepted==before.accepted&&c.warm[0]==1);for(j=0;j<6;j++){CHECK(o.tau6[j]==0);}
+ for(j=0;j<5;j++){reset(&c,&t);in=nm1_fixtures[0].input;if(j==0){in.state14[0]=NAN;}if(j==1){in.guarded_tau6[2]=INFINITY;}if(j==2){in.shaper_v=NAN;}if(j==3){in.drive_epoch_us++;}if(j==4){in.valid=2;}CHECK(nm1_select(&c,&in,&w,&o)==NM1_INVALID);CHECK(!o.valid&&c.fault_latched);}
+ reset(&c,&t);in=nm1_fixtures[0].input;in.enabled=0;t.now=4000000;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_DISABLED&&o.deadline_missed&&t.calls==1);check_fallback(&o,&in);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.state14[8]=2.f;in.state14[2]=.25f;CHECK(nm1_select(&c,&in,&w,&o)!=NM1_INVALID);CHECK(o.reason!=NM1_R_DOMAIN);in.state14[8]=nextafterf(2.f,INFINITY);CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_DOMAIN);check_fallback(&o,&in);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.math_tau6[2]=FLT_MAX;in.math_tau6[5]=-FLT_MAX;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_NO_BOX);check_fallback(&o,&in);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.state14[0]=FLT_MAX;CHECK(nm1_select(&c,&in,&w,&o)==NM1_FALLBACK);CHECK(o.reason==NM1_R_NONFINITE_GRADIENT);CHECK(!c.fault_latched);check_fallback(&o,&in);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.cycle_start_ns=(UINT64_C(1)<<53)+1024;t.now=in.cycle_start_ns;CHECK(nm1_select(&c,&in,&w,&o)==NM1_ACCEPTED);CHECK(o.final_poll_ns==in.cycle_start_ns&&o.elapsed_ns==0&&o.kernel_remaining_us==3000);
+ reset(&c,&t);in=nm1_fixtures[0].input;in.cycle_start_ns=UINT64_MAX-1000;t.now=UINT64_MAX-500;CHECK(nm1_select(&c,&in,&w,&o)==NM1_ACCEPTED);CHECK(o.elapsed_ns==500&&o.kernel_remaining_us==2999);
+ reset(&c,&t);in=nm1_fixtures[0].input;c.accepted=UINT64_MAX;CHECK(nm1_select(&c,&in,&w,&o)==NM1_ACCEPTED);CHECK(c.accepted==UINT64_MAX&&c.counter_saturated);
+ reset(&c,&t);in=nm1_fixtures[0].input;CHECK(nm1_select(&c,&in,&w,(nm1_output*)&c)==NM1_API_ERROR);CHECK(c.fault_latched);reset(&c,&t);CHECK(nm1_select(&c,&in,&w,(nm1_output*)&in)==NM1_API_ERROR);reset(&c,&t);CHECK(nm1_select(&c,&in,&w,(nm1_output*)&w)==NM1_API_ERROR);reset(&c,&t);CHECK(nm1_select(&c,NULL,&w,(nm1_output*)&c)==NM1_API_ERROR);reset(&c,&t);CHECK(nm1_select(NULL,&in,&w,&o)==NM1_INVALID);CHECK(!o.valid);reset(&c,&t);c.warm[2]=NAN;CHECK(nm1_select(&c,&in,&w,&o)==NM1_INVALID&&o.reason==NM1_R_BAD_CONTEXT);memset(&cfg,0,sizeof(cfg));CHECK(nm1_init(&c,&cfg)==NM1_INVALID);CHECK(nm1_select(&c,&in,&w,&o)==NM1_INVALID);CHECK(nm1_init(NULL,&cfg)==NM1_API_ERROR);
+ printf("{\"kind\":\"native_summary\",\"checks\":%u,\"failures\":%u,\"context_bytes\":%u,\"workspace_bytes\":%u,\"output_bytes\":%u}\n",checks,failures,(unsigned)sizeof(c),(unsigned)sizeof(w),(unsigned)sizeof(o));
+}
+int main(void){nm1_context c;nm1_workspace w;nm1_output o;test_clock t;unsigned k,j,mode;ab3_problem p;ab3_options opts;ab3_result r;ab3_workspace aw;
+ memset(&c,0,sizeof(c));memset(&t,0,sizeof(t));
+ for(k=0;k<NM1_FIXTURE_COUNT;k++){const nm1_fixture *a=&nm1_fixtures[k];if(a->reset){reset(&c,&t);c.last_u=a->initial_last_u;memcpy(c.warm,a->initial_warm,sizeof(c.warm));}t.now=a->input.cycle_start_ns;memset(&w,0,sizeof(w));CHECK(nm1_select(&c,&a->input,&w,&o)!=NM1_API_ERROR);CHECK(!o.mpc_accepted||(o.valid&&o.clock_valid&&!o.deadline_missed));if(!o.mpc_accepted&&a->input.valid){check_fallback(&o,&a->input);}if(o.mpc_accepted){CHECK(o.caller_KKT<=(double).002f);for(j=0;j<15;j++){CHECK(o.accepted_z[j]>=o.common_lo&&o.accepted_z[j]<=o.common_hi);}}
+ printf("{\"kind\":\"frame\",\"row\":%u,\"status\":%u,\"reason\":%u,\"valid\":%u,\"accepted\":%u,\"box_valid\":%u,\"lo\":%.9g,\"hi\":%.9g,\"tau\":",k,(unsigned)o.status,(unsigned)o.reason,o.valid,o.mpc_accepted,o.box_valid,(double)o.common_lo,(double)o.common_hi);vd(o.tau6,6);printf(",\"f\":");vf(w.f,15);printf(",\"warm\":");vf(c.warm,15);printf(",\"last_u\":%.17g,\"caller_KKT\":%.17g,\"guard_delta\":%.17g,\"accepted_count\":%llu,\"fallback_count\":%llu,\"latch\":%u,\"qp_called\":%u,\"qstatus\":%u,\"qvalid\":%u,\"qupper\":%.9g,\"pivots\":%u,\"qz\":",c.last_u,o.caller_KKT,o.point_guard_delta,(unsigned long long)c.accepted,(unsigned long long)c.fallbacks,c.fault_latched,o.qp_called,(unsigned)w.qp_result.status,w.qp_result.valid,(double)w.qp_result.kkt_upper,w.qp_result.stats.pivots);vf(w.qp_result.z,15);printf("}\n");
+ }
+ for(k=0;k<18;k++){for(mode=0;mode<2;mode++){const nm1_old_case *a=&nm1_old_cases[k];memset(&opts,0,sizeof(opts));opts.max_pivots=64;opts.tolerance=.002f;p=ab3_dense(15,nm1_H,a->f,a->lo,a->hi,mode?a->warm:NULL);CHECK(ab3_solve(&p,&opts,&aw,&r)==AB3_CONVERGED);printf("{\"kind\":\"old_H15\",\"case\":%u,\"mode\":%u,\"status\":%u,\"valid\":%u,\"pivots\":%u,\"upper\":%.9g,\"z\":",k,mode,(unsigned)r.status,r.valid,r.stats.pivots,(double)r.kkt_upper);vf(r.z,15);printf("}\n");}}
+ unit_tests();return failures?1:0;
+}

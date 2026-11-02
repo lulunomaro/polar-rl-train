@@ -1,0 +1,29 @@
+FD1 native C99 source bundle
+===========================
+Ship these6 files together:
+ fd1_detector.c, fd1_detector.h, fd1_config_fields.inc, fd1_defaults.inc,
+ fd1_reasons.inc, fd1_reason_names.inc.
+
+Example (generic host toolchain, not a target-board qualification):
+ cc -std=c99 -O2 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -c fd1_detector.c
+ # Link the C object into the owner application; provide compatible C99 libm.
+ # C++ clients include fd1_detector.h; compile implementation as C.
+
+Binary64/relative-seconds API: IEEE53-bit double, nearest rounding, no fast-math.
+float32 observations can be promoted but gain no precision or trust.
+Context is caller-owned, persistent and single-owner. Initialize once with
+fd1_config_default()/fd1_init(), fill explicit sensor timestamps/valid/present
+bits, call fd1_step(ctx,input,now_s,out), and honor status/hard_inhibit first.
+FD1_E_ALIAS with output overlapping context produces NO usable output; inhibit.
+Unknown force uses presence0/unknown wheel-1, not fake0N.
+All proposed thresholds, including force confidence0.8, remain unchanged.
+Default jump/recovery/automatic obstacle actions are disabled and unbound.
+No torque, CAN, actuation callback, platform clock or truth input exists.
+Mode/profile/reference output does not replace lower-level driver gates.
+
+Host proof:1042 newly generated C-port steps, ordered discrete outputs and
+binary64 values match frozen Python; native guard tests and C++ smoke separate.
+ARM M4/M7 outputs are compile-only SP-hard ABI objects using software-double/
+libm dependencies. Target linking, FPSCR, timing, stack and WCET are untested.
+Original Python score/physics/RL and the separate blocked ASQP IO are unchanged.
+Full references, attempts, mapping, SHA and limits remain in the parent package.

@@ -1,0 +1,46 @@
+#ifndef PC3_VECTOR_LAYOUT_H
+#define PC3_VECTOR_LAYOUT_H
+#define PC3_VECTOR_COLUMNS 130u
+#define PC3_COL_SCENARIO 0u
+#define PC3_COL_FIRST 1u
+#define PC3_COL_ARM 2u
+#define PC3_COL_ACCREF 3u
+#define PC3_COL_ACC_CORR 4u
+#define PC3_COL_OFFSET 5u
+#define PC3_COL_RADIUS 8u
+#define PC3_COL_STAMP 9u
+#define PC3_COL_NOW 10u
+#define PC3_COL_SEQUENCE 11u
+#define PC3_COL_MEAN_MODE 12u
+#define PC3_COL_MEAN_COUNT 13u
+#define PC3_COL_WINDOW_BEGIN 14u
+#define PC3_COL_GYRO 15u
+#define PC3_COL_ACCEL 18u
+#define PC3_COL_Q4 21u
+#define PC3_COL_DQ4 25u
+#define PC3_COL_SPIN2 29u
+#define PC3_COL_FORWARD 31u
+#define PC3_COL_YAW_COMMAND 32u
+#define PC3_COL_FROZEN_X14 33u
+#define PC3_COL_PARAM_X14 47u
+#define PC3_COL_ROLL 61u
+#define PC3_COL_PROPER 62u
+#define PC3_COL_P4 65u
+#define PC3_COL_WHEEL2 69u
+#define PC3_COL_SLIP 71u
+#define PC3_COL_CONTACT 72u
+#define PC3_COL_ALPHA 73u
+#define PC3_COL_PIVOT 76u
+#define PC3_COL_PROXY 79u
+#define PC3_COL_LINEAR 80u
+#define PC3_COL_VX_ACCEL 83u
+#define PC3_COL_CONF4 84u
+#define PC3_COL_QUAT 88u
+#define PC3_COL_WHEEL_ACC 92u
+#define PC3_COL_BIAS 93u
+#define PC3_COL_FROZEN_TAU 94u
+#define PC3_COL_PARAM_TAU 100u
+#define PC3_COL_ISOLATED_TAU 106u
+#define PC3_COL_ISOLATED_REF14 112u
+#define PC3_COL_ISOLATED_SHAPER 126u
+#endif

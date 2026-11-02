@@ -1,0 +1,56 @@
+"""Policy-only action composition repair; native action manager stays unchanged.
+
+V6 raw teacher left crank was below -87 on all 341 saved replay inputs;
++/-1 then clamp(-6,6) made its residual gradient identically zero.
+Keep all checkpoint parameter names; bound the teacher before composing in
+latent coordinates, and use the actual joint ranges at the existing .5 scale.
+"""
+import torch
+from standing_core_v1 import StandingResidualPolicy as OriginalPolicy
+
+ACTION_CONTRACT = dict(
+    version='standing200_reachable_action_v8',
+    joint_order=['left_crank','left_hip','right_crank','right_hip','left_wheel','right_wheel'],
+    action_low=[-2.4,-1.,-2.4,-1.,-6.,-6.],
+    action_high=[1.8,1.,1.8,1.,6.,6.],
+    original_position_scale_rad=.5, original_wheel_scale_rad_s=10.,
+    teacher_normalized_interior=.8, residual_temperature=6.,
+    formula='mid+radius*tanh(atanh(clamp((teacher-mid)/radius,-.8,.8))+residual/6)',
+    physical_PD_queue_torque_solver_reward_acceptance='unchanged')
+
+
+def compose(base, residual):
+    low = base.new_tensor(ACTION_CONTRACT['action_low'])
+    high = base.new_tensor(ACTION_CONTRACT['action_high'])
+    mid, radius = (low + high) / 2, (high - low) / 2
+    interior = ((base - mid) / radius).clamp(-.8, .8)
+    return mid + radius * (torch.atanh(interior) + residual / 6.).tanh()
+
+
+class StandingResidualPolicy(OriginalPolicy):
+    def forward(self, history, goal):
+        from tensordict import TensorDict
+        obs = history[..., -1, :35]
+        base = self.teacher(TensorDict(dict(policy=obs), batch_size=list(obs.shape[:-1])),
+                            stochastic_output=False)
+        return compose(base, self.residual(history, goal))
+
+
+def path_receipt(policy, history, goal):
+    """Local derivative of the implemented command, without optimizer operations."""
+    with torch.no_grad():
+        from tensordict import TensorDict
+        obs = history[..., -1, :35]
+        base = policy.teacher(TensorDict(dict(policy=obs), batch_size=list(obs.shape[:-1])),
+                              stochastic_output=False)
+        latent = policy.residual(history, goal)
+    with torch.enable_grad():
+        probe = latent.detach().clone().requires_grad_(True)
+        action = compose(base.detach(), probe)
+        grad = torch.autograd.grad(action.sum(), probe)[0]
+    return dict(samples=len(history), action_min=action.detach().amin(0).tolist(),
+                action_max=action.detach().amax(0).tolist(),
+                derivative_min=grad.amin(0).tolist(), derivative_mean=grad.mean(0).tolist(),
+                zero_derivative_fraction=(grad == 0).float().mean(0).tolist(),
+                finite=bool(torch.isfinite(action).all() and torch.isfinite(grad).all()),
+                left_crank_reachable=bool((grad[:, 0] > 0).all()))

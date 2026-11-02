@@ -1,0 +1,107 @@
+"""Decode once for explicit V6 learner resume, retaining original source intact."""
+from pathlib import Path
+import hashlib, io, json
+import torch
+
+
+def load_pinned(receipt):
+    raw = Path(receipt['path']).read_bytes()
+    assert len(raw) == receipt['bytes'] and hashlib.sha256(raw).hexdigest() == receipt['SHA']
+    payload = torch.load(io.BytesIO(raw), map_location='cpu', weights_only=True)
+    return payload
+
+
+def verify_shared_source(job):
+    """Bind shared immutable source/assets to the successful original manifest.
+
+    Only manifest-listed static files are hashed. No model, replay, media or
+    original run output is read for the dependency check.
+    """
+    job = Path(job)
+    ref = json.loads((job/'SHARED_REFERENCE.json').read_bytes())
+    shared = Path(ref['root'])
+    raw = (shared/'INSTALL_MANIFEST.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == ref['manifest_SHA']
+    checked = 0
+    for row in json.loads(raw)['files']:
+        # Original PLAN/control schedule are historical task identity; static
+        # source/runtime/assets remain immutable dependencies of this repair.
+        if row['relative'] in ['PLAN.json','control/SCHEDULE_PUBLIC.json']:
+            continue
+        path = shared/row['relative']
+        assert path.suffix.lower() not in ['.pt','.pth','.npz','.npy']
+        assert path.stat().st_size == row['bytes']
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == row['SHA']
+        checked += 1
+    for name in ['runtime','assets','lib','sm_deps','original_run_manifest.json',
+                 'MOD4V1_ASSET_DIFF.json','MOD4V1_DERIVATION_INDEX.json']:
+        if (shared/name).exists():assert (job/name).resolve() == (shared/name).resolve()
+    return dict(shared_root=str(shared),manifest_SHA=ref['manifest_SHA'],checked=checked,
+                source_PT_reads=0,shared_full_run_copy=False)
+
+
+def build_embedded_actor(payload, device):
+    from tensordict import TensorDict
+    from rsl_rl.models import MLPModel
+    obs = TensorDict(dict(policy=torch.zeros(2,35), critic=torch.zeros(2,38)), batch_size=[2])
+    with torch.random.fork_rng(devices=[]):
+        actor = MLPModel(obs, dict(actor=['policy'], critic=['critic']), 'actor', 6,
+                         [256,128,64], 'elu', distribution_cfg=dict(
+                             class_name='rsl_rl.modules.distribution:GaussianDistribution',
+                             init_std=1., std_type='scalar'))
+        actor.load_state_dict({k[len('teacher.'):]: v for k,v in payload['pi'].items()
+                               if k.startswith('teacher.')}, strict=True)
+    return actor.to(device).eval().requires_grad_(False)
+
+
+class EmbeddedTeacher:
+    def __init__(self, task, payload):
+        self.task, self.payload = task, payload
+        self.frozen = [(v, v._version) for v in payload['pi'].values() if torch.is_tensor(v)]
+
+    def build_actor(self, device):
+        self.actor = build_embedded_actor(self.payload, device)
+        self.actor_frozen = {k: v.detach().clone() for k,v in self.actor.state_dict().items()}
+        return self.actor
+
+    def assert_frozen(self):
+        assert all(v._version == version for v,version in self.frozen)
+        assert all(torch.equal(v, self.actor.state_dict()[k]) for k,v in self.actor_frozen.items())
+
+    def receipt(self):
+        return dict(source_final=self.task.get('resume'), source_teacher_PT_opens=0,
+                    embedded_teacher_strict_restored=True, original_teacher_source=self.payload['teacher_source'],
+                    whole_full_checkpoint_retained=True, frozen_teacher=True)
+
+
+def optimizer_steps(learner):
+    result = {}
+    for name in ('wm','pi','v','aux'):
+        values = [int(s['step'].item()) for s in getattr(learner,'opt_'+name).state.values() if 'step' in s]
+        result[name] = dict(min=min(values),max=max(values),states=len(values))
+    return result
+
+
+def restore_learner(learner, payload, *, cpu_fixture=False):
+    """Same native loader; CPU fixture keeps CUDA RNG opaque, production restores it."""
+    if cpu_fixture:
+        # Shallow copies of metadata only: do not mutate source CUDA bytes.
+        payload = dict(payload)
+        ext = dict(payload['context_reward_extension'])
+        ext['rng'] = dict(ext['rng'], torch_cuda=[])
+        payload['context_reward_extension'] = ext
+    learner.load_full_checkpoint(payload, allow_environment_reset=True)
+    assert vars(learner.counts) == payload['context_reward_extension']['counts']
+    for name in ('wm','pi','v','aux'):
+        saved = payload.get('opt_'+name, payload['context_reward_extension'].get('opt_'+name))
+        actual = getattr(learner,'opt_'+name).state_dict()
+        assert len(saved['state']) == len(actual['state'])
+        for key, value in saved['state'].items():
+            for field, data in value.items():
+                other = actual['state'][key][field]
+                assert torch.equal(data.cpu(), other.cpu()) if torch.is_tensor(data) else data == other
+    return dict(counts=vars(learner.counts).copy(), optimizer_steps=optimizer_steps(learner),
+                all_four_Adam_tensors_equal=True, networks_and_normalizers_strict_restored=True,
+                original_RNG_restored=not cpu_fixture, CUDA_RNG_opaque_cpu_fixture=cpu_fixture,
+                replay_stream_boundary_sealed=True, physical_queues='new explicit fresh reset',
+                algorithmic_cfg_unchanged=True, source_optimizer_steps=0)

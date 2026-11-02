@@ -1,0 +1,77 @@
+"""Own small repair operations; original local/serial/canonical gates preserved."""
+from pathlib import Path
+import argparse,hashlib,json,os,re,sys,time,traceback
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+
+
+def gate(label):
+    rows,blocked=local_rows()
+    pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+    relevant=[r for r in blocked if re.search(pat,r.get('CommandLine')or'',re.I)]
+    if relevant:
+        print(json.dumps(dict(blocked=relevant,network=0,once_consumed=False)));return False
+    put('REPAIR_V8_LOCAL_'+label+'.json',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+    return True
+
+
+CPU=r'''
+from pathlib import Path
+import fcntl,hashlib,json,os,subprocess,time
+J=Path(v['job']);D=J/'source_checks/standing200_repair_v8'
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+locks=[]
+try:
+ for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/'finite_environment_validation.lock']:
+  f=p.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ c=json.loads(C.read_bytes());assert c['active_segment']is None
+ assert c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026'
+ exited=json.loads((J/'OWNER_EXIT.json').read_bytes());assert exited['all_own_waited']and exited['original_leases_released']
+ assert not D.exists();D.mkdir(parents=True)
+ for name,item in v['files'].items():
+  raw=item['source'].encode();assert hashlib.sha256(raw).hexdigest()==item['SHA'];(D/name).write_bytes(raw)
+ env=dict(os.environ,CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OMP_NUM_THREADS='4')
+ for k in ['PYTHONPATH','PYTHONHOME','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE']:env.pop(k,None)
+ with(D/'STDOUT.txt').open('xb')as out,(D/'STDERR.txt').open('xb')as err:
+  p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-B',str(D/'check_repair_cpu_v8.py'),'--job',str(J),'--output',str(D/'result')],
+   cwd=J,env=env,stdout=out,stderr=err,stdin=subprocess.DEVNULL);rc=p.wait()
+ f=D/'result/CPU_REPAIR_RESULT.json'
+ print(json.dumps(dict(epoch=time.time(),returncode=rc,own_waited=True,result=json.loads(f.read_bytes())if f.exists()else None,
+  stderr=(D/'STDERR.txt').read_text(errors='replace')[-8000:],stdout=(D/'STDOUT.txt').read_text(errors='replace')[-3000:],
+  original_locks_released_in_finally=True,canonical_writes=0)))
+finally:
+ for f in reversed(locks):fcntl.flock(f,fcntl.LOCK_UN);f.close()
+'''
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['cpu']);a=q.parse_args()
+    once=R/'reports/REPAIR_V8_CPU_ONCE.json';assert not once.exists()
+    if not gate('CPU'):return
+    put(once.name,dict(epoch=time.time(),purpose='necessary fullrestore repaired action gradient CPU admission'))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72();w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+        files={}
+        for name in ['standing_action_v8.py','standing_resume_v8.py','check_repair_cpu_v8.py']:
+            raw=(D/name).read_bytes();files[name]=dict(source=raw.decode(),SHA=hashlib.sha256(raw).hexdigest())
+        result=run(c,CPU,dict(job=w['remote_job'],files=files),600)
+        put('REPAIR_V8_CPU_ACTUAL.json',result)
+        assert result['returncode']==0 and result['result']['passed'],result['stderr']
+        print(json.dumps(dict(passed=True,result='reports/REPAIR_V8_CPU_ACTUAL.json',path=result['result']['path'])))
+    except BaseException:
+        put('REPAIR_V8_CPU_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if c is not None:c.close()
+        put('REPAIR_V8_CPU_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

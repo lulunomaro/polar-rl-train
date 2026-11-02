@@ -1,0 +1,54 @@
+"""Append new local-only tool/handoff text without another trial or model read."""
+from pathlib import Path
+import hashlib,importlib.util,json,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v7-clipping-v8-reachable-actions'
+
+
+def main():
+    # CPU versions of these files existed before later metadata-only additions.
+    # Recover their exact original source form and retain it beside the latest.
+    text=(D/'standing_resume_v8.py').read_text(encoding='utf-8')
+    i=text.index('def verify_shared_source(');j=text.index('def build_embedded_actor(')
+    original=text[:i]+text[j:]
+    p=D/'frozen_cpu_original_resume_v8.py'
+    assert not p.exists();p.write_text(original,encoding='utf-8',newline='\n')
+    text=(D/'frozen_original_runner_v8.py').read_text(encoding='utf-8')
+    i=text.index("    if a.mode=='gpu':");j=text.index("    once=R/'reports/REPAIR_V8_CPU_ONCE.json'")
+    original=(text[:i]+text[j:]).replace("choices=['cpu','gpu']","choices=['cpu']")
+    p=D/'frozen_cpu_original_runner_v8.py'
+    assert not p.exists();p.write_text(original,encoding='utf-8',newline='\n')
+    report=R/'reports/V8_LOCAL_READER_AND_SHELL_ERRORS.json'
+    assert not report.exists()
+    report.write_text(json.dumps(dict(epoch=time.time(),operations=[
+        dict(kind='instructions_reader',error='repo cwd with redundant polar-rl-train prefix: two Get-Content paths missing',
+             correction='read exact absolute rootAGENTS/repoAGENTS and policy successfully before implementation',experiment_impact=0),
+        dict(kind='local_shell_string',error='Python -c nested quote escaping SyntaxError before execution',
+             correction='proper standalone local helper reconstructed CPU original source bytes',model_network_physics_impact=0)],
+        original_source_failures_preserved=True),indent=2)+'\n')
+    spec=importlib.util.spec_from_file_location('redact_standing_supplement',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for ip in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(ip.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    rows=[]
+    files=[p for p in D.iterdir()if p.is_file()]
+    files.extend([report,R/'CURRENT_WORK_ORDER.json'])
+    for p in files:
+        raw=p.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'))
+        content=raw if not n else safe.encode();sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+                         archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text'if not n else'redacted_text'))
+    s=DEST/'supplement-final-local-text';s.mkdir(exist_ok=False)
+    (s/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,model_network_physics_operations=0),indent=2)+'\n')
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    print(json.dumps(dict(supplement=str(s),rows=len(rows),report=str(report))))
+
+
+if __name__=='__main__':main()

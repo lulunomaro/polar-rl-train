@@ -1,0 +1,120 @@
+"""Generate only changed callers; shared V6 source/assets are pinned references."""
+from pathlib import Path
+import ast,hashlib,json,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+
+
+def replace(source, old, new):
+    assert source.count(old)==1,old
+    return source.replace(old,new)
+
+
+def main():
+    assert not(D/'FROZEN_V8.json').exists()
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    assert json.loads((R/'reports/REPAIR_V8_CPU_ACTUAL.json').read_bytes())['result']['passed']
+    source_job=work['remote_job']
+    worker=(R/'source_v2/standing_worker_v1.py').read_text(encoding='utf-8')
+    worker=replace(worker,'class SavedStop(Exception):pass',
+        'class SavedStop(Exception):pass\nSHARED=Path('+repr(source_job)+')\nsys.path.insert(0,str(SHARED/"source"))')
+    worker=replace(worker,'    return ns,env,course,guard,obs,tensor', '''    original_snapshot=course.snapshot
+    def detailed_snapshot():
+        result=original_snapshot()
+        for name in ['joint_pos','joint_vel','applied_torque','joint_pos_target','joint_vel_target']:
+            value=getattr(course.robot.data,name,None)
+            if value is not None:result[name]=tensor(value).detach().clone()
+        return result
+    course.snapshot=detailed_snapshot
+    return ns,env,course,guard,obs,tensor''')
+    worker=replace(worker,'        from standing_core_v1 import StandingResidualPolicy',
+        '        from standing_action_v8 import StandingResidualPolicy,ACTION_CONTRACT,path_receipt\n        from standing_resume_v8 import load_pinned,EmbeddedTeacher,restore_learner')
+    worker=replace(worker,'        teacher=PinnedTeacher(task);actor=teacher.build_actor(env.device)',
+        '        source=load_pinned(task["resume"])\n        teacher=EmbeddedTeacher(task,source);actor=teacher.build_actor(env.device)')
+    worker=replace(worker,"                    action_mode='frozen_E0 + learned six-motor tanh residual',",
+        "                    action_mode=ACTION_CONTRACT,source_counts=source['context_reward_extension']['counts'],")
+    worker=replace(worker,'        bridge.learner=learner;last_report=-1;first_saved=False', '''        restored=restore_learner(learner,source)
+        source_steps=learner.counts.pi_bptt_optimizer_steps
+        put(out/'FULL_RESTORE_V8.json',dict(epoch=time.time(),source=task['resume'],receipt=restored,
+            policy_action_contract=ACTION_CONTRACT,source_model_decodes=1,source_teacher_PT_opens=0))
+        bridge.learner=learner;last_report=-1;first_saved=False''')
+    worker=replace(worker,'            if learner.counts.pi_bptt_optimizer_steps>0 and not first_saved:',
+        '            if learner.counts.pi_bptt_optimizer_steps>source_steps and not first_saved:')
+    worker=replace(worker,'                    metrics=bridge.metrics(),teacher=teacher.receipt(),physical_RL_skill_not_evaluated=True))',
+        '''                    metrics=bridge.metrics(),teacher=teacher.receipt(),physical_RL_skill_not_evaluated=True,
+                    new_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-source_steps,
+                    actual_action_path=path_receipt(learner.pi,learner.obs_hist,learner._goal(
+                        learner._state_info()['f'],learner._state_info()['xi']))))''')
+    worker=replace(worker,'        try:learner.train(target_bptt_steps=3000)', '''        # Same underlying transition model, changed policy commands: refill
+        # original replay capacity with new real transitions before new BPTT.
+        # Restored four Adam/counters/RNG are never reset; original ring is
+        # overwritten through normal collection, source checkpoint retained.
+        try:
+            learner.collect(256)
+            for _ in range(64):
+                if time.time()>=go['save_deadline']:raise SavedStop()
+                learner.wm_update()
+            put(out/'REPAIR_FRESH_ACTION_WM_WARMUP.json',dict(epoch=time.time(),actual_controls=bridge.controls,
+                fresh_actual_transitions=bridge.controls*bridge.num_envs,WM_aux_additional_updates=64,
+                policy_optimizer_steps=learner.counts.pi_bptt_optimizer_steps,
+                source_policy_optimizer_steps=source_steps,source_replay_retained_in_source_checkpoint=True))
+            learner.train(target_bptt_steps=source_steps+3000)''')
+    worker=replace(worker,'            skill_graduated=False,independent80_required=True,**bridge.metrics()))',
+        '            source_native_BPTT_steps=source_steps,new_native_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-source_steps,\n            skill_graduated=False,independent80_required=True,**bridge.metrics()))')
+    worker=replace(worker,'    train(J,task,go)', '''    from standing_resume_v8 import verify_shared_source
+    verify_shared_source(J)
+    train(J,task,go)''')
+    evaluate=(R/'source_overrides_v6/evaluate_standing200_v1.py').read_text(encoding='utf-8')
+    evaluate=replace(evaluate,'        from standing_core_v1 import StandingResidualPolicy',
+        '        from standing_action_v8 import StandingResidualPolicy,compose\n        from standing_resume_v8 import build_embedded_actor,verify_shared_source\n        verify_shared_source(J)')
+    evaluate=replace(evaluate,'        teacher=PinnedTeacher(task);actor=teacher.build_actor(env.device)',
+        '        actor=build_embedded_actor(saved,env.device)')
+    evaluate=replace(evaluate,'            with torch.no_grad():action=policy(history,raw35[:,:3])', '''            with torch.no_grad():
+                action=policy(history,raw35[:,:3])
+                # Exact current actor input and decomposition for selected cases;
+                # no assumed input reconstruction or additional physics.
+                ids=course.record_ids
+                from tensordict import TensorDict
+                selected_base=actor(TensorDict(dict(policy=raw35[ids]),batch_size=[len(ids)]),stochastic_output=False)
+                selected_latent=policy.residual(history[ids],raw35[ids,:3])
+                assert torch.equal(compose(selected_base,selected_latent),action[ids])''')
+    evaluate=replace(evaluate,"                frame['action']=action[env_id].detach().cpu().numpy();frame['time']=(control+1)*.02", '''                frame['action']=action[env_id].detach().cpu().numpy();frame['time']=(control+1)*.02
+                k=course.record_ids.index(env_id)
+                frame['actor_input44']=actor_input[env_id].detach().cpu().numpy()
+                frame['teacher_raw']=selected_base[k].cpu().numpy()
+                frame['residual_latent']=selected_latent[k].cpu().numpy()''')
+    evaluate=replace(evaluate,'            final_model_decodes=1,frozen_baseline_teacher_decodes=1,',
+        '            final_model_decodes=1,frozen_baseline_teacher_decodes=0,embedded_teacher_strict_restored=True,')
+    owner=(R/'control_v2/standing_owner_v1.py').read_text(encoding='utf-8')
+    owner=replace(owner,'import three_slot_common_v1 as b',
+        'sys.path.insert(0,'+repr(source_job+'/control')+')\nimport three_slot_common_v1 as b')
+    owner=replace(owner,"        now=time.time();fds=[f.fileno()for f in locks]+[private.fileno(),finite.fileno()]", '''        import importlib.util
+        spec=importlib.util.spec_from_file_location('standing_resume_v8',J/'source/standing_resume_v8.py')
+        helper=importlib.util.module_from_spec(spec);spec.loader.exec_module(helper)
+        helper.verify_shared_source(J)
+        assert read(C)['active_segment'] is None
+        now=time.time();fds=[f.fileno()for f in locks]+[private.fileno(),finite.fileno()]''')
+    owner=replace(owner,"        if okay and final['native_BPTT_steps']>0:",
+        "        if okay and final['native_BPTT_steps']>final.get('source_native_BPTT_steps',0):")
+    # Each changed caller is stored once; all other original source is referenced.
+    for name,text in [('standing_worker_v1.py',worker),('evaluate_standing200_v1.py',evaluate),('standing_owner_v1.py',owner)]:
+        ast.parse(text);(D/name).write_text(text,encoding='utf-8',newline='\n')
+    runid='MOD4_STANDING200_RLBPTT_V8_'+str(time.time_ns())
+    plan=dict(kind='MOD4_STANDING200_RLBPTT_V1',run_id=runid,
+        GPU_UUID='GPU-16828f91-2b45-b646-8dc0-9481138e2842',num_envs=512,seed=200,
+        teacher_path=work['baseline_teacher']['remote_path'],teacher_SHA=work['baseline_teacher']['sha256'],
+        teacher_bytes=work['baseline_teacher']['bytes'],resume=work['latest_checkpoint'],
+        course_height_m=.2,target='supported wheel-leg coordinated ascent, not ballistic jump',
+        original_canonical_only=True,strict_reserve=86412.86069250107,
+        action_repair='standing_action_v8.ACTION_CONTRACT; bounded frozen base + reachable residual latent',
+        algorithm='same H32 actual task labels + learnedWM BPTT, full fourAdam resume',
+        startup_refill_actual_controls=256,startup_WM_aux_updates=64)
+    (D/'PLAN.json').write_text(json.dumps(plan,indent=2)+'\n')
+    frozen=dict(epoch=time.time(),source_job=source_job,job='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        run_id=runid,source_manifest_SHA='21e4a1ef44bc36af36a4d93a488e8727db4ad9c315a471efa4e0823b053a554b',
+        files=[dict(name=p.name,bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest())
+            for p in sorted(D.iterdir())if p.suffix in ['.py','.json']])
+    (D/'FROZEN_V8.json').write_text(json.dumps(frozen,indent=2)+'\n')
+    print(json.dumps(dict(frozen=str(D/'FROZEN_V8.json'),run_id=runid,job=frozen['job'],changed_callers=3)))
+
+
+if __name__=='__main__':main()

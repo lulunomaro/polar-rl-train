@@ -1,0 +1,86 @@
+"""Single necessary full-restore CPU fixture of repaired real-replay action path."""
+from pathlib import Path
+import argparse,json,sys,tempfile,time
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job',required=True,type=Path)
+    q.add_argument('--output',required=True,type=Path);a=q.parse_args()
+    J=a.job.resolve();a.output.mkdir(exist_ok=False)
+    sys.path[:0]=[str(Path(__file__).resolve().parent),str(J/'source'),str(J/'sm_deps')]
+    import torch
+    torch.set_num_threads(4)
+    from native_supermimic_bridge import BridgeState
+    from standing_core_v1 import StandingMDP
+    from standing_action_v8 import StandingResidualPolicy,path_receipt,ACTION_CONTRACT,compose
+    from standing_resume_v8 import load_pinned,build_embedded_actor,restore_learner
+    from ctx_reward_learner import ContextRewardLearner
+    from supermimic_vendor_v2.learner import SuperMimicConfig
+    from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY
+    c=json.loads((J/'production/FINAL.json').read_bytes())['checkpoint']
+    source=load_pinned(c);ext=source['context_reward_extension'];replay=ext['replay']
+    assert ext['counts']['pi_bptt_optimizer_steps']==1019
+    def versions(x):
+        if torch.is_tensor(x):return [(x,x._version)]
+        if isinstance(x,dict):return [r for v in x.values()for r in versions(v)]
+        if isinstance(x,(tuple,list)):return [r for v in x for r in versions(v)]
+        return []
+    tracked=versions(source);actor=build_embedded_actor(source,'cpu')
+    class Fixture:
+        device=torch.device('cpu');num_envs=replay['N']
+        mdp=StandingMDP(replay['data']['xi'].shape[-1])
+        @property
+        def supermimic_mdp(self):return self.mdp
+    env=Fixture();row=(replay['ptr']-1)%replay['T']
+    env.state=BridgeState(info={SUPERMIMIC_STATE_KEY:{
+        k:replay['data'][k][row].clone()for k in ('s','xi','f','ep_step','a_prev')}},
+        reward=torch.zeros(env.num_envs),terminated=torch.zeros(env.num_envs,dtype=torch.bool),
+        truncated=torch.zeros(env.num_envs,dtype=torch.bool),obs={})
+    class Learner(ContextRewardLearner):
+        def _make_policy(self):return StandingResidualPolicy(super()._make_policy(),actor,1.)
+    cfg=SuperMimicConfig(**source['args']);mask=ext['context_predict_mask']
+    with tempfile.TemporaryDirectory(prefix='standing200_cpu_repair_v8_')as tmp:
+        learner=Learner(env,cfg,tmp,device='cpu',backend='CPU_saved_replay_not_physical',
+                        predict_context_mask=mask)
+        restored=restore_learner(learner,source,cpu_fixture=True)
+        history=[]
+        for age in range(cfg.hist-1,replay['size'],8):
+            for e in [0,1,2,3,40,41,80,127,255,383,511]:
+                r=(replay['ptr']-replay['size']+age)%replay['T']
+                idx=[(r-cfg.hist+1+k)%replay['T']for k in range(cfg.hist)]
+                history.append(replay['data']['xi'][idx,e,:44])
+        h=torch.stack(history).clone();g=h[:,-1,:3]
+        path=path_receipt(learner.pi,h,g)
+        assert path['finite']and all(x==0 for x in path['zero_derivative_fraction']),path
+        learner.pi.eval()
+        output=learner.pi(h,g)
+        low=output.new_tensor(ACTION_CONTRACT['action_low']);high=output.new_tensor(ACTION_CONTRACT['action_high'])
+        assert ((output>low)&(output<high)).all()
+        # Differentiate the true implemented left command through the restored
+        # network. No surrogate derivative or optimizer step.
+        grad=torch.autograd.grad(output[:,0].mean(),learner.pi.residual.dec[-1].weight)[0]
+        assert torch.isfinite(grad).all()and grad[0].norm()>0
+        with torch.no_grad():
+            evaluated=learner.pi(h,g)
+            direct=compose(actor(__import__('tensordict').TensorDict(
+                dict(policy=h[:,-1,:35]),batch_size=[len(h)]),stochastic_output=False),
+                learner.pi.residual(h,g))
+        assert torch.equal(evaluated,direct)
+        # Actual source weights/Adam/replay/RNG bytes remain untouched.
+        assert all(v._version==n for v,n in tracked)
+        assert not torch.cuda.is_initialized()
+        result=dict(kind='STANDING200_REACHABLE_ACTION_V8_CPU_FULL_RESTORE_FIXTURE',passed=True,
+            epoch=time.time(),source=c,source_final_decodes=1,source_teacher_PT_opens=0,
+            restore=restored,action_contract=ACTION_CONTRACT,real_saved_inputs=len(h),
+            real_rollout_repeated=False,source_behavior_may_be_older_than_final=True,
+            path=path,left_final_layer_grad_norm=float(grad[0].norm()),
+            deterministic_eval_training_difference=float((evaluated-direct).abs().max()),
+            physical_leg_target_rad_min=(output[:,:4].detach()*.5).amin(0).tolist(),
+            physical_leg_target_rad_max=(output[:,:4].detach()*.5).amax(0).tolist(),
+            source_tensor_versions_unchanged=True,optimizer_steps=0,SDK_GPU_physics_C_writes=0,
+            skill='CPU algorithm admission only; actual 200mm independent evaluation required')
+    (a.output/'CPU_REPAIR_RESULT.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(dict(passed=True,left_gradient=result['left_final_layer_grad_norm'],path=path)))
+
+
+if __name__=='__main__':main()

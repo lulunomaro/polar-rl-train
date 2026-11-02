@@ -1,0 +1,129 @@
+"""Own small repair operations; original local/serial/canonical gates preserved."""
+from pathlib import Path
+import argparse,hashlib,json,os,re,sys,time,traceback
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+
+
+def gate(label):
+    rows,blocked=local_rows()
+    pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+    relevant=[r for r in blocked if re.search(pat,r.get('CommandLine')or'',re.I)]
+    if relevant:
+        print(json.dumps(dict(blocked=relevant,network=0,once_consumed=False)));return False
+    put('REPAIR_V8_LOCAL_'+label+'.json',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+    return True
+
+
+CPU=r'''
+from pathlib import Path
+import fcntl,hashlib,json,os,subprocess,time
+J=Path(v['job']);D=J/'source_checks/standing200_repair_v8'
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+locks=[]
+try:
+ for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/'finite_environment_validation.lock']:
+  f=p.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ c=json.loads(C.read_bytes());assert c['active_segment']is None
+ assert c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026'
+ exited=json.loads((J/'OWNER_EXIT.json').read_bytes());assert exited['all_own_waited']and exited['original_leases_released']
+ assert not D.exists();D.mkdir(parents=True)
+ for name,item in v['files'].items():
+  raw=item['source'].encode();assert hashlib.sha256(raw).hexdigest()==item['SHA'];(D/name).write_bytes(raw)
+ env=dict(os.environ,CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OMP_NUM_THREADS='4')
+ for k in ['PYTHONPATH','PYTHONHOME','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE']:env.pop(k,None)
+ with(D/'STDOUT.txt').open('xb')as out,(D/'STDERR.txt').open('xb')as err:
+  p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-B',str(D/'check_repair_cpu_v8.py'),'--job',str(J),'--output',str(D/'result')],
+   cwd=J,env=env,stdout=out,stderr=err,stdin=subprocess.DEVNULL);rc=p.wait()
+ f=D/'result/CPU_REPAIR_RESULT.json'
+ print(json.dumps(dict(epoch=time.time(),returncode=rc,own_waited=True,result=json.loads(f.read_bytes())if f.exists()else None,
+  stderr=(D/'STDERR.txt').read_text(errors='replace')[-8000:],stdout=(D/'STDOUT.txt').read_text(errors='replace')[-3000:],
+  original_locks_released_in_finally=True,canonical_writes=0)))
+finally:
+ for f in reversed(locks):fcntl.flock(f,fcntl.LOCK_UN);f.close()
+'''
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['cpu','gpu','first','closed']);a=q.parse_args()
+    if a.mode=='closed':
+        # Unique evidence transfer of THIS run after published actual OWNER_EXIT.
+        # Existing V6 transfer is consumed and never invoked by this entrypoint.
+        assert not(R/'reports/V8_CLOSED_EVIDENCE_TRANSFER_ONCE.json').exists()
+        w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+        assert w['run_id']=='MOD4_STANDING200_RLBPTT_V8_1793656033704803700'
+        latest=json.loads((R/w['latest_status']).read_bytes())
+        if 'OWNER_EXIT.json'not in latest.get('files',{}):
+            print(json.dumps(dict(local_only=True,reason='require published own actual OWNER_EXIT; collect finite metadata after original window first')));return
+        import collect_closed_evaluation_once as transfer
+        source=Path(transfer.__file__).read_text(encoding='utf-8')
+        for old in ['CLOSED_EVIDENCE_TRANSFER_ONCE.json','CLOSED_ACTUAL_EVALUATION_TRANSFER.json','CLOSED_TRANSFER_ORIGINAL_ERROR.json','CLOSED_TRANSFER_SSH_CLOSED.json']:
+            assert source.count(old)==1;source=source.replace(old,'V8_'+old)
+        ns=dict(__name__='standing_v8_closed_transfer',__file__=transfer.__file__)
+        exec(compile(source,transfer.__file__,'exec'),ns);ns['main']();return
+    if a.mode=='first':
+        assert not(R/'reports/STATUS_V8_FIRST_UPDATED.json').exists()
+        # Same finite metadata reader; retain one serial connection until actual
+        # FIRST/error/close, never launch a second watcher in the meantime.
+        import collect_standing_status_v1 as reader
+        source=Path(reader.__file__).read_text(encoding='utf-8')
+        needle="'evaluation/RESULT.json','evaluation/EVAL_ERROR.json','EVAL_WAITED.json']"
+        assert source.count(needle)==1
+        source=source.replace(needle,"'evaluation/RESULT.json','evaluation/EVAL_ERROR.json','EVAL_WAITED.json',\n        'production/FULL_RESTORE_V8.json','production/REPAIR_FRESH_ACTION_WM_WARMUP.json']")
+        ns=dict(__name__='standing_v8_first_read',__file__=reader.__file__)
+        exec(compile(source,reader.__file__,'exec'),ns)
+        def admitted():
+            rows,blocked=local_rows()
+            pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+            return rows,[r for r in blocked if re.search(pat,r.get('CommandLine')or'',re.I)]
+        ns['local_rows']=admitted
+        sys.argv=[reader.__file__,'--label','V8_FIRST_UPDATED','--wait-seconds','300']
+        ns['main']();return
+    if a.mode=='gpu':
+        # Reuse exact original transport/resource reader for all FOUR devices.
+        # Distinct actual read; never replay the consumed V1 operation.
+        assert not(R/'reports/FOUR4090_READ_V8_ONCE.json').exists()
+        if not gate('GPU'):return
+        import check_four4090_once as inventory
+        source=Path(inventory.__file__).read_text(encoding='utf-8')
+        for old,new in [('FOUR4090_READ_V1_ONCE.json','FOUR4090_READ_V8_ONCE.json'),
+                        ('FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json','FRESH_LOCAL_CIM_BEFORE_FOUR4090_V8.json'),
+                        ('FOUR4090_RESOURCE_ACTUAL_V1.json','FOUR4090_RESOURCE_ACTUAL_V8.json')]:
+            assert source.count(old)==1;source=source.replace(old,new)
+        ns=dict(__name__='standing_inventory_v8',__file__=inventory.__file__)
+        exec(compile(source,inventory.__file__,'exec'),ns)
+        original=ns['local_rows']
+        def exact_rows():
+            rows,blocked=original()
+            pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+            return rows,[r for r in blocked if re.search(pat,r.get('CommandLine')or'',re.I)]
+        ns['local_rows']=exact_rows;ns['main']();return
+    once=R/'reports/REPAIR_V8_CPU_ONCE.json';assert not once.exists()
+    if not gate('CPU'):return
+    put(once.name,dict(epoch=time.time(),purpose='necessary fullrestore repaired action gradient CPU admission'))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72();w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+        files={}
+        for name in ['standing_action_v8.py','standing_resume_v8.py','check_repair_cpu_v8.py']:
+            raw=(D/name).read_bytes();files[name]=dict(source=raw.decode(),SHA=hashlib.sha256(raw).hexdigest())
+        result=run(c,CPU,dict(job=w['remote_job'],files=files),600)
+        put('REPAIR_V8_CPU_ACTUAL.json',result)
+        assert result['returncode']==0 and result['result']['passed'],result['stderr']
+        print(json.dumps(dict(passed=True,result='reports/REPAIR_V8_CPU_ACTUAL.json',path=result['result']['path'])))
+    except BaseException:
+        put('REPAIR_V8_CPU_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if c is not None:c.close()
+        put('REPAIR_V8_CPU_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

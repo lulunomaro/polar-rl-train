@@ -1,0 +1,75 @@
+"""Join actual receipts and accurate continuation; local only, never PT I/O."""
+from pathlib import Path
+from datetime import datetime
+import hashlib,json,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+
+
+def main():
+    status=json.loads((R/'reports/STATUS_V8_FIRST_UPDATED.json').read_bytes())
+    assert status['SSHclosed']and status['serial']=='FREE'
+    files=status['files'];first=files['production/FIRST_UPDATED.json']
+    assert first['new_BPTT_steps']==1 and first['actual_action_path']['finite']
+    assert all(x==0 for x in first['actual_action_path']['zero_derivative_fraction'])
+    assert first['actual_action_path']['left_crank_reachable']
+    assert first['checkpoint']['counts']['pi_bptt_optimizer_steps']==1020
+    full=files['production/FULL_RESTORE_V8.json']['receipt']
+    assert full['all_four_Adam_tensors_equal']and full['original_RNG_restored']
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    w.update(status='LIVE_V8_ACTUAL_REACHABLE_ACTION_BPTT_FIRST_FULLSAVE_CONFIRMED',
+        training_started=True,training_completed=False,GO=files['GO_PRODUCTION.json'],
+        original_worker=files['WORKER_IDENTITY.json'],original_worker_current=files['OWNER_CURRENT.json']['worker'],
+        latest_status='reports/STATUS_V8_FIRST_UPDATED.json',latest_checkpoint=files['production/latest_complete.json'],
+        first_checkpoint=first['checkpoint'],first_actual_metrics=first['metrics'],
+        first_actual_action_path=first['actual_action_path'],full_restore_receipt='reports/STATUS_V8_FIRST_UPDATED.json#production/FULL_RESTORE_V8.json',
+        first_readonly_status_consumed=True,no_training_skill_claim=True,
+        next='Healthy V8: do not restart/hotpatch/relaunch or repeat FIRST. At/after original normal window freshLOCAL exactCIM then one finite own metadata read; same original owner fullsave/close/costsettlement/immediate independent80 eval. When actual OWNER_EXIT published, unique V8 closed evidence transfer, native replay/curves/manifold then targeted decision.',
+        close_and_eval=dict(controller='same remote original owner, not a separate local postround/watch process',
+            owner_run_id=w['run_id'],fullsave_before_exit=True,eval_first_episodes=80,
+            max_controls=500,seconds=10.,seed=9137,height_m=.2,edge_m=.8,new_DR=True,
+            source_model_open='final one decode with embedded teacher; mother teacher PT opens0'),
+        current_resource_blocker=None,
+        fourGPU_latest_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_V8.json',
+        resource_snapshot_is_historical=True,
+        action_repair='repair_v8/standing_action_v8.py; CPU admission passed and real FIRST derivative live')
+    w['followup_commands']=dict(
+        status="Direct Python314 -B -X utf8 run_standing_local_v2.py --mode status --label V8_POSTWINDOW_ONCE --wait-seconds 0, after freshLOCAL released; save receipt and set latest_status to it; do not use consumed V8_FIRST_UPDATED label.",
+        closed='Direct Python314 -B -X utf8 repair_v8/run_repair_v8.py closed, only after latest_status actual OWNER_EXIT; V8_CLOSED_EVIDENCE_TRANSFER_ONCE unused. Never V6 collector once.',
+        render='workspace .venv/Scripts/python.exe render_standing_recorded_v2.py --evaluation actual_closed/<V8runid>/evaluation --usd F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd --output actual_closed/<V8runid>/rendered_v2 --video; view_image all eight side/top sheets and actual curves/manifold.',
+        diagnostic_cpu='V7 and CPUV8 consumed/pass. No repeated checkpoint decode for archive or validation.')
+    w['archival']['V8_repair']=dict(status='pending unique new repair trial',path='history/standing200/20261103-v7-clipping-v8-reachable-actions')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    # The operation runner gained FIRST/closed modes after launch. Preserve its
+    # exact prelaunch frozen bytes, as well as the later small local runner.
+    frozen=json.loads((D/'FROZEN_V8.json').read_bytes())
+    text=(D/'run_repair_v8.py').read_text(encoding='utf-8')
+    start=text.index("    if a.mode=='closed':")
+    stop=text.index("    if a.mode=='gpu':")
+    original=text[:start]+text[stop:]
+    original=original.replace("choices=['cpu','gpu','first','closed']","choices=['cpu','gpu']")
+    expected=next(x for x in frozen['files']if x['name']=='run_repair_v8.py')
+    assert hashlib.sha256(original.encode()).hexdigest()==expected['SHA']
+    dest=D/'frozen_original_runner_v8.py'
+    with dest.open('x',encoding='utf-8',newline='\n')as f:f.write(original)
+    result=dict(epoch=time.time(),kind='V8_ACTUAL_FIRST_AND_CONTINUATION_DECISION',
+        V6_independent_skill='0/80, completed reviewed, all80timeout, no bothwheel top support',
+        V7_actual='consumed CPU proof left frozen teacher raw -134.0987..-87.1089; +/-1 cannot unclip -6; derivative0 on341 actual saved inputs',
+        V8_CPU='consumed pass fullfourAdam restore0step; all6 derivatives>0 on341 actual saved inputs',
+        actual_run=w['run_id'],owner=w['original_owner'],worker=w['original_worker_current'],
+        GO=w['GO'],source_counts=w['source_resume']['counts'],first_counts=first['checkpoint']['counts'],
+        first_new_BPTT_steps=1,first_actual_controls=first['metrics']['actual_controls'],
+        first_transitions=first['metrics']['real_environment_transitions'],
+        first_actual_path=first['actual_action_path'],first_complete=first['checkpoint'],
+        original_canonical_samewriter_strictreserve=True,SSHclosed=True,serial='FREE',
+        no_skill_graduation=True,decision='continue healthy changed-action actual BPTT; same-owner independent evaluation at safe close, then native review and targeted repair',
+        limitations=['oldteacher huge channel cause not yet resolved; composition removes proven residual obstruction',
+            'new physical policy changes can initially alter route; FIRST is not improvement evidence',
+            'selected eval decomposition computes batch4 versus actualbatch80; strict torch.equal may reject small FP differences before skill rollout; if actual rejection occurs preserve failure and create independent corrected evaluator, do not rerun consumed once'],
+        source_text_history='FROZEN_V8 plus exact frozen_original_runner_v8.py and current finite local runner')
+    with(R/'reports/V8_ACTUAL_FIRST_AND_CONTINUATION_DECISION.json').open('x',encoding='utf-8')as f:json.dump(result,f,indent=2)
+    print(json.dumps(dict(status=w['status'],first_new_BPTT_steps=1,
+        save_local=datetime.fromtimestamp(w['GO']['save_deadline']).astimezone().isoformat(),
+        source_counts=w['source_resume']['counts'],first_counts=first['checkpoint']['counts'])))
+
+
+if __name__=='__main__':main()

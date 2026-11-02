@@ -1,0 +1,44 @@
+"""Archive new repair text once; previous identical evidence stays by reference."""
+from pathlib import Path
+import hashlib,importlib.util,json,sys,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v7-clipping-v8-reachable-actions'
+
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_archive_redaction',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files=[p for p in D.iterdir()if p.is_file()]
+    files.extend(p for p in (R/'reports').iterdir()if p.is_file()and any(k in p.name for k in ['FINAL_ACTION_DIAG_CPU_V7','REPAIR_V8','FOUR4090_READ_V8','FOUR4090_RESOURCE_ACTUAL_V8','FRESH_LOCAL_CIM_BEFORE_FOUR4090_V8','STATUS_V8','V8_ACTUAL_FIRST']))
+    files.append(R/'CURRENT_WORK_ORDER.json')
+    files.append(Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml'))
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir();rows=[]
+    for p in sorted(files,key=str):
+        assert p.suffix in ['.py','.json','.md','.txt','.toml']
+        raw=p.read_bytes();sha=hashlib.sha256(raw).hexdigest()
+        safe,n=guard.redact(raw.decode('utf-8-sig'));archived=raw if not n else safe.encode()
+        ash=hashlib.sha256(archived).hexdigest();target=known.get(ash)
+        if target is None:
+            out=DEST/'objects'/ash
+            if not out.exists():out.write_bytes(archived)
+            target=out.relative_to(REPO).as_posix();known[ash]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=sha,archive_path=target,
+                         archive_SHA=ash,archive_bytes=len(archived),redactions=n,
+                         mode='complete_text'if not n else'redacted_text'))
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    index=dict(kind='STANDING200_V7_CLIPPING_DIAG_AND_V8_REPAIR_ACTUAL',epoch=time.time(),rows=rows,
+        run_id=work['run_id'],source_checkpoint=work['source_resume'],
+        prior_phase='history/standing200/20261103-v6-independent-eval-route-diagnosis/INDEX.json',
+        archive_model_and_media_reads=0,current_work_order=work['status'])
+    (DEST/'INDEX.json').write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),rows=len(rows),new_objects=len(list((DEST/'objects').iterdir())))))
+
+
+if __name__=='__main__':main()

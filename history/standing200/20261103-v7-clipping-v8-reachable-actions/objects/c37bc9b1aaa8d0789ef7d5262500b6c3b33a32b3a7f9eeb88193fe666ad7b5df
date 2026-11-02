@@ -1,0 +1,96 @@
+"""One original owner for the CPU-admitted repair; no full-tree copy."""
+from pathlib import Path
+import ast,hashlib,json,sys,time,traceback
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path[:0]=[str(D),str(R)]
+from run_repair_v8 import gate,put
+from stage_start_standing200_v6 import run,PREFLIGHT
+
+STAGE_LAUNCH=r'''
+from pathlib import Path
+import ast,hashlib,json,os,subprocess,sys,time
+J=Path(v['job']);S=Path(v['source_job']);assert not J.exists()
+raw=(S/'INSTALL_MANIFEST.json').read_bytes();assert hashlib.sha256(raw).hexdigest()==v['source_manifest_SHA']
+exit=json.loads((S/'OWNER_EXIT.json').read_bytes());assert exit['all_own_waited']and exit['original_leases_released']
+J.mkdir();(J/'source').mkdir();(J/'control').mkdir()
+for name in ['runtime','assets','lib','sm_deps','original_run_manifest.json','MOD4V1_ASSET_DIFF.json','MOD4V1_DERIVATION_INDEX.json']:
+ if(S/name).exists():(J/name).symlink_to(S/name,target_is_directory=(S/name).is_dir())
+rows=[]
+for rel,item in v['files'].items():
+ p=J/rel;raw=item['text'].encode();assert hashlib.sha256(raw).hexdigest()==item['SHA']
+ if p.suffix=='.py':ast.parse(raw.decode())
+ p.write_bytes(raw);rows.append(dict(relative=rel,bytes=len(raw),SHA=item['SHA']))
+def write(rel,value):
+ raw=json.dumps(value,indent=2).encode();(J/rel).write_bytes(raw)
+ rows.append(dict(relative=rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+write('SHARED_REFERENCE.json',dict(root=str(S),manifest_SHA=v['source_manifest_SHA'],original_dependencies_immutable=True))
+write('control/SCHEDULE_PUBLIC.json',dict(experts={'standing200':dict(max_parent_seconds=3900,GPU_UUID=v['uuid'])}))
+sys.path[:0]=[str(J/'source'),str(S/'source')]
+from standing_resume_v8 import verify_shared_source
+shared=verify_shared_source(J)
+(J/'INSTALL_MANIFEST.json').write_text(json.dumps(dict(kind='STANDING200_V8_SMALL_REPAIR_OVERLAY',files=rows,shared=shared,PT_copies=0),indent=2))
+# Fresh second canonical/resource admission immediately before the sole owner.
+from pathlib import Path
+import fcntl
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes());assert c['active_segment']is None and c['remaining_training_seconds']>86412.86069250107+3900
+for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+ with p.open('rb+')as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+assert v['uuid']not in subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)
+env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1')
+with(J/'OWNER.log').open('xb')as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'control/standing_owner_v1.py')],cwd=J,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+import psutil
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),job=str(J),owner=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd()),
+ shared=shared,overlay_files=len(rows),manifest_SHA=hashlib.sha256((J/'INSTALL_MANIFEST.json').read_bytes()).hexdigest(),
+ first_GO_pending=True,no_model_reads_in_parent=True)))
+'''
+
+
+def main():
+    assert not(R/'reports/REPAIR_V8_LAUNCH_ONCE.json').exists()
+    f=D/'FROZEN_V8.json';frozen=json.loads(f.read_bytes())
+    for row in frozen['files']:
+        p=D/row['name'];assert p.stat().st_size==row['bytes']and hashlib.sha256(p.read_bytes()).hexdigest()==row['SHA']
+        if p.suffix=='.py':ast.parse(p.read_bytes())
+    cpu=json.loads((R/'reports/REPAIR_V8_CPU_ACTUAL.json').read_bytes());assert cpu['result']['passed']
+    if not gate('LAUNCH'):return
+    put('REPAIR_V8_LAUNCH_ONCE.json',dict(epoch=time.time(),frozen_SHA=hashlib.sha256(f.read_bytes()).hexdigest(),
+                                      job=frozen['job'],run_id=frozen['run_id'],parent_model_reads=0))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72();plan=json.loads((D/'PLAN.json').read_bytes())
+        args=dict(job=frozen['job'],uuid=plan['GPU_UUID'],base=frozen['source_job'],
+                  super='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SUPERMIMIC_BPTT8_V1_20261102_181251_1793614371303119100/roles/E0')
+        put('REPAIR_V8_FRESH_PARENT_ADMISSION.json',run(c,PREFLIGHT,args))
+        files={}
+        for name in ['standing_action_v8.py','standing_resume_v8.py','standing_worker_v1.py','evaluate_standing200_v1.py','standing_owner_v1.py','PLAN.json']:
+            raw=(D/name).read_bytes()
+            rel=('control/'if name=='standing_owner_v1.py'else''if name=='PLAN.json'else'source/')+name
+            files[rel]=dict(text=raw.decode(),SHA=hashlib.sha256(raw).hexdigest())
+        result=run(c,STAGE_LAUNCH,dict(frozen,files=files,uuid=plan['GPU_UUID']),180)
+        put('REPAIR_V8_OWNER_LAUNCH_ACTUAL.json',result)
+        p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+        w['previous_closed_run']=dict(run_id=w['run_id'],remote_job=w['remote_job'],final=w['latest_checkpoint'],evaluation=w['evaluation_result'])
+        w.update(status='V8_ORIGINAL_OWNER_DISPATCHED_AWAIT_ACTUAL_GO_FIRST',run_id=frozen['run_id'],remote_job=frozen['job'],
+                 original_owner=result['owner'],training_started='AWAIT_ACTUAL_GO_FIRST',training_completed=False,
+                 source_resume=plan['resume'],latest_status='reports/REPAIR_V8_OWNER_LAUNCH_ACTUAL.json',
+                 source_version=dict(shared_source=frozen['source_job'],overlay=str(D),manifest_SHA=result['manifest_SHA']),
+                 next='Collect unique V8 FIRST metadata after freshLOCAL release. Original owner fullsave/close/immediate independent80 eval. Never rerun launch/V7/CPU.')
+        # Historic V6 evidence is preserved in previous_closed_run and reports;
+        # no V6 count or evaluation is presented as V8 progress.
+        for key in ['GO','actual_last','original_worker','original_worker_current','first_checkpoint','first_actual_metrics','first_readonly_status_consumed','latest_checkpoint','final_actual_metrics','actual_owner_exit','evaluation_result','evaluation_closed_and_transferred','evaluation_once_consumed','replay_native_reviewed']:
+            w.pop(key,None)
+        p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(result))
+    except BaseException:
+        put('REPAIR_V8_LAUNCH_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),never_replay_once=True));raise
+    finally:
+        if c is not None:c.close()
+        put('REPAIR_V8_LAUNCH_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

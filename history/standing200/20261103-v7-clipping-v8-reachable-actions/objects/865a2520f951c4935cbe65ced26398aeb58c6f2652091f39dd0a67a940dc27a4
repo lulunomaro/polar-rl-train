@@ -1,0 +1,107 @@
+"""Independent first-episode evaluation, no optimizer or new learning."""
+from pathlib import Path
+import argparse,hashlib,io,json,os,sys,time,traceback
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from standing_worker_v1 import build,close,put
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job-root',required=True,type=Path);a=q.parse_args()
+    J=a.job_root.resolve();task=json.loads((J/'TASK.json').read_bytes())
+    final=json.loads((J/'production/FINAL.json').read_bytes())
+    assert final['passed_execution']and final['native_BPTT_steps']>0
+    out=J/'evaluation';out.mkdir(exist_ok=False)
+    ns=env=course=guard=None;error=None;lifetime={}
+    try:
+        ns,env,course,guard,obs,tensor=build(J,task,80,9137,out,lifetime=lifetime)
+        import torch,numpy as np
+        from native_supermimic_bridge import PinnedTeacher
+        from supermimic_vendor_v2.networks import Policy
+        from standing_action_v8 import StandingResidualPolicy,compose
+        from standing_resume_v8 import build_embedded_actor,verify_shared_source
+        verify_shared_source(J)
+        c=final['checkpoint'];raw=Path(c['path']).read_bytes()
+        assert len(raw)==c['bytes']and hashlib.sha256(raw).hexdigest()==c['SHA']
+        saved=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True);del raw
+        assert saved['standing_task']['run_id']==task['run_id']and saved['course_height_m']==.2
+        actor=build_embedded_actor(saved,env.device)
+        cfg=saved['args']
+        residual=Policy(44,3,hist=cfg['hist'],z_dim=cfg['z_dim'],num_joints=6,hidden=cfg['policy_hidden'])
+        policy=StandingResidualPolicy(residual,actor,1.).to(env.device)
+        policy.load_state_dict(saved['pi'],strict=True);policy.eval().requires_grad_(False)
+        active=torch.ones(80,dtype=torch.bool,device=env.device);course.active=active
+        course.record_ids=[0,1,40,41]
+        history=torch.zeros(80,cfg['hist'],44,device=env.device)
+        captured={};frames={i:[]for i in course.record_ids};curves=[]
+        for control in range(500):
+            depth=course.current_depth();raw35=obs['policy'].clone()
+            raw35[:,:3]=env.command_manager.get_term('twist').command
+            raw35[:,3]=5*course.task.height_cmd(env)[:,0]
+            actor_input=torch.cat((raw35,depth),-1)
+            if control==0:history=actor_input[:,None].expand(-1,cfg['hist'],-1).clone()
+            else:history=torch.cat((history[:,1:],actor_input[:,None]),1)
+            with torch.no_grad():
+                action=policy(history,raw35[:,:3])
+                # Exact current actor input and decomposition for selected cases;
+                # no assumed input reconstruction or additional physics.
+                ids=course.record_ids
+                from tensordict import TensorDict
+                selected_base=actor(TensorDict(dict(policy=raw35[ids]),batch_size=[len(ids)]),stochastic_output=False)
+                selected_latent=policy.residual(history[ids],raw35[ids,:3])
+                assert torch.equal(compose(selected_base,selected_latent),action[ids])
+            course.previous_actions=course.current_actions.clone();course.current_actions=action.clone()
+            obs,reward,terminated,truncated,extra=env.step(action)
+            snapshot=course.terminal_snapshot;done=(terminated|truncated)&active
+            for env_id in course.record_ids:
+                if not bool(active[env_id]):continue
+                frame={k:v[env_id].detach().cpu().numpy().copy()for k,v in snapshot.items()}
+                frame['action']=action[env_id].detach().cpu().numpy();frame['time']=(control+1)*.02
+                k=course.record_ids.index(env_id)
+                frame['actor_input44']=actor_input[env_id].detach().cpu().numpy()
+                frame['teacher_raw']=selected_base[k].cpu().numpy()
+                frame['residual_latent']=selected_latent[k].cpu().numpy()
+                frames[env_id].append(frame)
+            curves.append(dict(control=control+1,active=int(active.sum()),reward_mean=float(reward[active].mean())if active.any()else None,
+                actual_top_cases=int((snapshot['top']>1).all(-1).sum()),
+                stable_peak_ticks=int(snapshot['stable'].max()),terms=course.reward_terms))
+            for i in torch.where(done)[0].cpu().tolist():
+                captured[i]=dict(env=i,controls=control+1,seconds=(control+1)*.02,
+                    strict200_standing=bool(snapshot['success'][i]),stable_peak_s=float(snapshot['stable'][i])*.0025,
+                    longest_unsupported_s=float(snapshot['unsupported'][i])*.0025,
+                    final_top_force_N=snapshot['top'][i].cpu().tolist(),terminated=bool(terminated[i]),truncated=bool(truncated[i]))
+            active&=~done;course.active=active
+            if not bool(active.any()):break
+        if bool(active.any()):
+            snap=course.snapshot()
+            for i in torch.where(active)[0].cpu().tolist():
+                captured[i]=dict(env=i,controls=500,seconds=10.,strict200_standing=bool(snap['success'][i]),
+                    stable_peak_s=float(snap['stable'][i])*.0025,longest_unsupported_s=float(snap['unsupported'][i])*.0025,
+                    final_top_force_N=snap['top'][i].cpu().tolist(),terminated=False,truncated=False)
+        for i,seq in frames.items():
+            if seq:np.savez_compressed(out/('REPLAY_env'+str(i)+'.npz'),**{k:np.stack([s[k]for s in seq])for k in seq[0]})
+        replay=[]
+        for i,seq in frames.items():
+            path=out/('REPLAY_env'+str(i)+'.npz')
+            if path.is_file():replay.append(dict(env=i,path=str(path),bytes=path.stat().st_size,SHA=hashlib.sha256(path.read_bytes()).hexdigest(),controls=len(seq)))
+        put(out/'REPLAY_METADATA.json',dict(body_names=list(course.robot.body_names),origins=env.scene.env_origins.detach().cpu().tolist(),
+            quaternion_order='xyzw',recording='actual pre-reset 50Hz PhysX body poses',replay=replay,checkpoint=c,
+            course=dict(edge_m=.8,height_m=.2,length_m=3.,half_width_m=1.),NN_or_physics_rerun_required=False))
+        rows=[captured[i]for i in range(80)]
+        put(out/'ACTUAL_MANIFOLD.json',dict(source='400Hz actual external course-filtered solver points/normals/forces',
+            contact_rows=course.saved_manifold,firstflight_required=False))
+        put(out/'CURVES.json',dict(rows=curves))
+        put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=True,strict_successes=sum(r['strict200_standing']for r in rows),
+            cases=80,first_episodes_only=True,max_controls=500,seconds=10,seed=9137,new_DR=True,height_m=.20,
+            mean_seconds=sum(r['seconds']for r in rows)/80,results=rows,checkpoint=c,optimizer_steps=0,
+            final_model_decodes=1,frozen_baseline_teacher_decodes=0,embedded_teacher_strict_restored=True,
+            acceptance='full wheel footprint+actual both-wheel top manifold, stable .5s, unsupported gap<=.10s, no ground/edge return',
+            body_guide_support_during_climb_permitted=True,no_online_MPC=True,
+            replay_requires_current_model_native_view_image_review=True))
+        guard.assert_new_nominals_unchanged()
+    except BaseException:
+        error=traceback.format_exc();put(out/'EVAL_ERROR.json',dict(epoch=time.time(),error=error))
+    finally:close(ns or lifetime.get('ns'),env or lifetime.get('env'),course or lifetime.get('course'),out,error)
+    if error:raise RuntimeError(error)
+
+
+if __name__=='__main__':main()

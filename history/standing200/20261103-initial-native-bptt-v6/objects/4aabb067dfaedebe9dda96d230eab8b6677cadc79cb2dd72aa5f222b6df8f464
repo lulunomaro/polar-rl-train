@@ -1,0 +1,69 @@
+"""After own OWNER_EXIT, transfer actual evaluation evidence/replays, no PT I/O.
+
+Uses a single finite SSH connection and verifies transferred replay bytes against
+the evaluator's published SHA. No new SDK, policy, optimizer or physics actions.
+"""
+from pathlib import Path
+import hashlib,json,re,sys,time,traceback
+R=Path(__file__).resolve().parent
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+
+def main():
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes());job=work['remote_job'];runid=work['run_id']
+    assert runid.startswith('MOD4_STANDING200_RLBPTT_')and job.endswith('/'+runid)
+    rows,blocked=local_rows()
+    relevant=[r for r in blocked if re.search(r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])',r.get('CommandLine')or'',re.I)]
+    if relevant:raise RuntimeError('Known local controller busy; no transfer once/network')
+    put('CLOSED_EVIDENCE_TRANSFER_ONCE.json',dict(epoch=time.time(),run_id=runid,rows=rows))
+    client=sf=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client=connect72();sf=client.open_sftp();sf.get_channel().settimeout(60)
+        def read(rel):
+            with sf.open(job+'/'+rel,'rb')as f:raw=f.read()
+            assert len(raw)<32*1024**2
+            return raw
+        exit_raw=read('OWNER_EXIT.json');exit_value=json.loads(exit_raw)
+        assert exit_value['run_id']==runid and exit_value['all_own_waited']and exit_value['original_cost_settled']and exit_value['original_leases_released']
+        dest=R/'actual_closed'/runid;dest.mkdir(parents=True,exist_ok=False)
+        copied=[]
+        def store(rel,raw):
+            p=dest/rel;p.parent.mkdir(parents=True,exist_ok=True)
+            with p.open('xb')as f:f.write(raw)
+            row=dict(remote_path=job+'/'+rel,local_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+            copied.append(row);return row
+        store('OWNER_EXIT.json',exit_raw)
+        for rel in ['INSTALL_MANIFEST.json','PLAN.json','TASK.json','ROOT_ADMISSION_ACTUAL.json','GO_PRODUCTION.json','WORKER_IDENTITY.json',
+                    'TRAIN_CLOSED.json','EVAL_WAITED.json','OWNER_ERROR.json','production/NATIVE_STARTUP.json','production/FIRST_UPDATED.json',
+                    'production/PROGRESS.json','production/latest_complete.json','production/FINAL.json','production/WORKER_ERROR.json',
+                    'production/APP_CLOSE_INTENT.json','evaluation/RESULT.json','evaluation/EVAL_ERROR.json','evaluation/APP_CLOSE_INTENT.json',
+                    'evaluation/REPLAY_METADATA.json','evaluation/CURVES.json','evaluation/ACTUAL_MANIFOLD.json']:
+            try:raw=read(rel)
+            except FileNotFoundError:continue
+            store(rel,raw)
+        mp=dest/'evaluation/REPLAY_METADATA.json'
+        if mp.is_file():
+            metadata=json.loads(mp.read_bytes())
+            for row in metadata['replay']:
+                name=Path(row['path']).name
+                assert name.startswith('REPLAY_env')and name.endswith('.npz')and row['path']==job+'/evaluation/'+name
+                raw=read('evaluation/'+name)
+                assert len(raw)==row['bytes']and hashlib.sha256(raw).hexdigest()==row['SHA']
+                store('evaluation/'+name,raw)
+        put('CLOSED_ACTUAL_EVALUATION_TRANSFER.json',dict(epoch=time.time(),passed=True,run_id=runid,job=job,
+            files=copied,original_exit=exit_value,source_PT_reads=0,new_SDK_or_physics_operations=0,
+            evaluation=str(dest/'evaluation'),native_review_pending=True))
+        print(json.dumps(dict(evaluation=str(dest/'evaluation'),files=len(copied),native_review_pending=True)))
+    except BaseException:
+        put('CLOSED_TRANSFER_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        put('CLOSED_TRANSFER_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,serial='FREE'))
+
+if __name__=='__main__':main()

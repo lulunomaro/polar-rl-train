@@ -1,0 +1,20 @@
+"""V6 never consumed its network once; retry via direct interpreter identity.
+
+The original py.exe launcher inserted a grandparent shell outside the gate's
+direct-parent allowance. Preserve its rejected receipt and use a new local
+receipt name. All original local/remote gates and source bytes remain active.
+"""
+import importlib.util
+from pathlib import Path
+R = Path(__file__).resolve().parent
+assert not (R/'reports/STAGE_START_V6_ONCE.json').exists()
+spec = importlib.util.spec_from_file_location('unused_standing200_stage_v6', R/'stage_start_standing200_v6.py')
+stage = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(stage)
+original_put = stage.put
+def put(name, value):
+    if name == 'FRESH_LOCAL_CIM_BEFORE_STAGE_V6.json':
+        name = 'FRESH_LOCAL_CIM_BEFORE_STAGE_V6_DIRECT_EXE.json'
+    return original_put(name, value)
+stage.put = put
+stage.main()

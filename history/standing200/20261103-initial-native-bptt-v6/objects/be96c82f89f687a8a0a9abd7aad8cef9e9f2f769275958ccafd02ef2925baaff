@@ -1,0 +1,190 @@
+"""Original-owner-admitted native RL+BPTT standing200 worker and frozen evaluator."""
+from pathlib import Path
+import argparse,hashlib,json,os,runpy,sys,time,traceback,shutil,io
+
+
+def put(path,value):
+    path=Path(path);tmp=path.with_suffix(path.suffix+'.partial')
+    with tmp.open('w',encoding='utf-8')as f:
+        json.dump(value,f,indent=2,allow_nan=False);f.flush();os.fsync(f.fileno())
+    os.replace(tmp,path)
+
+
+def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+class SavedStop(Exception):pass
+
+
+def build(J,task,n,seed,out,lifetime=None):
+    """Only original E0 physical/DR wrappers, with new course+task reward."""
+    mod=J/'runtime/isaac/mod4';original=json.loads((J/'original_run_manifest.json').read_bytes())['env']
+    for k in list(os.environ):
+        if k.startswith(('RM_','MOD4V1_','MOD4_RESUME_'))or k in ['PYTHONPATH','RANK','LOCAL_RANK','WORLD_SIZE']:
+            del os.environ[k]
+    os.environ.update({k:str(v)for k,v in original.items()if k.startswith(('RM_','MOD4_'))})
+    os.environ.update(RM_KEEP_STD='1',RM_MOD4_TERRAIN='flat',RM_MOD4_MAP='',
+        RM_FLAT_NATIVE_PLANE='0',RM_GYRO_CURRICULUM='0',RM_SPIN_STAGE='',
+        RM_SPIN_ROLLING_PROFILE='off',RM_WORLD_DRIFT_PROFILE='off',RM_JUMP_SCRIPT_PROB='0',
+        RM_CMD_VX_MIN='.35',RM_CMD_VX_MAX='.35',RM_REL_HEADING='0',RM_HEADING_CMD='0',
+        RM_REL_STANDING='0',RM_HEIGHT_MIN='.25',RM_HEIGHT_MAX='.25',RM_NOMINAL_HEIGHT='.25',
+        RM_PHYSICS_DT_S='.0025',RM_SOLVER_POS='32',RM_SOLVER_VEL='4',
+        MOD4_RESUME_QUEUE_CONTROL_US='20000',RM_EPISODE_S='10',
+        MOD4V1_E0_ASSET_DIR=str(J/'assets'),MOD4V1_E0_JOB_ROOT=str(J))
+    storage=out/'kit_isolation';storage.mkdir();(storage/'data').mkdir();(storage/'DerivedDataCache').mkdir()
+    (storage/'data/user.config.json').write_text('{}')
+    # New owned namespace; original isolated launcher binds to job/kit_isolation.
+    os.environ['MOD4V1_E0_KIT_STORAGE_ROOT']=str(J/'kit_isolation')
+    if not (J/'kit_isolation').exists():
+        (J/'kit_isolation').mkdir();(J/'kit_isolation/data').mkdir();(J/'kit_isolation/DerivedDataCache').mkdir()
+        (J/'kit_isolation/data/user.config.json').write_text('{}')
+    os.environ['RM_MOD4_USD']=str(J/'assets/robot.usd')
+    sys.path[:0]=[str(J/'source'),str(J/'sm_deps'),str(J/'lib'),str(mod),str(J/'runtime'),str(J)]
+    entry=mod/'train_mod4v1_e0.py'
+    sys.argv=[str(entry),'--headless','--device','cuda:0','--num_envs',str(n),'--seed',str(seed),
+              '--steps_per_env','24','--additional_iterations','1']
+    ns=runpy.run_path(str(entry),run_name='standing200_original_E0_constructor_not_PPO_main')
+    if lifetime is not None:lifetime['ns']=ns
+    from standing_sdk_v1 import configure_course,StandingCourse
+    from mod4v1_fresh_dr_guard import configure_new_task,FreshDRNominalGuard,verify_task_module
+    from mild_dr import tensor
+    cfg=ns['Mod4EnvCfg']();cfg.seed=seed
+    configure_course(cfg,ns,n)
+    identity=ns['E0_IDENTITY'];verify_task_module(ns['mod4_task'],identity)
+    configure_new_task(cfg,identity)
+    env=ns['Mod4Env'](cfg=cfg)
+    if lifetime is not None:lifetime['env']=env
+    assert env.num_envs==n and env.physics_dt==.0025 and env.step_dt==.02
+    assert env.cfg.sim.physics.solver_type==1
+    assert env.cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count==32
+    assert env.cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count==4
+    assert env.cfg.terminations.closure.params['threshold']==.01 and env.cfg.terminations.mimic.params['threshold']==.01
+    assert env._mild_dr.profile=='white_v3'and env._sensor_mild.profile=='noise_bias_mild_v1'
+    assert env._feedback_delay_mild.enabled and env._physics_action_delay.queue.enabled
+    assert env._spring_pressure.component.enabled and env._gas_damping.component.enabled
+    assert env._chassis_com.component.enabled and env._explicit_pd.component.enabled
+    guard=FreshDRNominalGuard(env,identity,torch_module=__import__('torch'),tensor_converter=tensor)
+    from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
+    events=[]
+    def cache_event(value):
+        if len(events)<40:events.append(value)
+        put(out/'POSE_CACHE_EVENTS.json',dict(events=events,original_calls_preserved=True))
+    handle=install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=cache_event)
+    course=StandingCourse(env,tensor,ns['mod4_task'])
+    if lifetime is not None:lifetime['course']=course
+    course.initialize_geometry()
+    reset=env.reset();obs=reset[0]if isinstance(reset,tuple)else reset
+    course.measure_enabled=True
+    guard.check_observations(obs);audit=guard.verify_live_parameters()
+    assert audit['actual_parameters_pass']
+    course.current_depth();obs=dict(obs);obs['policy']=obs['policy'].clone()
+    obs['policy'][:,:3]=env.command_manager.get_term('twist').command
+    obs['policy'][:,3]=5*ns['mod4_task'].height_cmd(env)[:,0]
+    put(out/'NATIVE_STARTUP.json',dict(epoch=time.time(),num_envs=n,physics_dt=.0025,policy_hz=50,
+        feedback_hz=100,TGS=[32,4],fresh_D0_D7=audit,asset_SHA=identity.usd_sha256,
+        contract_SHA=identity.contract_sha256,one_explicit_fresh_reset=True,raw_actor35_unchanged=True,
+        policy_actual_view='35 delayed/noisy proprioception + current depth9',
+        camera_provisional_84x48_not_hardware_D435i_calibration=True,
+        physical_course_height=.2,body_guide_external_support_allowed=True,
+        authored_wheel_metadata=course.geometry_metadata))
+    return ns,env,course,guard,obs,tensor
+
+
+def close(ns,env,course,out,error):
+    if course is not None:course.close()
+    if env is not None:env.close();put(out/'ENV_CLOSED.json',dict(epoch=time.time(),original_close_returned=True))
+    if ns is not None:
+        # Isaac's original fast_shutdown may os._exit. Durable save + env closure
+        # before its untouched no-argument close and actual parent wait are joined.
+        put(out/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,original_zero_argument_close=True,
+            final_exists=(out/'FINAL.json').exists(),env_closed=(out/'ENV_CLOSED.json').exists()))
+        ns['app'].close()
+        put(out/'APP_CLOSED.json',dict(epoch=time.time(),returned=True))
+
+
+def train(J,task,go):
+    out=J/'production';out.mkdir(exist_ok=False)
+    ns=env=course=guard=bridge=learner=None;error=None;latest=None;lifetime={}
+    try:
+        ns,env,course,guard,obs,tensor=build(J,task,task['num_envs'],task['seed'],out,lifetime=lifetime)
+        import torch
+        from native_supermimic_bridge import PinnedTeacher
+        from standing_bridge_v1 import StandingBridge
+        from standing_core_v1 import StandingResidualPolicy
+        from ctx_reward_learner import ContextRewardLearner
+        from supermimic_vendor_v2.learner import SuperMimicConfig
+        teacher=PinnedTeacher(task);actor=teacher.build_actor(env.device)
+        bridge=StandingBridge(env,task,out,tensor,teacher,course,initial_obs=obs);bridge.init_state()
+        class Learner(ContextRewardLearner):
+            def _make_policy(self):return StandingResidualPolicy(super()._make_policy(),actor,scale=1.)
+            def _checkpoint(self,include_optimizers):
+                full=super()._checkpoint(include_optimizers)
+                full.update(standing_task=task,teacher_source=teacher.receipt(),course_height_m=.2,
+                    action_mode='frozen_E0 + learned six-motor tanh residual',
+                    physical_resume='fresh episode; all learner optimizer/replay/RNG restored',
+                    acceptance='supported ascent, not first-flight jump')
+                return full
+            def save(self,path=None,include_optimizers=True):
+                nonlocal latest
+                teacher.assert_frozen();count=self.counts.pi_bptt_optimizer_steps
+                p=out/'checkpoints'/('BPTT'+str(count).zfill(6)+'_I'+str(self.iteration).zfill(6)+'_'+str(time.time_ns())+'_complete.pt')
+                p=super().save(p,include_optimizers=True)
+                latest=dict(epoch=time.time(),path=str(p),bytes=p.stat().st_size,SHA=digest(p),
+                    counts=vars(self.counts),iteration=self.iteration,full_models_four_optimizers_replay_RNG=True,
+                    last_bptt_receipt=self.last_bptt_receipt)
+                put(out/'latest_complete.json',latest)
+                return p
+        cfg=SuperMimicConfig(iterations=100000,buffer_steps=256,utd=.4,horizon=32,goal_frames=1,
+            hist=10,z_dim=32,wm_hidden=(512,512,512),policy_hidden=(512,256,128),critic_hidden=(256,128),
+            wm_window=8,wm_batches=4,wm_batch=512,pi_batch=512,lr=1e-4,action_noise=.10,
+            warmup_steps=64,wm_only_iters=100,critic_epochs=2,critic_minibatches=2,
+            ckpt_every=250,log_every=10,log_backend='none',amp='none',compile=False,seed=task['seed'])
+        mask=torch.ones(bridge.mdp.context_dim);mask[:3]=0;mask[14:16]=0;mask[22:35]=0
+        learner=Learner(bridge,cfg,out/'learner',device=env.device,backend='standing200_actual_rl_learnedWM_BPTT',
+                        policy_dt_s=.02,predict_context_mask=mask)
+        bridge.learner=learner;last_report=-1;first_saved=False
+        def before_action():
+            nonlocal last_report,first_saved
+            if time.time()>=go['save_deadline']or(J/'STOP_AFTER_SAVE.json').exists()or shutil.disk_usage(J).free<8*1024**3:
+                raise SavedStop()
+            if learner.counts.pi_bptt_optimizer_steps>0 and not first_saved:
+                learner.save();put(out/'FIRST_UPDATED.json',dict(epoch=time.time(),checkpoint=latest,
+                    metrics=bridge.metrics(),teacher=teacher.receipt(),physical_RL_skill_not_evaluated=True))
+                first_saved=True
+            if learner.iteration!=last_report and learner.iteration%10==0:
+                put(out/'PROGRESS.json',dict(epoch=time.time(),iteration=learner.iteration,counts=vars(learner.counts),
+                    last_bptt=learner.last_bptt_receipt,**bridge.metrics()));last_report=learner.iteration
+        bridge.before_action=before_action
+        try:learner.train(target_bptt_steps=3000)
+        except SavedStop:pass
+        learner.save();teacher.assert_frozen();guard.assert_new_nominals_unchanged()
+        put(out/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=latest,
+            counts=vars(learner.counts),native_BPTT_steps=learner.counts.pi_bptt_optimizer_steps,
+            skill_graduated=False,independent80_required=True,**bridge.metrics()))
+    except BaseException:
+        error=traceback.format_exc();put(out/'WORKER_ERROR.json',dict(epoch=time.time(),error=error,
+            counts=None if learner is None else vars(learner.counts)))
+        if learner is not None:
+            try:learner.save()
+            except BaseException:put(out/'ERROR_SAVE_FAILURE.json',dict(error=traceback.format_exc()))
+    finally:
+        if bridge is not None:
+            env.termination_manager.compute=bridge._oldterm
+        close(ns or lifetime.get('ns'),env or lifetime.get('env'),course or lifetime.get('course'),out,error)
+    if error:raise RuntimeError(error)
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job-root',required=True,type=Path);a=q.parse_args()
+    J=a.job_root.resolve();task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/'GO_PRODUCTION.json').read_bytes())
+    assert task['kind']==go['kind']=='MOD4_STANDING200_RLBPTT_V1'
+    assert task['run_id']==go['run_id']and task['owner_parent_pid']==os.getppid()
+    assert os.environ['CUDA_VISIBLE_DEVICES']==task['GPU_UUID']
+    for fd in task['inherited_lock_fds']:os.fstat(fd)
+    assert len(task['inherited_lock_fds'])==4 and time.time()<go['save_deadline']
+    for row in json.loads((J/'INSTALL_MANIFEST.json').read_bytes())['files']:
+        p=J/row['relative'];assert p.resolve().is_relative_to(J)and p.stat().st_size==row['bytes']and digest(p)==row['SHA']
+    train(J,task,go)
+
+
+if __name__=='__main__':main()

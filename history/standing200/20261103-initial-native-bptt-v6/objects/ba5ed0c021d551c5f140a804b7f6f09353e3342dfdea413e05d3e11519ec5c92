@@ -1,0 +1,55 @@
+"""Actual task r/done -> learned-world-model policy BPTT, actor raw35+depth9."""
+import torch
+from native_supermimic_bridge import NativeTaskBridge
+from standing_core_v1 import StandingMDP
+from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY
+
+
+class StandingBridge(NativeTaskBridge):
+    def __init__(self, env, task, out, tensor, teacher, course, initial_obs=None):
+        self.course=course
+        super().__init__(env,task,out,tensor,teacher,initial_obs=initial_obs)
+
+    @torch.no_grad()
+    def context(self, obs):
+        self.course.current_depth()
+        obs=dict(obs)
+        raw=obs['policy'].clone()
+        raw[...,:3]=self.real.command_manager.get_term('twist').command
+        raw[...,3]=5*self.course.task.height_cmd(self.real)[:,0]
+        obs['policy']=raw
+        self.observed_context_layout=getattr(self,'_original_layout',None)
+        base=super().context(obs)
+        self._original_layout=list(self.observed_context_layout)
+        # Parent caches list identity. Add depth immediately after actor35;
+        # truth/DR suffix remains model/critic-only, never policy-visible.
+        self.observed_context_layout=[('actor35_original',35),('current_depth9',9)]+self._original_layout[1:]
+        return torch.cat((base[...,:35],self.course.depth,base[...,35:]),-1)
+
+    @torch.no_grad()
+    def init_state(self):
+        state=super().init_state()
+        self.mdp=StandingMDP(state.info[SUPERMIMIC_STATE_KEY]['xi'].shape[-1])
+        return state
+
+    @torch.no_grad()
+    def step(self, actions):
+        self.course.previous_actions=self.course.current_actions.clone()
+        self.course.current_actions=actions.detach().clamp(-6,6).clone()
+        self.course.steps+=1
+        return super().step(actions)
+
+    def metrics(self):
+        c=self.course
+        return dict(actual_controls=self.controls,real_environment_transitions=self.controls*self.num_envs,
+            physics_callbacks=int(self.real._integrated_contact.tick)-self.physics_start,
+            feedback_samples=int(self.real._feedback_100hz_tick)-self.feedback_start,
+            actual_termination_events=self.metrics_terms,num_envs=self.num_envs,
+            standing200_top_events=c.ever_top_count,standing200_success_events=c.success_count,
+            reward_terms_last=c.reward_terms,
+            actual_reward_and_done=True,BPTT_is_learned_worldmodel_not_PhysX=True,
+            skill_pass_rate='PENDING_INDEPENDENT80_FIRST_EPISODES')
+
+    def close(self):
+        super().close()
+        self.course.close()

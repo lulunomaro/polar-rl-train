@@ -1,0 +1,176 @@
+"""One new owned source stage + original-authority admission, no foreign restarts."""
+from pathlib import Path
+import ast,hashlib,json,os,shlex,subprocess,sys,time,traceback
+R=Path(__file__).resolve().parent
+sys.path.insert(0,str(R));from check_four4090_once import local_rows
+W=Path(r'C:/Users/lulu/Desktop/claude/mjcf')
+PY='/home/lc01/Zonglin Li/zonglin2/run-python.sh'
+BASE='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0'
+SUPER='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SUPERMIMIC_BPTT8_V1_20261102_181251_1793614371303119100/roles/E0'
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def run(c,source,value,timeout=90):
+    body='import sys,json;v=json.loads(sys.stdin.readline());exec(v["source"])'
+    channel=c.get_transport().open_session(timeout=15);channel.settimeout(timeout)
+    channel.exec_command(shlex.quote(PY)+' -B -c '+shlex.quote(body))
+    try:
+        f=channel.makefile_stdin('wb');f.write((json.dumps(dict(value,source=source))+'\n').encode());f.flush();channel.shutdown_write()
+        text=channel.makefile('rb').read().decode();error=channel.makefile_stderr('rb').read().decode();rc=channel.recv_exit_status()
+        if rc:raise RuntimeError('Remote stage returned '+str(rc)+': '+error[-3000:])
+        return json.loads(text)
+    finally:channel.close()
+
+
+PREFLIGHT=r'''
+from pathlib import Path
+import json,fcntl,shutil,time,subprocess
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes());assert c['active_segment']is None
+assert c['remaining_training_seconds']>86412.86069250107+3900
+for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+ with p.open('rb+')as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+gpu=subprocess.check_output(['nvidia-smi','-i',v['uuid'],'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True)
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)
+assert v['uuid']not in apps
+J=Path(v['job']);assert not J.exists()
+assert Path(v['base']+'/runtime/isaac/mod4/train_mod4v1_e0.py').is_file()
+assert Path(v['super']+'/worker_sources/sm_deps').is_dir()
+print(json.dumps(dict(passed=True,epoch=time.time(),GPU=gpu,canonical_active=None,remaining=c['remaining_training_seconds'],actual_locks_free=True,no_model_or_SDK_operations=True)))
+'''
+
+
+STAGE=r'''
+from pathlib import Path
+import hashlib,json,shutil,ast,time
+J=Path(v['job']);assert not J.exists();J.mkdir(parents=True)
+base=Path(v['base']);sup=Path(v['super'])
+denied={'.pt','.pth','.ckpt','.onnx','.npz','.npy','.pyc','.log','.jsonl','.lock'}
+denied_names={'__pycache__','.git','production','logs','cache','checkpoints','private_train','kit_isolation'}
+def copytree(src,dst):
+ if not src.is_dir():raise FileNotFoundError(str(src))
+ for p in src.rglob('*'):
+  rel=p.relative_to(src)
+  if any(x in denied_names for x in rel.parts)or p.suffix.lower()in denied or p.is_symlink():continue
+  if not p.is_file():continue
+  target=dst/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,target)
+copytree(base/'runtime',J/'runtime')
+if (base/'lib').is_dir():copytree(base/'lib',J/'lib')
+copytree(sup/'worker_sources/sm_deps',J/'sm_deps')
+metadata=[]
+for name in ['original_run_manifest.json','MOD4V1_ASSET_DIFF.json','MOD4V1_DERIVATION_INDEX.json']:
+ source=base/name;target=J/name;shutil.copy2(source,target)
+ raw=source.read_bytes();assert target.read_bytes()==raw
+ metadata.append(dict(relative=name,source=str(source),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+# Original runtime validator, genuine diff and original adjacent reset bank; no SDK or PT.
+import os,sys
+os.environ['MOD4V1_E0_JOB_ROOT']=str(J)
+sys.path.insert(0,str(J/'runtime/isaac/mod4'))
+from mod4v1_e0_asset_compat import require_mod4v1_flat_reset_bank
+bank=J/'runtime/isaac/mod4/reset_bank.json'
+asset=base/'assets'
+if not(asset/'import_contract.json').is_file():asset=base/'new_assets'
+contract=asset/'import_contract.json'
+receipt=require_mod4v1_flat_reset_bank(bank,contract,json.loads(bank.read_bytes()),actual_contract_SHA='bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755')
+(J/'RESET_METADATA_STATIC_COMPAT.json').write_text(json.dumps(dict(genuine_source_metadata=metadata,original_validator=receipt,source_PT_reads=0,SDK_physics=0),indent=2))
+(J/'source').mkdir();(J/'control').mkdir();(J/'assets').mkdir()
+print(json.dumps(dict(passed=True,epoch=time.time(),job=str(J),files=sum(p.is_file()for p in J.rglob('*')),copied_models=0,SDK_and_owner_launches=0)))
+'''
+
+
+VERIFY_LAUNCH=r'''
+from pathlib import Path
+import json,hashlib,ast,time,subprocess,os
+J=Path(v['job']);rows=[]
+for p in sorted(J.rglob('*')):
+ if not p.is_file()or any(x in ['reports','private_runtime','production','evaluation']for x in p.relative_to(J).parts):continue
+ if p.suffix.lower()in ['.pt','.pth','.npz','.npy','.onnx']:raise RuntimeError('Model/data copied into new source')
+ raw=p.read_bytes()
+ if p.suffix=='.py':ast.parse(raw.decode('utf-8-sig'))
+ rows.append(dict(relative=p.relative_to(J).as_posix(),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+for r in v['expected']:
+ p=J/r['relative'];assert p.stat().st_size==r['bytes']and hashlib.sha256(p.read_bytes()).hexdigest()==r['SHA']
+manifest=dict(kind='STANDING200_STATIC_SOURCE_ASSET_MANIFEST',files=rows,PT_copies=0)
+(J/'INSTALL_MANIFEST.json').write_text(json.dumps(manifest,indent=2))
+assert not(J/'OWNER_STARTED.json').exists()
+import sys
+sys.path.insert(0,str(J/'runtime/isaac/mod4'))
+from mod4v1_e0_asset_compat import require_mod4v1_flat_reset_bank
+os.environ['MOD4V1_E0_JOB_ROOT']=str(J)
+bank=J/'runtime/isaac/mod4/reset_bank.json'
+require_mod4v1_flat_reset_bank(bank,J/'assets/import_contract.json',json.loads(bank.read_bytes()),actual_contract_SHA='bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755')
+env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1')
+with(J/'OWNER.log').open('xb')as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'control/standing_owner_v1.py')],cwd=J,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+import psutil
+q=psutil.Process(p.pid)
+print(json.dumps(dict(passed=True,epoch=time.time(),owner=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd()),manifest_files=len(rows),manifest_SHA=hashlib.sha256((J/'INSTALL_MANIFEST.json').read_bytes()).hexdigest())))
+'''
+
+
+def main():
+    cpu=json.loads((R/'reports/CPU_V2_STANDING_BPTT_ACTUAL.json').read_bytes())
+    assert cpu['returncode']==0 and cpu['result']['passed']
+    for p in list((R/'source_v2').rglob('*.py'))+list((R/'control_v2').glob('*.py'))+list((R/'source_overrides_v6').glob('*.py')):
+        ast.parse(p.read_text(encoding='utf-8-sig'))
+    rows,blocked=local_rows();put('FRESH_LOCAL_CIM_BEFORE_STAGE_V6.json',dict(epoch=time.time(),rows=rows,blocked=blocked))
+    if blocked:raise RuntimeError('Known local controller busy; no launch once/network')
+    runid='MOD4_STANDING200_RLBPTT_V6_'+str(time.time_ns());job='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid
+    uuid='GPU-16828f91-2b45-b646-8dc0-9481138e2842'
+    with(R/'reports/STAGE_START_V6_ONCE.json').open('x')as f:json.dump(dict(run_id=runid,job=job,epoch=time.time()),f)
+    client=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+        client=connect72()
+        arguments=dict(uuid=uuid,job=job,base=BASE,super=SUPER)
+        put('FRESH72_PREFLIGHT_STAGE_V6.json',run(client,PREFLIGHT,arguments))
+        put('ACTUAL_STAGE_NONPT_V6.json',run(client,STAGE,arguments,180))
+        plan=dict(kind='MOD4_STANDING200_RLBPTT_V1',run_id=runid,GPU_UUID=uuid,num_envs=512,seed=200,
+            teacher_path=BASE+'/production/model_final_complete.pt',teacher_SHA='6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693',teacher_bytes=14035411,
+            course_height_m=.2,target='supported wheel-leg coordinated ascent, not ballistic jump',
+            original_canonical_only=True,strict_reserve=86412.86069250107)
+        expected=[];sf=client.open_sftp();sf.get_channel().settimeout(120)
+        try:
+            files=[]
+            for p in (R/'source_v2').rglob('*'):
+                if p.is_file()and p.suffix=='.py':files.append((p,'source/'+p.relative_to(R/'source_v2').as_posix()))
+            overrides={p.relative_to(R/'source_overrides_v6').as_posix():p for p in (R/'source_overrides_v6').rglob('*.py')}
+            files=[(overrides.get(rel[7:],p),rel)for p,rel in files]
+            for p in (R/'control_v2').glob('*.py'):files.append((p,'control/'+p.name))
+            assets=R.parent/'mod4_usd_scut_fudan_20261101/candidates/v1/assets'
+            files.extend([(assets/'robot.usd','assets/robot.usd'),(assets/'import_contract.json','assets/import_contract.json')])
+            for p,rel in files:
+                raw=p.read_bytes();target=job+'/'+rel
+                parts=target.split('/')
+                parent='/'
+                for part in parts[1:-1]:
+                    parent=parent.rstrip('/')+'/'+part
+                    try:sf.stat(parent)
+                    except FileNotFoundError:sf.mkdir(parent)
+                with sf.open(target,'wb')as f:f.write(raw)
+                expected.append(dict(relative=rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+            def remote_json(rel,value):
+                raw=json.dumps(value,indent=2).encode()
+                with sf.open(job+'/'+rel,'wb')as f:f.write(raw)
+                expected.append(dict(relative=rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+            remote_json('PLAN.json',plan)
+            remote_json('control/SCHEDULE_PUBLIC.json',dict(experts={'standing200':dict(max_parent_seconds=3900,GPU_UUID=uuid)}))
+        finally:sf.close()
+        receipt=run(client,VERIFY_LAUNCH,dict(job=job,expected=expected),180)
+        put('ACTUAL_STANDING200_ORIGINAL_OWNER_LAUNCH_V6.json',dict(job=job,run_id=runid,plan=plan,receipt=receipt,expected_files=expected))
+        p=R/'CURRENT_WORK_ORDER.json';work=json.loads(p.read_text(encoding='utf-8'))
+        work.update(status='ORIGINAL_OWNER_DISPATCHED_AWAIT_NATIVE_FIRST',remote_job=job,run_id=runid,
+                    original_owner=receipt['owner'],training_started='PENDING_ACTUAL_GO_AND_FIRST')
+        p.write_text(json.dumps(work,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(dict(job=job,owner=receipt['owner'],actual_first_pending=True)))
+    except BaseException:
+        put('STAGE_START_V6_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),no_automatic_replay=True));raise
+    finally:
+        if client is not None:client.close()
+        put('STAGE_START_V6_ALL_CLIENTS_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

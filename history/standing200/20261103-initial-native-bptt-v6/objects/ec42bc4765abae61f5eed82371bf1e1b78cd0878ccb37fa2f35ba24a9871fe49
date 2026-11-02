@@ -1,0 +1,50 @@
+"""Finite own-job metadata collection, no worker start/restart or model read."""
+from pathlib import Path
+import argparse,datetime,json,sys,time
+R=Path(__file__).resolve().parent
+sys.path.insert(0,str(R));from check_four4090_once import local_rows
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--label',required=True);q.add_argument('--wait-seconds',type=int,default=0);a=q.parse_args()
+    assert a.label.replace('_','').isalnum()and 0<=a.wait_seconds<=300
+    dest=R/'reports'/('STATUS_'+a.label+'.json')
+    if dest.exists():raise FileExistsError('Status label consumed')
+    rows,blocked=local_rows()
+    if blocked:
+        dest.write_text(json.dumps(dict(epoch=time.time(),local_busy=blocked,network_operations=0),indent=2));raise RuntimeError('Known local busy')
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_text(encoding='utf-8'))
+    job=work['remote_job'];assert '/MOD4_STANDING200_RLBPTT_' in job
+    sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+    c=connect72();sf=c.open_sftp();sf.get_channel().settimeout(45);start=time.monotonic();value={}
+    names=['OWNER_STARTED.json','OWNER_CURRENT.json','OWNER_ERROR.json','OWNER_EXIT.json','GO_PRODUCTION.json','WORKER_IDENTITY.json',
+        'TRAIN_CLOSED.json','production/NATIVE_STARTUP.json','production/FIRST_UPDATED.json','production/PROGRESS.json',
+        'production/latest_complete.json','production/WORKER_ERROR.json','production/FINAL.json','production/APP_CLOSE_INTENT.json',
+        'evaluation/RESULT.json','evaluation/EVAL_ERROR.json','EVAL_WAITED.json']
+    try:
+        while True:
+            value=dict(epoch=time.time(),captured_local=datetime.datetime.now().astimezone().isoformat(),job=job,files={},logs={})
+            for name in names:
+                try:
+                    with sf.open(job+'/'+name,'rb')as f:raw=f.read()
+                    value['files'][name]=json.loads(raw)
+                except FileNotFoundError:pass
+            for name in ['OWNER.log','WORKER.log','EVAL.log']:
+                try:
+                    size=sf.stat(job+'/'+name).st_size
+                    with sf.open(job+'/'+name,'rb')as f:
+                        f.seek(max(0,size-12000));raw=f.read()
+                    value['logs'][name]=dict(bytes=size,tail=raw.decode('utf-8','replace'))
+                except FileNotFoundError:pass
+            tmp=dest.with_suffix('.partial');tmp.write_text(json.dumps(value,indent=2),encoding='utf-8');tmp.replace(dest)
+            if any(k in value['files']for k in ['production/FIRST_UPDATED.json','production/WORKER_ERROR.json','OWNER_ERROR.json','OWNER_EXIT.json']):break
+            if time.monotonic()-start>=a.wait_seconds:break
+            time.sleep(15)
+    finally:
+        sf.close();c.close()
+    value.update(SSHclosed=True,serial='FREE',model_reads=0)
+    dest.write_text(json.dumps(value,indent=2),encoding='utf-8')
+    print(json.dumps(value,indent=2))
+
+
+if __name__=='__main__':main()

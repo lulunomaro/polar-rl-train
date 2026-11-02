@@ -1,0 +1,208 @@
+"""200 mm supported wheel-leg ascent. Torch only; no simulator or I/O on import."""
+from dataclasses import dataclass
+import math
+import torch
+
+
+@dataclass(frozen=True)
+class ClimbConfig:
+    height_m: float = .20
+    edge_m: float = .80
+    platform_length_m: float = 3.
+    platform_half_width_m: float = 1.
+    policy_dt: float = .02
+    physics_dt: float = .0025
+    normal_body_height_m: float = .25
+    extended_body_height_m: float = .37
+    approach_speed_m_s: float = .35
+    stable_seconds: float = .5
+    max_unsupported_seconds: float = .10
+
+
+def wrap_angle(x):
+    return torch.atan2(torch.sin(x), torch.cos(x))
+
+
+def approach_commands(depth9, fallback_height=.25):
+    """Only current depth can raise the command; no known-edge/root-map input."""
+    distance, height = depth9[..., 0], depth9[..., 1]
+    valid = depth9[..., 8] > .5
+    climb = valid & (height > .08) & (height < .24)
+    near = ((.65 - distance) / .45).clamp(0, 1)
+    body_height = torch.where(climb, fallback_height + .12 * near,
+                              torch.full_like(distance, fallback_height))
+    return body_height.clamp(.20, .40)
+
+
+def shaped_reward(*, position, velocity, roll, pitch, yaw, wheel_bottom,
+                  top_force, support_force, action, previous_action,
+                  body_height, target_height, command_vx, cfg=ClimbConfig()):
+    """Task reward, not a prerecorded motion. Contacts are actual transition labels.
+
+    Position/geometry are privileged reward inputs; only raw35+current depth9 go
+    to the actor. Every positive task term is bounded and is below the top reward.
+    """
+    x, y = position[..., 0], position[..., 1]
+    at_platform = (x > cfg.edge_m + .15) & (x < cfg.edge_m + 2.5)
+    progress = ((x - .10) / (cfg.edge_m + .55 - .10)).clamp(0, 1)
+    upright = torch.exp(-2. * (roll.square() + pitch.square()))
+    heading = torch.exp(-(wrap_angle(yaw) / .35).square())
+    lane = torch.exp(-(y / .35).square())
+    vx = torch.where(at_platform, torch.zeros_like(command_vx), command_vx)
+    speed = torch.exp(-((velocity[..., 0] - vx) / .25).square()
+                      -(velocity[..., 1] / .20).square())
+    height = torch.exp(-((body_height - target_height) / .06).square())
+    near = ((x - (cfg.edge_m - .40)) / .40).clamp(0, 1)
+    wheel_lift = (wheel_bottom / cfg.height_m).clamp(0, 1).mean(-1)
+    top = (top_force > 1).all(-1).float()
+    supported = (support_force > 1).any(-1).float()
+    quiet = torch.exp(-velocity.square().sum(-1) / .01)
+    rate = (action - previous_action).square().mean(-1)
+    terms = dict(progress=1.5 * progress * upright * heading * lane,
+                 velocity=.5 * speed * upright * lane,
+                 height=.5 * height * upright,
+                 wheel_lift=.7 * near * wheel_lift * upright * heading,
+                 supported_top=4. * top * upright * heading * lane,
+                 quiet_top=2. * top * quiet * upright * heading,
+                 unsupported=-1.5 * (1 - supported),
+                 fast_vertical=-.3 * (velocity[..., 2].abs() - .35).clamp_min(0).square(),
+                 yaw_error=-.5 * (wrap_angle(yaw) / .5).square().clamp_max(4),
+                 lateral=-.5 * (y / .5).square().clamp_max(4),
+                 action_rate=-.01 * rate,
+                 action_magnitude=-.001 * action.square().mean(-1))
+    return sum(terms.values()), terms
+
+
+class SupportedAscentMeter:
+    """400 Hz acceptance independent of rewards. No first-flight requirement."""
+    def __init__(self, n, device, cfg=ClimbConfig()):
+        self.cfg = cfg
+        self.stable = torch.zeros(n, dtype=torch.long, device=device)
+        self.stable_peak = self.stable.clone()
+        self.unsupported = self.stable.clone()
+        self.unsupported_peak = self.stable.clone()
+        self.success = torch.zeros(n, dtype=torch.bool, device=device)
+        self.ever_top = self.success.clone()
+        self.returned = self.success.clone()
+        self.started_lower = self.success.clone()
+
+    def reset(self, ids):
+        for value in vars(self).values():
+            if torch.is_tensor(value):
+                value[ids] = 0
+
+    def update(self, *, lower, upper, top_force, ground_force, support_force,
+               velocity, roll, pitch, yaw, active=None):
+        c = self.cfg
+        if active is None:
+            active = torch.ones_like(self.success)
+        supported = (support_force > 1).any(-1)
+        self.unsupported = torch.where(active & self.started_lower & ~supported, self.unsupported + 1,
+                                       torch.zeros_like(self.unsupported))
+        self.unsupported_peak = torch.maximum(self.unsupported_peak, self.unsupported)
+        self.started_lower |= (ground_force > 1).any(-1) & active & ~self.ever_top
+        inside = ((lower[..., 0] >= c.edge_m) &
+                  (upper[..., 0] <= c.edge_m + c.platform_length_m) &
+                  (lower[..., 1] >= -c.platform_half_width_m) &
+                  (upper[..., 1] <= c.platform_half_width_m)).all(-1)
+        top = inside & (top_force > 1).all(-1) & active
+        self.returned |= self.ever_top & ((ground_force > 1).any(-1) |
+                                        (lower[..., 0] < c.edge_m - .02).any(-1)) & active
+        self.ever_top |= top
+        calm = ((velocity[..., :2].norm(dim=-1) <= .03) &
+                (velocity[..., 2].abs() <= .03) &
+                (roll.abs() <= math.radians(10)) &
+                (pitch.abs() <= math.radians(10)) & (wrap_angle(yaw).abs() <= .2))
+        supported_route = self.unsupported_peak * c.physics_dt <= c.max_unsupported_seconds + 1e-8
+        valid = top & calm & supported_route & self.started_lower & ~self.returned
+        self.stable = torch.where(valid, self.stable + 1, torch.zeros_like(self.stable))
+        self.stable_peak = torch.maximum(self.stable_peak, self.stable)
+        self.success = (self.success | (self.stable * c.physics_dt >= c.stable_seconds)) & ~self.returned & supported_route
+        return valid
+
+
+def policy_obs(context):
+    """Raw35 (original sensor delay/noise) plus depth9, never truth state."""
+    out = context[..., :44]
+    if out.shape[-1] != 44:
+        raise ValueError('raw35+depth9 required')
+    return out
+
+
+class StandingMDP:
+    num_joints = 30
+    action_dim = 6
+    goal_frame_dim = 3
+    max_step_reward = 10.
+    obs_dim = 44
+    actor_context_offset = 0
+
+    def __init__(self, context_dim):
+        self.context_dim = context_dim
+
+    def to(self, device):
+        return self
+
+    def normalize_context(self, x):
+        return x
+
+    def add_noise(self, x):
+        return x  # Original bridge already includes actual sensor noise/delay.
+
+    def obs(self, state, previous_action, context, frames):
+        return policy_obs(context)
+
+    def goal_with_context(self, frames, count, context):
+        return context[..., :3].repeat(*([1] * (context.ndim - 1)), count)
+
+    def goal(self, *args):
+        raise RuntimeError('Current context required')
+
+    def reward(self, *args):
+        raise RuntimeError('Use actual task reward labels and learned reward head')
+
+    def soft_termination(self, *args):
+        raise RuntimeError('Use actual terminal labels')
+
+    def critic_features(self, state, frames, context):
+        from supermimic_vendor_v2.geometry import invariant_features
+        return torch.cat((invariant_features(state), context, frames[..., None].float() / 500), -1)
+
+    def project_predicted_context(self, context, state1, action, frames):
+        out = context.clone()
+        out[..., 14:16] = 0
+        out[..., 22:28] = action
+        out[..., :3] = context[..., :3]  # Held command over short learned rollout.
+        out[..., 28:35] = context[..., 28:35]
+        return out
+
+    def valid_imagination_start_with_context(self, frames, horizon, context):
+        return frames < 500 - horizon
+
+    def valid_imagination_start(self, frames, horizon):
+        return frames < 500 - horizon
+
+
+class StandingResidualPolicy(torch.nn.Module):
+    def __init__(self, residual, teacher, scale=1.):
+        super().__init__()
+        self.residual, self.teacher, self.scale = residual, teacher, scale
+        teacher.eval().requires_grad_(False)
+        with torch.no_grad():
+            residual.dec[-1].weight.zero_()
+            residual.dec[-1].bias.zero_()
+
+    @property
+    def obs_norm(self):
+        return self.residual.obs_norm
+
+    @property
+    def goal_norm(self):
+        return self.residual.goal_norm
+
+    def forward(self, history, goal):
+        from tensordict import TensorDict
+        obs = history[..., -1, :35]
+        base = self.teacher(TensorDict(dict(policy=obs), batch_size=list(obs.shape[:-1])),
+                            stochastic_output=False)
+        return (base + self.scale * self.residual(history, goal).tanh()).clamp(-6, 6)

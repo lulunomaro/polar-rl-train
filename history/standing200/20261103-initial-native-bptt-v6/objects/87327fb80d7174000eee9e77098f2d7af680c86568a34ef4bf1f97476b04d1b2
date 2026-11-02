@@ -1,0 +1,308 @@
+"""New native 200 mm course. Imported only AFTER original Isaac application boot."""
+import math
+import numpy as np
+import torch
+from standing_core_v1 import ClimbConfig, approach_commands, shaped_reward, SupportedAscentMeter
+
+CFG = ClimbConfig()
+MESH = '/World/ground/standing_step200'
+COURSE_N = 512
+
+
+def layout(n=COURSE_N):
+    side = math.ceil(math.sqrt(n))
+    return np.array([[(i // side) * 8., (i % side) * 8., 0.] for i in range(n)], np.float32)
+
+
+def spawn_course(prim_path, cfg, **kwargs):
+    from pxr import UsdGeom, UsdPhysics
+    from isaaclab.sim import get_current_stage, define_collision_properties, bind_physics_material
+    points, triangles = [], []
+    for origin in layout():
+        ox, oy, _ = origin
+        j = len(points)
+        points.extend((ox+x, oy+y, 0.) for x, y in [(-3,-3),(4,-3),(4,3),(-3,3)])
+        triangles.extend([(j,j+1,j+2),(j,j+2,j+3)])
+        j = len(points)
+        points.extend((ox+CFG.edge_m+x, oy+y, z)
+                      for z in (0., CFG.height_m)
+                      for x,y in [(0,-1),(3,-1),(3,1),(0,1)])
+        faces = [(0,3,2),(0,2,1),(4,5,6),(4,6,7),(0,4,7),(0,7,3),
+                 (1,2,6),(1,6,5),(0,1,5),(0,5,4),(3,7,6),(3,6,2)]
+        triangles.extend(tuple(j+x for x in f) for f in faces)
+    stage = get_current_stage()
+    root = UsdGeom.Xform.Define(stage, prim_path).GetPrim()
+    mesh = UsdGeom.Mesh.Define(stage, prim_path+'/standing_step200')
+    mesh.CreatePointsAttr().Set(points)
+    mesh.CreateFaceVertexCountsAttr().Set([3]*len(triangles))
+    mesh.CreateFaceVertexIndicesAttr().Set([x for f in triangles for x in f])
+    mesh.CreateSubdivisionSchemeAttr().Set('none')
+    UsdPhysics.CollisionAPI.Apply(mesh.GetPrim())
+    UsdPhysics.MeshCollisionAPI.Apply(mesh.GetPrim()).CreateApproximationAttr().Set('none')
+    if cfg.collision_props is not None:
+        define_collision_properties(str(mesh.GetPath()), cfg.collision_props, stage=stage)
+    if cfg.physics_material is not None:
+        material = prim_path+'/physicsMaterial'
+        cfg.physics_material.func(material, cfg.physics_material)
+        bind_physics_material(str(mesh.GetPath()), material, stage=stage)
+    return root
+
+
+def empty_reward(env):
+    return torch.zeros(env.num_envs, device=env.device)
+
+
+def configure_course(cfg, ns, n):
+    global COURSE_N
+    COURSE_N = n
+    from isaaclab.sensors import RayCasterCameraCfg, ContactSensorCfg
+    from isaaclab.sensors.ray_caster.patterns import PinholeCameraPatternCfg
+    from isaaclab.managers import RewardTermCfg, SceneEntityCfg
+    from types import SimpleNamespace
+    cfg.scene.num_envs = n
+    cfg.scene.env_spacing = 8.
+    cfg.scene.ground.spawn.func = spawn_course
+    cfg.scene.ground.init_state.pos = (0., 0., 0.)
+    cfg.scene.d435i = RayCasterCameraCfg(
+        prim_path=cfg.scene.robot.prim_path+'/links/chassis', update_period=0.,
+        mesh_prim_paths=[MESH], max_distance=4., data_types=['distance_to_image_plane'],
+        pattern_cfg=PinholeCameraPatternCfg(focal_length=24.,
+            horizontal_aperture=48.*math.tan(math.radians(87./2)),
+            vertical_aperture=48.*math.tan(math.radians(58./2)), width=84, height=48),
+        offset=RayCasterCameraCfg.OffsetCfg(pos=(.15,0.,.15),
+            rot=(0.,math.sin(math.radians(5)),0.,math.cos(math.radians(5))), convention='world'))
+    for side in ['left','right']:
+        setattr(cfg.scene, side+'_step_contact', ContactSensorCfg(
+            prim_path='{ENV_REGEX_NS}/Robot/links/'+side+'_wheel', update_period=0.,
+            history_length=1, track_air_time=False, filter_prim_paths_expr=[MESH],
+            max_contact_data_count_per_prim=64))
+    for name in ['chassis']+['guide_roller_%02d'%i for i in range(8)]:
+        setattr(cfg.scene,'support_'+name,ContactSensorCfg(
+            prim_path='{ENV_REGEX_NS}/Robot/links/'+name,update_period=0.,history_length=1,
+            track_air_time=False,filter_prim_paths_expr=[MESH],max_contact_data_count_per_prim=64))
+    cfg.rewards = SimpleNamespace(standing_step=RewardTermCfg(func=empty_reward, weight=1.))
+    cfg.curriculum = None
+    cfg.episode_length_s = 10.
+    cfg.events.reset_base.params.update(
+        pose_range={'x':(-.05,.05),'y':(-.03,.03),'yaw':(-.05,.05)},
+        velocity_range={k:(0.,0.) for k in ['x','y','z','roll','pitch','yaw']})
+    cfg.terminations.closure.params['threshold'] = .01
+    cfg.terminations.mimic.params['threshold'] = .01
+    cfg.terminations.base_contact = None  # Belly/rollers may support the observed standing climb.
+    cmd = cfg.commands.twist
+    cmd.ranges.lin_vel_x = (.35,.35)
+    cmd.ranges.lin_vel_y = (0.,0.)
+    cmd.ranges.ang_vel_z = (0.,0.)
+    cmd.rel_standing_envs = 0.
+    cmd.heading_command = False
+    return cfg
+
+
+def rotation_xyzw(q):
+    q=np.asarray(q,np.float32); q=q/np.linalg.norm(q)
+    x,y,z,w=q
+    return np.array([[1-2*(y*y+z*z),2*(x*y-w*z),2*(x*z+w*y)],
+                     [2*(x*y+w*z),1-2*(x*x+z*z),2*(y*z-w*x)],
+                     [2*(x*z-w*y),2*(y*z+w*x),1-2*(x*x+y*y)]],np.float32)
+
+
+class StandingCourse:
+    def __init__(self, env, tensor, task_module):
+        self.env,self.tensor,self.task=env,tensor,task_module
+        self.n,self.device=env.num_envs,env.device
+        self.robot=env.scene['robot']
+        self.wheel_ids=[list(self.robot.body_names).index(x) for x in ['left_wheel','right_wheel']]
+        self.sensor=[env.scene[x+'_step_contact'] for x in ['left','right']]
+        self.meter=SupportedAscentMeter(self.n,self.device)
+        self.steps=torch.zeros(self.n,dtype=torch.long,device=self.device)
+        self.depth=torch.zeros(self.n,9,device=self.device)
+        self.top_force=torch.zeros(self.n,2,device=self.device)
+        self.ground_force=self.top_force.clone()
+        self.support_force=self.top_force.clone()
+        self.wheel_bottom=self.top_force.clone()
+        self.bounds_low=torch.zeros(self.n,2,3,device=self.device)
+        self.bounds_high=self.bounds_low.clone()
+        self.term_reward=torch.zeros(self.n,device=self.device)
+        self.ever_top_count=0;self.success_count=0;self.physics_ticks=0
+        self.reset_events=0;self.last_reset_ids=None
+        self.reward_terms={};self.saved_manifold=[]
+        self.active=None;self.record_ids=[];self.pose_records=[];self.control_records=[]
+        self.physx_pose_adapter=None
+        self.measure_enabled=False
+        self.depth_query_key=None
+        old_reset=env._reset_idx
+        def reset(ids):
+            result=old_reset(ids)
+            ids=torch.as_tensor(ids,device=self.device,dtype=torch.long)
+            self.steps[ids]=0;self.meter.reset(ids);self.last_reset_ids=ids;self.reset_events+=len(ids)
+            self.assist_hold[ids]=0.;self.assist_value[ids]=.25
+            self.task.height_cmd(env)[ids,0]=.25
+            if hasattr(env,'_mod4_mode_bit'):env._mod4_mode_bit[ids]=1
+            self.commands()
+            return result
+        env._reset_idx=reset
+        env.scene.env_origins.copy_(torch.tensor(layout(self.n),device=self.device))
+        self.original_scene_update=env.scene.update
+        def scene_update(dt):
+            self.original_scene_update(dt)
+            self.measure_physics(dt)
+        env.scene.update=scene_update
+        self.previous_actions=torch.zeros(self.n,6,device=self.device)
+        self.current_actions=self.previous_actions.clone()
+        self.assist_hold=torch.zeros(self.n,device=self.device)
+        self.assist_value=torch.full((self.n,),.25,device=self.device)
+        self._reward_original=env.reward_manager.compute
+        def compute_reward(dt):
+            self._reward_original(dt)  # Preserve original episode-manager clock.
+            return self.reward()
+        env.reward_manager.compute=compute_reward
+        self._old_term=env.termination_manager.compute
+        def terminate(*args,**kwargs):
+            value=self._old_term(*args,**kwargs)
+            # Capture reward and complete physical poses before manager autoreset.
+            self.terminal_snapshot=self.snapshot()
+            return value
+        env.termination_manager.compute=terminate
+        self.terminal_snapshot=None
+
+    def initialize_geometry(self):
+        import omni.usd
+        from wheel_geometry220 import load_own_wheels
+        rp=self.env.cfg.scene.robot.prim_path.replace('{ENV_REGEX_NS}','/World/envs/env_0').replace('env_.*','env_0')
+        metadata,points=load_own_wheels(omni.usd.get_context().get_stage(),rp)
+        if any(p is None for p in points):raise RuntimeError(('Authored wheel bounds unavailable',metadata))
+        self.geometry_metadata=metadata
+        self.support_points=[torch.tensor(x,device=self.device) for x in points]
+
+    def commands(self):
+        cmd=self.env.command_manager.get_term('twist')
+        cmd.vel_command_b[:,0]=.35;cmd.vel_command_b[:,1:]=0
+        # The stop command is a task endpoint command; not an actuator takeover.
+        if hasattr(self,'support_points'):
+            stop=self.meter.ever_top & (self.bounds_low[:,:,0]>.95).all(-1)
+            cmd.vel_command_b[stop]=0
+
+    def current_depth(self):
+        key=(self.physics_ticks,self.reset_events)
+        if self.depth_query_key==key:return self.depth
+        from depth_stair263 import target_from_depth
+        camera=self.env.scene['d435i'];camera.update(self.env.step_dt,force_recompute=True)
+        raw=self.tensor(camera.data.output['distance_to_image_plane']).detach().cpu().numpy().reshape(self.n,48,84)
+        Ks=self.tensor(camera.data.intrinsic_matrices).cpu().numpy()
+        pos=self.tensor(camera.data.pos_w).cpu().numpy()
+        qs=self.tensor(camera.data.quat_w_ros).cpu().numpy()
+        root=self.tensor(self.robot.data.root_state_w).cpu().numpy()
+        feats=[];now=self.physics_ticks*.0025
+        for j in range(self.n):
+            x,y,z,w=root[j,3:7]
+            yaw=np.arctan2(2*(w*z+x*y),1-2*(y*y+z*z))
+            c,s=np.cos(yaw),np.sin(yaw);head=np.array([[c,s,0],[-s,c,0],[0,0,1]],np.float32)
+            T=np.eye(4,dtype=np.float32);T[:3,:3]=head@rotation_xyzw(qs[j])
+            T[:3,3]=head@(pos[j]-np.array([root[j,0],root[j,1],0],np.float32))
+            f=target_from_depth(raw[j],Ks[j],T,sensor_time=now,control_time=now,pixel_center_offset=.5)['features']
+            feats.append(f)
+        self.depth=torch.tensor(np.stack(feats),device=self.device)
+        detected=(self.depth[:,8]>.5)&(self.depth[:,0]<.65)&(self.depth[:,1]>.08)&(self.depth[:,1]<.24)
+        self.assist_hold=(self.assist_hold-.02).clamp_min(0)
+        self.assist_hold=torch.where(detected,torch.full_like(self.assist_hold,2.),self.assist_hold)
+        proposed=approach_commands(self.depth)
+        self.assist_value=torch.where(detected,torch.maximum(self.assist_value,proposed),self.assist_value)
+        self.task.height_cmd(self.env)[:,0]=torch.where(self.assist_hold>0,self.assist_value,.25)
+        self.commands()
+        self.depth_query_key=key
+        return self.depth
+
+    def read_manifold(self):
+        import warp as wp
+        tops=[];grounds=[]
+        for wi,sensor in enumerate(self.sensor):
+            if list(sensor.body_names)!=[['left_wheel'],['right_wheel']][wi] or sensor.contact_view.filter_count!=1:
+                raise RuntimeError('Explicit one-wheel/one-course filter required')
+            force,point,normal,separation,counts,starts=sensor.contact_view.get_contact_data(dt=.0025)
+            ff=wp.to_torch(force).flatten(); pp=wp.to_torch(point.view(wp.vec3));nn=wp.to_torch(normal.view(wp.vec3))
+            cc=wp.to_torch(counts.view(wp.int32)).reshape(self.n,1).long()
+            start=wp.to_torch(starts.view(wp.int32)).reshape(self.n,1).long()
+            if not bool(((cc>=0)&(cc<=64)&(start>=0)&(start+cc<=len(ff))).all()):
+                raise RuntimeError('Contact capacity/count mismatch')
+            if len(ff)==0:
+                tops.append(self.top_force[:,wi]*0);grounds.append(self.top_force[:,wi]*0);continue
+            offsets=torch.arange(64,device=self.device)[None]
+            valid=offsets<cc;indices=(start+offsets).clamp(0,len(ff)-1)
+            f=ff[indices].abs();p=pp[indices]-self.env.scene.env_origins[:,None];n=nn[indices]
+            on_top=valid&(p[...,2]>.199)&(p[...,2]<.201)&(n[...,2].abs()>.8)&(p[...,0]>=.799)
+            on_ground=valid&(p[...,2].abs()<.001)&(n[...,2].abs()>.8)
+            tops.append(torch.where(on_top,f,0.).sum(-1));grounds.append(torch.where(on_ground,f,0.).sum(-1))
+            if self.record_ids and self.physics_ticks%8==0:
+                for j in self.record_ids:
+                    mask=valid[j]&(f[j]>1)
+                    if bool(mask.any()):
+                        self.saved_manifold.append(dict(tick=self.physics_ticks,env=j,wheel=wi,
+                            force=f[j,mask].cpu().tolist(),point=p[j,mask].cpu().tolist(),normal=n[j,mask].cpu().tolist()))
+        return torch.stack(tops,-1),torch.stack(grounds,-1)
+
+    def measure_physics(self,dt):
+        if not self.measure_enabled or not hasattr(self,'support_points'):return
+        if abs(dt-.0025)>1e-8:raise RuntimeError('400Hz actual measurement required')
+        self.physics_ticks+=1
+        from supermimic_vendor_v2.geometry import quat_to_mat
+        robot=self.robot;positions=self.tensor(robot.data.body_pos_w)
+        q=self.tensor(robot.data.body_quat_w);lows=[];highs=[]
+        for wi,body in enumerate(self.wheel_ids):
+            rot=quat_to_mat(q[:,body][:,[3,0,1,2]])
+            v=torch.einsum('nij,pj->npi',rot,self.support_points[wi])+positions[:,body,None]-self.env.scene.env_origins[:,None]
+            lows.append(v.amin(1));highs.append(v.amax(1))
+        self.bounds_low=torch.stack(lows,1);self.bounds_high=torch.stack(highs,1)
+        self.wheel_bottom=self.bounds_low[...,2]
+        self.top_force,self.ground_force=self.read_manifold()
+        # Only external course-filtered forces count; self-contact is not support.
+        wf=torch.zeros(self.n,device=self.device)
+        for sensor in self.sensor:
+            value=self.tensor(sensor.contact_view.get_contact_force_matrix(dt=.0025))
+            wf+=value.reshape(self.n,-1,3)[...,2].sum(-1).clamp_min(0)
+        other=torch.zeros_like(wf)
+        for name in ['chassis']+['guide_roller_%02d'%i for i in range(8)]:
+            sensor=self.env.scene['support_'+name]
+            value=self.tensor(sensor.contact_view.get_contact_force_matrix(dt=.0025))
+            other+=value.reshape(self.n,-1,3)[...,2].sum(-1).clamp_min(0)
+        self.support_force=torch.stack((wf,other),-1)
+        root=self.tensor(robot.data.root_state_w)
+        x,y,z,w=root[:,3:7].unbind(-1)
+        roll=torch.atan2(2*(w*x+y*z),1-2*(x*x+y*y))
+        pitch=torch.asin((2*(w*y-z*x)).clamp(-1,1))
+        yaw=torch.atan2(2*(w*z+x*y),1-2*(y*y+z*z))
+        self.euler=torch.stack((roll,pitch,yaw),-1)
+        before=self.meter.success.clone();before_top=self.meter.ever_top.clone()
+        self.meter.update(lower=self.bounds_low,upper=self.bounds_high,top_force=self.top_force,
+            ground_force=self.ground_force,support_force=self.support_force,velocity=root[:,7:10],
+            roll=roll,pitch=pitch,yaw=yaw,active=self.active)
+        self.success_count+=int((self.meter.success&~before).sum())
+        self.ever_top_count+=int((self.meter.ever_top&~before_top).sum())
+
+    def reward(self):
+        r=self.tensor(self.robot.data.root_state_w);pos=r[:,:3]-self.env.scene.env_origins
+        if not hasattr(self,'euler'):
+            return torch.zeros(self.n,device=self.device)
+        local_floor=torch.where((self.ground_force>1).any(-1),0.,
+            torch.where((self.top_force>1).any(-1),.20,torch.zeros_like(pos[:,0])))
+        value,terms=shaped_reward(position=pos,velocity=r[:,7:10],roll=self.euler[:,0],pitch=self.euler[:,1],
+            yaw=self.euler[:,2],wheel_bottom=self.wheel_bottom,top_force=self.top_force,support_force=self.support_force,
+            action=self.current_actions,previous_action=self.previous_actions,body_height=pos[:,2]-local_floor,
+            target_height=self.task.height_cmd(self.env)[:,0],command_vx=self.env.command_manager.get_term('twist').command[:,0])
+        self.reward_terms={k:float(v.mean()) for k,v in terms.items()}
+        self.term_reward=value.detach().clone()
+        return value
+
+    def snapshot(self):
+        return dict(body_pos=self.tensor(self.robot.data.body_pos_w).detach().clone(),
+            body_quat=self.tensor(self.robot.data.body_quat_w).detach().clone(),
+            root=self.tensor(self.robot.data.root_state_w).detach().clone(),
+            lower=self.bounds_low.clone(),upper=self.bounds_high.clone(),top=self.top_force.clone(),
+            ground=self.ground_force.clone(),stable=self.meter.stable_peak.clone(),
+            unsupported=self.meter.unsupported_peak.clone(),success=self.meter.success.clone(),
+            euler=getattr(self,'euler',torch.zeros(self.n,3,device=self.device)).clone(),
+            depth=self.depth.clone(),reward=self.term_reward.clone())
+
+    def close(self):
+        self.env.scene.update=self.original_scene_update
+        self.env.reward_manager.compute=self._reward_original
+        self.env.termination_manager.compute=self._old_term

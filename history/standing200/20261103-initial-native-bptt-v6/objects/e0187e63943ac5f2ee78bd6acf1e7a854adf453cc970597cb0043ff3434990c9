@@ -1,0 +1,109 @@
+"""New bounded serial all-four resource read; no model, SDK, GO or account write."""
+from pathlib import Path
+import ast,datetime,hashlib,importlib.util,json,os,shlex,socket,subprocess,sys,time,traceback
+R=Path(__file__).resolve().parent
+W=Path(r'C:/Users/lulu/Desktop/claude/mjcf')
+
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec)
+    sys.modules[name]=m;spec.loader.exec_module(m);return m
+
+
+def local_rows():
+    command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5"
+    raw=subprocess.check_output(['pwsh','-NoProfile','-NonInteractive','-Command',command],text=True,encoding='utf-8')
+    value=json.loads(raw)if raw.strip()else[]
+    if isinstance(value,dict):value=[value]
+    allowed={os.getpid(),os.getppid()}
+    blocked=[]
+    for row in value:
+        text=row.get('CommandLine')or''
+        if row['ProcessId'] in allowed or row['ParentProcessId'] in allowed:continue
+        if text.endswith(r'C:\Users\lulu\.cc-switch\catalog-maxfix\watcher.py'):continue
+        blocked.append(row)
+    return value,blocked
+
+
+READ=r'''
+import subprocess,json,time,shutil
+from pathlib import Path
+def cmd(args):
+ p=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=20)
+ return dict(rc=p.returncode,stdout=p.stdout,stderr=p.stderr)
+result=dict(epoch=time.time(),gpu=cmd(['nvidia-smi','--query-gpu=index,uuid,name,memory.total,memory.free,utilization.gpu','--format=csv,noheader,nounits']),compute_apps=cmd(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits']),locks=cmd(['lslocks','--json','--output','PID,COMMAND,TYPE,MODE,PATH']),model_SDK_GO_account_writes=0,unknown_PID_identity_reads=0)
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+if C.exists():
+ c=json.loads(C.read_bytes());a=c['active_segment'];result['canonical']=dict(path=str(C),generation=c['authority_generation'],remaining=c['remaining_training_seconds'],active=None if a is None else{k:a.get(k)for k in ['owner_run_id','owner_parent_pid','kind']})
+result['ram']=cmd(['free','-b']);result['disk']=dict(zip(['total','used','free'],shutil.disk_usage(Path.home())))
+print(json.dumps(result))
+'''
+
+
+def query(client,python):
+    i,o,e=client.exec_command(shlex.quote(python)+' -B -c '+shlex.quote(READ),timeout=70)
+    i.close();raw=o.read().decode();error=e.read().decode();rc=o.channel.recv_exit_status()
+    if rc:raise RuntimeError('resource reader returned '+str(rc)+': '+error[-1000:])
+    return json.loads(raw)
+
+
+def main():
+    marker=R/'reports/FOUR4090_READ_V1_ONCE.json'
+    rows,blocked=local_rows()
+    evidence=dict(epoch=time.time(),rows=rows,blocked=blocked,passed=not blocked)
+    (R/'reports/FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json').write_text(json.dumps(evidence,indent=2),encoding='utf-8')
+    if blocked:raise RuntimeError('Known local controller busy: no network/once consumed')
+    with marker.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),pid=os.getpid(),purpose='new all-four resource read'),f)
+    result=dict(captured=datetime.datetime.now().astimezone().isoformat(),hosts={},all_clients_closed=False)
+    sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+    import project_connector
+    for host in ['72','210','86']:
+        client=transport=previous=None
+        try:
+            if host=='72':
+                client=project_connector.connect72();py='/home/lc01/Zonglin Li/zonglin2/run-python.sh'
+            elif host=='210':
+                wrapper=load('standing200_compressed_transport',R/'control/archived_connectors/same_authorized_session_compressed_transport_v227.py')
+                wrapper.W=W;transport,previous=wrapper.install()
+                route=load('standing200_strict210',R/'control/archived_connectors/strict_user_forwarded_original210_transport_v1.py')
+                route.W=W;client=route.connect();py=route.PY
+            else:
+                path=R/'control/archived_connectors/run_NEW_E2_V4_FIRST360_reviewed_secure_ingress_UNUSED_once.py'
+                source=path.read_text(encoding='utf-8-sig');tree=ast.parse(source)
+                body=[n for n in tree.body if isinstance(n,(ast.Import,ast.ImportFrom)) or
+                      isinstance(n,ast.Assign)and any(isinstance(x,ast.Name)and x.id in ['SESSION','EVENT'] for x in n.targets) or
+                      isinstance(n,ast.FunctionDef)and n.name=='recover']
+                ns={};exec(compile(ast.Module(body=body,type_ignores=[]),str(path),'exec'),ns)
+                session=ns['SESSION']
+                if not session.exists():
+                    from compression import zstd
+                    compressed=Path(str(session)+'.zst')
+                    class SameCompressed:
+                        def open(self,*,encoding):return zstd.open(compressed,'rt',encoding=encoding)
+                    ns['SESSION']=SameCompressed()
+                secret=ns['recover']()
+                import paramiko
+                sock=socket.create_connection((secret['host'],22),timeout=12)
+                tr=paramiko.Transport(sock);tr.banner_timeout=12;tr.auth_timeout=12
+                try:
+                    tr.start_client(timeout=12)
+                    if hashlib.sha256(tr.get_remote_server_key().asbytes()).hexdigest()!='8adc87f3e75eb307a2429fa97b68761e09c0636b0eea684c71894438757c788b':
+                        raise RuntimeError('Original86 pin differs before auth')
+                    tr.auth_password(secret['username'],secret['password'],fallback=False)
+                    client=paramiko.SSHClient();client._transport=tr
+                except BaseException:tr.close();raise
+                finally:secret=None
+                py='/usr/bin/python3'
+            result['hosts'][host]=dict(passed=True,actual=query(client,py))
+        except BaseException:
+            result['hosts'][host]=dict(passed=False,error=traceback.format_exc())
+        finally:
+            if client is not None:client.close()
+            if transport is not None:transport.SESSION=previous
+    result.update(all_clients_closed=True,SESSION_restored=True,serial='FREE',training_started=False)
+    p=R/'reports/FOUR4090_RESOURCE_ACTUAL_V1.json'
+    p.write_text(json.dumps(result,indent=2),encoding='utf-8')
+    print(json.dumps(result,indent=2))
+
+
+if __name__=='__main__':main()

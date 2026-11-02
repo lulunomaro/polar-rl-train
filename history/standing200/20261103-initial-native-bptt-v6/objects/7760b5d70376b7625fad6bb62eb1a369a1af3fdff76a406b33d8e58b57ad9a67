@@ -1,0 +1,61 @@
+"""Capture this branch's small text sources/evidence with SHA deduplication.
+
+No remote connections, checkpoint reads, physics or Git mutation. Existing Git
+objects are referenced when exact source SHA already exists. Only this branch's
+files and its one automation are selected; unrelated work is never staged.
+"""
+from pathlib import Path
+from collections import defaultdict
+import hashlib,importlib.util,json,subprocess,sys,time
+R=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-initial-native-bptt-v6'
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('capture_standing_redaction',REPO/'archive_tools/capture_history.py')
+    mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+    files=[p for p in R.rglob('*')if p.is_file()and'__pycache__'not in p.parts]
+    files.append(Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml'))
+    allowed={'.py','.json','.yaml','.yml','.md','.txt','.toml','.csv','.ps1'}
+    by_name=defaultdict(list)
+    tracked=subprocess.check_output(['git','-C',str(REPO),'ls-files','-z']).decode().split('\0')
+    wanted={p.name for p in files if p.suffix in allowed}
+    for rel in reversed(tracked):
+        if rel and Path(rel).name in wanted:by_name[Path(rel).name].append(rel)
+    DEST.mkdir(parents=True)
+    objects=DEST/'objects';objects.mkdir();rows=[];seen={};existing_cache={}
+    for p in sorted(files,key=lambda x:str(x)):
+        st=p.stat();rel=p.relative_to(R).as_posix()if p.is_relative_to(R)else'automation/mod4-200-rl-bptt/automation.toml'
+        row=dict(source_path=str(p),relative=rel,bytes=st.st_size,mtime_epoch=st.st_mtime)
+        if p.suffix not in allowed:
+            row.update(mode='path_and_bytes_only',SHA=None,reason='model/media/raw index only; no read for archive');rows.append(row);continue
+        raw=p.read_bytes();h=hashlib.sha256(raw).hexdigest();text=raw.decode('utf-8-sig');redacted,n=mod.redact(text)
+        safe=raw if not n else redacted.encode('utf-8');sha=hashlib.sha256(safe).hexdigest()
+        archived=seen.get(sha)
+        if archived is None and not n:
+            for candidate in by_name[p.name]:
+                cp=REPO/candidate
+                try:
+                    if cp.stat().st_size!=len(raw):continue
+                    ch=existing_cache.get(candidate)
+                    if ch is None:ch=hashlib.sha256(cp.read_bytes()).hexdigest();existing_cache[candidate]=ch
+                    if ch==sha:archived=candidate;break
+                except OSError:continue
+        if archived is None:
+            target=objects/sha
+            with target.open('xb')as f:f.write(safe)
+            archived=target.relative_to(REPO).as_posix()
+        seen[sha]=archived
+        row.update(SHA=h,archive_SHA=sha,archive_path=archived,archive_bytes=len(safe),mode='redacted_text'if n else'complete_text',redactions=n)
+        rows.append(row)
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    index=dict(kind='STANDING200_ALL_LOCAL_SOURCE_REPORT_FAILURE_SNAPSHOT_V1',epoch=time.time(),root=str(R),
+               run_id=work['run_id'],rows=rows,
+               remote_runtime='exact BASE/runtime and SUPER/sm_deps referenced by live INSTALL_MANIFEST and own static deployment SHA; no original source PT copied',
+               media_and_PT_policy='paths/bytes/published SHA only, no deserialization')
+    (DEST/'INDEX.json').write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),source_rows=len(rows),unique_objects=sum(1 for p in objects.iterdir()),
+                          deduplicated_external=sum(not r.get('archive_path','').startswith(DEST.relative_to(REPO).as_posix())for r in rows if r.get('archive_path')))))
+
+if __name__=='__main__':main()

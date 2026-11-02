@@ -1,0 +1,141 @@
+"""One finite standing200 slot under original canonical; never a second ledger."""
+from pathlib import Path
+import fcntl,hashlib,json,os,shutil,subprocess,sys,time,traceback
+import three_slot_common_v1 as b
+from single_writer72_authority_V85M_source import authority_tracking_schema_admitted,authority_budget_GO_allowed
+B=Path(__file__).resolve().parent;J=B.parent
+C=b.C;RESERVE=86412.86069250107
+
+
+def read(path):return json.loads(Path(path).read_bytes())
+def put(path,value):b.put(path,value)
+
+
+def resource(uuid):
+    import psutil
+    row=subprocess.check_output(['nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip()
+    a=[x.strip()for x in row.split(',')]
+    apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+    if not(a[0]==uuid and a[1]=='NVIDIA GeForce RTX 4090'and int(a[2])>15669 and int(a[3])<=30 and uuid not in apps):
+        raise BlockingIOError('Actually empty4090 with original headroom required')
+    if psutil.virtual_memory().available<=64*1024**3 or shutil.disk_usage(J).free<=50*1024**3:
+        raise BlockingIOError('Original host headroom')
+    return dict(epoch=time.time(),line=row,compute_empty=True,ram=psutil.virtual_memory().available,disk_free=shutil.disk_usage(J).free)
+
+
+def account(run,go,rows,end=False):
+    c=read(C);a=c['active_segment']
+    assert a and a['owner_parent_pid']==os.getpid()and a['owner_run_id']==run
+    c,a=b.charge_values(c,a,go,rows,time.time());c['active_segment']=a
+    if end:
+        assert set(go)==set(rows)and all(b.terminal(r)for r in rows.values())
+        a['ended_epoch']=time.time();a['actual_terminal_rows']=rows
+        c['completed_segments'].append(a);c['active_segment']=None
+    put(C,c);return c
+
+
+def environment(uuid):
+    env=dict(os.environ,CUDA_VISIBLE_DEVICES=uuid,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',
+             PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+    for name in ['PYTHONHOME','PYTHONPATH','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE']:
+        env.pop(name,None)
+    for name,rel in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache',
+                     'XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state',
+                     'XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda',
+                     'WARP_CACHE_PATH':'cache/warp'}.items():
+        p=J/'private_runtime'/rel;p.mkdir(parents=True,exist_ok=True);env[name]=str(p)
+    return env
+
+
+def main():
+    plan=read(J/'PLAN.json');run=plan['run_id'];uuid=plan['GPU_UUID']
+    assert uuid in ['GPU-16828f91-2b45-b646-8dc0-9481138e2842','GPU-c27eecbd-6838-7290-1cd2-37e34522213d']
+    marker=J/'OWNER_STARTED.json'
+    with marker.open('x')as f:json.dump(dict(epoch=time.time(),run_id=run,pid=os.getpid()),f)
+    locks=[];private=finite=None;process=None;active=False;go={};rows={};error=None
+    try:
+        for p in b.LOCKS:
+            f=p.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        c=read(C)
+        assert c['active_segment']is None and authority_tracking_schema_admitted(c)and authority_budget_GO_allowed(c)
+        assert c['remaining_training_seconds']>RESERVE+3900
+        private=(C.parent.parent/('three_expert_v2_'+uuid+'.lock')).open('rb+')
+        fcntl.flock(private,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        finite=(C.parent.parent/'finite_environment_validation.lock').open('rb+')
+        fcntl.flock(finite,fcntl.LOCK_SH|fcntl.LOCK_NB)
+        r=resource(uuid)
+        manifest=read(J/'INSTALL_MANIFEST.json')
+        for row in manifest['files']:
+            p=J/row['relative'];assert p.resolve().is_relative_to(J)and p.suffix not in ['.pt','.pth']
+            assert p.stat().st_size==row['bytes']and b.H(p)==row['SHA']
+        now=time.time();fds=[f.fileno()for f in locks]+[private.fileno(),finite.fileno()]
+        task=dict(plan,kind='MOD4_STANDING200_RLBPTT_V1',owner_parent_pid=os.getpid(),inherited_lock_fds=fds,
+            canonical_binding=dict(path=str(C),generation=c['authority_generation'],run_id=run,original_one_writer=True),
+            manifest_SHA=b.H(J/'INSTALL_MANIFEST.json'))
+        put(J/'TASK.json',task)
+        put(J/'ROOT_ADMISSION_ACTUAL.json',dict(epoch=now,resource=r,canonical_binding=task['canonical_binding'],
+            remaining=c['remaining_training_seconds'],strict_reserve=RESERVE,authority_two_EX=True,
+            private_GPU_EX=True,finite_SH=True,source_models_read=0,SDK_physics_operations=0))
+        g=dict(kind=task['kind'],run_id=run,GPU_UUID=uuid,learning_started_epoch=now,
+               save_deadline=now+3600,nominal_end_epoch=now+3900,max_parent_seconds=3900,
+               exit_headroom_seconds=300)
+        go['standing200']=g
+        c=read(C);assert c['active_segment']is None
+        c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,
+            kind='MOD4_STANDING200_RLBPTT',started_epoch=now,accounted_through_epoch=now,
+            charged_expert_seconds=0.,experts={},charge_contract='original charge_values expert seconds through own child wait')
+        put(C,c);active=True;put(J/'GO_PRODUCTION.json',g)
+        with (J/'WORKER.log').open('xb')as log:
+            process=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',
+                str(J/'source/standing_worker_v1.py'),'--job-root',str(J)],cwd=J,env=environment(uuid),
+                stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(fds),start_new_session=True)
+        put(J/'WORKER_IDENTITY.json',b.ident(process.pid))
+        while process.poll()is None:
+            c=account(run,go,rows)
+            if time.time()>=g['save_deadline']or c['remaining_training_seconds']<=RESERVE+300:
+                put(J/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='original finite save/reserve',fullsave_required=True))
+            put(J/'OWNER_CURRENT.json',dict(epoch=time.time(),run_id=run,worker=b.ident(process.pid),
+                original_remaining=c['remaining_training_seconds'],GO=g))
+            time.sleep(5)
+        rc=process.wait();rows['standing200']=dict(key='standing200',terminal_all_own_children_waited=True,
+            returncode=rc,owner_received_terminal_epoch=time.time())
+        c=account(run,go,rows,True);active=False
+        final=read(J/'production/FINAL.json')if(J/'production/FINAL.json').exists()else None
+        close=read(J/'production/APP_CLOSE_INTENT.json')if(J/'production/APP_CLOSE_INTENT.json').exists()else None
+        okay=rc==0 and final is not None and final['passed_execution']and close and close['error']is None and close['env_closed']
+        put(J/'TRAIN_CLOSED.json',dict(epoch=time.time(),worker_returncode=rc,all_own_waited=True,
+            original_cost_settled=True,passed_execution=bool(okay),final=final,app_close_intent=close))
+        # The same owner keeps the private and finite leases through independent
+        # eval. No new account segment: eval reports zero optimizer operations.
+        if okay and final['native_BPTT_steps']>0:
+            resource(uuid)
+            with (J/'EVAL.log').open('xb')as log:
+                evaluator=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',
+                    str(J/'source/evaluate_standing200_v1.py'),'--job-root',str(J)],cwd=J,env=environment(uuid),
+                    stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,start_new_session=True)
+            put(J/'EVAL_IDENTITY.json',b.ident(evaluator.pid))
+            erc=evaluator.wait()
+            put(J/'EVAL_WAITED.json',dict(epoch=time.time(),returncode=erc,own_waited=True,
+                result=read(J/'evaluation/RESULT.json')if(J/'evaluation/RESULT.json').exists()else None))
+    except BaseException:
+        error=traceback.format_exc();put(J/'OWNER_ERROR.json',dict(epoch=time.time(),error=error,active_not_falsely_cleared=active))
+        if process is not None and process.poll()is None:
+            put(J/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='own owner exception fullsave then close'))
+            while process.poll()is None:
+                if active:account(run,go,rows)
+                time.sleep(5)
+        if active:
+            rc=process.wait()if process is not None else 1
+            rows['standing200']=dict(key='standing200',terminal_all_own_children_waited=True,
+                returncode=rc,owner_received_terminal_epoch=time.time())
+            account(run,go,rows,True);active=False
+    finally:
+        for f in [finite,private,*reversed(locks)]:
+            if f is not None:
+                fcntl.flock(f,fcntl.LOCK_UN);f.close()
+        put(J/'OWNER_EXIT.json',dict(epoch=time.time(),run_id=run,error=error,all_own_waited=process is None or process.poll()is not None,
+            original_cost_settled=not active,original_leases_released=True,no_new_budget_or_refund=True))
+    if error:raise RuntimeError(error)
+
+
+if __name__=='__main__':main()

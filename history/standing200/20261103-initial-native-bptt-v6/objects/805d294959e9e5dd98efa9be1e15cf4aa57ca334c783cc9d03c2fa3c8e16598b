@@ -1,0 +1,46 @@
+"""Run an unconsumed standing operation with the broad original CIM inventory.
+
+The case-insensitive substring PAIR also matched another task's root_repair148.cs.
+Require PAIR as a token when it is the only matching scope; retain every other
+project/controller candidate. No foreign process is stopped or queried again.
+"""
+from pathlib import Path
+import argparse, importlib, json, re, sys, time
+R = Path(__file__).resolve().parent
+sys.path.insert(0, str(R))
+import check_four4090_once as gates
+original_rows = gates.local_rows
+q = argparse.ArgumentParser()
+q.add_argument('--mode', choices=['stage6','status'], required=True)
+q.add_argument('--label', required=True)
+q.add_argument('--wait-seconds', type=int, default=0)
+a = q.parse_args()
+assert a.label.replace('_','').isalnum()
+def local_rows():
+    rows, blocked = original_rows()
+    relevant, unrelated = [], []
+    for row in blocked:
+        cmd = row.get('CommandLine') or ''
+        scope = re.search(r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention', cmd, re.I)
+        pair = re.search(r'(?<![A-Za-z])PAIR[0-9_]*(?![A-Za-z])', cmd, re.I)
+        (relevant if scope or pair else unrelated).append(row)
+    p = R/'reports'/('LOCAL_EXACT_SCOPE_'+a.label+'.json')
+    with p.open('x', encoding='utf-8') as f:
+        json.dump(dict(epoch=time.time(),rows=rows,blocked=relevant,substring_only_noncontrollers=unrelated,
+                       original_broad_inventory_preserved=True),f,indent=2)
+    return rows, relevant
+gates.local_rows = local_rows
+if a.mode == 'stage6':
+    assert not (R/'reports/STAGE_START_V6_ONCE.json').exists()
+    stage = importlib.import_module('stage_start_standing200_v6')
+    original_put = stage.put
+    def put(name,value):
+        if name == 'FRESH_LOCAL_CIM_BEFORE_STAGE_V6.json':
+            name = 'FRESH_LOCAL_CIM_BEFORE_STAGE_V6_'+a.label+'.json'
+        return original_put(name,value)
+    stage.put = put
+    stage.main()
+else:
+    module = importlib.import_module('collect_standing_status_v1')
+    sys.argv = [module.__file__,'--label',a.label,'--wait-seconds',str(a.wait_seconds)]
+    module.main()

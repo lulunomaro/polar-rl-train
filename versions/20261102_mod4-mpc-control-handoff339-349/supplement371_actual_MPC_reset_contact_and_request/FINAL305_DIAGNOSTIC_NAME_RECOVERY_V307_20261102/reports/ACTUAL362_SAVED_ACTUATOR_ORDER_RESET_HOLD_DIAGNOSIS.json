@@ -1,0 +1,823 @@
+{
+  "epoch": 1793586765.3931131,
+  "kind": "SAVED362_MPC_HANDOFF_DIAGNOSIS",
+  "passed": true,
+  "original359360_preserved": true,
+  "telemetry_correction": "355/357 concatenated actuator-local effort, incorrectly labeled crankhipcrankhip; SDK source and recorded PD consistency support hipcrankhipcrank. Correct source conversion is [0,1,4,2,3,5]. Fresh363 must record actual joint_indices/names before comparing torque.",
+  "reset_difference": "source347 resets D4 applied target to actual planned q;355/357 original_reset clears queue to default_joint_pos, then planned_initial_reset writes nonzero physical q without rebinding held target. Until queued command is due, PD can pull toward old default pose.",
+  "observed_scope": "Selectedfirst2.5ms hip efforts approximately -26to-30Nm. This is a concrete transfer discrepancy; it is not proven the sole cause of later tipping.",
+  "exact_source_evidence": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MPC_TIMED_CONTROL_EXTRACTION_V347_20261102\\source\\control_core.py",
+      "bytes": 11361,
+      "SHA": "0dcc391ed0c1128e4e5e8588e54e1ab1e60c4dce2be5b5ba937c0b787bb2e207"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_3060_DIRECT_FACTOR_20261013\\sdk_readonly_source\\17_isaaclab_physx__assets__articulation__articulation.py",
+      "bytes": 220628,
+      "SHA": "47d96553282b389493e69f691b8dcbfeb98997a5a80b88c2571c60ba8b58cb6d"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MODEL2050_LITERAL_JUMP_400N50_ADAPT_V240_20261101\\package\\payload\\job0\\runtime\\isaac\\mod4\\action_delay_sdk_adapter.py",
+      "bytes": 5147,
+      "SHA": "0053820a778b3c956bf1bd8754b269de28a35c7ea9fe2fb93f75061bf142b375"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MODEL2050_LITERAL_JUMP_400N50_ADAPT_V240_20261101\\package\\payload\\job0\\runtime\\isaac\\mod4\\action_delay_physics_queue.py",
+      "bytes": 8481,
+      "SHA": "74826a82f5dd2a8ee72830f286513ed7e656fbb47ea15aea4013ada51f84a4af"
+    }
+  ],
+  "cases": [
+    {
+      "phase": 355,
+      "env": 0,
+      "first_request": null,
+      "first_tick_applied_source_order": [
+        4.929715156555176,
+        -0.8933366537094116,
+        0.0,
+        5.345560550689697,
+        0.10708435624837875,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": null,
+      "first60_request_vs_interval_mean_RMSE_old360": null,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 7.8739126773979615,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 24.13595237500909,
+      "first3": [],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 355,
+      "env": 1,
+      "first_request": null,
+      "first_tick_applied_source_order": [
+        -24.729894638061523,
+        2.5318679809570312,
+        0.0,
+        -26.41208267211914,
+        2.488668441772461,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": null,
+      "first60_request_vs_interval_mean_RMSE_old360": null,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 1.1917811075709956,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 20.610966976990927,
+      "first3": [],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 355,
+      "env": 40,
+      "first_request": [
+        4.50761722815276,
+        -0.7922659194930834,
+        -4.815502217346499,
+        4.95509102901681,
+        -0.25205808317179645,
+        -3.80115263845793
+      ],
+      "first_tick_applied_source_order": [
+        -29.749101638793945,
+        2.5328686237335205,
+        -4.4923996925354,
+        -26.371631622314453,
+        2.143493175506592,
+        -3.5961499214172363
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 24.732230474748796,
+      "first60_request_vs_interval_mean_RMSE_old360": 37.90993046527002,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 3.7059681588895956,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 24.435060607712092,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            4.50761722815276,
+            -0.7922659194930834,
+            -4.815502217346499,
+            4.95509102901681,
+            -0.25205808317179645,
+            -3.80115263845793
+          ],
+          "actual_mean_source_order": [
+            -0.39013978838920593,
+            -1.6149175465106964,
+            -2.1709669530391693,
+            0.10356834530830383,
+            -0.18447913229465485,
+            -1.4783364068716764
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            6.069680438320043,
+            -3.847386729314926,
+            -1.3089416239877383,
+            4.871024288186267,
+            -2.511576438127103,
+            -1.6497671034214247
+          ],
+          "actual_mean_source_order": [
+            5.144041866064072,
+            -5.840498745441437,
+            -0.7376900799572468,
+            3.58852282166481,
+            -3.940634250640869,
+            -0.7727405987679958
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            7.569852898902459,
+            -5.626007910037282,
+            1.5686493433539423,
+            6.623319489902059,
+            -4.09574959042777,
+            0.8609969860410045
+          ],
+          "actual_mean_source_order": [
+            8.132446527481079,
+            -6.000654935836792,
+            1.08770801872015,
+            5.3504414558410645,
+            -4.952102184295654,
+            0.4803260788321495
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 355,
+      "env": 41,
+      "first_request": [
+        4.416333211203142,
+        -0.5121204720956634,
+        -5.360343041919061,
+        5.891809164094013,
+        -1.4854594890260397,
+        -4.986751809445683
+      ],
+      "first_tick_applied_source_order": [
+        -27.27094841003418,
+        2.4351000785827637,
+        0.0,
+        -25.93879508972168,
+        2.467012643814087,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 21.16627115324059,
+      "first60_request_vs_interval_mean_RMSE_old360": 35.08240170509035,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 2.1894482470800933,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 24.4159722871399,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            4.416333211203142,
+            -0.5121204720956634,
+            -5.360343041919061,
+            5.891809164094013,
+            -1.4854594890260397,
+            -4.986751809445683
+          ],
+          "actual_mean_source_order": [
+            -3.289561688899994,
+            -0.08294065296649933,
+            -2.5107283778488636,
+            -1.969704508781433,
+            -0.40279868245124817,
+            -2.187214657664299
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            9.22507977625309,
+            -3.6786744519280217,
+            -0.7670709880387778,
+            6.514670385833529,
+            -1.2263788413502823,
+            -1.2117174771661312
+          ],
+          "actual_mean_source_order": [
+            6.726849228143692,
+            -5.110162913799286,
+            -0.1439571010414511,
+            5.040188729763031,
+            -4.030283451080322,
+            -0.5351002300158143
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            4.020278723644908,
+            -1.6611052189658109,
+            1.2008573211636175,
+            -0.9166870448777846,
+            0.8194337247862631,
+            0.340216364139315
+          ],
+          "actual_mean_source_order": [
+            4.516448736190796,
+            -3.7900730073451996,
+            0.6990170041099191,
+            0.6639712858013809,
+            -2.46051674336195,
+            0.12100526737049222
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 357,
+      "env": 0,
+      "first_request": [
+        1.0628979926109219,
+        -0.3412013229944195,
+        -5.775909774436091,
+        5.90740423059271,
+        -3.2592729609792777,
+        -5.609592108957265
+      ],
+      "first_tick_applied_source_order": [
+        1.2915101051330566,
+        -0.539242684841156,
+        0.0,
+        4.993040561676025,
+        -3.094144344329834,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 25.49937122326844,
+      "first60_request_vs_interval_mean_RMSE_old360": 41.671887932551535,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 12.081273981270327,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 28.600526159378084,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            1.0628979926109219,
+            -0.3412013229944195,
+            -5.775909774436091,
+            5.90740423059271,
+            -3.2592729609792777,
+            -5.609592108957265
+          ],
+          "actual_mean_source_order": [
+            -0.14905549213290215,
+            -1.875696487724781,
+            -2.26314078271389,
+            3.5311021506786346,
+            -4.06076779961586,
+            -1.9795702621340752
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            13.184185548040587,
+            -9.85695801699095,
+            -1.797087779793454,
+            15.626711758430726,
+            -11.574556563767121,
+            -1.9091840446628636
+          ],
+          "actual_mean_source_order": [
+            10.51306962966919,
+            -10.454671621322632,
+            -0.4234145060181618,
+            12.092952966690063,
+            -11.511899590492249,
+            -0.7122516483068466
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            5.565507575890354,
+            -3.6416028701371577,
+            0.9940644114461437,
+            4.14932030847897,
+            -3.632183827789208,
+            0.44367329259953703
+          ],
+          "actual_mean_source_order": [
+            6.090878188610077,
+            -2.3657663241028786,
+            0.5829546102322638,
+            5.296709209680557,
+            -2.0581886991858482,
+            -0.5844894237816334
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 357,
+      "env": 1,
+      "first_request": [
+        4.673359006496485,
+        -0.5318376344809215,
+        -4.891321783476828,
+        4.896873871054335,
+        -2.1234851353776802,
+        -4.560610696905764
+      ],
+      "first_tick_applied_source_order": [
+        -24.729894638061523,
+        2.5318679809570312,
+        0.0,
+        -26.41208267211914,
+        2.488668441772461,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 25.10649533838868,
+      "first60_request_vs_interval_mean_RMSE_old360": 40.87291694877629,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 2.6738586393071344,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 27.913922428967496,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            4.673359006496485,
+            -0.5318376344809215,
+            -4.891321783476828,
+            4.896873871054335,
+            -2.1234851353776802,
+            -4.560610696905764
+          ],
+          "actual_mean_source_order": [
+            -0.32705262303352356,
+            -0.9883605130016804,
+            -1.9467563484795392,
+            0.44322532415390015,
+            -1.7384051010012627,
+            -1.9209042638540268
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            7.236764872494251,
+            -5.050783434926984,
+            -2.4577949997052166,
+            7.137360347439094,
+            -6.9613312787083155,
+            -3.208264246771256
+          ],
+          "actual_mean_source_order": [
+            5.093690246343613,
+            -6.881982922554016,
+            -1.1123905926942825,
+            5.74895766377449,
+            -8.138952612876892,
+            -1.5022221319377422
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            5.7527599957734505,
+            -3.0369726546872404,
+            0.20777969128812357,
+            3.3016913381965067,
+            -0.8123344622183257,
+            0.7292682209098409
+          ],
+          "actual_mean_source_order": [
+            4.553279459476471,
+            -5.179443210363388,
+            0.2528305873274803,
+            3.575669437646866,
+            -3.934103801846504,
+            0.4420778825879097
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 357,
+      "env": 40,
+      "first_request": [
+        3.862719701772012,
+        -2.205154903852744,
+        -2.531470622820736,
+        4.291439236813308,
+        -1.722472281086798,
+        -1.8697303106713348
+      ],
+      "first_tick_applied_source_order": [
+        -29.749101638793945,
+        2.5328686237335205,
+        -2.4528682231903076,
+        -26.371631622314453,
+        2.143493175506592,
+        -1.8380789756774902
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 24.851648144747415,
+      "first60_request_vs_interval_mean_RMSE_old360": 37.99709010283288,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 3.8504839830992545,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 24.242429197830464,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            3.862719701772012,
+            -2.205154903852744,
+            -2.531470622820736,
+            4.291439236813308,
+            -1.722472281086798,
+            -1.8697303106713348
+          ],
+          "actual_mean_source_order": [
+            -0.23871654272079468,
+            -1.9214278738945723,
+            -1.2179030515253544,
+            0.1294630765914917,
+            -0.5413007475435734,
+            -0.7445657327771187
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            3.747605683953636,
+            -3.077445027169738,
+            -1.877012250857799,
+            3.727429163994674,
+            -2.4864442440894603,
+            -1.6439690334049823
+          ],
+          "actual_mean_source_order": [
+            3.448042929172516,
+            -5.573186308145523,
+            -0.9447330348193645,
+            3.115943819284439,
+            -3.7830952405929565,
+            -0.6630503167398274
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            8.096523965180705,
+            -6.100992128105928,
+            0.1348920043971802,
+            8.781917647169063,
+            -5.9734273864436656,
+            -0.06819799613876198
+          ],
+          "actual_mean_source_order": [
+            7.934232592582703,
+            -5.953536748886108,
+            0.3469757176935673,
+            6.326613217592239,
+            -5.754834294319153,
+            -0.18687332654371858
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    },
+    {
+      "phase": 357,
+      "env": 41,
+      "first_request": [
+        3.906064031374367,
+        -1.969684921101102,
+        -2.831993180509762,
+        4.8328118402697156,
+        -2.6533172677652996,
+        -2.6306830184994383
+      ],
+      "first_tick_applied_source_order": [
+        -27.27094841003418,
+        2.4351000785827637,
+        0.0,
+        -25.93879508972168,
+        2.467012643814087,
+        0.0
+      ],
+      "initial_actual_leg_q_actuator_order": [
+        0.4552367329597473,
+        -0.040447257459163666,
+        0.4552367329597473,
+        -0.040447257459163666
+      ],
+      "nominal_zero_hold_PD_before_gain": [
+        -27.31420397758484,
+        2.42683544754982,
+        -27.31420397758484,
+        2.42683544754982
+      ],
+      "nominal_zero_hold_PD_units": "Nm; D7/output gain/actual speed not reconstructed",
+      "sourcebased_actuator_order": [
+        "left_hip",
+        "left_crank",
+        "right_hip",
+        "right_crank",
+        "left_wheel_spin",
+        "right_wheel_spin"
+      ],
+      "permutation_to_source": [
+        0,
+        1,
+        4,
+        2,
+        3,
+        5
+      ],
+      "first60_request_vs_interval_mean_RMSE_correct": 20.161824293713753,
+      "first60_request_vs_interval_mean_RMSE_old360": 33.75769305174448,
+      "heldtarget_PD_consistency_RMSE_actuator_model_order": 2.6399904754277976,
+      "heldtarget_PD_consistency_RMSE_oldlabel_swapped": 23.022960031121592,
+      "first3": [
+        {
+          "control": 1,
+          "requested_source_order": [
+            3.906064031374367,
+            -1.969684921101102,
+            -2.831993180509762,
+            4.8328118402697156,
+            -2.6533172677652996,
+            -2.6306830184994383
+          ],
+          "actual_mean_source_order": [
+            -3.251860022544861,
+            -0.6239643692970276,
+            -1.5811900608241558,
+            -2.2771987318992615,
+            -0.7674083326710388,
+            -1.3372524306178093
+          ]
+        },
+        {
+          "control": 2,
+          "requested_source_order": [
+            6.858579873228032,
+            -3.4645915733826884,
+            -1.2462905967735716,
+            4.892393338238256,
+            -1.5742502052737302,
+            -1.4245864197154954
+          ],
+          "actual_mean_source_order": [
+            5.322533816099167,
+            -4.7340447306633,
+            -0.2855621473863721,
+            4.211362719535828,
+            -3.890230268239975,
+            -0.6044749580323696
+          ]
+        },
+        {
+          "control": 3,
+          "requested_source_order": [
+            8.289081368937191,
+            -4.976436655476257,
+            0.2266650758189197,
+            4.922553200297063,
+            -3.1603617183926813,
+            -0.28816746620285993
+          ],
+          "actual_mean_source_order": [
+            6.702430427074432,
+            -5.463783383369446,
+            0.1635785149410367,
+            4.096213221549988,
+            -4.611185014247894,
+            -0.22180019738152623
+          ]
+        }
+      ],
+      "no_exact_requested_applied_identity_expected": "D4/D7/gain/DCclip/currentstate and 20ms hold remain",
+      "skill_result_unchanged": true
+    }
+  ],
+  "next": "Independent363: same actual20ms MPC50Hz/fullDR/physics/PD/limits;40legacydefaultqueue vs40 actualplannedq heldtarget. Preserve lags/RNG/episodes/ticks/pending semantics; record actual names, parameters, initial queue and pre/post actuator efforts. No learnedtraining345.",
+  "NN": 0,
+  "SDK": 0,
+  "network": 0,
+  "physics": 0,
+  "checkpoint_reads": 0,
+  "optimizer": 0,
+  "account": 0
+}

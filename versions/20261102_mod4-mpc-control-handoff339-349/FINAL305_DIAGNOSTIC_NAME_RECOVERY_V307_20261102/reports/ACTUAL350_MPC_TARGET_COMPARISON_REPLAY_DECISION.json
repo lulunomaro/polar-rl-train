@@ -1,0 +1,80 @@
+{
+  "epoch": 1793581706.745562,
+  "kind": "MPC_MOTOR_HANDOFF_ACTUAL349_REVIEW_AND_DECISION350",
+  "source_report": {
+    "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MPC_PROCESSED_TARGET_PHYSX_COMPARISON_V349_20261102\\reports\\ROOT349_EVALUATION_FULL_RETURNED.json",
+    "SHA": "5b3a38c42d45def5ab02b28b1aaf56eeb75b4588186f56030f1eed508caadfa4"
+  },
+  "groups": [
+    {
+      "group": "state_target",
+      "cases": 40,
+      "full5s": 0,
+      "mean_seconds": 1.0855000000000001,
+      "orientation": 40,
+      "cross": 0,
+      "strict": 0
+    },
+    {
+      "group": "processed_MPC_target",
+      "cases": 40,
+      "full5s": 7,
+      "mean_seconds": 1.706,
+      "orientation": 33,
+      "cross": 13,
+      "strict": 0
+    }
+  ],
+  "native_visual_review": {
+    "completed": true,
+    "image": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MPC_PROCESSED_TARGET_PHYSX_COMPARISON_V349_20261102\\RECORDED349_NATIVE_FRAMES\\ACTUAL349_MPC_TARGET_BODY_POSE_SEQUENCE.png",
+    "bytes": 591761,
+    "visual_source": "recorded actual349 PhysX poses; no NN or simulation re-execution",
+    "cases": [
+      0,
+      1,
+      40,
+      41
+    ],
+    "observations": "All four selected cases approach platform and tip/collapse close to edge; source-target cases40/41 still fail near.98/1.00s. No selectedcase proves stablelanding; aggregate13cross from independently measured full80 outcomes."
+  },
+  "actual_scope": {
+    "NN": 0,
+    "optimizer": 0,
+    "account_writes": 0,
+    "new_GO": 0,
+    "source100Hz_targets_sampled_at50Hz": true,
+    "originalPD_queue_limits_physics_retained": true,
+    "matching_initial_planned_state_all80": true,
+    "DR_same_distribution_not_paired": true,
+    "recomputed_closedloop_MPC": false
+  },
+  "inference": "Using processed motor targets produces measured edge-crossing cases absent with state-as-target. It supports prioritizing motor-control handoff; nonpaired DR and changed plant/clock mean not a complete causal isolation or finalfix.",
+  "remaining": [
+    "Preserve original successful closed-loop state-dependent launch/landing feedback, not just fixed-time openloop targets.",
+    "Current training target clock50Hz does not execute every source100Hz command; do not call this exact100Hz replay.",
+    "Original MuJoCo500us and currentPhysX2500us, asset/contact/DR differences need actual controlled comparison; do not silently change solver/PD/asset."
+  ],
+  "source347": {
+    "passed": true,
+    "source_controller_success": true,
+    "stable_at_end": 3.0199999999999796,
+    "versions": {
+      "mujoco": "3.15.0",
+      "numpy": "2.4.5",
+      "scipy": "1.17.1"
+    },
+    "original_engine_version_match": false,
+    "original_source_success_intact": true
+  },
+  "action": {
+    "training345_started": false,
+    "reason": "User correctly redirected investigation to complete MPC controller; finish transfer before another hour of unverified state-only optimization.",
+    "next": "Prepare a new bounded no-learning closed-loop/feedforward+feedback motor-interface comparison with explicit100Hz source versus fixed50Hz target scheduling. Preserve all existing safeguards and diagnose first real deviation before choosing training curriculum/objective.",
+    "no_identical324_restart": true,
+    "no_blind345_launch": true
+  },
+  "skill_graduation": false,
+  "strict_stable_success": 0,
+  "all349ownedcontrollers_closed": true
+}

@@ -1,0 +1,280 @@
+{
+  "epoch": 1793580607.3226016,
+  "kind": "MPC_CONTROL_TO_STATE_REFERENCE_HANDOFF_AUDIT346",
+  "passed": true,
+  "user_steering": "2026-11-02 human asks why fully tuned MPC and full timed motor trajectory do not transfer; establish control reproduction before more objective/horizon training",
+  "source_success": {
+    "trajectory": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\fullDR_mpc\\trajectory.json",
+      "bytes": 1367393,
+      "SHA": "5fb5e88acdfcbdd69cd23de500cdf371e5e92d0aded587eedbb8384a0ebeba5e"
+    },
+    "result": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\fullDR_mpc\\result.json",
+      "bytes": 9555,
+      "SHA": "4f0b8fd45cef3430d3ee6e97ba4c8d90011aa78affcb704ab5b665887dc7b678"
+    },
+    "config": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\fullDR_mpc\\config.json",
+      "bytes": 1030,
+      "SHA": "619ca4df24e7705e8be576e8d3bd139bf94724cf3815e87a8cf1fcd1625d5e11"
+    },
+    "success": true,
+    "stable_at_end": 2.6899999999999866,
+    "cross": {
+      "time": 1.039999999999941,
+      "bottom": 0.2965977124815436,
+      "velocity": [
+        1.4046751782650517,
+        -0.01154061294333724,
+        -0.863809875046421
+      ],
+      "flight_id": 1,
+      "full_footprint_margin_m": 0.007936685748955091
+    }
+  },
+  "actual_reference_pipeline": {
+    "source": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\REFERENCE_H8_DIRECT_TRACKING_PRODUCTION_V345_20261102\\source\\tracking_reference345.py",
+      "bytes": 6641,
+      "SHA": "751af02ad4a4b72830769642d98e33ec0506e38a17252dbac79a195f276fc418"
+    },
+    "prepare_read_keys": [
+      "finite",
+      "nonwheel",
+      "qpos",
+      "qvel",
+      "stable_at_end",
+      "success",
+      "support_wheels",
+      "time",
+      "wheel_xyz"
+    ],
+    "state_samples": 250,
+    "source_controls": 500,
+    "source_control_dt": 0.01,
+    "reference_dt": 0.02,
+    "source_initial_t0_not_saved": true,
+    "first_saved_endpoint": 0.010000000000000005,
+    "first_reference_endpoint": 0.020000000000000014,
+    "torque_fields_discarded": true,
+    "actual_processed_motor_target_not_saved_in_source_trace": true,
+    "per_physics_applied_torque_history_not_saved": true
+  },
+  "control_semantics": {
+    "source": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\control_core.py",
+      "bytes": 11361,
+      "SHA": "0dcc391ed0c1128e4e5e8588e54e1ab1e60c4dce2be5b5ba937c0b787bb2e207"
+    },
+    "controller": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\results\\FINAL_EVIDENCE_V2\\hybrid_trial.py",
+      "bytes": 12189,
+      "SHA": "0f687f4416ba22ac063860532ca5d5f586477fc72621e48a5d272dd3abc0cc10"
+    },
+    "source_physics_dt": 0.0005,
+    "current_training_physics_dt": 0.0025,
+    "source_controller_hz": 100,
+    "current_actor_hz": 50,
+    "current_feedback_hz": 100,
+    "source_output": "closed-loop desired torque in actuator order -> nominal inversePD -> target projection -> D4 target queue -> explicitPD -> signedDCclip -> motor gain -> signedDCclip",
+    "current_actor_output": "four normalized leg position targets, then two normalized wheel velocity targets; .5rad and10rad/s scales; original D4 and explicitPD retained",
+    "source_actuator_order": [
+      "left_hip",
+      "left_crank",
+      "left_wheel_spin",
+      "right_hip",
+      "right_crank",
+      "right_wheel_spin"
+    ],
+    "policy_order": [
+      "left_crank",
+      "left_hip",
+      "right_crank",
+      "right_hip",
+      "left_wheel_spin",
+      "right_wheel_spin"
+    ],
+    "source_phase_switch": "launch_x AND minimum measured speed, then measured launch pose; landing switches from measured contact",
+    "current_reference_phase": "fixed elapsed episode steps, lookahead0/10; no source closed-loop event controller invoked",
+    "faithful_source_controller_reproduction_in_PhysX": false,
+    "do_not_change_original_physics_or_PD_from_this_audit": true
+  },
+  "previous311_scope": {
+    "source": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\REFERENCE_INITIAL_STATE_PHYSICS_PROBE_V311_20261102\\source\\evaluate311.py",
+      "bytes": 22429,
+      "SHA": "17bd1f637af66d74457cc8bea255eff11e5a79b9dfbed11c4028ae38c0c478f3"
+    },
+    "models": 0,
+    "controller": "joint state q position + wheel dq velocity copied as PD targets, not original inversePD motor commands",
+    "referencefullinit_did_not_make_it_stable": true,
+    "not_a_faithful_MPC_command_replay": true
+  },
+  "phase_sample_counts": {
+    "approach": {
+      "controls": 66,
+      "seconds": 0.66,
+      "state_reference50_samples": 33
+    },
+    "push": {
+      "controls": 10,
+      "seconds": 0.1,
+      "state_reference50_samples": 5
+    },
+    "flight": {
+      "controls": 34,
+      "seconds": 0.34,
+      "state_reference50_samples": 17
+    },
+    "extend": {
+      "controls": 2,
+      "seconds": 0.02,
+      "state_reference50_samples": 1
+    },
+    "recover": {
+      "controls": 388,
+      "seconds": 3.88,
+      "state_reference50_samples": 194
+    }
+  },
+  "stationary_endpoint_inversePD_illustration": {
+    "source_time": 4.9999999999999485,
+    "torque_order": [
+      "left_hip",
+      "left_crank",
+      "left_wheel_spin",
+      "right_hip",
+      "right_crank",
+      "right_wheel_spin"
+    ],
+    "desired_tau_Nm": [
+      3.8881874252701802,
+      -5.567735932325132,
+      -0.5483429530050196,
+      2.809447545045543,
+      -5.061261206315935,
+      -0.4860618947405835
+    ],
+    "actual_last_physics_tau_Nm": [
+      3.607657989708565,
+      -5.608197880839045,
+      -0.2040664300627034,
+      3.55949057339818,
+      -5.588839538046628,
+      -0.1728089996120887
+    ],
+    "q": [
+      0.39398434879902117,
+      -0.01460791288188193,
+      7.227314620673353,
+      0.4035343806596271,
+      -0.013227497800755387,
+      6.227267290019684
+    ],
+    "dq": [
+      -0.00642991585092513,
+      -0.016397966373544605,
+      -0.16742685463927803,
+      -0.04481296431628874,
+      0.044497806257886345,
+      -0.16896530641078503
+    ],
+    "nominal_inverse_PD_target_minus_state": [
+      0.06458879322613884,
+      -0.09334219775120368,
+      -0.9139049216750327,
+      0.045330360273549426,
+      -0.0828710932300027,
+      -0.8101031579009725
+    ],
+    "units": [
+      "rad",
+      "rad",
+      "rad/s",
+      "rad",
+      "rad",
+      "rad/s"
+    ],
+    "exact_original_target": false,
+    "scope": "clean endpoint algebraic illustration; original command used pre-step noisy/delayed/predicted feedback and subsequent target queue; no exact replay claim"
+  },
+  "static_asset_mass_comparison": {
+    "source_model": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\model\\mod4_400N.xml",
+      "bytes": 64189,
+      "SHA": "5d52284a618c95ac49c97666b00f9e4567d20abb4728e322dc8651f07f4ba0ee"
+    },
+    "training_contract": {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MODEL2050_LITERAL_JUMP_400N50_ADAPT_V240_20261101\\package\\payload\\job0\\runtime\\isaac\\mod4\\import_contract.json",
+      "bytes": 162015,
+      "SHA": "517cd6a4cc469455af08da75dc4b7f7cb596b375bafb4c3e566c7df5bc51df49"
+    },
+    "mpc_total": 14.28014071182992,
+    "training_contract_total": 14.220140287652612,
+    "differences_over_1e5kg": {
+      "guide_roller_0": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_1": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_2": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_3": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_4": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_5": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_6": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      },
+      "guide_roller_7": {
+        "mpc": 0.01,
+        "training_contract": null,
+        "delta": null
+      }
+    },
+    "actualSDK_current_nominal_readback": false,
+    "no_mass_cause_inferred": true
+  },
+  "conclusions": [
+    "The saved MPC is a real successful closed-loop controller in its source plant.",
+    "The learning path consumed state references; it did not execute or learn from saved MPC motor commands.",
+    "Copying joint state into PD targets is not equivalent to the MPC inversePD control path.",
+    "State-reference BPTT can in principle discover suitable commands, but success in the source controller is not evidence that this policy has learned them.",
+    "Clock, event feedback, initial-state and plant equivalence still need a bounded actual reproduction comparison; none alone is proven causal."
+  ],
+  "decision": {
+    "launch345": false,
+    "GO": false,
+    "existing345frozen_package_preserved": true,
+    "reason": "Establish faithful motor control handoff and actual same-task reproduction before more H8direct training.",
+    "next": "Extract or regenerate source processed target and pre-control feedback traces with explicit timing/order; compare source vs current plant from matching planned state through original actuator limits/queues; no direct unbounded torque bypass or torque cloning."
+  },
+  "model_reads": 0,
+  "optimizer_steps": 0,
+  "network": 0,
+  "SDK": 0,
+  "physics_steps": 0,
+  "account_access": 0
+}

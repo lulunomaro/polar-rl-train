@@ -1,0 +1,13 @@
+--- actual453/scut_flat_rescue.py
++++ V2/scut_flat_rescue.py
+@@ -94,8 +94,8 @@
+         raw=json.loads(source.read_text(encoding='utf8'))
+         actual=hashlib.sha256((task.MOD4_ISAAC/'import_contract.json').read_bytes()).hexdigest()
+         if actual!=raw['contract_sha256']:
+-            from gas400_reset_bank_exact_compatibility_v1 import require_exact_gas400_reset_bank
+-            require_exact_gas400_reset_bank(source,task.MOD4_ISAAC/'import_contract.json',raw,actual_contract_SHA=actual)
++            from mod4v1_h1_reset_bank_compat import require_mod4v1_h1_reset_bank
++            env._mod4v1_h1_bank_compatibility=require_mod4v1_h1_reset_bank(source,task.MOD4_ISAAC/'import_contract.json',raw,actual_contract_SHA=actual)
+         poses=[p for p in raw['poses'] if .24<=p['root_height_m']<=.272]
+         if not poses:raise RuntimeError('empty feasible reset library')
+         q=torch.tensor([[p['joint_pos'].get(n,0.) for n in robot.joint_names] for p in poses],device=env.device,dtype=torch.float32)

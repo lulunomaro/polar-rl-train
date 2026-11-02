@@ -1,0 +1,145 @@
+"""Stage gate for the MOD4 arena curriculum (audit P2: "每个阶段只有独立评估通过才进入下一阶段").
+
+Two evidence sources, both required:
+
+  * the TRAINING log  (stdout of train_mod4_ppo.py) -> the curriculum/learning signals
+  * an EVAL report    (eval_terrain_mod4.py --report) -> per-route completion, the thing that
+    actually decides whether a skill exists (a rising reward curve is NOT evidence)
+
+    python isaac/mod4/stage_gate.py --stage run   --log logs/isaac_mod4/stage1g_run.log
+    python isaac/mod4/stage_gate.py --stage jump  --log logs/isaac_mod4/stage2_jump.log \
+        --eval docs/terrain_stage2.json
+
+Exit code 0 = every gate passed, 1 = at least one gate failed (so it can drive a script).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+# stage -> (route kinds it must prove, gates on the last training-log block, gates on the eval)
+STAGES = {
+    "run": {
+        "kinds": ["run"],
+        # Calibration (2026-09-11 21:00): the log is written from EXPLORATION rollouts (std 0.3
+        # at that point), so it understates the deployed policy by ~3x -- measured on the SAME
+        # checkpoint: log route_progress 0.30 (0.15 m/s) vs deterministic eval 0.47 m/s and
+        # 47% route completion in 6 s.  The log gates are therefore only "the term is alive and
+        # the robot is not standing still" sanity floors; the DECISIVE gate is the eval.
+        "log": {"Episode_Reward/route_progress": (0.2, ">="),
+                "Episode_Reward/track_lin_vel": (0.2, ">=")},
+        "eval": {"complete_rate": (0.8, ">=")},
+    },
+    "jump": {
+        "kinds": ["jump_in_place"],
+        "log": {"Curriculum/jump_target/jump/reach_ratio": (0.5, ">="),
+                "Curriculum/jump_target/jump/window_done": (1.0, ">=")},
+        "eval": {"peak_rise_m": (0.04, ">=")},
+    },
+    "terrain": {
+        "kinds": ["ramp_up", "ramp_down", "step_up", "step_down", "rough_cross"],
+        "log": {},
+        "eval": {"complete_rate": (0.6, ">=")},
+    },
+    "tunnel": {
+        "kinds": ["tunnel_cross"],
+        "log": {},
+        # 2026-09-12: these carried COUNTS (bucket_by_route sums per env); a count >= 0.8
+        # passes with one environment.  The evaluator now publishes the rates, and the
+        # delivered roof must not be scraped at all (fail/tunnel_roof_hit terminations).
+        "eval": {"complete_rate": (0.6, ">="), "underpass_seen_rate": (0.8, ">="),
+                 "roof_hit_terminations": (0.0, "<=")},
+    },
+    "fly": {
+        "kinds": ["fly_jump"],
+        "log": {},
+        # 2026-09-12: air_after_launch used to be a count -- compare the rate instead.
+        "eval": {"complete_rate": (0.5, ">="), "air_after_launch_rate": (0.6, ">=")},
+    },
+    "spin": {
+        "kinds": ["slope_spin"],
+        "log": {},
+        "eval": {"complete_rate": (0.6, ">="), "spin_deg": (360.0, ">=")},
+    },
+}
+
+
+def last_block(log_path: Path) -> dict:
+    """Last 'Learning iteration' block of an rsl_rl log as {key: float}."""
+    text = log_path.read_text(encoding="utf8", errors="replace")
+    blocks = text.split("Learning iteration")
+    out = {}
+    for block in blocks[-1:]:
+        for line in block.splitlines():
+            m = re.match(r"\s*([A-Za-z_][\w/\-\.]*):\s+(-?[\d.eE+]+)\s*$", line)
+            if m:
+                out[m.group(1)] = float(m.group(2))
+        it = re.match(r"\s*(\d+)/", block)
+        if it:
+            out["__iteration__"] = float(it.group(1))
+    return out
+
+
+def cmp(value: float, spec) -> bool:
+    limit, op = spec
+    return value >= limit if op == ">=" else value <= limit
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--stage", required=True, choices=sorted(STAGES))
+    ap.add_argument("--log", required=True)
+    ap.add_argument("--eval", default="")
+    args = ap.parse_args()
+    stage = STAGES[args.stage]
+
+    log = last_block(Path(args.log))
+    report = {}
+    if args.eval:
+        report = json.loads(Path(args.eval).read_text(encoding="utf8"))
+    buckets = report.get("route_kinds", {}) if report else {}
+    it = int(log.get("__iteration__", -1))
+    print("[gate] stage=%s  log_iteration=%s  eval=%s" % (args.stage, it, args.eval or "none"))
+    fails = []
+    for key, spec in stage["log"].items():
+        val = log.get(key)
+        if val is None:
+            fails.append("%s: missing in log" % key)
+            print("[gate]   LOG  %-46s MISSING" % key)
+            continue
+        ok = cmp(val, spec)
+        fails += [] if ok else ["%s=%.4f %s %.4f" % (key, val, spec[1], spec[0])]
+        print("[gate]   LOG  %-46s %.4f  %s" % (key, val, "OK" if ok else "FAIL"))
+    for kind in stage["kinds"]:
+        rec = buckets.get(kind)
+        if not rec:
+            fails.append("eval: no bucket for %s" % kind)
+            print("[gate]   EVAL %-46s MISSING" % kind)
+            continue
+        for key, spec in stage["eval"].items():
+            if key.endswith("_rate") and key not in rec:
+                # older report: derive the rate from the count (the goal bars are rates)
+                base = key[: -len("_rate")]
+                if base in rec:
+                    rec[key] = float(rec[base]) / max(1, int(rec.get("envs", 0)))
+            elif key == "roof_hit_terminations" and key not in rec:
+                # older report: the counter lives under fail/<termination term>
+                rec[key] = float(rec.get("fail/tunnel_roof_hit", float("nan")))
+            val = float(rec.get(key, float("nan")))
+            ok = val == val and cmp(val, spec)
+            fails += [] if ok else ["%s/%s=%.4f %s %.4f" % (kind, key, val, spec[1], spec[0])]
+            print("[gate]   EVAL %-46s %.4f  %s" % ("%s.%s" % (kind, key), val,
+                                                    "OK" if ok else "FAIL"))
+    if stage["eval"] and not args.eval:
+        fails.append("no --eval report supplied")
+        print("[gate]   EVAL report required for this stage but not supplied")
+    print("[gate] %s" % ("PASS -- promote to the next stage" if not fails
+                         else "FAIL -- " + "; ".join(fails)))
+    return 0 if not fails else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

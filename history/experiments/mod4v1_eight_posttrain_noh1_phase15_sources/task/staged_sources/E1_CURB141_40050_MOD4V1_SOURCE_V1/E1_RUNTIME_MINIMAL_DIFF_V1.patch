@@ -1,0 +1,586 @@
+--- original/runtime/physics_clock.py
++++ derived/runtime/physics_clock.py
+@@ -1,15 +1,15 @@
+ """Reviewed integer-microsecond clock; 100 Hz control and fixed 5 ms bins."""
+ import math
+ 
+-def validate_clock(dt, control_s=.01, bin_s=.005):
++def validate_clock(dt, control_s=.02, bin_s=.005):
+     if not isinstance(dt, (int, float)) or not math.isfinite(dt) or dt not in (.0005, .001, .002, .0025, .005):
+         raise ValueError('Unreviewed physical timestep')
+-    if abs(control_s-.01)>1e-12 or abs(bin_s-.005)>1e-12:
++    if abs(control_s-.02)>1e-12 or abs(bin_s-.005)>1e-12:
+         raise ValueError('Control or impulse window changed')
+-    us=round(dt*1000000);decimation=10000//us
+-    if decimation*us!=10000:raise ValueError('Noninteger control clock')
++    us=round(dt*1000000);decimation=20000//us
++    if decimation*us!=20000:raise ValueError('Noninteger control clock')
+     aligned=5000%us==0
+-    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=100.,decimation=decimation,
++    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=50.,decimation=decimation,
+                 contact_bin_s=bin_s,contact_bin_samples=5000//us if aligned else None,
+                 cross_bin_required=not aligned,physics_dt_us=us,contact_bin_us=5000)
+ 
+--- original/runtime/physics_clock2000.py
++++ derived/runtime/physics_clock2000.py
+@@ -1,15 +1,15 @@
+ """Reviewed integer-microsecond clock; 100 Hz control and fixed 5 ms bins."""
+ import math
+ 
+-def validate_clock(dt, control_s=.01, bin_s=.005):
++def validate_clock(dt, control_s=.02, bin_s=.005):
+     if not isinstance(dt, (int, float)) or not math.isfinite(dt) or dt not in (.0005, .001, .002, .0025, .005):
+         raise ValueError('Unreviewed physical timestep')
+-    if abs(control_s-.01)>1e-12 or abs(bin_s-.005)>1e-12:
++    if abs(control_s-.02)>1e-12 or abs(bin_s-.005)>1e-12:
+         raise ValueError('Control or impulse window changed')
+-    us=round(dt*1000000);decimation=10000//us
+-    if decimation*us!=10000:raise ValueError('Noninteger control clock')
++    us=round(dt*1000000);decimation=20000//us
++    if decimation*us!=20000:raise ValueError('Noninteger control clock')
+     aligned=5000%us==0
+-    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=100.,decimation=decimation,
++    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=50.,decimation=decimation,
+                 contact_bin_s=bin_s,contact_bin_samples=5000//us if aligned else None,
+                 cross_bin_required=not aligned,physics_dt_us=us,contact_bin_us=5000)
+ 
+--- original/runtime/isaac/mod4/physics_clock.py
++++ derived/runtime/isaac/mod4/physics_clock.py
+@@ -1,15 +1,15 @@
+ """Reviewed integer-microsecond clock; 100 Hz control and fixed 5 ms bins."""
+ import math
+ 
+-def validate_clock(dt, control_s=.01, bin_s=.005):
++def validate_clock(dt, control_s=.02, bin_s=.005):
+     if not isinstance(dt, (int, float)) or not math.isfinite(dt) or dt not in (.0005, .001, .002, .0025, .005):
+         raise ValueError('Unreviewed physical timestep')
+-    if abs(control_s-.01)>1e-12 or abs(bin_s-.005)>1e-12:
++    if abs(control_s-.02)>1e-12 or abs(bin_s-.005)>1e-12:
+         raise ValueError('Control or impulse window changed')
+-    us=round(dt*1000000);decimation=10000//us
+-    if decimation*us!=10000:raise ValueError('Noninteger control clock')
++    us=round(dt*1000000);decimation=20000//us
++    if decimation*us!=20000:raise ValueError('Noninteger control clock')
+     aligned=5000%us==0
+-    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=100.,decimation=decimation,
++    return dict(physics_dt_s=float(dt),control_period_s=control_s,policy_hz=50.,decimation=decimation,
+                 contact_bin_s=bin_s,contact_bin_samples=5000//us if aligned else None,
+                 cross_bin_required=not aligned,physics_dt_us=us,contact_bin_us=5000)
+ 
+--- original/runtime/train/deploy/contract_rm2025_later.json
++++ derived/runtime/train/deploy/contract_rm2025_later.json
+@@ -51,7 +51,7 @@
+   "wheel_torque_curve_source": "analytic_two_piece",
+   "obs_width": 35,
+   "action_width": 6,
+-  "policy_hz": 100,
++  "policy_hz": 50,
+   "physics_dt": 0.0005,
+   "wheel_torque_speed_curve": true,
+   "leg_drive_roles": {
+--- original/runtime/isaac/mod4/action_delay_physics_queue.py
++++ derived/runtime/isaac/mod4/action_delay_physics_queue.py
+@@ -12,8 +12,8 @@
+         'last_submit_tick','last_apply_tick')
+ 
+ class PhysicsActionQueue:
+-    def __init__(self,n,device,seed,enabled=True,physics_us=2500,control_us=10000):
+-        assert isinstance(n,int) and n>0 and physics_us==2500 and control_us==10000
++    def __init__(self,n,device,seed,enabled=True,physics_us=2500,control_us=20000):
++        assert isinstance(n,int) and n>0 and physics_us==2500 and control_us==20000
+         self.n=n;self.device=torch.device(device);self.enabled=bool(enabled)
+         self.physics_us=physics_us;self.control_us=control_us;self.groups={};self.rng={}
+         for key,width in WIDTHS.items():
+@@ -81,7 +81,7 @@
+         return dict(version=1,n=self.n,enabled=self.enabled,physics_us=self.physics_us,control_us=self.control_us,rng={k:g.get_state().clone() for k,g in self.rng.items()},groups={k:{f:v.clone() for f,v in g.items()} for k,g in self.groups.items()})
+ 
+     def validate_state(self,state):
+-        assert state['version']==1 and state['n']==self.n and state['enabled']==self.enabled and state['physics_us']==2500 and state['control_us']==10000
++        assert state['version']==1 and state['n']==self.n and state['enabled']==self.enabled and state['physics_us']==2500 and state['control_us']==20000
+         assert set(state['groups'])==set(state['rng'])==set(WIDTHS)
+         for key,width in WIDTHS.items():
+             g=state['groups'][key];assert set(g)==set(FIELDS)
+@@ -108,4 +108,4 @@
+         for key,generator in self.rng.items():generator.set_state(state['rng'][key].cpu())
+ 
+     def recipe(self):
+-        return dict(profile='physical_target_0_2500_5000us_v1' if self.enabled else 'off',physics_period_us=2500,control_period_us=10000,actual_transition_delay_us=[0,2500,5000] if self.enabled else [0],sub_ms_exact_timing_claimed=False,leg_four_targets_coherent=True,wheel_two_targets_coherent=True,leg_and_wheel_per_environment_episode_RNG_independent=True,queue_values='Original processed joint-position rad / joint-velocity rad_s targets',original_scale_offset_CAD_guard_and_gain_after_torque_speed_envelope_unchanged=True,reset_initial_target='Caller real default leg q and zero wheel velocity; stale commands cleared',holding_age_is_distinct_from_first_transition_latency=True,engineering_pressure_not_hardware_calibration=True,CPU_component_not_actual_SDK_or_learning=True)
++        return dict(profile='physical_target_0_2500_5000us_v1' if self.enabled else 'off',physics_period_us=2500,control_period_us=20000,actual_transition_delay_us=[0,2500,5000] if self.enabled else [0],sub_ms_exact_timing_claimed=False,leg_four_targets_coherent=True,wheel_two_targets_coherent=True,leg_and_wheel_per_environment_episode_RNG_independent=True,queue_values='Original processed joint-position rad / joint-velocity rad_s targets',original_scale_offset_CAD_guard_and_gain_after_torque_speed_envelope_unchanged=True,reset_initial_target='Caller real default leg q and zero wheel velocity; stale commands cleared',holding_age_is_distinct_from_first_transition_latency=True,engineering_pressure_not_hardware_calibration=True,CPU_component_not_actual_SDK_or_learning=True)
+--- original/runtime/isaac/mod4/action_delay_sdk_adapter.py
++++ derived/runtime/isaac/mod4/action_delay_sdk_adapter.py
+@@ -13,7 +13,7 @@
+ 
+ class PhysicalActionDelayAdapter:
+     def __init__(self,env,enabled,seed,collect=False):
+-        assert env.physics_dt==.0025 and env.step_dt==.01 and env.cfg.decimation==4
++        assert env.physics_dt==.0025 and env.step_dt==.02 and env.cfg.decimation==8
+         assert not getattr(env.sim,'_physics_handles_decimation',False)
+         self.env=env;self.queue=PhysicsActionQueue(env.num_envs,env.device,seed,enabled=enabled)
+         self.collect=collect;self.rows={k:[] for k in WIDTHS};self.calls={k:0 for k in WIDTHS}
+--- original/runtime/isaac/mod4/feedback_delay_runtime.py
++++ derived/runtime/isaac/mod4/feedback_delay_runtime.py
+@@ -22,7 +22,7 @@
+ 
+ 
+ def feedback(env, key, raw):
+-    tick = env.common_step_counter
++    tick = getattr(env, '_feedback_100hz_tick', env.common_step_counter)
+     noisy = sensor_state(env).apply(key, raw, tick)
+     return delay_state(env).apply(key, noisy, tick)
+ 
+@@ -65,9 +65,25 @@
+         profile = os.environ.get('RM_FEEDBACK_DELAY_PROFILE', 'off')
+         assert profile in ('off', 'control_0_10ms_v1')
+         configure_feedback(kwargs['cfg'], profile == 'control_0_10ms_v1')
++        self._feedback_100hz_tick = 0
+         super().__init__(**kwargs)
++        self._install_feedback_100hz_sampling()
+         assert sum(self.observation_manager.group_obs_dim['policy']) == 35
+         assert sum(self.observation_manager.group_obs_dim['critic']) == 38
++
++    def _install_feedback_100hz_sampling(self):
++            assert self.physics_dt == .0025 and self.step_dt == .02
++            previous = self.scene.update
++            def update(dt):
++                previous(dt)
++                tick = int(self._sim_step_counter)
++                if tick % 4 == 0:
++                    self._feedback_100hz_tick = tick // 4
++                    for name in WIDTHS:
++                        names = self.observation_manager.active_terms['policy']
++                        term = self.observation_manager._group_obs_term_cfgs['policy'][names.index(name)]
++                        term.func(self, **term.params)
++            self.scene.update = update
+ 
+     def clean_policy(self):
+         sensor, delay = sensor_state(self), delay_state(self)
+@@ -92,7 +108,7 @@
+     def sensor_sdk_audit(self):
+         """Actual manager output against actual queued samples, not clean current truth."""
+         sensor, delay = sensor_state(self), delay_state(self)
+-        tick = int(self.common_step_counter)
++        tick = int(getattr(self, '_feedback_100hz_tick', self.common_step_counter))
+         actor = self.observation_manager.compute_group('policy').clone()
+         critic = self.observation_manager.compute_group('critic').clone()
+         counts, rng = dict(sensor.draw_counts), delay.rng.get_state().clone()
+--- original/runtime/isaac/mod4/spring_pressure_index_runtime.py
++++ derived/runtime/isaac/mod4/spring_pressure_index_runtime.py
+@@ -18,7 +18,7 @@
+         if torch.is_tensor(indices):indices=indices.detach().cpu().tolist()
+         elif hasattr(indices,'numpy'):indices=indices.numpy().tolist()
+         assert list(indices)==self.ids,'Gas actuator/model order must match actual articulation'
+-        self.nominal=torch.tensor([3500.,3500.],device=env.device)
++        self.nominal=torch.tensor([2000.,2000.],device=env.device)
+         assert bool((tensor(self.robot.data.joint_stiffness)[:,self.ids]==self.nominal).all())
+         assert bool((tensor(self.actuator.stiffness)==self.nominal).all())
+         self.component=SpringPressure(env.num_envs,env.device,seed,enabled)
+--- original/runtime/isaac/mod4/spring_pressure_audit_runtime.py
++++ derived/runtime/isaac/mod4/spring_pressure_audit_runtime.py
+@@ -20,7 +20,7 @@
+             actual=tensor(adapter.actuator.stiffness)
+             assert torch.equal(drive,expected) and torch.equal(buffered,expected) and torch.equal(actual,expected)
+             nominal=this.gains['gas_springs']['stiffness']
+-            assert bool((nominal==3500).all()),'Original nominal observer reference was unexpectedly modified'
++            assert bool((nominal==2000).all()),'Original nominal observer reference was unexpectedly modified'
+             this.gains['gas_springs']['stiffness']=expected.clone()
+             try:row=original()
+             finally:this.gains['gas_springs']['stiffness']=nominal
+--- original/runtime/isaac/mod4/spring_nominal_sdk_readback.py
++++ derived/runtime/isaac/mod4/spring_nominal_sdk_readback.py
+@@ -33,7 +33,7 @@
+         assert all(torch.isfinite(x).all() for x in values.values())
+         assert torch.equal(values['physx_stiffness_N_m'].to(self.env.device),values['buffered_stiffness_N_m'])
+         assert torch.equal(values['physx_damping_N_s_m'].to(self.env.device),values['buffered_damping_N_s_m'])
+-        assert bool((values['physx_stiffness_N_m']==3500).all()) and bool((values['physx_damping_N_s_m']==3).all())
++        assert bool((values['physx_stiffness_N_m']==2000).all()) and bool((values['physx_damping_N_s_m']==3).all())
+         assert bool((values['physx_drive_effort_limit_N']==2000).all())
+         return {k:x.detach().cpu().tolist() for k,x in values.items()}
+     def read_write(self):
+--- original/runtime/isaac/mod4/spring_pressure_training_env.py
++++ derived/runtime/isaac/mod4/spring_pressure_training_env.py
+@@ -43,7 +43,7 @@
+         assert os.environ.get('RM_SPRING_PRESSURE_PROFILE')==PROFILE
+         self._spring_pressure=LearningSpringPressure(self,True,int(self.cfg.seed))
+     def spring_pressure_recipe(self):
+-        return dict(profile=PROFILE,nominal_stiffness_N_m=3500,independent_two_episode_factor_bounds=[.9,1.1],
+-            actual_stiffness_bounds_N_m=[3150,3850],preload_damping_force_limit_armature_unchanged=True,
++        return dict(profile=PROFILE,nominal_stiffness_N_m=2000,independent_two_episode_factor_bounds=[.9,1.1],
++            actual_stiffness_bounds_N_m=[1800,2200],preload_damping_force_limit_armature_unchanged=True,
+             actor_critic_observations_unchanged=True,hardware_force_stroke_calibration=False,
+             SDK_computed_applied_effort_is_approximate_not_measured_drive_force=True)
+--- original/runtime/isaac/mod4/clock_training_health.py
++++ derived/runtime/isaac/mod4/clock_training_health.py
+@@ -77,7 +77,7 @@
+             control_dt_s=float(self.env.step_dt),control_steps=self.steps,
+             actual_task_reset_events=int(self.counts.sum()),
+             closure_episode_reset_events=int(self.reason_counts['closure'].sum()),
+-            closure_2mm_still_resets_only_this_environment=True,
++            closure_10mm_resets_only_this_environment=True,
+             closure_peak_alone_does_not_stop_global_learning=True,
+             legacy_single_peak_2mm_pass=float(getattr(self.env,'_mod4_max_closure',float('inf')))<=.002,
+             post_reset_values_not_relabelled_as_pre_reset_failure=True,failed_environments=int((self.counts>0).sum()),
+@@ -85,10 +85,10 @@
+             integrity_task_reset_events=int(self.integrity_counts.sum()),
+             unknown_task_reset_events=int(self.unknown_counts.sum()),
+             termination_events_by_reason={n:int(v.sum()) for n,v in self.reason_counts.items()},
+-            ordinary_task_thresholds_unchanged=True,ordinary_resets_continue_learning=True,
++            ordinary_task_thresholds_except_new10mm_closure_unchanged=True,ordinary_resets_continue_learning=True,
+             termination_reason_coverage_exact=self.coverage_exact,nonfinite_observed=self.nonfinite,
+             actual_physics_callbacks=self.env._integrated_contact.tick-self.initial_tick,
+-            expected_physics_callbacks=self.steps*round(.01/self.env.physics_dt),
++            expected_physics_callbacks=self.steps*int(self.env.cfg.decimation),
+             max_closure_error_m=float(getattr(self.env,'_mod4_max_closure',float('nan'))),
+             max_mimic_error_rad=float(getattr(self.env,'_mod4_max_mimic',float('nan'))),
+             stop_reason=self.reason,request_own_save_only_no_force_kill=True,
+--- original/runtime/isaac/mod4/e1_terrain_training_health.py
++++ derived/runtime/isaac/mod4/e1_terrain_training_health.py
+@@ -74,7 +74,7 @@
+                 self.nonfinite=self.nonfinite or not all(bool(torch.isfinite(x).all()) for x in tensors)
+                 failed=(int(self.integrity_counts.sum())>0 or int(self.unknown_counts.sum())>0
+                     or self.nonfinite or not self.coverage_exact or not self.truncation_coverage_exact
+-                    or env._integrated_contact.tick-self.initial_tick!=self.steps*round(.01/env.physics_dt)
++                    or env._integrated_contact.tick-self.initial_tick!=self.steps*int(env.cfg.decimation)
+                     or not math.isfinite(float(getattr(env,'_mod4_max_closure',float('nan'))))
+                     or float(getattr(env,'_mod4_max_mimic',float('inf')))>.01)
+                 if failed:
+@@ -92,7 +92,7 @@
+             control_dt_s=float(self.env.step_dt),control_steps=self.steps,
+             actual_task_reset_events=int(self.counts.sum()),
+             closure_episode_reset_events=int(self.reason_counts['closure'].sum()),
+-            closure_2mm_still_resets_only_this_environment=True,
++            closure_10mm_resets_only_this_environment=True,
+             closure_peak_alone_does_not_stop_global_learning=True,
+             legacy_single_peak_2mm_pass=float(getattr(self.env,'_mod4_max_closure',float('inf')))<=.002,
+             post_reset_values_not_relabelled_as_pre_reset_failure=True,failed_environments=int((self.counts>0).sum()),
+@@ -100,7 +100,7 @@
+             integrity_task_reset_events=int(self.integrity_counts.sum()),
+             unknown_task_reset_events=int(self.unknown_counts.sum()),
+             termination_events_by_reason={n:int(v.sum()) for n,v in self.reason_counts.items()},
+-            ordinary_task_thresholds_unchanged=True,ordinary_resets_continue_learning=True,
++            ordinary_task_thresholds_except_new10mm_closure_unchanged=True,ordinary_resets_continue_learning=True,
+             termination_reason_coverage_exact=self.coverage_exact and self.truncation_coverage_exact,nonfinite_observed=self.nonfinite,
+             explicit_truncation_term_timeout_flags=self.term_timeout_flags,
+             actual_truncation_reset_events=int(self.truncated_counts.sum()),
+@@ -108,7 +108,7 @@
+             truncation_reason_coverage_exact=self.truncation_coverage_exact,
+             original_task_reset_reward_and_PPO_timeout_bootstrap_unchanged=True,
+             actual_physics_callbacks=self.env._integrated_contact.tick-self.initial_tick,
+-            expected_physics_callbacks=self.steps*round(.01/self.env.physics_dt),
++            expected_physics_callbacks=self.steps*int(self.env.cfg.decimation),
+             max_closure_error_m=float(getattr(self.env,'_mod4_max_closure',float('nan'))),
+             max_mimic_error_rad=float(getattr(self.env,'_mod4_max_mimic',float('nan'))),
+             stop_reason=self.reason,request_own_save_only_no_force_kill=True,
+--- original/runtime/isaac/mod4/sensor_resume_contract.py
++++ derived/runtime/isaac/mod4/sensor_resume_contract.py
+@@ -1,4 +1,5 @@
+ """Resume stochastic streams, then deliberately start a new physical episode."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import torch,json,os,time,hashlib
+ from pathlib import Path
+ from sensor_mild_math import SensorCorruption,CHANNELS
+@@ -21,7 +22,7 @@
+ 
+ def resume_sensor_new_episode(runner,env,path,log_dir):
+  from sensor_a0_runtime import state
+- ck=torch.load(path,map_location='cpu',weights_only=False);s=state(env)
++ ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/sensor_resume_contract.py:24');s=state(env)
+  # RSL's existing loader restores actor/critic/optimizer/std/iteration first.
+  for key,obj in [('actor_state_dict',runner.alg.actor),('critic_state_dict',runner.alg.critic)]:
+   actual=obj.state_dict();assert set(actual)==set(ck[key])
+@@ -50,7 +51,7 @@
+  robot=env.scene['robot'];qerr=float((robot.data.joint_pos-env._rescue_reset_q).abs().max())
+  assert qerr==0 and bool(torch.isfinite(robot.data.joint_pos).all())
+  params=env._mild_dr.audit();assert params['actual_parameters_pass']
+- p=Path(path);receipt=dict(epoch=time.time(),pid=os.getpid(),source_path=str(p),source_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),
++ p=Path(path);receipt=dict(epoch=time.time(),pid=os.getpid(),source_path=str(p),source_sha256=cached_H(p,purpose='runtime/isaac/mod4/sensor_resume_contract.py:source_identity:53'),
+   actor_critic_std_exact=True,optimizer_loaded_original_path=True,stored_iteration=ck['iter'],sensor_streams_restored=True,
+   command_named_streams=cmd,physical_named_streams=physical,global_CPU_CUDA_streams_restored=True,
+   new_physical_episode=True,all_episode_counters_incremented_once=True,history_cache_new_episode=True,
+--- original/runtime/isaac/mod4/feedback_delay_checkpoint.py
++++ derived/runtime/isaac/mod4/feedback_delay_checkpoint.py
+@@ -1,4 +1,5 @@
+ """D3 queue/RNG persistence; deliberately reset once into a new physical episode."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import json,os,time,torch
+ from feedback_delay_mild import WIDTHS
+@@ -36,7 +37,7 @@
+     original=runner.save
+     def save(path,*args,**kwargs):
+         original(path,*args,**kwargs)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);d=delay_state(env)
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/feedback_delay_checkpoint.py:39');d=delay_state(env)
+         saved=d.state_dict();validate_delay_state(d,saved)
+         ck['feedback_delay_state']=saved
+         ck['feedback_delay_recipe']=env.feedback_delay_recipe()
+@@ -47,7 +48,7 @@
+ def resume_delay_new_episode(runner,env,path,log_dir):
+     from feedback_delay_runtime import delay_state
+     from sensor_resume_contract import resume_sensor_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);d=delay_state(env)
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/feedback_delay_checkpoint.py:50');d=delay_state(env)
+     has_delay='feedback_delay_state' in ck
+     if has_delay:
+         assert ck['feedback_delay_recipe']==env.feedback_delay_recipe()
+--- original/runtime/isaac/mod4/action_delay_checkpoint.py
++++ derived/runtime/isaac/mod4/action_delay_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Complete D4 queues/RNG restore before an explicit fresh physical episode."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import json,os,time,torch
+ from pathlib import Path
+ from feedback_delay_checkpoint import exact
+@@ -46,13 +47,13 @@
+     install_delay_save_contract(runner,env);original=runner.save
+     def save(path,*a,**kw):
+         original(path,*a,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False)
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/action_delay_checkpoint.py:49')
+         torch.save(append_action_state(ck,env),path)
+     runner.save=save
+ 
+ def resume_action_new_episode(runner,env,path,log_dir):
+     from feedback_delay_checkpoint import resume_delay_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False)
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/action_delay_checkpoint.py:55')
+     has,episodes=restore_action_before_new_episode(env,ck)
+     row=resume_delay_new_episode(runner,env,path,log_dir)
+     verify_action_new_episode(env,episodes)
+--- original/runtime/isaac/mod4/spring_pressure_checkpoint.py
++++ derived/runtime/isaac/mod4/spring_pressure_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Restore all D5 streams first, then one explicit new physical episode."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import torch,json,time,os
+ 
+@@ -17,7 +18,7 @@
+ 
+ def resume_spring_new_episode(runner,env,path,log_dir):
+     from action_delay_checkpoint import resume_action_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);adapter=env._spring_pressure
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/spring_pressure_checkpoint.py:20');adapter=env._spring_pressure
+     has='spring_pressure_state' in ck
+     if has:
+         assert ck['spring_pressure_recipe']==env.spring_pressure_recipe()
+@@ -29,7 +30,7 @@
+     # Actual CUDA state disk roundtrip is independently verified at the live
+     # scene. This is state evidence, never a pretrained policy selection.
+     saved=adapter.state_dict();tmp=Path(log_dir)/'SPRING_STATE_STARTUP_ROUNDTRIP.pt'
+-    torch.save(saved,tmp);adapter.load_state_dict(torch.load(tmp,map_location='cpu',weights_only=False))
++    torch.save(saved,tmp);adapter.load_state_dict(cached_load(tmp,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/spring_pressure_checkpoint.py:32'))
+     assert exact(adapter.state_dict(),saved)
+     episodes=adapter.component.episode.clone()
+     row=resume_action_new_episode(runner,env,path,log_dir)
+@@ -48,7 +49,7 @@
+     install_action_save_contract(runner,env);original=runner.save
+     def save(path,*a,**kw):
+         original(path,*a,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);state=env._spring_pressure.state_dict()
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/spring_pressure_checkpoint.py:51');state=env._spring_pressure.state_dict()
+         validate_saved_pressure(state,env.num_envs)
+         ck['spring_pressure_state']=state;ck['spring_pressure_recipe']=env.spring_pressure_recipe()
+         ck['spring_pressure_resume_contract']='Restore factor/episode/twoCUDA RNG and all D1-D4/optimizer/global-named state first, then new physical episode; not PhysX exactresume.'
+--- original/runtime/isaac/mod4/gas_damping_checkpoint.py
++++ derived/runtime/isaac/mod4/gas_damping_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Full D6 state before one fresh physics episode; keep complete D1-D5 contract."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import os,time,json,torch
+ from gas_damping_factor import PROFILE
+@@ -18,7 +19,7 @@
+     install_spring_save_contract(runner,env);original=runner.save
+     def save(path,*args,**kw):
+         original(path,*args,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);state=env._gas_damping.state_dict()
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/gas_damping_checkpoint.py:21');state=env._gas_damping.state_dict()
+         validate_saved_damping(state,env.num_envs)
+         ck['gas_damping_state']=state;ck['gas_damping_recipe']=env.gas_damping_recipe()
+         ck['gas_damping_resume_contract']='Restore independent factor/episode/two CUDA RNG plus complete D1-D5/optimizer/global/named streams, then fresh physical episode. Not PhysX exactresume.'
+@@ -27,7 +28,7 @@
+ 
+ def resume_damping_new_episode(runner,env,path,log_dir):
+     from spring_pressure_checkpoint import resume_spring_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);adapter=env._gas_damping
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/gas_damping_checkpoint.py:30');adapter=env._gas_damping
+     has='gas_damping_state' in ck
+     if has:
+         assert ck['gas_damping_recipe']==env.gas_damping_recipe()
+@@ -38,7 +39,7 @@
+         validate_saved_pressure(ck['spring_pressure_state'],env.num_envs)
+         assert ck['spring_pressure_recipe']['profile']=='gas_stiffness_independent_episode_090_110_v1'
+     saved=adapter.state_dict();tmp=Path(log_dir)/'GAS_DAMPING_STATE_STARTUP_ROUNDTRIP.pt'
+-    torch.save(saved,tmp);adapter.load_state_dict(torch.load(tmp,map_location='cpu',weights_only=False))
++    torch.save(saved,tmp);adapter.load_state_dict(cached_load(tmp,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/gas_damping_checkpoint.py:41'))
+     assert exact(adapter.state_dict(),saved)
+     episodes=adapter.component.episode.clone()
+     row=resume_spring_new_episode(runner,env,path,log_dir)
+--- original/runtime/isaac/mod4/chassis_pd_checkpoint.py
++++ derived/runtime/isaac/mod4/chassis_pd_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Complete D7 state on top of actual D6 saved contract; one fresh episode."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import os,json,time,torch
+ from chassis_com_component import PROFILE as COM_PROFILE
+@@ -24,18 +25,18 @@
+     from gas_damping_checkpoint import install_damping_save_contract
+     install_damping_save_contract(runner,env);original=runner.save
+     def save(path,*args,**kw):
+-        original(path,*args,**kw);ck=torch.load(path,map_location='cpu',weights_only=False);state=current_state(env);validate_saved_chassis_pd(state,env.num_envs)
++        original(path,*args,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/chassis_pd_checkpoint.py:27');state=current_state(env);validate_saved_chassis_pd(state,env.num_envs)
+         ck['chassis_PD_state']=state;ck['chassis_PD_recipe']=env.chassis_pd_recipe();ck['chassis_PD_resume_contract']='Restore full D1-D6 and COM/PD private CUDA streams, then one fresh physics episode; not PhysX exactresume.';torch.save(ck,path)
+     runner.save=save
+ def resume_chassis_pd_new_episode(runner,env,path,log_dir):
+     from gas_damping_checkpoint import resume_damping_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);has='chassis_PD_state' in ck
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/chassis_pd_checkpoint.py:32');has='chassis_PD_state' in ck
+     if has:
+         validate_saved_chassis_pd(ck['chassis_PD_state'],env.num_envs);assert ck['chassis_PD_recipe']==env.chassis_pd_recipe()
+         env._chassis_com.load_state_dict(ck['chassis_PD_state']['COM']);env._explicit_pd.load_state_dict(ck['chassis_PD_state']['PD']);assert exact(current_state(env),ck['chassis_PD_state'])
+     else:
+         assert os.environ.get('RM_CHASSIS_PD_INITIAL_ADMISSION')=='D6_to_D7';validate_saved_damping(ck['gas_damping_state'],env.num_envs)
+-    saved=current_state(env);tmp=Path(log_dir)/'CHASSIS_PD_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(saved,tmp);loaded=torch.load(tmp,map_location='cpu',weights_only=False)
++    saved=current_state(env);tmp=Path(log_dir)/'CHASSIS_PD_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(saved,tmp);loaded=cached_load(tmp,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/chassis_pd_checkpoint.py:38')
+     env._chassis_com.load_state_dict(loaded['COM']);env._explicit_pd.load_state_dict(loaded['PD']);assert exact(current_state(env),saved)
+     ce=env._chassis_com.component.episode.clone();pe=env._explicit_pd.component.episode.clone()
+     row=resume_damping_new_episode(runner,env,path,log_dir)
+--- original/runtime/isaac/mod4/sensor_a0_runtime.py
++++ derived/runtime/isaac/mod4/sensor_a0_runtime.py
+@@ -1,4 +1,5 @@
+ """Approved S2 D1+D2 only, on the frozen A0/1ms E0 task."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import os,torch
+ from isaaclab.managers import EventTermCfg,SceneEntityCfg
+ from mod4_env import Mod4Env
+@@ -61,7 +62,7 @@
+  """Called before the existing atomic bounded-save wrapper publishes its receipt."""
+  original=runner.save
+  def save(path,*a,**kw):
+-  original(path,*a,**kw);ck=torch.load(path,map_location='cpu',weights_only=False)
++  original(path,*a,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/sensor_a0_runtime.py:64')
+   s=state(env);ck['sensor_DR_state']=s.state_dict();ck['sensor_recipe']=s.receipt()
+   ck['sensor_resume_contract']='Full feedback RNG/cache preserved; new physical episode clears caches and samples its own episode bias. No PhysX exact resume claim.'
+   ck['sensor_global_rng_state']=dict(cpu=torch.random.get_rng_state(),cuda=torch.cuda.get_rng_state_all())
+--- original/runtime/isaac/mod4/curb20_entry_full_checkpoint.py
++++ derived/runtime/isaac/mod4/curb20_entry_full_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Independent CURB fullsave/fullresume and explicit G3-to-CURB transition."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import hashlib,json,os,time,torch
+ from curb20_entry_current_state import current_state,identity,validate,PROFILE
+@@ -16,7 +17,7 @@
+ def install_e1_save_contract(runner,env):
+  install_chassis_pd_save_contract(runner,env);original=runner.save
+  def save(path,*a,**k):
+-  original(path,*a,**k);ck=torch.load(path,map_location='cpu',weights_only=False)
++  original(path,*a,**k);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_entry_full_checkpoint.py:19')
+   ck['E1_terrain_state']=current_state(env)
+   ck['E1_terrain_resume_contract']='Independent CURB same geometry/command fullrestore, then one new physical episode; explicit initial G3-to-CURB transition, not PhysX exactresume.'
+   ck['E1_retained_flat_command_state']=env.command_manager.get_term('twist').state_dict_retention()
+@@ -30,7 +31,7 @@
+  runner.save=save
+ 
+ def resume_e1_new_episode(runner,env,path,log_dir):
+- path=Path(path);ck=torch.load(path,map_location='cpu',weights_only=False);h=hashlib.sha256(path.read_bytes()).hexdigest()
++ path=Path(path);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_entry_full_checkpoint.py:33');h=cached_H(path,purpose='runtime/isaac/mod4/curb20_entry_full_checkpoint.py:source_identity:33')
+  state=ck['E1_terrain_state'];term=env.command_manager.get_term('twist');cmd=ck['E1_retained_flat_command_state']
+  command_validate(cmd,env.num_envs);same_scope=state['profile']==PROFILE
+  if same_scope:
+@@ -47,7 +48,7 @@
+    getattr(env,a).copy_(state[k].to(env.device));assert torch.equal(getattr(env,a).cpu(),state[k].cpu())
+   migration=restore_source_then_bind_CURB(term,cmd,cmd['assignment_sha256'])
+  before=current_state(env);ct=term.state_dict_retention();tmp=Path(log_dir)/'CURB_FULL_STATE_ACTUAL_CUDA_ROUNDTRIP.pt'
+- torch.save(dict(terrain=before,command=ct),tmp);loaded=torch.load(tmp,map_location='cpu',weights_only=False)
++ torch.save(dict(terrain=before,command=ct),tmp);loaded=cached_load(tmp,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_entry_full_checkpoint.py:50')
+  restore(env,loaded['terrain']);term.load_state_retention(loaded['command'])
+  assert same(current_state(env),before) and same(term.state_dict_retention(),ct)
+  episode=state['episode'].to(env.device).clone()
+--- original/runtime/isaac/mod4/curb20_direction_full_checkpoint.py
++++ derived/runtime/isaac/mod4/curb20_direction_full_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Exact legacy source restoration plus separate episode-direction state."""
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import torch,json,hashlib,os,time
+ import curb20_entry_full_checkpoint as old
+@@ -8,14 +9,14 @@
+ def install_e1_save_contract(runner,env):
+  old.install_e1_save_contract(runner,env);original=runner.save
+  def save(path,*a,**k):
+-  original(path,*a,**k);ck=torch.load(path,map_location='cpu',weights_only=False)
++  original(path,*a,**k);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_direction_full_checkpoint.py:11')
+   term=env.command_manager.get_term('twist');term.audit_direction();ck[KEY]=term.state_dict_direction()
+   ck['E1_CURB_entry_direction_profile']=PROFILE;torch.save(ck,path)
+   Path(path).parent.joinpath('CURB_DIRECTION_ACTUAL.json').write_text(json.dumps(term.audit_direction(),indent=2))
+  runner.save=save
+ 
+ def resume_e1_new_episode(runner,env,path,log_dir):
+- ck=torch.load(path,map_location='cpu',weights_only=False);h=hashlib.sha256(Path(path).read_bytes()).hexdigest()
++ ck=cached_load(path,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_direction_full_checkpoint.py:18');h=cached_H(Path(path),purpose='runtime/isaac/mod4/curb20_direction_full_checkpoint.py:source_identity:18')
+  term=env.command_manager.get_term('twist');new=KEY not in ck
+  if new:
+   assert h==old.SOURCE_SHA
+@@ -23,7 +24,7 @@
+  else:
+   validate(ck[KEY],env.num_envs);term.load_state_direction(ck[KEY]);assert same(term.state_dict_direction(),ck[KEY]);before=term.state_dict_direction()
+  p=Path(log_dir)/'CURB_DIRECTION_ACTUAL_CUDA_ROUNDTRIP.pt';torch.save(before,p)
+- loaded=torch.load(p,map_location='cpu',weights_only=False);term.load_state_direction(loaded)
++ loaded=cached_load(p,map_location='cpu',weights_only=False,purpose='runtime/isaac/mod4/curb20_direction_full_checkpoint.py:26');term.load_state_direction(loaded)
+  assert same(term.state_dict_direction(),before)
+  # Original full optimizer/D0-D7/global/named/private RNG and terrain loader remain exact.
+  proof=old.resume_e1_new_episode(runner,env,path,log_dir)
+--- original/runtime/isaac/mod4/train_curb20_direction_resume_ppo.py
++++ derived/runtime/isaac/mod4/train_curb20_direction_resume_ppo.py
+@@ -12,6 +12,7 @@
+   .venv-isaaclab\Scripts\python.exe isaac\mod4\train_mod4_ppo.py --num_envs 4096 --max_iterations 3000 --run_name mod4_isaac_v1
+ """
+ from __future__ import annotations
++from e1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ 
+ import argparse
+ import os
+@@ -167,8 +168,8 @@
+         algorithm=RslRlPpoAlgorithmCfg(
+             value_loss_coef=RM_VALUE_LOSS_COEF, use_clipped_value_loss=True, clip_param=0.2,
+             entropy_coef=RM_ENTROPY_COEF, num_learning_epochs=5, num_mini_batches=4,
+-            learning_rate=args.learning_rate, schedule=RM_SCHEDULE, gamma=0.99,
+-            lam=0.95, desired_kl=0.01, max_grad_norm=1.0),
++            learning_rate=args.learning_rate, schedule=RM_SCHEDULE, gamma=0.9801,
++            lam=0.9025, desired_kl=0.01, max_grad_norm=1.0),
+     )
+ 
+ 
+@@ -243,7 +244,8 @@
+     runner = OnPolicyRunner(vec_env, cfg.to_dict(), log_dir=log_dir, device=cfg.device)
+     if args.init_checkpoint:
+         warm = _warm_start_with_reset_std(args.init_checkpoint, RM_INIT_STD)
+-        runner.load(warm)
++        with runner_source_load_scope():
++            runner.load(warm)
+         print("[mod4-isaac] warm start from " + args.init_checkpoint
+               + ("" if warm == args.init_checkpoint else " (std reset copy: %s)" % warm),
+               flush=True)
+@@ -255,6 +257,7 @@
+     # hash and software versions -- so "warmstart_base11.pt" style names can never drift from
+     # their real provenance again.
+     def _sha256(path):
++        if cached_source_owns(path):return cached_H(path,purpose="E1.run_manifest.original_selected_source_SHA")
+         import hashlib
+         try:
+             h = hashlib.sha256()
+--- original/runtime/isaac/mod4/scut_flat_rescue.py
++++ derived/runtime/isaac/mod4/scut_flat_rescue.py
+@@ -93,7 +93,9 @@
+         source=Path(__file__).with_name('reset_bank.json')
+         raw=json.loads(source.read_text(encoding='utf8'))
+         actual=hashlib.sha256((task.MOD4_ISAAC/'import_contract.json').read_bytes()).hexdigest()
+-        if actual!=raw['contract_sha256']:raise RuntimeError('reset-bank contract hash mismatch')
++        if actual!=raw['contract_sha256']:
++            from mod4v1_e1_reset_bank_compat import require_mod4v1_e1_reset_bank
++            env._mod4v1_e1_flat_bank_compatibility=require_mod4v1_e1_reset_bank(source,task.MOD4_ISAAC/'import_contract.json',raw,actual_contract_SHA=actual)
+         poses=[p for p in raw['poses'] if .24<=p['root_height_m']<=.272]
+         if not poses:raise RuntimeError('empty feasible reset library')
+         q=torch.tensor([[p['joint_pos'].get(n,0.) for n in robot.joint_names] for p in poses],device=env.device,dtype=torch.float32)

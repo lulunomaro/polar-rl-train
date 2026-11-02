@@ -1,0 +1,59 @@
+"""Purestdlibsyntheticmetadata only. Neveropenpendingactualpointer orpublishbest."""
+from pathlib import Path
+import ast,copy,hashlib,json
+import assess_pair3_retention_closed_metadata_v1 as m
+B=Path(__file__).resolve().parent;tests=[]
+def check(n,v):assert v,n;tests.append(dict(name=n,passed=True))
+def denied(fn):
+ try:fn()
+ except(m.EvidenceError,KeyError,TypeError):return True
+ return False
+# Actualsourceprotocolshape, syntheticvaluesnotactualfuturePPO/results.
+def recovery():
+ return dict(original_recovery_recipe_rows=[dict(recipe=i,initial_envs=7 if i<2 else 6,original_request=i!=12,first_episode_original_stable_credit=0,first_episode_physical_terminated=0)for i in range(13)],stable50_public100Hz_age_equals_seconds=.5,stable50_equals_policy_controls=25,request300_age_seconds=3.,no_reset_stitched_credit=True)
+before=recovery();zero=m.recovery_scope(before,before);check('12rescuerecipes74plusnormal6not13rescues',zero['initial_rescue_environments']==74 and zero['normal_environments_excluded']==6 and zero['rescue_recipe_count']==12 and zero['total_recipe_rows']==13)
+check('both0creditNoImprovementMustMother',zero['scope_complete']and not zero['metric_allows_candidate']and zero['both_zero_no_improvement_evidence'])
+new=recovery();new['original_recovery_recipe_rows'][0]['first_episode_original_stable_credit']=1;positive=m.recovery_scope(new,before);check('trueOriginalFirstepisodeCreditCanBeEligible',positive['metric_allows_candidate']and positive['first_episode_credited']==1)
+bad=recovery();bad['original_recovery_recipe_rows'][0]['delta']=100.;check('genericDeltaNeverCredit',not m.recovery_scope(bad,before)['metric_allows_candidate'])
+bad=recovery();bad['original_recovery_recipe_rows'][0]['initial_envs']=6;bad['original_recovery_recipe_rows'][12]['initial_envs']=7;g=m.recovery_scope(bad,before);check('denominatorChangeIsScopeGapNotFakePass',not g['scope_complete']and not g['metric_allows_candidate'])
+old=recovery();old['original_recovery_recipe_rows'][1]['first_episode_original_stable_credit']=1;new=recovery();new['original_recovery_recipe_rows'][0]['first_episode_original_stable_credit']=2;check('aggregateGainCannotHideSameRecipeRegression',not m.recovery_scope(new,old)['metric_allows_candidate'])
+for key,value in [('stable50_public100Hz_age_equals_seconds',.25),('request300_age_seconds',6.),('no_reset_stitched_credit',False)]:
+ bad=recovery();bad[key]=value;check('wrongOriginalScope_'+key,not m.recovery_scope(bad,before)['scope_complete'])
+bad=recovery();bad.pop('original_recovery_recipe_rows');check('missingRecipeFieldsConservativeScopeGap',not m.recovery_scope(bad,before)['scope_complete'])
+# Constructfullsyntheticclosedinputsforassessor, nottraining/SDKfixtures.
+terms=dict(time_out=0,bad_orientation=0,base_contact=0,closure=0,mimic=0,low_base=0);groups=dict(ascending=dict(environments=27,complete_envs=25,contact_confirmed_envs=25),descending=dict(environments=27,complete_envs=27,contact_confirmed_envs=27),stand=dict(environments=26,complete_envs=0,contact_confirmed_envs=0));std=[8.,.05,.06,.07,.08,.09]
+baseline=dict(rows=[dict(role='E3',controls=160,seconds=3.2,termination_events=copy.deepcopy(terms),skill=recovery(),source_cache=dict(source_path='MOCK_E3_MOTHER_METADATA',source_SHA='1'*64)),dict(role='SLOPE135',controls=750,seconds=15.,termination_events=copy.deepcopy(terms),original_endpoint_groups=copy.deepcopy(groups),stand_no_ordinary_failure=dict(total=26,no_failure=26),source_cache=dict(source_SHA='2'*64))]);training=dict(pair=3,original_actual_cost_settled=True,original_leases_released=True,parent_errors=[],H1_excluded=True,rows=[]);tasks={};rows=[]
+for i,role in enumerate(m.ROLES):
+ pin=dict(role=role,returncode=0,all_own_child_waited=True,checkpoint='MOCK_CANDIDATE_METADATA_'+role,SHA=str(i+3)*64,bytes=123456,actual_saved_iteration=123+i,actual_Adam17_unique_from_producer=[1000+i],actual_saved_LR=.0001,actual_STD6_from_producer=None if role=='E3'else std);training['rows'].append(pin);controls=160 if role=='E3'else 750
+ task=dict(role=role,group_id='MOCK_PAIR3',GPU_UUID='MOCK_GPU',kind=m.KIND,purpose=m.KIND,num_envs=80,seed=20260928,eval_members=list(m.ROLES),asset_SHA=m.USD,contract_SHA=m.CONTRACT,policy_hz=50,feedback_hz=100,physics_dt=.0025,TGS=[32,4],closure_m=.01,mimic_rad=.01,gas_N=400,stiffness_N_m=2000,damping_Ns_m=3.,fresh_fullDR_cohort=True,saved20k_DR_physically_applied=False,state_projection_or_slicing=False,whole20k_savedrestore_claim=False,source_path=pin['checkpoint'],source_SHA=pin['SHA'],source_bytes=pin['bytes'],source_iteration=pin['actual_saved_iteration'],source_Adam17=pin['actual_Adam17_unique_from_producer'][0],source_LR=pin['actual_saved_LR'],controls=controls);tasks[role]=task
+ f=dict(role=role,group_id='MOCK_PAIR3',GPU_UUID='MOCK_GPU',passed_execution=True,controls=controls,seconds=controls*.02,optimizer_updates=0)
+ if role=='E3':
+  f.update(num_envs=80,physics_callbacks=1280,feedback_samples=320,first_eval_epoch=101.,last_eval_epoch=120.,termination_events_by_reason=copy.deepcopy(terms),D0_D7_fresh_audit_before=dict(actual_parameters_pass=True),D0_D7_fresh_audit_after=dict(actual_parameters_pass=True),source_cache=dict(source_path=pin['checkpoint'],source_SHA=pin['SHA'],physical_byte_opens=1,SHA_calculations=1,decodes=1,source_iteration=pin['actual_saved_iteration'],source_Adam17=pin['actual_Adam17_unique_from_producer'][0],source_LR=pin['actual_saved_LR'],all_original_root_and_nested_cached=True,wholecachedidentity_passed=True,live_actor_STD_strict=True,source20k_DR_history_applied=False,source20k_state_sliced=False),skill=recovery())
+ else:
+  rr=[dict(group=k,first_ordinary_failure_control=None)for k,g in groups.items()for _ in range(g['environments'])]
+  f.update(actor_calls=750,group_barrier=dict(barrier_start=dict(group_id='MOCK_PAIR3',GPU_UUID='MOCK_GPU',all_members_ready=True,members=list(m.ROLES))),physics=6000,feedback=1500,wall_start_epoch=102.,wall_end_epoch=140.,termination_counts=copy.deepcopy(terms),source_cache=dict(source_SHA=pin['SHA'],source_bytes=pin['bytes'],physical_byte_opens=1,SHA_calls=1,decodes=1,metadata=dict(iteration=pin['actual_saved_iteration'],Adam17=[pin['actual_Adam17_unique_from_producer'][0]]*17,LR=pin['actual_saved_LR'],STD6=std),entire_original_root_and_nested_identity_preserved=True,live_actor_STD_loaded=True,saved20k_DR_physically_applied=False,saved20k_history_sliced=False),fresh_fullDR_before=dict(fresh_N80_D0_D7_enabled=True,actual_parameters=dict(actual_parameters_pass=True)),fresh_fullDR_after=dict(fresh_N80_D0_D7_enabled=True,actual_parameters=dict(actual_parameters_pass=True)),metrics=dict(groups=copy.deepcopy(groups),rows=rr))
+ rows.append(dict(role=role,pid=900+i,returncode=0,actual_waited=True,passed_execution=True,error=None,ready=True,started=role=='E3',pre_close=True,data=f))
+closed=dict(pair=3,roles=list(m.ROLES),parent_error=None,parent_exit=dict(errors=[],all_own_children_waited=True,original_single_GPU_private_EX_released=True,original_global_finite_EX_released=True,child_waits=[dict(pid=900+i,actual_waited=True,returncode=0)for i in range(2)]),final=dict(all_pair_actual_execution_complete=True,rows=rows,common_start_epoch=100.,group_id='MOCK_PAIR3',GPU_UUID='MOCK_GPU'));contracts={'SLOPE135':dict(source=dict(path='MOCK_OWN_S135_MOTHER',SHA='2'*64,bytes=111111))};errors={r:[]for r in m.ROLES}
+def run(c=closed,t=tasks,e=errors):return m.assess_pair3(c,baseline,training,contracts,t,e)
+a=run();check('zeroZeroE3MotherStillRealAssessmentComplete',a['retention_assessment_complete']and a['rows'][0]['selection']=='FROZEN_MOTHER'and a['H1_excluded'])
+check('S135Own25baselineNotCurb22',a['rows'][1]['selection']=='CANDIDATE'and a['rows'][1]['baseline_endpoint_groups']['ascending']['complete_envs']==25 and a['rows'][1]['frozen_mother_preserved']['path']=='MOCK_OWN_S135_MOTHER')
+check('S135NoTopNumenvsOrStandCrossingRequired','num_envs'not in rows[1]['data']and a['rows'][1]['stand_crossing_required']is False)
+bad=copy.deepcopy(closed);bad['final']['rows'][0]['data']['skill']['original_recovery_recipe_rows'][0]['first_episode_original_stable_credit']=1;check('positiveSameRecipeCreditWithNoFailureIncreaseCanCandidate',run(c=bad)['rows'][0]['selection']=='CANDIDATE')
+bad['final']['rows'][0]['data']['termination_events_by_reason']['closure']=1;check('creditDoesNotExcuseOrdinaryFailureIncrease',run(c=bad)['rows'][0]['selection']=='FROZEN_MOTHER')
+bad=copy.deepcopy(closed);bad['final']['rows'][0]['data']['skill'].pop('original_recovery_recipe_rows');out=run(c=bad);check('scopeGapMotherStillNextPairAssessmentComplete',out['retention_assessment_complete']and out['rows'][0]['selection']=='FROZEN_MOTHER'and out['rows'][0]['scopeGap'])
+bad=copy.deepcopy(closed);bad['final']['rows'][1]['data']['metrics']['groups']['ascending']['contact_confirmed_envs']=24;check('S13524FailsOwn25EvenAboveCurb22',run(c=bad)['rows'][1]['selection']=='FROZEN_MOTHER')
+bad=copy.deepcopy(closed);next(x for x in bad['final']['rows'][1]['data']['metrics']['rows']if x['group']=='stand')['first_ordinary_failure_control']=9;check('S135StandFailureRegressionMother',run(c=bad)['rows'][1]['selection']=='FROZEN_MOTHER')
+for name,mutation in [('pending',lambda c:c.update(parent_exit=None)),('RC1',lambda c:c['final']['rows'][0].update(returncode=1)),('notAllWait',lambda c:c['parent_exit'].update(all_own_children_waited=False)),('EXnotReleased',lambda c:c['parent_exit'].update(original_global_finite_EX_released=False)),('sourceSHAmismatch',lambda c:c['final']['rows'][0]['data']['source_cache'].update(source_SHA='WRONG')),('saved20kApplied',lambda c:c['final']['rows'][0]['data']['source_cache'].update(source20k_DR_history_applied=True))]:
+ bad=copy.deepcopy(closed);mutation(bad);check('invalidEvidenceNotFakeAssessment_'+name,denied(lambda:run(c=bad)))
+task=copy.deepcopy(tasks);task['E3']['seed']=42;check('wrongSeedFailsEvidence',denied(lambda:run(t=task)))
+error=copy.deepcopy(errors);error['SLOPE135']=['CUDA error OOM'];check('capacityFailureNotEligible',denied(lambda:run(e=error)))
+check('preserveMotherAndCandidateAllOutcomes',all(r['candidate_preserved']and r['frozen_mother_preserved']and r['do_not_overwrite_mother_or_failed_candidate']for r in a['rows']))
+check('pair4DispatcherSchemaNoFakePASS',a['retention_assessment_complete']and a['H1_excluded']and {r['role']for r in a['rows']}=={'E3','SLOPE135'}and all(r['selection']in('CANDIDATE','FROZEN_MOTHER')and r['do_not_overwrite_mother_or_failed_candidate']for r in a['rows']))
+for p in B.glob('*.py'):compile(ast.parse(p.read_bytes()),str(p),'exec')
+proof=dict(kind='SOURCE_ONLY_STDLIB_SYNTHETIC_RECOVERY_SCOPE_AND_PAIR3_ASSESSMENT_TESTS_NOT_ACTUAL_BEST',tests=len(tests),passed=True,rows=tests,future_pair3_pointer_or_model_or_RAW_SDK_SSH_C_GO_Git_reads=0,actual_best_selection_published=False)
+p=B/'PAIR3_ASSESSOR_STDLIB_SOURCE_PROOF_V1.json'
+with p.open('x',encoding='utf-8')as f:json.dump(proof,f,indent=2)
+source=B/'assess_pair3_retention_closed_metadata_v1.py';raw=source.read_bytes();index=dict(kind='SOURCE_READY_ONLY_PARENT_EXECUTES_AFTER_REAL_PAIR3_CLOSE',processor=dict(path=str(source),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()),proof=dict(path=str(p),SHA=hashlib.sha256(p.read_bytes()).hexdigest()),command='python -B "'+str(source)+'"',expected_output=str(m.D/'reports/PAIR3_FROZEN_RETENTION_BEST_SELECTION_V1.json'),actual_processor_executed=False,best_published=False,parent_archive_pending=True,files=[dict(path=str(x),bytes=len(x.read_bytes()),SHA=hashlib.sha256(x.read_bytes()).hexdigest())for x in sorted(B.glob('*'))if x.is_file()])
+q=B/'FINAL_PAIR3_METADATA_ASSESSOR_SOURCE_INDEX_V1.json'
+with q.open('x',encoding='utf-8')as f:json.dump(index,f,indent=2)
+print(json.dumps(dict(index=str(q),index_SHA=hashlib.sha256(q.read_bytes()).hexdigest(),processor=index['processor'],tests=len(tests),actual_processor_executed=False),indent=2))

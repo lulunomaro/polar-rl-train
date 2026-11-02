@@ -1,0 +1,291 @@
+{
+  "kind": "STDLIB_AST_MOCK_ONLY_NOT_SDK_NOT_TRAINING",
+  "tests": [
+    {
+      "name": "AST_source_invariants",
+      "passed": true,
+      "detail": {
+        "parsed_files": [
+          "posttrain_fullstate_common_v1.py",
+          "build_source_handoff_v1.py",
+          "check_ast_mock_v1.py",
+          "construct_source_task_go_v1.py",
+          "worker_posttrain_e0_v1.py",
+          "worker_posttrain_e2_v1.py",
+          "worker_posttrain_e3_v1.py"
+        ],
+        "imports_are_stdlib_only": true,
+        "source_only": true,
+        "original_bounded_learn_called": true,
+        "no_manual_core_state_backfill": true,
+        "real_SDK_validation": false
+      }
+    },
+    {
+      "name": "unknown_and_cache_preservation",
+      "passed": true,
+      "detail": {
+        "source_unchanged": true,
+        "live_unchanged": true,
+        "live_caches_override_source": true,
+        "omitted_root_and_nested_fields_retained": true,
+        "list_tuple_atomic_not_sliced": true
+      }
+    },
+    {
+      "name": "finite_update_counter",
+      "passed": true,
+      "detail": {
+        "valid_caps": [
+          {
+            "max_additional_updates": 1,
+            "actual_new_PPO_updates": 1,
+            "actual_optimizer_step_calls": 20,
+            "actual_training_controls": 24,
+            "unfinished_rollout_controls": 0,
+            "original_20k_transitions": 480000,
+            "original_update_active_at_save": false
+          },
+          {
+            "max_additional_updates": 3,
+            "actual_new_PPO_updates": 3,
+            "actual_optimizer_step_calls": 60,
+            "actual_training_controls": 72,
+            "unfinished_rollout_controls": 0,
+            "original_20k_transitions": 1440000,
+            "original_update_active_at_save": false
+          },
+          {
+            "max_additional_updates": 20,
+            "actual_new_PPO_updates": 20,
+            "actual_optimizer_step_calls": 400,
+            "actual_training_controls": 480,
+            "unfinished_rollout_controls": 0,
+            "original_20k_transitions": 9600000,
+            "original_update_active_at_save": false
+          }
+        ],
+        "invalid_caps_and_bad_step_count_rejected": true,
+        "cap21_never_entered": true,
+        "zero_optimizer_calls_in_real_world": true
+      }
+    },
+    {
+      "name": "parent_source_join_negatives",
+      "passed": true,
+      "detail": {
+        "in_memory_mock_only": true,
+        "roles": [
+          "E0",
+          "E2",
+          "E3"
+        ],
+        "no_Task_GO_admission_or_Ready_file_created": true,
+        "N80_H1_unbounded_stale_source_or_ready_rejected": true
+      }
+    },
+    {
+      "name": "live_saved_contract_mock",
+      "passed": true,
+      "detail": {
+        "mock_roles": [
+          "E0",
+          "E2",
+          "E3"
+        ],
+        "stale_or_missing_live_core_caches_and_wrong_counters_rejected": true,
+        "no_real_tensor_model_SDK_or_optimizer": true
+      }
+    },
+    {
+      "name": "original_bounded_learn_virtual_mock",
+      "passed": true,
+      "detail": {
+        "cases": [
+          {
+            "role": "E0",
+            "max_cap": 20,
+            "mock_completed": 20,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          },
+          {
+            "role": "E0",
+            "max_cap": 20,
+            "mock_completed": 3,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": true
+          },
+          {
+            "role": "E0",
+            "max_cap": 1,
+            "mock_completed": 1,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          },
+          {
+            "role": "E2",
+            "max_cap": 20,
+            "mock_completed": 20,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          },
+          {
+            "role": "E2",
+            "max_cap": 20,
+            "mock_completed": 3,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": true
+          },
+          {
+            "role": "E2",
+            "max_cap": 1,
+            "mock_completed": 1,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          },
+          {
+            "role": "E3",
+            "max_cap": 20,
+            "mock_completed": 20,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          },
+          {
+            "role": "E3",
+            "max_cap": 20,
+            "mock_completed": 3,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": true
+          },
+          {
+            "role": "E3",
+            "max_cap": 1,
+            "mock_completed": 1,
+            "original_init_at_random_ep_len": true,
+            "original_install_called": true,
+            "original_deadline_SaveStop_observed": false
+          }
+        ],
+        "original_source_code_executed_only_against_virtual_mock": true,
+        "all_mock_files_in_RAM": true,
+        "actual_PPO_SDK_GPU_model_calls": 0
+      }
+    },
+    {
+      "name": "source_cache_full_root_mutable_alias_isolation",
+      "passed": true,
+      "detail": {
+        "source_evidence": [
+          {
+            "role": "E0",
+            "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E0_MOD4V1_SOURCE_FINAL\\runtime\\isaac\\mod4\\source_cache208_v3.py",
+            "source_bytes": 3873,
+            "source_SHA": "4047d6769fa2e10174e58addeeafeb533e71aed4b1fc018d76448b0f21c5952b",
+            "load_lines": [
+              34,
+              41
+            ],
+            "full_root_deepcopy_line": 39,
+            "runner_scope_lines": [
+              88,
+              100
+            ],
+            "mutable_17step_and_unknown_root_alias_isolated": true,
+            "physical_source_constructor_calls": 0,
+            "actual_Torch_step_alias_semantics_tested": false,
+            "mock_only": true
+          },
+          {
+            "role": "E2",
+            "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E2_MOD4V1_SOURCE_V1\\runtime\\isaac\\mod4\\source_cache208_v3.py",
+            "source_bytes": 3873,
+            "source_SHA": "4047d6769fa2e10174e58addeeafeb533e71aed4b1fc018d76448b0f21c5952b",
+            "load_lines": [
+              34,
+              41
+            ],
+            "full_root_deepcopy_line": 39,
+            "runner_scope_lines": [
+              88,
+              100
+            ],
+            "mutable_17step_and_unknown_root_alias_isolated": true,
+            "physical_source_constructor_calls": 0,
+            "actual_Torch_step_alias_semantics_tested": false,
+            "mock_only": true
+          },
+          {
+            "role": "E3",
+            "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E3_MOD4V1_SOURCE_FINAL\\runtime\\isaac\\mod4\\source_cache208_v3.py",
+            "source_bytes": 3873,
+            "source_SHA": "4047d6769fa2e10174e58addeeafeb533e71aed4b1fc018d76448b0f21c5952b",
+            "load_lines": [
+              34,
+              41
+            ],
+            "full_root_deepcopy_line": 39,
+            "runner_scope_lines": [
+              88,
+              100
+            ],
+            "mutable_17step_and_unknown_root_alias_isolated": true,
+            "physical_source_constructor_calls": 0,
+            "actual_Torch_step_alias_semantics_tested": false,
+            "mock_only": true
+          }
+        ],
+        "full_root_working_copy_not_truth_passed_to_runner": true,
+        "DR_helpers_use_same_truth_independent_copies": true,
+        "actual_PPO_Torch_SDK": false
+      }
+    },
+    {
+      "name": "complete_source_task_go_constructor",
+      "passed": true,
+      "detail": {
+        "rows": [
+          {
+            "role": "E0",
+            "all_required_fields_present": true,
+            "expired_invalid_PID_mock_not_executable": true
+          },
+          {
+            "role": "E2",
+            "all_required_fields_present": true,
+            "expired_invalid_PID_mock_not_executable": true
+          },
+          {
+            "role": "E3",
+            "all_required_fields_present": true,
+            "expired_invalid_PID_mock_not_executable": true
+          }
+        ],
+        "pure_stdlib_function": true,
+        "no_Task_GO_admission_file_written": true,
+        "no_budget_admission_or_GPU_check": true
+      }
+    }
+  ],
+  "all_passed": true,
+  "real_model_PT_opens": 0,
+  "real_model_PT_stats": 0,
+  "real_model_decodes": 0,
+  "real_torch_imports": 0,
+  "real_SDK_GPU_calls": 0,
+  "real_optimizer_steps": 0,
+  "canonical_reads_or_writes": 0,
+  "SSH_calls": 0,
+  "new_Task_GO_Ready_files": 0,
+  "agents_started": 0,
+  "original_sources_edited": false,
+  "no_actual_training_or_skill_pass_claim": true
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "TRANSPARENT_V5_SOURCE_AND_CPU_TEST_HISTORY",
+  "source_build_attempts": [
+    {"attempt": 1, "passed": false, "exception": "ValueError: exact source anchor count differs:    def record_pose_cache_event(event):", "cause": "New transformer assumed three source spaces instead of the V4 two-space nested def; no candidate copied yet and no old source modified.", "correction": "Only new transformer anchors and inverse anchors corrected to the observed exact V4 indentation."},
+    {"attempt": 2, "passed": true, "new_source_copies": 3, "normalized_whole_AST_equal_after_whitelist_undo": true}
+  ],
+  "CPU_runs": [
+    {"attempt": 1, "tests": 68, "passed": false, "failures": 1, "errors": 0, "duration_seconds": 1.2211779000062961,
+     "failure": "SourceASTTests.test_owner_actual_wait_precedes_semantic_gate_and_pending_block_preserved: AssertionError: 'if original_error:blocked=True' not found",
+     "cause": "Only new source-test fixture expected a different spelling of the ORIGINAL branch. Actual V4/V5 use if semantic['original_error']: followed by errors.append(...);blocked=True.",
+     "correction": "Only new test now verifies the original semantic-error branch and blocked=True by AST, not a guessed string. Whole normalized worker/owner AST equality had already passed.",
+     "actual_CPU_fake_child_tests_passed": 6,
+     "preseal_additional_checks": "Strict boolean/counter metadata and defensive snapshot-copy counterexamples added; new helper tightened before sealing, no old source changed."},
+    {"attempt": 2, "tests": 73, "passed": true, "failures": 0, "errors": 0, "duration_seconds": 1.2915062999963993, "actual_CPU_fake_child_tests_passed": 6, "result": "CPU_TEST_RESULTS_V5.json", "log": "CPU_TEST_RUN_V5.log"}
+  ],
+  "latest_result": "CPU_TEST_RESULTS_V5.json",
+  "all_execution": "STDLIB_CPU_FAKE_AND_SOURCE_AST_ONLY; no SDK/Torch/native/PT/GPU/account/locks/GO/Git/training"
+}

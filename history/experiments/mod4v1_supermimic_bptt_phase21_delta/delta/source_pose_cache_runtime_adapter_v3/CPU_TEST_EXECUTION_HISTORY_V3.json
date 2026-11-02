@@ -1,0 +1,29 @@
+{
+  "kind": "TRANSPARENT_CPU_TEST_HISTORY_NOT_NATIVE",
+  "runs": [
+    {
+      "tests_run": 50,
+      "failures": 0,
+      "errors": 1,
+      "passed": false,
+      "elapsed_seconds": 0.3610906999965664,
+      "test": "AdapterFakeTests.test_missing_actual_module_file_is_fail_closed",
+      "exception": "OSError: source code not available",
+      "mechanism": "Missing __file__ was already fail-closed, but inspect.getsourcefile raised before the adapter-specific error normalization; test expected PoseCacheAdapterError.",
+      "fix_scope": "Only the new v3 adapter checks module_file first and converts inspect OSError/TypeError to PoseCacheAdapterError; original SDK/bridge/v1/v2 unchanged.",
+      "initial_receipt_production_default_fake_rejection_field": "Premature instrumentation label in initial receipt; an explicit unpatched production-pin fake rejection test is added in the next run."
+    },
+    {
+      "tests_run": 53,
+      "failures": 0,
+      "errors": 0,
+      "passed": true,
+      "elapsed_seconds": 0.34974209999199957,
+      "note": "After source-error normalization and explicit production-pin fake rejection/reentrancy tests. Then added one sticky-failure test and matching fail-closed latch before the final 54-test run."
+    }
+  ],
+  "latest_result_file": "CPU_TEST_RESULTS_V3.json",
+  "SDK_imports": 0,
+  "torch_imports": 0,
+  "native_runs": 0
+}

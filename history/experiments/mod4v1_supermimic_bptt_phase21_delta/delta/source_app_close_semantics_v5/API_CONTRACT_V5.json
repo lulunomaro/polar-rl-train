@@ -1,0 +1,70 @@
+{
+  "kind": "SOURCE_ONLY_V5_STABLE_MERGE_API_NOT_NATIVE_ADMISSION",
+  "directory": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_app_close_semantics_v5",
+  "worker": "worker_supermimic_bptt_app_close_candidate_v5.py",
+  "shared_owner": "supermimic_original_owner_shared_app_close_candidate_v5.py",
+  "exclusive_owner": "supermimic_original_owner_app_close_candidate_v5.py",
+  "shim": "resume_runtime_app_close_v5.py",
+  "helper": "app_close_semantics_v5.py",
+  "imports": [
+    "from resume_runtime_app_close_v5 import close_original_resources, evaluate_waited_worker",
+    "from resume_runtime_app_close_v5 import BoundedPoseCacheEventsV5, force_pose_cache_event_receipt_v5"
+  ],
+  "close_signature": "close_original_resources(bridge, env, namespace, emit, *, job_root, task, primary_error=None)",
+  "close_call": "closure=close_original_resources(bridge,env,ns,lambda name,value:put(out/name,value),job_root=J,task=task,primary_error=error)",
+  "owner_signature": "evaluate_waited_worker(job_root, returncode, entry, run_id)",
+  "owner_call_timing": "ONLY AFTER the original actual p.wait(); not a poll or intent",
+  "unchanged_dependencies": [
+    "resume_runtime_install_hook_v4.py",
+    "resume_runtime_contracts_v3.py",
+    "resume_runtime_contracts_v2.py",
+    "all other original V4 worker/owner dependencies and original owner admission/accounting authority"
+  ],
+  "pin": {
+    "module": "isaacsim.simulation_app.simulation_app",
+    "exact_class": "SimulationApp",
+    "close_owner_qualname": "SimulationApp.close",
+    "source_bytes": 48933,
+    "source_SHA256": "6af5372bb0cdda6e665a30cd285ff724b3e5bd012dbdd4df458e0726173fc903",
+    "close_firstlineno": 848,
+    "actual_class_MRO_module_file_function_code_file_AST_self_and_function_checked": true,
+    "mode_source": "plain exact app.config dict; fast_shutdown must be the bool True for intent",
+    "no_public_verified_flag_or_source_pin_override": true
+  },
+  "fast_close_intent": {
+    "filename": "APP_FAST_CLOSE_INTENT_V5.json",
+    "requires": [
+      "original bridge.close and env.close both already returned with no emit/close errors",
+      "no primary error and no canonical/new/secondary worker/App error sidefile",
+      "original FINAL role/role_key/run/actor family and all nine producer counters and full checkpoint byte/SHA metadata valid",
+      "actual original bound close and exact plain True mode pass fixed source pin"
+    ],
+    "durability": "own new temp JSON -> flush -> file fsync -> atomic rename to intent; immediately original zero-argument app.close; directory/power-loss durability not newly claimed",
+    "binds": ["role", "role_key", "run_id", "job_root", "actual close binding", "FINAL raw bytes/SHA256", "counts", "checkpoint path/bytes/SHA/counts/fullsave flag", "prior close-return records", "no-error declarations"],
+    "no_checkpoint_bytes_opened": true,
+    "actual_app_close_returned": null
+  },
+  "owner_gate": {
+    "original_V4_FINAL_error_variant_counter_fullsave_gate_executed_first_and_retained": true,
+    "only_replaceable_original_reason": ["original_close_completion_missing"],
+    "strict_fallback": "only rc is int 0, no other old/new reason or error sidefile, strict matching pinned intent, APP_CLOSED and lifecycle both truly absent",
+    "never_replace": ["nonzero or bool return code", "invalid/missing FINAL", "incomplete/mismatched fullsave or counters", "canonical/new/secondary error", "malformed or invalid lifecycle", "post-App-return marker present but lifecycle absent", "unknown close source or mode"],
+    "accepted_outcome": "PINNED_FAST_CLOSE_EXPECTED_PROCESS_NONRETURN_PLUS_ACTUAL_WAIT",
+    "app_close_returned_on_fallback": null,
+    "finite_saved_execution_is_not_task_pass_or_3000_target": true
+  },
+  "normal_or_known_slow_mode": "original zero-argument close unchanged; normal return retains APP_CLOSED + original lifecycle gate; known bool False creates no fast intent; unknown mode/source creates durable failure before original close attempt",
+  "pose_event_recorder": {
+    "storage": "first 3, last, 7 fixed event counters; defensive metadata copies; at most 4 event records",
+    "publication": "first 3, then every 20 seconds OR 128 events; adapter-error events and final/error worker flush force publication",
+    "filename": "POSE_CACHE_RUNTIME_ADAPTER_EVENTS_V3.json",
+    "new_schema_kind": "POSE_CACHE_RUNTIME_ADAPTER_BOUNDED_EVENTS_V5",
+    "same_adapter_callback_API": true,
+    "one_event_max_JSON_bytes": 131072,
+    "extra_observation_reset_step_RNG_or_SDK_getters": 0
+  },
+  "protected_old_behavior": "whole V4 worker and both owners AST equal after undoing only shim import, new worker filename, bounded recorder/forced final flush, close witness kwargs; no account/C/lock/admission/finite-window/deadline/save/wait/learner/DR/physics/reward/teacher/coordinate/command edits",
+  "tests": {"stdlib_CPU": 73, "passed": 73, "failures": 0, "errors": 0, "actual_CPU_fake_process_return_raise_hard_exit_tests": 6},
+  "native_binding_and_historical_exit_cause": null,
+  "training_or_native_validation_performed": false
+}

@@ -1,0 +1,80 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_resume_runtime_v2\worker_supermimic_bptt_pre_reset_candidate_v4.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_app_close_semantics_v5\worker_supermimic_bptt_app_close_candidate_v5.py
+@@ -5,7 +5,7 @@
+ import argparse,os,sys,json,time,hashlib,runpy,traceback,shutil
+ KIND='MOD4V1_SUPERMIMIC_BPTT_TASK_V1'
+ _WORKER_JOB_ROOT_V2=None
+-from resume_runtime_install_hook_v4 import (install_optional_pose_cache_runtime_adapter,FINAL_KIND,LIFECYCLE_KIND,BASELINE_ACTOR_VIEW,RAW35_ACTOR_VIEW,validate_worker_variant,PinnedOwnFullCheckpoint,load_decoded_full_checkpoint_once,resolve_future_bridge_adapter,preserve_worker_error,close_original_resources)
++from resume_runtime_app_close_v5 import (install_optional_pose_cache_runtime_adapter,FINAL_KIND,LIFECYCLE_KIND,BASELINE_ACTOR_VIEW,RAW35_ACTOR_VIEW,validate_worker_variant,PinnedOwnFullCheckpoint,load_decoded_full_checkpoint_once,resolve_future_bridge_adapter,preserve_worker_error,close_original_resources,BoundedPoseCacheEventsV5,force_pose_cache_event_receipt_v5)
+ 
+ def put(path,value):
+  path=Path(path);tmp=path.with_suffix(path.suffix+'.partial');tmp.write_text(json.dumps(value,indent=2,allow_nan=False),encoding='utf-8');os.replace(tmp,path)
+@@ -19,7 +19,7 @@
+  assert len(task['inherited_lock_fds'])==4 and time.time()<go['save_deadline'];assert task['num_envs']in(512,1024,2048)and task['target_bptt_steps']>=3000;manifest=json.loads((J/'INSTALL_MANIFEST.json').read_bytes());assert H(J/'INSTALL_MANIFEST.json')==task['manifest_SHA']
+  for f in manifest['files']:
+   p=J/f['relative'];assert p.resolve().is_relative_to(J)and p.suffix.lower()not in('.pt','.pth','.ckpt');assert p.stat().st_size==f['bytes']and H(p)==f['SHA']
+- out.mkdir();ns=env=teacher=bridge=learner=guard=None;error=None;latest=None;stop=False;role=task['role'];start=time.time();saved_count=0;resume_source=None;resume_receipt=None;command_binding=None;bridge_adapter=None;actor_snapshot=None;pose_cache_handle=None;pose_cache_adapter=None;pose_cache_events=[]
++ out.mkdir();ns=env=teacher=bridge=learner=guard=None;error=None;latest=None;stop=False;role=task['role'];start=time.time();saved_count=0;resume_source=None;resume_receipt=None;command_binding=None;bridge_adapter=None;actor_snapshot=None;pose_cache_handle=None;pose_cache_adapter=None;pose_cache_events=BoundedPoseCacheEventsV5(lambda value:put(out/'POSE_CACHE_RUNTIME_ADAPTER_EVENTS_V3.json',value))
+  variant=validate_worker_variant(task);task.update(variant);actor_view=variant['actor_view'];algorithm_family=variant['algorithm_family']
+  put(out/'TASK_AND_ORIGINAL_RESOURCE_BOUND_BEFORE_SDK_MODEL.json',dict(epoch=start,role=role,kind=KIND,canonical_binding=ad['canonical_binding'],fd_existence_verified=True,source_PT_reads=0,SDK_constructed=False,child_canonical_reads_writes=0))
+  try:
+@@ -54,8 +54,7 @@
+   assert env.cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count==32 and env.cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count==4;assert env._mild_dr.profile=='white_v3'and env._sensor_mild.profile=='noise_bias_mild_v1';assert env._feedback_delay_mild.enabled and env._physics_action_delay.queue.enabled;assert env._spring_pressure.component.enabled and env._gas_damping.component.enabled and env._chassis_com.component.enabled and env._explicit_pd.component.enabled
+   if role=='E3':env.e3_reset_enabled=True
+   guard=FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor);guard.assert_new_nominals_unchanged()
+-  def record_pose_cache_event(event):
+-   pose_cache_events.append(dict(event));put(out/'POSE_CACHE_RUNTIME_ADAPTER_EVENTS_V3.json',dict(events=pose_cache_events,no_extra_observation_getters=True))
++  record_pose_cache_event=pose_cache_events
+   pose_cache_handle,pose_cache_adapter=install_optional_pose_cache_runtime_adapter(env,task,J,callback=record_pose_cache_event);put(out/'POSE_CACHE_RUNTIME_ADAPTER_INSTALL_V3.json',pose_cache_adapter)
+   reset=env.reset();obs=reset[0]if isinstance(reset,tuple)else reset;guard.check_observations(obs);audit=guard.verify_live_parameters();assert audit['actual_parameters_pass'];assert env._physics_action_delay.queue.control_us==20000 and env.spring_pressure_recipe()['nominal_stiffness_N_m']==2000
+   from original_role_command_binding_candidate_v2 import bind_original_command_after_fresh_reset
+@@ -100,7 +99,8 @@
+  except BaseException:
+   error=traceback.format_exc();preserve_worker_error(out,role=role,error=error,phase='original_constructor_or_full_learner',counts=None if learner is None else vars(learner.counts),source_cache=None if teacher is None else teacher.receipt())
+  finally:
+-  closure=close_original_resources(bridge,env,ns,lambda name,value:put(out/name,value))
++  pose_cache_flush_error=force_pose_cache_event_receipt_v5(pose_cache_events,out,role=role);error=error or pose_cache_flush_error
++  closure=close_original_resources(bridge,env,ns,lambda name,value:put(out/name,value),job_root=J,task=task,primary_error=error)
+   if closure['errors']:
+    close_error=json.dumps(closure['errors'],indent=2);preserve_worker_error(out,role=role,error=close_error,phase='original_close',counts=None if learner is None else vars(learner.counts))
+    error=error or close_error
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_resume_runtime_v2\supermimic_original_owner_pre_reset_candidate_v4.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_app_close_semantics_v5\supermimic_original_owner_app_close_candidate_v5.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ import os,sys,time,json,hashlib,fcntl,subprocess,traceback,shutil
+ import three_slot_common_v1 as b
+-from resume_runtime_install_hook_v4 import evaluate_waited_worker,bind_future_task_extensions
++from resume_runtime_app_close_v5 import evaluate_waited_worker,bind_future_task_extensions
+ from single_writer72_authority_V85M_source import authority_tracking_schema_admitted,authority_original_extension_count,authority_budget_GO_allowed
+ B=Path(__file__).resolve().parent;C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json');UUIDS=('GPU-16828f91-2b45-b646-8dc0-9481138e2842','GPU-c27eecbd-6838-7290-1cd2-37e34522213d');ROLES={'E0','E2','E3','W35','CURB_PROTECTED878','CURB_INDEPENDENT113','SLOPE135','SLOPE_INDEPENDENT50'};RESERVE=86412.86069250107;put=b.put;KIND='MOD4V1_SUPERMIMIC_BPTT_TASK_V1'
+ def require(v,msg):
+@@ -74,7 +74,7 @@
+     if not active:
+      now=time.time();c=b.read(C);require(c['active_segment']is None,'Originaluniqueowner');c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,kind='Linux_MOD4V1_SUPERMIMIC_BPTT_'+run,started_epoch=now,accounted_through_epoch=now,charged_expert_seconds=0.,experts={},charge_contract='Originalcharge_valuesexpertsecondsactualGOthroughload-model-WM-BPTT-fullsave-SDKclose-parentwait; noclamprefundextension');put(C,c);active=True
+     key=e['role_key'];require(not(J/'GO_PRODUCTION.json').exists(),'UnusedworkerGO');go[key]=g;put(J/'GO_PRODUCTION.json',g);log=(J/'SUPERMIMIC_FULL_STDOUT_STDERR.log').open('xb')
+-    try:p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'worker_sources/worker_supermimic_bptt_pre_reset_candidate_v4.py'),'--job-root',str(J)],cwd=J,env=environment(J,u),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(task['inherited_lock_fds']),start_new_session=True)
++    try:p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'worker_sources/worker_supermimic_bptt_app_close_candidate_v5.py'),'--job-root',str(J)],cwd=J,env=environment(J,u),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(task['inherited_lock_fds']),start_new_session=True)
+     except BaseException:log.close();rows[key]=dict(key=key,role=e['role'],phase='terminal',terminal_all_own_children_waited=True,returncode=1,owner_received_terminal_epoch=time.time(),original_error=True);raise
+     log.close();slots[u]=dict(p=p,entry=e);pending.pop(0);put(J/'WORKER_IDENTITY_ACTUAL.json',b.ident(p.pid));c=account(run,go,rows)
+    put(B/'OWNER_CURRENT.json',dict(epoch=time.time(),run_id=run,workers={u:dict(role=s['entry']['role'],identity=b.ident(s['p'].pid))for u,s in slots.items()},terminal_roles=[r['role']for r in rows.values()],pending_roles=[e['role']for e in pending],blocked_after_real_error=blocked,canonical_remaining_seconds=c['remaining_training_seconds'],target_per_expert=3000,final_skill_goal=.9,not_yet_skill_pass_claim=True))
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_resume_runtime_v2\supermimic_original_owner_shared_pre_reset_candidate_v4.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_app_close_semantics_v5\supermimic_original_owner_shared_app_close_candidate_v5.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ import os,sys,time,json,hashlib,fcntl,subprocess,traceback,shutil
+ import three_slot_common_v1 as b
+-from resume_runtime_install_hook_v4 import evaluate_waited_worker,bind_future_task_extensions
++from resume_runtime_app_close_v5 import evaluate_waited_worker,bind_future_task_extensions
+ from single_writer72_authority_V85M_source import authority_tracking_schema_admitted,authority_original_extension_count,authority_budget_GO_allowed
+ B=Path(__file__).resolve().parent;C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json');UUIDS=('GPU-16828f91-2b45-b646-8dc0-9481138e2842','GPU-c27eecbd-6838-7290-1cd2-37e34522213d');ROLES={'E0','E2','E3','W35','CURB_PROTECTED878','CURB_INDEPENDENT113','SLOPE135','SLOPE_INDEPENDENT50'};RESERVE=86412.86069250107;put=b.put;KIND='MOD4V1_SUPERMIMIC_BPTT_TASK_V1'
+ def require(v,msg):
+@@ -72,7 +72,7 @@
+     if not active:
+      now=time.time();c=b.read(C);require(c['active_segment']is None,'Originaluniqueowner');c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,kind='Linux_MOD4V1_SUPERMIMIC_BPTT_'+run,started_epoch=now,accounted_through_epoch=now,charged_expert_seconds=0.,experts={},charge_contract='Originalcharge_valuesexpertsecondsactualGOthroughload-model-WM-BPTT-fullsave-SDKclose-parentwait; noclamprefundextension');put(C,c);active=True
+     key=e['role_key'];require(not(J/'GO_PRODUCTION.json').exists(),'UnusedworkerGO');go[key]=g;put(J/'GO_PRODUCTION.json',g);log=(J/'SUPERMIMIC_FULL_STDOUT_STDERR.log').open('xb')
+-    try:p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'worker_sources/worker_supermimic_bptt_pre_reset_candidate_v4.py'),'--job-root',str(J)],cwd=J,env=environment(J,u),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(task['inherited_lock_fds']),start_new_session=True)
++    try:p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'worker_sources/worker_supermimic_bptt_app_close_candidate_v5.py'),'--job-root',str(J)],cwd=J,env=environment(J,u),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(task['inherited_lock_fds']),start_new_session=True)
+     except BaseException:log.close();rows[key]=dict(key=key,role=e['role'],phase='terminal',terminal_all_own_children_waited=True,returncode=1,owner_received_terminal_epoch=time.time(),original_error=True);raise
+     log.close();slots[u]=dict(p=p,entry=e);pending.pop(0);put(J/'WORKER_IDENTITY_ACTUAL.json',b.ident(p.pid));c=account(run,go,rows)
+    put(B/'OWNER_CURRENT.json',dict(epoch=time.time(),run_id=run,workers={u:dict(role=s['entry']['role'],identity=b.ident(s['p'].pid))for u,s in slots.items()},terminal_roles=[r['role']for r in rows.values()],pending_roles=[e['role']for e in pending],blocked_after_real_error=blocked,canonical_remaining_seconds=c['remaining_training_seconds'],target_per_expert=3000,final_skill_goal=.9,not_yet_skill_pass_claim=True))

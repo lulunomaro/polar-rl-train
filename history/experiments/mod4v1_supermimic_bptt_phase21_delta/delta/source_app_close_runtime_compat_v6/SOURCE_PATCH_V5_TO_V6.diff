@@ -1,0 +1,136 @@
+--- sealed_V5/app_close_semantics_v5.py
++++ NEW_V6/app_close_semantics_v6.py
+@@ -1,5 +1,6 @@
+ """NEW SOURCE ONLY: pinned fast-App-close intent, never a new shutdown policy.
+ 
++V6 narrow published export aliases; logical installation ABI app_close_semantics_v5.py.
+ Stdlib only.  No automatic installation, SDK import, checkpoint byte read,
+ subprocess, accounting, lock, clock-limit or physics operation occurs at import.
+ The original close is still invoked with zero arguments and the original mode.
+@@ -21,6 +22,7 @@
+ 
+ import resume_runtime_contracts_v3 as _base
+ 
++SOURCE_CODE_VERSION = 'V6_PUBLISHED_SIMULATIONAPP_EXPORT_ALIASES'
+ INTENT_NAME = 'APP_FAST_CLOSE_INTENT_V5.json'
+ INTENT_KIND = 'PINNED_ORIGINAL_APP_FAST_CLOSE_INTENT_V5'
+ BOUNDED_EVENTS_KIND = 'POSE_CACHE_RUNTIME_ADAPTER_BOUNDED_EVENTS_V5'
+@@ -39,6 +41,7 @@
+     source_bytes: int
+     source_SHA256: str
+     close_firstlineno: int
++    module_aliases: tuple[str, ...] = ()
+ 
+ 
+ # Not a public override. Tests patch this PRIVATE policy to their OWN fake file;
+@@ -46,6 +49,7 @@
+ _APP_PIN = _AppPin(
+     'isaacsim.simulation_app.simulation_app', 'SimulationApp', 48933,
+     '6af5372bb0cdda6e665a30cd285ff724b3e5bd012dbdd4df458e0726173fc903', 848,
++    module_aliases=('simulation_app.simulation_app',),
+ )
+ 
+ 
+@@ -70,11 +74,44 @@
+     return value
+ 
+ 
++def _allowed_app_modules(pin):
++    return (pin.module,) + pin.module_aliases
++
++
++def _plain_actual_app_names(application):
++    """Only type-level Python metadata, not SDK instance properties/getters."""
++    cls = type(application)
++    label = lambda c: (type.__getattribute__(c, '__module__') + '.'
++                       + type.__getattribute__(c, '__qualname__'))
++    return dict(actual_module=type.__getattribute__(cls, '__module__'),
++                actual_type_name=type.__getattribute__(cls, '__name__'),
++                actual_qualname=type.__getattribute__(cls, '__qualname__'),
++                actual_class=label(cls),
++                actual_MRO=[label(c) for c in type.__getattribute__(cls, '__mro__')])
++
++
++def _helper_source_receipt():
++    path = Path(__file__).resolve(strict=True)
++    raw = path.read_bytes()
++    return dict(source_code_version=SOURCE_CODE_VERSION, helper_source_file=str(path),
++                helper_source_bytes=len(raw), helper_source_SHA256=hashlib.sha256(raw).hexdigest())
++
++
+ def _pin_original_app_close(application):
++    actual = _plain_actual_app_names(application)
++    try:
++        return _pin_original_app_close_exact(application)
++    except BaseException as exc:
++        raise AppCloseEvidenceError(str(exc) + '; V6_ACTUAL_APP_PYTHON_NAMES='
++                                    + json.dumps(actual, sort_keys=True)) from exc
++
++
++def _pin_original_app_close_exact(application):
+     """Inspect only Python identity/config/source; never query the running SDK."""
+     pin = _APP_PIN
+     cls = type(application)
+-    _need(cls.__module__ == pin.module and cls.__qualname__ == pin.class_name,
++    actual_module = cls.__module__
++    _need(actual_module in _allowed_app_modules(pin) and cls.__qualname__ == pin.class_name,
+           'actual application exact class differs')
+     mro = cls.__mro__
+     _need(mro == (cls, object), 'actual application MRO differs')
+@@ -83,9 +120,9 @@
+     bound = getattr(application, 'close')
+     _need(isinstance(bound, types.MethodType) and bound.__self__ is application
+           and bound.__func__ is definition, 'actual bound close self/function differs')
+-    _need(definition.__module__ == pin.module
++    _need(definition.__module__ == actual_module
+           and definition.__qualname__ == pin.class_name + '.close', 'close owner/qualname differs')
+-    module = sys.modules.get(pin.module)
++    module = sys.modules.get(actual_module)
+     _need(module is not None and getattr(module, pin.class_name, None) is cls,
+           'actual module/class identity differs')
+     module_file = vars(module).get('__file__')
+@@ -116,29 +153,41 @@
+     receipt = dict(
+         kind='PINNED_SIMULATIONAPP_CLOSE_BINDING_V5', actual_class=_class_id(cls),
+         actual_MRO=[_class_id(c) for c in mro], close_owner=_class_id(cls),
+-        close_module=pin.module, close_qualname=definition.__qualname__,
++        actual_module=actual_module, actual_type_name=cls.__name__,
++        close_module=actual_module, close_qualname=definition.__qualname__,
+         source_file=str(source), module_file=str(source), code_filename=str(source),
+         source_bytes=len(raw), source_SHA256=actual_sha, close_firstlineno=pin.close_firstlineno,
+         exact_class_verified=True, method_self_is_application=True,
+         method_function_is_MRO_definition=True, fast_shutdown=mode,
+         no_extra_SDK_getters=True,
+     )
++    receipt.update(_helper_source_receipt())
+     return receipt
+ 
+ 
+ def _validate_binding_receipt(value):
+     pin = _APP_PIN
+     _need(type(value) is dict, 'pinned close binding receipt missing')
+-    class_id = pin.module + '.' + pin.class_name
++    actual_module = value.get('actual_module')
++    _need(type(actual_module) is str and actual_module in _allowed_app_modules(pin),
++          'pinned close receipt has unpublished actual module')
++    class_id = actual_module + '.' + pin.class_name
+     expected = dict(
+         kind='PINNED_SIMULATIONAPP_CLOSE_BINDING_V5', actual_class=class_id,
+         actual_MRO=[class_id, 'builtins.object'], close_owner=class_id,
+-        close_module=pin.module, close_qualname=pin.class_name + '.close',
++        actual_module=actual_module, actual_type_name=pin.class_name,
++        close_module=actual_module, close_qualname=pin.class_name + '.close',
+         source_bytes=pin.source_bytes, source_SHA256=pin.source_SHA256,
+         close_firstlineno=pin.close_firstlineno, exact_class_verified=True,
+         method_self_is_application=True, method_function_is_MRO_definition=True,
+         fast_shutdown=True, no_extra_SDK_getters=True,
+     )
++    helper = _helper_source_receipt()
++    for key in ('source_code_version', 'helper_source_bytes', 'helper_source_SHA256'):
++        expected[key] = helper[key]
++    helper_path = value.get('helper_source_file')
++    _need(type(helper_path) is str and Path(helper_path).is_absolute()
++          and Path(helper_path).suffix == '.py', 'V6 helper source path is not absolute Python source')
+     for key, item in expected.items():
+         _need(type(value.get(key)) is type(item) and value.get(key) == item,
+               'pinned fast close receipt differs: ' + key)

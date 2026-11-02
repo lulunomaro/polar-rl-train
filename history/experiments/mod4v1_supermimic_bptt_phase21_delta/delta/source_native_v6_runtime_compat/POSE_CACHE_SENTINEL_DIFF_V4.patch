@@ -1,0 +1,100 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_pose_cache_runtime_adapter_v3\pose_cache_runtime_adapter_v3.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_native_v6_runtime_compat\pose_cache_runtime_adapter_v4.py
+@@ -1,4 +1,4 @@
+-"""Pinned, instance-only reset-pose cache adapter SOURCE v3.
++"""Pinned, instance-only reset-pose cache adapter SOURCE v4 (native stale-sentinel compatibility).
+ 
+ This module imports stdlib only. Import does not discover a robot or install a
+ hook. The caller must construct a NEW native instance, then install before its
+@@ -22,8 +22,11 @@
+ import weakref
+ 
+ __all__ = ["PoseCacheAdapterError", "PoseCacheAdapterHandle",
+-           "install_pose_cache_runtime_adapter_v3", "EXPECTED_SOURCE_SHA256",
+-           "ROOT_DERIVED_BUFFERS"]
++           "install_pose_cache_runtime_adapter_v4", "EXPECTED_SOURCE_SHA256",
++           "ROOT_DERIVED_BUFFERS", "SOURCE_CODE_VERSION",
++            "install_pose_cache_runtime_adapter_v3"]
++
++SOURCE_CODE_VERSION = "POSE_CACHE_RUNTIME_ADAPTER_V4_NATIVE_NEGATIVE_INFINITY_STALE_V1"
+ 
+ ROOT_DERIVED_BUFFERS = (
+     "_projected_gravity_b", "_heading_w", "_root_link_vel_w", "_root_com_pose_w",
+@@ -78,7 +81,13 @@
+ 
+ def _number(value, name, *, clock=None):
+     # No tensor.item(), array coercion, GPU sync, custom numeric conversion.
+-    if type(value) not in (int, float) or not math.isfinite(value):
++    if type(value) not in (int, float):
++        raise PoseCacheAdapterError("NON_NATIVE_FINITE_TIMESTAMP", name)
++    # Original active ChassisCOMSDK.invalidate_COM_dependent_cache writes this
++    # exact built-in float sentinel. It is legal ONLY for a buffer, never clock.
++    if clock is not None and type(value) is float and value == -math.inf:
++        return value
++    if not math.isfinite(value):
+         raise PoseCacheAdapterError("NON_NATIVE_FINITE_TIMESTAMP", name)
+     if clock is None:
+         if value < 0:
+@@ -173,7 +182,7 @@
+ 
+ def _snapshot(data, buffers=None, arrays=None):
+     clock = _number(_plain(data, "_sim_timestamp"), "_sim_timestamp")
+-    found, payloads, stamps = [], [], {}
++    found, payloads, stamps, stamp_types = [], [], {}, {}
+     for index, name in enumerate(ROOT_DERIVED_BUFFERS):
+         buf = _plain(data, name)
+         array = _plain(buf, "data")
+@@ -181,9 +190,15 @@
+             raise PoseCacheAdapterError("BUFFER_DATA_MISSING", name)
+         if buffers is not None and (buf is not buffers[index] or array is not arrays[index]):
+             raise PoseCacheAdapterError("BUFFER_OR_DATA_IDENTITY_CHANGED", name)
+-        stamps[name] = _number(_plain(buf, "timestamp"), name, clock=clock)
++        value = _number(_plain(buf, "timestamp"), name, clock=clock)
++        stamp_types[name] = type(value).__module__ + "." + type(value).__qualname__
++        # Encode metadata only; preserve the actual SDK timestamp untouched.
++        stamps[name] = (dict(kind="STALE_SENTINEL", value="NEGATIVE_INFINITY",
++                             python_type="builtins.float", actual_native_value_read=True)
++                        if type(value) is float and value == -math.inf else value)
+         found.append(buf); payloads.append(array)
+-    return dict(clock=clock, timestamps=stamps), tuple(found), tuple(payloads)
++    return dict(clock=clock, clock_python_type=type(clock).__module__ + "." + type(clock).__qualname__,
++                timestamps=stamps, timestamp_python_types=stamp_types), tuple(found), tuple(payloads)
+ 
+ 
+ def _emit_preserving(callback, event, primary):
+@@ -223,7 +238,7 @@
+         self._bound_wrapper = MethodType(wrapped, robot)
+ 
+     def _event(self, name, **metadata):
+-        return dict(kind="PINNED_INSTANCE_POSE_CACHE_ADAPTER_V3", event=name,
++        return dict(kind="PINNED_INSTANCE_POSE_CACHE_ADAPTER_V4", source_code_version=SOURCE_CODE_VERSION, event=name,
+                     write_call_count=self._calls, original_return_count=self._returned,
+                     invalidated_write_count=self._invalidations, failure_count=self._failures,
+                     callback_failure_count=self._callback_failures,
+@@ -309,7 +324,7 @@
+         self._emit(self._event("uninstalled"))
+ 
+ 
+-def install_pose_cache_runtime_adapter_v3(robot, *, receipt_callback: Callable[[dict], None]) -> PoseCacheAdapterHandle:
++def install_pose_cache_runtime_adapter_v4(robot, *, receipt_callback: Callable[[dict], None]) -> PoseCacheAdapterHandle:
+     """Install on a NEW constructed instance, before the original ONE reset.
+ 
+     Public API has no skip/verified=True or pin-override argument. Actual bound
+@@ -324,7 +339,7 @@
+         before, buffers, arrays = _snapshot(data)
+         handle = PoseCacheAdapterHandle(robot, original, data, binding, receipt_callback, before, buffers, arrays)
+     except BaseException as exc:
+-        _emit_preserving(receipt_callback, dict(kind="PINNED_INSTANCE_POSE_CACHE_ADAPTER_V3", event="install_rejected",
++        _emit_preserving(receipt_callback, dict(kind="PINNED_INSTANCE_POSE_CACHE_ADAPTER_V4", source_code_version=SOURCE_CODE_VERSION, event="install_rejected",
+                          error_type=type(exc).__name__, error=str(exc)[:400], installed=False,
+                          past_worker_binding_claim=None), exc)
+         raise
+@@ -341,3 +356,8 @@
+         handle._active = False
+         raise
+     return handle
++
++
++# Logical ABI alias: V5 worker/installer may keep their sealed import spelling.
++# The installed source SHA and every event source_code_version identify V4.
++install_pose_cache_runtime_adapter_v3 = install_pose_cache_runtime_adapter_v4

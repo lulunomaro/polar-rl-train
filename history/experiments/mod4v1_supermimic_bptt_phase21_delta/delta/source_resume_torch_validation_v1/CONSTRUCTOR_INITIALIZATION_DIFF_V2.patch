@@ -1,0 +1,73 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_resume_torch_validation_v1\test_resume_legacy_torch_cpu_v1.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_resume_torch_validation_v1\test_resume_legacy_torch_cpu_v2.py
+@@ -1,4 +1,6 @@
+-"""SYNTHETIC CPU Torch software validation; never native MOD4/physics training.
++"""V2: real vendor constructor initializes the fresh synthetic state exactly once.
++
++SYNTHETIC CPU Torch software validation; never native MOD4/physics training.
+ 
+ Inputs are explicit SHA-pinned source bytes and existing dependency directories.
+ Only FakeTeacher/Synthetic fixture classes are AST-executed; fixture bottom,
+@@ -354,6 +356,8 @@
+         assert all(state['state'] for state in expected_states['optimizers'].values())
+         read_task = write_own_synthetic(payload, directory, 'OWN_NEW_SYNTHETIC_FULL.pt', task)
+         restored, fresh_env, restored_teacher, restored_snapshot = make_learner(view, directory / 'RESTORED_LEARNER_LOGS')
++        initializations_before_load = fresh_env.fresh_initializations
++        assert initializations_before_load == 1 and fresh_env.calls == 0
+         assert vars(restored.counts) == initial_counts
+         assert digest_nested(full_states(restored), torch) != digest_nested(expected_states, torch)
+         random.seed(912);torch.manual_seed(913)
+@@ -361,8 +365,9 @@
+         pinned, load_receipt, pin_calls = pinned_read_and_load(restored, read_task)
+         assert_all_restored(restored, pinned.payload, expected_states)
+         assert_teacher(restored_teacher, restored_snapshot)
+-        assert fresh_env.calls == fresh_env.fresh_initializations == 0
+-        # Fresh environment state is first initialized by original collect; no old physical state import.
++        initializations_after_load = fresh_env.fresh_initializations
++        assert fresh_env.calls == 0 and initializations_after_load == initializations_before_load == 1
++        # Original vendor constructor _critic_input_dim -> _state_info already initialized once; loader adds none.
+         rng_probe = rng_sequence_probe(pinned.payload['context_reward_extension']['rng'])
+         restored_counts = dict(vars(restored.counts))
+         norm_keys = {model: [key for key in state if 'norm' in key and key.endswith(('.mean', '.var', '.count'))]
+@@ -372,7 +377,8 @@
+             for model, state in expected_states['models'].items()}, torch)
+         old_boundary = (restored.buffer.ptr - 1) % restored.buffer.T
+         restored.collect(1)
+-        assert fresh_env.calls == fresh_env.fresh_initializations == 1
++        initializations_after_continue = fresh_env.fresh_initializations
++        assert fresh_env.calls == 1 and initializations_after_continue == initializations_before_load == 1
+         assert torch.equal(restored.obs_hist, restored.obs_hist[:, -1:, :].expand_as(restored.obs_hist))
+         assert restored.buffer.data['stream_cut'][old_boundary].all()
+         windows = restored.buffer.sample_windows(4096, 2)
+@@ -423,6 +429,8 @@
+             unchanged_standalone_source_root_versions_did_not_protect_actor=True,
+             actual_teacher_weights_and_buffers_unchanged_for_admitted_restore=True,
+             only_one_fresh_initialization_before_continued_collection=True,
++            synthetic_initialization_counts=dict(before_full_load=initializations_before_load,
++                after_full_load=initializations_after_load, after_continued_collect=initializations_after_continue),
+             legacy_held_command_aux_sensor_approximation=True, command_tracking_fixed=False,
+             sensor_projection_exact=False, oracle_used=False, bounded_residual=False,
+             anchor_reward_uncertainty_changes=0), pinned.payload, read_task
+@@ -453,7 +461,7 @@
+         # The direct shape counterexample is isolated, not an admitted resume and never continued.
+     assert not torch.cuda.is_initialized()
+     assert not any(name == 'isaaclab' or name.startswith(('isaaclab.', 'omni.')) for name in sys.modules)
+-    return dict(kind='SYNTHETIC_CPU_ACTUAL_LEGACY_A0_A1_AND_FULL_RESET_RESUME_NOT_NATIVE_V1', passed=True,
++    return dict(kind='SYNTHETIC_CPU_ACTUAL_LEGACY_A0_A1_AND_FULL_RESET_RESUME_NOT_NATIVE_V2', passed=True,
+         torch_version=str(torch.__version__), CUDA_initialized=False, native_expert_BPTT_updates_counted=0,
+         original_model_PT_reads=0, own_new_synthetic_checkpoint_files=generated_checkpoints,
+         no_original_selected_PT_worker_SDK_Apps_C_GO_locks_Git=True,
+@@ -479,11 +487,11 @@
+     args = parser.parse_args()
+     output = args.output_dir.resolve()
+     output.mkdir(parents=True, exist_ok=False)
+-    receipt_path = output / 'SYNTHETIC_TORCH_RESUME_RECEIPT_V1.json'
++    receipt_path = output / 'SYNTHETIC_TORCH_RESUME_RECEIPT_V2.json'
+     try:
+         result = run(args, output)
+     except BaseException:
+-        result = dict(kind='SYNTHETIC_CPU_LEGACY_RESUME_SOFTWARE_TEST_ERROR_V1', passed=False,
++        result = dict(kind='SYNTHETIC_CPU_LEGACY_RESUME_SOFTWARE_TEST_ERROR_V2', passed=False,
+                       error=traceback.format_exc(), native_expert_BPTT_updates_counted=0,
+                       output_dir=str(output), actual_inputs=vars(args))
+         with receipt_path.open('x', encoding='utf-8') as stream: json.dump(result, stream, indent=2, default=str)

@@ -1,0 +1,48 @@
+{
+  "kind": "SOURCE_ONLY_A1_RAW35_FROZEN_MEAN_HELPER_NOT_ACTUAL_EVAL",
+  "module": "frozen_a1_raw35_v1.py",
+  "cache_API": "FrozenA1CheckpointCache(final, *, own_job_root, role, role_key, run_id, asset_SHA, contract_SHA)",
+  "build_API": "cache.build_mean_policy(device, num_envs=80)",
+  "mean_API": "mean.act(raw35, *, episode_start=original_first_or_previous_term_OR_trunc_bool_N80)",
+  "receipt_API": "cache.receipt(); mean.receipt(); cache.assert_unchanged(); mean.assert_frozen()",
+  "actor_view": "raw35_legacy_held_aux_v1",
+  "algorithm_family": "a1_raw35_legacy_v1",
+  "accepted_variants": ["A1_RAW35_FRESH", "A1_RAW35_RESUME"],
+  "A0_or_strict_B_compatibility": false,
+  "cache": {
+    "own_path": "own_job_root/production/checkpoints/*_complete.pt",
+    "producer_FINAL_kind": "MOD4V1_SUPERMIMIC_FULL_EXECUTION_FINAL_V3",
+    "per_cache_physical_reads_hashes_CPU_decodes": [1, 1, 1],
+    "decode": "torch.load(BytesIO(whole_bytes), map_location='cpu', weights_only=True)",
+    "whole_root": "kept CPU with recursive identity/version/schema checks; unused WM/aux/optimizer/replay/RNG/history are not restored or sliced",
+    "source_num_envs": 1024,
+    "source_replay_capacity": 128,
+    "eval_num_envs": 80,
+    "original_mother_checkpoint_reopens": 0,
+    "unsupported_globals_or_shapes": "stop; no unsafe decoder or architecture fallback"
+  },
+  "mean_policy": {
+    "teacher": "original RSL MLPModel actor policy35->6, hidden 256/128/64 ELU, GaussianDistribution scalar std config; loaded from own pi.teacher with stochastic_output=False",
+    "residual": "reviewed vendor Policy obs35 goal3 hist10 z32 hidden512/256/128; both goal encoder and history decoder use original MLP structure",
+    "wrapper": "original native_supermimic_bridge.TeacherResidualPolicy; construct before strict-load pi; offset0 scale0.05 total clip[-6,6]",
+    "normalization": "strict mean/var/count state; frozen eval and no update; original epsilon0.01/max_count2e8 preserved",
+    "first_or_reset_history": "repeat current original observation in all 10 frames, not zero padding",
+    "subsequent_history": "shift left then append exactly the caller-provided original policy35 once per control",
+    "goal": "the same raw35[:,:3] known-command prefix; no extra SDK observation, command or sensor read",
+    "training_noise_optimizer_WM_critic_or_replay_on_actor_device": false
+  },
+  "reviewed_source_pins": {
+    "supermimic_vendor_v2.networks": {"bytes":8609,"SHA256":"c7829e6a1bb9166d724a931858b76424439f371669dfb4bb534b9e76c5c74706"},
+    "native_supermimic_bridge": {"bytes":13125,"SHA256":"8211964c2ce3dd78fdb9fee6603ee4a4dcfbca6fa9d7df44f20d3ddb7aaead29"}
+  },
+  "RSL_source_status": "future actual class/module/file/SHA captured in mean receipt; hardcoded RSL package source pin not supplied here, reconcile with original frozen-eval approved package before actual evaluation",
+  "optional_future_CPU_Torch_script": "remote_cpu_synthetic_check_v1.py --new-output NEW_NONEXISTING_OWN_PATH",
+  "local_stdlib_tests": 26,
+  "local_Torch_SDK_GPU_original_PT_C_account_Git_or_native_operations": 0,
+  "actual_A1_checkpoint_path_bytes_SHA": null,
+  "actual_remote_CPU_Torch_result": null,
+  "actual_frozen_evaluation": null,
+  "actual_resource_admission_or_parent_wait_proof": null,
+  "E0_original_binary_predicate": null,
+  "SLOPE_INDEPENDENT50_original_binary_predicate": null
+}

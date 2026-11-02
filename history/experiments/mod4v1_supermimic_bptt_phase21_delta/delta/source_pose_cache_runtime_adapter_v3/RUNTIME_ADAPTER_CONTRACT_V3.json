@@ -1,0 +1,51 @@
+{
+  "kind": "MERGEABLE_PINNED_INSTANCE_ADAPTER_SOURCE_ONLY_V3",
+  "deployed": false,
+  "native_binding_verified": null,
+  "past_binding_claim": null,
+  "entrypoint": "pose_cache_runtime_adapter_v3.install_pose_cache_runtime_adapter_v3",
+  "signature": "install_pose_cache_runtime_adapter_v3(robot, *, receipt_callback: Callable[[dict], None]) -> PoseCacheAdapterHandle",
+  "installation_point": "NEW env constructed by original build_env; before original ONE explicit env.reset; never on old instance",
+  "public_override_or_verified_bool": false,
+  "source_pins": {
+    "asset_owner": {
+      "module": "isaaclab_physx.assets.articulation.articulation",
+      "qualname": "Articulation",
+      "bytes": 220628,
+      "SHA256": "47d96553282b389493e69f691b8dcbfeb98997a5a80b88c2571c60ba8b58cb6d"
+    },
+    "exact_data_type": {
+      "module": "isaaclab_physx.assets.articulation.articulation_data",
+      "qualname": "ArticulationData",
+      "bytes": 91275,
+      "SHA256": "43a31992353ad3a500024d0ec908d5b253ada7a0aac9a1cd2261466e10bda4ff"
+    }
+  },
+  "bound_writer_checks": ["MethodType", "__self__ is robot", "__func__ is actual MRO definition", "source module/name/file bytes+SHA", "code filename/qualname/AST firstline", "same pinned owner of pose and COM-velocity delegates"],
+  "data_checks": ["plain robot._data, not robot.data getter", "exact type/MRO/module/source bytes+SHA", "physx backend", "eight plain buffers/data fields/native finite timestamps", "clock>=0; stamp=-1 or 0<=stamp<=clock", "data/buffer/array identity stable on each call"],
+  "wrapped_API": "write_root_state_to_sim",
+  "other_APIs_wrapped": false,
+  "original_call_count_per_valid_attempt": 1,
+  "return_identity_preserved": true,
+  "post_original_success_mutation_only": {
+    "operation": "object.__setattr__(buffer, 'timestamp', -1.0)",
+    "fields": ["_projected_gravity_b", "_heading_w", "_root_link_vel_w", "_root_com_pose_w", "_root_link_lin_vel_b", "_root_link_ang_vel_b", "_root_com_lin_vel_b", "_root_com_ang_vel_b"]
+  },
+  "extra_getter_samples": 0,
+  "extra_physics_steps": 0,
+  "extra_resets": 0,
+  "extra_observation_computes": 0,
+  "extra_RNG_draws": 0,
+  "extra_SDK_update_or_forward": 0,
+  "source_or_class_global_mutations": false,
+  "callback_events": ["installed", "write_returned_and_invalidated", "original_writer_raised", "adapter_rejected_before_write", "adapter_rejected_after_write", "install_rejected", "uninstalled"],
+  "callback_storage": "new job own install JSON plus latest metadata JSON overwrite; no JSONL/getters/observations/RNG",
+  "sticky_failure": true,
+  "callback_failure": "success-path callback failure is fatal; callback failure during original exception must preserve original exception",
+  "unexpected_partial_timestamp_assignment": "fatal, may leave partial invalidation; no physical/clock rollback or retry",
+  "unchanged": ["original xyzw to wxyz conversion", "negative rotation last ROW gravity check", "gravity guard 1e-3", "original commands", "DR/physics", "sensor delay/history/noise/RNG", "acceptance predicates", "old CLOSED run accounting"],
+  "separate_integration": "CURB113 original after-reset command binding belongs to parent/agent405; no extra reset or obs",
+  "unknowns": ["future native actual binding and Warp-buffer layout", "same-tick physical cache error", "actual world-gravity/stream behavior", "historical failure physical root cause", "task performance gain"],
+  "CPU_evidence": {"tests": 54, "passed": true, "SDK_imports": 0, "torch_imports": 0, "native_installs": 0, "fake_positive_tests_patch_private_policy_to_own_source": true, "unpatched_production_default_rejects_fake": true},
+  "next_authority": "parent handles future native validation, actual training, Git; this directory is source-only"
+}

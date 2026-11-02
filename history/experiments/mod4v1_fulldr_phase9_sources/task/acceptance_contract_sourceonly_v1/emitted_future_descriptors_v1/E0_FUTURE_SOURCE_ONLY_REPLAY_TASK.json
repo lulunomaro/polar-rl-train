@@ -1,0 +1,210 @@
+{
+  "schema": "mod4.future_replay.source_only_descriptor.v1",
+  "lineage": "E0",
+  "original_model_SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a",
+  "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+  "actual_SDK_permission": false,
+  "dispatch_or_model_io": false,
+  "source_only_plan_emitter": true,
+  "own_original_cohort": {
+    "num_envs": 20000,
+    "seed": 20260928,
+    "source_scope": "One declared sampledcase, earlyoriginalresample all20k atphysics0; 100warm/900steady controls"
+  },
+  "own_command_geometry": {
+    "command_kind": "E0_DIRECTIONAL_SPIN_V1",
+    "resampling_time_range": [
+      12.0,
+      16.0
+    ],
+    "standing_fraction": 0.1,
+    "pure_fraction": 0.3,
+    "moving_fraction": 0.2,
+    "transition_fraction_within_pure": 0.3333333333333333,
+    "moving_yaw_signed_abs_rad_s": [
+      1,
+      2
+    ],
+    "pure_yaw_abs_rad_s": [
+      1,
+      12.566370614359172
+    ],
+    "world_progress_goal_m_s": 0.5,
+    "height_command_m": 0.25,
+    "criterion_terms": [
+      {
+        "name": "time_out",
+        "time_out": true,
+        "function": "<function time_out at 0x77f50d216980>",
+        "parameters": "{}"
+      },
+      {
+        "name": "bad_orientation",
+        "time_out": false,
+        "function": "<function bad_orientation at 0x77f50d216ac0>",
+        "parameters": "{'limit_angle': 0.75}"
+      },
+      {
+        "name": "base_contact",
+        "time_out": false,
+        "function": "<function chassis_on_ground at 0x77f50cee02c0>",
+        "parameters": "{'threshold': 50.0, 'sensor_cfg': SceneEntityCfg(name='chassis_contact', joint_names=None, joint_ids=slice(None, None, None), fixed_tendon_names=None, fixed_tendon_ids=slice(None, None, None), body_names=None, body_ids=slice(None, None, None), object_collection_names=None, object_collection_ids=slice(None, None, None), preserve_order=False)}"
+      },
+      {
+        "name": "closure",
+        "time_out": false,
+        "function": "<function closure_broken at 0x77f50ceca5c0>",
+        "parameters": "{'threshold': 0.002}"
+      },
+      {
+        "name": "mimic",
+        "time_out": false,
+        "function": "<function mimic_broken at 0x77f50ceca700>",
+        "parameters": "{'threshold': 0.05}"
+      },
+      {
+        "name": "low_base",
+        "time_out": false,
+        "function": "<function low_base_relative at 0x77f50ce57ec0>",
+        "parameters": "{'minimum_height': -1.0}"
+      }
+    ],
+    "original_criteria_unmodified": true,
+    "graduated_skill_claim": false
+  },
+  "own_original_metric_predicate": {
+    "type": "DiagnosticbodyV/yaw/height MAE andsampledsigned2pi cycleprogress; no savednumericalglobal/percommand skillgraduation rule",
+    "catalog_reference": "E0_CATALOG",
+    "metric_functions_reference": "E0_METRICS",
+    "original_complete_commands": {
+      "closed_instance_events": 60000,
+      "acted_instance_events": 40000,
+      "zero_control_instance_events": 20000,
+      "all_acted_instance_population_controls": 20000000,
+      "acted_initial_left_censored_events": 0,
+      "acted_reset_ended_events": 20000,
+      "acted_window_end_events": 0,
+      "fully_observed_resample_to_resample_instance_events": 20000,
+      "complete_instance_population_controls": 13998008,
+      "complete_instance_seconds": 279960.16,
+      "left_censored_instance_events": 0,
+      "window_end_right_censored_instance_events": 20000,
+      "reset_ended_instance_events": 20000,
+      "complete_transition_instances_with_all_pre12_bins": 1979
+    },
+    "scope_boundary_diff": {
+      "original_snapshot": {
+        "closure_m": 0.002,
+        "mimic_rad": 0.05,
+        "bad_orientation_rad": 0.75,
+        "chassis_contact_N": 50.0,
+        "low_base_relative_min_m": -1.0
+      },
+      "current_approved_integration": {
+        "closure_m": 0.01,
+        "mimic_rad": 0.01
+      },
+      "not_same_physical_gate_retest": true,
+      "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+      "causal_or_paired_rate_comparison": false
+    }
+  },
+  "physical_seconds_windows": [
+    {
+      "seconds": 20,
+      "controls50Hz": 1000,
+      "physics400Hz": 8000,
+      "feedback100Hz": 2000,
+      "warmup_seconds": 2,
+      "steady_seconds": 18
+    }
+  ],
+  "restore_dependency": {
+    "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+    "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+    "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+    "checkpoint_metadata_newkeys": false,
+    "never_borrow_W35_E0_factory_command_map_RNG": true
+  },
+  "metric_capture_contract": {
+    "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+    "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+    "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+    "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+    "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+  },
+  "original_numeric_aggregate_acceptance_rule": null,
+  "dependency_table": [
+    {
+      "lineage": "E0",
+      "reference_id": "E0_SAVED20S",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_FULL1000_SAVED_TEXT_REVIEW_20261029_V2\\E0_V2_FULL1000_EARLY_COMMAND_INSTANCE_SAVED_TEXT_ACCEPTANCE_REVIEW_ACTUAL.json",
+      "SHA": "465dfd0e6c234bf1aa11ebfc2249dc7e369637aaa132db24d3803b723afe6de8",
+      "bytes": 115717,
+      "role": "saved_metadata"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "E0_REVIEW_MD",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_FULL1000_SAVED_TEXT_REVIEW_20261029_V2\\HANDOFF_FROZEN_E0V2_FULL1000_SAVED_TEXT_REVIEW.md",
+      "SHA": "902d985cffec25a37caa230d3ac258d6e12bca46c2f9e89230f30eb8b575f64b",
+      "bytes": 4556,
+      "role": "saved_metadata"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "E0_CATALOG",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\e0_original_profile_catalog_v1.py",
+      "SHA": "381d968fa8334e6a7715e8053a41829aafe4f32657403960af0fca13511cca8a",
+      "bytes": 1417,
+      "role": "executed_source"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "E0_METRICS",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\e0_long_command_domain_telemetry_v1.py",
+      "SHA": "6dd90482a6e288f8cb9e41bd5b5b131b0a915a3bcb0d6712c8337b3316db146d",
+      "bytes": 18373,
+      "role": "executed_source"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "E0_WORKER",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\evaluate_E0_adapted82_new86_frozen1000_once_v2_early.py",
+      "SHA": "90274f8ead2938c2cb81192afc529053e16a79585fa9fb4a2cc3230d2ffd07e6",
+      "bytes": 14431,
+      "role": "executed_source"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "FORMALS189",
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\FROZEN_EXPERTS_400N50_SKILL_SUPERMIMIC_CONTINUATION_V189_20261031\\reports\\EXPERT189_SAVED_FORMALS_AND_SKILL_GAPS_ACTUAL.json",
+      "SHA": "9dc7afcd5afb0581d39f85efa2004048d0b782df7bf4496581d239cda013e351",
+      "bytes": 11878,
+      "role": "saved_metadata"
+    },
+    {
+      "lineage": "E0",
+      "reference_id": "NATIVE_E0",
+      "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E0_actual_fullrestore_native24\\E0_A92_FULLRESTORE_NATIVE24_ACTUAL_PASS.json",
+      "SHA": "6188efb8200693caf3b5d0317ad6b5b23b58927cb005842ef7e4f20cc2375e6a",
+      "bytes": 2944,
+      "role": "saved_metadata"
+    }
+  ],
+  "exact_saved_evidence_gaps": [
+    "No original numerical skill pass tolerances/per-command success thresholds saved; do not invent a graduation rule.",
+    "straight_zero has0 exposure; original continuous straight command has a zero label but no discrete zero atom guaranteed. No exposure is pending, not failed/success.",
+    "Only one20s window/seed and sampled original commands; no full stochastic range or long-term reliability claim.",
+    "Moving worldprogress metrics cover only accepted sampled same-command2pi windows (~68%movingtime), not every command/all elapsed movingtime.",
+    "Complete command summaries provide body/yaw/height errors but not per-command worldprogress success counts or distributions; JSONL content intentionally NOT transferred/read.",
+    "Global unique env unions across changing signed profiles are not saved. Retain perprofile exactunique and conservative union bounds, never sum overlaps as exact globalunique.",
+    "Per-transition error tensor axis names are not explicit in saved schema; report axis0/1/2 only, no guessed physical labels.",
+    "20k reset-ended acted commands are incomplete despite no non-timeout failure;20k0-control window-end rows cannot be positive skill evidence.",
+    "No complete127-state/executedaction/queue/DR/reset WM transition dataset; command JSONL and weights are not that dataset."
+  ],
+  "current_runtime_or_newthreshold_changes": false,
+  "needs_parent_independent_admission_and_sourcebound_adapter_review": true,
+  "missing_original_rule_is_not_skillpass": true,
+  "future_actual_permission": "PARENT_TO_GRANT_SEPARATELY_NOT_GRANTED_BY_THISCLI"
+}

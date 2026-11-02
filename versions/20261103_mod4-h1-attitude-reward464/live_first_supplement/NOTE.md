@@ -1,0 +1,7 @@
+464姿态奖励修复已在2026-11-03 02:36:24.929548+08真实GO，02:38首次真实PPO更新与完整保存回执通过。原standing200 OWNER_EXIT、settled及leasesreleased逐一核验，peer embedded/frozen E3/W35 collectors关闭后原55808完成此前未发生的首次staging；旧LAUNCH/CNone拒绝保留，未重放。owner1499947/node1499956/worker1499990与完整identity在LIVE_BINDING。FIRST128controls/10240actualonpolicy样本、Pi=PPO=critic1，actorgrad3.4506433/critic68.611702有限非零，native24通过；KL.009263182/delta.031433001、一次acceptedhalfLR。首完整32813561B/71eaa5fa…，actorAdam56677/critic13737/WM41672，teacherSTD42940及三Adam/origin完整。不是技能成功。
+
+唯一postround61960/create02:38:06.606992，原normal900门保持。原SAVE03:36:24.929548/NOMINAL03:41:24.929548，自动完整保存安全退出、正式传回、必要finalCPU，再独立465同80firstepisodes/400controls8s/seed9137/同270新DR及400Hzmanifold，渲染真实保存姿态。当前仅本地查看，不另SSH/watch/normal/eval。mod4-10同chat每小时ACTIVE已改为真实liveFIRST状态；全部旧once消费不重放。
+
+共享archive_tools/compare_h1_attitude_evaluation.py新增保存结果读者，后续465可与原455逐拍叠图比较yaw、pitch、轮残差、低轮底估计、路线、奖励与firstANYground、实际台顶力。先用既有456原数据通过重建核验，误差<3.5e-6，核出17orientation/63full8s/1单轮台顶tick/0双轮。初版4图、后续6图叠图均原生view_image查看；只是旧保存数据读者验证，不是再跑物理评测。6图版因新增pitch/reward与baseline叠图而再读一次保存文件，未重生成覆盖旧报告。所有原图CSV保留外部，已有SHA入索引。
+
+本轮一个不存在pyproject.toml的附带只读查询失败（仓库无该文件），无落盘报告且未改源码或运行；记录此工具错误供完整回溯。没有模型归档读取/新物理/预算写入/新namespace。新source仅共享读者；冻结464/465源不改。此为既有464阶段普通补充，绝不record/retag。MANIFEST逐文件或同SHA原Git路径引用，旧报告不覆盖，后续final/eval另补。

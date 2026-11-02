@@ -1,0 +1,46 @@
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\PAIR1_RETENTION_EVAL_SOURCE_V3\rm70_intervals227.py
++++ rm70_intervals227_split_metadata_v1.py
+@@ -8,11 +8,13 @@
+ 
+ 
+ from positional_rows227 import PositionalRows227 as Rows227
++from rm70_published_split_observer_v1 import empty_counts,observe_row,publish_counts
+ 
+ 
+ class RM70Intervals227:
+  def __init__(self,t,n,device,out,model):
+   self.t=t;self.n=n;self.device=device;self.ids=t.arange(n,device=device);self.rows=Rows227(out,model)
++  self._published_split_counts=empty_counts();self._published_book_constructor_label=model
+   def zeros(dtype=None):return t.zeros(n,device=device,dtype=dtype or t.float32)
+   self.uid=zeros(t.long);self.episode=zeros(t.long);self.count=zeros(t.long);self.first=zeros(t.long)
+   self.segment=zeros(t.long);self.original_counter=zeros(t.long);self.route_source_episode=zeros(t.long)
+@@ -134,7 +136,10 @@
+   self.route_clean_goal[first]=(self.route_known&self.route_far&~self.route_term&~self.route_timeout)[first]
+  def emit_columns(self,columns,extra):
+   cpu={k:v.detach().cpu().tolist() for k,v in columns.items()}
+-  for i in range(len(cpu['env_id'])):self.rows.append(dict(**extra,**{k:v[i] for k,v in cpu.items()}))
++  for i in range(len(cpu['env_id'])):
++   row=dict(**extra, **{k: v[i] for k, v in cpu.items()})
++   self._published_split_counts=observe_row(self._published_split_counts,row)
++   self.rows.append(row)
+  def close(self,ids,reason,natural):
+   t=self.t;ids=ids[self.active[ids]&(self.count[ids]>0)]
+   if not len(ids):return
+@@ -186,5 +191,6 @@
+   self.close(self.ids,'window_end_partial',None);self.close_routes(self.ids,'window_end')
+   return dict(events=self.events,original_reason_counts=self.reason_counts,non_timeout_environment_controls=self.term_controls,
+    timeout_environment_controls=self.timeout_controls,producer=self.rows.finish(),diagnostic_errors=self.errors,
++   published_moving_standing_counts=publish_counts(self._published_split_counts,self.events,self._published_book_constructor_label),
+    full_expert_skill='UNKNOWN',unexposed_profiles=['old flat signed1..1.5','world .5 + signedyaw1..2 full2pi','pure/transition spins','other expert domains'],
+    no_new_aggregate_graduation_rate=True,full_SuperMimic_conversion=False)
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\PAIR1_RETENTION_EVAL_SOURCE_V3\worker_five_original_n80.py
++++ worker_five_original_n80.py
+@@ -45,7 +45,7 @@
+   from actual_DR_memory_getter272 import RuntimeOrderBinding,ActualDRMemoryGetter
+   robot=env.scene['robot'];book=None;e2cycles=None
+   if role=='W35':
+-   from rm70_intervals227 import RM70Intervals227
++   from rm70_intervals227_split_metadata_v1 import RM70Intervals227
+    book=RM70Intervals227(torch,80,env.device,out,task['source_SHA']);book.install(type(env.command_manager.get_term('twist')))
+   guard=FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor);guard.assert_new_nominals_unchanged();env.reset()
+   if book is not None:book.arm(env,env.command_manager.get_term('twist'))

@@ -1,0 +1,37 @@
+"""Localmetadata-onlyemit+negativefixtures. No model/native replay or authority."""
+from pathlib import Path
+import ast,copy,hashlib,json
+import e1_historical_proof_normalizer as n
+B=Path(__file__).resolve().parent
+
+def info(p):
+ r=p.read_bytes();return dict(path=str(p),bytes=len(r),SHA=hashlib.sha256(r).hexdigest())
+def put(name,v):
+ p=B/name;p.parent.mkdir(exist_ok=True)
+ with p.open('x',encoding='utf-8')as f:json.dump(v,f,ensure_ascii=False,indent=2)
+ return info(p)
+tests=[];plans=[];normalized=[];payload=[];schema=[]
+def check(name,value):assert value,name;tests.append(dict(name=name,passed=True))
+for role in n.ROLES:
+ row,template,handoff,col,refs=n.load_role_inputs(role);prior=copy.deepcopy(row['source_pin']);spec=n.build_role_spec(role,'PARENT_PLANNED_NEW_UNUSED_JOBROOT/'+role,'PARENT_PLANNED_NEW_RUN_NOT_ADMISSION');norm=spec['normalized_proof']
+ check(role+':collected_actual_whole20k_flags_verified',norm['actual_not_mock']is True and norm['whole_state_restore_passed']is True and norm['all_own_children_waited']is True and norm['failed_checks']==[])
+ check(role+':fixedPinAndWholeTaskFieldsNotMutated',spec['source_pin']==prior and spec['task_template']==template and spec['task_fields']==template and spec['source_pin']['SHA']==template['source_SHA'])
+ check(role+':historicalOnlyNoReadyOrTrainingPass',spec['historical_reference_not_newtrainingpass']is True and spec['actualTask_Ready_GO_or_budget_created']is False and norm['new_SDK_or_training_or_skill_pass']is False)
+ check(role+':native0ptFieldLiteralRoleIndependent',spec['native0pt_evidence_file']=='evidence/NEW_ASSET_NATIVE_ACTUAL.json' and 'native2pt_evidence_file'not in spec and 'native3pt_evidence_file'not in spec)
+ check(role+':actualDimsCoreAndAllHelperChecksRead',norm['live_interface']==dict(actor_obs=35,critic_obs=38,actions=6) and norm['checks']['actual_live_tensor_shapes']is True and sum(k.startswith('helper/')for k in norm['checks'])==8)
+ mutations=[('actual_returncode',lambda x:x['files']['TERMINAL_ROWS.json'][0].update(returncode=1)),('worker_passed_false',lambda x:x['files'][n.COMPLETE].update(passed=False)),('not_all_waited',lambda x:x['files']['PARENT_EXIT_SCOPE.json'].update(all_own_children_waited=False)),('wrong_asset',lambda x:x['files'][n.COMPLETE]['nominal_guard'].update(usd_sha256='WRONG')),('two_startup_resets',lambda x:x['files'][n.COMPLETE]['nominal_guard'].update(original_fresh_reset_calls=2)),('wrong_observation_shape',lambda x:x['files'][n.COMPLETE]['nominal_guard']['expected_interface'].update(actor_obs=175)),('sensor_not_live_restored',lambda x:x['files']['gpu1/out/SENSOR_RESUME_STARTUP_VERIFIED.json'].update(actor_critic_std_exact=False)),('no_17Adam_core_exact',lambda x:x['files'][n.COMPLETE].update(core_before_after_exact=False)),('new_rng_stream_not_saved',lambda x:x['files']['gpu1/out/CHASSIS_PD_RESUME_STARTUP_VERIFIED.json'].update(COM_PD_factors_episodes_six_CUDA_RNG_restored_exact=False))]
+ for label,mutate in mutations:
+  bad=copy.deepcopy(col);mutate(bad);q=n.normalize_historical_objects(role,row,handoff,bad,raw_refs=refs);check(role+':negative_'+label,q['whole_state_restore_passed']is False and q['failed_checks'])
+ bad=copy.deepcopy(col);bad['files'].pop('gpu1/out/GAS_DAMPING_RESUME_STARTUP_VERIFIED.json')
+ try:n.normalize_historical_objects(role,row,handoff,bad,raw_refs=refs);missing=False
+ except KeyError:missing=True
+ check(role+':missing_helper_does_not_create_True',missing)
+ if role=='SLOPE135':check('S135nestedAdapterNotCurbTemplate',norm['handoff_schema_exact']['selector']==['SLOPE135'] and norm['handoff_schema_exact']['typed_source']=='typed_source' and norm['whole_state_restore_passed']is True and handoff['CURB141']['actual_typed_or_SDK_not_done']is True)
+ if role=='SLOPE_INDEPENDENT50':check('S50skillmetricGapNotRestoreFailure',norm['whole_state_restore_passed']is True and norm['skill_metric_scope']=='S50_ACCEPTED_FULLRAMP_METRIC_GAP_NOT_RESTORE_PROTOCOL_FAILURE' and norm['skill_graduated']is False)
+ path=put('role_specs/'+role+'_ROLE_PLAN_SOURCE_ONLY.json',spec);proof=put('normalized_proofs/'+role+'_HISTORICAL_WHOLE20K_REFERENCE.json',norm);plans.append(dict(role=role,role_spec=path,normalized_proof=proof,source_pin_SHA=prior['SHA']));normalized.append(norm);payload+=spec['payload_source_inputs'];schema.append(dict(role=role,handoff=refs['handoff'],collection=refs['collection'],exact_handoff_adapter=norm['handoff_schema_exact'],actual_collection_common_paths=dict(complete=['files',n.COMPLETE],terminal=['files','TERMINAL_ROWS.json'],wait=['files','PARENT_EXIT_SCOPE.json'],core_before=['files','gpu1/out/E1_CORE_BEFORE.json','core'],core_after=['files','gpu1/out/E1_CORE_AFTER.json'],helper_paths=['files/gpu1/out/'+name for name in n.HELPER_TRUE_FIELDS]),raw_original_bytes_overwritten=False))
+for p in B.glob('*.py'):compile(ast.parse(p.read_bytes()),str(p),'exec')
+proof=put('FOUR_ROLE_METADATA_NORMALIZER_STDLIB_PROOF_V1.json',dict(kind='LOCAL_HISTORICAL_JSON_METADATA_POSITIVE_AND_NEGATIVE_TESTS_NOT_SDK_MOCK_PASS',tests=len(tests),passed=True,rows=tests,positive_evidence='ActualalreadycollectedJSONmetadata/verifiedcloneMapSHA,notfabricatedNativeexecution',negatives='Localdeepcopiesonly,neverrewritetheoriginalactualproofbytes',PT_model_read_stat_hash_decode_candidate_SDK_GPU_SSH_C_GO_Git=0))
+fieldmap=put('PARENT_GENERIC_ROLE_FIELD_MAP_AND_EXACT_SCHEMAS_V1.json',dict(module=info(B/'e1_historical_proof_normalizer.py'),function='build_role_spec(role,jobroot,runid)',parent_stager='parent_source/stage_generic_nonpt_roles_v2.py',direct_top_fields=['role','source_pin','base_root','job_root','source_family','source_SHA','source_model_metadata','task_template','historical_raw_proof','normalized_proof','runtime_source_paths','required_immutable_metadata','required_immutable_files','native0pt_evidence_file','num_envs','max_additional_updates','manifest_file'],historical_raw_proof='CompletealreadycollectedCOLLECTION.json path/bytes/SHA; historical_handoff_raw_proof separatelypreservesvariantorS135nestedhandoff',no_global_role_string_replace=True,native0pt_evidence_key='native0pt_evidence_file',source_pins_unchanged=True,task_producer='Reuseoldsource_e1/e1_posttrain_make_task.make_taskonlyAFTERparentrealfreshadmission/GO; thesearecompleteNOT_READYtemplatesnotactualTasks',schemas=schema))
+payload_ref=put('ORIGINAL_HISTORICAL_PROOF_PAYLOAD_REFS_V1.json',dict(kind='EXISTING_RAW_JSON_BYTE_REFERENCES_NO_RAW_PT_OR_TRAJECTORY',files=payload,bytes_preserved_at_original_paths=True,parent_may_copy_exact_bytes_to_source_payload=True,new_originalproofs_created=False,metadata_hashes_not_model_hashes=True))
+index=put('FINAL_FOUR_E1_ROLE_PROOF_NORMALIZER_SOURCE_INDEX_V1.json',dict(kind='SOURCE_ONLY_HISTORICAL_METADATA_NORMALIZER_AND_ROLE_SPEC_READY_FOR_PARENT_DATA_MAPPING',module=info(B/'e1_historical_proof_normalizer.py'),function='build_role_spec(role,jobroot,runid)',roles=plans,normalizer_proof=proof,exact_fields=fieldmap,raw_payload_refs=payload_ref,all_historical_references_not_newtrainingpasses=True,H1_excluded=True,no_actualTask_Ready_GO_or_resource_wait_created=True,parent_archive_append_pending=True,files=[info(p)for p in sorted(B.rglob('*'))if p.is_file()]))
+print(json.dumps(dict(index=index,roles=[dict(role=x['role'],source_SHA=x['source_SHA'],actual_not_mock=x['actual_not_mock'],whole_state_restore_passed=x['whole_state_restore_passed'],waited=x['all_own_children_waited'])for x in normalized],tests=len(tests),PT_SDK_operations=0),indent=2))

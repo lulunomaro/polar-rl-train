@@ -1,0 +1,8 @@
+"""Readonlyidentifychangedcardconditionafterfreshlauncherdeniedbeforeparent/GO; noGPUtake/SDK/selectedPT/Cwrite/foreignsignal."""
+from pathlib import Path
+import sys,json,ast,shlex
+D=Path(__file__).resolve().parent;sys.path.insert(0,str(D.parent));from project_connector import connect72
+out=D/'reports/PAIR3_LAUNCHER_GPU_BUSY_DIAGNOSIS_ONCE.json';assert not out.exists();t=ast.parse((D/'diagnose_original_retention_lock_wait_once.py').read_text(encoding='utf-8'));code=next(n.value.value for n in ast.walk(t)if isinstance(n,ast.Assign)and any(isinstance(a,ast.Name)and a.id=='code'for a in n.targets));code=code.replace("for name in('three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock','finite_environment_validation.lock'):","for name in('three_expert_v2_GPU-16828f91-2b45-b646-8dc0-9481138e2842.lock','three_expert_v2_GPU-c27eecbd-6838-7290-1cd2-37e34522213d.lock','finite_environment_validation.lock'):");code=code.replace('print(json.dumps(v))',"v['compute_apps']=subprocess.check_output(['/usr/bin/nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True);print(json.dumps(v))");c=connect72()
+try:
+ i,o,e=c.exec_command(shlex.quote('/home/lc01/Zonglin Li/zonglin2/run-python.sh')+' -B -c '+shlex.quote(code),timeout=60);i.close();text=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status();assert rc==0,(rc,err);v=json.loads(text);v['previous_attempt']='Launcherfreshcardgatebusy; noPAIR3parentstarted/noGO/noPTOpen';out.write_text(json.dumps(v,indent=2),encoding='utf-8');print(out);print(json.dumps(v,indent=2))
+finally:c.close()

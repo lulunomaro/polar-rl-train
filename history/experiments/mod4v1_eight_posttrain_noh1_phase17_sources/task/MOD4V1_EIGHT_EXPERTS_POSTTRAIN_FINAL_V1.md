@@ -1,0 +1,78 @@
+# MOD4v1八专家本轮后训练与原技能保持：最终结果
+
+**本轮已完成：排除H1的8条最新谱系，各20次真实原PPO更新、完整派生checkpoint保存、原scope冻结复评与最佳源选择。H1保持冻结。**
+
+八条训练与八条评测worker均RC0，所有原父进程actual close/wait完成、原私卡／有限环境／authority锁按各scope释放。原预算唯一writer结算完成，无新增账本、预算扩展、退款或遗漏尾段。
+
+**最佳选择：4条采用新候选，4条继续采用冻结母本；所有8个新完整checkpoint及8个母本均保留。** 这是本次有限窗口与单seed fresh80的scope选择，**不等于所有技能毕业，更不等于真实硬件或完整20k接受总体资格通过**。
+
+## 一览
+
+| 专家 | 真实新PPO | 原scope实际结果 | 本次选择 |
+|---|---:|---|---|
+| E0 |20|三项既有body误差均改善；普通失败／闭链／mimic异常0|新候选|
+| CURB878 |20|上行22/27→26/27，下行27/27、站立26/26保持|新候选|
+| CURB113 |20|上行22/27、下行27/27、站立26/26保持，普通失败0|新候选|
+| SLOPE135 |20|上行25/27→27/27，下行27/27、站立26/26保持，普通失败0|新候选|
+| E2 |20|vx／yaw改善，vy微增0.00005794m/s；原世界联合仍0/187|冻结母本，新候选保留|
+| E3 |20|原首回合stable credit0/74→1/74，但普通终止事件25→27|冻结母本，新候选保留|
+| W35（W25） |20|原moving18/61→18/64，standing26/26保持；比较分母／参考系证据缺口仍在|冻结母本，新候选保留|
+| SLOPE50 |20|原20s ownaxis普通失败0；完整fullramp接受cohort／谓词缺项|冻结母本，新候选保留|
+
+## 训练与完整状态
+
+每条whole20,000环境、原24steps/update；恢复原actor、critic、learnedSTD、17Adam、LR、原RSL迭代及所有D0–D7状态／RNG／history／queue，未知root和nested字段保留。ONE原helper freshreset后走原learn(True)，不从N80 actorcache重启、不切片20k历史、不引BPTT、不手冻STD、不改奖励／技能接受谓词。
+
+采用MOD4v1原2c/bae资产与新构造名义M/COM/I；400N/k2000/damping3、policy50Hz/feedback100Hz、physics .0025s/TGS32,4、闭链.01m/mimic.01rad与原D0–D7配置保持。N80资源capacity仅评测使用，不套20k训练。
+
+| 新完整候选 | 实际saved iter | 实际17Adam步数 | 实际saved LR | SHA256前16位 |
+|---|---:|---:|---:|---|
+| E0 |32004|[641600]|0.0002562890625000001|`6cdac1e4b84df407`|
+| E2 |42842|[859700]|0.00050625|`68e1df12c95276a8`|
+| E3 |43110|[866460]|0.0002562890625000001|`67ee37cf39a9b82f`|
+| W35 |32662|[654900]|0.00017085937500000006|`c4357c2c70bb044e`|
+| CURB_PROTECTED878 |32959|[660800]|7.593750099961956e-05|`db3d5a6a2a81fb71`|
+| CURB_INDEPENDENT113 |32194|[645500]|0.00011390625000000006|`04bc3a49a5e0f6e1`|
+| SLOPE135 |32088|[643380]|0.0003375|`ec5b495691e10bf4`|
+| SLOPE_INDEPENDENT50 |32137|[644380]|0.00011390625000000003|`34ee25ddd2d8de2d`|
+
+W35与E1原RSL last-loop标签可能只增加19，但各自实际完成20次PPO，17Adam按20次原20minibatches更新交叉核验；**不把标签算术回填为+20**。具体路径、完整SHA、bytes、当前scope选择与母本／候选双保见[checkpoint目录](<MOD4V1_EIGHT_POSTTRAIN_CHECKPOINT_CATALOG_V1.json>)。
+
+原producer GO→原父实际terminal派生总成本 **9760.750821590专家秒**（约2.7113专家小时，非墙钟时间）。此数仅对原回执作汇总，不是新账本或新增计费。
+
+## 原scope冻结评测
+
+统一原seed20260928／80环境，各自原时长与接受规则：E0 20s、E2 24s、E3 3.2s、W35 32s、C878/C113/S135各15s、S50 20s。每对并行使用原一张授权4090、private GPU EX与global finite EX及两inherited FDs；所有场景ready后原共同控制起点，不额外reset/RNG或提前actor调用。
+
+整20kcheckpoint仅在本次原准入后一次byte/hash/decode并完整CPUcache，严格加载当前actor/learnedSTD，原mean action clip6；critic/17Adam/LR/iter/history全部保留身份但不live恢复到80环境、不apply/slice保存DR，不创建livecritic／optimizer、不新增PPO。当前自身closed stdout容量／CUDA错误为空；旧raw/NPZ/JSONL不为状态、表格或Git重读。
+
+### 已采用的新候选
+
+E0 vx/vy/yaw平均绝对误差：
+
+| 诊断 | 母本 | 后训练候选 |
+|---|---:|---:|
+| vx m/s |0.0395033710|0.0382847350|
+| vy m/s |0.0476382248|0.0475115205|
+| yaw rad/s |0.1058644789|0.1011079227|
+
+C878/C113/S135保留原same-episode、两轮端点、Fz接触确认与各自task geometry；stand不强制跨越。路径边界／timeout事件独立保留，不把它们冒称跌倒或额外总成功率。
+
+### 保守保留母本的原因
+
+- **E2**：三项既有body diagnostics采用Pareto非更差+普通失败不增+原accepted-true不下降的保守选择。vy仅微增，不宣统计显著退化；原world getter相位／参考点缺口、0/187真接受状态不粉饰为毕业。观察器producer旧b3标签是谱系字段，真实actor/cache已校对新68e1，不改写旧记录或重读JSONL修标签。
+- **E3**：原13recipe行中0–11共12个requested rescue/74初始环境；normal recipe12的6个环境排除。仅原recovery.credited & first_episode_live计入；stable50公开100Hz=.5s／25policycontrols，request300=3s。credit真实改善1个，但普通终止事件增加2个，保母本，未用delta或跨reset拼接credit。
+- **W35**：新moving原完整指令区间18/64，旧18/61；站立26/26相同。新complete90/true44/false46，旧87/44/43。分母与自然reset后的指令population改变，且world getter／root-vsCOM／参考相位／匹配UID接受cohort证据仍缺，保母本，不以总44/90替代moving成功率，不把catalog goal0当原训练target失败。
+- **SLOPE50**：原20s ownaxis描述性回放无普通失败；boundary41→46、timeout47→43独立列出。原fullramp完整accepted cohort与接受谓词未获证明，保母本，未借用S135端点判据。
+
+W35的moving/standing新分拆由**原row写出同一时刻**读取原standing/complete/accepted bool累加，未改reset、RNG、动作、奖励、时钟、区间边界或原接受谓词；finish核分组和等于原aggregate。原V8与已消费旧case不改，不为该分拆再回放或开raw；这只是补观测，不补齐上述资格缺口。
+
+## 完整性、归档与后续边界
+
+[最终metadata完整性核验](<POSTTRAIN_EIGHT_EXCLUDING_H1_20261102/reports/EIGHT_POSTTRAIN_FINAL_METADATA_INTEGRITY_V1.json>) 已核8条实际20／160次专家更新、8条冻结评估、全部RC0／closewait／原costsettled／原锁释放、8个新候选和母本保留，Registry_v8除schema之外的原字段（含H1）在最终Registry中逐项保持。不会仅因为新候选文件存在、RC0或scope gap就宣毕业。
+
+[Registry_v12](<EXPERT_NORMALIZATION_REGISTRY_v12.json>) · [八条过程表](<ASSESSED_MOD4V1_POSTTRAIN_8_EXPERTS_RESULTS_V1.md>) · [完整候选与保留源目录](<MOD4V1_EIGHT_POSTTRAIN_CHECKPOINT_CATALOG_V1.json>)
+
+最后评估的lowercase task路径、嵌套DR audit与barrier_start包装兼容性问题均为本地metadata reader错误，v1–v4原源、失败与修复记录保留；原skill比较函数AST保持，未因格式问题重新开任何模型、轨迹或SDK。所有试错、原恢复／训练／保存／评测证据和机器索引按原record_experiment与唯一annotated trial归档，只推feature、不推main。
+
+本轮有限后训练与原scope评估已结束；**尚未证明的完整技能／硬件资格及观察器缺口仍是后续任务**。不以更多未请求窗口悄悄续训，不覆盖母本或删退化候选。

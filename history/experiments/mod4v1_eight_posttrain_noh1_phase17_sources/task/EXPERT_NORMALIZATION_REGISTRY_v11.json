@@ -1,0 +1,3418 @@
+{
+  "schema": "mod4v1.expert_normalization.registry.v11",
+  "human_scope": "All frozen experts use the newly enhanced MOD4v1 plant; user confirmed W25 means W35/E1_WAVE35; seek two truly free GPUs, preserve active tasks and original canonical.",
+  "target_asset": {
+    "local_directory": "F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets",
+    "USD_SHA256": "2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3",
+    "contract_SHA256": "bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755",
+    "asset_provenance_commit": "72cbf1bc67377cdf57f8b2447d8e6b8db4fb062f",
+    "not_old_wrapper_SHA": "bce9a7740fd9a2e2252d34a09c1fef7dab70e2a65f9d0ee2e422cec5f12c60e4",
+    "known_nominal_mass_kg": 14.294140288606286,
+    "full_current_CAD_group_calibration_completed": false
+  },
+  "common_runtime": {
+    "actor_observation_dim": 35,
+    "critic_observation_dim": 38,
+    "action_dim": 6,
+    "physics_dt_s": 0.0025,
+    "TGS_iterations": [
+      32,
+      4
+    ],
+    "policy_hz": 50,
+    "feedback_hz": 100,
+    "closure_episode_reset_m": 0.01,
+    "mimic_threshold_rad": 0.01,
+    "normalization": "Preserve each original expert's fixed SI scales, command semantics and fullstate; do not pool or fabricate running statistics.",
+    "preserve": [
+      "actor",
+      "critic",
+      "learned STD",
+      "17 Adam states",
+      "source LR and counters",
+      "original private RNG and command state",
+      "correctly timed delay/feedback queues"
+    ],
+    "fresh_physical_nominals": "Existing constructors capture masses/inertias/COM from NEW asset. Existing resume restores RNG then ONE fresh episode reset. Sidecar guard verifies identity/new caches, not a fabricated old-mass restore bug."
+  },
+  "DR_contract": {
+    "definition": "Actual existing original white_v3/D0-D7, not vendor recipe expansion or a generic hardware-full-coverage label",
+    "D0": "per-env common all-body mass/inertia factor0.9-1.1; six motor gain0.9-1.1; wheel mu0.7-1.0",
+    "D1": "original raw sensor noise and per-episode leg encoder bias",
+    "queues": "feedback0/10ms; physical action0/2.5/5ms, legs4 and wheels2 episode groups with original independent RNG; do not invent a second D3 delay",
+    "D5": "per-gas-spring stiffness nominal2000 scaled0.9-1.1",
+    "D6": "gas-spring damping nominal3 scaled0.9-1.1; not complete joint-friction coverage",
+    "D7": "chassis COM XYZ plus/minus5mm; original PD factor0.95-1.05",
+    "real_parameters_readback_required": true,
+    "mod4v1_full_DR_passed": false,
+    "mod4v1_full_DR_component_runtime_passed": true,
+    "mod4v1_selected_four_DR_protocol_admitted": true
+  },
+  "selected_formals": [
+    {
+      "expert": "E0",
+      "skill": "flat standing/running/turning and original-world retention",
+      "expected_source_SHA256": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a",
+      "source_bytes": 14031973,
+      "source_iteration": 31984,
+      "source_Adam_step": 641200,
+      "source_LR": 0.00038443359375000017,
+      "source_local": "C:/Users/lulu/Desktop/claude/mjcf/MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021/MOD4_E0_PPO50_GAS400_REMOTE4090_RESOURCE_V89D_20261027/current_qualified_candidate/formal/model_final.pt",
+      "status": "ACTUAL_NEWPLANT_FULL20K_D0D7_SOURCE_RESTORE_NATIVE24_PASS_LONGSKILL_PENDING",
+      "expected_slot": "GPU0 queue",
+      "source_remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d/e0/adaptation/final_valid_update82.pt",
+      "source_saved_CPU_SHA": "1364e84c2e732b347457aa7e7f6366d28203e40e93b42a4c798fb23f5b6ebd0e",
+      "derived_source": "staged_sources/E0_MOD4V1_SOURCE_FINAL",
+      "target_noPT_attempt1": "reports/E0_fresh80_collect_20261102_014231/COLLECTION.json",
+      "target_noPT_attempt2_waiter": "reports/E0_attempt2_waiter_dispatch_20261102_015129_1793555489733223300.json",
+      "source_PT_opens_this_phase": 0,
+      "actual_restore_report": "E0_actual_fullrestore_native24/E0_A92_FULLRESTORE_NATIVE24_ACTUAL_PASS.json",
+      "source_physical_byte_opens_this_purpose": 1,
+      "source_decodes_this_purpose": 1,
+      "optimizer_updates_this_purpose": 0,
+      "one_original_fresh_reset": true,
+      "new_constructor_nominals_preserved": true,
+      "full_expert_skill": "UNKNOWN",
+      "protocol_controls": 24,
+      "protocol_physics_callbacks": 192,
+      "protocol_feedback_samples": 48,
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a",
+        "original_accepted_scope": "Originalflat/world/spin command20s exposure+execution measured, NOT frozen fullskillaccepted",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": 20.0,
+        "seed_or_cohort": {
+          "num_envs": 20000,
+          "seed": 20260928,
+          "source_scope": "One declared sampledcase, earlyoriginalresample all20k atphysics0; 100warm/900steady controls"
+        },
+        "metric_predicate": {
+          "type": "DiagnosticbodyV/yaw/height MAE andsampledsigned2pi cycleprogress; no savednumericalglobal/percommand skillgraduation rule",
+          "catalog_reference": "E0_CATALOG",
+          "metric_functions_reference": "E0_METRICS",
+          "original_complete_commands": {
+            "closed_instance_events": 60000,
+            "acted_instance_events": 40000,
+            "zero_control_instance_events": 20000,
+            "all_acted_instance_population_controls": 20000000,
+            "acted_initial_left_censored_events": 0,
+            "acted_reset_ended_events": 20000,
+            "acted_window_end_events": 0,
+            "fully_observed_resample_to_resample_instance_events": 20000,
+            "complete_instance_population_controls": 13998008,
+            "complete_instance_seconds": 279960.16,
+            "left_censored_instance_events": 0,
+            "window_end_right_censored_instance_events": 20000,
+            "reset_ended_instance_events": 20000,
+            "complete_transition_instances_with_all_pre12_bins": 1979
+          },
+          "scope_boundary_diff": {
+            "original_snapshot": {
+              "closure_m": 0.002,
+              "mimic_rad": 0.05,
+              "bad_orientation_rad": 0.75,
+              "chassis_contact_N": 50.0,
+              "low_base_relative_min_m": -1.0
+            },
+            "current_approved_integration": {
+              "closure_m": 0.01,
+              "mimic_rad": 0.01
+            },
+            "not_same_physical_gate_retest": true,
+            "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+            "causal_or_paired_rate_comparison": false
+          }
+        },
+        "saved_evidence_gaps": [
+          "No original numerical skill pass tolerances/per-command success thresholds saved; do not invent a graduation rule.",
+          "straight_zero has0 exposure; original continuous straight command has a zero label but no discrete zero atom guaranteed. No exposure is pending, not failed/success.",
+          "Only one20s window/seed and sampled original commands; no full stochastic range or long-term reliability claim.",
+          "Moving worldprogress metrics cover only accepted sampled same-command2pi windows (~68%movingtime), not every command/all elapsed movingtime.",
+          "Complete command summaries provide body/yaw/height errors but not per-command worldprogress success counts or distributions; JSONL content intentionally NOT transferred/read.",
+          "Global unique env unions across changing signed profiles are not saved. Retain perprofile exactunique and conservative union bounds, never sum overlaps as exact globalunique.",
+          "Per-transition error tensor axis names are not explicit in saved schema; report axis0/1/2 only, no guessed physical labels.",
+          "20k reset-ended acted commands are incomplete despite no non-timeout failure;20k0-control window-end rows cannot be positive skill evidence.",
+          "No complete127-state/executedaction/queue/DR/reset WM transition dataset; command JSONL and weights are not that dataset."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "W35",
+      "human_alias": "W25 confirmed by user",
+      "skill": "E1_WAVE35 into original-CAD RM70",
+      "expected_source_SHA256": "2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b",
+      "source_bytes": 17619333,
+      "source_iteration": 32481,
+      "source_Adam_step": 651260,
+      "source_LR": 0.0002562890625000001,
+      "source_remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_W35_QUALIFIED343E_CONTINUE227D_20261101_0712/w35_72/production/model_final_complete.pt",
+      "status": "ADAPTED_NEW89ACA_VALID_FULLDR_CHECKPOINT_COMPLETE32_EVALUATED_NOT_RM70_QUALIFIED",
+      "expected_slot": "Second actually free GPU; do not displace current GPU1 task",
+      "derived_source": "staged_sources/W35_MOD4V1_SOURCE_V2_FINAL",
+      "actual_restore_report": "reports/W35_eval_snapshot_20261102_013744.json",
+      "source_physical_byte_opens_this_purpose": 1,
+      "source_decodes_this_purpose": 1,
+      "optimizer_updates_this_purpose": 0,
+      "one_original_fresh_reset": true,
+      "new_constructor_nominals_preserved": true,
+      "full_expert_skill": "NOT_QUALIFIED_FOR_OBSERVED_RM70_MOVING_DOMAIN",
+      "current_eval_root": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_FULLDR_EVAL_20261102_010506_1793552706521956800",
+      "baseline_report": "reports/W35_eval_snapshot_20261102_015848.json",
+      "baseline_ownraw_CPU_analysis": "reports/W35_own32s_cpu_analysis_20261102_020418.json",
+      "actual_adaptation": {
+        "new_PPO_updates": 80,
+        "new_environment_transitions": 38400000,
+        "saved_new_model": {
+          "epoch": 1793560565.6383216,
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_FULLDR_ADAPT_V2_20261102_021542_1793556942487949000/production/model_final_complete.pt",
+          "bytes": 17621509,
+          "SHA": "89aca6ce52f8e83719de14dd53cb423a182f14e4f370614887605b2131d5bf0f",
+          "source_SHA": "2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b",
+          "actual_new_PPO_updates": 80,
+          "saved_iteration": 32561,
+          "Adam_min": 652860,
+          "Adam_max": 652860,
+          "full_core_STD_optimizer_and_targetDR_saved": true,
+          "same_RM70_course_assignment_command_fullstate_restored": true
+        },
+        "original_cost_settled": true,
+        "original_owner_and_children_waited_released": true,
+        "original_owner_exit_report": "reports/W35_adaptation_exit_watch_20261102_031705.json"
+      },
+      "postadapt_evaluation": {
+        "status": "ACTUAL_COMPLETE32S_CORE_UNCHANGED_ZERO_UPDATE_EXIT_SCOPE_PASS",
+        "report": "reports/W35_postadapt_terminal_watch_20261102_041116.json",
+        "CPU_onepass": "reports/W35_postadapt_own_raw_CPU_20261102_041218.json",
+        "decision": "reports/W35_FULL32_BEFORE_AFTER_PPO80_DECISION_V1.json",
+        "actual_source_LR": 0.00011390625000000006,
+        "controls": 1600,
+        "physics": 12800,
+        "feedback": 3200,
+        "new_telemetry_bytes": 45526028,
+        "new_telemetry_rows": 144436,
+        "new_telemetry_SHA": "b7363319d6c3cd2b85bdf1402980a18828873126e2c45a1b1f7040433337d6c4",
+        "new_raw_opens": 1,
+        "PT_reads_by_CPUreader": 0,
+        "scope_parent_exited_released": true
+      },
+      "observed_shortfall": {
+        "complete_commands": 21458,
+        "moving_complete": {
+          "count": 15158,
+          "bounds_met": 3789,
+          "terminated": 0,
+          "truncated": 0
+        },
+        "stand_complete": {
+          "count": 6300,
+          "bounds_met": 6175,
+          "terminated": 0,
+          "truncated": 0
+        },
+        "highspeed_complete": 9122,
+        "highspeed_bounds_met": 0,
+        "moving_mean_along_m_s": 0.02804565144369367,
+        "moving_max_along_m_s": 0.04441497102379799,
+        "moving_mean_BODYreference_along_error_m_s": -0.10698743371916457,
+        "route": {
+          "count": 61506,
+          "observed_reset_origin": 61506,
+          "entire_original_CAD_x_span_reached": 0,
+          "terminated_before_reset": 128,
+          "truncated_before_reset": 41391,
+          "observed_nonterminal_catalog_goal_fact": 0,
+          "any_goal_entry": 0
+        },
+        "route_x_range": {
+          "n": 61506,
+          "min": 0.0,
+          "q10": 0.116943359375,
+          "median": 0.35296630859375,
+          "q90": 0.5333251953125,
+          "max": 0.90966796875,
+          "mean": 0.37621610704152264
+        },
+        "source_rows": 144436,
+        "telemetry_bytes": 45526028,
+        "raw_SHA": "b7363319d6c3cd2b85bdf1402980a18828873126e2c45a1b1f7040433337d6c4"
+      },
+      "next_motion_trace": {
+        "status": "ACTUAL200CTRL4S_COMPLETED_CORE17ADAM_UNCHANGED_ZEROOPT_RC0_ALL_LEASES_RELEASED",
+        "report": "reports/W35_motion_trace_terminal_20261102_045423.json",
+        "analysis": "reports/W35_MOTION_TRACE_MECHANISTIC_ANALYSIS_V1.json",
+        "signed_check": "reports/W35_MOTION_TRACE_SIGNED_CHECK_V2.json",
+        "scope": "All6sampleframes actualall20kcommand-vsrawpolicyfirst3diff0/32sampleprocessedvsactualrobotwheeltargetdiff0; early1s|vx|.247sample/7of7same-sign disprovesuniversal.04m/shardcap; no specificCADstallorlongRM70graduation"
+      },
+      "new_automatic_training_window": false,
+      "next_original_finite_window": {
+        "status": "ACTUAL82_UPDATES_COMPLETE_SAVED8D_RC0_SETTLED_WAITED_RELEASED_NO_EXTRA_WINDOW",
+        "dispatch": "reports/W35_resume89aca_wait_dispatch_20261102_054158.json",
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_RESUME89ACA_WAIT_V4_20261102_054158_1793569318385718000",
+        "parent_pid": 1431521,
+        "source_SHA": "89aca6ce52f8e83719de14dd53cb423a182f14e4f370614887605b2131d5bf0f",
+        "input_iteration": 32561,
+        "input_17Adam": 652860,
+        "input_LR": 0.00011390625000000006,
+        "source_prior_window_updates": 80,
+        "original_max_seconds": 3900,
+        "save_after_seconds": 3600,
+        "headroom_seconds": 300,
+        "resource_wait_seconds": 1800,
+        "no_partial_locks_or_PT_SDK_ledgerwrites_during_wait": true,
+        "foreign_original_student_owner_not_interfered": 1429205,
+        "previous_case_preGO_failure": "reports/W35_resume89aca_exit_watch_20261102_053332.json",
+        "no_automatic_tail": true,
+        "future_postsave_full32_source": "staged_sources/W35_MOD4V1_AFTER_RESUME89ACA_EVAL_V2"
+      },
+      "latest_complete_checkpoint": {
+        "epoch": 1793573977.773047,
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_RESUME89ACA_WAIT_V4_20261102_054158_1793569318385718000/production/model_final_complete.pt",
+        "bytes": 17620037,
+        "SHA": "8d6a9ab5fae3fd2689c59bcfc1f1e776eb162b8eef671417df0fc88150285c54",
+        "source_SHA": "89aca6ce52f8e83719de14dd53cb423a182f14e4f370614887605b2131d5bf0f",
+        "actual_new_PPO_updates": 82,
+        "saved_iteration": 32643,
+        "Adam_min": 654500,
+        "Adam_max": 654500,
+        "full_core_STD_optimizer_and_targetDR_saved": true,
+        "same_RM70_course_assignment_command_fullstate_restored": true,
+        "prior_window_new_PPO_updates": 80,
+        "this_window_actual_new_PPO_updates": 82,
+        "cumulative_new_PPO_updates": 162,
+        "cumulative_new_environment_transitions": 77760000,
+        "source_parent89aca_input_iteration": 32561,
+        "source_parent89aca_input17Adam": 652860,
+        "original_cost_settled": true,
+        "all_own_children_waited_and_leases_released": true,
+        "actual_original_cost_seconds": 3644.470574617386,
+        "RM70_graduated": false,
+        "actual_saved_LR": 1.0000000000000004e-05,
+        "actual_LR_evidence": "staged_sources/W35_NEW8D_GPU_FULLRESTORE_CERTIFICATE_V1/FULLRESTORE227_BEFORE_CONTROL.json",
+        "actual_LR_source": "samecachedselected8dGPUoptimizerparamgroup_notlastfloat32tensorboardscalar",
+        "actual_new_source_GPU_fullrestore_certificate_SHA": "eb7818657e17c5ef649770f608aceb1231042160f30b9b329519151495037f34"
+      },
+      "latest_independent_eval": {
+        "status": "ACTUAL_COMPLETE_FULL32_1600_12800_3200_CORE_STD_17ADAM_UNCHANGED_NO_UPDATE_RC0_CLOSEWAIT_ALL_EX_RELEASED_OWN_NEW_RAW_CPU_VERIFIED_NOT_RM70_GRADUATED",
+        "report": "reports/W35_NEW8D_ADMISSION_METADATA_20261102_071212.json",
+        "root": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_AFTER_RESUME89ACA_EVAL_20261102_070117_1793574077925312000",
+        "parent_pid": 1438355,
+        "worker_pid": 1438914,
+        "resource_admission": {
+          "passed": true,
+          "epoch": 1793574619.6159558,
+          "canonical_SHA": "df5fcac26b8e4ecf6907b800c7e2c5b3388c4153cbbbb5dae48200ecfc84fcc5",
+          "canonical_current_owner": null,
+          "canonical_generation": "MOD4_SINGLE_WRITER72_20261026",
+          "canonical_writes": 0,
+          "new_GO": false,
+          "GPU_line": "GPU-16828f91-2b45-b646-8dc0-9481138e2842, NVIDIA GeForce RTX 4090, 24203, 0",
+          "private_EX": true,
+          "finite_validation_EX": true,
+          "selected_GPU_empty": true,
+          "source_model_opens_parent": 0
+        },
+        "source_model_SHA": "8d6a9ab5fae3fd2689c59bcfc1f1e776eb162b8eef671417df0fc88150285c54",
+        "source_bytes": 17620037,
+        "source_iteration": 32643,
+        "source_17Adam": 654500,
+        "source_actual_saved_LR": 1.0000000000000004e-05,
+        "controls_max": 1600,
+        "physics_max": 12800,
+        "feedback_max": 3200,
+        "single_eval_then_single_ownnewraw_CPU_job": "pwsh-10095bd3705b4d24",
+        "no_extra_training_or_automatic_tail": true,
+        "latest_own_process_health_report": "reports/W35_NEW8D_OWN_HEALTH_METADATA_20261102_075935.json",
+        "health_status": "Actualownedworker1438914running2956elapsedsecondsasof07:59:35/noFINALorEXITatthatread/notgraduation",
+        "terminal_report": "reports/W35_after_resume89aca_eval_terminal_watch_20261102_080039.json",
+        "CPU_report": "reports/W35_after_resume89aca_own_raw_CPU_20261102_080042.json",
+        "processed_comparison_report": "reports/W35_THREE_GENERATIONS_FULL32_DECISION_V1.json",
+        "raw_bytes": 44951053,
+        "raw_SHA": "8aa426ecc5d5c2d6ef6744789565fe2c838c819839b2def3b36e5da7cc36a4c9",
+        "raw_rows": 142168,
+        "raw_opens": 1,
+        "schema_opens": 1,
+        "PT_opens_by_CPU": 0,
+        "new_highspeed_complete": 8948,
+        "new_highspeed_original_bounds_met": 0,
+        "original_CAD_xspan_observed": 0,
+        "original_catalog_goal_observed": 0,
+        "all_original_eval_leases_released": true
+      },
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "PARENT_CURRENT_8D_NOT_READ",
+        "original_accepted_scope": "LIVE_PARENT_OWNED_EXCLUDED: parent1438355/1438914 full32s independent8d; no duplicatecase/data",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": null,
+        "seed_or_cohort": {
+          "owner": "PARENTONLY",
+          "currentcaseDataRead": false
+        },
+        "metric_predicate": {
+          "status": "CURRENTLIVECASE_EXCLUDED_NO_PREDICATE_DATAJOIN",
+          "no_current8d_metadata_or_raw_read": true
+        },
+        "saved_evidence_gaps": [
+          "Current8d case metrics/dataexcluded bydirectscope; parentownscriteria/readout/32sresult.",
+          "Oldad504/2d/343E/227D facts are not current8dskillpass; do not resetLR fromparent."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "E2",
+      "skill": "world-direction motion and signed yaw",
+      "expected_source_SHA256": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+      "source_bytes": 14615089,
+      "source_iteration": 42822,
+      "source_Adam_step": 859300,
+      "source_LR": 0.00022500000000000002,
+      "source_LR_evidence": "Exact saved LR from FORMALS213/selected CPU proof; initial rounded registry value retained in phase1 Git",
+      "source_remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+      "status": "ACTUAL_NEWPLANT_FULL20K_D0D7_SOURCE_RESTORE_NATIVE24_PASS_LONGSKILL_PENDING",
+      "expected_slot": "GPU0 queue",
+      "actual_restore_report": "reports/E2_b3_no_update_final_20261102_024838/COLLECTION.json",
+      "source_physical_byte_opens_this_purpose": 1,
+      "source_decodes_this_purpose": 1,
+      "optimizer_updates_this_purpose": 0,
+      "one_original_fresh_reset": true,
+      "new_constructor_nominals_preserved": true,
+      "full_expert_skill": "UNKNOWN",
+      "protocol_controls": 24,
+      "protocol_physics_callbacks": 192,
+      "protocol_feedback_samples": 48,
+      "derived_source": "staged_sources/E2_MOD4V1_SOURCE_V1",
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+        "original_accepted_scope": "Original18s sampledprofiles measured; ownfull24s signed4 observed originalmanyfalse, NOT fullskillaccepted",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": [
+          18.0,
+          24.0
+        ],
+        "seed_or_cohort": {
+          "num_envs": 20000,
+          "seed": 20260928,
+          "source_scope": "V5normal900 earlyresample +V2321200control own24s distinctpurpose"
+        },
+        "metric_predicate": {
+          "functions": "E2Cycles213.begin/observe/emit",
+          "same_span": "Sameepisode/commandUID/profile/worlddirection/yawsign, contiguousphysicalcontrol; phaseboundary reported not artificialbreak",
+          "sampled_end": "signedturn>=2pi, no interpolation orovershootcarry",
+          "seconds": "controls*.02",
+          "kinematic": "abs(along-.5)<=.05 AND abs(cross)<=.05 AND abs((turn-commandedYawIntegral)/seconds)<=.2",
+          "valid": "seconds>0 AND complete AND NOTterm AND NOTtimeout",
+          "per_span_fact": "valid AND kinematic",
+          "aggregate_rule": null,
+          "original_actual_counts": {
+            "complete": 53140,
+            "original_false": 52588,
+            "original_fact": 552,
+            "along_fail": 46147,
+            "cross_fail": 9099,
+            "yaw_fail": 8413,
+            "original_nonterminal_and_nontimeout_false": 42,
+            "non_timeout_at_complete": 0,
+            "timeout_at_complete": 42,
+            "kinematic_false_from_original_flag": 52588,
+            "partial": 11786
+          },
+          "scope_boundary_diff": {
+            "original_snapshot": {
+              "closure_m": 0.002,
+              "mimic_rad": 0.05,
+              "bad_orientation_rad": 0.75,
+              "chassis_contact_N": 50.0,
+              "low_base_relative_min_m": -1.0
+            },
+            "current_approved_integration": {
+              "closure_m": 0.01,
+              "mimic_rad": 0.01
+            },
+            "not_same_physical_gate_retest": true,
+            "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+            "causal_or_paired_rate_comparison": false
+          }
+        },
+        "saved_evidence_gaps": [
+          "CURRENT_SCOPE: The later24s E2_CYCLES.emit numeric per-cycle predicate IS SAVED (along0.5+/-0.05m/s, cross+/-0.05m/s, yawerror+/-0.2rad/s; complete andnotterm/notimeout). The remaininggap is an overallskillgraduation/population/cohort acceptance rule; no posthocaggregate passrate.",
+          "straight_zero has no exposure/complete instances and allerrorsnull: pending, not a pass or a failed attempted profile. Original standing profile is separate.",
+          "20k window-end acted commands are incomplete despite absence of resets; fullrun900 is not40000 fullcommands.",
+          "Perprofile uniqueenv is exact, but crossprofile/signed-direction union is not directly saved. Show bounds, not sum overlapping uniqueenv counts as a total.",
+          "Complete command summaries provide body-v/yaw/height means; per-command worldprogress success rates, extremes and raw timer/first-action distributions were not extracted because JSONL content remains metadata-only.",
+          "Moving worldprogress is measured on accepted signed2pi sampled windows (~89%movingtime). Unsampled elapsedtime/commands are not assumed successful; cycleabsolute error is not instantaneous world-v error/body-v MAE.",
+          "All18s runs here use the saved model and one declared case design; no broad stochastic coverage, long-term reliability or preserved frozen graduation label is established.",
+          "No complete127-state/executedaction/DR/queue/reset WM transition dataset is produced by a command-instance JSONL/weight checkpoint.",
+          "OriginalparentpostAppcountartifactabsent: parentfalse retained; physical1200complete not relabelled counterpass.",
+          "No newplantfullWORLD_MOVING_SIGNED4 replay performed."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": [
+          {
+            "kind": "HISTORICAL_QUOTE_RETAINED_ONLY_FOR_E2_SAVED18S",
+            "quote": "No original numeric skill pass tolerances or per-command success rule is present in the saved texts; do not invent a globalMAE pass threshold.",
+            "reference_id": "E2_SAVED18S",
+            "reference_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E2_V5_FINAL_EARLY_COMMAND_SAVED_TEXT_REVIEW_20261029_V1\\E2_V5_COMPLETE900_EARLY_COMMAND_INSTANCE_PROFILE_PHASE_TEXT_REVIEW_ACTUAL.json",
+            "reference_SHA": "95d00af0fc9156de80aac11d4da9155e785c2268a858bef04cb5d1068b24d72b",
+            "JSON_pointer": "/pending/0",
+            "not_a_current24s_numeric_predicate_gap": true
+          }
+        ]
+      }
+    },
+    {
+      "expert": "E3",
+      "skill": "original13-recipe fallen recovery",
+      "expected_source_SHA256": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8",
+      "source_bytes": 14715029,
+      "source_iteration": 43090,
+      "source_Adam_step": 866060,
+      "source_LR": 0.0002562890625000001,
+      "source_remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt",
+      "status": "ACTUAL_NEWPLANT_FULL20K_D0D7_SOURCE_RESTORE_NATIVE24_PASS_LONGSKILL_PENDING",
+      "expected_slot": "GPU0 queue",
+      "actual_restore_report": "E3_actual_fullrestore_native24/E3_1CD_ACTUAL_NATIVE24_PASS_HANDOFF.json",
+      "source_physical_byte_opens_this_purpose": 1,
+      "source_decodes_this_purpose": 1,
+      "optimizer_updates_this_purpose": 0,
+      "one_original_fresh_reset": true,
+      "new_constructor_nominals_preserved": true,
+      "full_expert_skill": "UNKNOWN",
+      "protocol_controls": 24,
+      "protocol_physics_callbacks": 192,
+      "protocol_feedback_samples": 48,
+      "derived_source": "staged_sources/E3_MOD4V1_SOURCE_FINAL",
+      "original_effort_owner_field": "UNDEFINED_UNKNOWN_NOT_A_NEW_ADMISSION_GATE",
+      "actual_label_typo": "NATIVE34 label preserved; actualLoop/Task/Plan and observedcounters24ctrl192phys48feedback, noextra34controls",
+      "actual_original_recovery13_skill_observation": {
+        "report": "reports/E3_RECOVERY13_ACTUAL_SKILL_DECISION_V1.json",
+        "actual_execution": "160controls/1280physics/320feedback3.2s/20000envs/coreSTD17Adamexact/0update/RC0closewaitleasePASS",
+        "requested_recovery_envs": 18462,
+        "normal_recipe12_envs": 1538,
+        "original_credited_count": 133,
+        "first_terminated_count": 4740,
+        "zero_credit_recipe_ids": [
+          0,
+          5,
+          11
+        ],
+        "not_new_threshold_or_aggregate_gate": true,
+        "original_long_skill_fully_graduated": false,
+        "causal_regression_vs_old_asset": "UNKNOWN_NO_PAIRED_BASELINE"
+      },
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8",
+        "original_accepted_scope": "Original97 formal/frozen13recipe recoveryowner credit contract; full_skill_accepted false",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": null,
+        "seed_or_cohort": {
+          "saved_whole_num_envs": 20000,
+          "recipe": "envID%13:0..11 fixedroll/pitch6angles,12normal",
+          "reset_pose": "argminabs(originalbankrootheight-.25); fullq30originaljointorder; zero_root/jointvelocity; .0001mauthored-pointmargin",
+          "acceptedoldfullcohort": "GAP"
+        },
+        "metric_predicate": {
+          "function": "RecoveryPhase.update",
+          "good": "gravity_z<-0.984807753 AND rootSpeed<.03 AND angularSpeed<.2 AND request",
+          "event": "stable>=50 public100Hz ageunits; stable+=2 at50Hz =>25controls=.5s, not.25s",
+          "request": "age<300 public100Hzunits =>3s;age+=2 per50Hzcontrol",
+          "credit": "oneevent perrecipeepisode, peakcontinuouscredit distinctstablecredit",
+          "no_MCI_predicate": true,
+          "observed_current160_parent_only": "Alreadyperformed160control3.2s/133of18462 owner-eventobservation, notold1cdskillpass/causalMCI proof; no replaythiscase"
+        },
+        "saved_evidence_gaps": [
+          "Originalexact1cd acceptedlongskillper13recipecohort/time/successrule notjoined;189explicitfull_skill_acceptedfalse.",
+          "Ancestor85M2/native/student notsubstitute1cd.",
+          "Sourcecredit .5s/3s is metricowner contract, not globalrecoveryacceptance rule.",
+          "Current1603.2s alreadyconsumed; do notscheduleduplicate tofillmetadata."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "H1_normal_PPO86B",
+      "source_SHA": "71db5543b14919eb11d2a8606f9ffe1acf0814260d7d89aa823565a49a7b21c4",
+      "source_bytes": 16879851,
+      "source_iteration": 41448,
+      "source_17Adam": 832460,
+      "source_LR": 0.00038443359375000017,
+      "raw_STD6": [
+        1.7816671133041382,
+        0.11845260858535767,
+        1.7787965536117554,
+        0.11735822260379791,
+        0.19933658838272095,
+        0.19757497310638428
+      ],
+      "logical_lineage": "OriginalnormalH1_0c1edb_138updates with existingtyped71db400N50; notnativeH1/student",
+      "status": "ACTUAL_MOD4V1_FRESH80_RECONCILED_AND_WHOLE20K_ORIGINAL453_NATIVE24_NOUPDATE_PASS",
+      "derived_source": "staged_sources/H1_NORMAL_MOD4V1_SOURCE_V2",
+      "actual_report": "H1_NORMAL_MOD4V1_ACTUAL_HANDOFF_v1.json",
+      "source_physical_reads": 1,
+      "source_decodes": 1,
+      "model_updates": 0,
+      "original_fresh_resets": 1,
+      "core_STD17Adam_LR_unchanged": true,
+      "controls": 24,
+      "physics": 192,
+      "feedback": 48,
+      "source400N50_inherited_not_retyped": true,
+      "fresh80_parent_reader_false_preserved_and_independently_reconciled": true,
+      "oldsource_and_oldfalse_not_overwritten": true,
+      "full_expert_skill": "UNKNOWN_TRUE270_SKILL_NOT_EVALUATED",
+      "actual_close_wait_release": {
+        "epoch": 1793565608.6595485,
+        "all_own_children_waited": true,
+        "original_private_lock_released": true,
+        "original_shared_lock_released": true,
+        "no_foreign_scope_touched": true,
+        "canonical_access": false,
+        "errors": [],
+        "wall_s": 488.3687012589071
+      },
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "0c1edb9603c1cb84fbb894d242dae1b6a7c87fe3237d658dbc486ccbbad3d394",
+        "original_accepted_scope": "ExecutednormalH1 genuine270task contract;0c1e->typed71db, no sourceproven aggregate270 graduation",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": null,
+        "seed_or_cohort": {
+          "saved_whole_num_envs": 20000,
+          "future_original_episode_cohort": "UNKNOWN_saved_no acceptedlongskillcohortreceipt_joined",
+          "constructor_default_seed_not_acceptance_cohort": 42
+        },
+        "metric_predicate": {
+          "function": "Step270Events.physical",
+          "ready": "80physicalcallbacks=.2s",
+          "takeoff": "positivevz>.05 then >=16physicalcallbacks=.04s twoWheelForce<=1N andnonwheelclean",
+          "edge": "launched &air &bothWheelEdgeCrossed &bothWheelBottomWorldZ>=.270",
+          "landing": ">=12physicalcallbacks=.03s bothWheelForce>1N, actualplatformcontactIDs, bothfootprintsinsideTop, z>=.269/nonwheelclean",
+          "recovery": ">=200physicalcallbacks=.5s onTop, abs(vz)<=.03 planar<=.03, absroll/pitch<.17453292519943295, absyawerror<.2",
+          "aggregate_rule": null,
+          "geometry_query_not_centers": "Actualwheelbottom/platformcollider+footprint/edge, not root/COMcenter height",
+          "active_runtime_class": "Step270Phase delegatesStep270Events; itsownpublicage100Hz+=2 at50Hz,notgenericparentflat3cm event proxy."
+        },
+        "saved_evidence_gaps": [
+          "No matchedsavedoriginalnormal0c1e/71db long270skillcohort+successdistribution acceptedrule joined.",
+          "Standalonegoal docstring candidate/NOTinstalled retained; executednormalproducerjoin establishes activeuse, not doc qualification.",
+          "No currentnewplant20s true270skill replay; .48snative occursbeforepublicrequest at1s."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "E1_SLOPE135_5deg2m",
+      "status": "ACTUAL_COMPLETE_FOURLEAF_CPU_FRESH80_AND_FULL20K_MOD4V1_NATIVE24_NOUPDATE_PASS",
+      "source_original_SHA": "24b18846fcff1e0b8da7fd478314fca9cd2ed2b97461ca34f65ef5b7c7ff2411",
+      "source_SHA": "f2b22040f90c31d133e3b006d35c868b257cc05e9445bcffdadb3b33605e1519",
+      "source_bytes": 17613845,
+      "source_remote_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SLOPE135_24B_COMPLETE_CPU_FOUR_LEAF_20261102_053246_1793568766422620900/SLOPE135_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+      "source_iteration": 32069,
+      "source_17Adam": 642980,
+      "source_LR": 6.666666666666667e-05,
+      "raw_STD6": [
+        23.26227569580078,
+        0.040672194212675095,
+        0.04223071411252022,
+        0.044310685247182846,
+        0.05442657694220543,
+        0.059898391366004944
+      ],
+      "source_model_old_frozen_intact": true,
+      "CPU_fourleaf_inverse_all_other_tensor_leaves_dtype_shape_value_exact": true,
+      "GPU_migration_calls": 0,
+      "GPU_selectedsource_physical_byte_hash_decode": 1,
+      "original_fresh_resets": 1,
+      "core_STD17Adam_LR_unchanged": true,
+      "forbidden_calls": {
+        "alg_update": 0,
+        "optimizer_step": 0,
+        "runner_learn": 0
+      },
+      "controls": 24,
+      "physics": 192,
+      "feedback": 48,
+      "original_SLOPE5_terrain_retention_and_helpers8": true,
+      "no_W35_E0_H1_mother_substitution": true,
+      "report": "SLOPE135_ACTUAL_PROTOCOL_PASS_CURB141_NETWORK_PENDING_HANDOFF_v1.json",
+      "source_only_package": "staged_sources/E1_SLOPE135_40050_MOD4V1_SOURCE_V1",
+      "actual_close_wait_release": {
+        "epoch": 1793570066.0406282,
+        "all_own_children_waited": true,
+        "original_private_lock_released": true,
+        "original_shared_lock_released": true,
+        "all_partialleases_released": true,
+        "no_foreign_scope_touched": true,
+        "canonical_access": false,
+        "errors": [],
+        "active_SDK_wall_s": 491.97492134803906,
+        "total_wall_s": 492.1958648271393
+      },
+      "GPU_UUID_actual": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+      "historical_directory_label_gpu1_not_device_identity": true,
+      "full_expert_skill": "LONG_SLOPE5_SKILL_NOT_REEVALUATED_NOT_GRADUATED",
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "24b18846fcff1e0b8da7fd478314fca9cd2ed2b97461ca34f65ef5b7c7ff2411",
+        "original_accepted_scope": "Explicitaccepted5degree/2m mirroredtraversal27up27down; notwholeSLOPE/MoE",
+        "original_scope_acceptance_boolean": true,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": 15.0,
+        "seed_or_cohort": {
+          "num_envs": 80,
+          "seed": 20260928,
+          "white_v3": true,
+          "orientations": [
+            40,
+            40
+          ],
+          "groups": [
+            27,
+            27,
+            26
+          ],
+          "observed": {
+            "ascending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "descending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "stand": {
+              "environments": 26,
+              "complete_envs": 0,
+              "contact_confirmed_envs": 0
+            }
+          }
+        },
+        "metric_predicate": {
+          "function": "review_slope135_actual.audit",
+          "per_env": "Beforeordinaryfailure, sameepisode;up bothwheelu<-1.2 thenboth>+1.2/downreverse;bothsupport>1N atbeforeandafter; contact-confirmedordered endpoints",
+          "support": "8physicalcallbacks*.0025/.02 forfuture50Hz, original4*.0025/.01 same1N",
+          "stand": "notrequiredtocross",
+          "original_scope_accepted": true,
+          "not_full_slope": false
+        },
+        "saved_evidence_gaps": [
+          "No currentnewplant15s accepted5degreecohort replay.",
+          "Native24 f2b is integrationonly; notslope27/27 skillrepeat.",
+          "Do not borrowlater8/10degree orind50 results.",
+          "80eval-vs20krestore state/cohort binding mustbe declared, not sliced."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "E1_CURB_PROTECTED878",
+      "variant": "CURB_PROTECTED878",
+      "status": "ACTUAL_COMPLETE_FOURLEAF_CPU_FRESH80_AND_FULL20K_MOD4V1_NATIVE24_NOUPDATE_PASS",
+      "source_original_SHA": "268967941b352709ec6ef9f3f4461ed23aac5457db9c4262f06b0619a974e6f1",
+      "source_SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262",
+      "source_bytes": 17614805,
+      "source_remote_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_PROTECTED878_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062521_1793571921621279200/CURB_PROTECTED878_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+      "source_iteration": 32940,
+      "source_17Adam": 660400,
+      "source_LR": 0.00011390625149942935,
+      "raw_STD6": [
+        25.606121063232422,
+        0.057676296681165695,
+        0.0634179636836052,
+        0.0626128539443016,
+        0.07727037370204926,
+        0.0859340950846672
+      ],
+      "actor_input": 35,
+      "critic_input": 38,
+      "actions": 6,
+      "CPU_fullinverse_tensor_and_allrootkeys_exact": true,
+      "CPU_complete_root_inventory_and_nested_owner_audit": "actualrootdiff=[]/unmappedactive=[]/missingreferences=[]; see THREE_FROZEN_VARIANTS_ACTUAL_CPU_FOURLEAF_OWNER_AUDIT_HANDOFF_V1.json",
+      "SDK_selected_typed_source_byte_SHA_decode": 1,
+      "SDK_fourleaf_migration_calls": 0,
+      "no_history_queue_or_timestamp_slicing": true,
+      "original_helpers8_plus_own_extra_applied_and_audited_beforeafter_ONEreset": true,
+      "extra_actual_receipt": {
+        "source_SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262",
+        "variant": "CURB_PROTECTED878",
+        "before_original_reset": {
+          "variant": "CURB_PROTECTED878",
+          "keys": [
+            "distributed_rank_contract"
+          ],
+          "rank0_only_future_single_envscene": true,
+          "historical_world_size_preserved": 3,
+          "future_NCCL_spawn_or_rank_RNGfork": false
+        },
+        "after_original_reset": {
+          "variant": "CURB_PROTECTED878",
+          "all_saved_extra_fields_before_after_exact": true,
+          "source_fieldkeys": [
+            "distributed_rank_contract"
+          ],
+          "physical_reset_or_step_calls_added": 0,
+          "RNG_draw_or_reseed_calls_added": 0,
+          "original_axis_writer_semantics_preserved": false
+        },
+        "all_complete_saved_extras_exact": true,
+        "original_lower_helper": "curb20_entry_full_checkpoint",
+        "extra_reset_physics_RNG_calls": 0,
+        "unknown_root_fields_retained_in_future_cache": true,
+        "not_actual_skill_or_birthinertia_gate": true
+      },
+      "core_before_after_treeSHA": "250b1815d39bc2ae96486da8925d412711cb8ec95ec3fb3644688f7fccf913af",
+      "core_STD17Adam_LR_iteration_exact": true,
+      "forbidden_calls": {
+        "alg_update": 0,
+        "optimizer_step": 0,
+        "runner_learn": 0
+      },
+      "controls": 24,
+      "physics": 192,
+      "feedback": 48,
+      "original_fresh_reset_count": 1,
+      "actual_GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+      "original_closewaitrelease": {
+        "epoch": 1793573208.827151,
+        "all_own_children_waited": true,
+        "original_private_lock_released": true,
+        "original_shared_lock_released": true,
+        "all_partialleases_released": true,
+        "no_foreign_scope_touched": true,
+        "canonical_access": false,
+        "errors": [],
+        "active_SDK_wall_s": 548.0717402279843,
+        "total_wall_s": 548.3360989789944
+      },
+      "only_rank0_full20k_not_global60k": true,
+      "no_NCCL_fork_merge_or_new_privateRNG": true,
+      "report": "CURB_PROTECTED878_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+      "old_frozen_unchanged": true,
+      "full_expert_skill": "ORIGINAL_LONG_CURB_OR_SLOPE_REPLAY_NOT_DONE_NO_NEW_GRADUATION",
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "268967941b352709ec6ef9f3f4461ed23aac5457db9c4262f06b0619a974e6f1",
+        "original_accepted_scope": "Own15s80env frozenvertical20mm/150mmstrip mirroredroute evidence only, standnotcross",
+        "original_scope_acceptance_boolean": null,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": 15.0,
+        "seed_or_cohort": {
+          "num_envs": 80,
+          "seed": 20260928,
+          "white_v3": true,
+          "orientation40plus40minus": true,
+          "groups": [
+            27,
+            27,
+            26
+          ],
+          "original_counts": {
+            "ascending": {
+              "environments": 27,
+              "complete": 27
+            },
+            "descending": {
+              "environments": 27,
+              "complete": 27
+            },
+            "standing_no_crossing_requirement": {
+              "environments": 26,
+              "complete": 0
+            }
+          },
+          "ordinary": 0,
+          "truncation": 51
+        },
+        "metric_predicate": {
+          "function": "CURB878_PREDICATE.main lines35-45",
+          "per_env": "any sameepisode validpref beforefirstordinaryfailure withbothwheelscanonicalu below-.275 then above+.275 forup; reverse fordown; bothsupported>1N atbefore/after; beforeindex<afterindex",
+          "support": "sumpositiveverticalphysicalwheelN*physicsdt/control_dt;50Hz=8callbacks*.0025/.02, preserve1N",
+          "stand": "No crossingrequirement, complete0 notfailure",
+          "ordinary": [
+            "bad_orientation",
+            "base_contact",
+            "low_base",
+            "closure"
+          ],
+          "integrity": [
+            "mimic",
+            "nonfinite/unknown/hardware failure"
+          ],
+          "truncation": [
+            "time_out",
+            "rough_route_boundary"
+          ],
+          "valid_prefix": "Keepallvalid/incomplete/failedprefixes andtruncations, neverstitch acrossreset; no newaggregatepassrate"
+        },
+        "saved_evidence_gaps": [
+          "Originalnewplantlongroute skill not retested.",
+          "Original80fresh-eval states are not a projectionof savedwhole20k state. Futurecase must declare original80 freshDRcohort vswhole20kfullrestore; no slicing orclaim same20k DR appliedto80.",
+          "Protectedoriginalrank0complete20k only; historicalworld3/60k notall60krestore."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "E1_CURB_INDEPENDENT113",
+      "variant": "CURB_INDEPENDENT113",
+      "status": "ACTUAL_COMPLETE_FOURLEAF_CPU_FRESH80_AND_FULL20K_MOD4V1_NATIVE24_NOUPDATE_PASS",
+      "source_original_SHA": "3d2b0b6d9260383031e0c198501224fdaedefef9c283b43ce588419319b5de88",
+      "source_SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+      "source_bytes": 18036621,
+      "source_remote_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_INDEPENDENT113_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062540_1793571940962361300/CURB_INDEPENDENT113_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+      "source_iteration": 32175,
+      "source_17Adam": 645100,
+      "source_LR": 7.593750000000004e-05,
+      "raw_STD6": [
+        23.507177352905273,
+        0.05998652055859566,
+        0.0647723376750946,
+        0.06592538207769394,
+        0.081192746758461,
+        0.0908454954624176
+      ],
+      "actor_input": 35,
+      "critic_input": 38,
+      "actions": 6,
+      "CPU_fullinverse_tensor_and_allrootkeys_exact": true,
+      "CPU_complete_root_inventory_and_nested_owner_audit": "actualrootdiff=[]/unmappedactive=[]/missingreferences=[]; see THREE_FROZEN_VARIANTS_ACTUAL_CPU_FOURLEAF_OWNER_AUDIT_HANDOFF_V1.json",
+      "SDK_selected_typed_source_byte_SHA_decode": 1,
+      "SDK_fourleaf_migration_calls": 0,
+      "no_history_queue_or_timestamp_slicing": true,
+      "original_helpers8_plus_own_extra_applied_and_audited_beforeafter_ONEreset": true,
+      "extra_actual_receipt": {
+        "source_SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+        "variant": "CURB_INDEPENDENT113",
+        "before_original_reset": {
+          "variant": "CURB_INDEPENDENT113",
+          "keys": [
+            "independent_expert_scope_state",
+            "independent_expert_task_contract"
+          ],
+          "complete_axis_keys": [
+            "centers",
+            "target",
+            "origin",
+            "kind",
+            "reset_direction",
+            "original_private_RNG_draws_unchanged"
+          ],
+          "unknown_axis_keys_preserved": [],
+          "axis_not_rebuilt_from_new_reset": true,
+          "private_RNG_draws_or_reseed": 0
+        },
+        "after_original_reset": {
+          "variant": "CURB_INDEPENDENT113",
+          "all_saved_extra_fields_before_after_exact": true,
+          "source_fieldkeys": [
+            "independent_expert_scope_state",
+            "independent_expert_task_contract"
+          ],
+          "physical_reset_or_step_calls_added": 0,
+          "RNG_draw_or_reseed_calls_added": 0,
+          "original_axis_writer_semantics_preserved": true
+        },
+        "all_complete_saved_extras_exact": true,
+        "original_lower_helper": "curb20_entry_full_checkpoint",
+        "extra_reset_physics_RNG_calls": 0,
+        "unknown_root_fields_retained_in_future_cache": true,
+        "not_actual_skill_or_birthinertia_gate": true
+      },
+      "core_before_after_treeSHA": "0d1d35facb80d4bf766c7aa4725e6c6d94ee312f12fb65d05e345811934cd01b",
+      "core_STD17Adam_LR_iteration_exact": true,
+      "forbidden_calls": {
+        "alg_update": 0,
+        "optimizer_step": 0,
+        "runner_learn": 0
+      },
+      "controls": 24,
+      "physics": 192,
+      "feedback": 48,
+      "original_fresh_reset_count": 1,
+      "actual_GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+      "original_closewaitrelease": {
+        "epoch": 1793573907.351971,
+        "all_own_children_waited": true,
+        "original_private_lock_released": true,
+        "original_shared_lock_released": true,
+        "all_partialleases_released": true,
+        "no_foreign_scope_touched": true,
+        "canonical_access": false,
+        "errors": [],
+        "active_SDK_wall_s": 515.1087872821372,
+        "total_wall_s": 515.37396234693
+      },
+      "only_rank0_full20k_not_global60k": false,
+      "no_NCCL_fork_merge_or_new_privateRNG": true,
+      "report": "CURB_INDEPENDENT113_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+      "old_frozen_unchanged": true,
+      "full_expert_skill": "ORIGINAL_LONG_CURB_OR_SLOPE_REPLAY_NOT_DONE_NO_NEW_GRADUATION",
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "3d2b0b6d9260383031e0c198501224fdaedefef9c283b43ce588419319b5de88",
+        "original_accepted_scope": "Own15s80env frozenvertical20mm/150mmstrip mirroredroute evidence only, standnotcross",
+        "original_scope_acceptance_boolean": null,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": 15.0,
+        "seed_or_cohort": {
+          "num_envs": 80,
+          "seed": 20260928,
+          "white_v3": true,
+          "orientation40plus40minus": true,
+          "groups": [
+            27,
+            27,
+            26
+          ],
+          "original_counts": {
+            "ascending": {
+              "environments": 27,
+              "complete": 26
+            },
+            "descending": {
+              "environments": 27,
+              "complete": 27
+            },
+            "standing_no_crossing_requirement": {
+              "environments": 26,
+              "complete": 0
+            }
+          },
+          "ordinary": 0,
+          "truncation": 48
+        },
+        "metric_predicate": {
+          "function": "CURB113_PREDICATE.main lines35-45",
+          "per_env": "any sameepisode validpref beforefirstordinaryfailure withbothwheelscanonicalu below-.275 then above+.275 forup; reverse fordown; bothsupported>1N atbefore/after; beforeindex<afterindex",
+          "support": "sumpositiveverticalphysicalwheelN*physicsdt/control_dt;50Hz=8callbacks*.0025/.02, preserve1N",
+          "stand": "No crossingrequirement, complete0 notfailure",
+          "ordinary": [
+            "bad_orientation",
+            "base_contact",
+            "low_base",
+            "closure"
+          ],
+          "integrity": [
+            "mimic",
+            "nonfinite/unknown/hardware failure"
+          ],
+          "truncation": [
+            "time_out",
+            "rough_route_boundary"
+          ],
+          "valid_prefix": "Keepallvalid/incomplete/failedprefixes andtruncations, neverstitch acrossreset; no newaggregatepassrate"
+        },
+        "saved_evidence_gaps": [
+          "Originalnewplantlongroute skill not retested.",
+          "Original80fresh-eval states are not a projectionof savedwhole20k state. Futurecase must declare original80 freshDRcohort vswhole20kfullrestore; no slicing orclaim same20k DR appliedto80.",
+          "Original11326/27ascending retained asobserved, no retrofit54/54graduation."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    },
+    {
+      "expert": "E1_SLOPE_INDEPENDENT50",
+      "variant": "SLOPE_INDEPENDENT50",
+      "status": "ACTUAL_COMPLETE_FOURLEAF_CPU_FRESH80_AND_FULL20K_MOD4V1_NATIVE24_NOUPDATE_PASS",
+      "source_original_SHA": "aab6fb4b6bce2f0004d06fa9d78f964efafd470238e36d386113ff9fba955d0b",
+      "source_SHA": "4a5abac25ad39148f3647cee06c3977bc9fbd34866a2a9ed027133bbc58a805a",
+      "source_bytes": 17955663,
+      "source_remote_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SLOPE_INDEPENDENT50_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062559_1793571959349234600/SLOPE_INDEPENDENT50_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+      "source_iteration": 32118,
+      "source_17Adam": 643980,
+      "source_LR": 3.3750000000000014e-05,
+      "raw_STD6": [
+        23.347484588623047,
+        0.050953950732946396,
+        0.054744523018598557,
+        0.057353243231773376,
+        0.07504910975694656,
+        0.08186553418636322
+      ],
+      "actor_input": 35,
+      "critic_input": 38,
+      "actions": 6,
+      "CPU_fullinverse_tensor_and_allrootkeys_exact": true,
+      "CPU_complete_root_inventory_and_nested_owner_audit": "actualrootdiff=[]/unmappedactive=[]/missingreferences=[]; see THREE_FROZEN_VARIANTS_ACTUAL_CPU_FOURLEAF_OWNER_AUDIT_HANDOFF_V1.json",
+      "SDK_selected_typed_source_byte_SHA_decode": 1,
+      "SDK_fourleaf_migration_calls": 0,
+      "no_history_queue_or_timestamp_slicing": true,
+      "original_helpers8_plus_own_extra_applied_and_audited_beforeafter_ONEreset": true,
+      "extra_actual_receipt": {
+        "source_SHA": "4a5abac25ad39148f3647cee06c3977bc9fbd34866a2a9ed027133bbc58a805a",
+        "variant": "SLOPE_INDEPENDENT50",
+        "before_original_reset": {
+          "variant": "SLOPE_INDEPENDENT50",
+          "keys": [
+            "independent_expert_scope_state",
+            "independent_expert_task_contract"
+          ],
+          "complete_axis_keys": [
+            "centers",
+            "target",
+            "origin",
+            "kind",
+            "original_private_RNG_draws_unchanged"
+          ],
+          "unknown_axis_keys_preserved": [],
+          "axis_not_rebuilt_from_new_reset": true,
+          "private_RNG_draws_or_reseed": 0
+        },
+        "after_original_reset": {
+          "variant": "SLOPE_INDEPENDENT50",
+          "all_saved_extra_fields_before_after_exact": true,
+          "source_fieldkeys": [
+            "independent_expert_scope_state",
+            "independent_expert_task_contract"
+          ],
+          "physical_reset_or_step_calls_added": 0,
+          "RNG_draw_or_reseed_calls_added": 0,
+          "original_axis_writer_semantics_preserved": false
+        },
+        "all_complete_saved_extras_exact": true,
+        "original_lower_helper": "slope5_full_checkpoint",
+        "extra_reset_physics_RNG_calls": 0,
+        "unknown_root_fields_retained_in_future_cache": true,
+        "not_actual_skill_or_birthinertia_gate": true
+      },
+      "core_before_after_treeSHA": "49bcbe265d33e3d00a3036e649a07def7643eece52525ffc7e8c6172829c4294",
+      "core_STD17Adam_LR_iteration_exact": true,
+      "forbidden_calls": {
+        "alg_update": 0,
+        "optimizer_step": 0,
+        "runner_learn": 0
+      },
+      "controls": 24,
+      "physics": 192,
+      "feedback": 48,
+      "original_fresh_reset_count": 1,
+      "actual_GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+      "original_closewaitrelease": {
+        "epoch": 1793574586.7284443,
+        "all_own_children_waited": true,
+        "original_private_lock_released": true,
+        "original_shared_lock_released": true,
+        "all_partialleases_released": true,
+        "no_foreign_scope_touched": true,
+        "canonical_access": false,
+        "errors": [],
+        "active_SDK_wall_s": 515.2127366731875,
+        "total_wall_s": 515.4493628419004
+      },
+      "only_rank0_full20k_not_global60k": false,
+      "no_NCCL_fork_merge_or_new_privateRNG": true,
+      "report": "SLOPE_INDEPENDENT50_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+      "old_frozen_unchanged": true,
+      "full_expert_skill": "ORIGINAL_LONG_CURB_OR_SLOPE_REPLAY_NOT_DONE_NO_NEW_GRADUATION",
+      "original_skill_acceptance_scope": {
+        "original_source_SHA": "aab6fb4b6bce2f0004d06fa9d78f964efafd470238e36d386113ff9fba955d0b",
+        "original_accepted_scope": "Ownlater50update fullramp/bothsupports TRAININGAXIS explicitlyfrozen; no matchedacceptedwhole-route skillreport located",
+        "original_scope_acceptance_boolean": false,
+        "exact_source_contract_matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+        "original_replay_window_seconds": null,
+        "seed_or_cohort": {
+          "saved_whole_num_envs": 20000,
+          "seed": "Useownsavedmanifest; no acceptedskillcohort seedinvented",
+          "scope_keys": [
+            "centers",
+            "target",
+            "origin",
+            "kind",
+            "original_private_RNG_draws_unchanged"
+          ]
+        },
+        "metric_predicate": {
+          "source_function": "independent_expert_axis.configure_slope/configure_route",
+          "skill_acceptance_predicate": "GAP: originalacceptedfullramp/supports metric/cohort/duration forEXACTaab notsavedjoined; do not substitute24b27/27"
+        },
+        "saved_evidence_gaps": [
+          "Onlyowntrainingaxis/frozencheckpoint+currentnative24 confirmed.",
+          "Exactaab acceptedoriginalfullramp/supports skillpredicate/cohort/window missing; no 24b borrowed success or invented15/20s skillgate."
+        ],
+        "current_native24_is_not_long_skill_acceptance": true,
+        "historical_gap_quotes": []
+      }
+    }
+  ],
+  "legacy_frozen_lineages_needing_exact_current_producer_join": [
+    "E1_CURB141_original7b_exactsource_network_pending_no_otheractor_substitution"
+  ],
+  "inventory_boundary": "Current9exactfrozenactorlineagesactualfullDR20k/native24integrationPASScover7functionalfamilies. Source-derivedoriginalskillacceptedscopesareseparate: a92/b3/1cd explicitlynotfullskillaccepted, CURB/SLOPE135onlytheiroriginal15sacceptedroutes, H1/SLOPE50haveexplicitcohort/overallrulegaps. OriginalCURB1417bassetstillunavailableunderobservedprojectnetworkcondition, notallhistoricalclosed. 18wasanE0evaluationmatrixnot18actors; nohighest-iterationpromotion.",
+  "budget_binding": {
+    "canonical": "/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json",
+    "generation": "MOD4_SINGLE_WRITER72_20261026",
+    "read_at_local": "2026-11-02T07:04:39+08:00",
+    "authorized_seconds": 2268000,
+    "charged_seconds_at_read": 1895619.010973692,
+    "remaining_seconds_at_read": 372380.98902630806,
+    "strict_minimum_remaining_seconds": 86412.86069250107,
+    "snapshot_not_current_admission": true,
+    "new_ledger_or_budget_extension_created": false,
+    "production_requirement": "Actual fresh original single-writer Task/GO/cost/save-close-childwait receipts; idle-card permission is not a new time budget.",
+    "original_extension_count": 9,
+    "no_local_ledger_copy_or_new_writer": true
+  },
+  "native_asset_admission": {
+    "passed": true,
+    "scope": "Pinned new MOD4v1 asset import and8native physics steps only; NOT fullDR or expert adaptation",
+    "actual_GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+    "worker_pid": 1415813,
+    "physical_bodies": 31,
+    "joint_coordinates": 30,
+    "physical_closures": 6,
+    "physics_dt_s": 0.0025,
+    "actual_CUDA_pose": true,
+    "mass_max_error_kg": 0.0,
+    "COM_max_error_m": 0.0,
+    "parent_wait_returncode": 0,
+    "all_own_children_waited": true,
+    "original_App_close_bridge": true,
+    "private_locks_released": true,
+    "model_opens": 0,
+    "optimizer_updates": 0,
+    "canonical_writes": 0,
+    "evidence": "reports/native_snapshot_20261102_001017.json",
+    "raw_resource_field_note": "V3 RESOURCE_ACTUAL canonical_before=null is inherited template text, not a global CNone admission. Actual V3 scope allowed the unchanged existing owner on the other GPU and used no writer; consult PARALLEL_MODEL_FREE_SCOPE.json. Preserve raw record."
+  },
+  "current_stage": "Nineactualnewplantfull20kDR/native24lineagesPASSnotallhistoricalorskill. OriginalCURB1417bexactassetnetworkpending. Originala92/b3/1cdnofullskillacceptance; otherownacceptedroutes/gapsjoinedSOURCE_ONLYnotnewskillpass. W35source8dafter82newPPO(cumulative162)/32643/654500/savedLR1.0000000000000004e-05/originalcost3644.470574617386settled: actualindependentfull32closedRC0/1600,12800,3200/coreSTD17Adamunchanged/0updates/source1readdecode/newraw44951053B142168rowsSHA8aa426...singleCPUraw+schema1allverified/allEXreleased. 8948naturalcompletehighspeedintervalsnoneinsideoriginalbounds,noCADxspan/goal; NOTRM70qualified. Threegenerationsunpaired,noassetcausalclaim,noautomaticthirdPPO; nextsource-mechanismreviewplusminimalnewobserverpurposeifneeded.",
+  "evidence_basis": "CurrentregistryreadsalreadycollectedactualCPU/SDKclosedreports/fullstateinverse/helper/getterauditsandoriginalSOURCE_ONLYacceptancetextrefs; registrygeneratordoesnotopenanyPT/raw/SDK/canonical. Hardware/birthinertiacoverageandoriginalskillqualificationarenotimpliedbyintegrationPASS.",
+  "captured_local": "2026-11-02T08:07:25.402263+08:00",
+  "previous_registry": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\EXPERT_NORMALIZATION_REGISTRY_v6.json",
+  "actual_full_DR_runtime_scope": {
+    "fresh80_report": "reports/fullDR80_snapshot_20261102_005626.json",
+    "native24_controls": 24,
+    "physics_callbacks": 192,
+    "feedback_samples": 48,
+    "W35_saved20k_fullrestore_passed": true,
+    "all_frozen_experts_fullDR_adaptation_completed": false,
+    "hardware_full_uncertainty_coverage": false,
+    "all_four_selected_sources_full20k_newnominal_restore_native24_passed": true,
+    "all_historical_frozen_lineages_closed": false,
+    "current_five_selected_lineages_newplant_full20k_native24_actualpassed": true,
+    "current_six_selected_lineages_newplant_full20k_native24_actualpassed": true,
+    "current_nine_selected_lineages_newplant_full20k_native24_actualpassed": true,
+    "actual_frozen_actor_lineages_passed": 9,
+    "current_functional_expert_families_covered": 7,
+    "all_long_skill_graduations_complete": false
+  },
+  "git_evidence": {
+    "phase1_commit": "0b0073f1f383bfe3bc48badf0b24041f6105def3",
+    "phase2_commit": "2bdd2ee975efa97892275e9332138a783ef796c3",
+    "branch": "mod4v1-experts-fulldr-rm70",
+    "phase2_tag": "trial-20261102-mod4v1-fulldr-w35-e0-phase2",
+    "remote_branch_tag_peeled_verified": true,
+    "main_modified": false,
+    "phase3_pending": [
+      "postphase2 W35metadata/terminal/decision",
+      "E0actualstage/resourcewait/attempt2",
+      "E2partialadditional-source",
+      "registryv2 and acceptance ledger"
+    ],
+    "phase3_commit": "c88da6aa6aec0ce03cd3eef6406c7fbbe330dd98",
+    "phase3_tag": "trial-20261102-mod4v1-full32-e0-restore-realppo-phase3",
+    "phase3_remote_tag_object": "306593444cb18a80e67c4bdf7c1d70c13f0f5336",
+    "phase3_remote_peeled_verified": true,
+    "observed_remote_main_at_phase3": "b4412bafb86d7f7e4f350feafc7a6bed6c45591e",
+    "this_session_pushed_main": false,
+    "phase4_pending": [
+      "allE2/E3actualfullDRreceipts/sourceerrors/helpers",
+      "postphase3E0proofsupplements",
+      "W35PPO80finalsettledcostandpostadaptcase",
+      "postadaptdynamic-source/parent-source-only",
+      "Win206recoveryfile/source",
+      "legacyH1provenance/report",
+      "registryv3/currenthandoff"
+    ],
+    "phase4_commit": "7edf1b811d9660da79f8ee1982f9ef4ca73bf8e0",
+    "phase4_tag": "trial-20261102-mod4v1-fourdr-ppo80-posteval-phase4",
+    "phase4_remote_tag_object": "26c6643398c7470c547394ca75ae9f878122016b",
+    "phase4_remote_peeled_verified": true,
+    "phase5_pending": [
+      "H1normal453/sourceV1V2/transport/freshfailures/readerfalse/reconciliation/N20kactualallreceipts",
+      "alllegacyjoins8variants+E1coverageplan",
+      "W35newfull32+newrawCPUonetime+honestnegativequalificationdecision",
+      "smallcompletedproducerreadonlysourcecopies/traceV1generatorfail+V2+actualtrace200dispatch",
+      "registryv4/currenthandoffs/alllaterreports"
+    ],
+    "phase5_commit": "2a007e3d8e393f7881c74c834f3295170f3a3bd2",
+    "phase6_commit": "2236f9d97840c95ff2baa26b8cfd525c7f25699d",
+    "phase6_tag": "trial-20261102-mod4v1-trace200-e1sources-resumewait-phase6",
+    "phase6_tag_object": "9333eb96440e78a22a473e508042cbe547e56d1e",
+    "phase6_peeled_remote_verified": true,
+    "phase6_source_entries": 2365,
+    "phase6_text_files": 2361,
+    "remote_main_observed_phase6": "403c7001bd747ab42831d0a44101903341f80678",
+    "main_observation_note": "Changedbetweenremoteobservations; thissessiononlypushedfeatureandtrialtag,nomain",
+    "phase7_pending": [
+      "Postphase6Slopefull20kseal/handoffandreadersealerror",
+      "CURBknownnode210networkerrorsandmirrorlookup",
+      "Futurevariantssourceextras",
+      "W35newwaitowneractualGO/firstupdate/terminal",
+      "Registryv5/currentprogress/Gitremoteproof"
+    ],
+    "phase7_commit": "eaf5ae9e431bb3556e7b149daa8dcb6c86490c73",
+    "phase7_tag": "trial-20261102-mod4v1-slopeactual-variants-pmorestart-phase7",
+    "phase7_tag_object": "8596adba522f08e7ca17b0be4389332532d9f41e",
+    "phase7_remote_peeled_verified": true,
+    "remote_main_observed_phase7": "27ee661efb0e737821bb31095beb6a3c5798faf1",
+    "phase8_pending": [
+      "Thisregistryv6",
+      "AllthreevariantactualCPUfreshnativefullhelpersealsanderrors",
+      "OriginalW3582finalsaveandcost/readerKeyError+fix",
+      "New8devalactualadmissionandlaterfull32ownrawCPUcomparison",
+      "E3originalskillnegativefactsandnoassetcausalclaim",
+      "CurrentprogressandlateGitreceipts"
+    ],
+    "phase8_commit": "adf14e217cd6af8e6c9377772538299ca3cab3e4",
+    "phase8_trial": "trial-20261102-mod4v1-nineactual-w3582-e3skill-phase8",
+    "phase8_tag_object": "17aa7d73cdbc2a2f5430192eaaf27d39109afe7b",
+    "phase8_remote_peeled_verified": true,
+    "phase9_pending": true
+  },
+  "historical_source_variants_join": {
+    "evidence": "legacy_source_joins/LEGACY_FROZEN_VARIANT_ROWS_v1.json",
+    "rows": 8,
+    "all_explicit_scopes_and_false_preserved": true,
+    "H1_original0c_and_typed71db_are_not_two_independent_learnedactors": true,
+    "CURB878ranks_oneactor_notSlope": true,
+    "E1_variants_100Hz700N3500gas_not_relabelled_target50Hz400N": true,
+    "CURB_SLOPE_newtarget_status": "SOURCE_IMPLEMENTATION_IN_PROGRESS_NOT_ACTUAL",
+    "source_plan": "legacy_source_joins/coverage_plans/CURB_SLOPE_50HZ400N_SOURCE_COVERAGE_PLAN_v1.json",
+    "source_selection_not_by_maxiter": true,
+    "CURB_SLOPE_source_implementation": {
+      "CURB141_sourcefinal_SHA": "c072c68db50aa753a775482f520692fd026ad37abe2405899aa3ebaf9bbc89a7",
+      "SLOPE135_sourcefinal_SHA": "7c02af6a6b8b871a352472da8be445cb46f372be270dba8be77afb953eba2252",
+      "915_entries_index": "staged_sources/E1_40050_BUILDER_V1/FINAL_ALL_E1_SOURCE_ONLY_ARCHIVE_PENDING_INDEX_V1.json",
+      "source_only_not_GPU_proof": true
+    },
+    "CURB141_actual_status": {
+      "status": "EXACT_ORIGINAL_PATH_STAT_UNOBTAINED_NETWORK_NOT_MODEL_MISSING",
+      "expected_SHA": "7b70032fcb577390cee01c887b57c1e3d9818f9bf87f54977444d592c033db43",
+      "exact_original_path": "/home/egde/rl_candidates/MOD4_S3_E1_CURB20_DIRECTION_EXPOSURE_MATCHED_20261011/learning_logs/2026-10-11_19-52-45_e1_CURB20_direction_exposure_matched_observation_1791719370686304629/model_32114.pt",
+      "direct_and_approved_tunnel_errors_preserved": true,
+      "source_byte_reads_hashes_decodes": 0,
+      "CPU_purpose_unconsumed": true,
+      "actual_typed_or_SDK_not_done": true,
+      "no_actor_substitute": true
+    },
+    "SLOPE135_actual_status": "PASS_COMPLETE_FOURLEAF_TYPED_FULL20K_NEWPLANT_NATIVE24_NOT_LONGSKILL",
+    "other_variants_878_113_50_status": "ALL_THREE_ACTUAL_CPU_FRESH80_AND_FULL20K_NATIVE24_NOUPDATE_PASS_ORIGINAL_CLOSE_WAIT_LEASE_RELEASED",
+    "review_only_df0_not_promoted": true,
+    "actual_extra_load_not_passthrough_only": "EachactualFIRST_BEFORE+8orig+OWNextraLoadONEresetAfterexact+ownCUDAroundtrip; historicaldistributedcontractpreservedno60kmerge; 113savedresetdirectionwriterapplied",
+    "all_three_actual_handoff": "THREE_EXPLICIT_E1_VARIANTS_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+    "all_three_actual_archive_index": "THREE_EXPLICIT_E1_VARIANTS_ACTUAL_ALL_SOURCE_RAW_ERRORS_ARCHIVE_PENDING_V1.json",
+    "CURB141_7b_still_pending_not_replaced_by268": true
+  },
+  "original_budget_latest_readonly_summary": {
+    "kind": "ORIGINAL_CANONICAL_OWN_W35_RESUME82_TERMINAL_SETTLEMENT_READONLY_SCHEMA_V2",
+    "original_path": "/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json",
+    "canonical_SHA_at_read": "df5fcac26b8e4ecf6907b800c7e2c5b3388c4153cbbbb5dae48200ecfc84fcc5",
+    "authority_generation": "MOD4_SINGLE_WRITER72_20261026",
+    "authorized_training_seconds": 2268000,
+    "charged_training_seconds": 1895619.010973692,
+    "remaining_training_seconds": 372380.98902630806,
+    "original_extension_count": 9,
+    "new_extensions_or_refunds_created_by_reader": 0,
+    "own_complete_segment": {
+      "kind": "Linux_MOD4V1_W35_FULLDR_RM70_MOD4V1_W35_RESUME89ACA_WAIT_V4_20261102_054158",
+      "owner_parent_pid": 1431521,
+      "started_epoch": 1793570362.854212,
+      "ended_epoch": 1793574007.408606,
+      "charged_expert_seconds": 3644.470574617386,
+      "experts": {
+        "w35_72": {
+          "started_epoch": 1793570362.854212,
+          "accounted_through_epoch": 1793574007.3247867,
+          "charged_seconds": 3644.470574617386,
+          "max_parent_seconds": 3900,
+          "ended_epoch": 1793574007.3247867,
+          "actual_returncode": 0,
+          "duration_bound_passed": true
+        }
+      }
+    },
+    "own_new_PPO_updates": 82,
+    "own_terminal_saved_SHA": "8d6a9ab5fae3fd2689c59bcfc1f1e776eb162b8eef671417df0fc88150285c54",
+    "active_segment_is_none": true,
+    "active_owner_pid_only_if_other_current": null,
+    "local_ledger_copy": false,
+    "canonical_writes": 0,
+    "PT_or_SDK_reads": 0
+  },
+  "historical_registry_v1_join_gaps": [
+    "H1_normal_PPO86B",
+    "E1_CURB20",
+    "E1_SLOPE5"
+  ],
+  "historical_v1_inventory_boundary": "4 are currently exact selected400N50 formals, not proof all historical frozen lineages have been resolved. Historical18 is an E0 evaluation matrix, not18 independent actors. No candidate is promoted by maximum iteration alone.",
+  "historical_initial_budget_binding": {
+    "canonical": "/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json",
+    "generation": "MOD4_SINGLE_WRITER72_20261026",
+    "read_at_local": "2026-11-01T23:17:22+08:00",
+    "authorized_seconds": 2268000,
+    "charged_seconds_at_read": 1881124.7016320229,
+    "remaining_seconds_at_read": 386875.29836797714,
+    "strict_minimum_remaining_seconds": 86412.86069250107,
+    "snapshot_not_current_admission": true,
+    "new_ledger_or_budget_extension_created": false,
+    "production_requirement": "Actual fresh original single-writer Task/GO/cost/save-close-childwait receipts; idle-card permission is not a new time budget."
+  },
+  "original_skill_contract_sourceonly": {
+    "matrix": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\ORIGINAL_ACCEPTANCE_CONTRACT_MATRIX_FINAL_V4.json",
+    "bytes": 436346,
+    "SHA": "943e9f7cc973e6c155bef88d81634d4ef4315a59867f59e7398e2a8fa1f47369",
+    "text_references": 48,
+    "original_function_excerpts": 49,
+    "semantic_MOCK_cases": 29,
+    "Torch_or_SDK_actual_claim": false,
+    "scope_delta_index": "ORIGINAL_SKILL_ACCEPTANCE_E2_SCOPE_CLARIFICATION_DELTA_INDEX_V1.json",
+    "replay_plan": "acceptance_contract_sourceonly_v1/NEWPLANT_SOURCE_ONLY_REPLAY_PLANS_FINAL_V3.json",
+    "no_actual_future_descriptor_executions": true,
+    "original_closure_m": 0.002,
+    "original_E0_E2_mimic_rad": 0.05,
+    "current_approved_closure_m": 0.01,
+    "current_approved_mimic_rad": 0.01,
+    "different_original_vs_newplant_gate_domains_no_causal_failrate_comparison": true,
+    "preserve_first_original_boundary_prefix_and_current_integration_censor": true,
+    "W35_was_live_excluded_at_contract_capture_now_closed_parent_eval_separate": true
+  },
+  "training_scalar_semantic_boundary": {
+    "report": "reports/W35_RESUME82_TRAINING_SCALAR_SCOPE_NOTE_V1.json",
+    "logged_LR_not_final_exact_LR": true,
+    "generic_renamed_velocity_tracking_success_rate1_not_independent_full32_or_route_qualification": true,
+    "upstream_generic_success_threshold_not_joined": true,
+    "unlogged_KL_not_inferred": true
+  },
+  "single_GPU_N80_fresh_fullDR_skill_screen_V8": {
+    "summary": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\SINGLE_GPU_NINE_FINAL_SUMMARY_V1.json",
+    "report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_SINGLE_GPU_SKILL_RESULTS_V1.md",
+    "source_registry_v7_SHA": "4d10d8f1f5f3d09252b40dd396acc35f5751b1b1045422d61dad6b508f8a572f",
+    "all9_execution_complete": true,
+    "full_expert_graduation_claim": false,
+    "full20k_source_restore_proofs_unchanged": true,
+    "actual_GPU_UUID": "GPU-c27eecbd-6838-7290-1cd2-37e34522213d",
+    "actual_common_start": "2026-11-02T10:16:10+08:00",
+    "new_PPO_BPTT": false,
+    "scope": "Fresh80notSaved20kSlice",
+    "rows": [
+      {
+        "role": "E0",
+        "label": "E0 \u5e73\u5730\u57fa\u7840",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 20.0,
+        "controls": 1000,
+        "physics": 8000,
+        "feedback": 2000,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d/e0/adaptation/final_valid_update82.pt",
+        "source_SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\E0\\FINAL.json",
+        "body_absolute_mean_error_vx_vy_yaw": [
+          0.03950337095186114,
+          0.04763822479173541,
+          0.10586447894573212
+        ],
+        "result": "\u666e\u901a\u8dcc\u5012/\u95ed\u94fe/mimic\u91cd\u7f6e0\uff1bvx\u8bef\u5dee0.0395m/s\uff1byaw\u8bef\u5dee0.1059rad/s",
+        "assessment": "\u57fa\u7840\u4fdd\u6301\u8bca\u65ad\u5b8c\u6210\uff1b\u539f\u5168\u6280\u80fd\u6bd5\u4e1a\u89c4\u5219\u7f3a\u9879"
+      },
+      {
+        "role": "E2",
+        "label": "E2 \u4e16\u754c\u7cfb\u79fb\u52a8\u6574\u5708",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 24.0,
+        "controls": 1200,
+        "physics": 9600,
+        "feedback": 2400,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+        "source_SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\E2\\FINAL.json",
+        "cycle_events": 187,
+        "cycle_original_bounds_met": 0,
+        "incomplete_cycles": 43,
+        "result": "187\u4e2a\u5b8c\u6574\u6574\u5708\u4e8b\u4ef6\uff1b\u539f\u4e16\u754c\u7cfb\u8054\u5408\u8c13\u8bcd0/187\uff0c\u53e643\u4e2a\u4e0d\u5b8c\u6574\u4e8b\u4ef6",
+        "assessment": "\u6309\u5f53\u524d\u539f\u89c2\u6d4b\u5668\u672a\u8fbe\u754c\uff1b\u4e16\u754c\u4f4d\u79fbgetter\u65f6\u5e8f/\u53c2\u8003\u70b9\u72ec\u7acb\u9a8c\u8bc1\u4ecd\u6709\u7f3a\u53e3\uff0c\u4e0d\u636e\u6b64\u65ad\u8a00\u673a\u5668\u4eba\u5b8c\u5168\u4e0d\u52a8"
+      },
+      {
+        "role": "E3",
+        "label": "E3 \u8dcc\u5012\u6062\u590d",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 3.2,
+        "controls": 160,
+        "physics": 1280,
+        "feedback": 320,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt",
+        "source_SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\E3\\FINAL.json",
+        "initial_rescue_environments": 74,
+        "first_episode_original_stable_credit": 0,
+        "normal_nonrescue_envs": 6,
+        "recipe_rows": [
+          {
+            "recipe": 0,
+            "initial_envs": 7,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 5
+          },
+          {
+            "recipe": 1,
+            "initial_envs": 7,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 2,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 3,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 4,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 4
+          },
+          {
+            "recipe": 5,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 4
+          },
+          {
+            "recipe": 6,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 7,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 8,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 9,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 10,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          {
+            "recipe": 11,
+            "initial_envs": 6,
+            "original_request": true,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 5
+          },
+          {
+            "recipe": 12,
+            "initial_envs": 6,
+            "original_request": false,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          }
+        ],
+        "result": "12\u7c7b\u8dcc\u5012\u6062\u590d\u521d\u59cb74\u73af\u5883\uff0c\u539f0.5s\u7a33\u5b9acredit 0/74\uff1b\u53e66\u4e2a\u6b63\u5e38\u59ff\u6001\u4e0d\u8ba1\u6062\u590d\u5206\u6bcd",
+        "assessment": "\u672c3.2s\u521d\u59cbepisode\u7a97\u53e3\u672a\u53d6\u5f97\u6062\u590dcredit\uff1b\u4e0d\u8de8reset\u62fc\u63a5\uff0c\u4e5f\u4e0d\u4f5c\u65e720k\u7684\u914d\u5bf9\u9000\u5316\u7ed3\u8bba"
+      },
+      {
+        "role": "H1_normal",
+        "label": "H1 normal \u771f270mm",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 20.0,
+        "controls": 1000,
+        "physics": 8000,
+        "feedback": 2000,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/H1_TYPED71DB_EXACT_TRANSPORT_20261102_040952_1793563792484126600/NORMAL_H1_TYPED71DB_PRESERVED_SOURCE.pt",
+        "source_SHA": "71db5543b14919eb11d2a8606f9ffe1acf0814260d7d89aa823565a49a7b21c4",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\H1_normal\\FINAL.json",
+        "original_natural_event_counts": {
+          "phase.request_for_action": 80,
+          "phase.ready": 64,
+          "phase.previous_request": 80,
+          "goal.attempt": 42,
+          "goal.launched": 42,
+          "goal.edge": 0,
+          "goal.landed": 0,
+          "goal.success": 0,
+          "goal.positive_vz": 42,
+          "goal.was_ready": 64
+        },
+        "result": "\u51c6\u5907\u5c31\u7eea64/80\uff1b\u8d77\u8df342/80\uff1b\u843d\u53f00/80\uff1b\u6062\u590d\u6210\u529f0/80",
+        "assessment": "\u771f270mm\u6e90\u4e8b\u4ef6\u5df2\u6d4b\u4f46\u672a\u5b8c\u6210\u843d\u53f0\u6062\u590d\uff1b20s\u4e3a\u539fcfg\u9ed8\u8ba4\u89c2\u5bdf\u7a97\u53e3\uff0c\u975e\u5df2\u63a5\u53d7cohort\u7684\u5b8c\u6574\u590d\u73b0"
+      },
+      {
+        "role": "W35",
+        "label": "W35 / W25 RM70",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 32.0,
+        "controls": 1600,
+        "physics": 12800,
+        "feedback": 3200,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_RESUME89ACA_WAIT_V4_20261102_054158_1793569318385718000/production/model_final_complete.pt",
+        "source_SHA": "8d6a9ab5fae3fd2689c59bcfc1f1e776eb162b8eef671417df0fc88150285c54",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\W35\\FINAL.json",
+        "moving_complete": {
+          "count": 61,
+          "original_bounds_met": 18,
+          "along_speed_mean": 0.032343019719892105,
+          "along_speed_min": -0.0009008088381960988,
+          "along_speed_max": 0.043332573026418686,
+          "BODY_reference_along_tracking_error_mean": -0.10297589395271584,
+          "all_nonterminal_and_notimeout": true,
+          "sameUID_noreset_stitch": true
+        },
+        "standing_complete": {
+          "count": 26,
+          "original_bounds_met": 26,
+          "along_speed_mean": 0.0014474516770300956,
+          "along_speed_min": -0.013491149991750717,
+          "along_speed_max": 0.018037913367152214,
+          "BODY_reference_along_tracking_error_mean": 0.0014474516770300956,
+          "all_nonterminal_and_notimeout": true,
+          "sameUID_noreset_stitch": true
+        },
+        "route_episodes": 228,
+        "catalog_goal_facts": 0,
+        "result": "\u8fd0\u52a8\u5b8c\u6574\u533a\u95f418/61\u8fbe\u539f\u754c\uff1b\u7ad9\u7acb26/26\uff1b\u89c2\u5bdfgoal 0/228",
+        "assessment": "\u5c1a\u672aRM70\u573a\u5730\u7b56\u7565\u6bd5\u4e1a\uff1bgoal\u4e3aobserver\u975e\u8bad\u7ec3\u76ee\u6807\uff1b\u672cCPU\u56fa\u5b9a0.30bin\u4e0d\u7b49\u4e8e\u6574\u4e2a\u9ad8\u901f\u4eba\u53e3\uff0c\u4e0d\u5ba3\u9ad8\u901f\u5df2\u901a\u8fc7"
+      },
+      {
+        "role": "CURB_PROTECTED878",
+        "label": "CURB878 \u8def\u7f18",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 15.0,
+        "controls": 750,
+        "physics": 6000,
+        "feedback": 1500,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_PROTECTED878_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062521_1793571921621279200/CURB_PROTECTED878_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "source_SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\CURB_PROTECTED878\\FINAL.json",
+        "original_two_wheel_sameepisode_contactconfirmed_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 22,
+            "contact_confirmed_envs": 22
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "result": "\u4e0a\u884c22/27\uff1b\u4e0b\u884c27/27\uff1b\u7ad9\u7acb\u65e0\u666e\u901a\u5931\u8d2526/26",
+        "assessment": "\u539f\u7aef\u70b9\u63a5\u89e6\u8c13\u8bcd\u5df2\u6d4b\uff1b\u4e0a\u884c\u4ecd\u6709\u672a\u5b8c\u6210\u73af\u5883\uff0c\u672a\u58f0\u660e\u6574\u4f53\u6bd5\u4e1a"
+      },
+      {
+        "role": "CURB_INDEPENDENT113",
+        "label": "CURB113 \u8def\u7f18",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 15.0,
+        "controls": 750,
+        "physics": 6000,
+        "feedback": 1500,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_INDEPENDENT113_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062540_1793571940962361300/CURB_INDEPENDENT113_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "source_SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\CURB_INDEPENDENT113\\FINAL.json",
+        "original_two_wheel_sameepisode_contactconfirmed_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 22,
+            "contact_confirmed_envs": 22
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "result": "\u4e0a\u884c22/27\uff1b\u4e0b\u884c27/27\uff1b\u7ad9\u7acb\u65e0\u666e\u901a\u5931\u8d2526/26",
+        "assessment": "\u539f\u7aef\u70b9\u63a5\u89e6\u8c13\u8bcd\u5df2\u6d4b\uff1b\u4e0a\u884c\u4ecd\u6709\u672a\u5b8c\u6210\u73af\u5883\uff0c\u672a\u58f0\u660e\u6574\u4f53\u6bd5\u4e1a"
+      },
+      {
+        "role": "SLOPE135",
+        "label": "SLOPE135 5\u00b0/2m\u5761\u9053",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 15.0,
+        "controls": 750,
+        "physics": 6000,
+        "feedback": 1500,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SLOPE135_24B_COMPLETE_CPU_FOUR_LEAF_20261102_053246_1793568766422620900/SLOPE135_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "source_SHA": "f2b22040f90c31d133e3b006d35c868b257cc05e9445bcffdadb3b33605e1519",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\SLOPE135\\FINAL.json",
+        "original_two_wheel_sameepisode_contactconfirmed_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 25,
+            "contact_confirmed_envs": 25
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "result": "\u4e0a\u884c25/27\uff1b\u4e0b\u884c27/27\uff1b\u7ad9\u7acb\u65e0\u666e\u901a\u5931\u8d2526/26",
+        "assessment": "\u539f\u7aef\u70b9\u63a5\u89e6\u8c13\u8bcd\u5df2\u6d4b\uff1b\u4e0a\u884c\u4ecd\u6709\u672a\u5b8c\u6210\u73af\u5883\uff0c\u672a\u58f0\u660e\u6574\u4f53\u6bd5\u4e1a"
+      },
+      {
+        "role": "SLOPE_INDEPENDENT50",
+        "label": "SLOPE50 \u72ec\u7acb\u5761\u9053",
+        "scope": "N80_fresh_D0_D7_not_saved20k_projection",
+        "num_envs": 80,
+        "seconds": 20.0,
+        "controls": 1000,
+        "physics": 8000,
+        "feedback": 2000,
+        "RC0_execution_complete": true,
+        "source_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SLOPE_INDEPENDENT50_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062559_1793571959349234600/SLOPE_INDEPENDENT50_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "source_SHA": "4a5abac25ad39148f3647cee06c3977bc9fbd34866a2a9ed027133bbc58a805a",
+        "source_byte_SHA_decode_counts": [
+          1,
+          1,
+          1
+        ],
+        "frozen_actor_STD_unchanged_and_corecached": true,
+        "no_live_critic_optimizer_restore_claim": true,
+        "no_aggregate_full_expert_graduation_claim": true,
+        "full_report": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_SINGLE_GPU_V8_CLOSED_20261102_101543\\SLOPE_INDEPENDENT50\\FINAL.json",
+        "termination_events": {
+          "time_out": 47,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 41
+        },
+        "result": "20s own training-axis\u7b5b\u67e5\u5b8c\u6210\uff1b41\u6b21\u8fb9\u754c\u300147\u6b21\u8d85\u65f6\uff1b\u65e0\u666e\u901a\u8dcc\u5012/\u95ed\u94fe/mimic\u4e8b\u4ef6",
+        "assessment": "\u539faccepted80\u5761\u9053cohort/\u5b8c\u6574\u7aef\u70b9\u8c13\u8bcd\u7f3a\u9879\uff0c\u4fdd\u7559UNKNOWN\uff0c\u4e0d\u501f\u7528SLOPE135\u6807\u51c6"
+      }
+    ]
+  },
+  "posttrain_excluding_H1_actual_first_pair": {
+    "goal_id": "goal-1348948b-8b3e-4e93-85ec-317e88962347",
+    "goal_revision": 8,
+    "goal_still_active_not_complete": true,
+    "H1_excluded": true,
+    "frozen_selected_formals_untouched": true,
+    "actual_training": {
+      "kind": "FIRSTPAIR_TWO_REAL_ORIGINAL_PPO_FINITE20_FULLSTATE_WINDOWS_CLOSED_NOT_SKILLPASS",
+      "rows": [
+        {
+          "role": "E0",
+          "actual_PPO_updates": 20,
+          "actual_optimizer_step_calls": 400,
+          "transitions": 9600000,
+          "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+          "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+          "bytes": 14035411,
+          "iteration": 32004,
+          "Adam17_unique": [
+            641600
+          ],
+          "LR": 0.0002562890625000001,
+          "actual_source_physical_reads": 1,
+          "source_cache_allroots_unchanged": true,
+          "returncode": 0,
+          "all_own_child_waited": true,
+          "derived_original_charged_expert_seconds": 1146.7129719257355,
+          "budget_derivation": "OriginalpublishedGOthroughparentwaitterminaltimestamps, notledgercopy/refund",
+          "skill": "PENDING_FROZEN_ORIGINAL_SCOPE_RETENTION"
+        },
+        {
+          "role": "CURB_PROTECTED878",
+          "actual_PPO_updates": 20,
+          "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+          "bytes": 17621306,
+          "iteration": 32959,
+          "Adam17": [
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800,
+            660800
+          ],
+          "LR": 7.593750099961956e-05,
+          "STD6": [
+            25.630088806152344,
+            0.04964280128479004,
+            0.05184120312333107,
+            0.05699625983834267,
+            0.06733551621437073,
+            0.07273653894662857
+          ],
+          "actual_source_physical_reads": 1,
+          "original_saved_iteration_semantics": "OriginalRSLlastlooplabel32959 after20completedupdates from32940; delta19isnot19updates; noforgediterfix",
+          "returncode": 0,
+          "all_own_child_waited": true,
+          "derived_original_charged_expert_seconds": 1272.1442589759827,
+          "budget_derivation": "OriginalpublishedGOthroughparentwaitterminaltimestamps, notledgercopy/refund",
+          "skill": "PENDING_FROZEN_ORIGINAL_SCOPE_RETENTION"
+        }
+      ],
+      "original_actual_cost_settled": true,
+      "original_leases_released": true,
+      "parent_errors": [],
+      "H1_excluded": true,
+      "other_six_unconsumed": [
+        "E2",
+        "E3",
+        "W35",
+        "CURB_INDEPENDENT113",
+        "SLOPE135",
+        "SLOPE_INDEPENDENT50"
+      ],
+      "physical_training_rerun_for_summary": 0,
+      "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR1_V4_CLOSED_20261102_120320\\CLOSED_RESULT.json"
+    },
+    "actual_frozen_original_scope_retention": {
+      "kind": "ACTUAL_PAIR1_ORIGINAL_SCOPE_FROZEN_RETENTION_AND_CONSERVATIVE_BEST_SELECTION",
+      "rows": [
+        {
+          "role": "E0",
+          "actual_eval_RC": 0,
+          "actual_scope_seconds": 20.0,
+          "actual_controls": 1000,
+          "source_candidate_SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+          "termination_events": {
+            "time_out": 80,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0
+          },
+          "baseline_termination_events": {
+            "time_out": 80,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0
+          },
+          "ordinary_failure_nonincrease": true,
+          "closed_stdout_capacity_errors": [],
+          "whole_source_cache_identity_preserved": true,
+          "new_PPO_updates_in_eval": 0,
+          "original_full_expert_graduated": false,
+          "diagnostic_body_abs_error_mean_vx_vy_yaw": [
+            0.03828473502770066,
+            0.047511520497500896,
+            0.10110792268067598
+          ],
+          "baseline_body_abs_error_mean_vx_vy_yaw": [
+            0.03950337095186114,
+            0.04763822479173541,
+            0.10586447894573212
+          ],
+          "delta_vx_vy_yaw": [
+            -0.00121863592416048,
+            -0.000126704294234517,
+            -0.004756556265056139
+          ],
+          "conservative_selection_rule": "Pareto nonworse in all three existingdiagnostics and ordinaryfailures, not newskillpass/graduationthreshold",
+          "no_diagnostic_regression_in_this_screen": true,
+          "selection": "CANDIDATE",
+          "selected_source": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+            "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+            "bytes": 14035411
+          },
+          "candidate_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+            "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+            "bytes": 14035411
+          },
+          "frozen_mother_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d/e0/adaptation/final_valid_update82.pt",
+            "SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a"
+          },
+          "do_not_overwrite_mother_or_failed_candidate": true,
+          "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+          "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+        },
+        {
+          "role": "CURB_PROTECTED878",
+          "actual_eval_RC": 0,
+          "actual_scope_seconds": 15.0,
+          "actual_controls": 750,
+          "source_candidate_SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+          "termination_events": {
+            "time_out": 0,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0,
+            "rough_route_boundary": 49
+          },
+          "baseline_termination_events": {
+            "time_out": 0,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0,
+            "rough_route_boundary": 36
+          },
+          "ordinary_failure_nonincrease": true,
+          "closed_stdout_capacity_errors": [],
+          "whole_source_cache_identity_preserved": true,
+          "new_PPO_updates_in_eval": 0,
+          "original_full_expert_graduated": false,
+          "original_endpoint_groups": {
+            "ascending": {
+              "environments": 27,
+              "complete_envs": 26,
+              "contact_confirmed_envs": 26
+            },
+            "descending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "stand": {
+              "environments": 26,
+              "complete_envs": 0,
+              "contact_confirmed_envs": 0
+            }
+          },
+          "baseline_endpoint_groups": {
+            "ascending": {
+              "environments": 27,
+              "complete_envs": 22,
+              "contact_confirmed_envs": 22
+            },
+            "descending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "stand": {
+              "environments": 26,
+              "complete_envs": 0,
+              "contact_confirmed_envs": 0
+            }
+          },
+          "stand_no_ordinary_failure": {
+            "total": 26,
+            "no_failure": 26
+          },
+          "baseline_stand_no_ordinary_failure": {
+            "total": 26,
+            "no_failure": 26
+          },
+          "same_declared_group_sizes": true,
+          "conservative_selection_rule": "Existingownsameepisode two-wheel endpoint/contact groups andstandfailure factsnondecrease; no standcrossingrequired/noinventedtotalgrade",
+          "original_scoped_skill_facts_not_regressed": true,
+          "selection": "CANDIDATE",
+          "selected_source": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+            "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+            "bytes": 17621306
+          },
+          "candidate_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+            "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+            "bytes": 17621306
+          },
+          "frozen_mother_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_PROTECTED878_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062521_1793571921621279200/CURB_PROTECTED878_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+            "SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262"
+          },
+          "do_not_overwrite_mother_or_failed_candidate": true,
+          "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+          "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+        }
+      ],
+      "actual_control_windows_overlap_seconds": 215.17707872390747,
+      "retention_assessment_complete": true,
+      "all_scope_claims_limited": true,
+      "H1_excluded": true,
+      "remaining_six_PPO_not_started_by_thisprocessor": true,
+      "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR1_RETENTION_V4_CLOSED_20261102_133121\\CLOSED_RESULT.json",
+      "source_checkpoint_raw_SDK_or_replay_ops": 0,
+      "original_asset_physics_rewards_skill_predicates_unchanged": true
+    },
+    "best_scope": "Single declaredseed80originalscope, not allskills/hardware/full20kgraduation",
+    "next_pair_dispatched_E2_CURB113": {
+      "epoch": 1793597884.2081878,
+      "root": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700",
+      "parent_pid": 1462128,
+      "creation": 1793597883.97,
+      "roles": [
+        "E2",
+        "CURB_INDEPENDENT113"
+      ],
+      "actual_owner_dispatched_not_trainingpass": true,
+      "readonly_GPU_lines": [
+        "GPU-16828f91-2b45-b646-8dc0-9481138e2842, 24203, 0",
+        "GPU-c27eecbd-6838-7290-1cd2-37e34522213d, 24203, 0"
+      ],
+      "launcher_is_not_actual_lease_admission": true,
+      "models_SDK_Cwrites_or_GObylauncher": 0,
+      "prior_actual_retention_assessment": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR1_FROZEN_RETENTION_BEST_SELECTION_V1.json"
+    },
+    "other_untrained_four": [
+      "E3",
+      "W35",
+      "SLOPE135",
+      "SLOPE_INDEPENDENT50"
+    ],
+    "first_pair_newcheckpoints_not_overwrite_mothers": true
+  },
+  "posttrain_excluding_H1_actual_second_pair": {
+    "actual_training": {
+      "kind": "ACTUAL_CLOSED_ORIGINAL_PPO_PAIR_FULLSTATE_NOT_SKILLPASS",
+      "pair": 2,
+      "rows": [
+        {
+          "role": "E2",
+          "actual_PPO_updates": 20,
+          "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/E2/production/model_final_complete.pt",
+          "SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+          "bytes": 14618627,
+          "actual_saved_iteration": 42842,
+          "actual_Adam17_unique_from_producer": [
+            859700
+          ],
+          "actual_saved_LR": 0.00050625,
+          "actual_STD6_from_producer": null,
+          "STD_metadata_absent_does_not_trigger_model_read": true,
+          "returncode": 0,
+          "all_own_child_waited": true,
+          "derived_original_charged_expert_seconds": 1115.9538209438324,
+          "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+          "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+        },
+        {
+          "role": "CURB_INDEPENDENT113",
+          "actual_PPO_updates": 20,
+          "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+          "bytes": 18043246,
+          "actual_saved_iteration": 32194,
+          "actual_Adam17_unique_from_producer": [
+            645500
+          ],
+          "actual_saved_LR": 0.00011390625000000006,
+          "actual_STD6_from_producer": [
+            23.524396896362305,
+            0.05211487412452698,
+            0.05395934358239174,
+            0.06021666154265404,
+            0.07222707569599152,
+            0.07879020273685455
+          ],
+          "STD_metadata_absent_does_not_trigger_model_read": false,
+          "returncode": 0,
+          "all_own_child_waited": true,
+          "derived_original_charged_expert_seconds": 1223.2577450275421,
+          "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+          "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+        }
+      ],
+      "original_actual_cost_settled": true,
+      "original_leases_released": true,
+      "parent_errors": [],
+      "H1_excluded": true,
+      "physical_model_raw_or_PPO_reruns_for_summary": 0,
+      "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_GENERIC_V2_TRAIN_CLOSED_20261102_133959\\CLOSED_RESULT.json"
+    },
+    "actual_frozen_original_scope_retention": {
+      "kind": "ACTUAL_PAIR2_ORIGINAL_SCOPE_FROZEN_RETENTION_AND_CONSERVATIVE_BEST_SELECTION",
+      "retention_assessment_complete": true,
+      "H1_excluded": true,
+      "rows": [
+        {
+          "role": "E2",
+          "actual_eval_RC": 0,
+          "actual_scope_seconds": 24.0,
+          "actual_controls": 1200,
+          "source_candidate_SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+          "termination_events": {
+            "time_out": 80,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0
+          },
+          "baseline_termination_events": {
+            "time_out": 80,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0
+          },
+          "ordinary_failure_nonincrease": true,
+          "ordinary_failure_event_sum": 0,
+          "baseline_ordinary_failure_event_sum": 0,
+          "closed_stdout_capacity_errors": [],
+          "new_PPO_updates_in_eval": 0,
+          "original_full_expert_graduated": false,
+          "diagnostic_body_abs_error_mean_vx_vy_yaw": [
+            0.04418453622298936,
+            0.07322813409846277,
+            0.11113409601772825
+          ],
+          "baseline_body_abs_error_mean_vx_vy_yaw": [
+            0.04551603938452899,
+            0.07317019432472686,
+            0.1187930068001151
+          ],
+          "delta_vx_vy_yaw": [
+            -0.0013315031615396336,
+            5.7939773735901645e-05,
+            -0.007658910782386855
+          ],
+          "all_three_existing_bodydiagnostics_nonworse": false,
+          "original_signed2pi_cycle_counts": {
+            "complete": 187,
+            "false": 187,
+            "accepted_true": 0,
+            "incomplete": 44,
+            "terminal_complete": 0
+          },
+          "baseline_original_signed2pi_cycle_counts": {
+            "complete": 187,
+            "false": 187,
+            "accepted_true": 0,
+            "incomplete": 43,
+            "terminal_complete": 0
+          },
+          "original_accepted_true_count_nondecrease": true,
+          "E2_world_getter_phase_reference_observer_gap": true,
+          "baseline_zero_true_0of187_is_not_full_skill_pass": true,
+          "world_metric_not_used_for_blind_tuning_or_graduation": true,
+          "original_cycle_producer_metadata": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_PAIR2_FROZEN_RETENTION_V1_20261102_140451_1793599491951189200/cases/E2/E2_FULL_WORLD_SIGNED_UID_CYCLES_213_ACTUAL.jsonl",
+            "bytes": 332343,
+            "rows": 231,
+            "SHA": "d93d306246d6e9304bb7e6576da5ddc82e5e7eb7bf0fa89563ac6272b3030415",
+            "source_SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+            "schema": "mod4.E2.same_UID_world213.v1",
+            "maximum_bytes": 201326592,
+            "retention_limited": false,
+            "producer_stream_SHA_without_reread": true,
+            "default_reader_transfer": "metadata_only_no_JSONL_content_or_hash_read",
+            "complete_WM_dataset": false
+          },
+          "observer_producer_source_SHA_label": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+          "actor_candidate_source_SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+          "observer_label_is_not_actor_identity": true,
+          "conservative_selection_rule": "Existingbodydiagnosticsallnonworse+ordinaryfailuresnonincrease+originalacceptedtruecountnotlower; notoriginalgraduationrule",
+          "no_diagnostic_regression_in_this_screen": false,
+          "selection": "FROZEN_MOTHER",
+          "selected_source": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+            "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+          },
+          "candidate_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/E2/production/model_final_complete.pt",
+            "SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+            "bytes": 14618627
+          },
+          "frozen_mother_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+            "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+          },
+          "do_not_overwrite_mother_or_failed_candidate": true,
+          "whole_source_cache_identity_preserved": true,
+          "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+          "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+        },
+        {
+          "role": "CURB_INDEPENDENT113",
+          "actual_eval_RC": 0,
+          "actual_scope_seconds": 15.0,
+          "actual_controls": 750,
+          "source_candidate_SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+          "termination_events": {
+            "time_out": 0,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0,
+            "rough_route_boundary": 46
+          },
+          "baseline_termination_events": {
+            "time_out": 0,
+            "bad_orientation": 0,
+            "base_contact": 0,
+            "closure": 0,
+            "mimic": 0,
+            "low_base": 0,
+            "rough_route_boundary": 34
+          },
+          "ordinary_failure_nonincrease": true,
+          "ordinary_failure_event_sum": 0,
+          "baseline_ordinary_failure_event_sum": 0,
+          "closed_stdout_capacity_errors": [],
+          "new_PPO_updates_in_eval": 0,
+          "original_full_expert_graduated": false,
+          "original_endpoint_groups": {
+            "ascending": {
+              "environments": 27,
+              "complete_envs": 22,
+              "contact_confirmed_envs": 22
+            },
+            "descending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "stand": {
+              "environments": 26,
+              "complete_envs": 0,
+              "contact_confirmed_envs": 0
+            }
+          },
+          "baseline_endpoint_groups": {
+            "ascending": {
+              "environments": 27,
+              "complete_envs": 22,
+              "contact_confirmed_envs": 22
+            },
+            "descending": {
+              "environments": 27,
+              "complete_envs": 27,
+              "contact_confirmed_envs": 27
+            },
+            "stand": {
+              "environments": 26,
+              "complete_envs": 0,
+              "contact_confirmed_envs": 0
+            }
+          },
+          "stand_no_ordinary_failure": {
+            "total": 26,
+            "no_failure": 26
+          },
+          "baseline_stand_no_ordinary_failure": {
+            "total": 26,
+            "no_failure": 26
+          },
+          "same_declared_group_sizes": true,
+          "endpoint_contact_nondecrease": true,
+          "stand_no_ordinary_failure_nondecrease": true,
+          "stand_crossing_required": false,
+          "original_scoped_skill_facts_not_regressed": true,
+          "conservative_selection_rule": "Existingownascending/descendingendpoint+contactandstandnoordinaryfailurefactsnondecrease; nostandcrossingornewgraduation",
+          "selection": "CANDIDATE",
+          "selected_source": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+            "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+            "bytes": 18043246
+          },
+          "candidate_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+            "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+            "bytes": 18043246
+          },
+          "frozen_mother_preserved": {
+            "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_INDEPENDENT113_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062540_1793571940962361300/CURB_INDEPENDENT113_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+            "SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+            "bytes": 18036621
+          },
+          "do_not_overwrite_mother_or_failed_candidate": true,
+          "whole_source_cache_identity_preserved": true,
+          "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+          "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+        }
+      ],
+      "actual_control_windows_overlap_seconds": 215.0590374469757,
+      "do_not_overwrite_mother_or_failed_candidate": true,
+      "all_scope_claims_limited": true,
+      "selection_is_not_original_skill_graduation_rule": true,
+      "full20k_or_hardware_graduated": false,
+      "next_pair_dispatch_requires_real_assessment_and_explicit_selection_not_fake_pass": true,
+      "remaining_PPO_not_started_by_thisprocessor": true,
+      "original_asset_physics_rewards_skill_predicates_unchanged": true,
+      "model_PT_rawtrajectory_SDK_replay_C_GO_Git_operations": 0,
+      "source": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_V1_CLOSED_20261102_140549\\CLOSED_RESULT.json",
+      "input_metadata_refs": [
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\PAIR2_FROZEN_RETENTION_V1_LATEST_CLOSED_RESULT_PATH.json",
+          "bytes": 187,
+          "SHA": "e782808c319649f891586fe41b8f676c4b910d39cab1ba0b2594d08fc4a29976"
+        },
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_V1_CLOSED_20261102_140549\\CLOSED_RESULT.json",
+          "bytes": 1229923,
+          "SHA": "02edc315715c2afe6d7860ccd836f2895eba0863289c80b957a25c575b465a01"
+        },
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\reports\\NINE_V8_COMPACT_FIRSTHAND_SKILL_FACTS.json",
+          "bytes": 38754,
+          "SHA": "16b29d7953ef336d9ac206a665364d378912cb3c08f68787c3b7083c3267d073"
+        },
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_GENERIC_V2_ACTUAL_FULLSTATE_TRAINING_CLOSED_SUMMARY_V1.json",
+          "bytes": 2542,
+          "SHA": "3346a53136d8a86735443e27f614bb43f3e35b86442e11fcfee222ab73cef08b"
+        },
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V5_FEEDBACK_DESCRIPTOR\\ROLE_CONTRACTS.json",
+          "bytes": 40841,
+          "SHA": "07b902c0ae3a496e6431ee7413c2256a84f701791fb90af3f57be17af8263218"
+        }
+      ],
+      "closed_stdout_metadata_refs": [
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_V1_CLOSED_20261102_140549\\cases\\E2\\SDK_FULL_STDOUT_STDERR.log",
+          "bytes": 19303,
+          "SHA": "8ee6b2b668f2e8471b60fc5f7bc94fab3eb7e6b09dd2dcdf816804525b9a6257"
+        },
+        {
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_V1_CLOSED_20261102_140549\\cases\\CURB_INDEPENDENT113\\SDK_FULL_STDOUT_STDERR.log",
+          "bytes": 19432,
+          "SHA": "07aa7284f8889cd5bfacb33f5be845ddd9353903b67a84928c4017ea5873fa3a"
+        }
+      ],
+      "only_this_collected_closed_stdout_scanned": true,
+      "no_old_raw_NPZ_JSONL_or_PT_read": true
+    },
+    "scope": "Singleoriginalseedfresh80notfull20k/hardwaregraduation",
+    "model_or_raw_reruns": 0
+  },
+  "posttrain_current_four_scoped_best": {
+    "E0": {
+      "selection": "CANDIDATE",
+      "selected_source": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+        "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+        "bytes": 14035411
+      },
+      "candidate_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+        "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+        "bytes": 14035411
+      },
+      "frozen_mother_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d/e0/adaptation/final_valid_update82.pt",
+        "SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a"
+      },
+      "do_not_overwrite_mother_or_failed_candidate": true,
+      "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true
+    },
+    "CURB_PROTECTED878": {
+      "selection": "CANDIDATE",
+      "selected_source": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+        "bytes": 17621306
+      },
+      "candidate_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+        "bytes": 17621306
+      },
+      "frozen_mother_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_PROTECTED878_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062521_1793571921621279200/CURB_PROTECTED878_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262"
+      },
+      "do_not_overwrite_mother_or_failed_candidate": true,
+      "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true
+    },
+    "E2": {
+      "selection": "FROZEN_MOTHER",
+      "selected_source": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+        "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+      },
+      "candidate_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/E2/production/model_final_complete.pt",
+        "SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+        "bytes": 14618627
+      },
+      "frozen_mother_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+        "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+      },
+      "do_not_overwrite_mother_or_failed_candidate": true,
+      "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true
+    },
+    "CURB_INDEPENDENT113": {
+      "selection": "CANDIDATE",
+      "selected_source": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+        "bytes": 18043246
+      },
+      "candidate_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+        "bytes": 18043246
+      },
+      "frozen_mother_preserved": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_INDEPENDENT113_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062540_1793571940962361300/CURB_INDEPENDENT113_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+        "SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+        "bytes": 18036621
+      },
+      "do_not_overwrite_mother_or_failed_candidate": true,
+      "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true
+    }
+  },
+  "posttrain_progress_not_goalcomplete": {
+    "real_completed_PPO_windows": 4,
+    "actual_new_updates_each": 20,
+    "frozen_retention_completed": 4,
+    "H1_frozen_excluded": true,
+    "remaining_untrained": [
+      "E3",
+      "SLOPE135",
+      "W35",
+      "SLOPE_INDEPENDENT50"
+    ],
+    "pair3_original_bounded_resource_wait_parent": {
+      "epoch": 1793600741.6888568,
+      "root": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700",
+      "parent_pid": 1465093,
+      "creation": 1793600741.45,
+      "roles": [
+        "E3",
+        "SLOPE135"
+      ],
+      "original_bounded_resource_wait1800_before_anyGO": true,
+      "not_actual_GPU_or_budget_admission_yet": true,
+      "launcher_models_SDK_GO_locks_Cwrites": 0,
+      "prior_actual_retention_assessment": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_BEST_SELECTION_V1.json"
+    },
+    "old_selected_formals_frozen_mothers_unchanged": true,
+    "all_skills_graduated": false
+  },
+  "posttrain_assessed_finite_windows": {
+    "goal_id": "goal-1348948b-8b3e-4e93-85ec-317e88962347",
+    "goal_revision": 8,
+    "H1_frozen_excluded": true,
+    "actual_completed_training_windows": 6,
+    "actual_original_scope_retention_assessments": 6,
+    "actual_training_rows": [
+      {
+        "role": "E0",
+        "actual_PPO_updates": 20,
+        "actual_optimizer_step_calls": 400,
+        "transitions": 9600000,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+        "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+        "bytes": 14035411,
+        "iteration": 32004,
+        "Adam17_unique": [
+          641600
+        ],
+        "LR": 0.0002562890625000001,
+        "actual_source_physical_reads": 1,
+        "source_cache_allroots_unchanged": true,
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1146.7129719257355,
+        "budget_derivation": "OriginalpublishedGOthroughparentwaitterminaltimestamps, notledgercopy/refund",
+        "skill": "PENDING_FROZEN_ORIGINAL_SCOPE_RETENTION"
+      },
+      {
+        "role": "CURB_PROTECTED878",
+        "actual_PPO_updates": 20,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+        "bytes": 17621306,
+        "iteration": 32959,
+        "Adam17": [
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800,
+          660800
+        ],
+        "LR": 7.593750099961956e-05,
+        "STD6": [
+          25.630088806152344,
+          0.04964280128479004,
+          0.05184120312333107,
+          0.05699625983834267,
+          0.06733551621437073,
+          0.07273653894662857
+        ],
+        "actual_source_physical_reads": 1,
+        "original_saved_iteration_semantics": "OriginalRSLlastlooplabel32959 after20completedupdates from32940; delta19isnot19updates; noforgediterfix",
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1272.1442589759827,
+        "budget_derivation": "OriginalpublishedGOthroughparentwaitterminaltimestamps, notledgercopy/refund",
+        "skill": "PENDING_FROZEN_ORIGINAL_SCOPE_RETENTION"
+      },
+      {
+        "role": "E2",
+        "actual_PPO_updates": 20,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/E2/production/model_final_complete.pt",
+        "SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+        "bytes": 14618627,
+        "actual_saved_iteration": 42842,
+        "actual_Adam17_unique_from_producer": [
+          859700
+        ],
+        "actual_saved_LR": 0.00050625,
+        "actual_STD6_from_producer": null,
+        "STD_metadata_absent_does_not_trigger_model_read": true,
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1115.9538209438324,
+        "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+        "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+      },
+      {
+        "role": "CURB_INDEPENDENT113",
+        "actual_PPO_updates": 20,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+        "bytes": 18043246,
+        "actual_saved_iteration": 32194,
+        "actual_Adam17_unique_from_producer": [
+          645500
+        ],
+        "actual_saved_LR": 0.00011390625000000006,
+        "actual_STD6_from_producer": [
+          23.524396896362305,
+          0.05211487412452698,
+          0.05395934358239174,
+          0.06021666154265404,
+          0.07222707569599152,
+          0.07879020273685455
+        ],
+        "STD_metadata_absent_does_not_trigger_model_read": false,
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1223.2577450275421,
+        "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+        "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+      },
+      {
+        "role": "E3",
+        "actual_PPO_updates": 20,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/E3/production/model_final_complete.pt",
+        "SHA": "67ee37cf39a9b82f7e45eab68f2fa0e46bd0eec95ffbe063bedfd7bfe810d81a",
+        "bytes": 14718611,
+        "actual_saved_iteration": 43110,
+        "actual_Adam17_unique_from_producer": [
+          866460
+        ],
+        "actual_saved_LR": 0.0002562890625000001,
+        "actual_STD6_from_producer": null,
+        "STD_metadata_absent_does_not_trigger_model_read": true,
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1154.8189311027527,
+        "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+        "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+      },
+      {
+        "role": "SLOPE135",
+        "actual_PPO_updates": 20,
+        "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/SLOPE135/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "ec5b495691e10bf4ef6587e7fad99df02a18ff48e44f6b70d5170aaa7b641b05",
+        "bytes": 17620922,
+        "actual_saved_iteration": 32088,
+        "actual_Adam17_unique_from_producer": [
+          643380
+        ],
+        "actual_saved_LR": 0.0003375,
+        "actual_STD6_from_producer": [
+          23.279644012451172,
+          0.04192166402935982,
+          0.04260904714465141,
+          0.04961208626627922,
+          0.058525942265987396,
+          0.06277318298816681
+        ],
+        "STD_metadata_absent_does_not_trigger_model_read": false,
+        "returncode": 0,
+        "all_own_child_waited": true,
+        "derived_original_charged_expert_seconds": 1209.8845801353455,
+        "budget_derivation": "PublishedoriginalGOthroughparentactualterminal, notnewledgerorrefund",
+        "skill": "PENDING_NEW_ORIGINAL_SCOPE_FROZEN_EVALUATION"
+      }
+    ],
+    "scope_assessment_rows": [
+      {
+        "role": "E0",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 20.0,
+        "actual_controls": 1000,
+        "source_candidate_SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+        "termination_events": {
+          "time_out": 80,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "baseline_termination_events": {
+          "time_out": 80,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "ordinary_failure_nonincrease": true,
+        "closed_stdout_capacity_errors": [],
+        "whole_source_cache_identity_preserved": true,
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "diagnostic_body_abs_error_mean_vx_vy_yaw": [
+          0.03828473502770066,
+          0.047511520497500896,
+          0.10110792268067598
+        ],
+        "baseline_body_abs_error_mean_vx_vy_yaw": [
+          0.03950337095186114,
+          0.04763822479173541,
+          0.10586447894573212
+        ],
+        "delta_vx_vy_yaw": [
+          -0.00121863592416048,
+          -0.000126704294234517,
+          -0.004756556265056139
+        ],
+        "conservative_selection_rule": "Pareto nonworse in all three existingdiagnostics and ordinaryfailures, not newskillpass/graduationthreshold",
+        "no_diagnostic_regression_in_this_screen": true,
+        "selection": "CANDIDATE",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+          "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+          "bytes": 14035411
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+          "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+          "bytes": 14035411
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E0_PPO50_GAS400_2610v89d/e0/adaptation/final_valid_update82.pt",
+          "SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a"
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      },
+      {
+        "role": "CURB_PROTECTED878",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 15.0,
+        "actual_controls": 750,
+        "source_candidate_SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+        "termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 49
+        },
+        "baseline_termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 36
+        },
+        "ordinary_failure_nonincrease": true,
+        "closed_stdout_capacity_errors": [],
+        "whole_source_cache_identity_preserved": true,
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "original_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 26,
+            "contact_confirmed_envs": 26
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "baseline_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 22,
+            "contact_confirmed_envs": 22
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "baseline_stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "same_declared_group_sizes": true,
+        "conservative_selection_rule": "Existingownsameepisode two-wheel endpoint/contact groups andstandfailure factsnondecrease; no standcrossingrequired/noinventedtotalgrade",
+        "original_scoped_skill_facts_not_regressed": true,
+        "selection": "CANDIDATE",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+          "bytes": 17621306
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+          "bytes": 17621306
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_PROTECTED878_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062521_1793571921621279200/CURB_PROTECTED878_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+          "SHA": "49f5bce37c8690f5e3b9eb161a26329ba5904fa728c855b695f2e6353c00a262"
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      },
+      {
+        "role": "E2",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 24.0,
+        "actual_controls": 1200,
+        "source_candidate_SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+        "termination_events": {
+          "time_out": 80,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "baseline_termination_events": {
+          "time_out": 80,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "ordinary_failure_nonincrease": true,
+        "ordinary_failure_event_sum": 0,
+        "baseline_ordinary_failure_event_sum": 0,
+        "closed_stdout_capacity_errors": [],
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "diagnostic_body_abs_error_mean_vx_vy_yaw": [
+          0.04418453622298936,
+          0.07322813409846277,
+          0.11113409601772825
+        ],
+        "baseline_body_abs_error_mean_vx_vy_yaw": [
+          0.04551603938452899,
+          0.07317019432472686,
+          0.1187930068001151
+        ],
+        "delta_vx_vy_yaw": [
+          -0.0013315031615396336,
+          5.7939773735901645e-05,
+          -0.007658910782386855
+        ],
+        "all_three_existing_bodydiagnostics_nonworse": false,
+        "original_signed2pi_cycle_counts": {
+          "complete": 187,
+          "false": 187,
+          "accepted_true": 0,
+          "incomplete": 44,
+          "terminal_complete": 0
+        },
+        "baseline_original_signed2pi_cycle_counts": {
+          "complete": 187,
+          "false": 187,
+          "accepted_true": 0,
+          "incomplete": 43,
+          "terminal_complete": 0
+        },
+        "original_accepted_true_count_nondecrease": true,
+        "E2_world_getter_phase_reference_observer_gap": true,
+        "baseline_zero_true_0of187_is_not_full_skill_pass": true,
+        "world_metric_not_used_for_blind_tuning_or_graduation": true,
+        "original_cycle_producer_metadata": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_PAIR2_FROZEN_RETENTION_V1_20261102_140451_1793599491951189200/cases/E2/E2_FULL_WORLD_SIGNED_UID_CYCLES_213_ACTUAL.jsonl",
+          "bytes": 332343,
+          "rows": 231,
+          "SHA": "d93d306246d6e9304bb7e6576da5ddc82e5e7eb7bf0fa89563ac6272b3030415",
+          "source_SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+          "schema": "mod4.E2.same_UID_world213.v1",
+          "maximum_bytes": 201326592,
+          "retention_limited": false,
+          "producer_stream_SHA_without_reread": true,
+          "default_reader_transfer": "metadata_only_no_JSONL_content_or_hash_read",
+          "complete_WM_dataset": false
+        },
+        "observer_producer_source_SHA_label": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+        "actor_candidate_source_SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+        "observer_label_is_not_actor_identity": true,
+        "conservative_selection_rule": "Existingbodydiagnosticsallnonworse+ordinaryfailuresnonincrease+originalacceptedtruecountnotlower; notoriginalgraduationrule",
+        "no_diagnostic_regression_in_this_screen": false,
+        "selection": "FROZEN_MOTHER",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+          "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/E2/production/model_final_complete.pt",
+          "SHA": "68e1df12c95276a8be00e2b684589a54a4765b258f61f4e43184a13f7e9a12c7",
+          "bytes": 14618627
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+          "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "whole_source_cache_identity_preserved": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      },
+      {
+        "role": "CURB_INDEPENDENT113",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 15.0,
+        "actual_controls": 750,
+        "source_candidate_SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+        "termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 46
+        },
+        "baseline_termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 34
+        },
+        "ordinary_failure_nonincrease": true,
+        "ordinary_failure_event_sum": 0,
+        "baseline_ordinary_failure_event_sum": 0,
+        "closed_stdout_capacity_errors": [],
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "original_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 22,
+            "contact_confirmed_envs": 22
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "baseline_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 22,
+            "contact_confirmed_envs": 22
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "baseline_stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "same_declared_group_sizes": true,
+        "endpoint_contact_nondecrease": true,
+        "stand_no_ordinary_failure_nondecrease": true,
+        "stand_crossing_required": false,
+        "original_scoped_skill_facts_not_regressed": true,
+        "conservative_selection_rule": "Existingownascending/descendingendpoint+contactandstandnoordinaryfailurefactsnondecrease; nostandcrossingornewgraduation",
+        "selection": "CANDIDATE",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+          "bytes": 18043246
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+          "bytes": 18043246
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_CURB_INDEPENDENT113_COMPLETE_CPU4LEAF_FULLSCHEMA_20261102_062540_1793571940962361300/CURB_INDEPENDENT113_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+          "SHA": "083b07843ee7f515068e72f20a05f99a3b4cc2c1ad9f9d9a817db7dd49efb405",
+          "bytes": 18036621
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "whole_source_cache_identity_preserved": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      },
+      {
+        "role": "E3",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 3.2,
+        "actual_controls": 160,
+        "termination_events": {
+          "time_out": 0,
+          "bad_orientation": 19,
+          "base_contact": 8,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "baseline_termination_events": {
+          "time_out": 0,
+          "bad_orientation": 18,
+          "base_contact": 7,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0
+        },
+        "ordinary_failure_nonincrease": false,
+        "ordinary_failure_event_sum": 27,
+        "baseline_ordinary_failure_event_sum": 25,
+        "closed_stdout_capacity_errors": [],
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "original_recovery": {
+          "scope_complete": true,
+          "scope_gaps": [],
+          "credit_nondecrease_per_same_recipe": true,
+          "credited_evidence_beyond_zero_zero": true,
+          "metric_allows_candidate": true,
+          "credited_metric": "first_episode_original_stable_credit_from_recovery.credited_and_first_episode_live_NOT_delta",
+          "normal_recipe_id": 12,
+          "normal_excluded_from_rescue_denominator": true,
+          "original_full_E3_graduated": false,
+          "initial_rescue_environments": 74,
+          "baseline_initial_rescue_environments": 74,
+          "normal_environments_excluded": 6,
+          "baseline_normal_environments_excluded": 6,
+          "rescue_recipe_count": 12,
+          "total_recipe_rows": 13,
+          "same_recipe_comparisons": [
+            {
+              "recipe": 0,
+              "initial_rescuable": 7,
+              "baseline_initial_rescuable": 7,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 6,
+              "baseline_first_episode_physical_terminated": 5
+            },
+            {
+              "recipe": 1,
+              "initial_rescuable": 7,
+              "baseline_initial_rescuable": 7,
+              "first_episode_credited": 1,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 2,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 3,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 4,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 3,
+              "baseline_first_episode_physical_terminated": 4
+            },
+            {
+              "recipe": 5,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 4,
+              "baseline_first_episode_physical_terminated": 4
+            },
+            {
+              "recipe": 6,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 7,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 8,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 9,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 10,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 0,
+              "baseline_first_episode_physical_terminated": 0
+            },
+            {
+              "recipe": 11,
+              "initial_rescuable": 6,
+              "baseline_initial_rescuable": 6,
+              "first_episode_credited": 0,
+              "baseline_first_episode_credited": 0,
+              "first_episode_physical_terminated": 6,
+              "baseline_first_episode_physical_terminated": 5
+            }
+          ],
+          "first_episode_credited": 1,
+          "baseline_first_episode_credited": 0,
+          "normal_recipe_row_reported_not_scored": {
+            "recipe": 12,
+            "initial_envs": 6,
+            "original_request": false,
+            "first_episode_original_stable_credit": 0,
+            "first_episode_physical_terminated": 0
+          },
+          "strict_credited_count_improvement": true,
+          "stable50_public100Hz_age_equals_seconds": 0.5,
+          "stable50_equals_policy_controls": 25,
+          "request300_age_seconds": 3.0,
+          "both_zero_no_improvement_evidence": false
+        },
+        "scopeGap": false,
+        "scope_gap_reasons": [],
+        "initial_rescue_recipe_policy": "12requestedrecipes0..11(74);normalrecipe12(6)excluded",
+        "zero74_baseline_not_full_E3_pass": true,
+        "firstepisode_credit_NOT_generic_delta": true,
+        "conservative_selection_rule": "Sameinitialrecipe/denominatororiginalcreditednondecrease+ordinaryfailurenonincrease; bothzero=>Mother; scopeGap=>Mother,notnewgraduation",
+        "selection": "FROZEN_MOTHER",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt",
+          "SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8"
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/E3/production/model_final_complete.pt",
+          "SHA": "67ee37cf39a9b82f7e45eab68f2fa0e46bd0eec95ffbe063bedfd7bfe810d81a",
+          "bytes": 14718611
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt",
+          "SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8"
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "whole_source_cache_identity_preserved": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      },
+      {
+        "role": "SLOPE135",
+        "actual_eval_RC": 0,
+        "actual_scope_seconds": 15.0,
+        "actual_controls": 750,
+        "termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 8
+        },
+        "baseline_termination_events": {
+          "time_out": 0,
+          "bad_orientation": 0,
+          "base_contact": 0,
+          "closure": 0,
+          "mimic": 0,
+          "low_base": 0,
+          "rough_route_boundary": 16
+        },
+        "ordinary_failure_nonincrease": true,
+        "ordinary_failure_event_sum": 0,
+        "baseline_ordinary_failure_event_sum": 0,
+        "closed_stdout_capacity_errors": [],
+        "new_PPO_updates_in_eval": 0,
+        "original_full_expert_graduated": false,
+        "original_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "baseline_endpoint_groups": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 25,
+            "contact_confirmed_envs": 25
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        },
+        "stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "baseline_stand_no_ordinary_failure": {
+          "total": 26,
+          "no_failure": 26
+        },
+        "same_declared_group_sizes": true,
+        "endpoint_contact_nondecrease": true,
+        "stand_no_ordinary_failure_nondecrease": true,
+        "stand_crossing_required": false,
+        "baseline_from_own_SLOPE135_not_Curb": true,
+        "scopeGap": false,
+        "scope_gap_reasons": [],
+        "conservative_selection_rule": "OwnS135ascending25/27descending27/27stand26/26endpoint/contactandordinaryfactsnotregressed; nostandcrossing/newgraduation",
+        "selection": "CANDIDATE",
+        "selected_source": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/SLOPE135/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "ec5b495691e10bf4ef6587e7fad99df02a18ff48e44f6b70d5170aaa7b641b05",
+          "bytes": 17620922
+        },
+        "candidate_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/SLOPE135/production/model_posttrain_final_complete_U020.pt",
+          "SHA": "ec5b495691e10bf4ef6587e7fad99df02a18ff48e44f6b70d5170aaa7b641b05",
+          "bytes": 17620922
+        },
+        "frozen_mother_preserved": {
+          "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SLOPE135_24B_COMPLETE_CPU_FOUR_LEAF_20261102_053246_1793568766422620900/SLOPE135_FULL20K_TYPED50HZ400N_FOURLEAF_NO_NEW_KEYS.pt",
+          "SHA": "f2b22040f90c31d133e3b006d35c868b257cc05e9445bcffdadb3b33605e1519",
+          "bytes": 17613845
+        },
+        "do_not_overwrite_mother_or_failed_candidate": true,
+        "whole_source_cache_identity_preserved": true,
+        "selection_is_single_fresh80_screen_not_full20k_or_hardware_graduation": true,
+        "unpaired_trajectory_after_policy_dependent_resets_not_causal_claim": true
+      }
+    ],
+    "producer_metadata_refs": [
+      {
+        "pair": 1,
+        "actual_training_summary": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR1_ACTUAL_FULLSTATE_TRAINING_CLOSED_SUMMARY_V1.json",
+        "actual_frozen_original_scope_assessment": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR1_FROZEN_RETENTION_BEST_SELECTION_V1.json"
+      },
+      {
+        "pair": 2,
+        "actual_training_summary": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_GENERIC_V2_ACTUAL_FULLSTATE_TRAINING_CLOSED_SUMMARY_V1.json",
+        "actual_frozen_original_scope_assessment": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR2_FROZEN_RETENTION_BEST_SELECTION_V1.json"
+      },
+      {
+        "pair": 3,
+        "actual_training_summary": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR3_GENERIC_V2_ACTUAL_FULLSTATE_TRAINING_CLOSED_SUMMARY_V1.json",
+        "actual_frozen_original_scope_assessment": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\reports\\PAIR3_FROZEN_RETENTION_BEST_SELECTION_V1.json"
+      }
+    ],
+    "all_frozen_mothers_and_candidates_preserved": true,
+    "original_selected_formals_not_rewritten": true,
+    "per_role_scoped_best_source": {
+      "E0": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+        "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+        "bytes": 14035411
+      },
+      "CURB_PROTECTED878": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/CURB_PROTECTED878/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "db3d5a6a2a81fb71f6f4e3ca0ee18c09785ddff80b990787960ffc3d8d376d68",
+        "bytes": 17621306
+      },
+      "E2": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E2_PPO50_GAS400_2610v93/e2/adaptation/final_valid_update92.pt",
+        "SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1"
+      },
+      "CURB_INDEPENDENT113": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR2_GENERIC_V2_20261102_131153_1793596313729480700/roles/CURB_INDEPENDENT113/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "04bc3a49a5e0f6e1c4aff8a7f85de171922a78e87e692673f345a8fe8a29d05a",
+        "bytes": 18043246
+      },
+      "E3": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_E3_PPO50_GAS400_2610v97/e3/adaptation/final_valid_update87.pt",
+        "SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8"
+      },
+      "SLOPE135": {
+        "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR3_GENERIC_V2_20261102_131153_1793596313729480700/roles/SLOPE135/production/model_posttrain_final_complete_U020.pt",
+        "SHA": "ec5b495691e10bf4ef6587e7fad99df02a18ff48e44f6b70d5170aaa7b641b05",
+        "bytes": 17620922
+      }
+    },
+    "selected_new_candidates": [
+      "E0",
+      "CURB_PROTECTED878",
+      "CURB_INDEPENDENT113",
+      "SLOPE135"
+    ],
+    "selected_frozen_mothers": [
+      "E2",
+      "E3"
+    ],
+    "original_full_skills_graduated": false,
+    "hardware_qualification_or_full20k_population_graduation": false,
+    "no_model_raw_SDK_C_or_replay_operations_for_thispublication": true
+  }
+}

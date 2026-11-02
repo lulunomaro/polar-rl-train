@@ -1,0 +1,89 @@
+{
+  "supervisor_source": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\source_eval_generic_pair_v1\\single_gpu_group_supervisor.py",
+    "bytes": 9890,
+    "SHA": "a4838182d4f208b9c709042b3f72330e40376b52bd076923c4ad02d93aa4d48d"
+  },
+  "original_supervisor_reference": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\PAIR1_RETENTION_EVAL_SOURCE_V3\\single_gpu_group_supervisor.py",
+    "bytes": 9313,
+    "SHA": "f0dfdc48abe6732bda6170a6895d1d3294430a2f5ff32447aff4a9f91786f0bb"
+  },
+  "supervisor_changes": [
+    {
+      "old": "nineisolatedSDKworkers",
+      "new": "twoisolatedSDKworkers_selected_from_plan"
+    },
+    {
+      "old": "roles=plan['roles'];assert len(roles)==2 and {r['role']for r in roles}=={'E0','CURB_PROTECTED878'};",
+      "new": "roles=plan['roles'];members=validate_plan_members(plan);"
+    },
+    {
+      "old": "kind='ONEGPU_PAIR1_CANDIDATE_FRESH80_RETENTION_NO_LEARNING'",
+      "new": "kind='ONEGPU_SELECTED_PAIR_CANDIDATE_FRESH80_RETENTION_NO_LEARNING',eval_members=members,pair_size=2"
+    },
+    {
+      "old": "task['eval_members']=['E0','CURB_PROTECTED878']",
+      "new": "task['eval_members']=members[:]"
+    },
+    {
+      "old": "assert len(children)==2;ready_until",
+      "new": "assert len(children)==len(members)==2;ready_until"
+    },
+    {
+      "old": "if len(ready)==2:",
+      "new": "if len(ready)==len(members) and set(ready)==set(members):"
+    },
+    {
+      "old": "kind='ACTUAL_PAIR1_CANDIDATE_FRESH80_RETENTION'",
+      "new": "kind='ACTUAL_SELECTED_PAIR_CANDIDATE_FRESH80_RETENTION',eval_members=members,pair_size=2"
+    }
+  ],
+  "inserted_pure_validator": "ALLOWED_EVAL_ROLES=('E0','E2','E3','W35','CURB_PROTECTED878','CURB_INDEPENDENT113','SLOPE135','SLOPE_INDEPENDENT50')\ndef validate_plan_members(plan):\n members=plan['eval_members'];roles=plan['roles']\n assert isinstance(members,list) and len(members)==2 and len(set(members))==2\n assert set(members)<=set(ALLOWED_EVAL_ROLES), 'TwooftheeightnonH1rolesonly'\n assert len(roles)==2 and len({r['role']for r in roles})==2 and {r['role']for r in roles}==set(members)\n return list(members)\n\n",
+  "parallel_eval_safe_UNCHANGED_REFERENCE": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\PAIR1_RETENTION_EVAL_SOURCE_V3\\parallel_eval_safe.py",
+    "bytes": 5288,
+    "SHA": "ad6ad95072991a30f1f7841edf803edbaab0bfe56a2c7ee5a2f6c3130b5267c3"
+  },
+  "metadata_producer": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\source_eval_generic_pair_v1\\generic_eval_metadata.py",
+    "bytes": 6749,
+    "SHA": "e973e34f07a707dc2fc700158ca58ed6dbd515dd2367e23d591a9a097ab7eb98"
+  },
+  "interface": "build_eval_metadata(roles,actualtrainingfinalbyrole,baseline_contracts,baseline_roster=None,provenance=None)",
+  "fields_returned": [
+    "eval_members",
+    "roles",
+    "source_pins",
+    "task_source_patches",
+    "ROLE_CONTRACTS"
+  ],
+  "E2_schema": "FINAL.final[path,SHA,bytes,saved_iteration,saved_17Adam(unique),actual_saved_LR]; STDnotrequiredorfabricated",
+  "E1_schema": "FINAL.new_fullstate_checkpoint[path=checkpoint,SHA,bytes,live_core.iteration/optimizer_LRs[0]/Adam17_steps/STD6]",
+  "W35_schema": "FINAL.final[path,SHA,bytes,saved_iteration,Adam_min,Adam_max,actual_saved_LR];STDfromsameCPUcache",
+  "old_physics_skill_DR_G4_root_MCI_seed_reset_unchanged": true,
+  "resource_gates_and_leases": "ExactoldprivateEX+globalfiniteEX/freshcomputeempty+canonicalnoactiveowner/res23500Mutil0/RAM96Gdisk25G/wait1800/commonready900/window2400/ownscopeclosewaitunchanged",
+  "roster": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\source_eval_generic_pair_v1\\EIGHT_ROLE_FROZEN_EVAL_ROSTER_SOURCE_V1.json",
+    "bytes": 5000,
+    "SHA": "34f1dbc454bc0f9b438991f26293e8ff91244907b6297500bd1ebd18bc379d63"
+  },
+  "old_Task_contract_reference": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\task_contract.py",
+    "bytes": 1010,
+    "SHA": "8938053e4d158514450565930dc833a0afb4c436c014a54bb35a1f3f2e04e738"
+  },
+  "runtime_parent_worker_reference": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\worker_five_original_n80.py",
+    "bytes": 14735,
+    "SHA": "aff36092bf1502a6bedd5d4b347b6eb1e5675996cd191c58fbcda7b4f9bc5b1c"
+  },
+  "runtime_E1_source_reference": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V5_FEEDBACK_DESCRIPTOR",
+  "candidate_PT_pre_read_for_missing_STD": false,
+  "source_error_lookup": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\POSTTRAIN_EIGHT_EXCLUDING_H1_20261102\\PAIR1_RETENTION_EVAL_SOURCE_V3\\worker_sources\\parent\\task_contract.py",
+    "result": "localflatpayloadpathnotfound",
+    "resolved": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\NINE_N80_PARALLEL_SOURCE_V8\\task_contract.py",
+    "model_or_runtime_access": false
+  }
+}

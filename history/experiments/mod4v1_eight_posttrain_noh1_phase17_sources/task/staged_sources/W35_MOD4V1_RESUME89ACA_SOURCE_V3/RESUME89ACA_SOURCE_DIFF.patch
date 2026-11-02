@@ -1,0 +1,114 @@
+--- worker_mod4v1_w35.py(previous)
++++ worker_mod4v1_w35.py(resume89aca)
+@@ -6,9 +6,9 @@
+ from pathlib import Path
+ import argparse,hashlib,json,os,runpy,shutil,subprocess,sys,time,traceback
+ 
+-SHA='2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b'
+-BYTES=17619333; ADAM=651260; ITER=32481; LR=.0002562890625000001
+-KIND='MOD4V1_W35_LATEST32481_FULLD0D7_RM70_V2'
++SHA='89aca6ce52f8e83719de14dd53cb423a182f14e4f370614887605b2131d5bf0f'
++BYTES=17621509; ADAM=652860; ITER=32561; LR=.00011390625000000006
++KIND='MOD4V1_W35_RESUME32561_FULLD0D7_RM70_V3'
+ GENERATION='MOD4_SINGLE_WRITER72_20261026'
+ MANIFEST_SHA='0543b0c47c53e15da0d7d017693d2b69f7f6354ef088c3a1b8ed2b9cc56e2beb'
+ OUT=None
+@@ -84,15 +84,15 @@
+     import torch
+     from source_cache208_v3 import PinnedSource208,selected_source,cached_load
+     cache=PinnedSource208(torch,source,SHA,BYTES)
+-    assert cache.state['iter']==ITER and cache.state['actual_new_PPO_updates']==77
+-    assert cache.state['typed_W35_RM70_task']['kind']=='MOD4_W35_FULL_RM70_QUALIFIED343E_CONTINUE227'
++    assert cache.state['iter']==ITER and cache.state['actual_new_PPO_updates']==80
++    assert cache.state['typed_W35_RM70_task']['kind']=='MOD4V1_W35_LATEST32481_FULLD0D7_RM70_V2' and cache.state['typed_W35_RM70_task']['source_SHA']=='2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b'
+     typed=dict(kind=KIND,source_SHA=SHA,source_bytes=BYTES,source_iteration=ITER,
+         source_Adam_step=ADAM,nominal_gas_N_each=400,policy_hz=50,feedback_hz=100,
+         physics_dt=.0025,TGS=[32,4],num_envs=20000,actor_obs=35,critic_obs=38,action_dim=6,
+         original_W35_reward_and_fixed_SI_observations=True,
+         original_full_D0_D7_restore_then_one_new_physical_episode=True,
+         same_RM70_course_assignment_and_command_fullstate_restored=True,
+-        new_physical_episode_and_query_cache_after_restore=True,source_prior_new_PPO_updates=77,
++        new_physical_episode_and_query_cache_after_restore=True,source_prior_new_PPO_updates=80,
+         new_asset_USD_SHA=asset_identity.usd_sha256,new_asset_contract_SHA=asset_identity.contract_sha256,
+         closure_episode_m=.01,mimic_rad=.01,D6_scope='original_gas_damping_not_all_joint_friction',
+         old_G3_assignment_not_restored_into_new_mesh=True,root_quaternion_order='xyzw',
+@@ -103,7 +103,7 @@
+     sys.argv=[str(entry),'--headless','--device','cuda:0','--num_envs','20000','--seed','20260928',
+         '--steps_per_env','24','--learning_rate',str(LR),'--save_interval','25',
+         '--init_checkpoint',str(source),'--log_root',str(OUT/'logs'),
+-        '--run_name','W35_LATEST32481_MOD4V1_FULLDR_RM70','--additional_iterations','100000']
++        '--run_name','W35_RESUME32561_MOD4V1_FULLDR_RM70','--additional_iterations','100000']
+     ns=None;runner_holder=[None];updates=[0];last_complete=[None];last_saved=[time.time()]
+     class SavedStop(Exception):pass
+     with selected_source(cache):
+--- runtime/isaac/mod4/mod4v1_w35_protocol.py(previous)
++++ runtime/isaac/mod4/mod4v1_w35_protocol.py(resume89aca)
+@@ -6,13 +6,13 @@
+ import os
+ import time
+ 
+-KIND = 'MOD4V1_W35_LATEST32481_FULLD0D7_RM70_V2'
+-SOURCE_SHA = '2d0bc7b87c30f2f1d7b9130de2afddd554aab1fd8fe398a7e597ec7354d5650b'
+-SOURCE_BYTES = 17619333
+-ITER, ADAM, PRIOR_UPDATES = 32481, 651260, 77
+-LR = .0002562890625000001
+-CPU_SHA = 'e55cad0a6d1e70b99ed8b527a8d50241c4b30c59f4cdf449842889d2ee84e5fb'
+-SOURCE_MODEL = '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_W35_QUALIFIED343E_CONTINUE227D_20261101_0712/w35_72/production/model_final_complete.pt'
++KIND = 'MOD4V1_W35_RESUME32561_FULLD0D7_RM70_V3'
++SOURCE_SHA = '89aca6ce52f8e83719de14dd53cb423a182f14e4f370614887605b2131d5bf0f'
++SOURCE_BYTES = 17621509
++ITER, ADAM, PRIOR_UPDATES = 32561, 652860, 80
++LR = .00011390625000000006
++GPU_RESTORE_SHA = '2eaf652c3ce0e54db7057cb1bddb3fcfaa446ff047592a6c6f813fe0dd3d89e8'
++SOURCE_MODEL = '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_W35_FULLDR_ADAPT_V2_20261102_021542_1793556942487949000/production/model_final_complete.pt'
+ USD_SHA = '2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'
+ CONTRACT_SHA = 'bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755'
+ CANONICAL = '/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json'
+@@ -46,7 +46,7 @@
+     expected = dict(kind=KIND, num_envs=20000, source_SHA=SOURCE_SHA, source_bytes=SOURCE_BYTES,
+                     source_iteration=ITER, source_Adam_step=ADAM, source_LR=LR,
+                     source_prior_new_PPO_updates=PRIOR_UPDATES, model_path=SOURCE_MODEL,
+-                    saved_source_CPU_proof_SHA=CPU_SHA, asset_USD_SHA=USD_SHA,
++                    source_GPU_fullrestore_proof_SHA=GPU_RESTORE_SHA, asset_USD_SHA=USD_SHA,
+                     asset_contract_SHA=CONTRACT_SHA, closure_episode_m=.01, mimic_rad=.01,
+                     original_canonical_generation=GENERATION, canonical_path=CANONICAL,
+                     source_read_purpose={'physical_byte_opens': 1, 'decodes': 1, 'source_bytes': SOURCE_BYTES})
+@@ -103,17 +103,17 @@
+             'Installed asset metadata binding')
+     ready, _ = job_json(job, task['ready_file'])
+     ready_sha = hashlib.sha256(json.dumps(ready, indent=2).encode()).hexdigest()
+-    require(go['source_CPU_SHA'] == ready_sha, 'Original owner convention: hash of actual NEW Ready, not saved CPU proof')
++    require(go['source_GPU_RESTORE_SHA'] == ready_sha, 'Original owner convention: hash of actual NEW Ready, not source GPU-fullrestore proof')
+     for key, value in dict(passed=True, kind=KIND, source_SHA=SOURCE_SHA,
+                            source_iteration=ITER, Adam_step=ADAM, source_LR=LR,
+-                           saved_source_CPU_proof_SHA=CPU_SHA, asset_USD_SHA=USD_SHA,
++                           source_GPU_fullrestore_proof_SHA=GPU_RESTORE_SHA, asset_USD_SHA=USD_SHA,
+                            asset_contract_SHA=CONTRACT_SHA, root_admission_SHA=eh, manifest_SHA=mh).items():
+         require(ready[key] == value, 'ROOT actual NEW Ready binding: ' + key)
+     require(all(not row['relative'].endswith(('.pt', '.partial', '.active')) for row in manifest['files']),
+             'Source manifest must not masquerade a PT as copied source')
+     index, ih = job_json(job, 'MOD4V1_DERIVATION_INDEX.json')
+     require(ih == task['derivation_index_SHA'] == manifest['derivation_index_SHA'], 'Frozen derivation index join')
+-    require(index['kind'] == 'MOD4V1_W35_REVIEWABLE_SOURCE_ONLY_V2', 'Wrong source derivation kind')
++    require(index['kind'] == 'MOD4V1_W35_REVIEWABLE_RESUME_SOURCE_ONLY_V3', 'Wrong source derivation kind')
+     require(index['source_model_metadata']['SHA'] == SOURCE_SHA, 'Derivation selected source')
+     for row in index['outputs']:
+         if row['relative'].endswith(('.py', '.json', '.md', '.patch')):
+@@ -134,7 +134,7 @@
+     'Task_identity_checked_by_validate_new_job': 'kind/source counters/model path/CPU proof/asset SHA/clock/interface/canonical are the constants above',
+     'GO_required': list(('run_id', 'role_key', 'GPU_UUID', 'one_original_writer', 'source_model_SHA',
+                          'source_iteration', 'input_Adam', 'source_qualification_kind',
+-                         'manifest_SHA', 'root_admission_SHA', 'source_CPU_SHA', 'num_envs', 'actor_obs', 'critic_obs',
++                         'manifest_SHA', 'root_admission_SHA', 'source_GPU_RESTORE_SHA', 'num_envs', 'actor_obs', 'critic_obs',
+                          'action_dim', 'physics_dt', 'TGS', 'policy_hz', 'feedback_hz',
+                          'asset_USD_SHA', 'asset_contract_SHA', 'learning_started_epoch',
+                          'max_parent_seconds', 'save_deadline', 'nominal_end_epoch')),
+@@ -148,7 +148,7 @@
+          'new_asset_native0PT_receipt_SHA', 'target_source_SDK_receipt_SHA',
+          'historical_RM70_scope_reuse_receipt_SHA')),
+     'NEW_Ready_required': ['passed', 'kind', 'source_SHA', 'source_iteration', 'Adam_step', 'source_LR',
+-                           'saved_source_CPU_proof_SHA', 'asset_USD_SHA', 'asset_contract_SHA',
++                           'source_GPU_fullrestore_proof_SHA', 'asset_USD_SHA', 'asset_contract_SHA',
+                            'root_admission_SHA', 'manifest_SHA'],
+     'canonical_binding_required': ['path', 'generation', 'owner_run_id', 'one_original_writer'],
+     'not_generated': ['TASK.json', 'GO_PRODUCTION.json', 'ROOT actual receipt', 'canonical copy or write'],

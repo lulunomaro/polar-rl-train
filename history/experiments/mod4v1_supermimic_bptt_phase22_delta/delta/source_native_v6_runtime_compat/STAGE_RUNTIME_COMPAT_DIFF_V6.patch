@@ -1,0 +1,222 @@
+--- sealed_source_stage_a1_native_v5/stage_a1_native_v5.py
++++ NEW_source_native_v6_runtime_compat/stage_a1_native_v6.py
+@@ -1,7 +1,7 @@
+ """A1 eight-role NONPT source stage only. Default is read-only preflight; --stage writes one NEW root.
+ 
+ No connector, SSH, SDK, Torch, authority import, model stat/read/copy or owner launch.
+-Source-index V5 is an explicit sealed mapping, not an implicit live-source discovery.
++Source-index V6 is an explicit sealed mapping, not an implicit live-source discovery.
+ """
+ from __future__ import annotations
+ import argparse
+@@ -28,16 +28,16 @@
+ ALGORITHM_FAMILY = 'a1_raw35_legacy_v1'
+ USD_SHA = '2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'
+ CONTRACT_SHA = 'bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755'
+-POSE_SHA = '73145a1caa7819e0938e66e53a1bb0be73e48d0d06c3cf9cd5dc76e9f0862209'
+-POSE_BYTES = 16757
++POSE_SHA = '7357827a72a03f6300ce3f7c6da3ad2a05a551480a1aad04a91dbaac4a497e2f'
++POSE_BYTES = 18161
+ OWNER_NAME = 'supermimic_original_owner_shared_app_close_candidate_v5.py'
+ WORKER_NAME = 'worker_supermimic_bptt_app_close_candidate_v5.py'
+-SOURCE_INDEX_KIND = 'SEALED_A1_NATIVE_V5_SOURCE_INDEX_V1'
++SOURCE_INDEX_KIND = 'SEALED_A1_NATIVE_V6_SOURCE_INDEX_V1'
+ OWNER_PROTECTED_AST_SHA = '09003c42fd80f0ec1e15e3f7db7f3b6d604753bf4fff1a91135cbda7c094aad0'
+ OWNER_NORMALIZED_MAIN_AST_SHA = '6bfa2852cc01d8af824b17400f4a615602fc343e021a179b3710a915b9942087'
+-V5_CODE_SEAL_SHA = '59e5cb530fbf2e2066856d9ba594afec151f4c5b512382a8905671586fe993a7'
+-STAGE_KIND = 'A1_NATIVE_V5_NONPT_STAGE_COMPLETE_V1'
+-ROOT_MANIFEST_NAME = 'STAGED_ROOT_MANIFEST_V5.json'
++V5_ABI_CODE_SEAL_SHA = '59e5cb530fbf2e2066856d9ba594afec151f4c5b512382a8905671586fe993a7'
++STAGE_KIND = 'A1_NATIVE_V6_NONPT_STAGE_COMPLETE_V1'
++ROOT_MANIFEST_NAME = 'STAGED_ROOT_MANIFEST_V6.json'
+ STATIC_DIRS = ('runtime', 'lib', 'original_field', 'new_assets', 'assets', 'producer')
+ TOP_JSONS = {'original_run_manifest.json', 'RM70_BINARY_INSTALL_ACTUAL.json', 'MOD4V1_DERIVATION_INDEX.json',
+              'MOD4V1_ASSET_DIFF.json', 'E1_CANONICAL_SOURCE_METADATA.json', 'VARIANT_SOURCE_METADATA.json',
+@@ -64,7 +64,7 @@
+     OWNER_NAME: '0f1618046d5751879f0ce40ff4b7424c83303ed1f61066521215c1d40eb76619',
+     'worker_sources/' + WORKER_NAME: '7c42986077de62278e33a49f560f22602c9ba4d4e69b058f5f5f8f0893c099c7',
+     'worker_sources/resume_runtime_app_close_v5.py': '208c4774f1033627c01253afe45ade9c426fdd9be70e76328125a59a80a20c5a',
+-    'worker_sources/app_close_semantics_v5.py': 'd64732c9310da2db59b349ad921862c78a33e2be5b60a442d456e8a62d63f3c1',
++    'worker_sources/app_close_semantics_v5.py': '3d2d75196fb98fdb45c80a79b5b8bb69873e7c0c2c0b0f6f6610eb11a8c63c39',
+ }
+ DYNAMIC_REQUIRED = {OWNER_NAME, 'worker_sources/' + WORKER_NAME,
+                     'worker_sources/resume_runtime_app_close_v5.py', 'worker_sources/app_close_semantics_v5.py'}
+@@ -139,8 +139,8 @@
+ 
+ 
+ def source_index_files(source_dir, source_index):
+-    require(source_index.get('kind') == SOURCE_INDEX_KIND and source_index.get('sealed') is True, 'explicit SEALED V5 source index missing')
+-    require(source_index.get('v5_code_seal_SHA') == V5_CODE_SEAL_SHA, 'parent V5 code/API seal identity differs')
++    require(source_index.get('kind') == SOURCE_INDEX_KIND and source_index.get('sealed') is True, 'explicit SEALED V6 source index missing')
++    require(source_index.get('v5_abi_code_seal_SHA') == V5_ABI_CODE_SEAL_SHA, 'unchanged V5 owner/worker/shim ABI seal identity differs')
+     require(isinstance(source_index.get('files'), list), 'sealed source file list missing')
+     source_dir = source_dir.resolve(strict=True)
+     output = {}
+@@ -159,7 +159,7 @@
+         require(info['SHA'] == item['SHA'] and info['bytes'] == item['bytes'], 'sealed source bytes changed: ' + rel)
+         if rel in FIXED_PINS: require(info['SHA'] == FIXED_PINS[rel], 'original/frozen source SHA differs: ' + rel)
+         output[rel] = (path, info)
+-    require((set(FIXED_PINS) | DYNAMIC_REQUIRED) <= set(output), 'required V5 worker/owner/close source or original dependency missing')
++    require((set(FIXED_PINS) | DYNAMIC_REQUIRED) <= set(output), 'required V6 worker/owner/close source or original dependency missing')
+     require(output['worker_sources/pose_cache_runtime_adapter_v3.py'][1]['bytes'] == POSE_BYTES, 'pose adapter sealed bytes differ')
+     for name in ROOT_MIRRORS:
+         output[name] = output['worker_sources/' + name]
+@@ -189,7 +189,7 @@
+ 
+ 
+ def make_plan(template, new_root, run_id, contracts, target=3000):
+-    require(re.fullmatch(r'MOD4V1_A1_RAW35_V5_[A-Za-z0-9_]+', run_id) is not None, 'new explicit A1 run-id required')
++    require(re.fullmatch(r'MOD4V1_A1_RAW35_V6_[A-Za-z0-9_]+', run_id) is not None, 'new explicit A1 run-id required')
+     require(template.get('H1_excluded') is True and len(template.get('entries', [])) == 8, 'original eight-role metadata required')
+     originals = {entry['role']: entry for entry in template['entries']}
+     require(set(originals) == set(ROLE_ORDER), 'exact non-H1 roles required')
+@@ -199,7 +199,7 @@
+     old_roots = [Path(entry['job_root']).parent.parent for entry in originals.values()]
+     require(all(not new_root.is_relative_to(old) and not old.is_relative_to(new_root) for old in old_roots), 'new root overlaps historical consumed run')
+     plan = copy.deepcopy(template)
+-    plan.update(kind='NEW_A1_RAW35_FRESH_EIGHT_NATIVE_V5_PLAN_NOT_EXECUTION', run_id=run_id,
++    plan.update(kind='NEW_A1_RAW35_FRESH_EIGHT_NATIVE_V6_PLAN_NOT_EXECUTION', run_id=run_id,
+                 H1_excluded=True, algorithm_variant=VARIANT, actor_view=RAW35_VIEW,
+                 algorithm_family=ALGORITHM_FAMILY, native_counter_start=0,
+                 old_A0_counts_spliced=False, command_tracking_fixed=False, sensor_projection_exact=False,
+@@ -326,29 +326,29 @@
+     require(not root.exists() and root.name == prepared['plan']['run_id'], 'NEW stage root must be unused')
+     root.mkdir(parents=False, exist_ok=False)
+     try:
+-        put_once(root / 'STAGE_BEGIN_V5.json', dict(kind='NEW_NONPT_STAGE_BEGIN_V5', run_id=prepared['plan']['run_id'], epoch=time.time(), owner_launches=0))
++        put_once(root / 'STAGE_BEGIN_V6.json', dict(kind='NEW_NONPT_STAGE_BEGIN_V6', run_id=prepared['plan']['run_id'], epoch=time.time(), owner_launches=0))
+         plan = prepared['plan']
+         # SCHEDULE_PUBLIC is ORIGINAL helper configuration, never a budget/ledger.
+         schedule = {'experts': {entry['role_key']: dict(max_parent_seconds=3900, GPU_UUID=GPU_UUIDS[i % 2]) for i, entry in enumerate(plan['entries'])}}
+         put_once(root / 'SCHEDULE_PUBLIC.json', schedule)
+         put_once(root / 'OWNER_PLAN.json', plan);put_once(root / 'SOURCE_PLAN.json', plan)
+-        put_once(root / 'STAGED_SOURCE_INDEX_V5.json', prepared['source_index'])
++        put_once(root / 'STAGED_SOURCE_INDEX_V6.json', prepared['source_index'])
+         root_materials = {rel: value for rel, value in prepared['sources'].items() if not rel.startswith('worker_sources/')}
+         root_rows = copy_materials(root, root_materials)
+         role_rows = []
+         for entry in plan['entries']:
+             job = root / 'roles' / entry['role'];job.mkdir(parents=True, exist_ok=False)
+             files = copy_materials(job, prepared['jobs'][entry['role']])
+-            manifest = dict(kind='ACTUAL_A1_NATIVE_V5_NONPT_SOFTWARE_INSTALL_NOT_SDK_ADMISSION', source_PT_copied=False,
++            manifest = dict(kind='ACTUAL_A1_NATIVE_V6_NONPT_SOFTWARE_INSTALL_NOT_SDK_ADMISSION', source_PT_copied=False,
+                 selected_PT_stat_read_or_copy=False, asset_USD_SHA=USD_SHA, asset_contract_SHA=CONTRACT_SHA,
+                 teacher_metadata=entry['teacher'], actor_view=RAW35_VIEW, algorithm_variant=VARIANT, algorithm_family=ALGORITHM_FAMILY,
+                 expected_fresh_producer_counts=entry['expected_fresh_producer_counts'], files=files)
+             put_once(job / 'INSTALL_MANIFEST.json', manifest)
+             role_rows.append(dict(role=entry['role'], files=len(files), manifest_SHA=sha_bytes((job / 'INSTALL_MANIFEST.json').read_bytes())))
+         preflight = source_only_owner_verify(root, root / OWNER_NAME, plan)
+-        for name in ('SCHEDULE_PUBLIC.json', 'OWNER_PLAN.json', 'SOURCE_PLAN.json', 'STAGED_SOURCE_INDEX_V5.json'):
++        for name in ('SCHEDULE_PUBLIC.json', 'OWNER_PLAN.json', 'SOURCE_PLAN.json', 'STAGED_SOURCE_INDEX_V6.json'):
+             root_rows.append(dict(relative=name, **identity(root / name)))
+-        put_once(root / ROOT_MANIFEST_NAME, dict(kind='A1_V5_ROOT_SOFTWARE_AND_CONFIG_MANIFEST', files=root_rows, roles=role_rows))
++        put_once(root / ROOT_MANIFEST_NAME, dict(kind='A1_V6_ROOT_SOFTWARE_AND_CONFIG_MANIFEST', files=root_rows, roles=role_rows))
+         complete = dict(kind=STAGE_KIND, staged=True, run_id=plan['run_id'], root=str(root), order=list(ROLE_ORDER), rows=role_rows,
+             source_index_SHA=prepared['source_index_SHA'], template_source_plan_SHA=prepared['template_SHA'],
+             root_manifest_SHA=identity(root / ROOT_MANIFEST_NAME)['SHA'], schedule_SHA=identity(root / 'SCHEDULE_PUBLIC.json')['SHA'],
+@@ -357,10 +357,10 @@
+             original_authority_helpers_byte_identical=True, original_C_locks_reserve_finite_limits_not_touched=True,
+             selected_PT_stat_read_copy=0, SDK_GPU_GO_authority_imports=0, owner_launches=0,
+             A1_fresh_native_counter_start=0, old_A0_4912_not_spliced=True, native_execution_or_skill_proof=False)
+-        put_once(root / 'STAGE_COMPLETE_V5.json', complete)
++        put_once(root / 'STAGE_COMPLETE_V6.json', complete)
+         return complete
+     except BaseException:
+-        put_once(root / 'STAGE_ERROR_V5.json', dict(kind='PRESERVED_NONPT_STAGE_ERROR_V5_NO_DISPATCH', error=traceback.format_exc(), epoch=time.time(), no_automatic_replay=True))
++        put_once(root / 'STAGE_ERROR_V6.json', dict(kind='PRESERVED_NONPT_STAGE_ERROR_V6_NO_DISPATCH', error=traceback.format_exc(), epoch=time.time(), no_automatic_replay=True))
+         raise
+ 
+ 
+@@ -378,7 +378,7 @@
+     if args.stage:
+         value = stage(prepared, args.new_root)
+     else:
+-        value = dict(kind='READ_ONLY_A1_V5_SOURCE_PREFLIGHT', passed=True, root=str(args.new_root), run_id=args.run_id,
++        value = dict(kind='READ_ONLY_A1_V6_SOURCE_PREFLIGHT', passed=True, root=str(args.new_root), run_id=args.run_id,
+                      order=list(ROLE_ORDER), source_files=len(prepared['sources']), role_files={k: len(v) for k, v in prepared['jobs'].items()},
+                      observed_static_trees=prepared['observed_static_trees'], stage_writes=0, owner_launches=0, PT_SDK_GPU_GO_C_locks=0)
+     print(json.dumps(value, indent=2))
+--- sealed_source_stage_a1_native_v5/dispatch_a1_native_v5_once.py
++++ NEW_source_native_v6_runtime_compat/dispatch_a1_native_v6_once.py
+@@ -1,4 +1,4 @@
+-"""Separate once-only dispatch of an already staged A1/V5 shared ORIGINAL owner.
++"""Separate once-only dispatch of an already staged A1/V6 shared ORIGINAL owner.
+ 
+ Default checks metadata/sources only. --dispatch requires an explicit parent marker,
+ unused stage/GO/owner, then one Popen. No SSH, C/lock/ledger work, polling, or signals.
+@@ -13,13 +13,13 @@
+ import time
+ import traceback
+ 
+-from stage_a1_native_v5 import (ROLE_ORDER, OWNER_NAME, ROOT_MANIFEST_NAME, STAGE_KIND, RAW35_VIEW, VARIANT,
++from stage_a1_native_v6 import (ROLE_ORDER, OWNER_NAME, ROOT_MANIFEST_NAME, STAGE_KIND, RAW35_VIEW, VARIANT,
+     ALGORITHM_FAMILY, require, sha_bytes, is_sha, safe_relative, identity, read_metadata, put_once,
+     source_only_owner_verify)
+ 
+-PARENT_KIND = 'PARENT_APPROVED_NEW_A1_NATIVE_V5_DISPATCH_ONCE'
+-CONSUMED_NAME = 'PARENT_DISPATCH_CONSUMED_V5.json'
+-DISPATCH_RESULT = 'OWNER_DISPATCH_ACTUAL_V5.json'
++PARENT_KIND = 'PARENT_APPROVED_NEW_A1_NATIVE_V6_DISPATCH_ONCE'
++CONSUMED_NAME = 'PARENT_DISPATCH_CONSUMED_V6.json'
++DISPATCH_RESULT = 'OWNER_DISPATCH_ACTUAL_V6.json'
+ 
+ 
+ def verify_file_rows(root, rows):
+@@ -38,17 +38,17 @@
+ def verify_stage(root, run_id, expected_stage_sha):
+     root = root.resolve(strict=True)
+     require(root.name == run_id and is_sha(expected_stage_sha), 'explicit staged run identity/SHA required')
+-    require(not (root / 'STAGE_ERROR_V5.json').exists(), 'failed staging is never dispatched')
++    require(not (root / 'STAGE_ERROR_V6.json').exists(), 'failed staging is never dispatched')
+     require(not (root / CONSUMED_NAME).exists() and not (root / DISPATCH_RESULT).exists(), 'dispatch already consumed')
+     for name in ('OWNER_STARTED.json', 'OWNER_CURRENT.json', 'OWNER_ORIGINAL_ERROR.json', 'OWNER_EXIT_ACTUAL.json'):
+         require(not (root / name).exists(), 'owner purpose is already consumed: ' + name)
+-    complete_raw = (root / 'STAGE_COMPLETE_V5.json').read_bytes()
++    complete_raw = (root / 'STAGE_COMPLETE_V6.json').read_bytes()
+     require(sha_bytes(complete_raw) == expected_stage_sha, 'parent stage-complete pin differs')
+     complete = json.loads(complete_raw)
+     require(complete.get('kind') == STAGE_KIND and complete.get('staged') is True, 'successful stage receipt missing')
+     require(complete.get('root') == str(root) and complete.get('run_id') == run_id and complete.get('order') == list(ROLE_ORDER), 'stage root/run/order differs')
+     require(complete.get('owner_launches') == 0 and complete.get('selected_PT_stat_read_copy') == 0, 'stage already launched or copied a model')
+-    require(complete.get('owner_relative') == OWNER_NAME, 'only original shared V5 owner is selected')
++    require(complete.get('owner_relative') == OWNER_NAME, 'only original shared V6 owner is selected')
+     root_manifest_raw = (root / ROOT_MANIFEST_NAME).read_bytes()
+     require(sha_bytes(root_manifest_raw) == complete['root_manifest_SHA'], 'root source/config manifest changed')
+     root_manifest = json.loads(root_manifest_raw)
+@@ -103,15 +103,15 @@
+     require(sys.platform.startswith('linux'), 'native dispatch CLI is for the existing Linux host only')
+     require(python_runner.is_file() and os.access(python_runner, os.X_OK), 'explicit existing original Python runner missing')
+     # x-create is a purpose marker, NOT a new resource lock or accounting ledger.
+-    put_once(root / CONSUMED_NAME, dict(kind='ONE_PARENT_DISPATCH_PURPOSE_CONSUMED_V5', epoch=time.time(),
++    put_once(root / CONSUMED_NAME, dict(kind='ONE_PARENT_DISPATCH_PURPOSE_CONSUMED_V6', epoch=time.time(),
+         run_id=run_id, stage_complete_SHA=stage_sha, parent_marker_SHA=parent_sha,
+         dispatch_token_SHA=sha_bytes(parent['dispatch_token'].encode()), original_C_and_resource_gates_not_preclaimed=True))
+     try:
+-        with (root / 'OWNER_A1_V5_STDOUT_STDERR.log').open('xb') as log:
++        with (root / 'OWNER_A1_V6_STDOUT_STDERR.log').open('xb') as log:
+             process = subprocess.Popen([str(python_runner), '-u', '-B', str(root / OWNER_NAME)],
+                 cwd=root, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+                 start_new_session=True, close_fds=True)
+-        result = dict(kind='ACTUAL_NEW_A1_SHARED_V5_OWNER_DISPATCH_NOT_ADMISSION', root=str(root), run_id=run_id,
++        result = dict(kind='ACTUAL_NEW_A1_SHARED_V6_OWNER_DISPATCH_NOT_ADMISSION', root=str(root), run_id=run_id,
+             owner_relative=OWNER_NAME, stage_complete_SHA=stage_sha, parent_marker_SHA=parent_sha,
+             parent=child_identity_metadata(process.pid), actual_Popen_calls=1, dispatched_not_yet_actualGO=True,
+             original_owner_gates_unchanged=True, C_GO_lock_reads_writes_by_dispatcher=0,
+@@ -119,7 +119,7 @@
+         put_once(root / DISPATCH_RESULT, result)
+         return result
+     except BaseException:
+-        put_once(root / 'OWNER_DISPATCH_ERROR_V5.json', dict(kind='PRESERVED_DISPATCH_ERROR_NO_AUTOMATIC_RETRY',
++        put_once(root / 'OWNER_DISPATCH_ERROR_V6.json', dict(kind='PRESERVED_DISPATCH_ERROR_NO_AUTOMATIC_RETRY',
+             epoch=time.time(), error=traceback.format_exc(), consumed_marker_retained=True))
+         raise
+ 
+@@ -138,7 +138,7 @@
+     else:
+         root, _, _ = verify_stage(args.stage_root, args.run_id, args.stage_complete_sha)
+         verify_parent_marker(args.parent_marker, root, args.run_id, args.stage_complete_sha)
+-        result = dict(kind='READ_ONLY_DISPATCH_PREFLIGHT_V5', passed=True, root=str(root), run_id=args.run_id,
++        result = dict(kind='READ_ONLY_DISPATCH_PREFLIGHT_V6', passed=True, root=str(root), run_id=args.run_id,
+                       dispatch_consumed=False, owner_launches=0, C_GO_lock_model_SDK_GPU_operations=0)
+     print(json.dumps(result, indent=2))
+ 

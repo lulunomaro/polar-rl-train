@@ -1,0 +1,130 @@
+{
+  "kind": "SOURCE_ONLY_NEXT_WINDOW_DECISION_PLAN_NOT_DEPLOYED_NOT_TRAINED",
+  "enabled": false,
+  "apply_to_active_sources": false,
+  "parent_owns_runtime_validation_and_git": true,
+  "role_order": ["E0", "E2", "E3", "W35", "CURB_PROTECTED878", "CURB_INDEPENDENT113", "SLOPE135", "SLOPE_INDEPENDENT50"],
+  "invariants": {
+    "original_acceptance_predicates_and_thresholds": "UNCHANGED",
+    "original_command_speed_distribution": "UNCHANGED",
+    "original_command_RNG_and_standing_probabilities": "UNCHANGED",
+    "standing_pooled_into_moving": false,
+    "DR_physics_control_clock_contact_solver_geometry": "UNCHANGED",
+    "active_or_sealed_sources_edited": false,
+    "E0_binary_acceptance": null,
+    "SLOPE_INDEPENDENT50_binary_acceptance": null,
+    "pass_rate_or_improvement_claim": null
+  },
+  "prerequisites": [
+    "父先封存当前nativeH16 baseline，所有新arm独立source身份/输出/actorSHA/配置SHA",
+    "同一物理点、同backend、同tick及8子步采样：old command/reward/pre-reset state/next command不可混",
+    "coordinate getter/quaternion/root-link vs COM的实际验证，不根据字段名猜错",
+    "E2 imagined command按原nonholonomic公式和预测heading/phase/timer演化；自然resample边界显式切段，不重采RNG",
+    "CURB113 only：ONE fresh reset后且first action前执行原axis binding；仅同步无noise command[:3]，无额外reset/obscompute/RNG；父处理备用候选与receipt",
+    "原接受observer与UID、terminal/censor规则验证；E0/S50原binary缺口不造proxy"
+  ],
+  "comparisons": [
+    {
+      "id": "A0",
+      "enabled": false,
+      "role_scope": "each original role separately",
+      "change": "none; bounded observation only",
+      "reward": "original",
+      "command_semantics": "frozen baseline",
+      "purpose": "source/protocol baseline, not live modification"
+    },
+    {
+      "id": "A1_vs_A0",
+      "enabled": false,
+      "change": "coordinate/command semantics only after prerequisite receipts",
+      "reward": "original unchanged",
+      "purpose": "isolate protocol repair from reward effects",
+      "training_execution_here": false
+    },
+    {
+      "id": "B1_vs_A1",
+      "enabled": false,
+      "roles": ["E2", "E0"],
+      "new_candidate_not_original": true,
+      "single_changed_factor": "one broad tracking exponential replaced by rational kernel",
+      "formula": "1/(1+(error/scale)^2)",
+      "scale": 0.5,
+      "scale_reason": "sqrt(original denominator .25), same center curvature",
+      "keep": "original broad weight, tight, hard gap, square, command, termination, DR and physics",
+      "risk": "heavier positive tail can reward bad tracking/standing; original square already has nonzero gradient",
+      "roles_without_binary": ["E0"],
+      "candidate_function": "reward_command_candidates_v1.bounded_tracking"
+    },
+    {
+      "id": "B2_vs_A1",
+      "enabled": false,
+      "roles": ["E3"],
+      "new_candidate_not_original": true,
+      "single_changed_factor": "orientation cost finite multiplier during original exogenous request",
+      "request_multiplier": 0.5,
+      "normal_multiplier": 1.0,
+      "keep": "original height/z masks, event, 3s request, 25 consecutive good controls, .03/.2/gz thresholds, normal recipe12 exclusion, original term masks, commands, action costs, DR and physics",
+      "risk": "weaker pose cost may increase fall/chatter despite recovery progress; credited outcome is not delta",
+      "candidate_function": "reward_command_candidates_v1.declared_phase_cost_multiplier"
+    },
+    {
+      "id": "B3_vs_A1",
+      "enabled": false,
+      "roles": ["CURB_PROTECTED878", "CURB_INDEPENDENT113", "SLOPE135"],
+      "run_separately": true,
+      "new_candidate_not_original": true,
+      "single_changed_factor": "bounded directed potential augmentation only",
+      "potential": "tanh(directed_progress / length)",
+      "progress_reference": "validated original wheel-link coordinate/route orientation and stored same-UID origin; not future success",
+      "candidate_lengths_m": {"CURB_PROTECTED878": 0.55, "CURB_INDEPENDENT113": 0.55, "SLOPE135": 2.4},
+      "length_reason": "own original endpoint span 2*edge; shaping parameter only, never an acceptance threshold",
+      "eta": 0.05,
+      "gamma_source_config": 0.99,
+      "increment": "F=gamma*c*Phi1-Phi0",
+      "manager_term_rate": "eta*F/.02 then manager integrates once",
+      "bootstrap": "Vprime=V-eta*Phi",
+      "boundary_requirement": "no reset joins; command/reference change in augmented state or rigorously consistent option boundary; no arbitrary dropping of a transition",
+      "keep": "original reward labels available separately, ordered endpoint wheel/Fz acceptance, up/down/stand, mirror groups, physics, DR, original termination/timeout semantics",
+      "risk": "progress without endpoint contact, learned-WM reward exploitation, bootstrap/gamma/continuation mismatch; no generic invariance claim",
+      "candidate_functions": ["reward_command_candidates_v1.bounded_directional_potential", "reward_command_candidates_v1.potential_transition", "reward_command_candidates_v1.potential_manager_rate"]
+    },
+    {
+      "id": "B4_vs_A1",
+      "enabled": false,
+      "roles": ["W35"],
+      "new_candidate_not_original": true,
+      "single_changed_factor": "one BODY-interval progress or phase candidate, not both",
+      "precondition": "original natural interval origin/heading, negative BODY sign+pi, terminal and UID validated",
+      "risk": "interval censoring/low-speed tolerance and ground phase can disguise no progress",
+      "keep": "12..16s natural sampler, uniform BODY vx[-.3,.3], .2 stand, accepted interval predicate and conditional denominator"
+    },
+    {
+      "id": "B5_diagnostic_only",
+      "enabled": false,
+      "roles": ["SLOPE_INDEPENDENT50"],
+      "change": "bounded source/command/reward diagnostics only until OWN acceptance authority found",
+      "success_rate": null,
+      "forbidden_proxy": ["S135 edge1.2", "S135 27/27 cohort", "no-fall", "boundary count", "success/(80-boundaries)"]
+    },
+    {
+      "id": "B_Huber_later_single_factor",
+      "enabled": false,
+      "roles": ["E2", "E0"],
+      "new_candidate_not_original": true,
+      "single_changed_factor": "one quadratic tracking cost replaced by normalized Huber only after weight/scale calibration",
+      "formula": "H_delta(e/s)",
+      "scale_example": 0.5,
+      "delta_example": 1.0,
+      "warning": "unbounded cost with bounded nonzero tail slope; clipping makes zero-slope tail; replacing square may weaken correction",
+      "candidate_function": "reward_command_candidates_v1.huber_tracking_cost"
+    }
+  ],
+  "per_arm_design": {
+    "budget": "equal parent-approved budget; no training here",
+    "seeds": "paired parent-preregistered seeds plus independent holdout; same original init/DR/RNG distributions",
+    "one_factor_at_a_time": true,
+    "report": ["original true/false/complete/incomplete/close reasons", "all-started attempt ledger separate from original conditional denominator", "all necessary original groups separately", "ordinary failures and post-success failures separately", "command exposure and actual speed distribution", "base reward vs shaping and term-rate distributions", "heldout reward residual/done calibration/WM multistep error", "actual source/actor/config hashes"],
+    "promotion": "original accepted groups improve with uncertainty reported, no hidden exposure shrink/ordinary-failure regression; E0/S50 no binary90 claim",
+    "stop_or_do_not_promote": ["getter/tick/UID mismatch", "standing substituted for moving", "speed distribution reduced", "early failure shrinks complete denominator", "original predicate not improved despite imagined reward rise", "ordinary failure worsens", "learned-head reward exploitation", "acceptance authority still missing for a claimed binary rate"]
+  }
+}

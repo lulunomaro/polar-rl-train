@@ -1,0 +1,82 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_core_review\ctx_reward_learner.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_command_review_v1\ctx_reward_candidate_v1.py
+@@ -1,4 +1,4 @@
+-"""SOURCE_ONLY: task-reward/context SuperMimic extension; never launches an env.
++"""OFFLINE_CANDIDATE: raw35/transition/reward hooks; never launches an env.
+ 
+ Runtime dependency: the reviewed supermimic_vendor_v2 and PyTorch, supplied by
+ parent. No Isaac/SDK import, checkpoint open, hardware query or training occurs
+@@ -256,7 +256,7 @@
+         if mask.shape != (self.mdp.context_dim,) or not torch.isfinite(mask).all() or not ((mask == 0) | (mask == 1)).all():
+             raise ValueError('predict_context_mask must have context_dim binary entries')
+         self.context_predict_mask = mask.to(self.device, dtype=torch.float32)
+-        self.extension_contract = {'schema': 'mod4v1.ctx_task_reward.v1',
++        self.extension_contract = {'schema': 'mod4v1.ctx_task_reward.command_candidate.v1',
+             'num_joints': self.mdp.num_joints, 'action_dim': A,
+             'context_dim': self.mdp.context_dim, 'obs_dim': self.mdp.obs_dim,
+             'goal_frame_dim': self.mdp.goal_frame_dim, 'policy_dt_s': float(policy_dt_s),
+@@ -339,7 +339,11 @@
+         state, state1 = unflatten_state(sample['s']), unflatten_state(sample['s1'])
+         features = self.aux.features(state, state1, sample['a'], sample['a_prev'],
+                                      self.mdp.normalize_context(sample['xi']), sample['f'])
+-        loss, parts = self.aux.supervised_loss(features, sample['r'], sample['xi1'] - sample['xi'],
++        reward_target = sample['r']
++        target_hook = getattr(self.mdp, 'aux_reward_target', None)
++        if callable(target_hook):
++            reward_target = target_hook(sample, state, state1)
++        loss, parts = self.aux.supervised_loss(features, reward_target, sample['xi1'] - sample['xi'],
+                                                 sample['done'], sample['xi1_valid'])
+         self.opt_aux.zero_grad(set_to_none=True)
+         loss.backward()
+@@ -384,6 +388,7 @@
+         goal = self._goal(frames, context)
+         states, contexts, all_frames, goals = [state], [context], [frames], [goal]
+         actions, rewards, dones = [], [], []
++        policy_penalties = []
+         with frozen_parameters(self.wm, self.critic, self.aux):
+             for _ in range(self.cfg.horizon):
+                 normalized = self.mdp.normalize_context(context)
+@@ -392,10 +397,21 @@
+                 next_frames = frames + 1
+                 features = self.aux.features(state, state1, action, previous_action, normalized, frames)
+                 reward, delta_context, done_logit = self.aux(features)
+-                next_context = context + self.context_predict_mask * delta_context
+-                project = getattr(self.mdp, 'project_predicted_context', None)
+-                if callable(project):
+-                    next_context = project(next_context, state1, action, next_frames)
++                reward_hook = getattr(self.mdp, 'project_imagined_reward', None)
++                if callable(reward_hook):
++                    reward = reward_hook(reward, state, state1, action, previous_action, context, frames)
++                regularize = getattr(self.pi, 'policy_regularizer', None)
++                if callable(regularize):
++                    policy_penalties.append(regularize(obs_hist, goal, action))
++                transition_project = getattr(self.mdp, 'project_transition_context', None)
++                if callable(transition_project):
++                    next_context = transition_project(context, state, state1, action, frames,
++                                                      next_frames, delta_context, self.context_predict_mask)
++                else:
++                    next_context = context + self.context_predict_mask * delta_context
++                    project = getattr(self.mdp, 'project_predicted_context', None)
++                    if callable(project):
++                        next_context = project(next_context, state1, action, next_frames)
+                 done = torch.sigmoid(done_logit)
+                 timeout = getattr(self.mdp, 'imagination_timeout', None)
+                 if callable(timeout):
+@@ -419,6 +435,8 @@
+                     self._critic_input(state, frames, self.mdp.normalize_context(context), goal))
+                 objective = objective + bootstrap
+             loss = -objective.mean()
++            if policy_penalties:
++                loss = loss + torch.stack(policy_penalties).mean()
+             # This tests FUTURE reward/bootstrap -> FIRST action, not merely a direct action-rate gradient.
+             delayed = contributions[1:].sum(0) + bootstrap
+             delayed_grad = torch.autograd.grad(delayed.mean(), actions[0], retain_graph=True, allow_unused=True)[0]
+@@ -446,7 +464,7 @@
+                     wm_path_finite=bool(wm_finite), wm_path_grad_norm=wm_norm,
+                     parameter_grad_norm=float(grad_norm), loss=float(loss.detach()),
+                     wm_weights_frozen=True, auxiliary_weights_frozen=True,
+-                    imagined_reward_source='original_real_reward_supervised_head')
++                    imagined_reward_source='original_reward_head_or_explicit_component_decomposition')
+                 try:
+                     self.opt_pi.step()  # only this successful post-hook may increment BPTT steps
+                 finally:

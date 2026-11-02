@@ -1,0 +1,96 @@
+{
+  "schema": "mod4v1.command_reward_source_audit.v1",
+  "evidence_level": "SOURCE_PLUS_STDLIB_FORMULA_AST_ONLY",
+  "status": "SOURCE_CANDIDATE_NOT_TRAIN_READY_NOT_DEPLOYED",
+  "write_scope": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_command_review_v1",
+  "operations": {
+    "actual_training": 0,
+    "native_expert_BPTT_updates": 0,
+    "SSH": 0,
+    "SDK_App_import": 0,
+    "GPU": 0,
+    "selected_PT_or_old_rawJSONL_opened": 0,
+    "C_GO_lock_git": 0,
+    "active_or_sealed_source_modifications": 0
+  },
+  "runtime_unknowns_preserved": {
+    "actual_backend_class_module_method_SHA": null,
+    "getter_sample_apply_timestamp_and_freshness": null,
+    "root_actor_COM_point_and_frame_identity": null,
+    "running_E2_command_projection_binding": null,
+    "actual_actor_SHA_and_frozen_eval_cohort": null,
+    "native_pass_rate": null,
+    "90_percent_achieved": false
+  },
+  "source_confirmed": {
+    "baseline_actor_view": "invariant_true_state + a_prev + ALL_context, obs_dim=79+C; frozen teacher reads only raw35 slice but residual reads privileged fields",
+    "E2_body_vx": "clamp(2*V*cos(heading-world_direction),-body_limit,body_limit)",
+    "E2_body_vy": 0,
+    "E2_transition_phase": "post-observation phase_elapsed is next dynamic-write phase; source increments after write",
+    "W35_actual_allrough": "rm70_eligibility all false; BODYvx=.6u-.3,vy=wz=0; held absent resample/reset",
+    "W35_evaluation_axis": "immutable sampled_heading+pi if sampled_BODYvx<0; standing is sampled Boolean, not velocity proxy",
+    "raw35_sensor_semantics": "original corruption then 100Hz 0/1-sample lag then original scaling; retains sample BODY frame, two samples per .02s control",
+    "reward_clock": "physical pre-reset s1 with OLD cmd_t and pre-control replay f_t; final obs xi1 uses updated cmd_t+1 after reset/command compute",
+    "reward_head": "unbounded learned scalar supervised from original real r; frozen head still differentiable in actor-input space",
+    "residual_scale": "original .05*unbounded_logits is not a hard trust bound"
+  },
+  "analytic_counterexample": {
+    "kind": "PURE_ANALYTIC_NOT_RUNTIME",
+    "H": 16,
+    "dt": 0.02,
+    "yaw_rad_s": 4,
+    "V": 0.5,
+    "delta_yaw_rad": 1.28,
+    "delta_yaw_deg": 73.33859777674537,
+    "maximum_held_command_error_m_s": 1.1943908827247842,
+    "heading_zero_final_vx_m_s": 0.2867152096319555,
+    "heading_zero_held_error_m_s": 0.7132847903680445
+  },
+  "candidate": {
+    "actor": "raw35+original_history+current_raw_command_goal_only; no acceptance_UID/privileged_DR feature",
+    "real_actor_observation": "identity context[..., :35]; no second noise draw",
+    "projection": "shared sample-time raw35 assembly; conditional exact E2/W35 command provider",
+    "default_missing_receipt_behavior": "UnknownCommandEvolution",
+    "explicit_diagnostic_approximation": "command_exact_sensor_aux_approximation",
+    "raw35_policy_comparison_control": "ScaledTeacherResidualPolicy35 keeps original .05*unbounded logits for A1/B/C",
+    "separate_trust_region_candidate": "BoundedTeacherResidualPolicy radius*tanh, radius=.05; optional anchor_coefficient=0 default",
+    "reward_C": "optional native_r-exact_component target plus imagined exact_component+learned_residual; actual weighted component callback remains absent",
+    "uncertainty_D": "standalone mean-beta*population_std helper; no trained or calibrated ensemble",
+    "new_core_schema": "mod4v1.ctx_task_reward.command_candidate.v1",
+    "protected_code": "ContextReplayBuffer and TaskAuxiliaryModel full AST identical; collect/load/history/resume/receipt methods unchanged; future->s1->a0 VJP text identical"
+  },
+  "migration": {
+    "old_fullcheck_compatible": false,
+    "reason": "old residual/norm/Adam actor input 79+C changes to35; schema differs",
+    "allowed_default": "new run/fresh raw35 residual+normalizers+optimizer with separately identified frozen teacher, subject to parent decision",
+    "forbidden_shortcuts": ["slice old input weights", "slice Adam moments", "splice old replay/history as exact resume", "add old baseline or synthetic counts to candidate native BPTT"],
+    "fresh_candidate_native_BPTT_start": 0,
+    "old_baseline_counts": "retain separately"
+  },
+  "minimal_missing_receipts": [
+    "live backend/getter/command method binding SHA and point/frame/sample/apply clocks; preserve original measurement runtime unknowns",
+    "model-side E2 Booleans/fixed axis/signed yaw/post-write phase/decoded time_left/manual mode/active cfg; natural resample/reset boundary and future RNG/tape or explicit unknown coverage",
+    "actual resolved leg/wheel joint ids and default q/qd; original 100Hz corruption+feedback caches/stamps/warmup/reset; two sample states/control or supported noisy sensor latent model",
+    "active original reward term weights/dt/gate/body getter point/frame/clock and held-out native residual/done/support calibration",
+    "CPU Torch+self-contained and actual-core synthetic software receipts, fresh migration manifest, then parent-selected new native equal-condition window"
+  ],
+  "ablation": {
+    "A0": "current baseline retained as historical source/runtime reference, not a deployable raw35 claim",
+    "A1": "fresh raw35-only matched view control, held command/original head/unbounded .05 logits",
+    "B": "relative A1 tracking/sample projection only",
+    "C": "relative B original tracking-component reward decomposition only",
+    "D_bound": "separate bounded residual only",
+    "D_anchor": "separate positive anchor only, explicit parent comparator",
+    "D_uncertainty": "separate calibrated ensemble/support intervention only",
+    "invariants": "original command distribution, physical DR, disturbances, timeouts, full endpoint and success thresholds; no easy-window filtering"
+  },
+  "tests_local": {
+    "stdlib_formula_AST": {"passed": true, "tests": 37, "failures": 0, "errors": 0},
+    "Torch_available": false,
+    "Torch_imported": false,
+    "Torch_actual_software_test_receipt": null,
+    "parent_remote_test_script": "test_command_tracking_torch_cpu_v1.py",
+    "parent_remote_test_count_planned": 22,
+    "synthetic_counts_are_not_native_training": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "epoch": 1793642182.150332,
+  "rows": [
+    {
+      "ProcessId": 42644,
+      "CreationDate": "2026-11-03T01:56:20.864603+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 -c \"from pathlib import Path\nimport importlib.util,json\nN=Path(r'F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/h1_attitude_20261103')\ns=importlib.util.spec_from_file_location('h1_authority_diag',N/'run.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nsource=\\\"\\\"\\\"from pathlib import Path\nimport json,time,hashlib\nP=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')\nraw=P.read_bytes();c=json.loads(raw)\nkeys=['authority_generation','authorized_training_seconds','new_authority_budget_extensions','active_segment','remaining_training_seconds','budget_mode','mode']\nv={k:c.get(k)for k in keys};a=c.get('active_segment')\nif a:\n v['active_keys']=list(a)\n v['last_completed_owners']=[dict(owner_parent_pid=x.get('owner_parent_pid'),ended_epoch=x.get('ended_epoch'),charged=x.get('charged_expert_seconds'))for x in c.get('completed_segments',[])[-3:]]\nprint(json.dumps(dict(epoch=time.time(),canonical=v,SHA=hashlib.sha256(raw).hexdigest(),model_reads=0,account_writes=0,PIDscan=0)))\n\\\"\\\"\\\"\nwith m.connection('AUTHORITY_DIAG')as(client,d):\n value=d.code(client,d.PY72,source,{},timeout=45);m.put('AUTHORITY_DIAG_ACTUAL.json',value)\nprint(json.dumps(value,ensure_ascii=False))\n\""
+    }
+  ],
+  "serialFREE": true
+}

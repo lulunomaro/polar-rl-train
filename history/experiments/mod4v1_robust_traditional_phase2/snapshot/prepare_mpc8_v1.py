@@ -1,0 +1,13 @@
+"""Nominalmatrix/smallQPunitstageonly; noMuJoCostep/DRorhardware."""
+from pathlib import Path
+import json,hashlib,time
+import numpy as np
+from scalar_ground_mpc_v1 import fixedleg_model,ScalarMPC
+R=Path(__file__).resolve().parent;D=R/'MPC8_V1';D.mkdir(exist_ok=False);g=json.loads((R/'nominal_gain_v1.json').read_bytes())['gain'];g={k:np.asarray(v,float)if k in('q','tau','K','A','B','Ad','Bd','P','Q','R')else v for k,v in g.items()};m=fixedleg_model(g);assert max(abs(m['eigenvalues']))<1.;s=ScalarMPC(m);rng=np.random.default_rng(5031);checks=[]
+for i in range(16):
+ x=rng.normal(size=8)*.001;s.last_u=0.;u=s.solve(x,np.zeros(8),0.,-1e5,1e5);expected=float(-(m['K']@np.r_[x,0.])[0]);err=abs(u-expected);assert err<1e-7,(i,err);checks.append({'kind':'inactivebound_MPC_equals_DARE','i':i,'abs_error':err,'solver':s.last.copy()})
+for i in range(4):
+ s.last_u=0.;x=np.zeros(8);x[1]=.1*(i+1);u=s.solve(x,np.zeros(8),0.,-.1,.1);assert -.100000001<=u<=.100000001;assert s.last['feasible'];checks.append({'kind':'activebound_feasible_not_guaranteed_converged','i':i,'solver':s.last.copy()})
+body={k:([[float(z.real),float(z.imag)]for z in v]if k=='eigenvalues'else v.tolist())if isinstance(v,np.ndarray)else v for k,v in m.items()};body.update({'kind':'LOCALZEROYAW_FIXEDLEG8_PLUS_NOMINALLAG9_MODEL','state8':['distance','pitch','hip_avg','crank_minus_hip_avg','forward_v','pitchdot','hipdot_avg','delta_dot_avg'],'input':'Nm_perwheelcommon, physicalB=sumwheelcolumns','physics_steps':0,'state_constraints':False,'contactprediction':False,'profile':'kp120,kd4,laghalfstep,N15','model_SHA':'0e9ca6854285dc73465a198656fdedd992ffbf205c4ea9ed9d3ce88b905bf324','checks':checks,'source_SHA':hashlib.sha256((R/'scalar_ground_mpc_v1.py').read_bytes()).hexdigest()})
+(D/'MODEL_AND_QP_CHECKS.json').write_text(json.dumps(body,indent=2),encoding='utf-8');print(json.dumps({'checks':len(checks),'max_closedloop_abs':float(max(abs(m['eigenvalues']))),'active_QP_logs':[v for v in checks if v['kind'].startswith('active')]},indent=2))
+src=(R/'run_ground_case_v5.py').read_text(encoding='utf-8').replace('from ground_controller_v4 import GroundController','from scalar_ground_mpc_v1 import GroundController').replace("ROOT/'ground_controller_v4.py',", "ROOT/'ground_controller_v4.py',ROOT/'scalar_ground_mpc_v1.py',");src=src.replace("result['yaw_score_frame']=", "result['controller_usage']=controller.usage;result['last_mpc']=controller.last_mpc;result['controller_label']='localMPC8_plus_independentLQRsupervisor';result['yaw_score_frame']=");(R/'run_mpc_ground_v1.py').write_text(src,encoding='utf-8',newline='\n');print('NEW_RUNNER',R/'run_mpc_ground_v1.py')

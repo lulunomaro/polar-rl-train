@@ -1,0 +1,15 @@
+# Archive MOD4v1 robust traditional PHASE2 through R16
+
+Diagnostic evidence archival only. Full scope is PH2_ROOT_SCOPE.md/json; all original source/config/result/error/report bytes or prior identical Phase1Git references are mapped in manifest.json. Actual accepted source scope ends at R16; shared mutable files after the R16closed batch time stay pending unless a parent-declared sealed module/H1/H2/R16artifact.
+
+446physical result files through R16 are retained, not all passes. The33R15API child failures are a SEPARATE software category, not a robot0/10jump ability score; consumed prefix controls/physics are preserved and old unsaved row traces remain absent. R16corrected IDs33rc0include nominal cases and30DR: original roll6/10clear,5/10end2s; roll_long.11s9/10clear,7/10end2s,0/10zero-nonwheel-end2s; pitchD1/10. No wrong old result is replaced. Static guide identities are candidates, not retroactive original force identity or all-surface flight proof.
+
+H1P25stand60/64andforward63/64, H2positive4pi64/64, MPC8nominal/train successes, Ctoy/math passes, FSM63synthetic methods, CONTACT32synthetic+13static forwards, or ARM6/6compile objects are not wholeGoal/270mm/RM/realboard graduation. C QPv1/v2 real-H numerical limitations and failed attempts remain alongside toy passes. ARM is -c only, no native ARM run/BSP/firmware. Proposed thresholds remain proposed. Overall Goal remains ACTIVE.
+
+ACTIVE portable_control_v3_current, ALL R17/R18/R19/R20/R21/R22+files (including software prep assertions), exact RM_GRID_SCUT terrain and other future/source changes remain PH3_PENDING. Do not chase later round progress or rerun physics/tests/once for archival. Next movingCOMprototype starts only after this seal and is future PH3 work, not an admission here.
+
+Large trace/binary/NPZ/USD/STL/ZIP/objects stay at actual source. RawSHA entries are only existing producer claims with path/size/provenance, unknown/conflicting hashes remain unknown, no archival raw reread. Small ARM objects are also indexed only. All earlier PH1postcommit receipts/operation reports found in source are admitted; this PH2postcommit receipt/verification will be explicitly PH3pending, not a recursive new experiment.
+
+Use unchanged archive_tools/record_experiment.py once for unique diagnostic id mod4v1-robust-traditional-phase2, date actual at recording. Narrow single-add adapter uses only NEW phase2 directory+generated record, validates exact expected staged paths, allA/noD/foreign paths and every staged blob SHA/map. Push only explicit OWNbranch+newtag with --atomic, no force/main/expert destination. Preserve Phase1commit/tag/object. Compare fresh immediate pre/post owned-push remote main, record any earlier concurrent changes separately; never restore another session's HEAD/index or roll back main. Commit success/push failure means push existing objects only, never replay record/tag.
+
+No training/canonical budget/parent source modification, no new agent, hardware or SSH. New physics steps0, test reruns0, raw content hashes0 for this archive.

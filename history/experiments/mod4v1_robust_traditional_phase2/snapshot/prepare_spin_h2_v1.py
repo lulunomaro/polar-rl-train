@@ -1,0 +1,14 @@
+"""Prospectivepositive4pispinH2freeze afterTRAIN8, before20000..20063.
+No seed/data selection fromH1normalorH2. Originalsource/oldfailures retained.
+"""
+from pathlib import Path
+import json,hashlib,ast
+R=Path(__file__).resolve().parent;D=R/'SPIN_H2_K20_V1';D.mkdir(exist_ok=False);c=dict(yaw_kp=.8,yaw_ki=.5,yaw_integral_limit=15.,yaw_rate_ff=.052,center_lead_s=.008390087918603841,center_torque_kp=20.,center_torque_cap=1.8);files=[]
+for n in('spin_center_torque_v2.py','spin_center_controller_v1.py','spin_base_v1.py','robot_geometry_constants_v1.py','ground_controller_v4.py','sensor_core_v4.py','physics_bridge.py','physics_bridge_v3.py','physics_bridge_v4_grade.py','nominal_gain_v1.json'):
+ raw=(R/n).read_bytes();(D/n).write_bytes(raw);files.append(dict(name=n,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+protocol=dict(kind='SPIN_H2_PROSPECTIVE_POSITIVE_4PI_ONLY',seeds=list(range(20000,20064)),duration_s=12.,command_at_s=1.,target_yaw_rad_s=12.566370614359172,controller=c,sensor=dict(accel_correction=0,accel_reference='wheel_midpoint',upright_arming_prior=True),source=files,gates=dict(original_case_gate=True,final_xy_displacement_max_m=.3,continuous_yaw_pose_hold_min_s=5.,yaw_relative_error_max=.1,tail_mean_yaw_relative_error_max=.05,total_actual_turns_min=10.),notes=['No_side_slip_lateral_proxy_is_assumption_not_true_lateral_sensor.','Centertorqueonlythroughtwoactualwheelactuators; originalDC/effort/processedtargetDRintact.','Supporteduprightinitialpose, positiveyawonly; reverse/start-stop/rugged/stepnotqualified.','Endpointdriftispassgate; wholetrajectorypeakdriftalsoreported, nothidden.','Engineeringgatesnotuser-ratified; no tuningon20000..20063.']);P=D/'PROTOCOL.json';P.write_text(json.dumps(protocol,indent=2),encoding='utf-8');sha=hashlib.sha256(P.read_bytes()).hexdigest();s=(R/'run_spin_torque_v2.py').read_text(encoding='utf-8');needle="result['trace_artifact']=";assert needle in s
+extra="""hold=0.;longest=0.;peak_xy=0.
+  for rr in rows:
+   gg=rr['ground_truth'];om=gg['gyro_true'];pr=gg['pitch_true'];rl=gg['roll_true'];wy=(om[1]*math.sin(rl)+om[2]*math.cos(rl))/max(math.cos(pr),.15);good=abs(wy-4*math.pi)<=.1*4*math.pi and abs(rl)<math.radians(10)and abs(pr)<math.radians(10);hold=hold+.01 if good else 0.;longest=max(longest,hold);peak_xy=max(peak_xy,float(np.linalg.norm(np.asarray(gg['xyz'])[:2]-position_start[:2])))
+  result['original_case_screen_pass']=result['proposed_gate_passed'];result['continuous_yaw_pose_hold_s']=longest;result['peak_xy_displacement_m']=peak_xy;result['spin_h2_protocol_SHA']='PROTOCOL_SHA';result['spin_h2_pass']=bool(result['proposed_gate_passed']and longest>=5. and abs(float(w.mean())-4*math.pi)<=.05*4*math.pi and actual_yaw_turns>=10.);""".replace('PROTOCOL_SHA',sha)
+s=s.replace(needle,extra+needle);ast.parse(s);(R/'run_spin_h2_v1.py').write_text(s,encoding='utf-8',newline='\n');(D/'run_spin_h2_v1.py').write_text(s,encoding='utf-8',newline='\n');print('H2_FROZEN',sha)

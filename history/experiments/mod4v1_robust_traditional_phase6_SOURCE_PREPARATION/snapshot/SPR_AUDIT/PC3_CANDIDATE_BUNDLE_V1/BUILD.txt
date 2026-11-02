@@ -1,0 +1,29 @@
+PC3_CANDIDATE_BUNDLE_V1 source-only closure (no dispatch or driver)
+
+Unpack preserving the SPR_AUDIT sibling directory layout. Included runtime files:
+  SPR_AUDIT/PC3_CANDIDATE_BUNDLE_V1/cb1_candidate.c,h
+  SPR_AUDIT/portable_control_v3_current/pc3_control.h
+  SPR_AUDIT/portable_control_v3_current/pc3_estimator.c
+  SPR_AUDIT/portable_control_v3_current/pc3_controller.c
+  SPR_AUDIT/portable_control_v3_current/pc3_p25_data.h
+  SPR_AUDIT/portable_core_v2_kinematics/ct_kinematics.c,h
+The six C3/C2 dependencies are byte-for-byte copies of frozen sources, not edits.
+
+Example host C object build, from unpack root (caller supplies a main):
+  gcc -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse -c SPR_AUDIT/PC3_CANDIDATE_BUNDLE_V1/cb1_candidate.c
+  gcc -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse -c SPR_AUDIT/portable_control_v3_current/pc3_estimator.c
+  gcc -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse -c SPR_AUDIT/portable_control_v3_current/pc3_controller.c
+  gcc -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wvla -fno-fast-math -ffp-contract=off -msse2 -mfpmath=sse -c SPR_AUDIT/portable_core_v2_kinematics/ct_kinematics.c
+Link these C objects plus caller main with gcc/g++ and libm/runtime as required.
+C++ includes cb1_candidate.h and links C objects; do not compile old C as C++.
+No pc3_dispatch.c or pc3_cycle is in this build/source closure.
+
+Scheduled ARM source-only object commands used armclang6.10.1:
+  armclang --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -std=c99 -O2 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -c SPR_AUDIT/PC3_CANDIDATE_BUNDLE_V1/cb1_candidate.c -o cb1_m4.o
+  armclang --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -std=c99 -O2 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -c SPR_AUDIT/PC3_CANDIDATE_BUNDLE_V1/cb1_candidate.c -o cb1_m7.o
+No SSE flags on ARM. Matching C3/C2/RT helpers/libm/BSP linkage and FP environment remain caller obligations; no target execution, stack or WCET qualification.
+
+Default config is unbound. Explicit data/time/session declaration, valid C3 config,
+init and declared math prior arm are required. Original disabled command remains
+disabled and latches; explicit init+arm required to resume mathematics.
+Every usable result has send_permission=0. This is not an actuation/queue API.

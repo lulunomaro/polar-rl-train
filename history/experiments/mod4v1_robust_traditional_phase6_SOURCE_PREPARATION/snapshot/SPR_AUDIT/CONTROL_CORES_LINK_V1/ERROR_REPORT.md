@@ -1,0 +1,11 @@
+# Build / audit attempt ledger
+
+1. Initial glob of the not-yet-created new directory returned OS error2. New directory was then created normally. No old artifact loss or access-denial bypass was observed.
+2. First scheduled HOST build:21 commands, all exit0, every declared artifact present. Each of9 runtime sources compiled once; same objects linked into actual C and extern-C CPP executables. New smokes each37/0 and run once. No prior kernel test or fixture executable was invoked.
+3. First scheduled ARM build:26 commands, all exit0. Each target compiled each of9 runtime sources once, plus one NEW const layout probe; one partial link per target. Both actual armlink partials produced ET_REL objects. No fallback toolchain, duplicate compile, BSP/library image link or target execution.
+4. First saved-only audit actually exited1: the taxonomy omitted `__hardfp__fabsf`. [Original audit source](<audit_attempt_01/audit_co1.py>) and [failed log](<audit_attempt_01/audit_01.log>) remain. No build or smoke failed.
+5. Installed ARM math header lines740-741 explicitly identify `_fabsf` as the old ARM alias called by fabsf. [Read-only evidence](<TOOLCHAIN_ALIAS_EVIDENCE.json>) records the exact lines; this installed header was not added to the22 runtime source-BOM SHA scope. Only exact `_fabsf` was added to the existing math classifier; no broad unexpected-name exemption.
+6. Second saved-only audit passed: all3 platforms compile-count1 per runtime, C/CPP37/0, 45 host strong exports, zero duplicate strong definitions or dispatch/send dependencies; both ARM partials retain source definitions and resolve internal peer references,36 expected system dependencies remain each. [Audit](<COMBINATION_AUDIT.json>) preserves actual inventories, layouts, attributes and executable hashes.
+7. No runtime/new smoke/build flags/BOM/budget changed after builds, and no compiler, linker or smoke was rerun for classifier repair or packaging. Artifact disappearance did not occur; no protection settings or rename/config workaround was used.
+
+The remaining ARM system dependencies are intentional build gaps, not resolved/qualified libraries. Successful partial relocation is not a firmware image or full control/send transaction. Final metadata checks only the22 actual old sources/headers and this new component's saved evidence; no whole old-tree hashing.

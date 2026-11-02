@@ -1,0 +1,34 @@
+CONTROL_CORES_LINK_V1 — build combination/default-only scope
+
+Source/build ZIP preserves SPR_AUDIT sibling paths. SOURCE_BOM.json selects exactly
+9 runtime C files and13 quoted headers/incs (22 unique original files). Build from
+SPR_AUDIT/CONTROL_CORES_LINK_V1 with Python314 -B:
+
+  python -B build_co1.py host
+  python -B build_co1.py ARM
+  python -B audit_co1.py
+
+Only use a fresh output directory/extraction. Existing receipts/output folders are
+intentional no-rerun guards. Do not compile additional C copies from other ZIPs.
+The fixed original Windows tool locations in build_co1.py are:
+  C:/MinGW/bin/gcc.exe, g++.exe, nm.exe (6.3.0 mingw32)
+  C:/Keil_v5/ARM/ARMCLANG/bin/armclang.exe, armlink.exe, fromelf.exe (6.10.1)
+No downloads, PATH replacement or protection changes are part of this package.
+
+Host compiles9 C runtime objects once each; links same9 plus new read-only ABI
+probe into a C99 and C++11 executable. Two NEW tiny default smokes run once each;
+no old3200/219/93 or controller/model/physics tests. Source code hashes and argv
+are fixed in BOM/build receipts. C kernels are never compiled as C++.
+
+ARM each uses one M4(fpv4-sp-d16) / M7(fpv5-sp-d16) Thumb hard-float object per
+runtime source, plus one new const layout probe. Partial command:
+  armlink --partial --no_remove --no_scanlib --output control_cores_partial.o <10 objects>
+No automatic libraries, BSP or startup image. This produces ET_REL, not firmware.
+System libm/soft-double/memory/u64 helpers remain undefined and require separate
+library/FP/runtime qualification. No ARM execution/FPSCR/stack/ISR/WCET evidence.
+
+The source package has no C3 dispatch, SDK, parser, worker, transport or driver.
+All default output validity/permission is inhibited; no contact/calibration/clock
+or valid-base declaration is forged. This does not implement a cross-core control
+transaction, driver-rate envelope, quantizer, actual-held commit or final enqueue.
+PH6 pending, not a retroactive qualification of any existing physical cutoff.

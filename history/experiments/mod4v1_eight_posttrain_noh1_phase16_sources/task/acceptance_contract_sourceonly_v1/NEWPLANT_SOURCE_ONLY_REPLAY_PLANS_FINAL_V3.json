@@ -1,0 +1,1311 @@
+{
+  "schema": "mod4.newplant.replayplan.sourceonly.v1",
+  "plans": [
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "E0",
+      "original_model_SHA": "a92c9e8d7cb3dbda9828b6c37bb38dd63183818e91b1aa3f7746c2c46379c74a",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "num_envs": 20000,
+        "seed": 20260928,
+        "source_scope": "One declared sampledcase, earlyoriginalresample all20k atphysics0; 100warm/900steady controls"
+      },
+      "own_command_geometry": {
+        "command_kind": "E0_DIRECTIONAL_SPIN_V1",
+        "resampling_time_range": [
+          12.0,
+          16.0
+        ],
+        "standing_fraction": 0.1,
+        "pure_fraction": 0.3,
+        "moving_fraction": 0.2,
+        "transition_fraction_within_pure": 0.3333333333333333,
+        "moving_yaw_signed_abs_rad_s": [
+          1,
+          2
+        ],
+        "pure_yaw_abs_rad_s": [
+          1,
+          12.566370614359172
+        ],
+        "world_progress_goal_m_s": 0.5,
+        "height_command_m": 0.25,
+        "criterion_terms": [
+          {
+            "name": "time_out",
+            "time_out": true,
+            "function": "<function time_out at 0x77f50d216980>",
+            "parameters": "{}"
+          },
+          {
+            "name": "bad_orientation",
+            "time_out": false,
+            "function": "<function bad_orientation at 0x77f50d216ac0>",
+            "parameters": "{'limit_angle': 0.75}"
+          },
+          {
+            "name": "base_contact",
+            "time_out": false,
+            "function": "<function chassis_on_ground at 0x77f50cee02c0>",
+            "parameters": "{'threshold': 50.0, 'sensor_cfg': SceneEntityCfg(name='chassis_contact', joint_names=None, joint_ids=slice(None, None, None), fixed_tendon_names=None, fixed_tendon_ids=slice(None, None, None), body_names=None, body_ids=slice(None, None, None), object_collection_names=None, object_collection_ids=slice(None, None, None), preserve_order=False)}"
+          },
+          {
+            "name": "closure",
+            "time_out": false,
+            "function": "<function closure_broken at 0x77f50ceca5c0>",
+            "parameters": "{'threshold': 0.002}"
+          },
+          {
+            "name": "mimic",
+            "time_out": false,
+            "function": "<function mimic_broken at 0x77f50ceca700>",
+            "parameters": "{'threshold': 0.05}"
+          },
+          {
+            "name": "low_base",
+            "time_out": false,
+            "function": "<function low_base_relative at 0x77f50ce57ec0>",
+            "parameters": "{'minimum_height': -1.0}"
+          }
+        ],
+        "original_criteria_unmodified": true,
+        "graduated_skill_claim": false
+      },
+      "own_original_metric_predicate": {
+        "type": "DiagnosticbodyV/yaw/height MAE andsampledsigned2pi cycleprogress; no savednumericalglobal/percommand skillgraduation rule",
+        "catalog_reference": "E0_CATALOG",
+        "metric_functions_reference": "E0_METRICS",
+        "original_complete_commands": {
+          "closed_instance_events": 60000,
+          "acted_instance_events": 40000,
+          "zero_control_instance_events": 20000,
+          "all_acted_instance_population_controls": 20000000,
+          "acted_initial_left_censored_events": 0,
+          "acted_reset_ended_events": 20000,
+          "acted_window_end_events": 0,
+          "fully_observed_resample_to_resample_instance_events": 20000,
+          "complete_instance_population_controls": 13998008,
+          "complete_instance_seconds": 279960.16,
+          "left_censored_instance_events": 0,
+          "window_end_right_censored_instance_events": 20000,
+          "reset_ended_instance_events": 20000,
+          "complete_transition_instances_with_all_pre12_bins": 1979
+        },
+        "scope_boundary_diff": {
+          "original_snapshot": {
+            "closure_m": 0.002,
+            "mimic_rad": 0.05,
+            "bad_orientation_rad": 0.75,
+            "chassis_contact_N": 50.0,
+            "low_base_relative_min_m": -1.0
+          },
+          "current_approved_integration": {
+            "closure_m": 0.01,
+            "mimic_rad": 0.01
+          },
+          "not_same_physical_gate_retest": true,
+          "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+          "causal_or_paired_rate_comparison": false
+        }
+      },
+      "physical_seconds_windows": [
+        {
+          "seconds": 20,
+          "controls50Hz": 1000,
+          "physics400Hz": 8000,
+          "feedback100Hz": 2000,
+          "warmup_seconds": 2,
+          "steady_seconds": 18
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "E0",
+          "reference_id": "E0_SAVED20S",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_FULL1000_SAVED_TEXT_REVIEW_20261029_V2\\E0_V2_FULL1000_EARLY_COMMAND_INSTANCE_SAVED_TEXT_ACCEPTANCE_REVIEW_ACTUAL.json",
+          "SHA": "465dfd0e6c234bf1aa11ebfc2249dc7e369637aaa132db24d3803b723afe6de8",
+          "bytes": 115717,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "E0_REVIEW_MD",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_FULL1000_SAVED_TEXT_REVIEW_20261029_V2\\HANDOFF_FROZEN_E0V2_FULL1000_SAVED_TEXT_REVIEW.md",
+          "SHA": "902d985cffec25a37caa230d3ac258d6e12bca46c2f9e89230f30eb8b575f64b",
+          "bytes": 4556,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "E0_CATALOG",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\e0_original_profile_catalog_v1.py",
+          "SHA": "381d968fa8334e6a7715e8053a41829aafe4f32657403960af0fca13511cca8a",
+          "bytes": 1417,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "E0_METRICS",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\e0_long_command_domain_telemetry_v1.py",
+          "SHA": "6dd90482a6e288f8cb9e41bd5b5b131b0a915a3bcb0d6712c8337b3316db146d",
+          "bytes": 18373,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "E0_WORKER",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E0_82_NEW86_EARLY_RESAMPLE_COMPLETE_CASE_SOURCE_20261029_V2\\evaluate_E0_adapted82_new86_frozen1000_once_v2_early.py",
+          "SHA": "90274f8ead2938c2cb81192afc529053e16a79585fa9fb4a2cc3230d2ffd07e6",
+          "bytes": 14431,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "FORMALS189",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\FROZEN_EXPERTS_400N50_SKILL_SUPERMIMIC_CONTINUATION_V189_20261031\\reports\\EXPERT189_SAVED_FORMALS_AND_SKILL_GAPS_ACTUAL.json",
+          "SHA": "9dc7afcd5afb0581d39f85efa2004048d0b782df7bf4496581d239cda013e351",
+          "bytes": 11878,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E0",
+          "reference_id": "NATIVE_E0",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E0_actual_fullrestore_native24\\E0_A92_FULLRESTORE_NATIVE24_ACTUAL_PASS.json",
+          "SHA": "6188efb8200693caf3b5d0317ad6b5b23b58927cb005842ef7e4f20cc2375e6a",
+          "bytes": 2944,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "No original numerical skill pass tolerances/per-command success thresholds saved; do not invent a graduation rule.",
+        "straight_zero has0 exposure; original continuous straight command has a zero label but no discrete zero atom guaranteed. No exposure is pending, not failed/success.",
+        "Only one20s window/seed and sampled original commands; no full stochastic range or long-term reliability claim.",
+        "Moving worldprogress metrics cover only accepted sampled same-command2pi windows (~68%movingtime), not every command/all elapsed movingtime.",
+        "Complete command summaries provide body/yaw/height errors but not per-command worldprogress success counts or distributions; JSONL content intentionally NOT transferred/read.",
+        "Global unique env unions across changing signed profiles are not saved. Retain perprofile exactunique and conservative union bounds, never sum overlaps as exact globalunique.",
+        "Per-transition error tensor axis names are not explicit in saved schema; report axis0/1/2 only, no guessed physical labels.",
+        "20k reset-ended acted commands are incomplete despite no non-timeout failure;20k0-control window-end rows cannot be positive skill evidence.",
+        "No complete127-state/executedaction/queue/DR/reset WM transition dataset; command JSONL and weights are not that dataset."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "E2",
+      "original_model_SHA": "b3ae94dfded75360d43dcebc1ac0e7a0c51f2c2f11a9b28e58bb9ae8566ea1e1",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "num_envs": 20000,
+        "seed": 20260928,
+        "source_scope": "V5normal900 earlyresample +V2321200control own24s distinctpurpose"
+      },
+      "own_command_geometry": {
+        "command_kind": "E2_WORLD_MOVING_SIGNED4",
+        "resampling_time_range": [
+          12.0,
+          16.0
+        ],
+        "standing_fraction": 0.1,
+        "pure_fraction": 0.3,
+        "moving_fraction": 0.2,
+        "transition_fraction_within_pure": 0.3333333333333333,
+        "moving_yaw_rad_s": [
+          -4,
+          4
+        ],
+        "pure_yaw_abs_rad_s": [
+          1,
+          12.566370614359172
+        ],
+        "world_progress_goal_m_s": 0.5,
+        "height_command_m": 0.25,
+        "criterion_terms": [
+          {
+            "name": "time_out",
+            "time_out": true,
+            "function": "<function time_out at 0x7b4a1fb82c00>",
+            "parameters": "{}"
+          },
+          {
+            "name": "bad_orientation",
+            "time_out": false,
+            "function": "<function bad_orientation at 0x7b4a1fb82d40>",
+            "parameters": "{'limit_angle': 0.75}"
+          },
+          {
+            "name": "base_contact",
+            "time_out": false,
+            "function": "<function chassis_on_ground at 0x7b4a1fbf8540>",
+            "parameters": "{'threshold': 50.0, 'sensor_cfg': SceneEntityCfg(name='chassis_contact', joint_names=None, joint_ids=slice(None, None, None), fixed_tendon_names=None, fixed_tendon_ids=slice(None, None, None), body_names=None, body_ids=slice(None, None, None), object_collection_names=None, object_collection_ids=slice(None, None, None), preserve_order=False)}"
+          },
+          {
+            "name": "closure",
+            "time_out": false,
+            "function": "<function closure_broken at 0x7b4a1fbe6840>",
+            "parameters": "{'threshold': 0.002}"
+          },
+          {
+            "name": "mimic",
+            "time_out": false,
+            "function": "<function mimic_broken at 0x7b4a1fbe6980>",
+            "parameters": "{'threshold': 0.05}"
+          },
+          {
+            "name": "low_base",
+            "time_out": false,
+            "function": "<function low_base_relative at 0x7b4a1fa3c180>",
+            "parameters": "{'minimum_height': -1.0}"
+          }
+        ],
+        "original_criteria_unmodified": true,
+        "graduted_skill_claim": false
+      },
+      "own_original_metric_predicate": {
+        "functions": "E2Cycles213.begin/observe/emit",
+        "same_span": "Sameepisode/commandUID/profile/worlddirection/yawsign, contiguousphysicalcontrol; phaseboundary reported not artificialbreak",
+        "sampled_end": "signedturn>=2pi, no interpolation orovershootcarry",
+        "seconds": "controls*.02",
+        "kinematic": "abs(along-.5)<=.05 AND abs(cross)<=.05 AND abs((turn-commandedYawIntegral)/seconds)<=.2",
+        "valid": "seconds>0 AND complete AND NOTterm AND NOTtimeout",
+        "per_span_fact": "valid AND kinematic",
+        "aggregate_rule": null,
+        "original_actual_counts": {
+          "complete": 53140,
+          "original_false": 52588,
+          "original_fact": 552,
+          "along_fail": 46147,
+          "cross_fail": 9099,
+          "yaw_fail": 8413,
+          "original_nonterminal_and_nontimeout_false": 42,
+          "non_timeout_at_complete": 0,
+          "timeout_at_complete": 42,
+          "kinematic_false_from_original_flag": 52588,
+          "partial": 11786
+        },
+        "scope_boundary_diff": {
+          "original_snapshot": {
+            "closure_m": 0.002,
+            "mimic_rad": 0.05,
+            "bad_orientation_rad": 0.75,
+            "chassis_contact_N": 50.0,
+            "low_base_relative_min_m": -1.0
+          },
+          "current_approved_integration": {
+            "closure_m": 0.01,
+            "mimic_rad": 0.01
+          },
+          "not_same_physical_gate_retest": true,
+          "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+          "causal_or_paired_rate_comparison": false
+        }
+      },
+      "physical_seconds_windows": [
+        {
+          "seconds": 18,
+          "controls50Hz": 900,
+          "physics400Hz": 7200,
+          "feedback100Hz": 1800,
+          "warmup_seconds": 2,
+          "steady_seconds": 16
+        },
+        {
+          "seconds": 24,
+          "controls50Hz": 1200,
+          "physics400Hz": 9600,
+          "feedback100Hz": 2400,
+          "warmup_seconds": 2,
+          "steady_seconds": 22
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "E2",
+          "reference_id": "E2_SAVED18S",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E2_V5_FINAL_EARLY_COMMAND_SAVED_TEXT_REVIEW_20261029_V1\\E2_V5_COMPLETE900_EARLY_COMMAND_INSTANCE_PROFILE_PHASE_TEXT_REVIEW_ACTUAL.json",
+          "SHA": "95d00af0fc9156de80aac11d4da9155e785c2268a858bef04cb5d1068b24d72b",
+          "bytes": 98468,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "E2_CYCLES",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\OLD_EXPERTS_NORMALIZATION_NEXT_READY_SOURCE_V213_20261101\\source\\e2_cycles213.py",
+          "SHA": "af60bb872f6f09488f869674088e0b389de9adc9601499cba7bf83c29b485838",
+          "bytes": 8424,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "E2_WORLD_WORKER",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\OLD_EXPERTS_NORMALIZATION_NEXT_READY_SOURCE_V213_20261101\\source\\evaluate_e2_world213.py",
+          "SHA": "91f7e30febee3f4f8910cdedb4739d87f19b01c131f79d4396d335598b1ca6ab",
+          "bytes": 14967,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "E2_232_233",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\E2_READER_ORDER_REPAIR_AND_FULL_WORLD_CASE_V232_20261101\\reports\\CURRENT_CLOSED227D_AND_ACTUAL232233_E2_FAILURE_COMPONENTS_WORK_ORDER.json",
+          "SHA": "f74b41aa1930e2528c4ba075862b9b6910ba651d10ed49dd4892085a7e342541",
+          "bytes": 19053,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "E2_PARENT_FALSE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\E2_READER_ORDER_REPAIR_AND_FULL_WORLD_CASE_V232_20261101\\reports\\ROOT232_PHYSICAL_COMPLETION_AND_PARENT_COUNTER_FALSE_SCOPE_CLARIFICATION.json",
+          "SHA": "e0d2dac0c48bc6147ceaf6aa660c8a82ba01f4f54362b6b26968e66e4172baeb",
+          "bytes": 3251,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "FORMALS189",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\FROZEN_EXPERTS_400N50_SKILL_SUPERMIMIC_CONTINUATION_V189_20261031\\reports\\EXPERT189_SAVED_FORMALS_AND_SKILL_GAPS_ACTUAL.json",
+          "SHA": "9dc7afcd5afb0581d39f85efa2004048d0b782df7bf4496581d239cda013e351",
+          "bytes": 11878,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E2",
+          "reference_id": "NATIVE_E2",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E2_actual_fullrestore_native24\\E2_B3_ACTUAL_PASS_HANDOFF.json",
+          "SHA": "230cef5f6315360ef88b5f411354d206533df43695b7f011d8a784461a002428",
+          "bytes": 2228,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "CURRENT_SCOPE: The later24s E2_CYCLES.emit numeric per-cycle predicate IS SAVED (along0.5+/-0.05m/s, cross+/-0.05m/s, yawerror+/-0.2rad/s; complete andnotterm/notimeout). The remaininggap is an overallskillgraduation/population/cohort acceptance rule; no posthocaggregate passrate.",
+        "straight_zero has no exposure/complete instances and allerrorsnull: pending, not a pass or a failed attempted profile. Original standing profile is separate.",
+        "20k window-end acted commands are incomplete despite absence of resets; fullrun900 is not40000 fullcommands.",
+        "Perprofile uniqueenv is exact, but crossprofile/signed-direction union is not directly saved. Show bounds, not sum overlapping uniqueenv counts as a total.",
+        "Complete command summaries provide body-v/yaw/height means; per-command worldprogress success rates, extremes and raw timer/first-action distributions were not extracted because JSONL content remains metadata-only.",
+        "Moving worldprogress is measured on accepted signed2pi sampled windows (~89%movingtime). Unsampled elapsedtime/commands are not assumed successful; cycleabsolute error is not instantaneous world-v error/body-v MAE.",
+        "All18s runs here use the saved model and one declared case design; no broad stochastic coverage, long-term reliability or preserved frozen graduation label is established.",
+        "No complete127-state/executedaction/DR/queue/reset WM transition dataset is produced by a command-instance JSONL/weight checkpoint.",
+        "OriginalparentpostAppcountartifactabsent: parentfalse retained; physical1200complete not relabelled counterpass.",
+        "No newplantfullWORLD_MOVING_SIGNED4 replay performed."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true,
+      "historical_saved_evidence_gap_quotes": [
+        {
+          "kind": "HISTORICAL_QUOTE_RETAINED_ONLY_FOR_E2_SAVED18S",
+          "quote": "No original numeric skill pass tolerances or per-command success rule is present in the saved texts; do not invent a globalMAE pass threshold.",
+          "reference_id": "E2_SAVED18S",
+          "reference_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E2_V5_FINAL_EARLY_COMMAND_SAVED_TEXT_REVIEW_20261029_V1\\E2_V5_COMPLETE900_EARLY_COMMAND_INSTANCE_PROFILE_PHASE_TEXT_REVIEW_ACTUAL.json",
+          "reference_SHA": "95d00af0fc9156de80aac11d4da9155e785c2268a858bef04cb5d1068b24d72b",
+          "JSON_pointer": "/pending/0",
+          "not_a_current24s_numeric_predicate_gap": true
+        }
+      ],
+      "metadata_scope_clarification": {
+        "kind": "E2_18S_HISTORICAL_QUOTE_VS24S_SAVED_PERCYCLE_PREDICATE",
+        "historical": {
+          "kind": "HISTORICAL_QUOTE_RETAINED_ONLY_FOR_E2_SAVED18S",
+          "quote": "No original numeric skill pass tolerances or per-command success rule is present in the saved texts; do not invent a globalMAE pass threshold.",
+          "reference_id": "E2_SAVED18S",
+          "reference_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\MOD4_H1_OVERNIGHT_FUDAN_SUPERMIMIC_REPAIR_GOAL_20261027\\E2_V5_FINAL_EARLY_COMMAND_SAVED_TEXT_REVIEW_20261029_V1\\E2_V5_COMPLETE900_EARLY_COMMAND_INSTANCE_PROFILE_PHASE_TEXT_REVIEW_ACTUAL.json",
+          "reference_SHA": "95d00af0fc9156de80aac11d4da9155e785c2268a858bef04cb5d1068b24d72b",
+          "JSON_pointer": "/pending/0",
+          "not_a_current24s_numeric_predicate_gap": true
+        },
+        "current_numeric_predicate_reference": "E2_CYCLES",
+        "source_function": "E2Cycles213.emit",
+        "source_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\OLD_EXPERTS_NORMALIZATION_NEXT_READY_SOURCE_V213_20261101\\source\\e2_cycles213.py",
+        "source_SHA": "af60bb872f6f09488f869674088e0b389de9adc9601499cba7bf83c29b485838",
+        "original_numeric_predicate": {
+          "functions": "E2Cycles213.begin/observe/emit",
+          "same_span": "Sameepisode/commandUID/profile/worlddirection/yawsign, contiguousphysicalcontrol; phaseboundary reported not artificialbreak",
+          "sampled_end": "signedturn>=2pi, no interpolation orovershootcarry",
+          "seconds": "controls*.02",
+          "kinematic": "abs(along-.5)<=.05 AND abs(cross)<=.05 AND abs((turn-commandedYawIntegral)/seconds)<=.2",
+          "valid": "seconds>0 AND complete AND NOTterm AND NOTtimeout",
+          "per_span_fact": "valid AND kinematic",
+          "aggregate_rule": null,
+          "original_actual_counts": {
+            "complete": 53140,
+            "original_false": 52588,
+            "original_fact": 552,
+            "along_fail": 46147,
+            "cross_fail": 9099,
+            "yaw_fail": 8413,
+            "original_nonterminal_and_nontimeout_false": 42,
+            "non_timeout_at_complete": 0,
+            "timeout_at_complete": 42,
+            "kinematic_false_from_original_flag": 52588,
+            "partial": 11786
+          },
+          "scope_boundary_diff": {
+            "original_snapshot": {
+              "closure_m": 0.002,
+              "mimic_rad": 0.05,
+              "bad_orientation_rad": 0.75,
+              "chassis_contact_N": 50.0,
+              "low_base_relative_min_m": -1.0
+            },
+            "current_approved_integration": {
+              "closure_m": 0.01,
+              "mimic_rad": 0.01
+            },
+            "not_same_physical_gate_retest": true,
+            "observation_rule": "Do nothotpatch runtime. Record firstoriginal-boundary-hit and cutoff originalpredicateprefix. Ifnewintegrationmimic.01 resets beforeold.05: current-integration-censored/incomplete, not originalskillfailure. Ifoldclosure.002 hits first: preserveoriginalprefixfailure evenifcurrentruntimecontinues; no stitchingto complete success.",
+            "causal_or_paired_rate_comparison": false
+          }
+        },
+        "remaining_current_gap": "Overallskillgraduation/population/cohort acceptance rule, not per-cycle numericpredicate.",
+        "no_posthoc_aggregate_passrate": true,
+        "original_predicate_unchanged": true,
+        "original_MOCK29_not_rerun": true,
+        "no_model_or_SDK_calls": true
+      }
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "H1_NORMAL",
+      "original_model_SHA": "0c1edb9603c1cb84fbb894d242dae1b6a7c87fe3237d658dbc486ccbbad3d394",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "saved_whole_num_envs": 20000,
+        "future_original_episode_cohort": "UNKNOWN_saved_no acceptedlongskillcohortreceipt_joined",
+        "constructor_default_seed_not_acceptance_cohort": 42
+      },
+      "own_command_geometry": {
+        "typed_source_SHA": "71db5543b14919eb11d2a8606f9ffe1acf0814260d7d89aa823565a49a7b21c4",
+        "platform": {
+          "height_m": 0.27,
+          "edge_x": 0.35,
+          "depth_m": 0.8,
+          "width_m": 1.2
+        },
+        "request": "publicmode4 only originalrequest1.0s<=t<1.8s, preparationbefore, no contacttruth oracle"
+      },
+      "own_original_metric_predicate": {
+        "function": "Step270Events.physical",
+        "ready": "80physicalcallbacks=.2s",
+        "takeoff": "positivevz>.05 then >=16physicalcallbacks=.04s twoWheelForce<=1N andnonwheelclean",
+        "edge": "launched &air &bothWheelEdgeCrossed &bothWheelBottomWorldZ>=.270",
+        "landing": ">=12physicalcallbacks=.03s bothWheelForce>1N, actualplatformcontactIDs, bothfootprintsinsideTop, z>=.269/nonwheelclean",
+        "recovery": ">=200physicalcallbacks=.5s onTop, abs(vz)<=.03 planar<=.03, absroll/pitch<.17453292519943295, absyawerror<.2",
+        "aggregate_rule": null,
+        "geometry_query_not_centers": "Actualwheelbottom/platformcollider+footprint/edge, not root/COMcenter height"
+      },
+      "physical_seconds_windows": [
+        {
+          "source_base_default_episode_seconds": 20,
+          "source_declared_task_request_seconds": [
+            1,
+            1.8
+          ],
+          "physical_callbacks": {
+            "ready": 80,
+            "air": 16,
+            "land": 12,
+            "recover": 200
+          },
+          "actual_accepted_original_skill_window": "GAP_notinferredfromdefault20",
+          "selected_original_accepted_horizon_seconds": null
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "H1_JOIN",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\legacy_source_joins\\H1_NORMAL_PPO86B_SOURCE_JOIN_v1.json",
+          "SHA": "6d652f3caeb6c368a6d04e3f4eeaeb9df8090dacd4907aeb4e339d59be11d6c4",
+          "bytes": 38071,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "H1_GOAL",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\H1_NORMAL_MOD4V1_SOURCE_V2\\step270_goal_and_scut_rates_candidate.py",
+          "SHA": "263b40e5ecf9d39a02f54c9dc794aa7a4198d53a5ea8c7c921326c4a81c08ebc",
+          "bytes": 6433,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "H1_SDK",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\H1_NORMAL_MOD4V1_SOURCE_V2\\h1_step270_sdk_runtime_candidate.py",
+          "SHA": "fcb8a612f8822289eafaa665930e7d841d0c54ce1d5b08cfe7cb855c61750291",
+          "bytes": 17899,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "H1_PHASE",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\H1_NORMAL_MOD4V1_SOURCE_V2\\job0\\runtime\\isaac\\mod4\\h1_public_request_phase_v1.py",
+          "SHA": "7026d990e36e2b932151c6de962ec3f84eb3ac3f33f9b50695c84f7d6507bd71",
+          "bytes": 4551,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "NATIVE_H1_NORMAL",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\H1_NORMAL_MOD4V1_ACTUAL_HANDOFF_v1.json",
+          "SHA": "c0fcbb3d5d3048ca44975c89eb9887b950fd3589bec8b5116600e2f7d2f57102",
+          "bytes": 4534,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "H1_NORMAL",
+          "reference_id": "H1_ACTIVE_270_PHASE",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\H1_NORMAL_MOD4V1_SOURCE_V2\\h1_step270_sdk_runtime_candidate.py",
+          "SHA": "fcb8a612f8822289eafaa665930e7d841d0c54ce1d5b08cfe7cb855c61750291",
+          "bytes": 17899,
+          "role": "executed_source"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "No matchedsavedoriginalnormal0c1e/71db long270skillcohort+successdistribution acceptedrule joined.",
+        "Standalonegoal docstring candidate/NOTinstalled retained; executednormalproducerjoin establishes activeuse, not doc qualification.",
+        "No currentnewplant20s true270skill replay; .48snative occursbeforepublicrequest at1s."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "CURB878",
+      "original_model_SHA": "268967941b352709ec6ef9f3f4461ed23aac5457db9c4262f06b0619a974e6f1",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "num_envs": 80,
+        "seed": 20260928,
+        "white_v3": true,
+        "orientation40plus40minus": true,
+        "groups": [
+          27,
+          27,
+          26
+        ],
+        "original_counts": {
+          "ascending": {
+            "environments": 27,
+            "complete": 27
+          },
+          "descending": {
+            "environments": 27,
+            "complete": 27
+          },
+          "standing_no_crossing_requirement": {
+            "environments": 26,
+            "complete": 0
+          }
+        },
+        "ordinary": 0,
+        "truncation": 51
+      },
+      "own_command_geometry": {
+        "height_m": 0.02,
+        "strip_width_m": 0.15,
+        "canonical_riser_x": -0.075,
+        "strip_end_x": 0.075,
+        "approach_support_m": 0.4,
+        "required_after_support_m": 0.2,
+        "tile_size_m": [
+          9,
+          9
+        ],
+        "command": "[.3,-.3,0][envID%3]*orientation, vy/yaw0",
+        "routeboundary": "absx>3.5 orabsy>3.0 abouttilecenter, declaredtruncation",
+        "not_actualRM70_or_stairflight": true
+      },
+      "own_original_metric_predicate": {
+        "function": "CURB878_PREDICATE.main lines35-45",
+        "per_env": "any sameepisode validpref beforefirstordinaryfailure withbothwheelscanonicalu below-.275 then above+.275 forup; reverse fordown; bothsupported>1N atbefore/after; beforeindex<afterindex",
+        "support": "sumpositiveverticalphysicalwheelN*physicsdt/control_dt;50Hz=8callbacks*.0025/.02, preserve1N",
+        "stand": "No crossingrequirement, complete0 notfailure",
+        "ordinary": [
+          "bad_orientation",
+          "base_contact",
+          "low_base",
+          "closure"
+        ],
+        "integrity": [
+          "mimic",
+          "nonfinite/unknown/hardware failure"
+        ],
+        "truncation": [
+          "time_out",
+          "rough_route_boundary"
+        ],
+        "valid_prefix": "Keepallvalid/incomplete/failedprefixes andtruncations, neverstitch acrossreset; no newaggregatepassrate"
+      },
+      "physical_seconds_windows": [
+        {
+          "seconds": 15,
+          "controls50Hz": 750,
+          "physics400Hz": 6000,
+          "feedback100Hz": 1500,
+          "original100Hzcontrols1500_kept_seconds": true
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "CURB878",
+          "reference_id": "CURB_EVAL_FACTORY",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\eval_payload_v2\\full80_runtime_native_v1.py",
+          "SHA": "9b6d51cf2a2a94c29325b3e7f7559fd435550de57566e6beab3e46029c617493",
+          "bytes": 20861,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "CURB878",
+          "reference_id": "CURB878_15S",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\reports\\CURB878_FULL1500_ORIGINAL_ROUTE_ALL_PREFIX_CPU_ACTUAL.json",
+          "SHA": "196bae74603643b6f501a6e0c2d305706480556e3cd859cc419e16ce467f7628",
+          "bytes": 38251,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "CURB878",
+          "reference_id": "CURB878_PREDICATE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\review_curb878_actual_physical_source_route_CPU.py",
+          "SHA": "7e37fd52dec6846566a1d890324e3257c0cb1ee9c04928922fdc825a70732195",
+          "bytes": 8374,
+          "role": "executed_reader_predicate"
+        },
+        {
+          "lineage": "CURB878",
+          "reference_id": "CURB_FREEZE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\reports\\NEXT_CURB113_FROZEN_CLOSED_THREE_BLOCKS_FINAL_NEW_STEP_HOP_REVIEW_NO_AUTO_PPO_ACTUAL_WORK_ORDER.json",
+          "SHA": "6849bb7bbc31e4f86c15bba50ddc446d00af5aada6024ad6c4a88a3bbb2f6aef",
+          "bytes": 969,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "CURB878",
+          "reference_id": "NATIVE_CURB878",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\CURB_PROTECTED878_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+          "SHA": "f8bcfe74b962cd3cba3442c77c97a14edd4c4764ac2a12933aaa7be79aea4acb",
+          "bytes": 26857,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "Originalnewplantlongroute skill not retested.",
+        "Original80fresh-eval states are not a projectionof savedwhole20k state. Futurecase must declare original80 freshDRcohort vswhole20kfullrestore; no slicing orclaim same20k DR appliedto80.",
+        "Protectedoriginalrank0complete20k only; historicalworld3/60k notall60krestore.",
+        "Futureadapter mustexplicitlydeclare originalN80freshDRskill cohort vswholeN20k savedfullrestore integration. No fullstate20k->80 projection/slicing/claim; originalscope80 success isseparate fromcurrent20k native proof."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "CURB113",
+      "original_model_SHA": "3d2b0b6d9260383031e0c198501224fdaedefef9c283b43ce588419319b5de88",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "num_envs": 80,
+        "seed": 20260928,
+        "white_v3": true,
+        "orientation40plus40minus": true,
+        "groups": [
+          27,
+          27,
+          26
+        ],
+        "original_counts": {
+          "ascending": {
+            "environments": 27,
+            "complete": 26
+          },
+          "descending": {
+            "environments": 27,
+            "complete": 27
+          },
+          "standing_no_crossing_requirement": {
+            "environments": 26,
+            "complete": 0
+          }
+        },
+        "ordinary": 0,
+        "truncation": 48
+      },
+      "own_command_geometry": {
+        "height_m": 0.02,
+        "strip_width_m": 0.15,
+        "canonical_riser_x": -0.075,
+        "strip_end_x": 0.075,
+        "approach_support_m": 0.4,
+        "required_after_support_m": 0.2,
+        "tile_size_m": [
+          9,
+          9
+        ],
+        "command": "[.3,-.3,0][envID%3]*orientation, vy/yaw0",
+        "routeboundary": "absx>3.5 orabsy>3.0 abouttilecenter, declaredtruncation",
+        "not_actualRM70_or_stairflight": true
+      },
+      "own_original_metric_predicate": {
+        "function": "CURB113_PREDICATE.main lines35-45",
+        "per_env": "any sameepisode validpref beforefirstordinaryfailure withbothwheelscanonicalu below-.275 then above+.275 forup; reverse fordown; bothsupported>1N atbefore/after; beforeindex<afterindex",
+        "support": "sumpositiveverticalphysicalwheelN*physicsdt/control_dt;50Hz=8callbacks*.0025/.02, preserve1N",
+        "stand": "No crossingrequirement, complete0 notfailure",
+        "ordinary": [
+          "bad_orientation",
+          "base_contact",
+          "low_base",
+          "closure"
+        ],
+        "integrity": [
+          "mimic",
+          "nonfinite/unknown/hardware failure"
+        ],
+        "truncation": [
+          "time_out",
+          "rough_route_boundary"
+        ],
+        "valid_prefix": "Keepallvalid/incomplete/failedprefixes andtruncations, neverstitch acrossreset; no newaggregatepassrate"
+      },
+      "physical_seconds_windows": [
+        {
+          "seconds": 15,
+          "controls50Hz": 750,
+          "physics400Hz": 6000,
+          "feedback100Hz": 1500,
+          "original100Hzcontrols1500_kept_seconds": true
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "CURB113",
+          "reference_id": "CURB113_OWN_EVAL_FACTORY",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\curb113_frozen_v2\\eval_payload_v2\\full80_runtime_native_v1.py",
+          "SHA": "9b6d51cf2a2a94c29325b3e7f7559fd435550de57566e6beab3e46029c617493",
+          "bytes": 20861,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "CURB113",
+          "reference_id": "CURB113_15S",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\curb113_frozen_v2\\reports\\CURB113_FULL1500_ORIGINAL_ROUTE_ALL_PREFIX_CPU_ACTUAL.json",
+          "SHA": "07cc1d6956f0543ce375991ffe04e43914df3c92c391a47ecddd0f2a656ea773",
+          "bytes": 37748,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "CURB113",
+          "reference_id": "CURB113_PREDICATE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\curb113_frozen_v2\\review_curb113_actual_physical_source_route_CPU.py",
+          "SHA": "f28472d40e39468356d71345a9e11b10a6447899740da441911e2b73e4cf9075",
+          "bytes": 8425,
+          "role": "executed_reader_predicate"
+        },
+        {
+          "lineage": "CURB113",
+          "reference_id": "CURB_FREEZE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\reports\\NEXT_CURB113_FROZEN_CLOSED_THREE_BLOCKS_FINAL_NEW_STEP_HOP_REVIEW_NO_AUTO_PPO_ACTUAL_WORK_ORDER.json",
+          "SHA": "6849bb7bbc31e4f86c15bba50ddc446d00af5aada6024ad6c4a88a3bbb2f6aef",
+          "bytes": 969,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "CURB113",
+          "reference_id": "NATIVE_CURB113",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\CURB_INDEPENDENT113_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+          "SHA": "d941a5c8ab09703bd5c92f30b8fca9428c3849dce678f0b497836872b1b9bd66",
+          "bytes": 27479,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "Originalnewplantlongroute skill not retested.",
+        "Original80fresh-eval states are not a projectionof savedwhole20k state. Futurecase must declare original80 freshDRcohort vswhole20kfullrestore; no slicing orclaim same20k DR appliedto80.",
+        "Original11326/27ascending retained asobserved, no retrofit54/54graduation.",
+        "Futureadapter mustexplicitlydeclare originalN80freshDRskill cohort vswholeN20k savedfullrestore integration. No fullstate20k->80 projection/slicing/claim; originalscope80 success isseparate fromcurrent20k native proof."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "SLOPE135",
+      "original_model_SHA": "24b18846fcff1e0b8da7fd478314fca9cd2ed2b97461ca34f65ef5b7c7ff2411",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "num_envs": 80,
+        "seed": 20260928,
+        "white_v3": true,
+        "orientations": [
+          40,
+          40
+        ],
+        "groups": [
+          27,
+          27,
+          26
+        ],
+        "observed": {
+          "ascending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "descending": {
+            "environments": 27,
+            "complete_envs": 27,
+            "contact_confirmed_envs": 27
+          },
+          "stand": {
+            "environments": 26,
+            "complete_envs": 0,
+            "contact_confirmed_envs": 0
+          }
+        }
+      },
+      "own_command_geometry": {
+        "angle_deg": 5.0,
+        "ramp_length_m": 2.0,
+        "canonical_ramp_x": [
+          -1,
+          1
+        ],
+        "approach_support_m": 0.4,
+        "after_support_m": 0.2,
+        "command": "[.3,-.3,0][envID%3]*orientation;vy/yaw0",
+        "riser": false,
+        "not_actualRMgeometry": true
+      },
+      "own_original_metric_predicate": {
+        "function": "review_slope135_actual.audit",
+        "per_env": "Beforeordinaryfailure, sameepisode;up bothwheelu<-1.2 thenboth>+1.2/downreverse;bothsupport>1N atbeforeandafter; contact-confirmedordered endpoints",
+        "support": "8physicalcallbacks*.0025/.02 forfuture50Hz, original4*.0025/.01 same1N",
+        "stand": "notrequiredtocross",
+        "original_scope_accepted": true,
+        "not_full_slope": false
+      },
+      "physical_seconds_windows": [
+        {
+          "seconds": 15,
+          "controls50Hz": 750,
+          "physics400Hz": 6000,
+          "feedback100Hz": 1500,
+          "original100Hzcontrols1500_kept_seconds": true
+        }
+      ],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "SLOPE135",
+          "reference_id": "SLOPE135_ACCEPTED",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_E1_SLOPE5_INDEPENDENT_PREPARE_20261011\\reports\\SLOPE135_COMPLETE_SCOPE_DECISION.json",
+          "SHA": "baeaf2a46528b8a618a098e32dce42422e92c4b9be50fbe92679613c649230a8",
+          "bytes": 10709,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "SLOPE135",
+          "reference_id": "SLOPE135_PREDICATE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_E1_SLOPE5_INDEPENDENT_PREPARE_20261011\\review_slope135_actual.py",
+          "SHA": "14ea081d6640e3e684973a3bbafcc142d7bad92919f00458e01256daada63b52",
+          "bytes": 8396,
+          "role": "executed_reader_predicate"
+        },
+        {
+          "lineage": "SLOPE135",
+          "reference_id": "SLOPE80_FACTORY",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_E1_CURB20_133_COMPLETE_REVIEW_20261011\\implementation\\frozen_history_flat_SLOPE134.py",
+          "SHA": "133c2e764bec9faba2104e2532713d3b2248deaa73b1a3ff6da7afb48043e1e1",
+          "bytes": 16622,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "SLOPE135",
+          "reference_id": "NATIVE_SLOPE135",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\SLOPE135_ACTUAL_PROTOCOL_PASS_CURB141_NETWORK_PENDING_HANDOFF_v1.json",
+          "SHA": "d7b78060a40c9503d9bf40e59152e710140cfcd33fe7671d93cab63389660032",
+          "bytes": 17838,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "No currentnewplant15s accepted5degreecohort replay.",
+        "Native24 f2b is integrationonly; notslope27/27 skillrepeat.",
+        "Do not borrowlater8/10degree orind50 results.",
+        "80eval-vs20krestore state/cohort binding mustbe declared, not sliced.",
+        "Futureadapter mustexplicitlydeclare originalN80freshDRskill cohort vswholeN20k savedfullrestore integration. No fullstate20k->80 projection/slicing/claim; originalscope80 success isseparate fromcurrent20k native proof."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "SLOPE50",
+      "original_model_SHA": "aab6fb4b6bce2f0004d06fa9d78f964efafd470238e36d386113ff9fba955d0b",
+      "status": "SOURCE_DERIVED_UNEXECUTED_NOT_READY",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "saved_whole_num_envs": 20000,
+        "seed": "Useownsavedmanifest; no acceptedskillcohort seedinvented",
+        "scope_keys": [
+          "centers",
+          "target",
+          "origin",
+          "kind",
+          "original_private_RNG_draws_unchanged"
+        ]
+      },
+      "own_command_geometry": {
+        "angle_deg": 5.0,
+        "ramp_length_m": 2.0,
+        "axis": "SLOPE5_full_ramp_and_both_flat_supports",
+        "targetfamily": "random_uniform_for_rm",
+        "tile_boundary_abs_xy_m": [
+          3.5,
+          3.0
+        ],
+        "episode_limit_s": 20,
+        "normal_commands_reward_privateRNG_original": true
+      },
+      "own_original_metric_predicate": {
+        "source_function": "independent_expert_axis.configure_slope/configure_route",
+        "skill_acceptance_predicate": "GAP: originalacceptedfullramp/supports metric/cohort/duration forEXACTaab notsavedjoined; do not substitute24b27/27"
+      },
+      "physical_seconds_windows": [],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "SLOPE50",
+          "reference_id": "SLOPE50_AXIS",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\train_payload\\independent_expert_axis_v1.py",
+          "SHA": "0feab6457bceec8b33134b2e017c1e4ac64553411d58cb3f304cb89125c31e17",
+          "bytes": 3015,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "SLOPE50",
+          "reference_id": "SLOPE50_FINAL",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\reports\\FIRST_CURB_SLOPE_FINAL_MODELS_AND_EXACT_DISTINCT_INTERVAL_COST_CPU_ACTUAL.json",
+          "SHA": "97eac878f5ea188236968e4626baa6ad4192fb6d1f936a06509b6a3a131c985b",
+          "bytes": 3362,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "SLOPE50",
+          "reference_id": "CURB_FREEZE",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\reports\\NEXT_CURB113_FROZEN_CLOSED_THREE_BLOCKS_FINAL_NEW_STEP_HOP_REVIEW_NO_AUTO_PPO_ACTUAL_WORK_ORDER.json",
+          "SHA": "6849bb7bbc31e4f86c15bba50ddc446d00af5aada6024ad6c4a88a3bbb2f6aef",
+          "bytes": 969,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "SLOPE50",
+          "reference_id": "SLOPE50_OWN_GEOMETRY",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E1_SLOPE_INDEPENDENT50_40050_MOD4V1_SOURCE_V2\\runtime\\isaac\\mod4\\slope5_profile.json",
+          "SHA": "3f462064d0bff7e4674c429390de3db09660da473d6bb269041271d5fb6c0c4a",
+          "bytes": 1146,
+          "role": "OWNexecuted_geometry_profile"
+        },
+        {
+          "lineage": "SLOPE50",
+          "reference_id": "NATIVE_SLOPE50",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\SLOPE_INDEPENDENT50_ACTUAL_CPU_FRESH_NATIVE24_PROTOCOL_HANDOFF_V1.json",
+          "SHA": "92c8648da1e6c6cefcef8fe7ba41240846348d428933e6c0dfbc864e7500c841",
+          "bytes": 27359,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "Onlyowntrainingaxis/frozencheckpoint+currentnative24 confirmed.",
+        "Exactaab acceptedoriginalfullramp/supports skillpredicate/cohort/window missing; no 24b borrowed success or invented15/20s skillgate."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "E3",
+      "original_model_SHA": "1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8",
+      "status": "ALREADY_CONSUMED160_OBSERVATION_NO_REPEAT",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "saved_whole_num_envs": 20000,
+        "recipe": "envID%13:0..11 fixedroll/pitch6angles,12normal",
+        "reset_pose": "argminabs(originalbankrootheight-.25); fullq30originaljointorder; zero_root/jointvelocity; .0001mauthored-pointmargin",
+        "acceptedoldfullcohort": "GAP"
+      },
+      "own_command_geometry": {
+        "roll_or_pitch_deg": [
+          -90,
+          -60,
+          -30,
+          30,
+          60,
+          90
+        ],
+        "normal_recipe": 12,
+        "mode": "3duringrecipe!=12 andpublicage<300, else0; bodycommandzero",
+        "mask": "bad_orientation/base_contact softonlywithinrequest3s; saveoriginalsoftfacts;closure/mimic/hardware unchanged"
+      },
+      "own_original_metric_predicate": {
+        "function": "RecoveryPhase.update",
+        "good": "gravity_z<-0.984807753 AND rootSpeed<.03 AND angularSpeed<.2 AND request",
+        "event": "stable>=50 public100Hz ageunits; stable+=2 at50Hz =>25controls=.5s, not.25s",
+        "request": "age<300 public100Hzunits =>3s;age+=2 per50Hzcontrol",
+        "credit": "oneevent perrecipeepisode, peakcontinuouscredit distinctstablecredit",
+        "no_MCI_predicate": true,
+        "observed_current160_parent_only": "Alreadyperformed160control3.2s/133of18462 owner-eventobservation, notold1cdskillpass/causalMCI proof; no replaythiscase"
+      },
+      "physical_seconds_windows": [],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "E3",
+          "reference_id": "E3_PHASE",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E3_MOD4V1_SOURCE_FINAL\\runtime\\isaac\\mod4\\e3_public_recovery_phase_v1.py",
+          "SHA": "5883e0461d667ed474c29f1a07f78b88d4a8ee07f9570ae9c9df81a6584319a7",
+          "bytes": 1978,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E3",
+          "reference_id": "E3_FACTORY",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E3_MOD4V1_SOURCE_FINAL\\runtime\\isaac\\mod4\\e3_recovery_runtime_v1.py",
+          "SHA": "7e1d28e8ef1622f7923c00358f2683ea8682cf4553f0e1aacf40e68446b2ae2d",
+          "bytes": 6218,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E3",
+          "reference_id": "E3_13_GEOMETRY",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E3_MOD4V1_SOURCE_FINAL\\runtime\\isaac\\mod4\\e3_reset_bank_cache_v1.py",
+          "SHA": "ba4f5cd584f911a9313de2f60f6465b1114f645a47c1ffcda5fcc9930dd8109a",
+          "bytes": 4956,
+          "role": "executed_source"
+        },
+        {
+          "lineage": "E3",
+          "reference_id": "E3_SOURCE_INDEX",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\staged_sources\\E3_MOD4V1_SOURCE_FINAL\\MOD4V1_DERIVATION_INDEX.json",
+          "SHA": "0eec76cdace0e4466f5609a1e6188524fe58e3d0e31ae6e8462fb9188b0f0ad6",
+          "bytes": 18572,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E3",
+          "reference_id": "FORMALS189",
+          "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\FROZEN_EXPERTS_400N50_SKILL_SUPERMIMIC_CONTINUATION_V189_20261031\\reports\\EXPERT189_SAVED_FORMALS_AND_SKILL_GAPS_ACTUAL.json",
+          "SHA": "9dc7afcd5afb0581d39f85efa2004048d0b782df7bf4496581d239cda013e351",
+          "bytes": 11878,
+          "role": "saved_metadata"
+        },
+        {
+          "lineage": "E3",
+          "reference_id": "NATIVE_E3",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\E3_actual_fullrestore_native24\\E3_1CD_ACTUAL_NATIVE24_PASS_HANDOFF.json",
+          "SHA": "eb515989be382552c6ad8458b911e1346c5bfbd830f8316ba359222b8d3d2854",
+          "bytes": 2859,
+          "role": "saved_metadata"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "Originalexact1cd acceptedlongskillper13recipecohort/time/successrule notjoined;189explicitfull_skill_acceptedfalse.",
+        "Ancestor85M2/native/student notsubstitute1cd.",
+        "Sourcecredit .5s/3s is metricowner contract, not globalrecoveryacceptance rule.",
+        "Current1603.2s alreadyconsumed; do notscheduleduplicate tofillmetadata."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    },
+    {
+      "schema": "mod4.future_replay.source_only_descriptor.v1",
+      "lineage": "W35",
+      "original_model_SHA": "PARENT_CURRENT_8D_NOT_READ",
+      "status": "EXCLUDED_PARENT_LIVE_NO_TASK_EMIT",
+      "actual_SDK_permission": false,
+      "dispatch_or_model_io": false,
+      "source_only_plan_emitter": true,
+      "own_original_cohort": {
+        "owner": "PARENTONLY",
+        "currentcaseDataRead": false
+      },
+      "own_command_geometry": {
+        "kind": "OwnW35/RM70 only; notE0/E1curb/slope substitute"
+      },
+      "own_original_metric_predicate": {
+        "status": "CURRENTLIVECASE_EXCLUDED_NO_PREDICATE_DATAJOIN",
+        "no_current8d_metadata_or_raw_read": true
+      },
+      "physical_seconds_windows": [],
+      "restore_dependency": {
+        "reuse": "OWN acceptednativeNOUPDATE completecached restore driver only, actualfutureparentbinding required",
+        "selected_physical_source": "Useownpinned actualtyped/native source receipt, no latest/noactor-tensor equivalence",
+        "samecache": "Onephysicalbyte/hash/decode peradmittedpurpose, 17Adam/LR/iter/STD intact, ownqueue/RNG/helperrestore, ONEoriginalreset/newnominal retained",
+        "checkpoint_metadata_newkeys": false,
+        "never_borrow_W35_E0_factory_command_map_RNG": true
+      },
+      "metric_capture_contract": {
+        "read": "Originalnatural before/aftercontrol+pre-reset terminalbuffers; source-only dependencyhook only, no actor/RNG/setter/force/query amplification",
+        "timers": "Retainoriginalphysicsseconds; control50Hz/feedback100Hz/physics400Hz. Public100Hzage+=2, physicalcallbackgates unchanged",
+        "failure": "Keepordinary/integrity/timeouts/routeboundarytruncations +allpartial/right/leftcensors, no populationpassrate added",
+        "old_current_boundary": "Firstoriginalboundary cutslogicalmetricprefix only; no runtimehotpatch. Earliernewintegrationreset =>current-integration-censored, notoriginalskillfailure; no crossreset/prefixstitch",
+        "independence": "Differentplants/guards/seedcohorts are unpaired, no migrationcausalclaim"
+      },
+      "original_numeric_aggregate_acceptance_rule": null,
+      "dependency_table": [
+        {
+          "lineage": "W35",
+          "reference_id": "PARENT_SCOPE_ONLY",
+          "path": "F:\\RMPOLAR-RL\\mod4v1_experts_fulldr_rm70_20261101\\acceptance_contract_sourceonly_v1\\PARENT_SCOPE_STATEMENTS_V1.json",
+          "SHA": "fbdc9d4fd8d36c5422a48ba4e0079394123e82a323036ea53b6ffbf74dd272c4",
+          "bytes": 1461,
+          "role": "DIRECT_SCOPE_STATEMENT_NOT_A_MEASUREMENT"
+        }
+      ],
+      "exact_saved_evidence_gaps": [
+        "Current8d case metrics/dataexcluded bydirectscope; parentownscriteria/readout/32sresult.",
+        "Oldad504/2d/343E/227D facts are not current8dskillpass; do not resetLR fromparent."
+      ],
+      "current_runtime_or_newthreshold_changes": false,
+      "needs_parent_independent_admission_and_sourcebound_adapter_review": true
+    }
+  ],
+  "no_runtime_or_model_operations": true,
+  "no_duplicated_W35case_or_E3_160": true
+}

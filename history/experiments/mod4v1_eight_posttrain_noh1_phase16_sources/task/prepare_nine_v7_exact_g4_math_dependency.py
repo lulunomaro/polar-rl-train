@@ -1,0 +1,23 @@
+"""Completepuremath dependencyclosure with byte-exactoriginalfunctionsegments/AST. No CADgenerator/physics/DR/model changes."""
+from pathlib import Path
+import ast,json,hashlib
+R=Path(__file__).resolve().parent;S=R/'NINE_N80_PARALLEL_SOURCE_V6';D=R/'NINE_N80_PARALLEL_SOURCE_V7';assert not D.exists();D.mkdir()
+for p in S.iterdir():
+ if p.is_file():(D/p.name).write_bytes(p.read_bytes())
+old=json.loads((R/'E1_N80_NINE_MEMORY80_ALLOCATION_ONLY_SOURCE_HANDOFF_V3.json').read_bytes());F=R/'E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V4_G4_MATH';assert not F.exists();F.mkdir()
+for r in old['runtime_files_to_stage_same_directory']:
+ p=Path(r['path']);raw=p.read_bytes();assert len(raw)==r['bytes']and hashlib.sha256(raw).hexdigest()==r['SHA'];(F/p.name).write_bytes(raw)
+base=Path(r'C:\Users\lulu\Desktop\claude\mjcf\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016');a=base/'eval_payload_v2/g4_worldmesh_query_contract.py';b=base/'curb113_frozen_v2/eval_payload_v2/g4_worldmesh_query_contract.py';raw=a.read_bytes();assert raw==b.read_bytes();text=raw.decode('utf-8');tree=ast.parse(text);wanted=('canonical_triangles','downward_triangle_heights');nodes=[next(n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name==name)for name in wanted];derived='"""ExactoriginalG4mathfunctions only; unusedG3CADgenerator dependency excluded. FunctionAST unchanged."""\nimport numpy as np\n\n'+'\n\n'.join(ast.get_source_segment(text,n)for n in nodes)+'\n';dtree=ast.parse(derived)
+for name,n in zip(wanted,nodes):assert ast.dump(n,include_attributes=False)==ast.dump(next(x for x in dtree.body if isinstance(x,ast.FunctionDef)and x.name==name),include_attributes=False)
+(F/'g4_worldmesh_query_contract.py').write_text(derived,encoding='utf-8',newline='\n');(F/'ORIGINAL_G4_EXACT_SOURCE_BYTES.txt').write_bytes(raw);proof={'kind':'ORIGINAL_TWO_G4_MATH_FUNCTIONS_EXACT_AST_NO_G3_TEMPLATE_USAGE','original_paths':[str(a),str(b)],'original_bytes':len(raw),'original_SHA':hashlib.sha256(raw).hexdigest(),'twooriginalfiles_byteequal':True,'function_names':wanted,'AST_exact':True,'runtime_imports':['numpy'],'no_unrelated_g3_CAD_make_mesh_or_expected_ground_import':True,'V6_ModuleNotFoundError_in_runtime_bundle_preserved':True,'SDK_PT_GPU_calls':0};(F/'G4_MATH_SOURCE_DERIVATION.json').write_text(json.dumps(proof,indent=2),encoding='utf-8');entries=[]
+for p in sorted(F.iterdir()):
+ if p.suffix not in('.py','.json')or p.name=='G4_MATH_SOURCE_DERIVATION.json':continue
+ if p.suffix=='.py':ast.parse(p.read_text(encoding='utf-8'))
+ raw=p.read_bytes();entries.append({'path':str(p),'bytes':len(raw),'SHA':hashlib.sha256(raw).hexdigest()})
+assert len(entries)==14;handoff=R/'E1_N80_G4_PURE_MATH_SOURCE_HANDOFF_V4.json';assert not handoff.exists();handoff.write_text(json.dumps({'kind':'COMPLETE_RUNTIME_DEPENDENCY_14FILES_ORIGINALG4MATH_AST','source_root':str(F),'runtime_files_to_stage_same_directory':entries,'same_plant_task_D0D7_observer_algorithms_actor_MCI_clocks_asV6':True,'G4_math_derivation':proof},indent=2),encoding='utf-8')
+rows=[]
+for p in D.glob('*.py'):
+ raw=p.read_bytes();ast.parse(raw.decode('utf-8'));rows.append(dict(relative=p.name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+(D/'PARENT_FIVE_SOURCE_INDEX_V8.json').write_text(json.dumps({'kind':'SAME_V6_PARENTWORKERS_WITH_COMPLETE_E1PUREMATH_DEPENDENCY','files':rows,'parent5actualready_asV6':True,'fourE1_originalcurbquery_helper_missing_dep_fixed_not_metric_changed':True,'selected_model_CPUbyte_SDK_GPU_calls_thisproducer':0},indent=2),encoding='utf-8')
+s=(R/'stage_and_dispatch_nine_single_gpu_eval_v6_once.py').read_text(encoding='utf-8').replace('NINE_N80_PARALLEL_SOURCE_V6','NINE_N80_PARALLEL_SOURCE_V7').replace('PARENT_FIVE_SOURCE_INDEX_V7.json','PARENT_FIVE_SOURCE_INDEX_V8.json').replace('NINE_SINGLE_GPU_GROUP_DISPATCH_ONCE_V6.json','NINE_SINGLE_GPU_GROUP_DISPATCH_ONCE_V7.json').replace('MOD4V1_NINE_N80_SINGLE_GPU_PARALLEL_V6_','MOD4V1_NINE_N80_SINGLE_GPU_PARALLEL_V7_').replace('E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V3_MEMORY80','E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V4_G4_MATH').replace('E1_N80_NINE_MEMORY80_ALLOCATION_ONLY_SOURCE_HANDOFF_V3.json','E1_N80_G4_PURE_MATH_SOURCE_HANDOFF_V4.json');p=R/'stage_and_dispatch_nine_single_gpu_eval_v7_once.py';assert not p.exists();ast.parse(s);p.write_text(s,encoding='utf-8',newline='\n')
+s=(R/'collect_nine_single_gpu_v6_until_closed_once.py').read_text(encoding='utf-8').replace('V6','V7');p=R/'collect_nine_single_gpu_v7_until_closed_once.py';assert not p.exists();ast.parse(s);p.write_text(s,encoding='utf-8',newline='\n');print('V7_AST14DEPENDENCY_FUNCTIONS_EXACT / sourceoriginal2Curbfilebyteequal / zeroModelSDKsourceproducer')

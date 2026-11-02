@@ -1,0 +1,126 @@
+{
+  "proofs": [
+    {
+      "role": "CURB_PROTECTED878",
+      "original_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\eval_payload_v2\\full80_runtime_native_v1.py",
+      "original_SHA": "9b6d51cf2a2a94c29325b3e7f7559fd435550de57566e6beab3e46029c617493",
+      "original_function": "run_full80",
+      "extracted_firstline": 18,
+      "extracted_lastline": 98,
+      "exact_replacements": [
+        {
+          "old": "args.steps in (120,1500)",
+          "new": "args.steps == 750"
+        },
+        {
+          "old": "    cfg.scene.num_envs = args.num_envs",
+          "new": "    cfg.scene.num_envs = args.num_envs\n    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n    configure_new_task(cfg,identity)"
+        },
+        {
+          "old": "    r = e.scene['robot']",
+          "new": "    r = e.scene['robot']\n    guard=attach_fresh_guard(e,identity,torch,tensor)"
+        },
+        {
+          "old": "    e.reset()",
+          "new": "    e.reset()\n    audit_before=fresh_full_dr_audit(e,guard,tensor)"
+        },
+        {
+          "old": "e.step_dt == 0.01",
+          "new": "e.step_dt == 0.02"
+        },
+        {
+          "old": "actual_all_physical_parameters=params(e)",
+          "new": "actual_all_physical_parameters=audit_before['actual_parameters']"
+        }
+      ],
+      "reverse_original_prefix_AST_exact": true,
+      "physical_factory_class": "E1ResetEvidenceLearningEnv",
+      "core_placement_geometry_manual_commands_preserved": true,
+      "old_RSLwrapper_secondreset_omitted": "ExplicitONEfreshresetpurpose; originalcarrierCurb110documentsafterwrapperreset. No pairedoldfreshDRclaim.",
+      "diff": "--- \n+++ \n@@ -1,8 +1,10 @@\n-    assert args.steps in (120,1500) and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n+    assert args.steps == 750 and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n     torch.manual_seed(args.seed)\n     cfg = task.Mod4EnvCfg()\n     cfg.seed = args.seed\n     cfg.scene.num_envs = args.num_envs\n+    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n+    configure_new_task(cfg,identity)\n     cfg.sim.device=args.device\n     for k,v in dict(gpu_max_rigid_contact_count=2**20,gpu_max_rigid_patch_count=2**16,gpu_found_lost_pairs_capacity=2**18,gpu_found_lost_aggregate_pairs_capacity=2**22,gpu_total_aggregate_pairs_capacity=2**20).items():setattr(cfg.sim.physics,k,v)\n     recipe = configure_intro(cfg)\n@@ -28,6 +30,7 @@\n     assert cfg.terminations.rough_route_boundary.time_out is True\n     e = E1ResetEvidenceLearningEnv(cfg=cfg)\n     r = e.scene['robot']\n+    guard=attach_fresh_guard(e,identity,torch,tensor)\n     e._g1_whole_route_centers = torch.as_tensor(centers, device=e.device, dtype=e.scene.env_origins.dtype)\n     ray = query(e)\n     xy = np.repeat(centers[:,None,:],2,axis=1)\n@@ -45,6 +48,7 @@\n     assert len(np.unique(np.stack((tile_rows,tile_cols),axis=-1),axis=0))==80\n     e.scene.env_origins[:,:2]=torch.as_tensor(starts,device=e.device,dtype=e.scene.env_origins.dtype)\n     e.reset()\n+    audit_before=fresh_full_dr_audit(e,guard,tensor)\n     root_xy=tensor(r.data.root_pos_w)[:,:2]\n     assert isinstance(root_xy,torch.Tensor) and root_xy.dtype==torch.float32\n     assert torch.allclose(root_xy,torch.as_tensor(starts,device=e.device,dtype=root_xy.dtype),atol=1e-6,rtol=0)\n@@ -70,9 +74,9 @@\n     np.savez_compressed(query_evidence_path,actual_world_ray_origins=actual_world_ray_origins,actual_canonical_ray_x=(actual_world_ray_origins[:,:,0].astype(np.float64)-centers[:,None,0])*orientation[:,None],actual_sampled_ground=sampled,expected_actual_ground=expected_actual_ground,ideal_profile_ground=np.broadcast_to(expected[None,:],sampled.shape),world_triangles=query_world_triangles)\n     assert all((r['mirrored']==bool(o<0)) for r,o in zip(world_mesh_receipts,orientation))\n     route_scope.update(actual_world_ray_origins=actual_world_ray_origins.tolist(),actual_query_height_error_m=actual_query_height_error,actual_query_ground_tolerance_m=1e-6,expected_actual_sampled_ground=expected_actual_ground.tolist(),world_mesh_receipts=world_mesh_receipts,query_worldmesh_evidence=dict(path=str(query_evidence_path),bytes=query_evidence_path.stat().st_size,sha256=hashlib.sha256(query_evidence_path.read_bytes()).hexdigest()))\n-    assert e.physics_dt == 0.0025 and e.step_dt == 0.01 and (r.data.joint_pos.shape == (80, 30))\n+    assert e.physics_dt == 0.0025 and e.step_dt == 0.02 and (r.data.joint_pos.shape == (80, 30))\n     assert torch.equal(tensor(r.data.joint_pos), e._rough_probe_expected_q)\n-    initial = dict(root=js(r.data.root_state_w), q=js(r.data.joint_pos), parameters=e.chassis_pd_audit(), assignments=assignments(e), reset=e._rough_probe_reset_receipt, actual_all_physical_parameters=params(e))\n+    initial = dict(root=js(r.data.root_state_w), q=js(r.data.joint_pos), parameters=e.chassis_pd_audit(), assignments=assignments(e), reset=e._rough_probe_reset_receipt, actual_all_physical_parameters=audit_before['actual_parameters'])\n     decl = declared_truncation_terms(e.termination_manager)\n     names = tuple(e.termination_manager.active_terms)\n     cmd = e.command_manager.get_term('twist')\n"
+    },
+    {
+      "role": "CURB_INDEPENDENT113",
+      "original_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\curb113_frozen_v2\\eval_payload_v2\\full80_runtime_native_v1.py",
+      "original_SHA": "9b6d51cf2a2a94c29325b3e7f7559fd435550de57566e6beab3e46029c617493",
+      "original_function": "run_full80",
+      "extracted_firstline": 18,
+      "extracted_lastline": 98,
+      "exact_replacements": [
+        {
+          "old": "args.steps in (120,1500)",
+          "new": "args.steps == 750"
+        },
+        {
+          "old": "    cfg.scene.num_envs = args.num_envs",
+          "new": "    cfg.scene.num_envs = args.num_envs\n    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n    configure_new_task(cfg,identity)"
+        },
+        {
+          "old": "    r = e.scene['robot']",
+          "new": "    r = e.scene['robot']\n    guard=attach_fresh_guard(e,identity,torch,tensor)"
+        },
+        {
+          "old": "    e.reset()",
+          "new": "    e.reset()\n    audit_before=fresh_full_dr_audit(e,guard,tensor)"
+        },
+        {
+          "old": "e.step_dt == 0.01",
+          "new": "e.step_dt == 0.02"
+        },
+        {
+          "old": "actual_all_physical_parameters=params(e)",
+          "new": "actual_all_physical_parameters=audit_before['actual_parameters']"
+        }
+      ],
+      "reverse_original_prefix_AST_exact": true,
+      "physical_factory_class": "E1ResetEvidenceLearningEnv",
+      "core_placement_geometry_manual_commands_preserved": true,
+      "old_RSLwrapper_secondreset_omitted": "ExplicitONEfreshresetpurpose; originalcarrierCurb110documentsafterwrapperreset. No pairedoldfreshDRclaim.",
+      "diff": "--- \n+++ \n@@ -1,8 +1,10 @@\n-    assert args.steps in (120,1500) and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n+    assert args.steps == 750 and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n     torch.manual_seed(args.seed)\n     cfg = task.Mod4EnvCfg()\n     cfg.seed = args.seed\n     cfg.scene.num_envs = args.num_envs\n+    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n+    configure_new_task(cfg,identity)\n     cfg.sim.device=args.device\n     for k,v in dict(gpu_max_rigid_contact_count=2**20,gpu_max_rigid_patch_count=2**16,gpu_found_lost_pairs_capacity=2**18,gpu_found_lost_aggregate_pairs_capacity=2**22,gpu_total_aggregate_pairs_capacity=2**20).items():setattr(cfg.sim.physics,k,v)\n     recipe = configure_intro(cfg)\n@@ -28,6 +30,7 @@\n     assert cfg.terminations.rough_route_boundary.time_out is True\n     e = E1ResetEvidenceLearningEnv(cfg=cfg)\n     r = e.scene['robot']\n+    guard=attach_fresh_guard(e,identity,torch,tensor)\n     e._g1_whole_route_centers = torch.as_tensor(centers, device=e.device, dtype=e.scene.env_origins.dtype)\n     ray = query(e)\n     xy = np.repeat(centers[:,None,:],2,axis=1)\n@@ -45,6 +48,7 @@\n     assert len(np.unique(np.stack((tile_rows,tile_cols),axis=-1),axis=0))==80\n     e.scene.env_origins[:,:2]=torch.as_tensor(starts,device=e.device,dtype=e.scene.env_origins.dtype)\n     e.reset()\n+    audit_before=fresh_full_dr_audit(e,guard,tensor)\n     root_xy=tensor(r.data.root_pos_w)[:,:2]\n     assert isinstance(root_xy,torch.Tensor) and root_xy.dtype==torch.float32\n     assert torch.allclose(root_xy,torch.as_tensor(starts,device=e.device,dtype=root_xy.dtype),atol=1e-6,rtol=0)\n@@ -70,9 +74,9 @@\n     np.savez_compressed(query_evidence_path,actual_world_ray_origins=actual_world_ray_origins,actual_canonical_ray_x=(actual_world_ray_origins[:,:,0].astype(np.float64)-centers[:,None,0])*orientation[:,None],actual_sampled_ground=sampled,expected_actual_ground=expected_actual_ground,ideal_profile_ground=np.broadcast_to(expected[None,:],sampled.shape),world_triangles=query_world_triangles)\n     assert all((r['mirrored']==bool(o<0)) for r,o in zip(world_mesh_receipts,orientation))\n     route_scope.update(actual_world_ray_origins=actual_world_ray_origins.tolist(),actual_query_height_error_m=actual_query_height_error,actual_query_ground_tolerance_m=1e-6,expected_actual_sampled_ground=expected_actual_ground.tolist(),world_mesh_receipts=world_mesh_receipts,query_worldmesh_evidence=dict(path=str(query_evidence_path),bytes=query_evidence_path.stat().st_size,sha256=hashlib.sha256(query_evidence_path.read_bytes()).hexdigest()))\n-    assert e.physics_dt == 0.0025 and e.step_dt == 0.01 and (r.data.joint_pos.shape == (80, 30))\n+    assert e.physics_dt == 0.0025 and e.step_dt == 0.02 and (r.data.joint_pos.shape == (80, 30))\n     assert torch.equal(tensor(r.data.joint_pos), e._rough_probe_expected_q)\n-    initial = dict(root=js(r.data.root_state_w), q=js(r.data.joint_pos), parameters=e.chassis_pd_audit(), assignments=assignments(e), reset=e._rough_probe_reset_receipt, actual_all_physical_parameters=params(e))\n+    initial = dict(root=js(r.data.root_state_w), q=js(r.data.joint_pos), parameters=e.chassis_pd_audit(), assignments=assignments(e), reset=e._rough_probe_reset_receipt, actual_all_physical_parameters=audit_before['actual_parameters'])\n     decl = declared_truncation_terms(e.termination_manager)\n     names = tuple(e.termination_manager.active_terms)\n     cmd = e.command_manager.get_term('twist')\n"
+    },
+    {
+      "role": "SLOPE135",
+      "original_path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_E1_CURB20_133_COMPLETE_REVIEW_20261011\\implementation\\frozen_history_flat_SLOPE134.py",
+      "original_SHA": "133c2e764bec9faba2104e2532713d3b2248deaa73b1a3ff6da7afb48043e1e1",
+      "original_function": "main",
+      "extracted_firstline": 40,
+      "extracted_lastline": 108,
+      "exact_replacements": [
+        {
+          "old": "args.steps == 1500",
+          "new": "args.steps == 750"
+        },
+        {
+          "old": "    cfg.scene.num_envs = args.num_envs",
+          "new": "    cfg.scene.num_envs = args.num_envs\n    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n    configure_new_task(cfg,identity)"
+        },
+        {
+          "old": "    r = e.scene['robot']",
+          "new": "    r = e.scene['robot']\n    guard=attach_fresh_guard(e,identity,torch,tensor)"
+        },
+        {
+          "old": "    e.reset()",
+          "new": "    e.reset()\n    audit_before=fresh_full_dr_audit(e,guard,tensor)"
+        },
+        {
+          "old": "e.step_dt == 0.01",
+          "new": "e.step_dt == 0.02"
+        }
+      ],
+      "reverse_original_prefix_AST_exact": true,
+      "physical_factory_class": "E1ResetEvidenceLearningEnv",
+      "core_placement_geometry_manual_commands_preserved": true,
+      "old_RSLwrapper_secondreset_omitted": "ExplicitONEfreshresetpurpose; originalcarrierCurb110documentsafterwrapperreset. No pairedoldfreshDRclaim.",
+      "diff": "--- \n+++ \n@@ -1,8 +1,10 @@\n-    assert args.steps == 1500 and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n+    assert args.steps == 750 and args.num_envs == 80 and (args.seed == 20260928) and (args.dr_profile == 'white_v3')\n     torch.manual_seed(args.seed)\n     cfg = task.Mod4EnvCfg()\n     cfg.seed = args.seed\n     cfg.scene.num_envs = args.num_envs\n+    cfg.terminations.mimic.params={**cfg.terminations.mimic.params,\"threshold\":.01}\n+    configure_new_task(cfg,identity)\n     recipe = configure_intro(cfg)\n     gen = cfg.scene.terrain.terrain_generator\n     assert gen.curriculum and gen.num_rows == gen.num_cols == 40\n@@ -26,6 +28,7 @@\n     assert cfg.terminations.rough_route_boundary.time_out is True\n     e = E1ResetEvidenceLearningEnv(cfg=cfg)\n     r = e.scene['robot']\n+    guard=attach_fresh_guard(e,identity,torch,tensor)\n     e._g1_whole_route_centers = torch.as_tensor(centers, device=e.device, dtype=e.scene.env_origins.dtype)\n     ray = query(e)\n     xy = np.repeat(centers[:,None,:],2,axis=1)\n@@ -43,6 +46,7 @@\n     assert len(np.unique(np.stack((tile_rows,tile_cols),axis=-1),axis=0))==80\n     e.scene.env_origins[:,:2]=torch.as_tensor(starts,device=e.device,dtype=e.scene.env_origins.dtype)\n     e.reset()\n+    audit_before=fresh_full_dr_audit(e,guard,tensor)\n     root_xy=r.data.root_pos_w.torch[:,:2]\n     assert isinstance(root_xy,torch.Tensor) and root_xy.dtype==torch.float32\n     assert torch.allclose(root_xy,torch.as_tensor(starts,device=e.device,dtype=root_xy.dtype),atol=1e-6,rtol=0)\n@@ -58,7 +62,7 @@\n     initial_u=(initial_wheel[:,:,0]-centers[:,None,0])*orientation[:,None]\n     assert (initial_u[ids%3!=1]<-1.).all() and (initial_u[ids%3==1]>1.).all()\n     route_scope=dict(tile_rows=tile_rows.tolist(),tile_cols=tile_cols.tolist(),family='derived_continuous5deg_ramp',tile_centers=centers.tolist(),requested_starts=starts.tolist(),size_m=size.tolist(),flat_support_margin_m=support,orientation=orientation.tolist(),ramp_start_canonical_x_m=-1.,ramp_end_canonical_x_m=1.,angle_deg=5.,ramp_length_m=2.,height_m=2.*np.tan(np.deg2rad(5.)),required_after_support_m=.200,actual_sampled_canonical_x_m=samples.tolist(),actual_sampled_ground=sampled.tolist(),actual_sampled_normals=js(sample['normal']),actual_authored_ground_query_passed=True,initial_wheel_link_positions=initial_wheel.tolist(),initial_two_wheels_on_requested_side=True,no_vertical_riser=True,not_actual_RM_geometry=True,not_stair_flight=True,termination_change='evaluation-only declared truncation abs x3.5m or abs y3m',production_boundary_unchanged=True,not_training_or_RM70mm=True)\n-    assert e.physics_dt == 0.0025 and e.step_dt == 0.01 and (r.data.joint_pos.shape == (80, 30))\n+    assert e.physics_dt == 0.0025 and e.step_dt == 0.02 and (r.data.joint_pos.shape == (80, 30))\n     assert torch.equal(r.data.joint_pos, e._rough_probe_expected_q)\n     initial = dict(root=js(r.data.root_state_w), q=js(r.data.joint_pos), parameters=e.chassis_pd_audit(), assignments=assignments(e), reset=e._rough_probe_reset_receipt)\n     decl = declared_truncation_terms(e.termination_manager)\n"
+    }
+  ],
+  "auxiliary_refs": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_THREE_EXPERTS_AND_CURB878_EVAL_20261016\\eval_payload_v2\\curb_worldmesh_query_contract_v1.py",
+      "SHA": "528735c674f5572ced10f451207b438e8dd09a546c5ccc2dc30842f048068404",
+      "kind": "OWN_CURB_WORLD_GEOMETRY_QUERY_SOURCE_ONLY"
+    }
+  ],
+  "scope": "SOURCE_ONLY_no_model_SDK",
+  "SLOPE50": "Exactoriginalbuild_env AST extractedatruntimewithoutentryApp/main; owntrainingaxis binder,freshN80noPTrestore"
+}

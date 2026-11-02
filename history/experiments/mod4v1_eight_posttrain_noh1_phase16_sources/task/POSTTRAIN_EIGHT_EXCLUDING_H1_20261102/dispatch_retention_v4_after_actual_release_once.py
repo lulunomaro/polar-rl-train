@@ -1,0 +1,16 @@
+"""OnlylaunchfirstactualretentionafterNEWoriginalownerreleaseevidence+freshreadonlygate. Doesnotreadmodels/createleases/GO/claimadmission; originalsupervisorrechecksallactualEX."""
+from pathlib import Path
+import json,sys,shlex
+D=Path(__file__).resolve().parent;sys.path.insert(0,str(D.parent));from project_connector import connect72
+p=D/'PAIR1_RETENTION_V4_PARENT_DISPATCH_ONCE.json';assert not p.exists();resource=json.loads((D/'reports/ORIGINAL_AUTHORITY_RELEASE_AFTER389_WATCH_RESULT.json').read_bytes());assert resource['kind']=='ORIGINAL_CANONICAL_OWNER_RELEASE_OBSERVED_NOT_ADMISSION'and resource['owner']is None,'Originalauthorityreleaseactuallyobservedbeforeanynewattempt'
+prepared=json.loads((D/'PAIR1_RETENTION_V4_SOFTWARE_STAGE_ONCE.json').read_bytes());assert prepared['status']=='SOFTWARE_STAGED_ONLY_NOT_ADMITTED_NO_PARENT'and prepared['owner_or_SDK_launched']is False;root=prepared['root'];old=json.loads(Path(json.loads((D/'PAIR1_RETENTION_V3_LATEST_CLOSED_RESULT_PATH.json').read_bytes())['path']).read_bytes());assert old['parent_exit']['child_waits']==[]and old['final']is None
+code="""from pathlib import Path
+import json,subprocess,psutil,time
+B=Path(%r);O=Path('/home/lc01/Zonglin Li/zonglin2');assert not(B/'PARENT_STARTED.json').exists()and not(B/'ACTUAL_GROUP_ADMISSION.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());assert {x['role']for x in plan['roles']}=={'E0','CURB_PROTECTED878'}
+c=json.loads((O/'state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json').read_bytes());assert c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026'and c['active_segment']is None and c['remaining_training_seconds']>c['finite_minimum_remaining_seconds'],'Resourceconditionchangedagain, noSDKlaunch'
+u=plan['GPU_UUID'];raw=subprocess.check_output(['/usr/bin/nvidia-smi','-i',u,'--query-gpu=uuid,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();a=[x.strip()for x in raw.split(',')];apps=subprocess.check_output(['/usr/bin/nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader,nounits'],text=True);assert a[0]==u and int(a[1])>=23500 and int(a[2])==0 and u not in apps,'Freshreadonlyselectedresourcegatebusy'
+f=(B/'GROUP_SUPERVISOR_STDOUT_STDERR.log').open('xb');p=subprocess.Popen([str(O/'run-python.sh'),'-u','-B',str(B/'single_gpu_group_supervisor.py')],cwd=B,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True);f.close();print(json.dumps({'epoch':time.time(),'root':str(B),'pid':p.pid,'creation':psutil.Process(p.pid).create_time(),'actual_parent_dispatched':True,'actual_gpu_line':raw,'launcher_is_not_lease_admission':True,'PTOpens_SDK_or_GObylauncher':0}))
+"""%root;c=connect72()
+try:
+ i,o,e=c.exec_command(shlex.quote('/home/lc01/Zonglin Li/zonglin2/run-python.sh')+' -B -c '+shlex.quote(code),timeout=60);i.close();txt=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status();assert rc==0,(rc,err);v=json.loads(txt);v['prerequisite_original_resource_release_evidence']=str(D/'reports/ORIGINAL_AUTHORITY_RELEASE_AFTER389_WATCH_RESULT.json');v['unstarted_old_wait_not_replayed_model']=True;p.write_text(json.dumps(v,indent=2),encoding='utf-8');print(p);print(json.dumps(v,indent=2))
+finally:c.close()

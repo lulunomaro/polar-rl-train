@@ -1,0 +1,112 @@
+{
+  "scope": "SOURCE_ONLY_STDLIB_AST",
+  "torch_imported": false,
+  "simulator_imported": false,
+  "model_or_raw_files_opened": 0,
+  "runtime_gradient_test": "NOT_RUN_NO_LOCAL_TORCH",
+  "checks": [
+    "vendor policy_update includes actual optimizer step",
+    "vendor imagined next state preserves input gradient",
+    "vendor original checkpoint lacks replay and RNG",
+    "extension AST parse + bytecode compile PASS (not executed)",
+    "generic frozen teacher preserves observation-input derivatives",
+    "generic teacher wrapper AST compile PASS (not imported)",
+    "extension imports no SDK/network/remote/process module",
+    "policy objective uses learned original-real-reward head, not legacy analytic reward",
+    "cross-time receipt differentiates future objective w.r.t. first action",
+    "context, observation and goal evolve inside imagination loop",
+    "invalid/terminal context targets excluded from loss AND normalizer update",
+    "full extension checkpoint includes replay",
+    "full extension checkpoint includes obs_hist",
+    "full extension checkpoint includes rng",
+    "full extension checkpoint includes collect_fraction",
+    "full extension checkpoint includes environment",
+    "full extension checkpoint includes opt_aux",
+    "attempt/WM/BC counters are not BPTT steps",
+    "optimizer call outside BPTT scope not counted",
+    "zero cross-time gradient not counted",
+    "zero parameter gradient not counted",
+    "zero parameter change not counted",
+    "nonfinite cross-time gradient not counted",
+    "a_prev-only shortcut without WM path is not counted",
+    "successful finite changed-parameter cross-time step counted once",
+    "zero learning rate does not increase verified BPTT count",
+    "terminal transition retained; post-reset WM target masked",
+    "context validity truth table excludes every terminal target"
+  ],
+  "evidence": [
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\learner.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\learner.py",
+      "bytes": 34087,
+      "sha256": "da3380bf84adb90f8cd528a05c86773baf6bcb4691dbf13e0ec1ffd9f899f816"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\networks.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\networks.py",
+      "bytes": 8609,
+      "sha256": "c7829e6a1bb9166d724a931858b76424439f371669dfb4bb534b9e76c5c74706"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\replay.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\replay.py",
+      "bytes": 4123,
+      "sha256": "8c7ddacf5387e67e7ecdd57027401a84a2cff1c31469115837d60b90357350da"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\geometry.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\geometry.py",
+      "bytes": 6960,
+      "sha256": "89ac3b9470fd6f041fd418365283355a07ad96c4bf38740cf3c5d2d98acb7787"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\contract.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\contract.py",
+      "bytes": 2517,
+      "sha256": "d756f2a102a81b2f16295dad66f46e9783b42a3f67e7416360fcf136c2ff06ce"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\frozen_e0.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\frozen_e0.py",
+      "bytes": 8991,
+      "sha256": "e41ce371cf583d2be1fc4d8a0d65a44dcdc90fe8e0cf0445dbe98d6a3f261b24"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\isaac_bridge.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\isaac_bridge.py",
+      "bytes": 5587,
+      "sha256": "07e1003f325b03ef3aab1d6901c80cfc9b2296ced59d8210d259a00f32843a8a"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\lqr_reference_mdp.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\lqr_reference_mdp.py",
+      "bytes": 3587,
+      "sha256": "40c846b9959c83db7080b513a0c4c6af0e205328fdd9f5a5c38fc4448727d8e4"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\source\\step_env.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\step_env.py",
+      "bytes": 2918,
+      "sha256": "33b5bff786a015cbed5e5ebf893fedbcc20199249891280ab774aebd2f8c3be1"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\train_supermimic.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\train_supermimic.py",
+      "bytes": 6906,
+      "sha256": "eb7a7c0965a84f31b9cab13cc840fbbad4347613695299af1f833ed9d19a0056"
+    },
+    {
+      "original": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\h1_fullstate_checkpoint_v1.py",
+      "copy": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\evidence\\h1_fullstate_checkpoint_v1.EMPTY.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "core_source": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\ctx_reward_learner.py",
+    "bytes": 35812,
+    "sha256": "2603308f1adfe65f576eaf2aa3e0275d8465f110e6edd6e3db38304bf3e72039"
+  },
+  "status": "PASS_AST_AND_STDLIB_ONLY",
+  "check_count": 28
+}

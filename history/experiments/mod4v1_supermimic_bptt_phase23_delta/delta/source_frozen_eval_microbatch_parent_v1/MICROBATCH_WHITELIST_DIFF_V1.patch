@@ -1,0 +1,63 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\single_gpu_eight_a1_frozen_parent_candidate_v2.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_frozen_eval_microbatch_parent_v1\single_gpu_e3_w35_a1_frozen_parent_v1.py
+@@ -1,15 +1,15 @@
+-"""OneoriginalGPUprivateEX+globalfiniteEXowner, nineisolatedSDKworkers, honestreadybarrier/result/closewait. No learner/GO/ledgerwrite."""
++"""Independent requested E3/W35 candidate batch; original EX/readiness/wait blocks unchanged."""
+ from pathlib import Path
+ import os,sys,json,time,hashlib,fcntl,subprocess,traceback,signal,shutil
+ import psutil
+-from a1_frozen_eval_runtime_v2 import make_task,ROLES,evaluate_waited_eval_case
++from frozen_eval_microbatch_runtime_v1 import make_task,ROLES,evaluate_waited_eval_case,select_requested_roles,batch_start,batch_result
+ B=Path(__file__).resolve().parent;OWN=Path('/home/lc01/Zonglin Li/zonglin2')
+ def put(n,v):
+  p=B/n;q=p.with_suffix(p.suffix+'.partial');q.write_text(json.dumps(v,indent=2,allow_nan=False));q.replace(p)
+ def nvidia(uuid):
+  raw=subprocess.check_output(['/usr/bin/nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.total,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();x=[v.strip()for v in raw.split(',')];return dict(GPU_UUID=x[0],name=x[1],total_MiB=int(x[2]),free_MiB=int(x[3]),utilization_percent=int(x[4]))
+ def main():
+- assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=plan['roles'];assert len(roles)==8 and {r['role']for r in roles}==set(ROLES);put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_EIGHT_A1_FROZEN80_NO_LEARNING_V2',GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
++ assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=select_requested_roles(plan);requested=tuple(plan['requested_roles']);put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_REQUESTED_E3_W35_A1_FROZEN80_MICROBATCH_V1',requested_roles=list(requested),deferred_roles=plan['deferred_roles'],overall_eight_pass_rate=None,GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
+  try:
+   for r in plan['worker_files']:
+    p=B/r['relative'];raw=p.read_bytes();assert len(raw)==r['bytes']and hashlib.sha256(raw).hexdigest()==r['SHA']
+@@ -42,22 +42,22 @@
+    for key,rel in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp','TORCH_HOME':'cache/torch'}.items():
+     p=out/'private'/rel;p.mkdir(parents=True,exist_ok=True);env[key]=str(p)
+    log=(out/'SDK_FULL_STDOUT_STDERR.log').open('xb');p=subprocess.Popen([str(OWN/'run-python.sh'),'-u','-B',str(B/r['worker']),'--task',str(out/'task.json'),'--group-root',str(B)],cwd=B,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,pass_fds=tuple(f.fileno()for f in locks),start_new_session=True);log.close();children.append((r,out,p,psutil.Process(p.pid).create_time()));put('CHILDREN.json',[dict(role=r['role'],pid=p.pid,creation=creation,GPU_UUID=uuid,root=str(out),worker=r['worker'])for r,out,p,creation in children])
+-  assert len(children)==8;ready_until=time.time()+900;memory=[]
++  assert len(children)==len(requested)==2;ready_until=time.time()+900;memory=[]
+   while time.time()<ready_until:
+    ready=[r['role']for r,out,p,creation in children if(out/'WORKER_SCENE_READY.json').exists()];failed=[r['role']for r,out,p,creation in children if(out/'WORKER_ERROR.json').exists()or(p.poll()is not None and r['role']not in ready)];put('GROUP_BARRIER_STATUS.json',dict(epoch=time.time(),ready=ready,failed=failed,members=[r['role']for r in roles]))
+    if failed:raise RuntimeError('Someownmemberfailedbeforecommonstart:'+str(failed))
+-   if len(ready)==8:
+-    group_start=time.time();put('GROUP_EVAL_START.json',dict(group_id=plan['group_id'],GPU_UUID=uuid,members=ready,all_members_ready=True,epoch=group_start,source='All8originalSDKscenes+frozenA1pi+N80fullDRreadybeforeanycontrolledstep'));break
++   if len(ready)==len(requested) and set(ready)==set(requested):
++    group_start=time.time();put('GROUP_EVAL_START.json',batch_start(plan,ready,group_start));break
+    if not memory or time.time()-memory[-1]['epoch']>=30:memory.append(dict(epoch=time.time(),**nvidia(uuid)));put('GROUP_GPU_MEMORY_SAMPLES.json',memory)
+    time.sleep(2)
+-  if group_start is None:raise TimeoutError('NineSDKstartupreadybarrier900s expired')
++  if group_start is None:raise TimeoutError('RequestedSDKstartupreadybarrier900s expired')
+   while time.time()<deadline and any(p.poll()is None for r,out,p,creation in children):
+    if not memory or time.time()-memory[-1]['epoch']>=30:memory.append(dict(epoch=time.time(),**nvidia(uuid)));put('GROUP_GPU_MEMORY_SAMPLES.json',memory)
+    time.sleep(2)
+   for r,out,p,creation in children:
+    if p.poll()is None:raise TimeoutError('Owngroup2400s boundedworkerend:'+r['role'])
+    rc=p.wait();semantic=evaluate_waited_eval_case(out,rc,dict(r,paired_reset_protocol=plan['paired_reset_protocol']),plan['group_id']);data=json.loads((out/'FINAL.json').read_bytes())if(out/'FINAL.json').exists()else None;err=json.loads((out/'WORKER_ERROR.json').read_bytes())if(out/'WORKER_ERROR.json').exists()else None;terminal.append(dict(role=r['role'],pid=p.pid,GPU_UUID=uuid,returncode=rc,actual_waited=True,ready=(out/'WORKER_SCENE_READY.json').exists(),started=(out/'WORKER_EVAL_STARTED.json').exists(),pre_close=(out/'PRE_CLOSE.json').exists(),passed_execution=semantic['passed_execution'],semantic=semantic,data=data,error=err));put('TERMINAL_ROWS.json',terminal)
+-  put('FINAL.json',dict(kind='ACTUAL_SINGLE_GPU_EIGHT_A1_FROZEN80_SOURCE_CANDIDATE_V2',group_id=plan['group_id'],GPU_UUID=uuid,common_start_epoch=group_start,eight_ready_before_start=True,all_eight_actual_execution_complete=all(v['passed_execution']for v in terminal),rows=terminal,source20k_DR_history_sliced=False,source20k_histories_physically_applied=False,old20k_fullrestore_proof_preserved_separately=True,new_PPO_BPTT_GO=0,canonical_writes=0,epoch=time.time()))
++  put('FINAL.json',batch_result(plan,terminal,group_start,epoch=time.time()))
+  except BaseException:
+   errors.append(traceback.format_exc());put('GROUP_ABORT.json',dict(epoch=time.time(),errors=errors,ownscope_only=True));put('GROUP_STARTUP_ABORT.json',dict(epoch=time.time(),errors=errors,ownscope_only=True));put('PARENT_ORIGINAL_ERROR.json',dict(errors=errors,no_samepurpose_automatic_retry=True))
+  finally:
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\worker_formal_a1_frozen_candidate_v2.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_frozen_eval_microbatch_parent_v1\worker_formal_a1_microbatch_v1.py
+@@ -2,8 +2,9 @@
+ from pathlib import Path
+ import os,sys,json,time,runpy,traceback,math,types
+ sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+-from parallel_eval_safe import put,wait_start
+-from a1_frozen_eval_runtime_v2 import task_args,A1CheckpointAdapter,install_paired_pose_before_original_reset,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
++from parallel_eval_safe import put
++from frozen_eval_microbatch_runtime_v1 import wait_start
++from frozen_eval_microbatch_runtime_v1 import task_args,A1CheckpointAdapter,install_paired_pose_before_original_reset,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
+ from launch_storage_contract import parent_five_storage
+ from n80_gpu_capacity import capacity_ctor
+ 

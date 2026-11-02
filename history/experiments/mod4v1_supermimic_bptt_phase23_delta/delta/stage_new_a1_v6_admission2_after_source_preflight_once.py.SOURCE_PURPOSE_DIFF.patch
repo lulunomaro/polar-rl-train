@@ -1,0 +1,14 @@
+--- stage_new_a1_v6_after_source_preflight_once.py
++++ stage_new_a1_v6_admission2_after_source_preflight_once.py
+@@ -1,8 +1,9 @@
++# NEW admission2 purpose: prior original1800 preGO timeout had zero physical GO; do not extend or replay it.
+ """New unused V6 non-PT stage, preserving separate read-only preflight purpose."""
+ from pathlib import Path
+ import json,sys,hashlib,shlex,time
+-R=Path(__file__).resolve().parent;out=R/'reports/A1_NATIVE_V6_ACTUAL_NONPT_STAGE_V1.json';marker=R/'A1_NATIVE_V6_NONPT_STAGE_ONCE.json';assert not out.exists()and not marker.exists();previous=json.loads((R/'reports/A1_NATIVE_V6_ACTUAL_SOURCE_PREFLIGHT_V1.json').read_bytes());assert previous['returncode']==0 and previous['preflight']['passed']and previous['preflight']['stage_writes']==0 and previous['preflight']['owner_launches']==0
+-value=dict(kind='NEW_A1_V6_ACTUAL_NONPT_STAGE_PURPOSE',root=previous['root'],run_id=previous['run_id'],input_root=previous['input_root'],prior_read_only_preflight=str(R/'reports/A1_NATIVE_V6_ACTUAL_SOURCE_PREFLIGHT_V1.json'),selected_PT_SDK_C_GO_owner_launch_operations=0,epoch=time.time());marker.write_text(json.dumps(value,indent=2),encoding='utf-8');args=previous['preflight_argv']+['--stage'];sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
++R=Path(__file__).resolve().parent;out=R/'reports/A1_NATIVE_V6_ADMISSION2_ACTUAL_NONPT_STAGE_V1.json';marker=R/'A1_NATIVE_V6_ADMISSION2_NONPT_STAGE_ONCE.json';assert not out.exists()and not marker.exists();previous=json.loads((R/'reports/A1_NATIVE_V6_ADMISSION2_ACTUAL_SOURCE_PREFLIGHT_V1.json').read_bytes());assert previous['returncode']==0 and previous['preflight']['passed']and previous['preflight']['stage_writes']==0 and previous['preflight']['owner_launches']==0
++value=dict(kind='NEW_A1_V6_ACTUAL_NONPT_STAGE_PURPOSE',root=previous['root'],run_id=previous['run_id'],input_root=previous['input_root'],prior_read_only_preflight=str(R/'reports/A1_NATIVE_V6_ADMISSION2_ACTUAL_SOURCE_PREFLIGHT_V1.json'),selected_PT_SDK_C_GO_owner_launch_operations=0,epoch=time.time());marker.write_text(json.dumps(value,indent=2),encoding='utf-8');args=previous['preflight_argv']+['--stage'];sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+ c=connect72();s=c.open_sftp()
+ try:
+  cmd="CUDA_VISIBLE_DEVICES='' "+shlex.quote('/home/lc01/Zonglin Li/zonglin2/run-python.sh')+' -B '+' '.join(shlex.quote(x)for x in args)

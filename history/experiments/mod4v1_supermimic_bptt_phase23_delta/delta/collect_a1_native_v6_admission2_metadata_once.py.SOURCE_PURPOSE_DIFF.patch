@@ -1,0 +1,24 @@
+--- collect_a1_native_v6_metadata_once.py
++++ collect_a1_native_v6_admission2_metadata_once.py
+@@ -1,10 +1,11 @@
++# NEW admission2 purpose: prior original1800 preGO timeout had zero physical GO; do not extend or replay it.
+ """One NEW V6 metadata observer. No model/raw/SDK/canonical operation.
+ Only own published JSON during work; closed own stdout copied once after wait.
+ """
+ from pathlib import Path
+ import json,sys,time,hashlib,datetime,shlex
+ R=Path(__file__).resolve().parent;sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+-m=json.loads((R/'A1_NATIVE_V6_ORIGINAL_OWNER_DISPATCH_ONCE.json').read_bytes());assert m.get('actual_Popen_calls')==1 and m.get('parent');root=m['root'];roles=['E3','W35','CURB_INDEPENDENT113','CURB_PROTECTED878','SLOPE135','SLOPE_INDEPENDENT50','E0','E2'];once=R/'A1_NATIVE_V6_OBSERVER_STARTED_ONCE.json';assert not once.exists();pointer=R/'A1_NATIVE_V6_LATEST_METADATA_WATCH.json';folder=R/'reports'/('ACTUAL_A1_NATIVE_V6_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'));folder.mkdir();once.write_text(json.dumps(dict(root=root,parent=m['parent'],folder=str(folder),seconds_cap=36000,poll_seconds=20,model_raw_SDK_C_operations=0),indent=2),encoding='utf-8');c=connect72();s=c.open_sftp();deadline=time.monotonic()+36000;began=time.monotonic();last=None;admission_seen=False;early_probe_done=False
++m=json.loads((R/'A1_NATIVE_V6_ADMISSION2_ORIGINAL_OWNER_DISPATCH_ONCE.json').read_bytes());assert m.get('actual_Popen_calls')==1 and m.get('parent');root=m['root'];roles=['E3','W35','CURB_INDEPENDENT113','CURB_PROTECTED878','SLOPE135','SLOPE_INDEPENDENT50','E0','E2'];once=R/'A1_NATIVE_V6_ADMISSION2_OBSERVER_STARTED_ONCE.json';assert not once.exists();pointer=R/'A1_NATIVE_V6_ADMISSION2_LATEST_METADATA_WATCH.json';folder=R/'reports'/('ACTUAL_A1_NATIVE_V6_ADMISSION2_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'));folder.mkdir();once.write_text(json.dumps(dict(root=root,parent=m['parent'],folder=str(folder),seconds_cap=36000,poll_seconds=20,model_raw_SDK_C_operations=0),indent=2),encoding='utf-8');c=connect72();s=c.open_sftp();deadline=time.monotonic()+36000;began=time.monotonic();last=None;admission_seen=False;early_probe_done=False
+ 
+ def get(rel):
+  assert '..'not in rel and not rel.startswith('/')
+@@ -47,7 +48,7 @@
+      with s.open(root+'/'+rel,'rb')as f:raw=f.read()
+     except FileNotFoundError:continue
+     dest=folder/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw);files.append(dict(relative=rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+-   latest['files']=files;(folder/'CLOSED_RESULT.json').write_text(json.dumps(latest,indent=2),encoding='utf-8');(R/'A1_NATIVE_V6_LATEST_CLOSED_RESULT_PATH.json').write_text(json.dumps(dict(root=root,path=str(folder/'CLOSED_RESULT.json'),early_parent_dead=early_dead),indent=2),encoding='utf-8');print('A1_V6_CLOSED_RESULT '+str(folder/'CLOSED_RESULT.json'),flush=True);break
++   latest['files']=files;(folder/'CLOSED_RESULT.json').write_text(json.dumps(latest,indent=2),encoding='utf-8');(R/'A1_NATIVE_V6_ADMISSION2_LATEST_CLOSED_RESULT_PATH.json').write_text(json.dumps(dict(root=root,path=str(folder/'CLOSED_RESULT.json'),early_parent_dead=early_dead),indent=2),encoding='utf-8');print('A1_V6_CLOSED_RESULT '+str(folder/'CLOSED_RESULT.json'),flush=True);break
+   time.sleep(20)
+  else:raise TimeoutError('Published metadata cap reached; native parent not signalled; new observer-only continuation required')
+ except BaseException:

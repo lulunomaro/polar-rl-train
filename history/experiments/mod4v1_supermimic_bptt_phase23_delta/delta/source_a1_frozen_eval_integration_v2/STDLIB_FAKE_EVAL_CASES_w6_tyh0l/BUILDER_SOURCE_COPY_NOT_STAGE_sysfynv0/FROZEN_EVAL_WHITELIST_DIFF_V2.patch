@@ -1,0 +1,255 @@
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\NINE_N80_PARALLEL_SOURCE_V8\worker_five_original_n80.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\STDLIB_FAKE_EVAL_CASES_w6_tyh0l\BUILDER_SOURCE_COPY_NOT_STAGE_sysfynv0\worker_formal_a1_frozen_candidate_v2.py
+@@ -1,12 +1,14 @@
+ """E0/E2/E3/H1normal/W35 ownactualfactory N80freshDR, meanA0, oneGPU9barrier. No saved20k projection/no learning."""
+ from pathlib import Path
+ import os,sys,json,time,runpy,traceback,math,types
+-from parallel_eval_safe import task_args,put,WholeCheckpointFreshCache,wait_start
++sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
++from parallel_eval_safe import put,wait_start
++from a1_frozen_eval_runtime_v2 import task_args,A1CheckpointAdapter,install_paired_pose_before_original_reset,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
+ from launch_storage_contract import parent_five_storage
+ from n80_gpu_capacity import capacity_ctor
+ 
+ def main():
+- task,out,group=task_args();role=task['role'];assert role in('E0','E2','E3','H1_normal','W35');B=Path(task['runtime_root']);J=B/'job0'if role=='H1_normal'else B;mod=J/'runtime/isaac/mod4';ns=env=None;cache=None;actor=None;start_wall=time.time();completed=0;maxraw=0.;maxapplied=0.
++ task,out,group=task_args();role=task['role'];assert role in('E0','E2','E3','W35');B=Path(task['runtime_root']);J=B/'job0'if role=='H1_normal'else B;mod=J/'runtime/isaac/mod4';ns=env=None;cache=None;actor=None;start_wall=time.time();completed=0;maxraw=0.;maxapplied=0.
+  try:
+   original=json.loads((J/'original_run_manifest.json').read_bytes())['env']
+   for k in list(os.environ):
+@@ -28,7 +30,7 @@
+    identity=bind_before_task_import(B/'new_assets')
+   sys.argv=[str(entry),'--headless','--device','cuda:0','--num_envs','80','--seed','20260928','--dry_run',str(task['controls'])]
+   import torch
+-  cache=WholeCheckpointFreshCache(torch,task)
++  cache=A1CheckpointAdapter(torch,task)
+   def no_other_checkpoint(*a,**kw):raise RuntimeError('N80freshpurposepermitsonlytheonealreadycachedselectedcheckpoint; no savedDRhelpers/otherPT')
+   torch.load=no_other_checkpoint
+   ns=runpy.run_path(str(entry),run_name='nine_n80_own_'+role+'_build_no_main')
+@@ -47,7 +49,7 @@
+   if role=='W35':
+    from rm70_intervals227 import RM70Intervals227
+    book=RM70Intervals227(torch,80,env.device,out,task['source_SHA']);book.install(type(env.command_manager.get_term('twist')))
+-  guard=FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor);guard.assert_new_nominals_unchanged();env.reset()
++  install_paired_pose_before_original_reset(env);guard=FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor);guard.assert_new_nominals_unchanged();env.reset()
+   if book is not None:book.arm(env,env.command_manager.get_term('twist'))
+   if role=='E3':env.e3_reset_enabled=True;env.place_declared_fall(torch.arange(80,device=env.device));env.publish();assert set(env.recovery.recipe.tolist())==set(range(13))
+   guard.assert_new_nominals_unchanged();audit=env._mild_dr.audit();assert audit['actual_parameters_pass'];assert env.num_envs==80 and env.step_dt==.02 and env.physics_dt==.0025 and env.cfg.decimation==8;assert env.cfg.terminations.closure.params['threshold']==.01 and env.cfg.terminations.mimic.params['threshold']==.01
+@@ -62,7 +64,7 @@
+    v=v.detach();return dict(shape=list(v.shape),dtype=str(v.dtype),finite=bool(torch.isfinite(v).all()),min=float(v.min()),max=float(v.max()),first8=v.reshape(-1)[:8].cpu().tolist())
+   memory={k:small(v)for k,v in getter.cache.items()};obs=env.observation_manager.compute();guard.check_observations(obs);actor=cache.actor(env.device);from tensordict import TensorDict
+   def actor_obs(o):return o if isinstance(o,TensorDict)else TensorDict(dict(o),batch_size=[80])
+-  ready=dict(resource_only_GPU_capacity=env._n80_allocation_only_capacity,source_cache=cache.receipt(),D0_D7_fresh_audit=audit,actual_component_memory_not_independentbackend=memory,num_envs=80,observations={k:list(v.shape)for k,v in obs.items()},new_nominal_guard_passed=True,one_explicit_fresh_reset=True,scope='FreshN80source-ownfactoryandrecipes; saved20khistoryretainedincachenotapplied/sliced',controls=task['controls'],interface=[35,38,6],physics_dt=.0025,policy_dt=.02,feedback_Hz=100)
++  ready=dict(resource_only_GPU_capacity=env._n80_allocation_only_capacity,source_cache=cache.receipt(),D0_D7_fresh_audit=audit,actual_component_memory_not_independentbackend=memory,num_envs=80,observations={k:list(v.shape)for k,v in obs.items()},new_nominal_guard_passed=True,one_explicit_fresh_reset=True,scope='FreshN80originalfactoryandrecipes;wholeOwnA1N1024CPUrootretained;noenvDRorhistoryrestoreorslice',controls=task['controls'],interface=[35,38,6],physics_dt=.0025,policy_dt=.02,feedback_Hz=100)
+   put(out/'FRESH80_FULLDR_BEFORE_CONTROL.json',ready)
+   reasons={k:0 for k in env.termination_manager.active_terms};terminated_env=torch.zeros(80,dtype=torch.bool,device=env.device);truncated_env=terminated_env.clone();first_episode_live=~terminated_env;episode_events=torch.zeros(80,dtype=torch.long,device=env.device);integrated_body_error=torch.zeros(80,3,device=env.device);root_initial=tensor(robot.data.root_pos_w).clone();root_last=root_initial.clone();reward_sum=torch.zeros(80,device=env.device);original_old_closure_boundary=terminated_env.clone();current_closure_max=0.;current_mimic_max=0.;command_before=None;first_recipe=None;first_credit=terminated_env.clone();first_term=terminated_env.clone();h1_flags={}
+   if role=='E3':first_recipe=env.recovery.recipe.clone()
+@@ -102,7 +104,7 @@
+     command_before=tensor(env.command_manager.get_term('twist').command).clone()
+     if book is not None:book.begin(i,tensor(robot.data.root_pos_w)[:,:2].clone(),tensor(robot.data.heading_w).clone())
+     if e2cycles is not None:e2cycles.begin(i)
+-    action=actor(actor_obs(obs),stochastic_output=False);assert action.shape==(80,6)and torch.isfinite(action).all();maxraw=max(maxraw,float(action.abs().max()));applied=action.clamp(-6.,6.);maxapplied=max(maxapplied,float(applied.abs().max()));obs,reward,ter,tru,extra=env.step(applied);completed+=1;reward_sum.add_(reward)
++    action=actor(actor_obs(obs),stochastic_output=False);assert action.shape==(80,6)and torch.isfinite(action).all();maxraw=max(maxraw,float(action.abs().max()));applied=action.clamp(-6.,6.);maxapplied=max(maxapplied,float(applied.abs().max()));obs,reward,ter,tru,extra=env.step(applied);actor.observe_transition(ter,tru);completed+=1;reward_sum.add_(reward)
+     assert obs['policy'].shape==(80,35)and obs['critic'].shape==(80,38)and all(bool(torch.isfinite(x).all())for x in(obs['policy'],obs['critic'],reward))
+   physics=int(env._integrated_contact.tick)-tick;feedback=int(env._feedback_100hz_tick)-fb;actual_delay={k:env._physics_action_delay.calls[k]-delay[k]for k in('legs','wheels')};assert physics==8*completed and feedback==2*completed and actual_delay=={'legs':8*completed,'wheels':8*completed};cache.check_actor(actor);guard.assert_new_nominals_unchanged();after=env._mild_dr.audit();assert after['actual_parameters_pass'];skill={'original_aggregate_graduation_rule':'NONE_IN_JOINED_SOURCE_NO_NEW_PASS_RATE','full_expert_graduated':False,'new_N80_fresh_cohort_not_original_N20k_cohort':True,'body_velocity_absolute_error_time_integral_per_env':integrated_body_error.cpu().tolist(),'root_before_and_last_terminal_world_xyz_per_env':{'before':root_initial.cpu().tolist(),'last':root_last.cpu().tolist()},'no_cross_reset_endpoint_displacement_success_claim':True}
+   if role=='E3':
+@@ -113,12 +115,10 @@
+   if role=='H1_normal':skill.update(original_phase_natural_boolean_event_counts={k:int(v.sum())for k,v in h1_flags.items()},horizon_scope='20secondsoriginalcfgdefaultnotprovedoriginalacceptedcohort',original_270mm_event_source='Owntrue270physicalcallbackstate; no generic18cmheightreplacement')
+   if role=='E2':skill.update(domain='OwnE2_WORLD_MOVING_SIGNED4',cycle_rule='SameUIDepisode/direction/sign fullsigned2pi plus .5±.05/cross±.05/yaw±.2 andnonterminal/nontimeout',exact_cycle_observer_status='OriginalE2Cycles213sameUIDsigned2pi observerattachedtofreshN80; notoriginal20kcohort',original_E2_sameUID_cycle_facts=e2cycles.finish())
+   if book is not None:skill['original_RM70_interval_route_facts']=book.finish();book.uninstall();book=None
+-  result=dict(kind=task['kind'],group_id=task['group_id'],role=role,GPU_UUID=task['GPU_UUID'],passed_execution=True,num_envs=80,controls=completed,seconds=.02*completed,physics_callbacks=physics,feedback_samples=feedback,delay_calls=actual_delay,source_cache=cache.receipt(),actor_STD_before_after_exact=True,cached_full_checkpoint_before_after_exact=True,live_critic_optimizer_created=False,optimizer_updates=0,original_RSL_clip_actions=6.,max_raw_action_abs=maxraw,max_applied_action_abs=maxapplied,source_saved20k_DR_history_applied=False,source20k_DR_sliced=False,D0_D7_fresh_audit_before=audit,D0_D7_fresh_audit_after=after,termination_events_by_reason=reasons,unique_envs_terminated=int(terminated_env.sum()),unique_envs_truncated=int(truncated_env.sum()),episode_end_events=int(episode_events.sum()),reward_sum_per_env=reward_sum.cpu().tolist(),max_current_closure_m=current_closure_max,max_current_mimic_rad=current_mimic_max,old002_closure_prefix_hit_envs=int(original_old_closure_boundary.sum()),skill=skill,first_eval_epoch=eval_started,last_eval_epoch=time.time(),wall_seconds=time.time()-start_wall,canonical_access=False,new_PPO_or_BPTT=False,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);put(out/'FINAL.json',result);env.termination_manager.compute=oldterm
++  result=dict(kind=task['kind'],group_id=task['group_id'],role=role,GPU_UUID=task['GPU_UUID'],passed_execution=True,num_envs=80,controls=completed,seconds=.02*completed,physics_callbacks=physics,feedback_samples=feedback,delay_calls=actual_delay,source_cache=cache.receipt(),A1_entire_pi_weights_norms_before_after_frozen=True,cached_full_checkpoint_before_after_exact=True,live_critic_optimizer_created=False,optimizer_updates=0,original_RSL_clip_actions=6.,max_raw_action_abs=maxraw,max_applied_action_abs=maxapplied,source_saved20k_DR_history_applied=False,source20k_DR_sliced=False,D0_D7_fresh_audit_before=audit,D0_D7_fresh_audit_after=after,termination_events_by_reason=reasons,unique_envs_terminated=int(terminated_env.sum()),unique_envs_truncated=int(truncated_env.sum()),episode_end_events=int(episode_events.sum()),reward_sum_per_env=reward_sum.cpu().tolist(),max_current_closure_m=current_closure_max,max_current_mimic_rad=current_mimic_max,old002_closure_prefix_hit_envs=int(original_old_closure_boundary.sum()),skill=skill,first_eval_epoch=eval_started,last_eval_epoch=time.time(),wall_seconds=time.time()-start_wall,integration=INTEGRATION,paired_reset_protocol=paired_protocol_receipt(),unresolved_evidence=unresolved_evidence(),canonical_access=False,new_PPO_or_BPTT=False,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);put(out/'FINAL.json',result);env.termination_manager.compute=oldterm
+  except BaseException:
+-  put(out/'WORKER_ERROR.json',dict(role=role,epoch=time.time(),controls_completed=completed,error=traceback.format_exc(),source_cache=(cache.receipt() if cache is not None else None),no_retry_samepurpose=True));raise
++  record_primary_error(out,role=role,phase='formal_worker',error=traceback.format_exc(),cache=cache);raise
+  finally:
+-  if env is not None:
+-   put(out/'PRE_CLOSE.json',dict(epoch=time.time(),role=role,controls=completed,calling_original_env_App_close=True));env.close()
+-  if ns is not None:ns['app'].close()
++  close_original_eval_resources(env,None if ns is None else ns['app'],out,task)
+ 
+ if __name__=='__main__':main()
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\NINE_N80_PARALLEL_SOURCE_V8\single_gpu_group_supervisor.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\STDLIB_FAKE_EVAL_CASES_w6_tyh0l\BUILDER_SOURCE_COPY_NOT_STAGE_sysfynv0\single_gpu_eight_a1_frozen_parent_candidate_v2.py
+@@ -2,14 +2,14 @@
+ from pathlib import Path
+ import os,sys,json,time,hashlib,fcntl,subprocess,traceback,signal,shutil
+ import psutil
+-from worker_sources.parent.task_contract import make_task
++from a1_frozen_eval_runtime_v2 import make_task,ROLES,evaluate_waited_eval_case
+ B=Path(__file__).resolve().parent;OWN=Path('/home/lc01/Zonglin Li/zonglin2')
+ def put(n,v):
+  p=B/n;q=p.with_suffix(p.suffix+'.partial');q.write_text(json.dumps(v,indent=2,allow_nan=False));q.replace(p)
+ def nvidia(uuid):
+  raw=subprocess.check_output(['/usr/bin/nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.total,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();x=[v.strip()for v in raw.split(',')];return dict(GPU_UUID=x[0],name=x[1],total_MiB=int(x[2]),free_MiB=int(x[3]),utilization_percent=int(x[4]))
+ def main():
+- assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=plan['roles'];assert len(roles)==9 and len({r['role']for r in roles})==9;put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_NINE_FRESH80_SKILL_EVAL_NO_LEARNING',GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
++ assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=plan['roles'];assert len(roles)==8 and {r['role']for r in roles}==set(ROLES);put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_EIGHT_A1_FROZEN80_NO_LEARNING_V2',GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
+  try:
+   for r in plan['worker_files']:
+    p=B/r['relative'];raw=p.read_bytes();assert len(raw)==r['bytes']and hashlib.sha256(raw).hexdigest()==r['SHA']
+@@ -42,12 +42,12 @@
+    for key,rel in {'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp','TORCH_HOME':'cache/torch'}.items():
+     p=out/'private'/rel;p.mkdir(parents=True,exist_ok=True);env[key]=str(p)
+    log=(out/'SDK_FULL_STDOUT_STDERR.log').open('xb');p=subprocess.Popen([str(OWN/'run-python.sh'),'-u','-B',str(B/r['worker']),'--task',str(out/'task.json'),'--group-root',str(B)],cwd=B,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,pass_fds=tuple(f.fileno()for f in locks),start_new_session=True);log.close();children.append((r,out,p,psutil.Process(p.pid).create_time()));put('CHILDREN.json',[dict(role=r['role'],pid=p.pid,creation=creation,GPU_UUID=uuid,root=str(out),worker=r['worker'])for r,out,p,creation in children])
+-  assert len(children)==9;ready_until=time.time()+900;memory=[]
++  assert len(children)==8;ready_until=time.time()+900;memory=[]
+   while time.time()<ready_until:
+    ready=[r['role']for r,out,p,creation in children if(out/'WORKER_SCENE_READY.json').exists()];failed=[r['role']for r,out,p,creation in children if(out/'WORKER_ERROR.json').exists()or(p.poll()is not None and r['role']not in ready)];put('GROUP_BARRIER_STATUS.json',dict(epoch=time.time(),ready=ready,failed=failed,members=[r['role']for r in roles]))
+    if failed:raise RuntimeError('Someownmemberfailedbeforecommonstart:'+str(failed))
+-   if len(ready)==9:
+-    group_start=time.time();put('GROUP_EVAL_START.json',dict(group_id=plan['group_id'],GPU_UUID=uuid,members=ready,all_members_ready=True,epoch=group_start,source='All9SDKscenes+liveactors+N80fullDRreadybeforeanycontrolledstep'));break
++   if len(ready)==8:
++    group_start=time.time();put('GROUP_EVAL_START.json',dict(group_id=plan['group_id'],GPU_UUID=uuid,members=ready,all_members_ready=True,epoch=group_start,source='All8originalSDKscenes+frozenA1pi+N80fullDRreadybeforeanycontrolledstep'));break
+    if not memory or time.time()-memory[-1]['epoch']>=30:memory.append(dict(epoch=time.time(),**nvidia(uuid)));put('GROUP_GPU_MEMORY_SAMPLES.json',memory)
+    time.sleep(2)
+   if group_start is None:raise TimeoutError('NineSDKstartupreadybarrier900s expired')
+@@ -56,8 +56,8 @@
+    time.sleep(2)
+   for r,out,p,creation in children:
+    if p.poll()is None:raise TimeoutError('Owngroup2400s boundedworkerend:'+r['role'])
+-   rc=p.wait();data=json.loads((out/'FINAL.json').read_bytes())if(out/'FINAL.json').exists()else None;err=json.loads((out/'WORKER_ERROR.json').read_bytes())if(out/'WORKER_ERROR.json').exists()else None;terminal.append(dict(role=r['role'],pid=p.pid,GPU_UUID=uuid,returncode=rc,actual_waited=True,ready=(out/'WORKER_SCENE_READY.json').exists(),started=(out/'WORKER_EVAL_STARTED.json').exists(),pre_close=(out/'PRE_CLOSE.json').exists(),passed_execution=bool(rc==0 and data and data.get('passed_execution')and err is None and(out/'PRE_CLOSE.json').exists()),data=data,error=err));put('TERMINAL_ROWS.json',terminal)
+-  put('FINAL.json',dict(kind='ACTUAL_SINGLE_GPU_NINE_FRESH80_PARALLEL_SKILL_SCREEN',group_id=plan['group_id'],GPU_UUID=uuid,common_start_epoch=group_start,nine_ready_before_start=True,all_nine_actual_execution_complete=all(v['passed_execution']for v in terminal),rows=terminal,source20k_DR_history_sliced=False,source20k_histories_physically_applied=False,old20k_fullrestore_proof_preserved_separately=True,new_PPO_BPTT_GO=0,canonical_writes=0,epoch=time.time()))
++   rc=p.wait();semantic=evaluate_waited_eval_case(out,rc,dict(r,paired_reset_protocol=plan['paired_reset_protocol']),plan['group_id']);data=json.loads((out/'FINAL.json').read_bytes())if(out/'FINAL.json').exists()else None;err=json.loads((out/'WORKER_ERROR.json').read_bytes())if(out/'WORKER_ERROR.json').exists()else None;terminal.append(dict(role=r['role'],pid=p.pid,GPU_UUID=uuid,returncode=rc,actual_waited=True,ready=(out/'WORKER_SCENE_READY.json').exists(),started=(out/'WORKER_EVAL_STARTED.json').exists(),pre_close=(out/'PRE_CLOSE.json').exists(),passed_execution=semantic['passed_execution'],semantic=semantic,data=data,error=err));put('TERMINAL_ROWS.json',terminal)
++  put('FINAL.json',dict(kind='ACTUAL_SINGLE_GPU_EIGHT_A1_FROZEN80_SOURCE_CANDIDATE_V2',group_id=plan['group_id'],GPU_UUID=uuid,common_start_epoch=group_start,eight_ready_before_start=True,all_eight_actual_execution_complete=all(v['passed_execution']for v in terminal),rows=terminal,source20k_DR_history_sliced=False,source20k_histories_physically_applied=False,old20k_fullrestore_proof_preserved_separately=True,new_PPO_BPTT_GO=0,canonical_writes=0,epoch=time.time()))
+  except BaseException:
+   errors.append(traceback.format_exc());put('GROUP_ABORT.json',dict(epoch=time.time(),errors=errors,ownscope_only=True));put('GROUP_STARTUP_ABORT.json',dict(epoch=time.time(),errors=errors,ownscope_only=True));put('PARENT_ORIGINAL_ERROR.json',dict(errors=errors,no_samepurpose_automatic_retry=True))
+  finally:
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V5_FEEDBACK_DESCRIPTOR\e1_parallel_worker_safe.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\STDLIB_FAKE_EVAL_CASES_w6_tyh0l\BUILDER_SOURCE_COPY_NOT_STAGE_sysfynv0\e1_parallel_worker_a1_frozen_candidate_v2.py
+@@ -4,8 +4,9 @@
+ from pathlib import Path
+ from types import SimpleNamespace
+ import argparse,ast,hashlib,json,os,sys,time,traceback
+-from e1_group_scope import KIND,validate_group_task,put_json,wait_group_start
+-from e1_identity_cache import WholeCheckpointIdentityCache
++sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
++from e1_group_scope import KIND,put_json,wait_group_start
++from a1_frozen_eval_runtime_v2 import validate_group_task,A1CheckpointAdapter,configure_candidate_runtime,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
+ from e1_fresh_runtime_bridge import HOLDER,attach_fresh_guard,fresh_full_dr_audit,build_cached_frozen_policy
+ from e1_endpoint_predicate import EndpointPredicate
+ 
+@@ -45,7 +46,7 @@
+ def _ready(task,case,bundle,cache,observer,primary):
+     e=bundle['env'];cache.assert_entire_root_unchanged();before_reserved=cache.t.cuda.memory_reserved();cache.t.cuda.empty_cache();after_reserved=cache.t.cuda.memory_reserved()
+     assert int(e._sim_step_counter)==0 and int(e._integrated_contact.tick)==0 and observer.actor_calls==0
+-    put_json(case/'WORKER_SCENE_READY.json',dict(kind=KIND,role=task['role'],group_id=task['group_id'],GPU_UUID=task['GPU_UUID'],source_cache=cache.receipt(),actual_N80_fresh_fullDR_audit=bundle['audit_before'],actor_A0_STRICT_with_learned_STD_loaded=True,actor_forward_calls=0,physics_steps=0,explicit_reset_count=1,primaryrefs=primary,kit_storage=str(case/'kit_isolation'),warp_storage=str(case/'warp_cache'),no_private_or_finite_lock_acquire=True,inherited_group_lock_fds_validated=task['actual_group_admission']['inherited_lock_fds'],saved20k_DR_physically_applied=False,waiting_group_start=True,torch_reserved_bytes_before_empty_cache=before_reserved,torch_reserved_bytes_after_empty_cache=after_reserved,resource_only_GPU_capacity_preset={k:getattr(e.cfg.sim.physics,k)for k in ('gpu_max_rigid_contact_count','gpu_max_rigid_patch_count','gpu_found_lost_pairs_capacity','gpu_found_lost_aggregate_pairs_capacity','gpu_total_aggregate_pairs_capacity')},capacity_overflow_in_closed_logs_disqualifies=True))
++    put_json(case/'WORKER_SCENE_READY.json',dict(kind=KIND,role=task['role'],group_id=task['group_id'],GPU_UUID=task['GPU_UUID'],source_cache=cache.receipt(),actual_N80_fresh_fullDR_audit=bundle['audit_before'],actor_A1_whole_pi_and_norms_strict_frozen=True,actor_forward_calls=0,physics_steps=0,explicit_reset_count=1,primaryrefs=primary,kit_storage=str(case/'kit_isolation'),warp_storage=str(case/'warp_cache'),no_private_or_finite_lock_acquire=True,inherited_group_lock_fds_validated=task['actual_group_admission']['inherited_lock_fds'],saved20k_DR_physically_applied=False,waiting_group_start=True,torch_reserved_bytes_before_empty_cache=before_reserved,torch_reserved_bytes_after_empty_cache=after_reserved,resource_only_GPU_capacity_preset={k:getattr(e.cfg.sim.physics,k)for k in ('gpu_max_rigid_contact_count','gpu_max_rigid_patch_count','gpu_found_lost_pairs_capacity','gpu_found_lost_aggregate_pairs_capacity','gpu_total_aggregate_pairs_capacity')},capacity_overflow_in_closed_logs_disqualifies=True))
+ 
+ 
+ def _run_loop(task,case,bundle,cache,vec,policy,observer,torch,np,wp,tensor):
+@@ -98,12 +99,12 @@
+         assert int(e._sim_step_counter)-starttick==steps*8 and int(e._feedback_100hz_tick)-startfb==steps*2
+         assert {k:e._physics_action_delay.calls[k]-calls0[k] for k in ('legs','wheels')}==dict(legs=steps*8,wheels=steps*8)
+         cache.assert_entire_root_unchanged()
+-        for k,v in HOLDER['actor'].state_dict().items():assert torch.equal(v.detach().cpu(),cache.core('actor_state_dict')[k]),k
++        cache.check_actor(HOLDER['actor'])
+         data={k:np.stack(v) for k,v in rows.items()};data['physical_wheel_force_N']=np.stack(forces);raw=case/'OWN_NEW_SKILL_RAW.npz';np.savez_compressed(raw,**data);rawbytes=raw.read_bytes()
+         if predicate is not None:metrics=predicate.finish()
+         else:
+             roots=data['root'][:,:,:2];metrics=dict(kind='SLOPE50_DEFAULT_TRAINING_AXIS_DESCRIPTIVE_ONLY',accepted_original_cohort_rule_saved=False,all_environment_local_root_xy_min=roots.min(0).tolist(),all_environment_local_root_xy_max=roots.max(0).tolist(),per_environment_reason_counts=data['reasons'].sum(0).tolist(),original_fullramp_skill_graduation='UNKNOWN_NOT_CLAIMED',no_SLOPE135_predicate_or27_27_scope_borrowed=True)
+-        return dict(kind=KIND,role=task['role'],group_id=task['group_id'],GPU_UUID=task['GPU_UUID'],passed_execution=True,controls=steps,physics=steps*8,feedback=steps*2,seconds=steps*.02,actor_calls=observer.actor_calls,source_cache=cache.receipt(),fresh_fullDR_before=bundle['audit_before'],fresh_fullDR_after=fresh_full_dr_audit(e,bundle['guard'],tensor),route_scope=bundle['route_scope'],metrics=metrics,reason_names=names,declared_timeouts=decl,termination_counts={n:int(data['reasons'][...,j].sum()) for j,n in enumerate(names)},raw=dict(path=str(raw),bytes=len(rawbytes),SHA=hashlib.sha256(rawbytes).hexdigest(),shape={k:list(v.shape) for k,v in data.items()}),wall_start_epoch=start,wall_end_epoch=time.time(),optimizer_updates=0,saved20k_DR_physically_applied=False,state_projection_or_slicing=False,whole20k_savedrestore_claim=False,cached_critic17AdamLRiter_preserved_not_live_runner_restore=True,backend_independent_qualification=False,current_thresholds=dict(closure=.01,mimic=.01),no_new_aggregate_graduation_rate=True,Appclose_and_parent_wait_required=True)
++        return dict(kind=KIND,num_envs=80,role=task['role'],group_id=task['group_id'],GPU_UUID=task['GPU_UUID'],passed_execution=True,controls=steps,physics=steps*8,feedback=steps*2,seconds=steps*.02,actor_calls=observer.actor_calls,source_cache=cache.receipt(),fresh_fullDR_before=bundle['audit_before'],fresh_fullDR_after=fresh_full_dr_audit(e,bundle['guard'],tensor),route_scope=bundle['route_scope'],metrics=metrics,reason_names=names,declared_timeouts=decl,termination_counts={n:int(data['reasons'][...,j].sum()) for j,n in enumerate(names)},raw=dict(path=str(raw),bytes=len(rawbytes),SHA=hashlib.sha256(rawbytes).hexdigest(),shape={k:list(v.shape) for k,v in data.items()}),wall_start_epoch=start,wall_end_epoch=time.time(),optimizer_updates=0,saved20k_DR_physically_applied=False,state_projection_or_slicing=False,whole20k_savedrestore_claim=False,cached_whole_A1_CPU_root_not_live_WM_critic_optimizer_restore=True,backend_independent_qualification=False,current_thresholds=dict(closure=.01,mimic=.01),no_new_aggregate_graduation_rate=True,integration=INTEGRATION,paired_reset_protocol=paired_protocol_receipt(),unresolved_evidence=unresolved_evidence(),Appclose_and_parent_wait_required=True)
+     finally:
+         e.termination_manager.compute=oldterm;cap.capture=original_capture
+ 
+@@ -112,7 +113,7 @@
+     parser=argparse.ArgumentParser();parser.add_argument('--task',type=Path,required=True);parser.add_argument('--group-root',type=Path,required=True);cli=parser.parse_args()
+     case=cli.task.resolve().parent;group=cli.group_root.resolve();stage='STARTUP';app=None;cache=None
+     try:
+-        task=json.loads(cli.task.read_bytes());contracts=json.loads((Path(__file__).parent/'ROLE_CONTRACTS.json').read_bytes());validate_group_task(task,role,group,case,contracts)
++        task=json.loads(cli.task.read_bytes());contracts=json.loads((Path(__file__).parent/'ROLE_CONTRACTS.json').read_bytes());validate_group_task(task,role,group,case,contracts);configure_candidate_runtime(task,case)
+         runtime=Path(task['runtime_root']);mod=runtime/'runtime/isaac/mod4';meta=json.loads((runtime/'E1_CANONICAL_SOURCE_METADATA.json').read_bytes());assert meta['canonical']==role
+         _configure_environment(task,case,meta);sys.path[:0]=[str(mod),str(runtime/'runtime')]
+         from launcher_mod4v1_e1_actual import E1IsolatedAppLauncher as AppLauncher
+@@ -125,7 +126,7 @@
+         import mod4_task
+         verify_task_module(mod4_task,identity);assert mod4_task.POLICY_HZ==50 and mod4_task.DECIMATION==8
+         from mild_dr import tensor
+-        cache=WholeCheckpointIdentityCache(task['source_path'],torch,expected_metadata=contracts[role]['core'],expected_SHA=task['source_SHA'],expected_bytes=task['source_bytes'])
++        cache=A1CheckpointAdapter(torch,task)
+         def forbidden(*a,**k):raise RuntimeError('GroupN80skill screen forbids optimizer/PPO')
+         torch.optim.Optimizer.step=forbidden;torch.optim.Adam.step=forbidden
+         torch.manual_seed(20260928)
+@@ -142,6 +143,7 @@
+         put_json(case/'FINAL.json',result);stage='COMPLETE'
+     except BaseException:
+         error=dict(kind=KIND,role=role,stage=stage,error=traceback.format_exc(),no_independent_retry=True,parent_must_cancel_entire_group_scope=True,saved20k_DR_physically_applied=False)
++        record_primary_error(case,role=role,phase=stage,error=error['error'],cache=cache)
+         if cache is not None:
+             try:error['source_cache']=cache.receipt()
+             except BaseException:error['source_cache_error']=traceback.format_exc()
+@@ -149,10 +151,6 @@
+             data={k:np.stack(v) for k,v in HOLDER['loop_rows'].items() if v}
+             if HOLDER.get('rawforces'):data['physical_wheel_force_N']=np.stack(HOLDER['rawforces'])
+             if data:np.savez_compressed(case/'OWN_PARTIAL_SKILL_RAW.npz',**data)
+-        put_json(case/'WORKER_ERROR.json',error);raise
++        raise
+     finally:
+-        try:
+-            if HOLDER.get('env') is not None and not HOLDER.get('closed',False):HOLDER['env'].close();HOLDER['closed']=True
+-        finally:
+-            put_json(case/'PRE_CLOSE.json',dict(kind=KIND,role=role,stage=stage,App_close_will_be_called=app is not None,env_close_returned=HOLDER.get('closed',False),parent_wait_and_group_lock_release_authoritative=True))
+-            if app is not None:app.close()
++        close_original_eval_resources(HOLDER.get('env'),app,case,task,env_already_closed=HOLDER.get('closed',False))
+--- F:\RMPOLAR-RL\mod4v1_experts_fulldr_rm70_20261101\E1_N80_FRESH_FULLDR_PARALLEL_SKILL_SCREEN_SOURCE_V5_FEEDBACK_DESCRIPTOR\e1_fresh_runtime_bridge.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_a1_frozen_eval_integration_v2\STDLIB_FAKE_EVAL_CASES_w6_tyh0l\BUILDER_SOURCE_COPY_NOT_STAGE_sysfynv0\e1_fresh_bridge_a1_frozen_candidate_v2.py
+@@ -2,10 +2,12 @@
+ OwnoriginalN80factory retained; onlyA0 inferencevec avoids an implicitextrareset.
+ """
+ from e1_identity_cache import PURPOSE
++from a1_frozen_eval_runtime_v2 import install_paired_pose_before_original_reset,build_a1_original_vec
+ HOLDER={}
+ 
+ 
+ def attach_fresh_guard(env,identity,torch_module,tensor):
++    install_paired_pose_before_original_reset(env)
+     from mod4v1_fresh_dr_guard import FreshDRNominalGuard
+     g=FreshDRNominalGuard(env,identity,torch_module=torch_module,tensor_converter=tensor)
+     g.assert_new_nominals_unchanged();original=env.reset;count=[0]
+@@ -40,44 +42,5 @@
+     return dict(purpose=PURPOSE,physical_scope='FreshN80ownsourceconstructor+originalONEreset, no20k DRrestore',actual_parameters=api,sensor_manager=sensor,chassis_PD=pd,spring=spring,gas=gas,action_recipe=env.action_delay_recipe(),feedback_recipe=env.feedback_delay_recipe(),spring_recipe=env.spring_pressure_recipe(),gas_recipe=env.gas_damping_recipe(),chassis_PD_recipe=env.chassis_pd_recipe(),original_seed=20260928,one_explicit_fresh_reset=1,fresh_N80_D0_D7_enabled=True,saved20k_history_physically_applied=False,backend_independent_qualification=False,D6_scope='Originalgasdamping_only_notalljointfriction',new_constructor_nominals_preserved=True)
+ 
+ 
+-class A0NoResetDecisionVec:
+-    """Onlydata bridge, neverconstructsSDKvec/runner orcallsreset.
+-    Sameoriginalmanualcommand->managerpolicy35->A0andclip_actions6 path;
+-    originalA0doesnotconsume history175 orcritic, no new history/RNG state.
+-    """
+-    def __init__(self,env,actor,digest,torch_module,TensorDict,tensor):
+-        self.env=self.unwrapped=env;self.actor=actor;self.checkpoint_sha256=digest
+-        self.num_envs=env.num_envs;self.device=env.device;self.t=torch_module;self.TD=TensorDict;self.tensor=tensor
+-        self.actor_calls=0;self.command_error=0.;self.env_reset_calls=0
+-    def get_observations(self):
+-        clean=self.env.observation_manager.compute()
+-        assert tuple(clean['policy'].shape)==(80,35) and tuple(clean['critic'].shape)==(80,38)
+-        self.command_error=max(self.command_error,float((clean['policy'][:,:3]-self.env.command_manager.get_term('twist').command).abs().max()))
+-        assert self.command_error<=1e-6
+-        return self.TD(dict(policy=clean['policy']),batch_size=[80])
+-    def policy(self,obs):
+-        self.actor_calls+=1
+-        with self.t.inference_mode():return self.actor(obs,stochastic_output=False)
+-    def step(self,action):
+-        obs,reward,terminated,truncated,extra=self.env.step(self.t.clamp(action,-6.,6.))
+-        return obs,reward,terminated|truncated,extra
+-    def audit(self):
+-        return dict(variant='A0',actual_command_error=self.command_error,actor_calls=self.actor_calls,current_actor_dimension=35,actor_receives_critic=False,actor_receives_history=False,optimizer_updates=0,extra_explicit_env_resets=self.env_reset_calls,clip_actions=6.,scope=PURPOSE)
+-
+-
+ def build_cached_frozen_policy(env,cache,torch_module,tensor):
+-    from tensordict import TensorDict
+-    from rsl_rl.models import MLPModel
+-    # ExactA0 constructorarguments fromoriginalfrozen_history_policy.load_frozen_actor.
+-    obs=TensorDict(dict(policy=torch_module.zeros(80,35),critic=torch_module.zeros(80,38),feedback_history=torch_module.zeros(80,175)),batch_size=[80])
+-    with torch_module.random.fork_rng(devices=[]):
+-        cfg=dict(class_name='rsl_rl.modules.distribution:GaussianDistribution',init_std=1.,std_type='scalar')
+-        actor=MLPModel(obs,dict(actor=['policy'],critic=['critic']),'actor',6,[256,128,64],'elu',distribution_cfg=cfg)
+-        actor.load_state_dict(cache.core('actor_state_dict'),strict=True)
+-    actor.to(env.device).eval();actor.requires_grad_(False)
+-    expected=cache.core('actor_state_dict')
+-    assert set(actor.state_dict())==set(expected)
+-    for k,v in actor.state_dict().items():assert torch_module.equal(v.detach().cpu(),expected[k]),k
+-    cache.assert_entire_root_unchanged();cache.live_actor_STD_loaded=True;vec=A0NoResetDecisionVec(env,actor,cache.SHA,torch_module,TensorDict,tensor)
+-    HOLDER.update(actor=actor,vec=vec,cache=cache)
+-    return vec,vec.policy,vec
++    return build_a1_original_vec(env,cache,torch_module,tensor,HOLDER)

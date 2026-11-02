@@ -1,0 +1,114 @@
+{
+  "mode": "ARITHMETIC_ONLY_NOT_FIRMWARE",
+  "checks_passed": 15,
+  "checks_failed": 0,
+  "checks": [
+    "torque_-108",
+    "torque_-54",
+    "torque_-27",
+    "torque_0",
+    "torque_27",
+    "torque_54",
+    "torque_108",
+    "feedback_minimum",
+    "feedback_maximum",
+    "feedback_near_zero",
+    "feedback_full_scale",
+    "symmetric_12bit_zero_quantization",
+    "power_high_byte_shift_defect",
+    "integer_division_gear_defect",
+    "ik_050m_outside_domain"
+  ],
+  "vectors": [
+    {
+      "input_nm": -108,
+      "encoded_uint12": 0,
+      "payload_hex": "00 00 00 00 00 00 00 00",
+      "decoded_nm": -54.0
+    },
+    {
+      "input_nm": -54,
+      "encoded_uint12": 0,
+      "payload_hex": "00 00 00 00 00 00 00 00",
+      "decoded_nm": -54.0
+    },
+    {
+      "input_nm": -27,
+      "encoded_uint12": 1023,
+      "payload_hex": "00 00 00 00 00 00 03 ff",
+      "decoded_nm": -27.01978021978022
+    },
+    {
+      "input_nm": 0,
+      "encoded_uint12": 2047,
+      "payload_hex": "00 00 00 00 00 00 07 ff",
+      "decoded_nm": -0.01318681318681314
+    },
+    {
+      "input_nm": 27,
+      "encoded_uint12": 3071,
+      "payload_hex": "00 00 00 00 00 00 0b ff",
+      "decoded_nm": 26.99340659340659
+    },
+    {
+      "input_nm": 54,
+      "encoded_uint12": 4095,
+      "payload_hex": "00 00 00 00 00 00 0f ff",
+      "decoded_nm": 54.0
+    },
+    {
+      "input_nm": 108,
+      "encoded_uint12": 4095,
+      "payload_hex": "00 00 00 00 00 00 0f ff",
+      "decoded_nm": 54.0
+    },
+    {
+      "feedback_case": "minimum",
+      "payload_hex": "11 00 00 00 00 00 00 00",
+      "decoded": {
+        "status": 1,
+        "position_rad": -3.14,
+        "speed_rad_s": -45.0,
+        "torque_nm": -54.0
+      }
+    },
+    {
+      "feedback_case": "maximum",
+      "payload_hex": "11 ff ff ff ff ff 00 00",
+      "decoded": {
+        "status": 1,
+        "position_rad": 3.14,
+        "speed_rad_s": 45.0,
+        "torque_nm": 54.0
+      }
+    },
+    {
+      "feedback_case": "near_zero",
+      "payload_hex": "11 7f ff 7f f7 ff 00 00",
+      "decoded": {
+        "status": 1,
+        "position_rad": -4.791332875564436e-05,
+        "speed_rad_s": -0.010989010989014503,
+        "torque_nm": -0.01318681318681314
+      }
+    }
+  ],
+  "observations": {
+    "power_u16_source": 52,
+    "power_u16_expected_if_big_endian": 4660,
+    "source_268_div_17_C_integer": 15,
+    "real_268_div_17": 15.764705882352942,
+    "factor_relative_error": -0.04850746268656725,
+    "ik_max_reachable_m_from_source_constants": 0.4591212653778559,
+    "ik_acos_argument_at_header_max_050m": 1.1049456911263613
+  },
+  "source_citations": [
+    "reference_selected/chassis/chassis/application/CAN_receive.c#L175-L222",
+    "reference_selected/chassis/chassis/application/CAN_receive.c#L60-L109",
+    "reference_selected/chassis/chassis/application/CAN_receive.c#L123-L130",
+    "reference_selected/chassis/chassis/Task/chassis_task.c#L655-L656",
+    "reference_selected/chassis/chassis/algorithm/leg_position.c#L138-L150",
+    "reference_selected/chassis/chassis/application/chassis_behaviour.h#L16-L19"
+  ],
+  "script_sha256": "cc25426fd4a2db1e9677a7c5e5710eb3842a28bd4767aa689a0d78ad11e55006"
+}

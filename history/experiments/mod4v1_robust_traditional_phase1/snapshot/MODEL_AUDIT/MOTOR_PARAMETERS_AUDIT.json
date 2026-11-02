@@ -1,0 +1,88 @@
+{
+  "leg_motor": {
+    "model": "DM8009P",
+    "count": 4,
+    "bus_voltage_v": 24.0,
+    "mass_each_kg": 0.963,
+    "continuous_torque_nm": 20.0,
+    "peak_torque_nm": 40.0,
+    "rated_speed_rpm": 100.0,
+    "no_load_speed_rpm": 160.0,
+    "gear_ratio_internal": 9.0,
+    "external_sprocket_ratio": 1.0,
+    "output_armature_kg_m2": 0.025,
+    "armature_status": "provisional, internal rotor inertia not published in cited manual",
+    "envelope_intercept_nm": 53.333333333333336,
+    "envelope_slope_nm_s_rad": 3.183098861837907,
+    "envelope_status": "engineering linear voltage envelope fitted to 20 Nm at 100 rpm and no-load 160 rpm, clipped at 40 Nm; not a measured full torque-speed curve",
+    "source_url": "https://doc.switch-science.com/media/files/0eacb9ba-85e6-4761-93df-92773000fddb.pdf",
+    "status": "User explicitly confirmed all four MOD4 leg motors are DM8009P, 24 V on 2026-09-10; STEP labels DM8009. Dynamic armature/envelope remain estimates.",
+    "official_model": "DM-J8009P-2EC",
+    "mass_status": "OEM nominal, manualV1.3 2026-09-10 corrected prior921g; CAD matching20240809 model, not hardwareV1.1"
+  },
+  "wheel_motor": {
+    "model": "DM3519 + replacement 15.8:1 gearbox",
+    "bus_voltage_v": 24.0,
+    "total_gear_ratio": 15.8,
+    "ratio_status": "User confirmed total rotor-to-wheel ratio; replaces stock gearbox",
+    "reference_stock_ratio": 19.203208556149733,
+    "reference_stock_continuous_torque_nm": 3.5,
+    "reference_stock_peak_torque_nm": 7.8,
+    "reference_stock_rated_speed_rpm": 395.0,
+    "reference_stock_no_load_speed_rpm": 435.0,
+    "relative_gearbox_efficiency_assumption": 0.9,
+    "continuous_torque_nm": 2.591754385964913,
+    "peak_torque_nm": 5.775909774436091,
+    "rated_speed_rpm": 480.08021390374324,
+    "no_load_speed_rpm": 528.6959317674135,
+    "assembly_mass_status": "New CAD gearbox mass is computed part by part, not replaced with the stock 0.396 kg gearbox mass.",
+    "motor_rotor_inertia_kg_m2": 4e-06,
+    "output_armature_kg_m2": 0.0009985600000000001,
+    "armature_status": "Unmeasured rotor estimate reflected by total ratio squared; gearbox rotating inertia not identified",
+    "wheel_radius_m": 0.0625,
+    "rated_ground_speed_m_s": 3.142117652362117,
+    "no_load_ground_speed_m_s": 3.4603067817152438,
+    "envelope_intercept_nm": 28.18532894736838,
+    "envelope_slope_nm_s_rad": 0.5090829138384437,
+    "envelope_status": "Estimated linear voltage envelope scaled from stock rated/no-load points; peak duration, thermal and bus-power limits unmeasured",
+    "visual_geometry_status": "This MOD4 STEP contains the replacement P15.8 gearbox and DM3519 motor.",
+    "source_url": "https://gitee.com/kit-miao/DM-S3519-1EC",
+    "source_catalog_url": "https://www.worldrobotconference.com/profile/robot/download/2025/06/30/%E8%BE%BE%E5%A6%99%E7%A7%91%E6%8A%80DAMIAO%20-%202025%E5%B9%B4%E4%BA%A7%E5%93%81%E9%80%89%E5%9E%8B%E6%89%8B%E5%86%8C_20250630192546A441.pdf",
+    "bare_motor_mass_assumption_kg": 0.131,
+    "bare_motor_mass_status": "User provided131g per retained bare motor after removing original reducer; complete396g module not used",
+    "bare_motor_mass_user_provided_kg": 0.131
+  },
+  "actual_gas_springs": {
+    "left_gas_slide": {
+      "target_position_m": 0.22063944109012937,
+      "stiffness_n_m": 2000.0,
+      "damping_n_s_m": 3.0
+    },
+    "right_gas_slide": {
+      "target_position_m": 0.2206394410901294,
+      "stiffness_n_m": 2000.0,
+      "damping_n_s_m": 3.0
+    }
+  },
+  "legacy_motor_metadata": {
+    "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\model_parameters.json",
+    "bytes": 6489,
+    "sha256": "0b3ba2494723248ee0e32596f3b408853c70081885ab650ba0d2bf7ec1dfee3a"
+  },
+  "sources": {
+    "leg_confirmation": "Contract reports historical user confirmation DM8009P 24V ×4, 2026-09-10; latest official_model DM-J8009P-2EC. This turn did not independently inspect a physical nameplate or OEM PDF.",
+    "wheel_confirmation": "Contract reports user-confirmed DM3519 + replacement total rotor-to-wheel 15.8. CAD parent paths include DM-S3519-1EC_3d-250509; leaf filenames contain older 3510 naming and are not motor identity evidence by themselves."
+  },
+  "physical_bindings_unknown": [
+    "CAN IDs and bus mapping",
+    "hardware revisions and actual controller board",
+    "encoder signs/zero offsets",
+    "IMU exact mounting orientation and calibration",
+    "measured rotor/gear inertia",
+    "measured torque-speed efficiency/thermal/current/power envelope"
+  ],
+  "motor_passive_damping_source": "Actual SHA-pinned USD static drive, matching old MJCF .2 leg/.015 wheel; no runtime-zero override applied",
+  "nominal_wheel_rolling_radius_m": 0.0625,
+  "actual_USD_tire_convex_hull_max_radius_m": 0.06369999796152115,
+  "nominal_radius_is_not_exact_collision_support": true
+}

@@ -1,0 +1,894 @@
+--- F:\RMPOLAR-RL\traditional_control_20261101\model\mod4_400N.xml
++++ F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102\MODEL_AUDIT\mod4v1_usd_source_aligned.xml
+@@ -1,6 +1,6 @@
+ <?xml version='1.0' encoding='utf-8'?>
+ <mujoco model="MOD4 six-bar serial wheel-legged chassis">
+-  <compiler angle="radian" meshdir="assets" autolimits="true" inertiafromgeom="false" balanceinertia="false" />
++  <compiler angle="radian" meshdir="." autolimits="true" inertiafromgeom="false" balanceinertia="false" />
+   <option timestep="0.0005" integrator="implicitfast" solver="Newton" iterations="100" tolerance="1e-10" cone="elliptic" gravity="0 0 -9.81" jacobian="dense">
+     <flag multiccd="enable" />
+   </option>
+@@ -26,283 +26,285 @@
+     <material name="electronics" rgba="0.17 0.28 0.3 1" specular=".3" shininess=".4" />
+     <material name="motor" rgba="0.22 0.24 0.26 1" specular=".3" shininess=".4" />
+     <material name="aluminum" rgba="0.68 0.71 0.75 1" specular=".3" shininess=".4" />
+-    <mesh name="part_000" file="part_000.stl" />
+-    <mesh name="part_001" file="part_001.stl" />
+-    <mesh name="part_002" file="part_002.stl" />
+-    <mesh name="part_003" file="part_003.stl" />
+-    <mesh name="part_004" file="part_004.stl" />
+-    <mesh name="part_005" file="part_005.stl" />
+-    <mesh name="part_006" file="part_006.stl" />
+-    <mesh name="part_007" file="part_007.stl" />
+-    <mesh name="part_008" file="part_008.stl" />
+-    <mesh name="part_009" file="part_009.stl" />
+-    <mesh name="part_010" file="part_010.stl" />
+-    <mesh name="part_011" file="part_011.stl" />
+-    <mesh name="part_012" file="part_012.stl" />
+-    <mesh name="part_013" file="part_013.stl" />
+-    <mesh name="part_014" file="part_014.stl" />
+-    <mesh name="part_015" file="part_015.stl" />
+-    <mesh name="part_016" file="part_016.stl" />
+-    <mesh name="part_017" file="part_017.stl" />
+-    <mesh name="part_018" file="part_018.stl" />
+-    <mesh name="part_019" file="part_019.stl" />
+-    <mesh name="part_020" file="part_020.stl" />
+-    <mesh name="part_021" file="part_021.stl" />
+-    <mesh name="part_022" file="part_022.stl" />
+-    <mesh name="part_023" file="part_023.stl" />
+-    <mesh name="part_024" file="part_024.stl" />
+-    <mesh name="part_025" file="part_025.stl" />
+-    <mesh name="part_026" file="part_026.stl" />
+-    <mesh name="part_027" file="part_027.stl" />
+-    <mesh name="part_028" file="part_028.stl" />
+-    <mesh name="part_029" file="part_029.stl" />
+-    <mesh name="part_030" file="part_030.stl" />
+-    <mesh name="part_031" file="part_031.stl" />
+-    <mesh name="part_032" file="part_032.stl" />
+-    <mesh name="part_033" file="part_033.stl" />
+-    <mesh name="part_034" file="part_034.stl" />
+-    <mesh name="part_035" file="part_035.stl" />
+-    <mesh name="part_036" file="part_036.stl" />
+-    <mesh name="part_037" file="part_037.stl" />
+-    <mesh name="part_038" file="part_038.stl" />
+-    <mesh name="part_039" file="part_039.stl" />
+-    <mesh name="part_040" file="part_040.stl" />
+-    <mesh name="part_041" file="part_041.stl" />
+-    <mesh name="part_042" file="part_042.stl" />
+-    <mesh name="part_043" file="part_043.stl" />
+-    <mesh name="part_044" file="part_044.stl" />
+-    <mesh name="part_045" file="part_045.stl" />
+-    <mesh name="part_046" file="part_046.stl" />
+-    <mesh name="part_047" file="part_047.stl" />
+-    <mesh name="part_048" file="part_048.stl" />
+-    <mesh name="part_049" file="part_049.stl" />
+-    <mesh name="part_050" file="part_050.stl" />
+-    <mesh name="part_051" file="part_051.stl" />
+-    <mesh name="part_052" file="part_052.stl" />
+-    <mesh name="part_053" file="part_053.stl" />
+-    <mesh name="part_054" file="part_054.stl" />
+-    <mesh name="part_055" file="part_055.stl" />
+-    <mesh name="part_056" file="part_056.stl" />
+-    <mesh name="part_057" file="part_057.stl" />
+-    <mesh name="part_058" file="part_058.stl" />
+-    <mesh name="part_059" file="part_059.stl" />
+-    <mesh name="part_060" file="part_060.stl" />
+-    <mesh name="part_061" file="part_061.stl" />
+-    <mesh name="part_062" file="part_062.stl" />
+-    <mesh name="part_063" file="part_063.stl" />
+-    <mesh name="part_064" file="part_064.stl" />
+-    <mesh name="part_065" file="part_065.stl" />
+-    <mesh name="part_066" file="part_066.stl" />
+-    <mesh name="part_067" file="part_067.stl" />
+-    <mesh name="part_068" file="part_068.stl" />
+-    <mesh name="part_069" file="part_069.stl" />
+-    <mesh name="part_070" file="part_070.stl" />
+-    <mesh name="part_071" file="part_071.stl" />
+-    <mesh name="part_072" file="part_072.stl" />
+-    <mesh name="part_073" file="part_073.stl" />
+-    <mesh name="part_074" file="part_074.stl" />
+-    <mesh name="part_075" file="part_075.stl" />
+-    <mesh name="part_076" file="part_076.stl" />
+-    <mesh name="part_077" file="part_077.stl" />
+-    <mesh name="part_078" file="part_078.stl" />
+-    <mesh name="part_079" file="part_079.stl" />
+-    <mesh name="part_080" file="part_080.stl" />
+-    <mesh name="part_081" file="part_081.stl" />
+-    <mesh name="part_082" file="part_082.stl" />
+-    <mesh name="part_083" file="part_083.stl" />
+-    <mesh name="part_084" file="part_084.stl" />
+-    <mesh name="part_085" file="part_085.stl" />
+-    <mesh name="part_086" file="part_086.stl" />
+-    <mesh name="part_087" file="part_087.stl" />
+-    <mesh name="part_088" file="part_088.stl" />
+-    <mesh name="part_089" file="part_089.stl" />
+-    <mesh name="part_090" file="part_090.stl" />
+-    <mesh name="part_091" file="part_091.stl" />
+-    <mesh name="part_092" file="part_092.stl" />
+-    <mesh name="part_093" file="part_093.stl" />
+-    <mesh name="part_094" file="part_094.stl" />
+-    <mesh name="part_095" file="part_095.stl" />
+-    <mesh name="part_096" file="part_096.stl" />
+-    <mesh name="part_097" file="part_097.stl" />
+-    <mesh name="part_098" file="part_098.stl" />
+-    <mesh name="part_099" file="part_099.stl" />
+-    <mesh name="part_100" file="part_100.stl" />
+-    <mesh name="part_101" file="part_101.stl" />
+-    <mesh name="part_102" file="part_102.stl" />
+-    <mesh name="part_103" file="part_103.stl" />
+-    <mesh name="part_104" file="part_104.stl" />
+-    <mesh name="part_105" file="part_105.stl" />
+-    <mesh name="part_106" file="part_106.stl" />
+-    <mesh name="part_107" file="part_107.stl" />
+-    <mesh name="part_108" file="part_108.stl" />
+-    <mesh name="part_109" file="part_109.stl" />
+-    <mesh name="part_110" file="part_110.stl" />
+-    <mesh name="part_111" file="part_111.stl" />
+-    <mesh name="part_112" file="part_112.stl" />
+-    <mesh name="part_113" file="part_113.stl" />
+-    <mesh name="part_114" file="part_114.stl" />
+-    <mesh name="part_115" file="part_115.stl" />
+-    <mesh name="part_116" file="part_116.stl" />
+-    <mesh name="part_117" file="part_117.stl" />
+-    <mesh name="part_118" file="part_118.stl" />
+-    <mesh name="part_119" file="part_119.stl" />
+-    <mesh name="part_120" file="part_120.stl" />
+-    <mesh name="part_121" file="part_121.stl" />
+-    <mesh name="part_122" file="part_122.stl" />
+-    <mesh name="part_123" file="part_123.stl" />
+-    <mesh name="part_124" file="part_124.stl" />
+-    <mesh name="part_125" file="part_125.stl" />
+-    <mesh name="part_126" file="part_126.stl" />
+-    <mesh name="part_127" file="part_127.stl" />
+-    <mesh name="part_128" file="part_128.stl" />
+-    <mesh name="part_129" file="part_129.stl" />
+-    <mesh name="part_130" file="part_130.stl" />
+-    <mesh name="part_131" file="part_131.stl" />
+-    <mesh name="part_132" file="part_132.stl" />
+-    <mesh name="part_133" file="part_133.stl" />
+-    <mesh name="part_134" file="part_134.stl" />
+-    <mesh name="part_135" file="part_135.stl" />
+-    <mesh name="part_136" file="part_136.stl" />
+-    <mesh name="part_137" file="part_137.stl" />
+-    <mesh name="part_138" file="part_138.stl" />
+-    <mesh name="part_139" file="part_139.stl" />
+-    <mesh name="part_140" file="part_140.stl" />
+-    <mesh name="part_141" file="part_141.stl" />
+-    <mesh name="part_142" file="part_142.stl" />
+-    <mesh name="part_143" file="part_143.stl" />
+-    <mesh name="part_144" file="part_144.stl" />
+-    <mesh name="part_145" file="part_145.stl" />
+-    <mesh name="part_146" file="part_146.stl" />
+-    <mesh name="part_147" file="part_147.stl" />
+-    <mesh name="part_148" file="part_148.stl" />
+-    <mesh name="part_149" file="part_149.stl" />
+-    <mesh name="part_150" file="part_150.stl" />
+-    <mesh name="part_151" file="part_151.stl" />
+-    <mesh name="part_152" file="part_152.stl" />
+-    <mesh name="part_153" file="part_153.stl" />
+-    <mesh name="part_154" file="part_154.stl" />
+-    <mesh name="part_155" file="part_155.stl" />
+-    <mesh name="part_156" file="part_156.stl" />
+-    <mesh name="part_157" file="part_157.stl" />
+-    <mesh name="part_158" file="part_158.stl" />
+-    <mesh name="part_159" file="part_159.stl" />
+-    <mesh name="part_160" file="part_160.stl" />
+-    <mesh name="part_161" file="part_161.stl" />
+-    <mesh name="part_162" file="part_162.stl" />
+-    <mesh name="part_163" file="part_163.stl" />
+-    <mesh name="part_164" file="part_164.stl" />
+-    <mesh name="part_165" file="part_165.stl" />
+-    <mesh name="part_166" file="part_166.stl" />
+-    <mesh name="part_167" file="part_167.stl" />
+-    <mesh name="part_168" file="part_168.stl" />
+-    <mesh name="part_169" file="part_169.stl" />
+-    <mesh name="part_170" file="part_170.stl" />
+-    <mesh name="part_171" file="part_171.stl" />
+-    <mesh name="part_172" file="part_172.stl" />
+-    <mesh name="part_173" file="part_173.stl" />
+-    <mesh name="part_174" file="part_174.stl" />
+-    <mesh name="part_175" file="part_175.stl" />
+-    <mesh name="part_176" file="part_176.stl" />
+-    <mesh name="part_177" file="part_177.stl" />
+-    <mesh name="part_178" file="part_178.stl" />
+-    <mesh name="part_179" file="part_179.stl" />
+-    <mesh name="part_180" file="part_180.stl" />
+-    <mesh name="part_181" file="part_181.stl" />
+-    <mesh name="part_182" file="part_182.stl" />
+-    <mesh name="part_183" file="part_183.stl" />
+-    <mesh name="part_184" file="part_184.stl" />
+-    <mesh name="part_185" file="part_185.stl" />
+-    <mesh name="part_186" file="part_186.stl" />
+-    <mesh name="part_187" file="part_187.stl" />
+-    <mesh name="part_188" file="part_188.stl" />
+-    <mesh name="part_189" file="part_189.stl" />
+-    <mesh name="part_190" file="part_190.stl" />
+-    <mesh name="part_191" file="part_191.stl" />
+-    <mesh name="part_192" file="part_192.stl" />
+-    <mesh name="part_193" file="part_193.stl" />
+-    <mesh name="part_194" file="part_194.stl" />
+-    <mesh name="part_195" file="part_195.stl" />
+-    <mesh name="part_196" file="part_196.stl" />
+-    <mesh name="part_197" file="part_197.stl" />
+-    <mesh name="part_198" file="part_198.stl" />
+-    <mesh name="part_199" file="part_199.stl" />
+-    <mesh name="part_200" file="part_200.stl" />
+-    <mesh name="part_201" file="part_201.stl" />
+-    <mesh name="part_202" file="part_202.stl" />
+-    <mesh name="part_203" file="part_203.stl" />
+-    <mesh name="part_204" file="part_204.stl" />
+-    <mesh name="part_205" file="part_205.stl" />
+-    <mesh name="part_206" file="part_206.stl" />
+-    <mesh name="part_207" file="part_207.stl" />
+-    <mesh name="part_208" file="part_208.stl" />
+-    <mesh name="part_209" file="part_209.stl" />
+-    <mesh name="part_210" file="part_210.stl" />
+-    <mesh name="part_211" file="part_211.stl" />
+-    <mesh name="part_212" file="part_212.stl" />
+-    <mesh name="part_213" file="part_213.stl" />
+-    <mesh name="part_214" file="part_214.stl" />
+-    <mesh name="part_215" file="part_215.stl" />
+-    <mesh name="part_216" file="part_216.stl" />
+-    <mesh name="part_217" file="part_217.stl" />
+-    <mesh name="part_218" file="part_218.stl" />
+-    <mesh name="part_219" file="part_219.stl" />
+-    <mesh name="part_220" file="part_220.stl" />
+-    <mesh name="part_221" file="part_221.stl" />
+-    <mesh name="part_222" file="part_222.stl" />
+-    <mesh name="part_223" file="part_223.stl" />
+-    <mesh name="part_224" file="part_224.stl" />
+-    <mesh name="part_225" file="part_225.stl" />
+-    <mesh name="part_226" file="part_226.stl" />
+-    <mesh name="part_227" file="part_227.stl" />
+-    <mesh name="part_228" file="part_228.stl" />
+-    <mesh name="part_229" file="part_229.stl" />
+-    <mesh name="part_230" file="part_230.stl" />
+-    <mesh name="part_231" file="part_231.stl" />
+-    <mesh name="part_232" file="part_232.stl" />
+-    <mesh name="part_233" file="part_233.stl" />
+-    <mesh name="part_234" file="part_234.stl" />
+-    <mesh name="part_235" file="part_235.stl" />
+-    <mesh name="part_236" file="part_236.stl" />
+-    <mesh name="part_237" file="part_237.stl" />
+-    <mesh name="part_238" file="part_238.stl" />
+-    <mesh name="part_239" file="part_239.stl" />
+-    <mesh name="part_240" file="part_240.stl" />
+-    <mesh name="part_241" file="part_241.stl" />
+-    <mesh name="part_242" file="part_242.stl" />
+-    <mesh name="part_243" file="part_243.stl" />
+-    <mesh name="part_244" file="part_244.stl" />
+-    <mesh name="part_245" file="part_245.stl" />
+-    <mesh name="part_246" file="part_246.stl" />
+-    <mesh name="part_247" file="part_247.stl" />
+-    <mesh name="part_248" file="part_248.stl" />
+-    <mesh name="part_249" file="part_249.stl" />
+-    <mesh name="part_250" file="part_250.stl" />
+-    <mesh name="part_251" file="part_251.stl" />
+-    <mesh name="part_252" file="part_252.stl" />
+-    <mesh name="part_253" file="part_253.stl" />
+-    <mesh name="part_254" file="part_254.stl" />
+-    <mesh name="part_255" file="part_255.stl" />
+-    <mesh name="part_256" file="part_256.stl" />
+-    <mesh name="part_257" file="part_257.stl" />
+-    <mesh name="part_258" file="part_258.stl" />
+-    <mesh name="part_259" file="part_259.stl" />
+-    <mesh name="part_260" file="part_260.stl" />
+-    <mesh name="part_261" file="part_261.stl" />
+-    <mesh name="part_262" file="part_262.stl" />
+-    <mesh name="part_263" file="part_263.stl" />
+-    <mesh name="part_264" file="part_264.stl" />
+-    <mesh name="part_265" file="part_265.stl" />
+-    <mesh name="part_266" file="part_266.stl" />
+-    <mesh name="part_267" file="part_267.stl" />
+-    <mesh name="part_268" file="part_268.stl" />
+-    <mesh name="part_269" file="part_269.stl" />
+-    <mesh name="part_270" file="part_270.stl" />
+-    <mesh name="part_271" file="part_271.stl" />
+-    <mesh name="part_272" file="part_272.stl" />
+-    <mesh name="part_273" file="part_273.stl" />
+-    <mesh name="part_274" file="part_274.stl" />
+-    <mesh name="part_275" file="part_275.stl" />
+-    <mesh name="part_276" file="part_276.stl" />
++    <mesh name="part_000" file="../../traditional_control_20261101/model/assets/part_000.stl" />
++    <mesh name="part_001" file="../../traditional_control_20261101/model/assets/part_001.stl" />
++    <mesh name="part_002" file="../../traditional_control_20261101/model/assets/part_002.stl" />
++    <mesh name="part_003" file="../../traditional_control_20261101/model/assets/part_003.stl" />
++    <mesh name="part_004" file="../../traditional_control_20261101/model/assets/part_004.stl" />
++    <mesh name="part_005" file="../../traditional_control_20261101/model/assets/part_005.stl" />
++    <mesh name="part_006" file="../../traditional_control_20261101/model/assets/part_006.stl" />
++    <mesh name="part_007" file="../../traditional_control_20261101/model/assets/part_007.stl" />
++    <mesh name="part_008" file="../../traditional_control_20261101/model/assets/part_008.stl" />
++    <mesh name="part_009" file="../../traditional_control_20261101/model/assets/part_009.stl" />
++    <mesh name="part_010" file="../../traditional_control_20261101/model/assets/part_010.stl" />
++    <mesh name="part_011" file="../../traditional_control_20261101/model/assets/part_011.stl" />
++    <mesh name="part_012" file="../../traditional_control_20261101/model/assets/part_012.stl" />
++    <mesh name="part_013" file="../../traditional_control_20261101/model/assets/part_013.stl" />
++    <mesh name="part_014" file="../../traditional_control_20261101/model/assets/part_014.stl" />
++    <mesh name="part_015" file="../../traditional_control_20261101/model/assets/part_015.stl" />
++    <mesh name="part_016" file="../../traditional_control_20261101/model/assets/part_016.stl" />
++    <mesh name="part_017" file="../../traditional_control_20261101/model/assets/part_017.stl" />
++    <mesh name="part_018" file="../../traditional_control_20261101/model/assets/part_018.stl" />
++    <mesh name="part_019" file="../../traditional_control_20261101/model/assets/part_019.stl" />
++    <mesh name="part_020" file="../../traditional_control_20261101/model/assets/part_020.stl" />
++    <mesh name="part_021" file="../../traditional_control_20261101/model/assets/part_021.stl" />
++    <mesh name="part_022" file="../../traditional_control_20261101/model/assets/part_022.stl" />
++    <mesh name="part_023" file="../../traditional_control_20261101/model/assets/part_023.stl" />
++    <mesh name="part_024" file="../../traditional_control_20261101/model/assets/part_024.stl" />
++    <mesh name="part_025" file="../../traditional_control_20261101/model/assets/part_025.stl" />
++    <mesh name="part_026" file="../../traditional_control_20261101/model/assets/part_026.stl" />
++    <mesh name="part_027" file="../../traditional_control_20261101/model/assets/part_027.stl" />
++    <mesh name="part_028" file="../../traditional_control_20261101/model/assets/part_028.stl" />
++    <mesh name="part_029" file="../../traditional_control_20261101/model/assets/part_029.stl" />
++    <mesh name="part_030" file="../../traditional_control_20261101/model/assets/part_030.stl" />
++    <mesh name="part_031" file="../../traditional_control_20261101/model/assets/part_031.stl" />
++    <mesh name="part_032" file="../../traditional_control_20261101/model/assets/part_032.stl" />
++    <mesh name="part_033" file="../../traditional_control_20261101/model/assets/part_033.stl" />
++    <mesh name="part_034" file="../../traditional_control_20261101/model/assets/part_034.stl" />
++    <mesh name="part_035" file="../../traditional_control_20261101/model/assets/part_035.stl" />
++    <mesh name="part_036" file="../../traditional_control_20261101/model/assets/part_036.stl" />
++    <mesh name="part_037" file="../../traditional_control_20261101/model/assets/part_037.stl" />
++    <mesh name="part_038" file="../../traditional_control_20261101/model/assets/part_038.stl" />
++    <mesh name="part_039" file="../../traditional_control_20261101/model/assets/part_039.stl" />
++    <mesh name="part_040" file="../../traditional_control_20261101/model/assets/part_040.stl" />
++    <mesh name="part_041" file="../../traditional_control_20261101/model/assets/part_041.stl" />
++    <mesh name="part_042" file="../../traditional_control_20261101/model/assets/part_042.stl" />
++    <mesh name="part_043" file="../../traditional_control_20261101/model/assets/part_043.stl" />
++    <mesh name="part_044" file="../../traditional_control_20261101/model/assets/part_044.stl" />
++    <mesh name="part_045" file="../../traditional_control_20261101/model/assets/part_045.stl" />
++    <mesh name="part_046" file="../../traditional_control_20261101/model/assets/part_046.stl" />
++    <mesh name="part_047" file="../../traditional_control_20261101/model/assets/part_047.stl" />
++    <mesh name="part_048" file="../../traditional_control_20261101/model/assets/part_048.stl" />
++    <mesh name="part_049" file="../../traditional_control_20261101/model/assets/part_049.stl" />
++    <mesh name="part_050" file="../../traditional_control_20261101/model/assets/part_050.stl" />
++    <mesh name="part_051" file="../../traditional_control_20261101/model/assets/part_051.stl" />
++    <mesh name="part_052" file="../../traditional_control_20261101/model/assets/part_052.stl" />
++    <mesh name="part_053" file="../../traditional_control_20261101/model/assets/part_053.stl" />
++    <mesh name="part_054" file="../../traditional_control_20261101/model/assets/part_054.stl" />
++    <mesh name="part_055" file="../../traditional_control_20261101/model/assets/part_055.stl" />
++    <mesh name="part_056" file="../../traditional_control_20261101/model/assets/part_056.stl" />
++    <mesh name="part_057" file="../../traditional_control_20261101/model/assets/part_057.stl" />
++    <mesh name="part_058" file="../../traditional_control_20261101/model/assets/part_058.stl" />
++    <mesh name="part_059" file="../../traditional_control_20261101/model/assets/part_059.stl" />
++    <mesh name="part_060" file="../../traditional_control_20261101/model/assets/part_060.stl" />
++    <mesh name="part_061" file="../../traditional_control_20261101/model/assets/part_061.stl" />
++    <mesh name="part_062" file="../../traditional_control_20261101/model/assets/part_062.stl" />
++    <mesh name="part_063" file="../../traditional_control_20261101/model/assets/part_063.stl" />
++    <mesh name="part_064" file="../../traditional_control_20261101/model/assets/part_064.stl" />
++    <mesh name="part_065" file="../../traditional_control_20261101/model/assets/part_065.stl" />
++    <mesh name="part_066" file="../../traditional_control_20261101/model/assets/part_066.stl" />
++    <mesh name="part_067" file="../../traditional_control_20261101/model/assets/part_067.stl" />
++    <mesh name="part_068" file="../../traditional_control_20261101/model/assets/part_068.stl" />
++    <mesh name="part_069" file="../../traditional_control_20261101/model/assets/part_069.stl" />
++    <mesh name="part_070" file="../../traditional_control_20261101/model/assets/part_070.stl" />
++    <mesh name="part_071" file="../../traditional_control_20261101/model/assets/part_071.stl" />
++    <mesh name="part_072" file="../../traditional_control_20261101/model/assets/part_072.stl" />
++    <mesh name="part_073" file="../../traditional_control_20261101/model/assets/part_073.stl" />
++    <mesh name="part_074" file="../../traditional_control_20261101/model/assets/part_074.stl" />
++    <mesh name="part_075" file="../../traditional_control_20261101/model/assets/part_075.stl" />
++    <mesh name="part_076" file="../../traditional_control_20261101/model/assets/part_076.stl" />
++    <mesh name="part_077" file="../../traditional_control_20261101/model/assets/part_077.stl" />
++    <mesh name="part_078" file="../../traditional_control_20261101/model/assets/part_078.stl" />
++    <mesh name="part_079" file="../../traditional_control_20261101/model/assets/part_079.stl" />
++    <mesh name="part_080" file="../../traditional_control_20261101/model/assets/part_080.stl" />
++    <mesh name="part_081" file="../../traditional_control_20261101/model/assets/part_081.stl" />
++    <mesh name="part_082" file="../../traditional_control_20261101/model/assets/part_082.stl" />
++    <mesh name="part_083" file="../../traditional_control_20261101/model/assets/part_083.stl" />
++    <mesh name="part_084" file="../../traditional_control_20261101/model/assets/part_084.stl" />
++    <mesh name="part_085" file="../../traditional_control_20261101/model/assets/part_085.stl" />
++    <mesh name="part_086" file="../../traditional_control_20261101/model/assets/part_086.stl" />
++    <mesh name="part_087" file="../../traditional_control_20261101/model/assets/part_087.stl" />
++    <mesh name="part_088" file="../../traditional_control_20261101/model/assets/part_088.stl" />
++    <mesh name="part_089" file="../../traditional_control_20261101/model/assets/part_089.stl" />
++    <mesh name="part_090" file="../../traditional_control_20261101/model/assets/part_090.stl" />
++    <mesh name="part_091" file="../../traditional_control_20261101/model/assets/part_091.stl" />
++    <mesh name="part_092" file="../../traditional_control_20261101/model/assets/part_092.stl" />
++    <mesh name="part_093" file="../../traditional_control_20261101/model/assets/part_093.stl" />
++    <mesh name="part_094" file="../../traditional_control_20261101/model/assets/part_094.stl" />
++    <mesh name="part_095" file="../../traditional_control_20261101/model/assets/part_095.stl" />
++    <mesh name="part_096" file="../../traditional_control_20261101/model/assets/part_096.stl" />
++    <mesh name="part_097" file="../../traditional_control_20261101/model/assets/part_097.stl" />
++    <mesh name="part_098" file="../../traditional_control_20261101/model/assets/part_098.stl" />
++    <mesh name="part_099" file="../../traditional_control_20261101/model/assets/part_099.stl" />
++    <mesh name="part_100" file="../../traditional_control_20261101/model/assets/part_100.stl" />
++    <mesh name="part_101" file="../../traditional_control_20261101/model/assets/part_101.stl" />
++    <mesh name="part_102" file="../../traditional_control_20261101/model/assets/part_102.stl" />
++    <mesh name="part_103" file="../../traditional_control_20261101/model/assets/part_103.stl" />
++    <mesh name="part_104" file="../../traditional_control_20261101/model/assets/part_104.stl" />
++    <mesh name="part_105" file="../../traditional_control_20261101/model/assets/part_105.stl" />
++    <mesh name="part_106" file="../../traditional_control_20261101/model/assets/part_106.stl" />
++    <mesh name="part_107" file="../../traditional_control_20261101/model/assets/part_107.stl" />
++    <mesh name="part_108" file="../../traditional_control_20261101/model/assets/part_108.stl" />
++    <mesh name="part_109" file="../../traditional_control_20261101/model/assets/part_109.stl" />
++    <mesh name="part_110" file="../../traditional_control_20261101/model/assets/part_110.stl" />
++    <mesh name="part_111" file="../../traditional_control_20261101/model/assets/part_111.stl" />
++    <mesh name="part_112" file="../../traditional_control_20261101/model/assets/part_112.stl" />
++    <mesh name="part_113" file="../../traditional_control_20261101/model/assets/part_113.stl" />
++    <mesh name="part_114" file="../../traditional_control_20261101/model/assets/part_114.stl" />
++    <mesh name="part_115" file="../../traditional_control_20261101/model/assets/part_115.stl" />
++    <mesh name="part_116" file="../../traditional_control_20261101/model/assets/part_116.stl" />
++    <mesh name="part_117" file="../../traditional_control_20261101/model/assets/part_117.stl" />
++    <mesh name="part_118" file="../../traditional_control_20261101/model/assets/part_118.stl" />
++    <mesh name="part_119" file="../../traditional_control_20261101/model/assets/part_119.stl" />
++    <mesh name="part_120" file="../../traditional_control_20261101/model/assets/part_120.stl" />
++    <mesh name="part_121" file="../../traditional_control_20261101/model/assets/part_121.stl" />
++    <mesh name="part_122" file="../../traditional_control_20261101/model/assets/part_122.stl" />
++    <mesh name="part_123" file="../../traditional_control_20261101/model/assets/part_123.stl" />
++    <mesh name="part_124" file="../../traditional_control_20261101/model/assets/part_124.stl" />
++    <mesh name="part_125" file="../../traditional_control_20261101/model/assets/part_125.stl" />
++    <mesh name="part_126" file="../../traditional_control_20261101/model/assets/part_126.stl" />
++    <mesh name="part_127" file="../../traditional_control_20261101/model/assets/part_127.stl" />
++    <mesh name="part_128" file="../../traditional_control_20261101/model/assets/part_128.stl" />
++    <mesh name="part_129" file="../../traditional_control_20261101/model/assets/part_129.stl" />
++    <mesh name="part_130" file="../../traditional_control_20261101/model/assets/part_130.stl" />
++    <mesh name="part_131" file="../../traditional_control_20261101/model/assets/part_131.stl" />
++    <mesh name="part_132" file="../../traditional_control_20261101/model/assets/part_132.stl" />
++    <mesh name="part_133" file="../../traditional_control_20261101/model/assets/part_133.stl" />
++    <mesh name="part_134" file="../../traditional_control_20261101/model/assets/part_134.stl" />
++    <mesh name="part_135" file="../../traditional_control_20261101/model/assets/part_135.stl" />
++    <mesh name="part_136" file="../../traditional_control_20261101/model/assets/part_136.stl" />
++    <mesh name="part_137" file="../../traditional_control_20261101/model/assets/part_137.stl" />
++    <mesh name="part_138" file="../../traditional_control_20261101/model/assets/part_138.stl" />
++    <mesh name="part_139" file="../../traditional_control_20261101/model/assets/part_139.stl" />
++    <mesh name="part_140" file="../../traditional_control_20261101/model/assets/part_140.stl" />
++    <mesh name="part_141" file="../../traditional_control_20261101/model/assets/part_141.stl" />
++    <mesh name="part_142" file="../../traditional_control_20261101/model/assets/part_142.stl" />
++    <mesh name="part_143" file="../../traditional_control_20261101/model/assets/part_143.stl" />
++    <mesh name="part_144" file="../../traditional_control_20261101/model/assets/part_144.stl" />
++    <mesh name="part_145" file="../../traditional_control_20261101/model/assets/part_145.stl" />
++    <mesh name="part_146" file="../../traditional_control_20261101/model/assets/part_146.stl" />
++    <mesh name="part_147" file="../../traditional_control_20261101/model/assets/part_147.stl" />
++    <mesh name="part_148" file="../../traditional_control_20261101/model/assets/part_148.stl" />
++    <mesh name="part_149" file="../../traditional_control_20261101/model/assets/part_149.stl" />
++    <mesh name="part_150" file="../../traditional_control_20261101/model/assets/part_150.stl" />
++    <mesh name="part_151" file="../../traditional_control_20261101/model/assets/part_151.stl" />
++    <mesh name="part_152" file="../../traditional_control_20261101/model/assets/part_152.stl" />
++    <mesh name="part_153" file="../../traditional_control_20261101/model/assets/part_153.stl" />
++    <mesh name="part_154" file="../../traditional_control_20261101/model/assets/part_154.stl" />
++    <mesh name="part_155" file="../../traditional_control_20261101/model/assets/part_155.stl" />
++    <mesh name="part_156" file="../../traditional_control_20261101/model/assets/part_156.stl" />
++    <mesh name="part_157" file="../../traditional_control_20261101/model/assets/part_157.stl" />
++    <mesh name="part_158" file="../../traditional_control_20261101/model/assets/part_158.stl" />
++    <mesh name="part_159" file="../../traditional_control_20261101/model/assets/part_159.stl" />
++    <mesh name="part_160" file="../../traditional_control_20261101/model/assets/part_160.stl" />
++    <mesh name="part_161" file="../../traditional_control_20261101/model/assets/part_161.stl" />
++    <mesh name="part_162" file="../../traditional_control_20261101/model/assets/part_162.stl" />
++    <mesh name="part_163" file="../../traditional_control_20261101/model/assets/part_163.stl" />
++    <mesh name="part_164" file="../../traditional_control_20261101/model/assets/part_164.stl" />
++    <mesh name="part_165" file="../../traditional_control_20261101/model/assets/part_165.stl" />
++    <mesh name="part_166" file="../../traditional_control_20261101/model/assets/part_166.stl" />
++    <mesh name="part_167" file="../../traditional_control_20261101/model/assets/part_167.stl" />
++    <mesh name="part_168" file="../../traditional_control_20261101/model/assets/part_168.stl" />
++    <mesh name="part_169" file="../../traditional_control_20261101/model/assets/part_169.stl" />
++    <mesh name="part_170" file="../../traditional_control_20261101/model/assets/part_170.stl" />
++    <mesh name="part_171" file="../../traditional_control_20261101/model/assets/part_171.stl" />
++    <mesh name="part_172" file="../../traditional_control_20261101/model/assets/part_172.stl" />
++    <mesh name="part_173" file="../../traditional_control_20261101/model/assets/part_173.stl" />
++    <mesh name="part_174" file="../../traditional_control_20261101/model/assets/part_174.stl" />
++    <mesh name="part_175" file="../../traditional_control_20261101/model/assets/part_175.stl" />
++    <mesh name="part_176" file="../../traditional_control_20261101/model/assets/part_176.stl" />
++    <mesh name="part_177" file="../../traditional_control_20261101/model/assets/part_177.stl" />
++    <mesh name="part_178" file="../../traditional_control_20261101/model/assets/part_178.stl" />
++    <mesh name="part_179" file="../../traditional_control_20261101/model/assets/part_179.stl" />
++    <mesh name="part_180" file="../../traditional_control_20261101/model/assets/part_180.stl" />
++    <mesh name="part_181" file="../../traditional_control_20261101/model/assets/part_181.stl" />
++    <mesh name="part_182" file="../../traditional_control_20261101/model/assets/part_182.stl" />
++    <mesh name="part_183" file="../../traditional_control_20261101/model/assets/part_183.stl" />
++    <mesh name="part_184" file="../../traditional_control_20261101/model/assets/part_184.stl" />
++    <mesh name="part_185" file="../../traditional_control_20261101/model/assets/part_185.stl" />
++    <mesh name="part_186" file="../../traditional_control_20261101/model/assets/part_186.stl" />
++    <mesh name="part_187" file="../../traditional_control_20261101/model/assets/part_187.stl" />
++    <mesh name="part_188" file="../../traditional_control_20261101/model/assets/part_188.stl" />
++    <mesh name="part_189" file="../../traditional_control_20261101/model/assets/part_189.stl" />
++    <mesh name="part_190" file="../../traditional_control_20261101/model/assets/part_190.stl" />
++    <mesh name="part_191" file="../../traditional_control_20261101/model/assets/part_191.stl" />
++    <mesh name="part_192" file="../../traditional_control_20261101/model/assets/part_192.stl" />
++    <mesh name="part_193" file="../../traditional_control_20261101/model/assets/part_193.stl" />
++    <mesh name="part_194" file="../../traditional_control_20261101/model/assets/part_194.stl" />
++    <mesh name="part_195" file="../../traditional_control_20261101/model/assets/part_195.stl" />
++    <mesh name="part_196" file="../../traditional_control_20261101/model/assets/part_196.stl" />
++    <mesh name="part_197" file="../../traditional_control_20261101/model/assets/part_197.stl" />
++    <mesh name="part_198" file="../../traditional_control_20261101/model/assets/part_198.stl" />
++    <mesh name="part_199" file="../../traditional_control_20261101/model/assets/part_199.stl" />
++    <mesh name="part_200" file="../../traditional_control_20261101/model/assets/part_200.stl" />
++    <mesh name="part_201" file="../../traditional_control_20261101/model/assets/part_201.stl" />
++    <mesh name="part_202" file="../../traditional_control_20261101/model/assets/part_202.stl" />
++    <mesh name="part_203" file="../../traditional_control_20261101/model/assets/part_203.stl" />
++    <mesh name="part_204" file="../../traditional_control_20261101/model/assets/part_204.stl" />
++    <mesh name="part_205" file="../../traditional_control_20261101/model/assets/part_205.stl" />
++    <mesh name="part_206" file="../../traditional_control_20261101/model/assets/part_206.stl" />
++    <mesh name="part_207" file="../../traditional_control_20261101/model/assets/part_207.stl" />
++    <mesh name="part_208" file="../../traditional_control_20261101/model/assets/part_208.stl" />
++    <mesh name="part_209" file="../../traditional_control_20261101/model/assets/part_209.stl" />
++    <mesh name="part_210" file="../../traditional_control_20261101/model/assets/part_210.stl" />
++    <mesh name="part_211" file="../../traditional_control_20261101/model/assets/part_211.stl" />
++    <mesh name="part_212" file="../../traditional_control_20261101/model/assets/part_212.stl" />
++    <mesh name="part_213" file="../../traditional_control_20261101/model/assets/part_213.stl" />
++    <mesh name="part_214" file="../../traditional_control_20261101/model/assets/part_214.stl" />
++    <mesh name="part_215" file="../../traditional_control_20261101/model/assets/part_215.stl" />
++    <mesh name="part_216" file="../../traditional_control_20261101/model/assets/part_216.stl" />
++    <mesh name="part_217" file="../../traditional_control_20261101/model/assets/part_217.stl" />
++    <mesh name="part_218" file="../../traditional_control_20261101/model/assets/part_218.stl" />
++    <mesh name="part_219" file="../../traditional_control_20261101/model/assets/part_219.stl" />
++    <mesh name="part_220" file="../../traditional_control_20261101/model/assets/part_220.stl" />
++    <mesh name="part_221" file="../../traditional_control_20261101/model/assets/part_221.stl" />
++    <mesh name="part_222" file="../../traditional_control_20261101/model/assets/part_222.stl" />
++    <mesh name="part_223" file="../../traditional_control_20261101/model/assets/part_223.stl" />
++    <mesh name="part_224" file="../../traditional_control_20261101/model/assets/part_224.stl" />
++    <mesh name="part_225" file="../../traditional_control_20261101/model/assets/part_225.stl" />
++    <mesh name="part_226" file="../../traditional_control_20261101/model/assets/part_226.stl" />
++    <mesh name="part_227" file="../../traditional_control_20261101/model/assets/part_227.stl" />
++    <mesh name="part_228" file="../../traditional_control_20261101/model/assets/part_228.stl" />
++    <mesh name="part_229" file="../../traditional_control_20261101/model/assets/part_229.stl" />
++    <mesh name="part_230" file="../../traditional_control_20261101/model/assets/part_230.stl" />
++    <mesh name="part_231" file="../../traditional_control_20261101/model/assets/part_231.stl" />
++    <mesh name="part_232" file="../../traditional_control_20261101/model/assets/part_232.stl" />
++    <mesh name="part_233" file="../../traditional_control_20261101/model/assets/part_233.stl" />
++    <mesh name="part_234" file="../../traditional_control_20261101/model/assets/part_234.stl" />
++    <mesh name="part_235" file="../../traditional_control_20261101/model/assets/part_235.stl" />
++    <mesh name="part_236" file="../../traditional_control_20261101/model/assets/part_236.stl" />
++    <mesh name="part_237" file="../../traditional_control_20261101/model/assets/part_237.stl" />
++    <mesh name="part_238" file="../../traditional_control_20261101/model/assets/part_238.stl" />
++    <mesh name="part_239" file="../../traditional_control_20261101/model/assets/part_239.stl" />
++    <mesh name="part_240" file="../../traditional_control_20261101/model/assets/part_240.stl" />
++    <mesh name="part_241" file="../../traditional_control_20261101/model/assets/part_241.stl" />
++    <mesh name="part_242" file="../../traditional_control_20261101/model/assets/part_242.stl" />
++    <mesh name="part_243" file="../../traditional_control_20261101/model/assets/part_243.stl" />
++    <mesh name="part_244" file="../../traditional_control_20261101/model/assets/part_244.stl" />
++    <mesh name="part_245" file="../../traditional_control_20261101/model/assets/part_245.stl" />
++    <mesh name="part_246" file="../../traditional_control_20261101/model/assets/part_246.stl" />
++    <mesh name="part_247" file="../../traditional_control_20261101/model/assets/part_247.stl" />
++    <mesh name="part_248" file="../../traditional_control_20261101/model/assets/part_248.stl" />
++    <mesh name="part_249" file="../../traditional_control_20261101/model/assets/part_249.stl" />
++    <mesh name="part_250" file="../../traditional_control_20261101/model/assets/part_250.stl" />
++    <mesh name="part_251" file="../../traditional_control_20261101/model/assets/part_251.stl" />
++    <mesh name="part_252" file="../../traditional_control_20261101/model/assets/part_252.stl" />
++    <mesh name="part_253" file="../../traditional_control_20261101/model/assets/part_253.stl" />
++    <mesh name="part_254" file="../../traditional_control_20261101/model/assets/part_254.stl" />
++    <mesh name="part_255" file="../../traditional_control_20261101/model/assets/part_255.stl" />
++    <mesh name="part_256" file="../../traditional_control_20261101/model/assets/part_256.stl" />
++    <mesh name="part_257" file="../../traditional_control_20261101/model/assets/part_257.stl" />
++    <mesh name="part_258" file="../../traditional_control_20261101/model/assets/part_258.stl" />
++    <mesh name="part_259" file="../../traditional_control_20261101/model/assets/part_259.stl" />
++    <mesh name="part_260" file="../../traditional_control_20261101/model/assets/part_260.stl" />
++    <mesh name="part_261" file="../../traditional_control_20261101/model/assets/part_261.stl" />
++    <mesh name="part_262" file="../../traditional_control_20261101/model/assets/part_262.stl" />
++    <mesh name="part_263" file="../../traditional_control_20261101/model/assets/part_263.stl" />
++    <mesh name="part_264" file="../../traditional_control_20261101/model/assets/part_264.stl" />
++    <mesh name="part_265" file="../../traditional_control_20261101/model/assets/part_265.stl" />
++    <mesh name="part_266" file="../../traditional_control_20261101/model/assets/part_266.stl" />
++    <mesh name="part_267" file="../../traditional_control_20261101/model/assets/part_267.stl" />
++    <mesh name="part_268" file="../../traditional_control_20261101/model/assets/part_268.stl" />
++    <mesh name="part_269" file="../../traditional_control_20261101/model/assets/part_269.stl" />
++    <mesh name="part_270" file="../../traditional_control_20261101/model/assets/part_270.stl" />
++    <mesh name="part_271" file="../../traditional_control_20261101/model/assets/part_271.stl" />
++    <mesh name="part_272" file="../../traditional_control_20261101/model/assets/part_272.stl" />
++    <mesh name="part_273" file="../../traditional_control_20261101/model/assets/part_273.stl" />
++    <mesh name="part_274" file="../../traditional_control_20261101/model/assets/part_274.stl" />
++    <mesh name="part_275" file="../../traditional_control_20261101/model/assets/part_275.stl" />
++    <mesh name="part_276" file="../../traditional_control_20261101/model/assets/part_276.stl" />
++    <mesh name="usd_source_left_tire" file="usd_meshes/left_tire.stl" />
++    <mesh name="usd_source_right_tire" file="usd_meshes/right_tire.stl" />
+   </asset>
+   <worldbody>
+     <light pos="0 -1 2" dir="0 0 -1" ambient=".35 .35 .35" diffuse=".8 .8 .8" />
+@@ -316,20 +318,20 @@
+       <geom name="chassis_front" type="box" class="collision" pos="-.268 0 -.043" size=".015 .109 .070" />
+       <geom name="chassis_rear" type="box" class="collision" pos=".244 0 -.043" size=".025 .109 .070" />
+       <body name="left_thigh" pos="-1.86062027997e-17 0.181296583144 7.59644659373e-18">
+-        <joint name="left_hip" type="hinge" axis="0 1 0" range="-0.5 0.5" armature="0.025" damping=".2" />
++        <joint name="left_hip" type="hinge" axis="0 1 0" range="-0.50000000583640236 0.50000000583640236" armature="0.025" damping=".2" limited="true" />
+         <body name="left_rocker" pos="-0.10463087373 0.0148034168564 -0.0545562119509">
+-          <joint name="left_rocker_pin" type="hinge" axis="0 1 0" range="-0.782827918495552 0.336793828442" />
++          <joint name="left_rocker_pin" type="hinge" axis="0 1 0" range="-0.78277774604286487 0.70574175019166052" limited="true" />
+           <body name="left_distal" pos="-0.0322221929608 -0.0080570224407 0.0550651457893">
+-            <joint name="left_distal_pin" type="hinge" axis="0 1 0" />
++            <joint name="left_distal_pin" type="hinge" axis="0 1 0" range="-0.7330580598087123 0.81523302445738799" limited="true" />
+             <site name="left_distal_a" pos="-0.0833850706984 0.0102570224407 -0.0433927411512" size=".0025" rgba="1 .3 .1 1" group="4" />
+             <geom name="left_distal_collision" type="capsule" class="collision" fromto="0 0 0 -0.0833850706984 0 -0.0433927411512" size="0.003" />
+-            <inertial mass="0.0100605573024" pos="-0.0414856893287 0 -0.0215887300142" fullinertia="2.07584279787e-06 9.34054827714e-06 7.32711593899e-06 -6.97178139308e-09 -3.74757248134e-06 -3.62804399899e-09" />
++            <inertial mass="0.010060557164251804" pos="-0.041485689580440521 0 -0.021588729694485664" fullinertia="2.0758426974607477e-06 9.3405484499504994e-06 7.3271159083627345e-06 -6.9714689916088654e-09 -3.7475723841774162e-06 -3.6278837652237675e-09" />
+             <geom name="visual_220" mesh="part_220" material="carbon" class="visual" />
+           </body>
+           <site name="left_proximal_b" pos="0.0885253885687 0 -0.073404738122" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="left_rocker_lower_collision" type="capsule" class="collision" fromto="0.0885253885687 0 -0.073404738122 0 0 0" size="0.005" />
+           <geom name="left_rocker_upper_collision" type="capsule" class="collision" fromto="0 0 0 -0.0322221929608 0 0.0550651457893" size="0.005" />
+-          <inertial mass="0.0455543464793" pos="0.0205931733397 -2.77555756156e-17 -0.00955533140106" fullinertia="8.91966762107e-05 0.000173735433745 8.50113322171e-05 -1.95188154783e-19 8.35007838881e-05 1.97199858033e-19" />
++          <inertial mass="0.045554347336292267" pos="0.020593173801898956 -2.7755575615628914e-17 -0.0095553314313292503" fullinertia="8.9196685601931894e-05 0.00017373543232679362 8.501132994897094e-05 1.1452839540027639e-20 8.350078727539857e-05 -2.645291284556379e-20" />
+           <geom name="visual_212" mesh="part_212" material="steel" class="visual" />
+           <geom name="visual_215" mesh="part_215" material="carbon" class="visual" />
+           <geom name="visual_217" mesh="part_217" material="steel" class="visual" />
+@@ -339,12 +341,12 @@
+           <geom name="visual_224" mesh="part_224" material="steel" class="visual" />
+         </body>
+         <body name="left_shin" pos="-0.190640998746 0.0170034168564 -0.0994032675377">
+-          <joint name="left_knee" type="hinge" axis="0 1 0" range="-0.76137870301221 0.33925888537" damping=".08" />
++          <joint name="left_knee" type="hinge" axis="0 1 0" range="-0.76132871320239393 0.72023307494721767" damping=".08" limited="true" />
+           <body name="left_wheel" pos="0.190640998746 0.0205 -0.173839033583">
+             <joint name="left_wheel_spin" type="hinge" axis="0 1 0" limited="false" armature="0.0009985600000000001" damping=".015" />
+-            <geom name="left_tire" type="cylinder" class="collision" size=".0625 .010" quat=".7071067811865476 .7071067811865476 0 0" condim="4" />
++            <geom name="left_tire" type="mesh" class="collision" condim="4" mesh="usd_source_left_tire" />
+             <site name="left_wheel_center" pos="0 0 0" size=".0025" rgba="1 .3 .1 1" group="4" />
+-            <inertial mass="0.342601545708" pos="-8.61572519194e-11 0.0016680729258 -2.10600981099e-11" fullinertia="0.000388433415096 0.000753347206607 0.000388433415582 1.27542022212e-14 -1.30115374379e-13 3.11556213874e-15" />
++            <inertial mass="0.34260153770446777" pos="-8.6157254941543471e-11 0.0016680728876963258 -2.1060098109870751e-11" fullinertia="0.00038843342917971291 0.00075334717985242562 0.00038843342917971313 8.1027129599833894e-20 0 0" />
+             <geom name="visual_259" mesh="part_259" material="steel" class="visual" />
+             <geom name="visual_263" mesh="part_263" material="steel" class="visual" />
+             <geom name="visual_264" mesh="part_264" material="steel" class="visual" />
+@@ -356,7 +358,7 @@
+           <site name="left_gas_mount" pos="0.0369459299895 -0.0140000000002 -0.0336897351906" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="left_shin_collision" type="capsule" class="collision" fromto="0 0 0 0.190640998746 0 -0.173839033583" size="0.012" />
+           <geom name="left_shin_tip_collision" type="capsule" class="collision" fromto="0 0 0 -0.0295971386437 0 0.0565194602248" size="0.008" />
+-          <inertial mass="0.85395645577" pos="0.130623702318 0.00466320421893 -0.118586646371" fullinertia="0.0054964935193 0.0115087348473 0.00634806817267 -0.000494588969115 0.00547676611902 0.000453492137175" />
++          <inertial mass="0.82495647668838501" pos="0.1285138875246048 0.004106487613171339 -0.11664433777332306" fullinertia="0.0053973209869638333 0.011308957603582354 0.0062324071339655502 -0.00046605951948675331 0.0053772185656274655 0.00042722753232888092" />
+           <geom name="visual_216" mesh="part_216" material="steel" class="visual" />
+           <geom name="visual_221" mesh="part_221" material="steel" class="visual" />
+           <geom name="visual_225" mesh="part_225" material="carbon" class="visual" />
+@@ -378,20 +380,20 @@
+           <geom name="visual_275" mesh="part_275" material="motor" class="visual" />
+         </body>
+         <body name="left_gas_inner" pos="0.00194860404271 0.00300341685623 -0.0439568304407">
+-          <joint name="left_gas_pin" type="hinge" axis="0 1 0" armature=".00005" damping=".005" />
++          <joint name="left_gas_pin" type="hinge" axis="0 1 0" armature=".00005" damping=".005" range="-0.012368421262708729 0.15594963678421223" limited="true" />
+           <body name="left_gas_barrel" pos="-0.155643672799 -0.000151347146855 -0.0891361722875">
+-            <joint name="left_gas_slide" type="slide" axis="-0.867769780297 0 -0.49696640571" range="-0.0267046843609 0.020639440248416612" armature=".002" damping="3.0" stiffness="2000" springref="0.22063944109012937" />
++            <joint name="left_gas_slide" type="slide" axis="-0.867769780297 0 -0.49696640571" range="-0.026704683899879456 0.020639440044760704" armature=".002" damping="3.0" stiffness="2000" springref="0.22063944109012937" limited="true" />
+             <site name="left_gas_end" pos="0 0.000151347146855 0" size=".0025" rgba="1 .3 .1 1" group="4" />
+-            <inertial mass="0.0627228639535" pos="0.0410255415718 9.8422530667e-05 0.0234950748469" fullinertia="2.42447668981e-05 9.27962017305e-05 7.02254484494e-05 -1.36187711388e-07 -3.91845238091e-05 -7.79938630837e-08" />
++            <inertial mass="0.062722861766815186" pos="0.041025541722774506 9.8422533483244479e-05 0.023495074361562729" fullinertia="2.4244764228844542e-05 9.2796201343699184e-05 7.0225448827711853e-05 -1.3618535580892535e-07 -3.9184521548851568e-05 -7.7992515667073733e-08" />
+             <geom name="visual_238" mesh="part_238" material="aluminum" class="visual" />
+             <geom name="visual_240" mesh="part_240" material="steel" class="visual" />
+           </body>
+-          <inertial mass="0.0362278109719" pos="-0.0401355197977 1.25066623724e-13 -0.0229853648595" fullinertia="1.2847922726e-05 5.11546351556e-05 3.85216341134e-05 7.12757674741e-17 -2.18790179068e-05 4.08192085041e-17" />
++          <inertial mass="0.036227811127901077" pos="-0.040135521441698074 1.2506662372402388e-13 -0.022985365241765976" fullinertia="1.2847921296829044e-05 5.1154635002603754e-05 3.8521633783953405e-05 0 -2.1879016560329837e-05 0" />
+           <geom name="visual_237" mesh="part_237" material="steel" class="visual" />
+           <geom name="visual_239" mesh="part_239" material="steel" class="visual" />
+         </body>
+         <geom name="left_thigh_collision" type="capsule" class="collision" fromto="0 0 0 -0.190640998746 0 -0.0994032675377" size="0.012" />
+-        <inertial mass="0.379410695793" pos="-0.0870940716368 -0.000290635607525 -0.0434204126081" fullinertia="0.000774494357515 0.0033901958939 0.00264096026614 2.68351684058e-05 -0.0012873458776 1.28965409323e-05" />
++        <inertial mass="0.37941068410873413" pos="-0.08709406852722168 -0.00029063559486530721 -0.043420411646366119" fullinertia="0.00077449428601092764 0.003390195811143614 0.0026409603270576764 2.6835211579783448e-05 -0.0012873458175642592 1.289656304416445e-05" />
+         <geom name="visual_195" mesh="part_195" material="steel" class="visual" />
+         <geom name="visual_198" mesh="part_198" material="aluminum" class="visual" />
+         <geom name="visual_199" mesh="part_199" material="steel" class="visual" />
+@@ -405,16 +407,16 @@
+         <geom name="visual_257" mesh="part_257" material="aluminum" class="visual" />
+       </body>
+       <body name="left_input" pos="-1.86062027997e-17 0.198770340827 7.59644659373e-18">
+-        <joint name="left_crank" type="hinge" axis="0 1 0" range="-1.2 0.9" armature="0.025" damping=".2" />
++        <joint name="left_crank" type="hinge" axis="0 1 0" range="-1.2000000140073657 0.89999997721601055" armature="0.025" damping=".2" limited="true" />
+         <body name="left_coupler" pos="0.0764479896231 -0.00994736276491 -0.0597051495483">
+-          <joint name="left_coupler_pin" type="hinge" axis="0 1 0" />
++          <joint name="left_coupler_pin" type="hinge" axis="0 1 0" range="-0.88005203512396279 0.90272851891085126" limited="true" />
+           <site name="left_proximal_a" pos="-0.0925534747848 0.00727702193771 -0.0682558005247" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="left_coupler_collision" type="capsule" class="collision" fromto="0 0 0 -0.0925534747848 0 -0.0682558005247" size="0.003" />
+-          <inertial mass="0.00968534338476" pos="-0.0454089570442 0 -0.0353045927333" fullinertia="4.66573873893e-06 1.31123938289e-05 8.48789066152e-06 1.93124884052e-10 -6.17965796183e-06 -2.61873407859e-10" />
++          <inertial mass="0.0096853431314229965" pos="-0.045408956706523895 0 -0.035304591059684753" fullinertia="4.6657392109089356e-06 1.3112393632442081e-05 8.4878899498577635e-06 1.9319945186544013e-10 -6.1796580180415108e-06 -2.6181680245564524e-10" />
+           <geom name="visual_211" mesh="part_211" material="carbon" class="visual" />
+         </body>
+         <geom name="left_input_collision" type="capsule" class="collision" fromto="0 0 0 0.0764479896231 0 -0.0597051495483" size="0.008" />
+-        <inertial mass="0.188271226997" pos="0.00721611788659 -0.0132701555498 -0.0056357191301" fullinertia="0.000141222536273 0.000189857136818 0.000169649477674 -1.74084726295e-05 5.69182063705e-05 1.35958508115e-05" />
++        <inertial mass="0.18827122449874878" pos="0.0072161178104579449 -0.013270155526697636 -0.0056357192806899548" fullinertia="0.00014122253469869337 0.00018985713678396426 0.00016964947597858561 -1.7408472694711335e-05 5.6918207234174726e-05 1.3595850906104662e-05" />
+         <geom name="visual_196" mesh="part_196" material="steel" class="visual" />
+         <geom name="visual_197" mesh="part_197" material="aluminum" class="visual" />
+         <geom name="visual_200" mesh="part_200" material="steel" class="visual" />
+@@ -427,32 +429,32 @@
+         <geom name="visual_219" mesh="part_219" material="aluminum" class="visual" />
+       </body>
+       <body name="left_drive_hip" pos="0.0880250945946 0.166458421364 -0.04">
+-        <joint name="left_drive_hip_spin" type="hinge" axis="0 1 0" range="-0.5 0.5" armature=".0001" damping=".005" />
+-        <inertial mass="0.0330040888437" pos="-4.02455846427e-16 0 -1.2490009027e-16" fullinertia="9.28177179522e-06 1.75779211239e-05 9.34150936477e-06 -1.25934078273e-20 -4.84671431302e-09 -2.79130756448e-21" />
++        <joint name="left_drive_hip_spin" type="hinge" axis="0 1 0" range="-0.50000000583640236 0.50000000583640236" armature=".0001" damping=".005" limited="true" />
++        <inertial mass="0.033004090189933777" pos="-4.0245584642661925e-16 0 -1.2490009027033011e-16" fullinertia="9.2817713782207164e-06 1.7577920516487204e-05 9.3415096155584684e-06 1.8682099791623489e-21 -4.8467657692804246e-09 1.0338062094210328e-21" />
+         <geom name="visual_233" mesh="part_233" material="aluminum" class="visual" />
+       </body>
+       <body name="left_drive_input" pos="-0.0880250945946 0.16170171992 -0.04">
+-        <joint name="left_drive_input_spin" type="hinge" axis="0 1 0" range="-1.2 0.9" armature=".0001" damping=".005" />
+-        <inertial mass="0.0222260060114" pos="-4.02455846427e-16 0 4.16333634234e-17" fullinertia="7.28254422688e-06 1.45223129491e-05 7.32109992668e-06 -1.44824693222e-20 7.41347378765e-10 2.95166731339e-21" />
++        <joint name="left_drive_input_spin" type="hinge" axis="0 1 0" range="-1.2000000140073657 0.89999997721601055" armature=".0001" damping=".005" limited="true" />
++        <inertial mass="0.022226005792617798" pos="-4.0245584642661925e-16 0 4.163336342344337e-17" fullinertia="7.2825443269035811e-06 1.4522312994813553e-05 7.3210997768686646e-06 -3.2558411910047528e-21 7.4134309675815448e-10 -1.6253136698903992e-21" />
+         <geom name="visual_234" mesh="part_234" material="aluminum" class="visual" />
+       </body>
+       <geom name="left_side_armor" type="box" class="collision" pos="0 0.274 -0.007" size=".067 .018 .061" />
+       <geom name="left_motor_bay" type="box" class="collision" pos="0 0.121 -0.06" size=".136 .027 .060" />
+       <body name="right_thigh" pos="0 -0.181296583144 0">
+-        <joint name="right_hip" type="hinge" axis="0 1 0" range="-0.5 0.5" armature="0.025" damping=".2" />
++        <joint name="right_hip" type="hinge" axis="0 1 0" range="-0.50000000583640236 0.50000000583640236" armature="0.025" damping=".2" limited="true" />
+         <body name="right_rocker" pos="-0.10463087373 -0.0148034168564 -0.0545562119509">
+-          <joint name="right_rocker_pin" type="hinge" axis="0 1 0" range="-0.782827918495552 0.336793828442" />
++          <joint name="right_rocker_pin" type="hinge" axis="0 1 0" range="-0.78277774604286487 0.70574175019166052" limited="true" />
+           <body name="right_distal" pos="-0.0322221929608 0.0080570224407 0.0550651457893">
+-            <joint name="right_distal_pin" type="hinge" axis="0 1 0" />
++            <joint name="right_distal_pin" type="hinge" axis="0 1 0" range="-0.7330580598087123 0.81523302445738799" limited="true" />
+             <site name="right_distal_a" pos="-0.0833850706984 -0.0102570224407 -0.0433927411512" size=".0025" rgba="1 .3 .1 1" group="4" />
+             <geom name="right_distal_collision" type="capsule" class="collision" fromto="0 0 0 -0.0833850706984 0 -0.0433927411512" size="0.003" />
+-            <inertial mass="0.0100605573024" pos="-0.0414856893287 0 -0.0215887300142" fullinertia="2.07584279787e-06 9.34054827714e-06 7.32711593899e-06 6.97178139307e-09 -3.74757248134e-06 3.62804399898e-09" />
++            <inertial mass="0.010060557164251804" pos="-0.041485689580440521 0 -0.021588729694485664" fullinertia="2.0758426974607477e-06 9.3405484499504994e-06 7.3271159083627345e-06 6.9714689916099871e-09 -3.7475723841774162e-06 3.6278837652255947e-09" />
+             <geom name="visual_129" mesh="part_129" material="carbon" class="visual" />
+           </body>
+           <site name="right_proximal_b" pos="0.0885253885687 0 -0.073404738122" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="right_rocker_lower_collision" type="capsule" class="collision" fromto="0.0885253885687 0 -0.073404738122 0 0 0" size="0.005" />
+           <geom name="right_rocker_upper_collision" type="capsule" class="collision" fromto="0 0 0 -0.0322221929608 0 0.0550651457893" size="0.005" />
+-          <inertial mass="0.0455543464793" pos="0.0205931733397 2.77555756156e-17 -0.00955533140106" fullinertia="8.91966762107e-05 0.000173735433745 8.50113322171e-05 7.35859872927e-21 8.35007838881e-05 -1.19114008208e-20" />
++          <inertial mass="0.045554347336292267" pos="0.020593173801898956 2.7755575615628914e-17 -0.0095553314313292503" fullinertia="8.9196685601931894e-05 0.00017373543232679362 8.501132994897094e-05 1.1452839540027639e-20 8.350078727539857e-05 -2.645291284556379e-20" />
+           <geom name="visual_121" mesh="part_121" material="steel" class="visual" />
+           <geom name="visual_124" mesh="part_124" material="carbon" class="visual" />
+           <geom name="visual_126" mesh="part_126" material="steel" class="visual" />
+@@ -462,12 +464,12 @@
+           <geom name="visual_133" mesh="part_133" material="steel" class="visual" />
+         </body>
+         <body name="right_shin" pos="-0.190640998746 -0.0170034168564 -0.0994032675377">
+-          <joint name="right_knee" type="hinge" axis="0 1 0" range="-0.76137870301221 0.33925888537" damping=".08" />
++          <joint name="right_knee" type="hinge" axis="0 1 0" range="-0.76132871320239393 0.72023307494721767" damping=".08" limited="true" />
+           <body name="right_wheel" pos="0.190640998746 -0.0205 -0.173839033583">
+             <joint name="right_wheel_spin" type="hinge" axis="0 1 0" limited="false" armature="0.0009985600000000001" damping=".015" />
+-            <geom name="right_tire" type="cylinder" class="collision" size=".0625 .010" quat=".7071067811865476 .7071067811865476 0 0" condim="4" />
++            <geom name="right_tire" type="mesh" class="collision" condim="4" mesh="usd_source_right_tire" />
+             <site name="right_wheel_center" pos="0 0 0" size=".0025" rgba="1 .3 .1 1" group="4" />
+-            <inertial mass="0.342601545708" pos="-8.61571217783e-11 -0.0016680729258 -2.10600981099e-11" fullinertia="0.000388433415096 0.000753347206607 0.000388433415582 -1.2754232716e-14 -1.30115365109e-13 -3.11554915028e-15" />
++            <inertial mass="0.34260153770446777" pos="-8.6157123102559297e-11 -0.0016680728876963258 -2.1060098109870751e-11" fullinertia="0.00038843342917971291 0.00075334717985242562 0.00038843342917971313 8.1027129599833894e-20 0 0" />
+             <geom name="visual_168" mesh="part_168" material="steel" class="visual" />
+             <geom name="visual_172" mesh="part_172" material="steel" class="visual" />
+             <geom name="visual_173" mesh="part_173" material="steel" class="visual" />
+@@ -479,7 +481,7 @@
+           <site name="right_gas_mount" pos="0.0369459299895 0.0139999999998 -0.0336897351906" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="right_shin_collision" type="capsule" class="collision" fromto="0 0 0 0.190640998746 0 -0.173839033583" size="0.012" />
+           <geom name="right_shin_tip_collision" type="capsule" class="collision" fromto="0 0 0 -0.0295971386437 0 0.0565194602248" size="0.008" />
+-          <inertial mass="0.85395645577" pos="0.130623704687 -0.00466322462775 -0.118586644634" fullinertia="0.00549649306812 0.0115087348355 0.00634806813649 0.000494589984108 0.00547676614127 -0.000453493115567" />
++          <inertial mass="0.82495647668838501" pos="0.1285138875246048 -0.0041065085679292679 -0.11664433777332306" fullinertia="0.0053973200386116197 0.011308957547830187 0.0062324067701899025 0.00046605977423107682 0.0053772182533980886 -0.00042722815282409098" />
+           <geom name="visual_125" mesh="part_125" material="steel" class="visual" />
+           <geom name="visual_130" mesh="part_130" material="steel" class="visual" />
+           <geom name="visual_134" mesh="part_134" material="carbon" class="visual" />
+@@ -501,20 +503,20 @@
+           <geom name="visual_185" mesh="part_185" material="motor" class="visual" />
+         </body>
+         <body name="right_gas_inner" pos="0.00194860404271 -0.0030034168566 -0.0439568304407">
+-          <joint name="right_gas_pin" type="hinge" axis="0 1 0" armature=".00005" damping=".005" />
++          <joint name="right_gas_pin" type="hinge" axis="0 1 0" armature=".00005" damping=".005" range="-0.012368421262708729 0.15594963678421223" limited="true" />
+           <body name="right_gas_barrel" pos="-0.155643672799 0.000151347147219 -0.0891361722875">
+-            <joint name="right_gas_slide" type="slide" axis="-0.867769780297 0 -0.49696640571" range="-0.0267046843609 0.020639440248416612" armature=".002" damping="3.0" stiffness="2000" springref="0.2206394410901294" />
++            <joint name="right_gas_slide" type="slide" axis="-0.867769780297 0 -0.49696640571" range="-0.026704683899879456 0.020639440044760704" armature=".002" damping="3.0" stiffness="2000" springref="0.2206394410901294" limited="true" />
+             <site name="right_gas_end" pos="0 -0.000151347147219 0" size=".0025" rgba="1 .3 .1 1" group="4" />
+-            <inertial mass="0.0627228639535" pos="0.0410255415718 -9.84225306662e-05 0.0234950748469" fullinertia="2.42447668981e-05 9.27962017305e-05 7.02254484494e-05 1.36187711387e-07 -3.9184523809e-05 7.79938630831e-08" />
++            <inertial mass="0.062722861766815186" pos="0.041025541722774506 -9.8422533483244479e-05 0.023495074361562729" fullinertia="2.4244764228844542e-05 9.2796201343699184e-05 7.0225448827711853e-05 1.3618535580892021e-07 -3.9184521548851568e-05 7.7992515667082667e-08" />
+             <geom name="visual_147" mesh="part_147" material="aluminum" class="visual" />
+             <geom name="visual_149" mesh="part_149" material="steel" class="visual" />
+           </body>
+-          <inertial mass="0.0362278109719" pos="-0.0401355197977 1.25038868148e-13 -0.0229853648595" fullinertia="1.2847922726e-05 5.11546351556e-05 3.85216341134e-05 7.1256217703e-17 -2.18790179068e-05 4.08080145234e-17" />
++          <inertial mass="0.036227811127901077" pos="-0.040135521441698074 1.2503886814840826e-13 -0.022985365241765976" fullinertia="1.2847921296829044e-05 5.1154635002603754e-05 3.8521633783953405e-05 0 -2.1879016560329837e-05 0" />
+           <geom name="visual_146" mesh="part_146" material="steel" class="visual" />
+           <geom name="visual_148" mesh="part_148" material="steel" class="visual" />
+         </body>
+         <geom name="right_thigh_collision" type="capsule" class="collision" fromto="0 0 0 -0.190640998746 0 -0.0994032675377" size="0.012" />
+-        <inertial mass="0.379410695793" pos="-0.0870940716368 0.000290635607525 -0.0434204126081" fullinertia="0.000774494357515 0.0033901958939 0.00264096026614 -2.68351684058e-05 -0.0012873458776 -1.28965409323e-05" />
++        <inertial mass="0.37941068410873413" pos="-0.08709406852722168 0.00029063559486530721 -0.043420411646366119" fullinertia="0.00077449428601092764 0.003390195811143614 0.0026409603270576764 -2.6835211579783868e-05 -0.0012873458175642592 -1.2896563044165101e-05" />
+         <geom name="visual_104" mesh="part_104" material="steel" class="visual" />
+         <geom name="visual_107" mesh="part_107" material="aluminum" class="visual" />
+         <geom name="visual_108" mesh="part_108" material="steel" class="visual" />
+@@ -528,16 +530,16 @@
+         <geom name="visual_166" mesh="part_166" material="aluminum" class="visual" />
+       </body>
+       <body name="right_input" pos="0 -0.198770340827 0">
+-        <joint name="right_crank" type="hinge" axis="0 1 0" range="-1.2 0.9" armature="0.025" damping=".2" />
++        <joint name="right_crank" type="hinge" axis="0 1 0" range="-1.2000000140073657 0.89999997721601055" armature="0.025" damping=".2" limited="true" />
+         <body name="right_coupler" pos="0.0764479896231 0.00994736276491 -0.0597051495483">
+-          <joint name="right_coupler_pin" type="hinge" axis="0 1 0" />
++          <joint name="right_coupler_pin" type="hinge" axis="0 1 0" range="-0.88005203512396279 0.90272851891085126" limited="true" />
+           <site name="right_proximal_a" pos="-0.0925534747848 -0.00727702193771 -0.0682558005247" size=".0025" rgba="1 .3 .1 1" group="4" />
+           <geom name="right_coupler_collision" type="capsule" class="collision" fromto="0 0 0 -0.0925534747848 0 -0.0682558005247" size="0.003" />
+-          <inertial mass="0.00968534338476" pos="-0.0454089570441 0 -0.0353045927333" fullinertia="4.66573873893e-06 1.31123938289e-05 8.48789066152e-06 -1.93124884073e-10 -6.17965796183e-06 2.61873407843e-10" />
++          <inertial mass="0.0096853431314229965" pos="-0.045408956706523895 0 -0.035304591059684753" fullinertia="4.6657392109089356e-06 1.3112393632442081e-05 8.4878899498577635e-06 -1.9319945186372043e-10 -6.1796580180415108e-06 2.6181680245331331e-10" />
+           <geom name="visual_120" mesh="part_120" material="carbon" class="visual" />
+         </body>
+         <geom name="right_input_collision" type="capsule" class="collision" fromto="0 0 0 0.0764479896231 0 -0.0597051495483" size="0.008" />
+-        <inertial mass="0.188271226997" pos="0.00721611788659 0.0132701555498 -0.0056357191301" fullinertia="0.000141222536273 0.000189857136818 0.000169649477674 1.74084726295e-05 5.69182063705e-05 -1.35958508115e-05" />
++        <inertial mass="0.18827122449874878" pos="0.0072161178104579449 0.013270155526697636 -0.0056357192806899548" fullinertia="0.00014122253469869337 0.00018985713678396426 0.00016964947597858561 1.7408472694711335e-05 5.6918207234174726e-05 -1.3595850906104662e-05" />
+         <geom name="visual_105" mesh="part_105" material="steel" class="visual" />
+         <geom name="visual_106" mesh="part_106" material="aluminum" class="visual" />
+         <geom name="visual_109" mesh="part_109" material="steel" class="visual" />
+@@ -550,18 +552,18 @@
+         <geom name="visual_128" mesh="part_128" material="aluminum" class="visual" />
+       </body>
+       <body name="right_drive_hip" pos="0.0880250945946 -0.166458421364 -0.04">
+-        <joint name="right_drive_hip_spin" type="hinge" axis="0 1 0" range="-0.5 0.5" armature=".0001" damping=".005" />
+-        <inertial mass="0.0330040888437" pos="-2.77555756156e-17 0 -1.38777878078e-17" fullinertia="9.28177179522e-06 1.75779211239e-05 9.34150936477e-06 -3.01665690125e-21 -4.84671431302e-09 -2.00917667839e-21" />
++        <joint name="right_drive_hip_spin" type="hinge" axis="0 1 0" range="-0.50000000583640236 0.50000000583640236" armature=".0001" damping=".005" limited="true" />
++        <inertial mass="0.033004090189933777" pos="-2.7755575615628914e-17 0 -1.3877787807814457e-17" fullinertia="9.2817713782207164e-06 1.7577920516487204e-05 9.3415096155584684e-06 1.8682099791623489e-21 -4.8467657692804246e-09 1.0338062094210328e-21" />
+         <geom name="visual_142" mesh="part_142" material="aluminum" class="visual" />
+       </body>
+       <body name="right_drive_input" pos="-0.0880250945946 -0.16170171992 -0.04">
+-        <joint name="right_drive_input_spin" type="hinge" axis="0 1 0" range="-1.2 0.9" armature=".0001" damping=".005" />
+-        <inertial mass="0.0222260060114" pos="-1.38777878078e-17 0 -1.38777878078e-17" fullinertia="7.28254422688e-06 1.45223129491e-05 7.32109992668e-06 -6.19966859007e-22 7.41347378762e-10 -2.73404122064e-22" />
++        <joint name="right_drive_input_spin" type="hinge" axis="0 1 0" range="-1.2000000140073657 0.89999997721601055" armature=".0001" damping=".005" limited="true" />
++        <inertial mass="0.022226005792617798" pos="-1.3877787807814457e-17 0 -1.3877787807814457e-17" fullinertia="7.2825443269035811e-06 1.4522312994813553e-05 7.3210997768686646e-06 -3.2558411910047528e-21 7.4134309675815448e-10 -1.6253136698903992e-21" />
+         <geom name="visual_143" mesh="part_143" material="aluminum" class="visual" />
+       </body>
+       <geom name="right_side_armor" type="box" class="collision" pos="0 -0.274 -0.007" size=".067 .018 .061" />
+       <geom name="right_motor_bay" type="box" class="collision" pos="0 -0.121 -0.06" size=".136 .027 .060" />
+-      <inertial mass="10.2326988294" pos="-0.02101626251 -0.000241252022999 -0.0496609428914" fullinertia="0.171006657414 0.199271844448 0.326284280961 -0.000349559641761 0.00398694978821 0.000143949365148" />
++      <inertial mass="10.36469841003418" pos="-0.02074860967695713 -0.00023817954934202135 -0.049028486013412476" fullinertia="0.17610500927700906 0.19965078203053535 0.33111877298250225 -0.0003502185199133975 0.0038509465988324325 0.00014238800496517787" />
+       <geom name="visual_000" mesh="part_000" material="aluminum" class="visual" />
+       <geom name="visual_001" mesh="part_001" material="aluminum" class="visual" />
+       <geom name="visual_002" mesh="part_002" material="aluminum" class="visual" />
+@@ -717,45 +719,45 @@
+       <geom name="visual_247" mesh="part_247" material="electronics" class="visual" />
+       <geom name="visual_248" mesh="part_248" material="electronics" class="visual" />
+       <geom name="visual_249" mesh="part_249" material="electronics" class="visual" />
+-      <body name="guide_roller_0" pos="-0.048 -0.1005 -0.163">
+-        <joint name="guide_roller_spin_0" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_0" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_1" pos="-0.048 0.1005 -0.163">
+-        <joint name="guide_roller_spin_1" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_1" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_2" pos="0.048 -0.1005 -0.163">
+-        <joint name="guide_roller_spin_2" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_2" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_3" pos="0.048 0.1005 -0.163">
+-        <joint name="guide_roller_spin_3" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_3" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_4" pos="-0.259 -0.131 -0.135">
+-        <joint name="guide_roller_spin_4" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_4" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_5" pos="-0.259 0.131 -0.135">
+-        <joint name="guide_roller_spin_5" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_5" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_6" pos="0.259 -0.131 -0.135">
+-        <joint name="guide_roller_spin_6" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_6" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
+-      </body>
+-      <body name="guide_roller_7" pos="0.259 0.131 -0.135">
+-        <joint name="guide_roller_spin_7" type="hinge" axis="0 1 0" limited="false" damping=".0002" armature=".00001" />
+-        <inertial mass=".01" pos="0 0 0" diaginertia=".00000065 .000001125 .00000065" />
+-        <geom name="guide_roller_collision_7" type="cylinder" class="collision" pos="0 0 0" size=".015 .0045" quat=".7071067811865476 .7071067811865476 0 0" friction=".15 .001 .0001" condim="4" rgba=".1 .8 .2 .35" />
++      <body name="guide_roller_03" pos="-0.048 -0.1005 -0.163">
++        <joint name="guide_roller_03" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_03" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_01" pos="-0.048 0.1005 -0.163">
++        <joint name="guide_roller_01" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_01" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_02" pos="0.048 -0.1005 -0.163">
++        <joint name="guide_roller_02" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_02" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_00" pos="0.048 0.1005 -0.163">
++        <joint name="guide_roller_00" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_00" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_07" pos="-0.259 -0.131 -0.135">
++        <joint name="guide_roller_07" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_07" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_05" pos="-0.259 0.131 -0.135">
++        <joint name="guide_roller_05" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_05" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_06" pos="0.259 -0.131 -0.135">
++        <joint name="guide_roller_06" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_06" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
++      </body>
++      <body name="guide_roller_04" pos="0.259 0.131 -0.135">
++        <joint name="guide_roller_04" type="hinge" axis="0 1 0" limited="false" damping="0.0057295778065669187" armature="0" />
++        <inertial mass="0.0024999999441206455" pos="0 0 0" fullinertia="1.9395832850932493e-07 2.8125000994805305e-07 1.9395832850932493e-07 0 0 0" />
++        <geom name="guide_wheel_04" type="cylinder" class="collision" pos="0 0 0" size="0.014999999999999999 0.0080000000000000002" quat="0.70710676908493042 0.70710676908493042 0 0" friction="0.019999999552965164 0.001 0.0001" condim="4" rgba=".1 .8 .2 .35" />
+       </body>
+     </body>
+   </worldbody>

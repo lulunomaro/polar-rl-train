@@ -1,0 +1,150 @@
+{
+  "epoch": 1793591621.8014116,
+  "kind": "ACTUAL380_SOURCE100_AND_CURRENT50_COMMAND_TIMING_FACTS",
+  "passed": true,
+  "source_MPC_config": {
+    "step": true,
+    "duration": 5.0,
+    "start_x": -0.8,
+    "full_dr": true,
+    "seed": 5063,
+    "start_delta": -0.4956839978694916,
+    "hip_shift": -0.49481448863339234,
+    "push_for": 0.09089617968774766,
+    "push_delta": 0.34056228399276733,
+    "tuck_delta": -0.9643222689628601,
+    "tuck_hip": 0.17933459719631953,
+    "push_kp": 397.28546142578125,
+    "push_kd": 2.8213303089141846,
+    "push_pitch": 29.751407623291016,
+    "push_pitch_d": 4.610894203186035,
+    "wheel_push": 1.909535527229309,
+    "speed": 1.4,
+    "air_pitch": 52.480403900146484,
+    "air_pitch_d": 6.6955413818359375,
+    "air_wheel": -0.8037281036376953,
+    "push_at": 0.65,
+    "extend_after": 0.33949784129362104,
+    "air_kp": 139.75701904296875,
+    "air_kd": 2.9726552963256836,
+    "landing_delta": -0.4,
+    "capture_time": 0.15,
+    "landing_speed": 0.0,
+    "landing_min_x": 0.45,
+    "smooth_landing": true,
+    "landing_blend_s": 0.1,
+    "landing_run_speed": 1.2,
+    "landing_run_s": 0.4,
+    "launch_x": -0.5,
+    "measured_launch_pose": true,
+    "feedback_predict_s": 0.005,
+    "mpc": true
+  },
+  "source_schedule": {
+    "command_period_s": 0.01,
+    "push_samples": 10,
+    "last_push_elapsed": 0.09,
+    "last_push_alpha": 0.9901406231722139,
+    "first_flight_command_time": 0.1,
+    "rows": [
+      {
+        "elapsed": 0.0,
+        "alpha": 0.0,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.01,
+        "alpha": 0.11001562479691267,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.02,
+        "alpha": 0.22003124959382533,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.03,
+        "alpha": 0.330046874390738,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.04,
+        "alpha": 0.44006249918765067,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.05,
+        "alpha": 0.5500781239845633,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.06,
+        "alpha": 0.660093748781476,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.07,
+        "alpha": 0.7701093735783887,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.08,
+        "alpha": 0.8801249983753013,
+        "hold_seconds": 0.01
+      },
+      {
+        "elapsed": 0.09,
+        "alpha": 0.9901406231722139,
+        "hold_seconds": 0.01
+      }
+    ]
+  },
+  "current_schedule": {
+    "command_period_s": 0.02,
+    "push_samples": 5,
+    "last_push_elapsed": 0.08,
+    "last_push_alpha": 0.8801249983753013,
+    "first_flight_command_time": 0.1,
+    "rows": [
+      {
+        "elapsed": 0.0,
+        "alpha": 0.0,
+        "hold_seconds": 0.02
+      },
+      {
+        "elapsed": 0.02,
+        "alpha": 0.22003124959382533,
+        "hold_seconds": 0.02
+      },
+      {
+        "elapsed": 0.04,
+        "alpha": 0.44006249918765067,
+        "hold_seconds": 0.02
+      },
+      {
+        "elapsed": 0.06,
+        "alpha": 0.660093748781476,
+        "hold_seconds": 0.02
+      },
+      {
+        "elapsed": 0.08,
+        "alpha": 0.8801249983753013,
+        "hold_seconds": 0.02
+      }
+    ]
+  },
+  "findings": [
+    "Source requested push_for0.0908961797s; aligned100Hz and50Hz both issue firstflight command at100ms. Do not claim push duration doubled/halved.",
+    "100Hz issues10pushcommands alpha0..0.99014;50Hz issues5 alpha0..0.88012, each heldtwice aslong. Intermediatefeedback/event/targetcommands are absent.",
+    "Real source triggers launch on currentmeasuredx/vx every10ms; currentbridge checks every20ms, with original100Hz feedback sampling. Triggerpose/time can differ.",
+    "Currentbridge prediction Ad/Bd is actual20ms/H8; source10ms/H15. No physical causal claim from schedule algebra.",
+    "ActualD4queue contract requires20ms commands. A sourcefaithful100Hz port must be separateexplicitversion/admission; do not mutate frozenqueueorPD/physicalsolver. A declared20mshold/virtualevent experiment is an approximation, notsourcefaithful100Hz."
+  ],
+  "decision": "Next scope is precise100Hz-vs50Hz handoff design with initialmeasuredcachefix andactualmanifold. No newtrainingwindow, no replay373377, no blindgain/reward/horizonsearch. Candidatepreboundhasnotprovenrobustsuccess.",
+  "checkpoint_reads": 0,
+  "NN": 0,
+  "SDK": 0,
+  "physics": 0,
+  "network": 0,
+  "account_writes": 0
+}

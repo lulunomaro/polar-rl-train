@@ -1,0 +1,13 @@
+--- original/e1_full_pose_reset.py
++++ new_composed_identity/e1_full_pose_reset.py
+@@ -18,8 +18,8 @@
+     if not len(ids): return
+     if not hasattr(env, '_rough_probe_bank'):
+         meta = json.loads((A / 'MOD4_RESET_COLLISION_BANK.json').read_text())
+-        assert hashlib.sha256(Path(task.USD_PATH).read_bytes()).hexdigest() == meta['usd_sha256']
+-        assert hashlib.sha256((task.MOD4_ISAAC / 'import_contract.json').read_bytes()).hexdigest() == meta['contract_sha256']
++        from mod4v1_e1_collision_bank_compat import require_mod4v1_e1_collision_bank
++        env._mod4v1_e1_collision_bank_compatibility=require_mod4v1_e1_collision_bank(A/'MOD4_RESET_COLLISION_BANK.json',task.MOD4_ISAAC)
+         bank = np.load(A / 'MOD4_RESET_COLLISION_BANK.npz')
+         perm = joint_permutation(list(bank['joint_names']), robot.joint_names)
+         pick = int(np.argmin(abs(bank['root_height'] - .25)))

@@ -1,0 +1,17 @@
+"""EmitSOURCE_ONLY NOT_READYtask/admission/GOschema metadata, neverdispatch."""
+from pathlib import Path
+import argparse,hashlib,json
+from e1_posttrain_contract import KIND,GENERATION,USD,CONTRACT
+B=Path(__file__).resolve().parent
+
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.mkdir(exist_ok=False);j=json.loads((B/'FOUR_E1_POSTTRAIN_TRAINER_RESTORE_SAVE_INTERFACE_INVENTORY_V1.json').read_bytes());rows=[]
+ for c in j['cases']:
+  role=c['role'];source=c['selected_typed'];core=c['source_core_metadata']
+  task=dict(kind=KIND,canonical=role,role_key='PARENT_ORIGINAL_ACCOUNT_KEY_FOR_'+role,run_id='PARENT_NEW_UNUSED_'+role+'_POSTTRAIN20',GPU_UUID='PARENT_FRESH_SINGLE_GPU_UUID',runtime_source_original_native_root=c['exact_native_proved_remote_runtime_root'],new_job_root='PARENT_NEW_UNUSED_RUNTIME_JOB_ROOT',selected_typed_source_path=source['path'],model_path=source['path'],source_SHA=source['SHA'],source_bytes=source['bytes'],source_iteration=core['original_iteration'],source_Adam_step=core['original_17Adam_step'],source_Adam17=core['original_17Adam_step'],source_LR=core['original_LR'],original_source_SHA=c['original_source_SHA'],num_envs=20000,source_saved_envs=20000,steps_per_env=24,additional_updates=20,save_interval=5,seed=20260928,policy_hz=50,feedback_hz=100,physics_dt=.0025,TGS=[32,4],closure_episode_m=.01,mimic_rad=.01,gas_nominal_N=400,gas_stiffness_N_m=2000,gas_damping_Ns_m=3.,asset_USD_SHA=USD,asset_contract_SHA=CONTRACT,asset_dir='PARENT_NEW_UNUSED_FULL_ASSET_DIR',training_capacity_scope='ORIGINAL_N20K_NO_N80_PRESET',apply_saved20k_history=True,state_slicing_or_projection=False,retype_checkpoint=False,live_full_actor_critic_optimizer_restore=True,original_PPO_init_at_random_ep_len=True,original_canonical_generation=GENERATION,canonical_path='PARENT_EXACT_ORIGINAL_C_PATH_NO_CHILD_CANONICAL_READ',owner_parent_pid=0,inherited_lock_fds=[],root_admission_file='ROOT_ADMISSION_ACTUAL.json',root_admission_SHA='PARENT_ACTUAL_RECEIPT_SHA_REQUIRED',go_file='GO_PRODUCTION.json',rescue_stop_file='PARENT_OWN_STOP_AFTER_FULL_SAVE_FILE',source_read_purpose='PARENT_NEW_UNUSED_ROLE_PURPOSE_ONE_CACHE',max_parent_seconds=3900,exit_headroom_seconds=300,sourceonly_NOT_READY=True,no_actual_admission_or_GO_created=True,worker='worker_e1_posttrain_full20k_original_ppo_v1.py',worker_CLI='python -B WORKER --job-root NEW_RUNTIME_JOB_ROOT --task PARENT_ACTUAL_TASK --out NEW_OUTPUT_DIR',save_schedule_delta='save_interval5proposedfor20window; originalCLIdefault50,parentmayreviewany1..20; notPPO/physics/rewardchange',post_window_next='AllcompleteSaves->originalenv/Appclose->parentwaitRC0/charge_valuesend->frozenownoriginalskillbenchonce; parentbestselection/nextnewwindowfullstaterollbackleaveallfailures',skill_scope=c['latest_fresh80_skill_facts'].get('assessment'),H1_excluded=True)
+  q=a.out/(role+'_POSTTRAIN20_SOURCE_ONLY_NOT_READY.json')
+  with q.open('x',encoding='utf-8') as f:json.dump(task,f,indent=2)
+  rows.append(dict(role=role,path=str(q),bytes=len(q.read_bytes()),SHA=hashlib.sha256(q.read_bytes()).hexdigest()))
+ with (a.out/'SOURCE_ONLY_DESCRIPTOR_INDEX_V1.json').open('x',encoding='utf-8') as f:json.dump(dict(kind='NOT_READY_NO_ACTUAL_AUTHORITY_BUDGET_WRITER_OR_TRAINING',rows=rows,H1_excluded=True,model_SDK_operations=0),f,indent=2)
+ print(json.dumps(dict(templates=len(rows),notready=True,PT_SDK_operations=0),indent=2))
+if __name__=='__main__':main()

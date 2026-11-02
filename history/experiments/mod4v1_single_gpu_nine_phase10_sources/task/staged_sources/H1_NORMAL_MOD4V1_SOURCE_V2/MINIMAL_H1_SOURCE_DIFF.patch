@@ -1,0 +1,323 @@
+--- actual453/job0/runtime/isaac/mod4/sensor_resume_contract.py
++++ MOD4v1/job0/runtime/isaac/mod4/sensor_resume_contract.py
+@@ -1,4 +1,5 @@
+ """Resume stochastic streams, then deliberately start a new physical episode."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import torch,json,os,time,hashlib
+ from pathlib import Path
+ from sensor_mild_math import SensorCorruption,CHANNELS
+@@ -21,7 +22,7 @@
+ 
+ def resume_sensor_new_episode(runner,env,path,log_dir):
+  from sensor_a0_runtime import state
+- ck=torch.load(path,map_location='cpu',weights_only=False);s=state(env)
++ ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/sensor_resume_contract.py:24');s=state(env)
+  # RSL's existing loader restores actor/critic/optimizer/std/iteration first.
+  for key,obj in [('actor_state_dict',runner.alg.actor),('critic_state_dict',runner.alg.critic)]:
+   actual=obj.state_dict();assert set(actual)==set(ck[key])
+@@ -50,7 +51,7 @@
+  robot=env.scene['robot'];qerr=float((robot.data.joint_pos-env._rescue_reset_q).abs().max())
+  assert qerr==0 and bool(torch.isfinite(robot.data.joint_pos).all())
+  params=env._mild_dr.audit();assert params['actual_parameters_pass']
+- p=Path(path);receipt=dict(epoch=time.time(),pid=os.getpid(),source_path=str(p),source_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),
++ p=Path(path);receipt=dict(epoch=time.time(),pid=os.getpid(),source_path=str(p),source_sha256=cached_H(p,purpose='job0/runtime/isaac/mod4/sensor_resume_contract.py:source_identity'),
+   actor_critic_std_exact=True,optimizer_loaded_original_path=True,stored_iteration=ck['iter'],sensor_streams_restored=True,
+   command_named_streams=cmd,physical_named_streams=physical,global_CPU_CUDA_streams_restored=True,
+   new_physical_episode=True,all_episode_counters_incremented_once=True,history_cache_new_episode=True,
+--- actual453/job0/runtime/isaac/mod4/feedback_delay_checkpoint.py
++++ MOD4v1/job0/runtime/isaac/mod4/feedback_delay_checkpoint.py
+@@ -1,4 +1,5 @@
+ """D3 queue/RNG persistence; deliberately reset once into a new physical episode."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import json,os,time,torch
+ from feedback_delay_mild import WIDTHS
+@@ -36,7 +37,7 @@
+     original=runner.save
+     def save(path,*args,**kwargs):
+         original(path,*args,**kwargs)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);d=delay_state(env)
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/feedback_delay_checkpoint.py:39');d=delay_state(env)
+         saved=d.state_dict();validate_delay_state(d,saved)
+         ck['feedback_delay_state']=saved
+         ck['feedback_delay_recipe']=env.feedback_delay_recipe()
+@@ -47,7 +48,7 @@
+ def resume_delay_new_episode(runner,env,path,log_dir):
+     from feedback_delay_runtime import delay_state
+     from sensor_resume_contract import resume_sensor_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);d=delay_state(env)
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/feedback_delay_checkpoint.py:50');d=delay_state(env)
+     has_delay='feedback_delay_state' in ck
+     if has_delay:
+         assert ck['feedback_delay_recipe']==env.feedback_delay_recipe()
+--- actual453/job0/runtime/isaac/mod4/action_delay_checkpoint.py
++++ MOD4v1/job0/runtime/isaac/mod4/action_delay_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Complete D4 queues/RNG restore before an explicit fresh physical episode."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import json,os,time,torch
+ from pathlib import Path
+ from feedback_delay_checkpoint import exact
+@@ -46,13 +47,13 @@
+     install_delay_save_contract(runner,env);original=runner.save
+     def save(path,*a,**kw):
+         original(path,*a,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False)
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/action_delay_checkpoint.py:49')
+         torch.save(append_action_state(ck,env),path)
+     runner.save=save
+ 
+ def resume_action_new_episode(runner,env,path,log_dir):
+     from feedback_delay_checkpoint import resume_delay_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False)
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/action_delay_checkpoint.py:55')
+     has,episodes=restore_action_before_new_episode(env,ck)
+     row=resume_delay_new_episode(runner,env,path,log_dir)
+     verify_action_new_episode(env,episodes)
+--- actual453/job0/runtime/isaac/mod4/spring_pressure_checkpoint.py
++++ MOD4v1/job0/runtime/isaac/mod4/spring_pressure_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Restore all D5 streams first, then one explicit new physical episode."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import torch,json,time,os
+ 
+@@ -17,7 +18,7 @@
+ 
+ def resume_spring_new_episode(runner,env,path,log_dir):
+     from action_delay_checkpoint import resume_action_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);adapter=env._spring_pressure
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/spring_pressure_checkpoint.py:20');adapter=env._spring_pressure
+     has='spring_pressure_state' in ck
+     if has:
+         assert ck['spring_pressure_recipe']==env.spring_pressure_recipe()
+@@ -29,7 +30,7 @@
+     # Actual CUDA state disk roundtrip is independently verified at the live
+     # scene. This is state evidence, never a pretrained policy selection.
+     saved=adapter.state_dict();tmp=Path(log_dir)/'SPRING_STATE_STARTUP_ROUNDTRIP.pt'
+-    torch.save(saved,tmp);adapter.load_state_dict(torch.load(tmp,map_location='cpu',weights_only=False))
++    torch.save(saved,tmp);adapter.load_state_dict(cached_load(tmp,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/spring_pressure_checkpoint.py:32'))
+     assert exact(adapter.state_dict(),saved)
+     episodes=adapter.component.episode.clone()
+     row=resume_action_new_episode(runner,env,path,log_dir)
+@@ -48,7 +49,7 @@
+     install_action_save_contract(runner,env);original=runner.save
+     def save(path,*a,**kw):
+         original(path,*a,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);state=env._spring_pressure.state_dict()
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/spring_pressure_checkpoint.py:51');state=env._spring_pressure.state_dict()
+         validate_saved_pressure(state,env.num_envs)
+         ck['spring_pressure_state']=state;ck['spring_pressure_recipe']=env.spring_pressure_recipe()
+         ck['spring_pressure_resume_contract']='Restore factor/episode/twoCUDA RNG and all D1-D4/optimizer/global-named state first, then new physical episode; not PhysX exactresume.'
+--- actual453/job0/runtime/isaac/mod4/gas_damping_checkpoint.py
++++ MOD4v1/job0/runtime/isaac/mod4/gas_damping_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Full D6 state before one fresh physics episode; keep complete D1-D5 contract."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import os,time,json,torch
+ from gas_damping_factor import PROFILE
+@@ -18,7 +19,7 @@
+     install_spring_save_contract(runner,env);original=runner.save
+     def save(path,*args,**kw):
+         original(path,*args,**kw)
+-        ck=torch.load(path,map_location='cpu',weights_only=False);state=env._gas_damping.state_dict()
++        ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/gas_damping_checkpoint.py:21');state=env._gas_damping.state_dict()
+         validate_saved_damping(state,env.num_envs)
+         ck['gas_damping_state']=state;ck['gas_damping_recipe']=env.gas_damping_recipe()
+         ck['gas_damping_resume_contract']='Restore independent factor/episode/two CUDA RNG plus complete D1-D5/optimizer/global/named streams, then fresh physical episode. Not PhysX exactresume.'
+@@ -27,7 +28,7 @@
+ 
+ def resume_damping_new_episode(runner,env,path,log_dir):
+     from spring_pressure_checkpoint import resume_spring_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);adapter=env._gas_damping
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/gas_damping_checkpoint.py:30');adapter=env._gas_damping
+     has='gas_damping_state' in ck
+     if has:
+         assert ck['gas_damping_recipe']==env.gas_damping_recipe()
+@@ -38,7 +39,7 @@
+         validate_saved_pressure(ck['spring_pressure_state'],env.num_envs)
+         assert ck['spring_pressure_recipe']['profile']=='gas_stiffness_independent_episode_090_110_v1'
+     saved=adapter.state_dict();tmp=Path(log_dir)/'GAS_DAMPING_STATE_STARTUP_ROUNDTRIP.pt'
+-    torch.save(saved,tmp);adapter.load_state_dict(torch.load(tmp,map_location='cpu',weights_only=False))
++    torch.save(saved,tmp);adapter.load_state_dict(cached_load(tmp,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/gas_damping_checkpoint.py:41'))
+     assert exact(adapter.state_dict(),saved)
+     episodes=adapter.component.episode.clone()
+     row=resume_spring_new_episode(runner,env,path,log_dir)
+--- actual453/job0/runtime/isaac/mod4/chassis_pd_checkpoint.py
++++ MOD4v1/job0/runtime/isaac/mod4/chassis_pd_checkpoint.py
+@@ -1,4 +1,5 @@
+ """Complete D7 state on top of actual D6 saved contract; one fresh episode."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import os,json,time,torch
+ from chassis_com_component import PROFILE as COM_PROFILE
+@@ -24,18 +25,18 @@
+     from gas_damping_checkpoint import install_damping_save_contract
+     install_damping_save_contract(runner,env);original=runner.save
+     def save(path,*args,**kw):
+-        original(path,*args,**kw);ck=torch.load(path,map_location='cpu',weights_only=False);state=current_state(env);validate_saved_chassis_pd(state,env.num_envs)
++        original(path,*args,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/chassis_pd_checkpoint.py:27');state=current_state(env);validate_saved_chassis_pd(state,env.num_envs)
+         ck['chassis_PD_state']=state;ck['chassis_PD_recipe']=env.chassis_pd_recipe();ck['chassis_PD_resume_contract']='Restore full D1-D6 and COM/PD private CUDA streams, then one fresh physics episode; not PhysX exactresume.';torch.save(ck,path)
+     runner.save=save
+ def resume_chassis_pd_new_episode(runner,env,path,log_dir):
+     from gas_damping_checkpoint import resume_damping_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False);has='chassis_PD_state' in ck
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/chassis_pd_checkpoint.py:32');has='chassis_PD_state' in ck
+     if has:
+         validate_saved_chassis_pd(ck['chassis_PD_state'],env.num_envs);assert ck['chassis_PD_recipe']==env.chassis_pd_recipe()
+         env._chassis_com.load_state_dict(ck['chassis_PD_state']['COM']);env._explicit_pd.load_state_dict(ck['chassis_PD_state']['PD']);assert exact(current_state(env),ck['chassis_PD_state'])
+     else:
+         assert os.environ.get('RM_CHASSIS_PD_INITIAL_ADMISSION')=='D6_to_D7';validate_saved_damping(ck['gas_damping_state'],env.num_envs)
+-    saved=current_state(env);tmp=Path(log_dir)/'CHASSIS_PD_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(saved,tmp);loaded=torch.load(tmp,map_location='cpu',weights_only=False)
++    saved=current_state(env);tmp=Path(log_dir)/'CHASSIS_PD_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(saved,tmp);loaded=cached_load(tmp,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/chassis_pd_checkpoint.py:38')
+     env._chassis_com.load_state_dict(loaded['COM']);env._explicit_pd.load_state_dict(loaded['PD']);assert exact(current_state(env),saved)
+     ce=env._chassis_com.component.episode.clone();pe=env._explicit_pd.component.episode.clone()
+     row=resume_damping_new_episode(runner,env,path,log_dir)
+--- actual453/job0/runtime/isaac/mod4/sensor_a0_runtime.py
++++ MOD4v1/job0/runtime/isaac/mod4/sensor_a0_runtime.py
+@@ -1,4 +1,5 @@
+ """Approved S2 D1+D2 only, on the frozen A0/1ms E0 task."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ import os,torch
+ from isaaclab.managers import EventTermCfg,SceneEntityCfg
+ from mod4_env import Mod4Env
+@@ -61,7 +62,7 @@
+  """Called before the existing atomic bounded-save wrapper publishes its receipt."""
+  original=runner.save
+  def save(path,*a,**kw):
+-  original(path,*a,**kw);ck=torch.load(path,map_location='cpu',weights_only=False)
++  original(path,*a,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/sensor_a0_runtime.py:64')
+   s=state(env);ck['sensor_DR_state']=s.state_dict();ck['sensor_recipe']=s.receipt()
+   ck['sensor_resume_contract']='Full feedback RNG/cache preserved; new physical episode clears caches and samples its own episode bias. No PhysX exact resume claim.'
+   ck['sensor_global_rng_state']=dict(cpu=torch.random.get_rng_state(),cuda=torch.cuda.get_rng_state_all())
+--- actual453/job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py
++++ MOD4v1/job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py
+@@ -1,4 +1,5 @@
+ """Original complete source restoration and explicit new deterministic H1 phase state."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import torch,json,time,hashlib
+ from chassis_pd_checkpoint import resume_chassis_pd_new_episode,install_chassis_pd_save_contract
+@@ -12,13 +13,13 @@
+   a=getattr(t,k);assert a.shape==v.shape and a.dtype==v.dtype;a.copy_(v.to(a.device))
+  t._mode_rng.set_state(s['private_command_mode_rng'].cpu());env._h1_publish_external_request()
+ def resume_h1_new_episode(runner,env,path,log_dir):
+- ck=torch.load(path,map_location='cpu',weights_only=False);has='H1_public_request_phase_state' in ck
++ ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py:15');has='H1_public_request_phase_state' in ck
+  if has:load(env,ck['H1_public_request_phase_state'])
+- current=state(env);tmp=Path(log_dir)/'H1_PHASE_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(current,tmp);load(env,torch.load(tmp,map_location='cpu',weights_only=False));assert exact(state(env),current)
++ current=state(env);tmp=Path(log_dir)/'H1_PHASE_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt';torch.save(current,tmp);load(env,cached_load(tmp,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py:17'));assert exact(state(env),current)
+  proof=resume_chassis_pd_new_episode(runner,env,path,log_dir);assert not env.h1_phase.age_control.any() and not env.h1_phase.attempt.any() and not env.h1_phase.public_request().any()
+- row=dict(epoch=time.time(),source_SHA=hashlib.sha256(Path(path).read_bytes()).hexdigest(),complete_original_D0_D7_proof=proof,source_had_H1_phase=has,new_phase_group_explicit_no_new_rng=True,actual_CUDA_disk_roundtrip_exact=True,new_physical_episode_resets_external_schedule_and_reward_credits=True,phase_truth_not_actor_input=True,not_PhysX_exact_resume=True);Path(log_dir,'H1_PHASE_FULLSTATE_RESUME_STARTUP_VERIFIED.json').write_text(json.dumps(row,indent=2));return row
++ row=dict(epoch=time.time(),source_SHA=cached_H(path,purpose='job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py:source_identity'),complete_original_D0_D7_proof=proof,source_had_H1_phase=has,new_phase_group_explicit_no_new_rng=True,actual_CUDA_disk_roundtrip_exact=True,new_physical_episode_resets_external_schedule_and_reward_credits=True,phase_truth_not_actor_input=True,not_PhysX_exact_resume=True);Path(log_dir,'H1_PHASE_FULLSTATE_RESUME_STARTUP_VERIFIED.json').write_text(json.dumps(row,indent=2));return row
+ def install_h1_save_contract(runner,env):
+  install_chassis_pd_save_contract(runner,env);original=runner.save
+  def save(path,*a,**kw):
+-  original(path,*a,**kw);ck=torch.load(path,map_location='cpu',weights_only=False);ck['H1_public_request_phase_state']=state(env);torch.save(ck,path)
++  original(path,*a,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='job0/runtime/isaac/mod4/h1_fullstate_checkpoint_v1.py:23');ck['H1_public_request_phase_state']=state(env);torch.save(ck,path)
+  runner.save=save
+--- actual453/h1_step270_fullstate_checkpoint_candidate_uninstalled.py
++++ MOD4v1/h1_step270_fullstate_checkpoint_candidate_uninstalled.py
+@@ -1,4 +1,5 @@
+ """Explicit H1 old-task to step270 state migration, not a production admission."""
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ from pathlib import Path
+ import hashlib,json,time
+ import torch
+@@ -64,20 +65,20 @@
+ def resume_step270_new_episode(runner,env,path,log_dir):
+     log_dir=Path(log_dir);log_dir.mkdir(parents=True,exist_ok=True)
+     from chassis_pd_checkpoint import resume_chassis_pd_new_episode
+-    ck=torch.load(path,map_location='cpu',weights_only=False)
++    ck=cached_load(path,map_location='cpu',weights_only=False,purpose='h1_step270_fullstate_checkpoint_candidate_uninstalled.py:67')
+     if 'H1_step270_task_state' in ck:
+         load(env,ck['H1_step270_task_state']);migration='same_new_task_state_restored'
+     else:
+-        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==SOURCE_SHA
++        assert cached_H(path,purpose='h1_step270_fullstate_checkpoint_candidate_uninstalled.py:source_identity')==SOURCE_SHA
+         migrated=migrate_reference(ck,env.h1_phase.state_dict(),env.num_envs)
+         load(env,migrated['H1_step270_task_state']);migration=migrated['H1_step270_explicit_migration']
+     current=state(env);tmp=Path(log_dir)/'STEP270_FULLSTATE_ACTUAL_CUDA_STARTUP_ROUNDTRIP.pt'
+-    torch.save(current,tmp);load(env,torch.load(tmp,map_location='cpu',weights_only=False));assert exact(state(env),current)
++    torch.save(current,tmp);load(env,cached_load(tmp,map_location='cpu',weights_only=False,purpose='h1_step270_fullstate_checkpoint_candidate_uninstalled.py:75'));assert exact(state(env),current)
+     # Existing D0-D7 path restores all streams/core first, then resets exactly one physical episode.
+     proof=resume_chassis_pd_new_episode(runner,env,path,log_dir)
+     assert not env.h1_phase.age_control.any() and not env.h1_phase.attempt.any() and not env.h1_phase.public_request().any()
+     assert not env.h1_phase.goal.success.any() and not env.h1_phase.crossed.any()
+-    row=dict(epoch=time.time(),source_SHA=hashlib.sha256(Path(path).read_bytes()).hexdigest(),explicit_new_task_migration=migration,complete_D0_D7_original_proof=proof,actual_CUDA_new_task_roundtrip_exact=True,new_physical_episode_zeroes_goal_credit=True,not_PhysX_exact_resume=True)
++    row=dict(epoch=time.time(),source_SHA=cached_H(path,purpose='h1_step270_fullstate_checkpoint_candidate_uninstalled.py:source_identity'),explicit_new_task_migration=migration,complete_D0_D7_original_proof=proof,actual_CUDA_new_task_roundtrip_exact=True,new_physical_episode_zeroes_goal_credit=True,not_PhysX_exact_resume=True)
+     Path(log_dir,'STEP270_FULLSTATE_RESUME_STARTUP_VERIFIED.json').write_text(json.dumps(row,indent=2))
+     return row
+ 
+@@ -85,7 +86,7 @@
+     from chassis_pd_checkpoint import install_chassis_pd_save_contract
+     install_chassis_pd_save_contract(runner,env);original=runner.save
+     def save(path,*a,**kw):
+-        original(path,*a,**kw);ck=torch.load(path,map_location='cpu',weights_only=False);ck['H1_step270_task_state']=state(env)
++        original(path,*a,**kw);ck=cached_load(path,map_location='cpu',weights_only=False,purpose='h1_step270_fullstate_checkpoint_candidate_uninstalled.py:88');ck['H1_step270_task_state']=state(env)
+         ck['H1_step270_runtime_contract']=dict(version=270,geometry=env.h1_phase.state_dict()['geometry'],actual_step_event_credit=True,source_hour16_SHA=SOURCE_SHA,original_D0_D7_STD_optimizer_save_chain_retained=True)
+         torch.save(ck,path)
+     runner.save=save
+--- actual453/job0/runtime/isaac/mod4/train_H1_ground_prelaunch_fullstate_v2.py
++++ MOD4v1/job0/runtime/isaac/mod4/train_H1_ground_prelaunch_fullstate_v2.py
+@@ -12,6 +12,7 @@
+   .venv-isaaclab\Scripts\python.exe isaac\mod4\train_mod4_ppo.py --num_envs 4096 --max_iterations 3000 --run_name mod4_isaac_v1
+ """
+ from __future__ import annotations
++from h1_pinned_source_v1 import cached_load,cached_H,cached_source_owns,runner_source_load_scope
+ 
+ import argparse
+ import os
+@@ -107,7 +108,7 @@
+     try:
+         import math
+         import tempfile
+-        ck = torch.load(path, map_location="cpu", weights_only=False)
++        ck = cached_load(path, map_location="cpu", weights_only=False,purpose='job0/runtime/isaac/mod4/train_H1_ground_prelaunch_fullstate_v2.py:110')
+         sd = ck.get("model_state_dict") or ck.get("actor_state_dict")
+         keys = [k for k in (sd or {}) if k.endswith("std_param") or k.endswith("log_std_param")]
+         if not keys:
+@@ -249,7 +250,8 @@
+     runner = OnPolicyRunner(vec_env, owned_cfg, log_dir=log_dir, device=cfg.device)
+     if args.init_checkpoint:
+         warm = _warm_start_with_reset_std(args.init_checkpoint, RM_INIT_STD)
+-        runner.load(warm)
++        with runner_source_load_scope():
++            runner.load(warm)
+         print("[mod4-isaac] warm start from " + args.init_checkpoint
+               + ("" if warm == args.init_checkpoint else " (std reset copy: %s)" % warm),
+               flush=True)
+@@ -261,6 +263,8 @@
+     # hash and software versions -- so "warmstart_base11.pt" style names can never drift from
+     # their real provenance again.
+     def _sha256(path):
++        if cached_source_owns(path):
++            return cached_H(path,purpose="H1.run_manifest.selected_source_SHA")
+         import hashlib
+         try:
+             h = hashlib.sha256()
+--- actual453/job0/runtime/isaac/mod4/clock_training_health.py
++++ MOD4v1/job0/runtime/isaac/mod4/clock_training_health.py
+@@ -77,7 +77,7 @@
+             control_dt_s=float(self.env.step_dt),control_steps=self.steps,
+             actual_task_reset_events=int(self.counts.sum()),
+             closure_episode_reset_events=int(self.reason_counts['closure'].sum()),
+-            closure_2mm_still_resets_only_this_environment=True,
++            closure_10mm_still_resets_only_this_environment=True,closure_episode_threshold_m=.01,
+             closure_peak_alone_does_not_stop_global_learning=True,
+             legacy_single_peak_2mm_pass=float(getattr(self.env,'_mod4_max_closure',float('inf')))<=.002,
+             post_reset_values_not_relabelled_as_pre_reset_failure=True,failed_environments=int((self.counts>0).sum()),
+@@ -85,10 +85,10 @@
+             integrity_task_reset_events=int(self.integrity_counts.sum()),
+             unknown_task_reset_events=int(self.unknown_counts.sum()),
+             termination_events_by_reason={n:int(v.sum()) for n,v in self.reason_counts.items()},
+-            ordinary_task_thresholds_unchanged=True,ordinary_resets_continue_learning=True,
++            ordinary_task_thresholds_unchanged_except_new_authorized_10mm_closure=True,ordinary_resets_continue_learning=True,
+             termination_reason_coverage_exact=self.coverage_exact,nonfinite_observed=self.nonfinite,
+             actual_physics_callbacks=self.env._integrated_contact.tick-self.initial_tick,
+-            expected_physics_callbacks=self.steps*round(.01/self.env.physics_dt),
++            expected_physics_callbacks=self.steps*int(self.env.cfg.decimation),
+             max_closure_error_m=float(getattr(self.env,'_mod4_max_closure',float('nan'))),
+             max_mimic_error_rad=float(getattr(self.env,'_mod4_max_mimic',float('nan'))),
+             stop_reason=self.reason,request_own_save_only_no_force_kill=True,

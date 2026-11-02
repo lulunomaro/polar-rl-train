@@ -1,0 +1,32 @@
+"""CPU feedback/serialization contracts, no simulator, CUDA or learning."""
+import torch,json
+from sensor_mild_math import SensorCorruption,CHANNELS
+torch.set_num_threads(1);passed=[]
+s=SensorCorruption(10,'cpu',9,'noise_bias_mild_v1');g=torch.random.get_rng_state().clone();s.reset(torch.arange(10));assert torch.equal(g,torch.random.get_rng_state());passed.append('independent_reset_rng')
+x={k:torch.randn(10,d) for k,(d,_,_) in CHANNELS.items()};orig={k:v.clone() for k,v in x.items()};g=torch.random.get_rng_state().clone()
+y={k:s.apply(k,v,0) for k,v in x.items()};assert torch.equal(g,torch.random.get_rng_state());passed.append('independent_channel_rng')
+for k in x:assert torch.equal(x[k],orig[k])
+passed.append('clean_inputs_unchanged')
+counts=dict(s.draw_counts)
+for k in x:assert torch.equal(y[k],s.apply(k,x[k],0))
+assert counts==s.draw_counts;passed.append('same_tick_once')
+for k,(_,bound,_) in CHANNELS.items():assert float((y[k]-x[k]-(s.bias if k=='leg_pos' else 0)).abs().max())<=bound+1e-6
+passed.append('raw_units_and_bounds')
+off=SensorCorruption(10,'cpu',9,'off');off.reset(torch.arange(10))
+for k in x:assert torch.equal(x[k],off.apply(k,x[k],0))
+passed.append('off_exact')
+snap=s.state_dict();t=SensorCorruption(10,'cpu',1234,'noise_bias_mild_v1');t.load_state_dict(snap)
+for k in x:assert torch.equal(s.apply(k,x[k],1),t.apply(k,x[k],1))
+passed.append('full_cache_rng_roundtrip')
+old=s.bias.clone();old_ep=s.episode.clone();s.reset(torch.tensor([2,5,8]));t.reset(torch.tensor([2,5,8]));others=torch.tensor([0,1,3,4,6,7,9])
+assert torch.equal(old[others],s.bias[others]) and torch.equal(old_ep[others],s.episode[others]);passed.append('selected_reset_other_rows_exact')
+assert torch.equal(s.bias,t.bias);passed.append('bias_generator_roundtrip')
+for k in x:assert torch.equal(s.apply(k,x[k],1),t.apply(k,x[k],1))
+passed.append('selected_cache_recompute_roundtrip')
+try:s.apply('base_ang_vel',torch.full((10,3),float('nan')),2)
+except AssertionError:passed.append('nonfinite_real_input_rejected')
+else:raise AssertionError('Nonfinite accepted')
+try:s.apply('wheel_vel',torch.zeros(10,3),2)
+except AssertionError:passed.append('feedback_shape_rejected')
+else:raise AssertionError('Wrong shape accepted')
+print(json.dumps(dict(passed=True,contracts=passed,count=len(passed),no_CUDA_initialized=not torch.cuda.is_initialized(),no_optimizer_or_budget=True)))

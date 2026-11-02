@@ -56,6 +56,8 @@ def inspect(args):
             curve['terms']['wheel_world_height'] = height.mean(-1)
             curve['cost'] += curve['terms']['wheel_world_height']
             curve['reward'] = np.exp(-curve['cost']/5)
+        if args.reward_map == 'reciprocal':
+            curve['reward'] = 1./(1.+curve['cost']/5.)
         errors = {key: float(value.mean()-row['result']['tracking_components'][key])
                   for key, value in curve['terms'].items()}
         assert max(map(abs, errors.values())) < .001, errors
@@ -143,6 +145,7 @@ def inspect(args):
     fig.savefig(plot, dpi=150)
     plt.close(fig)
     report = dict(epoch=time.time(), model_SHA=result['model_SHA'], rotation=args.rotation, wheel_height=args.wheel_height,
+                  reward_map=args.reward_map,
                   source_result=identity(source), source_replay_receipt=identity(replay_path),
                   baseline_report=identity(args.baseline_report), baseline_csv=identity(args.baseline_report.parent/'phase_aligned456_curves.csv'), actual_all80=summary,
                   detailed_cases=cases, artifacts=[identity(csv_path), identity(plot)],
@@ -160,5 +163,6 @@ if __name__ == '__main__':
     parser.add_argument('--baseline-report', type=Path, required=True)
     parser.add_argument('--rotation', choices=['matrix', 'geodesic'], default='geodesic')
     parser.add_argument('--wheel-height', action='store_true')
+    parser.add_argument('--reward-map', choices=['exponential', 'reciprocal'], default='exponential')
     parser.add_argument('--output', type=Path, required=True)
     inspect(parser.parse_args())

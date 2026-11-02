@@ -1,0 +1,14 @@
+{
+  "epoch": 1793658367.5400157,
+  "rows": [
+    {
+      "ProcessId": 42632,
+      "CreationDate": "2026-11-03T06:26:06.198533+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 -c \"from pathlib import Path\nfrom datetime import datetime\nimport importlib.util,json,os,subprocess,time\nN=Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/h1_reward_tail_20261103');R=N/'reports'\nspec=importlib.util.spec_from_file_location('h1_468_before_local_timer',N/'run.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nm.put('RESOURCE_TIMER_SPAWN_SELF_CIM_ORIGINAL_FALSE.json',dict(epoch=time.time(),passed=False,error='Read-only spawn wrapper matched its own Python -c command path and was counted as anothercontroller; local assert before any launch/once/network',original_selfPID=67732,created_timer=False,modelreads=0,network=0,repair='Exclude current wrapper by exact currentPID, as run.py gate already does; no frozen file mutation'))\nassert not(R/'RESOURCE_TIMER_LAUNCH.json').exists()and not(R/'RESOURCE_TIMER_ONCE.json').exists()\nrows=m.local_rows();others=[r for r in rows if r['ProcessId']!=os.getpid()];assert not others,others\nm.put('RESOURCE_TIMER_LAUNCH_LOCAL_CIM.json',dict(epoch=time.time(),rows=rows,excluded_current_wrapper_PID=os.getpid(),serialFREE=not others,network=0))\nwith(R/'RESOURCE_TIMER_STDOUT.log').open('xb')as out,(R/'RESOURCE_TIMER_STDERR.log').open('xb')as err:\n p=subprocess.Popen([m.CONTROL,'-B','-X','utf8',str(N/'start_after_original_release.py')],cwd=N,stdin=subprocess.DEVNULL,stdout=out,stderr=err,creationflags=subprocess.CREATE_NO_WINDOW)\nm.put('RESOURCE_TIMER_LAUNCH.json',dict(epoch=time.time(),PID=p.pid,script=str(N/'start_after_original_release.py'),local_wait_only=True,launch_unused=True))\nprint(json.dumps(dict(PID=p.pid,local_only=True,not_before=datetime.fromtimestamp(m.read(N/'RESOURCE_WAIT_FROZEN.json')['not_before_epoch']).astimezone().isoformat())))\""
+    }
+  ],
+  "excluded_current_wrapper_PID": 42632,
+  "serialFREE": true,
+  "network": 0
+}

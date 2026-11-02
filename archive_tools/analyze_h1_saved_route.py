@@ -105,7 +105,8 @@ def reconstruct(packet, row, reference, commands, hips):
                 weights=weights)
 
 
-def dense_view(task, receipt, packets, output):
+def dense_view(task, receipt, packets, output, *, times=None,
+               title='Actual456 RL455', prefix='actual456', suffix='early'):
     """No mj_step, neural inference, free joints, or new contact simulation."""
     import glfw
     import mujoco
@@ -115,14 +116,14 @@ def dense_view(task, receipt, packets, output):
     mesh_directory = Path(asset['mesh_directory'])
     if not xml_path.exists():
         scope = task.parent.parent
-        prefix = 'H1_USER_MUJOCO_REAL_BLUE_IMAGINATION_V115_20261029/actual_training_USD_visuals/'
+        archive_prefix = 'H1_USER_MUJOCO_REAL_BLUE_IMAGINATION_V115_20261029/actual_training_USD_visuals/'
         shared = scope/'shared/visuals'/asset['xml']['sha256']
         rows = {}
         with (scope/'history/h1_closed_stages_through_20261031.index.jsonl').open(encoding='utf8') as f:
             for line in f:
                 entry = json.loads(line)
-                if entry['relative_path'].startswith(prefix):
-                    rows[entry['relative_path'][len(prefix):]] = entry
+                if entry['relative_path'].startswith(archive_prefix):
+                    rows[entry['relative_path'][len(archive_prefix):]] = entry
         restored = []
         with zipfile.ZipFile(scope/'history/h1_closed_stages_through_20261031.zip') as archive:
             xml_row = rows['live_display.xml']
@@ -142,8 +143,10 @@ def dense_view(task, receipt, packets, output):
                 else:
                     assert hashlib.sha256(dest.read_bytes()).hexdigest() == entry['SHA256']
                 restored.append(dict(path=str(dest), bytes=entry['bytes'], SHA=entry['SHA256'], original_relative_path=entry['relative_path']))
-        with (output/'restored_visual_dependencies.json').open('x', encoding='utf8') as f:
-            json.dump(dict(scope='Only render dependencies from deduplicated archive; no full stage extraction', files=restored), f, indent=2)
+        dependency_receipt = output/'restored_visual_dependencies.json'
+        if not dependency_receipt.exists():
+            with dependency_receipt.open('x', encoding='utf8') as f:
+                json.dump(dict(scope='Only render dependencies from deduplicated archive; no full stage extraction', files=restored), f, indent=2)
         xml_path, mesh_directory = shared/'live_display.xml', shared/'meshes'
     raw = xml_path.read_bytes()
     assert hashlib.sha256(raw).hexdigest() == asset['xml']['sha256']
@@ -189,7 +192,8 @@ def dense_view(task, receipt, packets, output):
     scene = mujoco.MjvScene(model, maxgeom=2000)
     context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150)
     font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 16)
-    times = [.02, .2, .4, .6, .78, .9, 1., 1.12, 1.24]
+    times = times if times is not None else [.02, .2, .4, .6, .78, .9, 1., 1.12, 1.24]
+    assert len(times) == 9
     media = []
     try:
         for row in receipt['cases']:
@@ -217,9 +221,9 @@ def dense_view(task, receipt, packets, output):
                     tile = Image.fromarray(np.flipud(rgb)).resize((520, 340))
                     draw = ImageDraw.Draw(tile)
                     draw.rectangle((0, 0, 520, 26), fill='#121820')
-                    draw.text((8, 5), f'Actual456 RL455 env{row["env"]} {(index+1)*.02:.2f}s | {view}', font=font, fill='white')
+                    draw.text((8, 5), f'{title} env{row["env"]} {(index+1)*.02:.2f}s | {view}', font=font, fill='white')
                     sheet.paste(tile, ((slot % 3)*520, (slot//3)*340))
-                path = output/f'actual456_env{row["env"]}_{view}_early.png'
+                path = output/f'{prefix}_env{row["env"]}_{view}_{suffix}.png'
                 sheet.save(path)
                 media.append(identity(path))
     finally:

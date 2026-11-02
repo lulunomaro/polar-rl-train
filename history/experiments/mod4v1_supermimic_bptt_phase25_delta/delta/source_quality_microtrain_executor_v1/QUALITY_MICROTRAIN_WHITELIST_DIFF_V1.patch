@@ -1,0 +1,130 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_native_v6_runtime_compat\_SOURCE_INPUT\sealed_source\supermimic_original_owner_shared_app_close_candidate_v5.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_quality_microtrain_executor_v1\owner_quality_microtrain_v1.py
+@@ -1,3 +1,4 @@
++"""SOURCE ONLY: quality-driven 1/2-role A1 finite segment; not enabled/dispatched."""
+ """Finite original-canonical two-GPU SuperMimic BPTT owner, not a new ledger.
+ Original charge_values/authority locks/privateGPU EX/finiteSH/resource gates.
+ Worker algorithm changes are explicitly newhuman requested, not PPO20 relabel.
+@@ -5,7 +6,8 @@
+ from pathlib import Path
+ import os,sys,time,json,hashlib,fcntl,subprocess,traceback,shutil
+ import three_slot_common_v1 as b
+-from resume_runtime_app_close_v5 import evaluate_waited_worker,bind_future_task_extensions
++from resume_runtime_app_close_v5 import evaluate_waited_worker as _original_evaluate_waited_worker,bind_future_task_extensions
++from quality_microtrain_contracts_v1 import (validate_microtrain_plan,validate_microtrain_entry,bind_microtrain_task,bind_microtrain_go,enforce_microtrain_waited_result)
+ from single_writer72_authority_V85M_source import authority_tracking_schema_admitted,authority_original_extension_count,authority_budget_GO_allowed
+ B=Path(__file__).resolve().parent;C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json');UUIDS=('GPU-16828f91-2b45-b646-8dc0-9481138e2842','GPU-c27eecbd-6838-7290-1cd2-37e34522213d');ROLES={'E0','E2','E3','W35','CURB_PROTECTED878','CURB_INDEPENDENT113','SLOPE135','SLOPE_INDEPENDENT50'};RESERVE=86412.86069250107;put=b.put;KIND='MOD4V1_SUPERMIMIC_BPTT_TASK_V1'
+ def require(v,msg):
+@@ -24,10 +26,13 @@
+  for n,r in{'HOME':'home','TMPDIR':'tmp','TMP':'tmp','TEMP':'tmp','XDG_CACHE_HOME':'cache','XDG_CONFIG_HOME':'config','XDG_DATA_HOME':'data','XDG_STATE_HOME':'state','XDG_RUNTIME_DIR':'state/runtime','TORCH_HOME':'cache/torch','CUDA_CACHE_PATH':'cache/cuda','WARP_CACHE_PATH':'cache/warp'}.items():p=job/'private_train'/r;p.mkdir(parents=True,exist_ok=True);env[n]=str(p)
+  return env
+ 
++def evaluate_waited_worker(job_root,returncode,entry,run_id):
++ return enforce_microtrain_waited_result(_original_evaluate_waited_worker(job_root,returncode,entry,run_id),entry)
++
+ def verify_sources(plan):
+- require(b.C.resolve()==C.resolve()and plan['H1_excluded']and 1<=len(plan['entries'])<=8,'OriginalC only/eight nonH1');require(len({e['role']for e in plan['entries']})==len(plan['entries'])and{e['role']for e in plan['entries']}<=ROLES,'Unique exactroles')
++ require(b.C.resolve()==C.resolve()and plan['H1_excluded']and 1<=len(plan['entries'])<=2,'OriginalC only/one-or-two requested nonH1');require(len({e['role']for e in plan['entries']})==len(plan['entries'])and{e['role']for e in plan['entries']}<=ROLES,'Unique exactroles')
+  for e in plan['entries']:
+-  J=Path(e['job_root']);require(J.resolve().is_relative_to(B/'roles')and not(J/'GO_PRODUCTION.json').exists(),'New unused ownjob');require(e['target_bptt_steps']>=3000 and e['num_envs']in(512,1024,2048),'TrueBPTTtarget/newexplicitbatch');m=b.read(J/'INSTALL_MANIFEST.json');require(m['source_PT_copied']is False,'Noselectedmodelcopy')
++  J=Path(e['job_root']);require(J.resolve().is_relative_to(B/'roles')and not(J/'GO_PRODUCTION.json').exists(),'New unused ownjob');require(validate_microtrain_entry(e)['target_bptt_steps']==e['target_bptt_steps'] and e['num_envs']in(512,1024,2048),'TrueBPTTtarget/newexplicitbatch');m=b.read(J/'INSTALL_MANIFEST.json');require(m['source_PT_copied']is False,'Noselectedmodelcopy')
+   for f in m['files']:
+    p=J/f['relative'];require(p.resolve().is_relative_to(J)and p.suffix.lower()not in('.pt','.pth','.ckpt'),'OnlynonPTsource/assets');require(p.stat().st_size==f['bytes']and b.H(p)==f['SHA'],'Pinnedownsoftware')
+   require(e['teacher']['SHA']and e['teacher']['bytes']>10000000,'Pinnedwholeteacher metadata');require(m['asset_USD_SHA']=='2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'and m['asset_contract_SHA']=='bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755','MOD4v1only')
+@@ -39,7 +44,7 @@
+ 
+ def plan_protocol():return dict(physics_dt=.0025,policy_hz=50,feedback_hz=100,TGS=[32,4],gas_N=400,stiffness_N_m=2000,damping_Ns_m=3,closure_m=.01,mimic_rad=.01,full_D0_D7=True,reward_task_unchanged=True,BPTT='Learnedworldmodeltemporalactorgradient_not_PhysXautograd',new_explicit_fresh_training_cohort_not_N80_slice=True)
+ def main():
+- plan=b.read(B/'OWNER_PLAN.json');verify_sources(plan);require(not(B/'OWNER_STARTED.json').exists(),'Unusedowneronce');run=plan['run_id'];put(B/'OWNER_STARTED.json',dict(epoch=time.time(),pid=os.getpid(),run_id=run,H1_excluded=True));locks=[];private={};finite=None;active=False;go={};rows={};slots={};errors=[];pending=list(plan['entries']);blocked=False;c=None
++ plan=validate_microtrain_plan(b.read(B/'OWNER_PLAN.json'));verify_sources(plan);require(not(B/'OWNER_STARTED.json').exists(),'Unusedowneronce');run=plan['run_id'];put(B/'OWNER_STARTED.json',dict(epoch=time.time(),pid=os.getpid(),run_id=run,H1_excluded=True));locks=[];private={};finite=None;active=False;go={};rows={};slots={};errors=[];pending=list(plan['entries']);blocked=False;c=None
+  def stop(slot,reason):put(Path(slot['entry']['job_root'])/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason=reason,complete_full_own_save_thenclose=True))
+  try:
+   until=time.monotonic()+1800
+@@ -68,18 +73,18 @@
+    for u in UUIDS:
+     if u in slots or blocked or not pending:continue
+     if c['remaining_training_seconds']<=RESERVE+3900*(len(slots)+1):break
+-    e=pending[0];resource=gpu(u);J=Path(e['job_root']);task,g=admit(e,u,c,run,locks,private[u],finite,resource);task=bind_future_task_extensions(task,e);put(J/'TASK.json',task)
++    e=pending[0];resource=gpu(u);J=Path(e['job_root']);task,g=admit(e,u,c,run,locks,private[u],finite,resource);task=bind_future_task_extensions(task,e);task=bind_microtrain_task(task,e);g=bind_microtrain_go(g,e);put(J/'TASK.json',task)
+     if not active:
+      now=time.time();c=b.read(C);require(c['active_segment']is None,'Originaluniqueowner');c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,kind='Linux_MOD4V1_SUPERMIMIC_BPTT_'+run,started_epoch=now,accounted_through_epoch=now,charged_expert_seconds=0.,experts={},charge_contract='Originalcharge_valuesexpertsecondsactualGOthroughload-model-WM-BPTT-fullsave-SDKclose-parentwait; noclamprefundextension');put(C,c);active=True
+     key=e['role_key'];require(not(J/'GO_PRODUCTION.json').exists(),'UnusedworkerGO');go[key]=g;put(J/'GO_PRODUCTION.json',g);log=(J/'SUPERMIMIC_FULL_STDOUT_STDERR.log').open('xb')
+     try:p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'worker_sources/worker_supermimic_bptt_app_close_candidate_v5.py'),'--job-root',str(J)],cwd=J,env=environment(J,u),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=tuple(task['inherited_lock_fds']),start_new_session=True)
+     except BaseException:log.close();rows[key]=dict(key=key,role=e['role'],phase='terminal',terminal_all_own_children_waited=True,returncode=1,owner_received_terminal_epoch=time.time(),original_error=True);raise
+     log.close();slots[u]=dict(p=p,entry=e);pending.pop(0);put(J/'WORKER_IDENTITY_ACTUAL.json',b.ident(p.pid));c=account(run,go,rows)
+-   put(B/'OWNER_CURRENT.json',dict(epoch=time.time(),run_id=run,workers={u:dict(role=s['entry']['role'],identity=b.ident(s['p'].pid))for u,s in slots.items()},terminal_roles=[r['role']for r in rows.values()],pending_roles=[e['role']for e in pending],blocked_after_real_error=blocked,canonical_remaining_seconds=c['remaining_training_seconds'],target_per_expert=3000,final_skill_goal=.9,not_yet_skill_pass_claim=True))
++   put(B/'OWNER_CURRENT.json',dict(epoch=time.time(),run_id=run,workers={u:dict(role=s['entry']['role'],identity=b.ident(s['p'].pid))for u,s in slots.items()},terminal_roles=[r['role']for r in rows.values()],pending_roles=[e['role']for e in pending],blocked_after_real_error=blocked,canonical_remaining_seconds=c['remaining_training_seconds'],target_per_expert=None,microtrain_requested_verified_increments={e['role']:e['microtrain']['target_verified_increment']for e in plan['entries']},final_skill_goal=.9,not_yet_skill_pass_claim=True))
+    if not slots and(blocked or not pending or c['remaining_training_seconds']<=RESERVE+3900):break
+    if slots:time.sleep(3)
+   if active:account(run,go,rows,True);active=False
+-  put(B/'COHORT_FINAL.json',dict(run_id=run,rows=rows,go=go,pending_unstarted_roles=[e['role']for e in pending],all_own_children_waited=not slots,original_cost_settled=not active,errors=errors,H1_excluded=True,original_skill_evaluation='PENDING_FROZEN_ACCEPTANCE_NOT_LOSS',newledger_or_extension=False))
++  put(B/'COHORT_FINAL.json',dict(run_id=run,rows=rows,go=go,pending_unstarted_roles=[e['role']for e in pending],all_own_children_waited=not slots,original_cost_settled=not active,errors=errors,H1_excluded=True,microtrain_requested_roles=plan['requested_roles'],microtrain_deferred_roles=plan['deferred_roles'],original_skill_evaluation='PENDING_FROZEN_ACCEPTANCE_NOT_LOSS',newledger_or_extension=False))
+  except BaseException:
+   errors.append(dict(parent_error=traceback.format_exc()));put(B/'OWNER_ORIGINAL_ERROR.json',dict(epoch=time.time(),errors=errors,active_not_falsely_cleared=active))
+   for slot in slots.values():stop(slot,'Ownoriginalownerexception')
+@@ -93,5 +98,5 @@
+   if not slots:
+    for f in[finite,*private.values(),*reversed(locks)]:
+     if f is not None:fcntl.flock(f,fcntl.LOCK_UN);f.close()
+-  put(B/'OWNER_EXIT_ACTUAL.json',dict(epoch=time.time(),run_id=run,all_own_children_waited=not slots,original_cost_settled=not active,original_leases_released=not slots,errors=errors,H1_excluded=True,no_newbudget_refund_or_extension=True))
++  put(B/'OWNER_EXIT_ACTUAL.json',dict(epoch=time.time(),run_id=run,all_own_children_waited=not slots,original_cost_settled=not active,original_leases_released=not slots,errors=errors,H1_excluded=True,microtrain_requested_roles=plan['requested_roles'],microtrain_deferred_roles=plan['deferred_roles'],no_newbudget_refund_or_extension=True))
+ if __name__=='__main__':main()
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_native_v6_runtime_compat\_SOURCE_INPUT\sealed_source\worker_supermimic_bptt_app_close_candidate_v5.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_quality_microtrain_executor_v1\worker_quality_microtrain_v1.py
+@@ -1,8 +1,10 @@
++"""SOURCE ONLY: original A1 worker, loaded-counter finite increment metadata."""
+ """New original-owner admitted SuperMimic/context-reward BPTT training worker.
+ New algorithm, original plant/reward/DR. No old PPO learn/main or optimizer resume.
+ """
+ from pathlib import Path
+ import argparse,os,sys,json,time,hashlib,runpy,traceback,shutil
++from quality_microtrain_contracts_v1 import (validate_worker_microtrain_task,validate_microtrain_payload,start_microtrain_segment,finish_microtrain_segment)
+ KIND='MOD4V1_SUPERMIMIC_BPTT_TASK_V1'
+ _WORKER_JOB_ROOT_V2=None
+ from resume_runtime_app_close_v5 import (install_optional_pose_cache_runtime_adapter,FINAL_KIND,LIFECYCLE_KIND,BASELINE_ACTOR_VIEW,RAW35_ACTOR_VIEW,validate_worker_variant,PinnedOwnFullCheckpoint,load_decoded_full_checkpoint_once,resolve_future_bridge_adapter,preserve_worker_error,close_original_resources,BoundedPoseCacheEventsV5,force_pose_cache_event_receipt_v5)
+@@ -16,10 +18,10 @@
+  global _WORKER_JOB_ROOT_V2
+  q=argparse.ArgumentParser();q.add_argument('--job-root',required=True,type=Path);a=q.parse_args();J=a.job_root.resolve();_WORKER_JOB_ROOT_V2=J;task=json.loads((J/'TASK.json').read_bytes());go=json.loads((J/'GO_PRODUCTION.json').read_bytes());ad=json.loads((J/'ROOT_ADMISSION_ACTUAL.json').read_bytes());out=J/'production';assert not out.exists();assert task['kind']==go['kind']==KIND and task['role']!='H1'and task['role']==go['role']==ad['role'];assert task['run_id']==go['run_id']==ad['run_id'];assert H(J/'ROOT_ADMISSION_ACTUAL.json')==task['root_admission_SHA'];assert ad['actual_original_authority_EX_private_GPU_EX_finite_SH']and ad['original_canonical_owner_admitted'];assert task['owner_parent_pid']==os.getppid()and os.environ['CUDA_VISIBLE_DEVICES']==task['GPU_UUID']
+  for fd in task['inherited_lock_fds']:os.fstat(fd)
+- assert len(task['inherited_lock_fds'])==4 and time.time()<go['save_deadline'];assert task['num_envs']in(512,1024,2048)and task['target_bptt_steps']>=3000;manifest=json.loads((J/'INSTALL_MANIFEST.json').read_bytes());assert H(J/'INSTALL_MANIFEST.json')==task['manifest_SHA']
++ assert len(task['inherited_lock_fds'])==4 and time.time()<go['save_deadline'];assert task['num_envs']in(512,1024,2048)and validate_worker_microtrain_task(task);manifest=json.loads((J/'INSTALL_MANIFEST.json').read_bytes());assert H(J/'INSTALL_MANIFEST.json')==task['manifest_SHA']
+  for f in manifest['files']:
+   p=J/f['relative'];assert p.resolve().is_relative_to(J)and p.suffix.lower()not in('.pt','.pth','.ckpt');assert p.stat().st_size==f['bytes']and H(p)==f['SHA']
+- out.mkdir();ns=env=teacher=bridge=learner=guard=None;error=None;latest=None;stop=False;role=task['role'];start=time.time();saved_count=0;resume_source=None;resume_receipt=None;command_binding=None;bridge_adapter=None;actor_snapshot=None;pose_cache_handle=None;pose_cache_adapter=None;pose_cache_events=BoundedPoseCacheEventsV5(lambda value:put(out/'POSE_CACHE_RUNTIME_ADAPTER_EVENTS_V3.json',value))
++ out.mkdir();ns=env=teacher=bridge=learner=guard=None;error=None;latest=None;stop=False;role=task['role'];start=time.time();saved_count=0;resume_source=None;resume_receipt=None;segment=None;command_binding=None;bridge_adapter=None;actor_snapshot=None;pose_cache_handle=None;pose_cache_adapter=None;pose_cache_events=BoundedPoseCacheEventsV5(lambda value:put(out/'POSE_CACHE_RUNTIME_ADAPTER_EVENTS_V3.json',value))
+  variant=validate_worker_variant(task);task.update(variant);actor_view=variant['actor_view'];algorithm_family=variant['algorithm_family']
+  put(out/'TASK_AND_ORIGINAL_RESOURCE_BOUND_BEFORE_SDK_MODEL.json',dict(epoch=start,role=role,kind=KIND,canonical_binding=ad['canonical_binding'],fd_existence_verified=True,source_PT_reads=0,SDK_constructed=False,child_canonical_reads_writes=0))
+  try:
+@@ -77,25 +79,26 @@
+   class Learner(ContextRewardLearner):
+    def _make_policy(self):return TeacherResidualPolicy(super()._make_policy(),actor,bridge.mdp.actor_context_offset,scale=.05)
+    def _checkpoint(self,include_optimizers):
+-    value=super()._checkpoint(include_optimizers);value.update(bootstrap_teacher=teacher.receipt(),role=role,run_id=task['run_id'],role_key=task['role_key'],actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],source_resume_receipt=resume_receipt,command_binding=command_binding,bridge_adapter=bridge_adapter,pose_cache_adapter=pose_cache_adapter,original_task_protocol=task['original_protocol'],new_algorithm_not_PPO_resume=True,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);return value
++    value=super()._checkpoint(include_optimizers);value.update(microtrain_segment=finish_microtrain_segment(segment,vars(self.counts),stopped=stop),bootstrap_teacher=teacher.receipt(),role=role,run_id=task['run_id'],role_key=task['role_key'],actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],source_resume_receipt=resume_receipt,command_binding=command_binding,bridge_adapter=bridge_adapter,pose_cache_adapter=pose_cache_adapter,original_task_protocol=task['original_protocol'],new_algorithm_not_PPO_resume=True,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);return value
+    def save(self,path=None,include_optimizers=True):
+     nonlocal latest,saved_count
+-    assert_teacher_actor_unchanged();saved_count+=1;dest=out/'checkpoints'/('model_BPTT'+str(self.counts.pi_bptt_optimizer_steps).zfill(6)+'_I'+str(self.iteration).zfill(6)+'_S'+str(saved_count).zfill(4)+'_complete.pt');dest=super().save(dest,include_optimizers=True);raw=dest.read_bytes();latest=dict(epoch=time.time(),path=str(dest),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),iteration=self.iteration,counts=vars(self.counts),full_new_model_critic_aux_optimizers_replay_RNG_hist_saved=True,environment_resume='Explicit new original fresh episode; no bitwise PhysX warmstart claim',teacher_source=teacher.receipt(),teacher_unchanged=True,last_bptt_receipt=self.last_bptt_receipt,skill_pass_rate='PENDING_FROZEN_ORIGINAL_SCOPE');put(out/'latest_complete.json',latest);put(out/('COMPLETE_CHECKPOINT_RECEIPT_'+str(saved_count).zfill(4)+'.json'),latest);return dest
++    assert_teacher_actor_unchanged();saved_count+=1;dest=out/'checkpoints'/('model_BPTT'+str(self.counts.pi_bptt_optimizer_steps).zfill(6)+'_I'+str(self.iteration).zfill(6)+'_S'+str(saved_count).zfill(4)+'_complete.pt');dest=super().save(dest,include_optimizers=True);raw=dest.read_bytes();latest=dict(microtrain_segment=finish_microtrain_segment(segment,vars(self.counts),stopped=stop),epoch=time.time(),path=str(dest),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),iteration=self.iteration,counts=vars(self.counts),full_new_model_critic_aux_optimizers_replay_RNG_hist_saved=True,environment_resume='Explicit new original fresh episode; no bitwise PhysX warmstart claim',teacher_source=teacher.receipt(),teacher_unchanged=True,last_bptt_receipt=self.last_bptt_receipt,skill_pass_rate='PENDING_FROZEN_ORIGINAL_SCOPE');put(out/'latest_complete.json',latest);put(out/('COMPLETE_CHECKPOINT_RECEIPT_'+str(saved_count).zfill(4)+'.json'),latest);return dest
+   cfg=SuperMimicConfig(iterations=100000,buffer_steps=128,utd=.4,horizon=16,goal_frames=1,hist=10,z_dim=32,wm_hidden=(512,512,512),policy_hidden=(512,256,128),critic_hidden=(256,128),wm_window=8,wm_batches=4,wm_batch=512,pi_batch=512,lr=1e-4,action_noise=.08,warmup_steps=64,wm_only_iters=100,critic_epochs=2,critic_minibatches=2,ckpt_every=500,log_every=10,log_backend='none',amp='none',compile=False,seed=task['seed']);learner=Learner(bridge,cfg,out/'learner',device=env.device,backend='Original_MOD4v1_'+role+'_freshDR_SuperMimic_WM_BPTT',policy_dt_s=.02,predict_context_mask=context_mask);bridge.learner=learner;last_report=[-1]
+   if task.get('resume_bptt') is not None:
+-   resume_source=PinnedOwnFullCheckpoint(task['resume_bptt'],lambda stream:torch.load(stream,map_location='cpu',weights_only=True));resume_receipt=load_decoded_full_checkpoint_once(learner,resume_source,task,bridge.observed_context_layout);assert_teacher_actor_unchanged();put(out/'OWN_BPTT_FULL_RESET_RESUME_V2.json',dict(epoch=time.time(),role=role,one_original_fresh_reset_before_load=True,extra_reset_after_load=0,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],**resume_receipt))
++   resume_source=PinnedOwnFullCheckpoint(task['resume_bptt'],lambda stream:torch.load(stream,map_location='cpu',weights_only=True));validate_microtrain_payload(resume_source.payload,task);resume_receipt=load_decoded_full_checkpoint_once(learner,resume_source,task,bridge.observed_context_layout);assert_teacher_actor_unchanged();put(out/'OWN_BPTT_FULL_RESET_RESUME_V2.json',dict(epoch=time.time(),role=role,one_original_fresh_reset_before_load=True,extra_reset_after_load=0,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],**resume_receipt))
+   else:
+    assert all(value==0 for value in vars(learner.counts).values());put(out/'OWN_BPTT_FRESH_ZERO_V2.json',dict(role=role,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],native_BPTT_start=0,no_old_actor_optimizer_or_count_splicing=True))
++  segment=start_microtrain_segment(task,vars(learner.counts),resume_receipt=resume_receipt);put(out/'MICROTRAIN_SEGMENT_BASELINE_V1.json',segment)
+   def before_action():
+    if time.time()>=go['save_deadline']or(J/'STOP_AFTER_SAVE.json').exists()or shutil.disk_usage(out).free<8*1024**3:raise WindowSavedStop()
+    if learner.iteration!=last_report[0]and learner.iteration%10==0:
+     assert_teacher_actor_unchanged();put(out/'PROGRESS.json',dict(epoch=time.time(),role=role,iteration=learner.iteration,counts=vars(learner.counts),last_bptt_receipt=learner.last_bptt_receipt,auxiliary=learner.last_aux,**bridge.metrics()));last_report[0]=learner.iteration
+   bridge.before_action=before_action
+-  put(out/'STARTUP_ACTUAL_NATIVE_SUPERMIMIC.json',dict(epoch=time.time(),role=role,num_envs=env.num_envs,physics_dt=env.physics_dt,policy_dt=env.step_dt,feedback_Hz=100,teacher=teacher.receipt(),new_SuperMimic_optimizer_not_PPO_optimizer=True,physics_native_not_differentiable=True,actual_nominal_parameter_audit=audit,fresh_full_D0_D7=True,one_explicit_fresh_reset=True,actor_view_control_only=actor_view==RAW35_ACTOR_VIEW,command_tracking_fixed=False,sensor_projection_exact=False,bound_anchor_reward_changes=0,no_saved20k_history_slicing=True,no_N80_capacity_preset=True,quaternion_gravity_max_error=bridge.quaternion_gravity_max_error,context_layout=bridge.observed_context_layout,context_dim=bridge.mdp.context_dim,obs_dim=bridge.mdp.obs_dim,context_predict_mask=context_mask.tolist(),imagination_exogenous_reference='Held current command, height, modes and episode DR over short16-step learned rollout; E2 body-world command evolution remains model-approximation requiring independent original-world validation, not a semantic fix',exact_original_last_action_slots_22_28_projected=True,target_actual_BPTT_policy_steps=task['target_bptt_steps'],cumulative_target_no_fresh_count_offset=True,resume_receipt=resume_receipt,command_binding=command_binding,bridge_adapter=bridge_adapter,pose_cache_adapter=pose_cache_adapter,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],WM_warmup_iters=100,goal_final_success_per_expert=.90,intermediate_floor=.80,not_training_loss_or_no_fall_success_claim=True))
+-  try:learner.train(target_bptt_steps=task['target_bptt_steps'])
++  put(out/'STARTUP_ACTUAL_NATIVE_SUPERMIMIC.json',dict(epoch=time.time(),role=role,num_envs=env.num_envs,physics_dt=env.physics_dt,policy_dt=env.step_dt,feedback_Hz=100,teacher=teacher.receipt(),new_SuperMimic_optimizer_not_PPO_optimizer=True,physics_native_not_differentiable=True,actual_nominal_parameter_audit=audit,fresh_full_D0_D7=True,one_explicit_fresh_reset=True,actor_view_control_only=actor_view==RAW35_ACTOR_VIEW,command_tracking_fixed=False,sensor_projection_exact=False,bound_anchor_reward_changes=0,no_saved20k_history_slicing=True,no_N80_capacity_preset=True,quaternion_gravity_max_error=bridge.quaternion_gravity_max_error,context_layout=bridge.observed_context_layout,context_dim=bridge.mdp.context_dim,obs_dim=bridge.mdp.obs_dim,context_predict_mask=context_mask.tolist(),imagination_exogenous_reference='Held current command, height, modes and episode DR over short16-step learned rollout; E2 body-world command evolution remains model-approximation requiring independent original-world validation, not a semantic fix',exact_original_last_action_slots_22_28_projected=True,microtrain_segment_baseline=segment,target_actual_BPTT_policy_steps=task['target_bptt_steps'],cumulative_target_no_fresh_count_offset=True,resume_receipt=resume_receipt,command_binding=command_binding,bridge_adapter=bridge_adapter,pose_cache_adapter=pose_cache_adapter,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],WM_warmup_iters=100,goal_final_success_per_expert=.90,intermediate_floor=.80,not_training_loss_or_no_fall_success_claim=True))
++  try:learner.train(target_bptt_steps=segment['target_cumulative_verified_counter'])
+   except WindowSavedStop:stop=True
+   finally:learner.save()
+-  guard.assert_new_nominals_unchanged();after=guard.verify_live_parameters();assert after['actual_parameters_pass'];assert_teacher_actor_unchanged();put(out/'FINAL.json',dict(epoch=time.time(),kind=FINAL_KIND,run_id=task['run_id'],role_key=task['role_key'],role=role,teacher_unchanged=True,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],resume_receipt=resume_receipt,passed_execution=True,actual_BPTT_policy_steps=learner.counts.pi_bptt_optimizer_steps,counts=vars(learner.counts),target_reached=learner.counts.pi_bptt_optimizer_steps>=task['target_bptt_steps'],parent_finite_saved_stop=stop,checkpoint=latest,teacher=teacher.receipt(),original_parameter_audit_after=after,skill_graduated=False,goal_success_90_percent='PENDING_INDEPENDENT_ACCEPTANCE',**bridge.metrics()))
++  guard.assert_new_nominals_unchanged();after=guard.verify_live_parameters();assert after['actual_parameters_pass'];assert_teacher_actor_unchanged();put(out/'FINAL.json',dict(epoch=time.time(),kind=FINAL_KIND,run_id=task['run_id'],role_key=task['role_key'],role=role,teacher_unchanged=True,actor_view=actor_view,algorithm_family=algorithm_family,algorithm_variant=variant['algorithm_variant'],resume_receipt=resume_receipt,microtrain_segment=finish_microtrain_segment(segment,vars(learner.counts),stopped=stop),passed_execution=True,actual_BPTT_policy_steps=learner.counts.pi_bptt_optimizer_steps,counts=vars(learner.counts),target_reached=learner.counts.pi_bptt_optimizer_steps>=task['target_bptt_steps'],parent_finite_saved_stop=stop,checkpoint=latest,teacher=teacher.receipt(),original_parameter_audit_after=after,skill_graduated=False,goal_success_90_percent='PENDING_INDEPENDENT_ACCEPTANCE',**bridge.metrics()))
+  except BaseException:
+   error=traceback.format_exc();preserve_worker_error(out,role=role,error=error,phase='original_constructor_or_full_learner',counts=None if learner is None else vars(learner.counts),source_cache=None if teacher is None else teacher.receipt())
+  finally:

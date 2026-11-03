@@ -1,0 +1,1284 @@
+{
+  "schema": "supermimic.paper_code_source_audit.ast.v1",
+  "mode": "LOCAL_SOURCE_ONLY_STDLIB_AST_NO_IMPORT_OF_AUDITED_MODULES",
+  "python": "3.12.14 (main, Sep  1 2026, 14:17:39) [MSC v.1944 64 bit (AMD64)]",
+  "sources": {
+    "core": {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_core_review\\ctx_reward_learner.py",
+      "sha256": "2603308f1adfe65f576eaf2aa3e0275d8465f110e6edd6e3db38304bf3e72039",
+      "bytes": 35812,
+      "line_count": 610,
+      "parse_ok": true,
+      "functions": {
+        "ContextReplayBuffer.__init__": {
+          "lineno": 59,
+          "end_lineno": 72,
+          "source_signature": "    def __init__(self, T, N, device, num_joints, context_dim, action_dim):",
+          "ast_sha256": "f6fe401828a1cf8145cb8123259308eb725a813dc8539b8c0065b2872fe56ecd"
+        },
+        "ContextReplayBuffer.add": {
+          "lineno": 74,
+          "end_lineno": 87,
+          "source_signature": "    def add(self, transition):",
+          "ast_sha256": "3e87b1301e2b6592082d9181e919a6c2d2d0cf99717c6056ac8f16805cdda719"
+        },
+        "ContextReplayBuffer.sample_transitions": {
+          "lineno": 89,
+          "end_lineno": 95,
+          "source_signature": "    def sample_transitions(self, B):",
+          "ast_sha256": "868d130e46d5d64ec634b325dc4a8bd6fc5f1faa620e8c507245652c3b735b2e"
+        },
+        "ContextReplayBuffer.sample_windows": {
+          "lineno": 97,
+          "end_lineno": 109,
+          "source_signature": "    def sample_windows(self, B, k):\n        # Include the terminal transition; exclude subsequent reset/stream rows.",
+          "ast_sha256": "dd61b01bdc562dc89cda13f6ff9a6276d742b35c6c31865d431ef40f49a87924"
+        },
+        "ContextReplayBuffer.seal_stream_boundary": {
+          "lineno": 111,
+          "end_lineno": 114,
+          "source_signature": "    def seal_stream_boundary(self):\n        # A declared reset-resume is a data discontinuity, NOT an original done label.",
+          "ast_sha256": "709ee3de9194035b6ccc68815added9ab253362c7599ced7880fa998a22b349b"
+        },
+        "ContextReplayBuffer.export_state": {
+          "lineno": 116,
+          "end_lineno": 118,
+          "source_signature": "    def export_state(self):",
+          "ast_sha256": "d98164953ac001fe8c65a7691aa06d4d1718e8f84bdc56369dac8d12a12d8555"
+        },
+        "ContextReplayBuffer.import_state": {
+          "lineno": 120,
+          "end_lineno": 132,
+          "source_signature": "    def import_state(self, payload):",
+          "ast_sha256": "80b99c5a44d7f7e83ef9bc9dbf0768e6b62e7c472eb2bc9c38fb35f3412a4437"
+        },
+        "TaskAuxiliaryModel.__init__": {
+          "lineno": 138,
+          "end_lineno": 150,
+          "source_signature": "    def __init__(self, num_joints, action_dim, context_dim, hidden, policy_dt_s):",
+          "ast_sha256": "565ad0da4a5cca1d82251ad129e955c6291300bed02e39c68bcf6a16ae4c2b65"
+        },
+        "TaskAuxiliaryModel.features": {
+          "lineno": 152,
+          "end_lineno": 155,
+          "source_signature": "    def features(self, state, state1, action, previous_action, normalized_context, frames):",
+          "ast_sha256": "cdca71cd5fd4ef6bd86073544f63c5b654203615baffb7ddcc35d0424a0770fe"
+        },
+        "TaskAuxiliaryModel.forward": {
+          "lineno": 157,
+          "end_lineno": 161,
+          "source_signature": "    def forward(self, features):",
+          "ast_sha256": "cc1211f793c086a49bfeaa2909d8bfff9efc4fef70e2d904616ea6b591292f40"
+        },
+        "TaskAuxiliaryModel.supervised_loss": {
+          "lineno": 163,
+          "end_lineno": 175,
+          "source_signature": "    def supervised_loss(self, features, reward, delta_context, done, xi1_valid):",
+          "ast_sha256": "dd7bee620268a0b2150fb6a2a978bd2b0ba8a062568b7b9d4c44741b0f624425"
+        },
+        "frozen_parameters": {
+          "lineno": 179,
+          "end_lineno": 189,
+          "source_signature": "def frozen_parameters(*modules):",
+          "ast_sha256": "c6c1aaaea7c383c1d6c87e3e7638d99b479327b8a5902ec6d4f90cea538c7a3c"
+        },
+        "capture_rng": {
+          "lineno": 192,
+          "end_lineno": 199,
+          "source_signature": "def capture_rng():",
+          "ast_sha256": "380decee28160fe61640b7023d4e41bc7693cff9d63fee5f8318477ed93aaaea"
+        },
+        "restore_rng": {
+          "lineno": 202,
+          "end_lineno": 210,
+          "source_signature": "def restore_rng(state):",
+          "ast_sha256": "191bc929422a806e9cd09dca1c86a3be52c642a187e7d02d0a384252ee873f12"
+        },
+        "ContextRewardLearner.__init__": {
+          "lineno": 221,
+          "end_lineno": 274,
+          "source_signature": "    def __init__(self, env, cfg, log_dir, device=None, backend='', *,\n                 aux_hidden=(256, 256), aux_batch=None, policy_dt_s=0.02,\n                 predict_context_mask=None, require_exact_env_resume=False):",
+          "ast_sha256": "4fcba4a67575fa3613297f5404214fa0706be655c5290e6b44ab09e106d9f92f"
+        },
+        "ContextRewardLearner._on_pi_step": {
+          "lineno": 276,
+          "end_lineno": 299,
+          "source_signature": "    def _on_pi_step(self, optimizer, args, kwargs):",
+          "ast_sha256": "0201dc85e136cc29381c2a8c9837fb91e9e76f8d696368c62c44bd6cd61234cf"
+        },
+        "ContextRewardLearner._goal": {
+          "lineno": 301,
+          "end_lineno": 302,
+          "source_signature": "    def _goal(self, frames, context):",
+          "ast_sha256": "dda45020fab82ef901ef195a0ad253fe8c2d862ddf709374f41dd8e47a0eb01f"
+        },
+        "ContextRewardLearner.collect": {
+          "lineno": 305,
+          "end_lineno": 335,
+          "source_signature": "    def collect(self, n_steps):",
+          "ast_sha256": "e98f2561882be91c160cd4d85bc5a69a0efee551207345fe252656961a0d7e00"
+        },
+        "ContextRewardLearner.aux_update": {
+          "lineno": 337,
+          "end_lineno": 354,
+          "source_signature": "    def aux_update(self):",
+          "ast_sha256": "7b909990b2f55b167bc8b9136f6d468d17ff6b67d5c559973810bccc2a5e8301"
+        },
+        "ContextRewardLearner.wm_update": {
+          "lineno": 356,
+          "end_lineno": 359,
+          "source_signature": "    def wm_update(self):",
+          "ast_sha256": "628ce6db9c02230bcd6f9f28b3437a3bfca7be87198dbe37ab0205ef36aee80a"
+        },
+        "ContextRewardLearner._sample_valid_starts": {
+          "lineno": 361,
+          "end_lineno": 374,
+          "source_signature": "    def _sample_valid_starts(self, batch_size):",
+          "ast_sha256": "53a46ce6e394dcc3ed2d3b6085577447c281849589b0f9c6e0d7c6a544ca9686"
+        },
+        "ContextRewardLearner.policy_update": {
+          "lineno": 376,
+          "end_lineno": 491,
+          "source_signature": "    def policy_update(self):",
+          "ast_sha256": "69edb9a83a723e38c72bcaadd68f47a2e09db5f15cce7f712261a1c51b1a3354"
+        },
+        "ContextRewardLearner._checkpoint": {
+          "lineno": 493,
+          "end_lineno": 512,
+          "source_signature": "    def _checkpoint(self, include_optimizers):",
+          "ast_sha256": "60a8cb27bc3bae903cc6b865f24ea34f8cb987ec0ad5f78b2e00438f69e22893"
+        },
+        "ContextRewardLearner.load": {
+          "lineno": 514,
+          "end_lineno": 555,
+          "source_signature": "    def load(self, path, *, allow_environment_reset=False, allow_partial_update=False):\n        # Own newly produced checkpoint only; this method is never called by source review.",
+          "ast_sha256": "4bb34dfbc62e09b007619049a8acc3d78dd74bee89e34560455c9a1905f5fc3f"
+        },
+        "ContextRewardLearner.train": {
+          "lineno": 557,
+          "end_lineno": 610,
+          "source_signature": "    def train(self, resume=None, *, target_bptt_steps=None):",
+          "ast_sha256": "59ead14c4face5807182ced61331f5f05e756c32c0dfa038e5b28a85ec55e1e4"
+        }
+      }
+    },
+    "actual_resume_core": {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_native_v6_runtime_compat\\_SOURCE_INPUT\\sealed_source\\ctx_reward_full_resume_candidate_v2.py",
+      "sha256": "8116ea358dfe32e0efd568d00661ab1e13b602d267ea4b580ced04ec39e898ac",
+      "bytes": 36886,
+      "line_count": 616,
+      "parse_ok": true,
+      "functions": {
+        "ContextReplayBuffer.__init__": {
+          "lineno": 59,
+          "end_lineno": 72,
+          "source_signature": "    def __init__(self, T, N, device, num_joints, context_dim, action_dim):",
+          "ast_sha256": "f6fe401828a1cf8145cb8123259308eb725a813dc8539b8c0065b2872fe56ecd"
+        },
+        "ContextReplayBuffer.add": {
+          "lineno": 74,
+          "end_lineno": 87,
+          "source_signature": "    def add(self, transition):",
+          "ast_sha256": "3e87b1301e2b6592082d9181e919a6c2d2d0cf99717c6056ac8f16805cdda719"
+        },
+        "ContextReplayBuffer.sample_transitions": {
+          "lineno": 89,
+          "end_lineno": 95,
+          "source_signature": "    def sample_transitions(self, B):",
+          "ast_sha256": "868d130e46d5d64ec634b325dc4a8bd6fc5f1faa620e8c507245652c3b735b2e"
+        },
+        "ContextReplayBuffer.sample_windows": {
+          "lineno": 97,
+          "end_lineno": 109,
+          "source_signature": "    def sample_windows(self, B, k):\n        # Include the terminal transition; exclude subsequent reset/stream rows.",
+          "ast_sha256": "dd61b01bdc562dc89cda13f6ff9a6276d742b35c6c31865d431ef40f49a87924"
+        },
+        "ContextReplayBuffer.seal_stream_boundary": {
+          "lineno": 111,
+          "end_lineno": 114,
+          "source_signature": "    def seal_stream_boundary(self):\n        # A declared reset-resume is a data discontinuity, NOT an original done label.",
+          "ast_sha256": "709ee3de9194035b6ccc68815added9ab253362c7599ced7880fa998a22b349b"
+        },
+        "ContextReplayBuffer.export_state": {
+          "lineno": 116,
+          "end_lineno": 118,
+          "source_signature": "    def export_state(self):",
+          "ast_sha256": "d98164953ac001fe8c65a7691aa06d4d1718e8f84bdc56369dac8d12a12d8555"
+        },
+        "ContextReplayBuffer.import_state": {
+          "lineno": 120,
+          "end_lineno": 132,
+          "source_signature": "    def import_state(self, payload):",
+          "ast_sha256": "80b99c5a44d7f7e83ef9bc9dbf0768e6b62e7c472eb2bc9c38fb35f3412a4437"
+        },
+        "TaskAuxiliaryModel.__init__": {
+          "lineno": 138,
+          "end_lineno": 150,
+          "source_signature": "    def __init__(self, num_joints, action_dim, context_dim, hidden, policy_dt_s):",
+          "ast_sha256": "565ad0da4a5cca1d82251ad129e955c6291300bed02e39c68bcf6a16ae4c2b65"
+        },
+        "TaskAuxiliaryModel.features": {
+          "lineno": 152,
+          "end_lineno": 155,
+          "source_signature": "    def features(self, state, state1, action, previous_action, normalized_context, frames):",
+          "ast_sha256": "cdca71cd5fd4ef6bd86073544f63c5b654203615baffb7ddcc35d0424a0770fe"
+        },
+        "TaskAuxiliaryModel.forward": {
+          "lineno": 157,
+          "end_lineno": 161,
+          "source_signature": "    def forward(self, features):",
+          "ast_sha256": "cc1211f793c086a49bfeaa2909d8bfff9efc4fef70e2d904616ea6b591292f40"
+        },
+        "TaskAuxiliaryModel.supervised_loss": {
+          "lineno": 163,
+          "end_lineno": 175,
+          "source_signature": "    def supervised_loss(self, features, reward, delta_context, done, xi1_valid):",
+          "ast_sha256": "dd7bee620268a0b2150fb6a2a978bd2b0ba8a062568b7b9d4c44741b0f624425"
+        },
+        "frozen_parameters": {
+          "lineno": 179,
+          "end_lineno": 189,
+          "source_signature": "def frozen_parameters(*modules):",
+          "ast_sha256": "c6c1aaaea7c383c1d6c87e3e7638d99b479327b8a5902ec6d4f90cea538c7a3c"
+        },
+        "capture_rng": {
+          "lineno": 192,
+          "end_lineno": 199,
+          "source_signature": "def capture_rng():",
+          "ast_sha256": "380decee28160fe61640b7023d4e41bc7693cff9d63fee5f8318477ed93aaaea"
+        },
+        "restore_rng": {
+          "lineno": 202,
+          "end_lineno": 210,
+          "source_signature": "def restore_rng(state):",
+          "ast_sha256": "191bc929422a806e9cd09dca1c86a3be52c642a187e7d02d0a384252ee873f12"
+        },
+        "ContextRewardLearner.__init__": {
+          "lineno": 221,
+          "end_lineno": 274,
+          "source_signature": "    def __init__(self, env, cfg, log_dir, device=None, backend='', *,\n                 aux_hidden=(256, 256), aux_batch=None, policy_dt_s=0.02,\n                 predict_context_mask=None, require_exact_env_resume=False):",
+          "ast_sha256": "4fcba4a67575fa3613297f5404214fa0706be655c5290e6b44ab09e106d9f92f"
+        },
+        "ContextRewardLearner._on_pi_step": {
+          "lineno": 276,
+          "end_lineno": 299,
+          "source_signature": "    def _on_pi_step(self, optimizer, args, kwargs):",
+          "ast_sha256": "0201dc85e136cc29381c2a8c9837fb91e9e76f8d696368c62c44bd6cd61234cf"
+        },
+        "ContextRewardLearner._goal": {
+          "lineno": 301,
+          "end_lineno": 302,
+          "source_signature": "    def _goal(self, frames, context):",
+          "ast_sha256": "dda45020fab82ef901ef195a0ad253fe8c2d862ddf709374f41dd8e47a0eb01f"
+        },
+        "ContextRewardLearner.collect": {
+          "lineno": 305,
+          "end_lineno": 335,
+          "source_signature": "    def collect(self, n_steps):",
+          "ast_sha256": "e98f2561882be91c160cd4d85bc5a69a0efee551207345fe252656961a0d7e00"
+        },
+        "ContextRewardLearner.aux_update": {
+          "lineno": 337,
+          "end_lineno": 354,
+          "source_signature": "    def aux_update(self):",
+          "ast_sha256": "7b909990b2f55b167bc8b9136f6d468d17ff6b67d5c559973810bccc2a5e8301"
+        },
+        "ContextRewardLearner.wm_update": {
+          "lineno": 356,
+          "end_lineno": 359,
+          "source_signature": "    def wm_update(self):",
+          "ast_sha256": "628ce6db9c02230bcd6f9f28b3437a3bfca7be87198dbe37ab0205ef36aee80a"
+        },
+        "ContextRewardLearner._sample_valid_starts": {
+          "lineno": 361,
+          "end_lineno": 374,
+          "source_signature": "    def _sample_valid_starts(self, batch_size):",
+          "ast_sha256": "53a46ce6e394dcc3ed2d3b6085577447c281849589b0f9c6e0d7c6a544ca9686"
+        },
+        "ContextRewardLearner.policy_update": {
+          "lineno": 376,
+          "end_lineno": 491,
+          "source_signature": "    def policy_update(self):",
+          "ast_sha256": "69edb9a83a723e38c72bcaadd68f47a2e09db5f15cce7f712261a1c51b1a3354"
+        },
+        "ContextRewardLearner._checkpoint": {
+          "lineno": 493,
+          "end_lineno": 512,
+          "source_signature": "    def _checkpoint(self, include_optimizers):",
+          "ast_sha256": "60a8cb27bc3bae903cc6b865f24ea34f8cb987ec0ad5f78b2e00438f69e22893"
+        },
+        "ContextRewardLearner.load": {
+          "lineno": 514,
+          "end_lineno": 518,
+          "source_signature": "    def load(self, path, *, allow_environment_reset=False, allow_partial_update=False):\n        # Own newly produced checkpoint only; this method is never called by source review.",
+          "ast_sha256": "a45adff14e42cf69940be8c3f783ebdf71c5cc9f3fc959527b1cc4d07d75650d"
+        },
+        "ContextRewardLearner.load_full_checkpoint": {
+          "lineno": 520,
+          "end_lineno": 561,
+          "source_signature": "    def load_full_checkpoint(self, payload, *, allow_environment_reset=False, allow_partial_update=False):\n        # Already byte-pinned/decoded exactly once by the admitted future worker.\n        # Original full restore body below: all models/optimizers/replay/RNG/counts.",
+          "ast_sha256": "308635b84ccf4e8e8d94762b9c1af35ee1548f6365fe6e456294905ac0812dfa"
+        },
+        "ContextRewardLearner.train": {
+          "lineno": 563,
+          "end_lineno": 616,
+          "source_signature": "    def train(self, resume=None, *, target_bptt_steps=None):",
+          "ast_sha256": "59ead14c4face5807182ced61331f5f05e756c32c0dfa038e5b28a85ec55e1e4"
+        }
+      }
+    },
+    "worker": {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_native_v6_runtime_compat\\_SOURCE_INPUT\\sealed_source\\worker_supermimic_bptt_app_close_candidate_v5.py",
+      "sha256": "7c42986077de62278e33a49f560f22602c9ba4d4e69b058f5f5f8f0893c099c7",
+      "bytes": 17704,
+      "line_count": 119,
+      "parse_ok": true,
+      "functions": {
+        "put": {
+          "lineno": 10,
+          "end_lineno": 11,
+          "source_signature": "def put(path,value):",
+          "ast_sha256": "1fae91382f5819d4e729fc18f25a458d0a4a06ea908722a7f50164f4c27c105f"
+        },
+        "H": {
+          "lineno": 12,
+          "end_lineno": 12,
+          "source_signature": "def H(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()",
+          "ast_sha256": "0cbe85496a95e38629c2304c6dd957f7a59956ee92f175dd85314a0938325378"
+        },
+        "main": {
+          "lineno": 15,
+          "end_lineno": 108,
+          "source_signature": "def main():",
+          "ast_sha256": "a036c7337b035a60a7998c8286b10ab893343f9d885971596020f52619709008"
+        },
+        "worker_entry_v2": {
+          "lineno": 110,
+          "end_lineno": 117,
+          "source_signature": "def worker_entry_v2():",
+          "ast_sha256": "8086ee4295755996aa11de426a7589d60e6f829e5c75436dcd345a32239302ca"
+        }
+      }
+    },
+    "bridge": {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_runtime\\native_supermimic_bridge.py",
+      "sha256": "8211964c2ce3dd78fdb9fee6603ee4a4dcfbca6fa9d7df44f20d3ddb7aaead29",
+      "bytes": 13125,
+      "line_count": 161,
+      "parse_ok": true,
+      "functions": {
+        "PinnedTeacher.__init__": {
+          "lineno": 23,
+          "end_lineno": 24,
+          "source_signature": " def __init__(self,task):",
+          "ast_sha256": "572cb581ed1c0fc171b41344701171a5aad23b9c21f39abe7867e931ad46b063"
+        },
+        "PinnedTeacher._freeze": {
+          "lineno": 25,
+          "end_lineno": 29,
+          "source_signature": " def _freeze(self,x):",
+          "ast_sha256": "1d83cb8c02798bbc0db67eac3e611e877da09b3f211739adfdcbcae0db077d8d"
+        },
+        "PinnedTeacher._same": {
+          "lineno": 30,
+          "end_lineno": 41,
+          "source_signature": " def _same(self,x,f):",
+          "ast_sha256": "59bc98e4a773460ecbcff80e351fac6259ac57486044e2a3f1116b56a62bf87b"
+        },
+        "PinnedTeacher.assert_frozen": {
+          "lineno": 42,
+          "end_lineno": 42,
+          "source_signature": " def assert_frozen(self):self._same(self.root,self.freeze)",
+          "ast_sha256": "407b8e4b90a3bdabcedb119f847069319167c7c7d8932e8f84ba6321ca32b55c"
+        },
+        "PinnedTeacher.build_actor": {
+          "lineno": 43,
+          "end_lineno": 48,
+          "source_signature": " def build_actor(self,device):",
+          "ast_sha256": "e900d8bc4773214561927fccb8f83f848fc1d0325108a0adfff970a09334099c"
+        },
+        "PinnedTeacher.receipt": {
+          "lineno": 49,
+          "end_lineno": 49,
+          "source_signature": " def receipt(self):return dict(source_path=self.task['teacher_path'],source_SHA=self.task['teacher_SHA'],source_bytes=len(self.raw),physical_byte_opens=1,SHA_calculations=1,decodes=1,whole_bootstrap_checkpoint_retained=True,original_PPO_optimizer_preserved_not_restored_to_new_BPTT=True,teacher_frozen=True)",
+          "ast_sha256": "93cb996edcd737c9d32cca5a741ce4626d902f9f36ef99c2b340e865804c3569"
+        },
+        "OriginalTaskMdp.__init__": {
+          "lineno": 53,
+          "end_lineno": 54,
+          "source_signature": " def __init__(self,context_dim,physical_sample):",
+          "ast_sha256": "753c34cdda5dbfcc504a7bc6eb43aac9fc2dff6271c52da40d7b302a55c0547e"
+        },
+        "OriginalTaskMdp.to": {
+          "lineno": 55,
+          "end_lineno": 55,
+          "source_signature": " def to(self,device):return self",
+          "ast_sha256": "522205bff53ebaf7b70810b64c9970a0d2e2afdd6270eae0b1d52e072b73cc96"
+        },
+        "OriginalTaskMdp.normalize_context": {
+          "lineno": 56,
+          "end_lineno": 56,
+          "source_signature": " def normalize_context(self,context):return context",
+          "ast_sha256": "a5991bfeef356429acdf21d312c987f2e6532fb87b76e4e05c3d2b93a36196dc"
+        },
+        "OriginalTaskMdp.add_noise": {
+          "lineno": 57,
+          "end_lineno": 57,
+          "source_signature": " def add_noise(self,obs):return obs",
+          "ast_sha256": "72ed1e10d5bdeb742451569c269680d4a3bbb4b0fae083a124ee4673394db471"
+        },
+        "OriginalTaskMdp.obs": {
+          "lineno": 58,
+          "end_lineno": 58,
+          "source_signature": " def obs(self,state,previous_action,context,frames):return torch.cat((invariant_features(state),previous_action,context),-1)",
+          "ast_sha256": "0783ee03c7a9b28f005ba7277f9f746f6ddb18ded73bc70e7a524ebd3955e6f0"
+        },
+        "OriginalTaskMdp.goal_with_context": {
+          "lineno": 59,
+          "end_lineno": 59,
+          "source_signature": " def goal_with_context(self,frames,num_frames,context):return context[...,:3].repeat(*([1]*(context.ndim-1)),num_frames)",
+          "ast_sha256": "5ff646c7335b00db0405dfb0d0c5d1672e290afca7e2f9048e46eec9a05bcb3d"
+        },
+        "OriginalTaskMdp.goal": {
+          "lineno": 60,
+          "end_lineno": 60,
+          "source_signature": " def goal(self,*a,**k):raise RuntimeError('Original task requires current context; no H1/LQR analytic goal substitution')",
+          "ast_sha256": "fb8446aa06af1b90ef008d6d12ae1fd0739d02cea78bce34222a96d6123fb1a3"
+        },
+        "OriginalTaskMdp.reward": {
+          "lineno": 61,
+          "end_lineno": 61,
+          "source_signature": " def reward(self,*a,**k):raise RuntimeError('Use context-aware learned original environment reward head')",
+          "ast_sha256": "c8c606a036f303ea4948282475a59d90508031b178c7d7a56031f00f8ee3d918"
+        },
+        "OriginalTaskMdp.soft_termination": {
+          "lineno": 62,
+          "end_lineno": 62,
+          "source_signature": " def soft_termination(self,*a,**k):raise RuntimeError('Use learned original masked termination head, not new orientation threshold')",
+          "ast_sha256": "4d5a2a31a2943f103c2a0a9b4a29c7d206961ec681acd5347ab61e71aaffa143"
+        },
+        "OriginalTaskMdp.critic_features": {
+          "lineno": 63,
+          "end_lineno": 63,
+          "source_signature": " def critic_features(self,state,frames,normalized_context):return torch.cat((invariant_features(state),normalized_context,frames.float()[...,None]/1000.),-1)",
+          "ast_sha256": "1dd694e2bded4a98cbb8d0575693dafede8223643cad69b61def61abf29e1913"
+        },
+        "OriginalTaskMdp.project_predicted_context": {
+          "lineno": 64,
+          "end_lineno": 66,
+          "source_signature": " def project_predicted_context(self,context,state1,action,frames):\n  # Exact original observation slots, not a new observation or action semantics.",
+          "ast_sha256": "71348360ffd8c3e25ed93e46a0779a69c4a1b21df89565078d6416dda7b8ae4d"
+        },
+        "OriginalTaskMdp.valid_imagination_start_with_context": {
+          "lineno": 67,
+          "end_lineno": 67,
+          "source_signature": " def valid_imagination_start_with_context(self,frames,horizon,context):return torch.ones_like(frames,dtype=torch.bool)",
+          "ast_sha256": "f62fb4276c45d0647b570048df1eefb77f8eeaec6bba7789af3cd9b5ed632217"
+        },
+        "OriginalTaskMdp.valid_imagination_start": {
+          "lineno": 68,
+          "end_lineno": 68,
+          "source_signature": " def valid_imagination_start(self,frames,horizon):return torch.ones_like(frames,dtype=torch.bool)",
+          "ast_sha256": "d74c4dc94b168fb3133296f0788e93c9a4506070d32a363978db36561527195c"
+        },
+        "TeacherResidualPolicy.__init__": {
+          "lineno": 71,
+          "end_lineno": 74,
+          "source_signature": " def __init__(self,residual,teacher,offset,scale=.05):",
+          "ast_sha256": "0530df950f7f875ce963462d1deaaea45e728a317626df4d449a8ee2cbe0117d"
+        },
+        "TeacherResidualPolicy.obs_norm": {
+          "lineno": 76,
+          "end_lineno": 76,
+          "source_signature": " def obs_norm(self):return self.residual.obs_norm",
+          "ast_sha256": "2cae7501d287ea1d48d5840344120bc99ef669bfb605d8dce6be1f3cfedc49d0"
+        },
+        "TeacherResidualPolicy.goal_norm": {
+          "lineno": 78,
+          "end_lineno": 78,
+          "source_signature": " def goal_norm(self):return self.residual.goal_norm",
+          "ast_sha256": "9483ffdcc8021f91e3627d86c1a838bbf7057721943ac206c159b5e01d356146"
+        },
+        "TeacherResidualPolicy.forward": {
+          "lineno": 79,
+          "end_lineno": 82,
+          "source_signature": " def forward(self,history,goal):",
+          "ast_sha256": "f1a725eb3349de9a5ddd039b3d67497c8fc4f5e25e221ed2644ab4198e63f2c4"
+        },
+        "NativeTaskBridge.__init__": {
+          "lineno": 85,
+          "end_lineno": 86,
+          "source_signature": " def __init__(self,env,task,out,tensor,teacher,initial_obs=None):",
+          "ast_sha256": "6cec23d0ad73867db295a1412d24e8a66120ba664c902f0786e9ce1b9c7da3bf"
+        },
+        "NativeTaskBridge._t": {
+          "lineno": 87,
+          "end_lineno": 87,
+          "source_signature": " def _t(self,x):return self.tensor(x).detach().clone()",
+          "ast_sha256": "0ce8e91f44ef1307cf15ec2053678fab041b3d6a0b63b5698ef731e1194e4321"
+        },
+        "NativeTaskBridge.pack": {
+          "lineno": 89,
+          "end_lineno": 91,
+          "source_signature": " def pack(self):",
+          "ast_sha256": "62e5a547a3ad2e62a68c37526642e24c3aed563eb7f5a712201ac168870c118c"
+        },
+        "NativeTaskBridge._termination_capture": {
+          "lineno": 93,
+          "end_lineno": 96,
+          "source_signature": " def _termination_capture(self,*a,**k):",
+          "ast_sha256": "53876b6f7b39ffc3f5d548de0f5e70bbadec445a67dcbe9e9b666adfeb67b449"
+        },
+        "NativeTaskBridge.context": {
+          "lineno": 98,
+          "end_lineno": 130,
+          "source_signature": " def context(self,obs):",
+          "ast_sha256": "4e1401e0a0cdc8d0e02101caade1539623953a6498c63192737d880ba3dce29c"
+        },
+        "NativeTaskBridge.context.add": {
+          "lineno": 100,
+          "end_lineno": 110,
+          "source_signature": "  def add(name,x,scale=1.):",
+          "ast_sha256": "e21592b6d09367774b49e5b949a2f4670e3e70cd60774afa847b53ba471c8c06"
+        },
+        "NativeTaskBridge.init_state": {
+          "lineno": 132,
+          "end_lineno": 135,
+          "source_signature": " def init_state(self):",
+          "ast_sha256": "f0fe1d503cf89e595a1fc92a89be5ee1029977137e1e18fd39219eaac197dfec"
+        },
+        "NativeTaskBridge.supermimic_mdp": {
+          "lineno": 137,
+          "end_lineno": 139,
+          "source_signature": " def supermimic_mdp(self):",
+          "ast_sha256": "54a12ebb8f3129518d900ca5f9639644c9215b3a6dfb1eec4d67110e54b9c015"
+        },
+        "NativeTaskBridge.step": {
+          "lineno": 141,
+          "end_lineno": 144,
+          "source_signature": " def step(self,actions):",
+          "ast_sha256": "4812d791798cb1ebb1f9fd7467e2ea7f246c1c4b70b174ce1eb1149148e69ee2"
+        },
+        "NativeTaskBridge.metrics": {
+          "lineno": 145,
+          "end_lineno": 145,
+          "source_signature": " def metrics(self):return dict(actual_controls=self.controls,real_environment_transitions=self.controls*self.num_envs,physics_callbacks=int(self.real._integrated_contact.tick)-self.physics_start,feedback_samples=int(self.real._feedback_100hz_tick)-self.feedback_start,actual_termination_events=self.metrics_terms,num_envs=self.num_envs,task_reward_unchanged=True,BPTT_is_worldmodel_not_differentiable_PhysX=True,original_skill_pass_rate='PENDING_INDEPENDENT_FROZEN_EVALUATION_NOT_TRAINING_LOSS')",
+          "ast_sha256": "4131bcf9a5d21df4461dc692e2435d3abfd8e9212b2e76585b1c7d9d46bfad16"
+        },
+        "NativeTaskBridge.state_dict": {
+          "lineno": 146,
+          "end_lineno": 147,
+          "source_signature": " def state_dict(self):",
+          "ast_sha256": "4a690bc98ddd6dfd484adeed950d16a94554dcb313fea558616ac3134131789f"
+        },
+        "NativeTaskBridge.export_supermimic_resume": {
+          "lineno": 148,
+          "end_lineno": 160,
+          "source_signature": " def export_supermimic_resume(self):",
+          "ast_sha256": "83b5319f0ce2edc280765ded2b936eeba7dc4b709f83ba9d49cc8339be5ce4b5"
+        },
+        "NativeTaskBridge.export_supermimic_resume.safe": {
+          "lineno": 149,
+          "end_lineno": 154,
+          "source_signature": "  def safe(x):",
+          "ast_sha256": "87a802531648151d6512a2fb35735550507ebd3ded1271d4040544fcbb8a1365"
+        },
+        "NativeTaskBridge.close": {
+          "lineno": 161,
+          "end_lineno": 161,
+          "source_signature": " def close(self):self.real.termination_manager.compute=self._oldterm",
+          "ast_sha256": "78e9adf895c79f213118fa03490d6113951747f9b26c639b284366bc9ecc4309"
+        }
+      }
+    },
+    "raw35": {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_supermimic_bptt_20261102\\source_command_review_v1\\command_tracking_torch_candidate_v1.py",
+      "sha256": "bb7555ff2de598677ea6cfe5dadefe0a9cfe37d37661635d186bcb14c1df2223",
+      "bytes": 16483,
+      "line_count": 332,
+      "parse_ok": true,
+      "functions": {
+        "_body": {
+          "lineno": 16,
+          "end_lineno": 17,
+          "source_signature": "def _body(rotation, value):",
+          "ast_sha256": "e3767c1c9cf1282c3a233314d8ca8ba5667e551bea485a2c02fb5f2ba01981bf"
+        },
+        "sampled_state_sensor_inputs": {
+          "lineno": 20,
+          "end_lineno": 34,
+          "source_signature": "def sampled_state_sensor_inputs(state, leg_ids, wheel_ids, default_q, default_qd):",
+          "ast_sha256": "a8b1263ab5144507143f73107f5c3166fd23b1db3fa3aa98191e1da6f34b4d94"
+        },
+        "compose_raw35": {
+          "lineno": 37,
+          "end_lineno": 54,
+          "source_signature": "def compose_raw35(command, height_metres, sensor_values_after_noise_and_delay,\n                  last_action, mode):",
+          "ast_sha256": "8714cdbdcac5584987578544160f15117c180e24fc7ea26d103865fa63087806"
+        },
+        "e2_command": {
+          "lineno": 57,
+          "end_lineno": 74,
+          "source_signature": "def e2_command(command_t, heading_at_next_command_write, *, world_direction,\n               signed_yaw, moving, transition, standing, next_write_elapsed,\n               progress_goal, body_limit):",
+          "ast_sha256": "27b9d23dc0c015ab35d8abeddfce546ce7e944dfcf5077d63dfa9c72e8ea9759"
+        },
+        "w35_all_rough_command": {
+          "lineno": 77,
+          "end_lineno": 80,
+          "source_signature": "def w35_all_rough_command(command_t, standing):",
+          "ast_sha256": "641075715cc826ddf23699815a842b1dc135d535574d1ca2806d5c790f50f1a9"
+        },
+        "FrozenSourceCommandProjection.__init__": {
+          "lineno": 124,
+          "end_lineno": 131,
+          "source_signature": "    def __init__(self, snapshot, *, heading_from_state=None,\n                 sampled_sensor_provider=None, sampled_sensor_clock_verified=False,\n                 dt=.02):",
+          "ast_sha256": "ac90dc02f32b15ccf014eef5abfd5bb5cb04454553dbc3f8434b055505ded63b"
+        },
+        "FrozenSourceCommandProjection.__call__": {
+          "lineno": 133,
+          "end_lineno": 161,
+          "source_signature": "    def __call__(self, context, state, state1, action, frames, next_frames):",
+          "ast_sha256": "9d0fd7c64c80808e0a1944c0c23a1b67e1d5e0952800395f9985b382a2800217"
+        },
+        "Raw35ActorMDP.__init__": {
+          "lineno": 175,
+          "end_lineno": 181,
+          "source_signature": "    def __init__(self, base_mdp, transition_projector=None, *,\n                 require_sampled_sensor_projection=True, tracking_component=None):",
+          "ast_sha256": "343c4bc4841a384d66d39f62f3471e59bbd616c1fcc7d5fd4030056910cecaff"
+        },
+        "Raw35ActorMDP.__getattr__": {
+          "lineno": 183,
+          "end_lineno": 184,
+          "source_signature": "    def __getattr__(self, name):",
+          "ast_sha256": "7567d336252ae584b7c44f7413539d383212bb8f5c8357986541fc97a04e6beb"
+        },
+        "Raw35ActorMDP.to": {
+          "lineno": 186,
+          "end_lineno": 188,
+          "source_signature": "    def to(self, device):",
+          "ast_sha256": "cfb7bcddb1671e04b2f23fb310323b0ff129ec5c5f73de8512c6113438f1e5f9"
+        },
+        "Raw35ActorMDP.obs": {
+          "lineno": 190,
+          "end_lineno": 193,
+          "source_signature": "    def obs(self, state, previous_action, context, frames):",
+          "ast_sha256": "12aa061adb5698c573d8fbe106cdd04d0029867a1aae4360a65f7b4b2886f847"
+        },
+        "Raw35ActorMDP.goal_with_context": {
+          "lineno": 195,
+          "end_lineno": 196,
+          "source_signature": "    def goal_with_context(self, frames, num_frames, context):",
+          "ast_sha256": "5ff646c7335b00db0405dfb0d0c5d1672e290afca7e2f9048e46eec9a05bcb3d"
+        },
+        "Raw35ActorMDP.add_noise": {
+          "lineno": 198,
+          "end_lineno": 200,
+          "source_signature": "    def add_noise(self, obs):\n        # Original raw35 is already corrupted. Never double draw sensor noise.",
+          "ast_sha256": "72ed1e10d5bdeb742451569c269680d4a3bbb4b0fae083a124ee4673394db471"
+        },
+        "Raw35ActorMDP.project_transition_context": {
+          "lineno": 202,
+          "end_lineno": 225,
+          "source_signature": "    def project_transition_context(self, context, state, state1, action, frames,\n                                   next_frames, delta_context, predict_mask):",
+          "ast_sha256": "31153bdddc208e4c8f16dafe7646ba7a1620975ee00e355f77115bc49e80e9c4"
+        },
+        "Raw35ActorMDP.aux_reward_target": {
+          "lineno": 227,
+          "end_lineno": 232,
+          "source_signature": "    def aux_reward_target(self, sample, state, state1):",
+          "ast_sha256": "8fedfcf125b88cb252357b968835b3f82aeee6e094f376b16c990642df215228"
+        },
+        "Raw35ActorMDP.project_imagined_reward": {
+          "lineno": 234,
+          "end_lineno": 238,
+          "source_signature": "    def project_imagined_reward(self, learned_reward, state, state1, action,\n                               previous_action, context, frames):",
+          "ast_sha256": "4eb7660e2efee149958f228b7b772c26d14c28eb7f6eac3a72cde5a8f116f1ae"
+        },
+        "BoundedTeacherResidualPolicy.__init__": {
+          "lineno": 251,
+          "end_lineno": 266,
+          "source_signature": "    def __init__(self, residual, teacher, teacher_forward: Callable, radius=.05,\n                 anchor_coefficient=0., zero_output_init=True):",
+          "ast_sha256": "369758355b9286de47a49243527492693e87c62ad1d1c3712f2829cc64e30fa5"
+        },
+        "BoundedTeacherResidualPolicy.obs_norm": {
+          "lineno": 269,
+          "end_lineno": 270,
+          "source_signature": "    def obs_norm(self):",
+          "ast_sha256": "2cae7501d287ea1d48d5840344120bc99ef669bfb605d8dce6be1f3cfedc49d0"
+        },
+        "BoundedTeacherResidualPolicy.goal_norm": {
+          "lineno": 273,
+          "end_lineno": 274,
+          "source_signature": "    def goal_norm(self):",
+          "ast_sha256": "9483ffdcc8021f91e3627d86c1a838bbf7057721943ac206c159b5e01d356146"
+        },
+        "BoundedTeacherResidualPolicy.train": {
+          "lineno": 276,
+          "end_lineno": 279,
+          "source_signature": "    def train(self, mode=True):",
+          "ast_sha256": "8ff659b7827ef683b6a412c18212e6c5f20b3444f22f5403df7d49066e40551d"
+        },
+        "BoundedTeacherResidualPolicy.teacher_baseline": {
+          "lineno": 281,
+          "end_lineno": 284,
+          "source_signature": "    def teacher_baseline(self, history):",
+          "ast_sha256": "70b22e941313009eb5594c18fbe95cc2979ab00ceaddf2c5e7478de2d26d759a"
+        },
+        "BoundedTeacherResidualPolicy.forward": {
+          "lineno": 286,
+          "end_lineno": 289,
+          "source_signature": "    def forward(self, history, goal):",
+          "ast_sha256": "8070082950ddd0f135d1c673880780b75f86d722c989f524efbd2a2cc0865093"
+        },
+        "BoundedTeacherResidualPolicy.policy_regularizer": {
+          "lineno": 291,
+          "end_lineno": 297,
+          "source_signature": "    def policy_regularizer(self, history, goal, action):",
+          "ast_sha256": "97430a492929e7f1288c8e5e8ff32455719ae2ee49c676265831d86f79dd30d6"
+        },
+        "ScaledTeacherResidualPolicy35.forward": {
+          "lineno": 306,
+          "end_lineno": 310,
+          "source_signature": "    def forward(self, history, goal):",
+          "ast_sha256": "53a57f84383202b88ee437ae77b166970281a9a13d535bec046a82e5fa1a8c85"
+        },
+        "original_tracking_terms": {
+          "lineno": 313,
+          "end_lineno": 325,
+          "source_signature": "def original_tracking_terms(command_t, velocity_b_at_reward, omega_b_at_reward,\n                            gravity_b_at_reward, *, lin_sigma=.25, tight_sigma=.01,\n                            gap=.5, square_sigma=.25, yaw_sigma=.25,\n                            yaw_square_sigma=.25, height_gate=1.):",
+          "ast_sha256": "447bda2e0b46fffd94ba6093464a51109558db520b765d917014f3641f6a1a9f"
+        },
+        "lower_confidence_reward": {
+          "lineno": 328,
+          "end_lineno": 332,
+          "source_signature": "def lower_confidence_reward(predictions, beta):",
+          "ast_sha256": "7bbbcb2897c53ae931903dea29db2c6feb715e3a6e1d7f4ffe2bc51ee67cbba8"
+        }
+      }
+    },
+    "vendor_learner": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\learner.py",
+      "sha256": "da3380bf84adb90f8cd528a05c86773baf6bcb4691dbf13e0ec1ffd9f899f816",
+      "bytes": 34087,
+      "line_count": 764,
+      "parse_ok": true,
+      "functions": {
+        "_empty_stats": {
+          "lineno": 86,
+          "end_lineno": 87,
+          "source_signature": "def _empty_stats() -> dict[str, list[torch.Tensor]]:",
+          "ast_sha256": "8d5f8093e1ba36e043c98f4ca627c540749ef0ef2bd4b259c8d25aeab3b9e4d2"
+        },
+        "_set_requires_grad": {
+          "lineno": 90,
+          "end_lineno": 92,
+          "source_signature": "def _set_requires_grad(module: nn.Module, enabled: bool) -> None:",
+          "ast_sha256": "793572059a9579b4b305b15e4f73cd530e27e396cc08a099cf25cd1e9682f72c"
+        },
+        "SuperMimicLearner.__init__": {
+          "lineno": 96,
+          "end_lineno": 177,
+          "source_signature": "    def __init__(\n        self,\n        env: EnvProtocol,\n        cfg: SuperMimicConfig,\n        log_dir: str | Path,\n        device: str | torch.device | None = None,\n        backend: str = \"\",\n    ):",
+          "ast_sha256": "0850bf3e61d71b4acfe3853300bb9c377f715cf6200d112a91a8206368d3c149"
+        },
+        "SuperMimicLearner._compile": {
+          "lineno": 179,
+          "end_lineno": 186,
+          "source_signature": "    def _compile(self, function):",
+          "ast_sha256": "898880e362b2cc76a9a21dd792bd03badeb4d7a1599518ee5742249a833836fa"
+        },
+        "SuperMimicLearner._make_world_model": {
+          "lineno": 188,
+          "end_lineno": 196,
+          "source_signature": "    def _make_world_model(self) -> WorldModel:",
+          "ast_sha256": "8e1dabff8c6485c1ec389ff4e34da82a84a47de78d4c1eebe377b57b5a680dc5"
+        },
+        "SuperMimicLearner._make_policy": {
+          "lineno": 198,
+          "end_lineno": 223,
+          "source_signature": "    def _make_policy(self) -> Policy:",
+          "ast_sha256": "d79e8b6daea938b319f9e1974bb5e26f05550c16229b9fc920866c8cc2e9ef74"
+        },
+        "SuperMimicLearner._state_info": {
+          "lineno": 225,
+          "end_lineno": 232,
+          "source_signature": "    def _state_info(self) -> dict[str, torch.Tensor]:",
+          "ast_sha256": "f91b18475d4df34db6507282e3ddd913c5c82cd4dd6fb2fe3c032cfe16603327"
+        },
+        "SuperMimicLearner._critic_input_dim": {
+          "lineno": 234,
+          "end_lineno": 242,
+          "source_signature": "    def _critic_input_dim(self) -> int:",
+          "ast_sha256": "5a1fa4540fe68a056ba52b23ff6a6aa5e7d13671a610345673344fc187afea4b"
+        },
+        "SuperMimicLearner._wm_rollout": {
+          "lineno": 244,
+          "end_lineno": 263,
+          "source_signature": "    def _wm_rollout(\n        self, states: torch.Tensor, actions: torch.Tensor, contexts: torch.Tensor\n    ) -> State:",
+          "ast_sha256": "cd760fea75848cb6dc53a4f65248638787aaa490d536fa4361881c7303e10e14"
+        },
+        "SuperMimicLearner._wm_err": {
+          "lineno": 265,
+          "end_lineno": 271,
+          "source_signature": "    def _wm_err(\n        self, predicted: State, next_states: torch.Tensor, mask: torch.Tensor\n    ) -> tuple[torch.Tensor, torch.Tensor]:",
+          "ast_sha256": "1c03e450988c42c392dbfd175deac7e2d84f2d63950c1d5ad05243463f37065d"
+        },
+        "SuperMimicLearner._imag_step": {
+          "lineno": 273,
+          "end_lineno": 289,
+          "source_signature": "    def _imag_step(\n        self,\n        state: State,\n        obs_hist: torch.Tensor,\n        previous_action: torch.Tensor,\n        frames: torch.Tensor,\n        context: torch.Tensor,\n        normalized_context: torch.Tensor,\n        goal: torch.Tensor,\n    ) -> tuple[State, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:",
+          "ast_sha256": "5e6c3c5a3cfa51e5dbfc3df4c0131a54a6066290e061af4838549abfa29b744d"
+        },
+        "SuperMimicLearner._reward_term": {
+          "lineno": 291,
+          "end_lineno": 300,
+          "source_signature": "    def _reward_term(\n        self,\n        state: State,\n        frames: torch.Tensor,\n        action: torch.Tensor,\n        previous_action: torch.Tensor,\n    ) -> tuple[torch.Tensor, torch.Tensor]:",
+          "ast_sha256": "e3147dac48800d3344c111a14cc1637a0940cad19ccc538c083df8938bcd0623"
+        },
+        "SuperMimicLearner._critic_input": {
+          "lineno": 302,
+          "end_lineno": 309,
+          "source_signature": "    def _critic_input(\n        self,\n        state: State,\n        frames: torch.Tensor,\n        normalized_context: torch.Tensor,\n        goal: torch.Tensor,\n    ) -> torch.Tensor:",
+          "ast_sha256": "8039304bbac32742752a16403c050205fe1d8d125e1ba2385c626edefd8dcb59"
+        },
+        "SuperMimicLearner.collect": {
+          "lineno": 312,
+          "end_lineno": 353,
+          "source_signature": "    def collect(self, n_steps: int) -> None:",
+          "ast_sha256": "a53679bfda399cf15033238d2c53a6e72804ecac6066fe0ec0e54eb3eb0ffe52"
+        },
+        "SuperMimicLearner.wm_update": {
+          "lineno": 355,
+          "end_lineno": 365,
+          "source_signature": "    def wm_update(self) -> tuple[torch.Tensor, torch.Tensor]:",
+          "ast_sha256": "3788e7eed9d9e1410806da7939a7800e94987f508cff226bf17746376889ed80"
+        },
+        "SuperMimicLearner._sample_valid_starts": {
+          "lineno": 367,
+          "end_lineno": 384,
+          "source_signature": "    def _sample_valid_starts(\n        self, batch_size: int\n    ) -> tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:",
+          "ast_sha256": "aeab0d05e8b8a85394cb3226c3d7fa1ae271f052f037853959a68cd42a8cc674"
+        },
+        "SuperMimicLearner._sample_valid_starts.concatenate": {
+          "lineno": 381,
+          "end_lineno": 382,
+          "source_signature": "        def concatenate(parts: list[dict[str, torch.Tensor]]) -> dict[str, torch.Tensor]:",
+          "ast_sha256": "79ed3e3a07693f9833e1adaf19927005472955600da02c132db357bb08d8042b"
+        },
+        "SuperMimicLearner.policy_update": {
+          "lineno": 386,
+          "end_lineno": 528,
+          "source_signature": "    def policy_update(\n        self,\n    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:",
+          "ast_sha256": "f15b8b6ad9e5643858bee053730dd39b32a065ef0f7c34301307fdd5d3d654ef"
+        },
+        "SuperMimicLearner.lr_at": {
+          "lineno": 530,
+          "end_lineno": 535,
+          "source_signature": "    def lr_at(self, iteration: int) -> float:",
+          "ast_sha256": "b1b4516790454d169251cd26c580f5bfb8cf17a3e7b4e4b93f9c6be313b444ee"
+        },
+        "SuperMimicLearner._checkpoint": {
+          "lineno": 537,
+          "end_lineno": 556,
+          "source_signature": "    def _checkpoint(self, include_optimizers: bool) -> dict[str, Any]:",
+          "ast_sha256": "9213622f228f7e063838fe250fb99a6831c65628d7d4b1e0e671506aab2611e9"
+        },
+        "SuperMimicLearner.save": {
+          "lineno": 558,
+          "end_lineno": 564,
+          "source_signature": "    def save(self, path: str | Path | None = None, include_optimizers: bool = True) -> Path:",
+          "ast_sha256": "a09f917ed4e9cadfe2b7f04897014d862e4821b162bda48670fbb7b1c399992f"
+        },
+        "SuperMimicLearner.load": {
+          "lineno": 566,
+          "end_lineno": 582,
+          "source_signature": "    def load(self, path: str | Path) -> None:",
+          "ast_sha256": "6f53f72c14b0cba16e948734b80b7617144ac53c185eb046c2dd7160ffd2c66e"
+        },
+        "SuperMimicLearner._mean": {
+          "lineno": 585,
+          "end_lineno": 586,
+          "source_signature": "    def _mean(values: list[torch.Tensor]) -> float:",
+          "ast_sha256": "9a8550503ad036e77cde1f44442814db4711dbe59a4729c0f8de1838749c150c"
+        },
+        "SuperMimicLearner.train": {
+          "lineno": 588,
+          "end_lineno": 761,
+          "source_signature": "    def train(self, resume: str | Path | None = None) -> dict[str, float | int | bool]:",
+          "ast_sha256": "64380ee595fc9e094d8e0e7bfa3ff0620375fea38cab0d82068c1eb543185cef"
+        }
+      }
+    },
+    "vendor_networks": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\networks.py",
+      "sha256": "c7829e6a1bb9166d724a931858b76424439f371669dfb4bb534b9e76c5c74706",
+      "bytes": 8609,
+      "line_count": 235,
+      "parse_ok": true,
+      "functions": {
+        "mlp": {
+          "lineno": 15,
+          "end_lineno": 31,
+          "source_signature": "def mlp(\n    in_dim: int,\n    hidden: Sequence[int],\n    out_dim: int,\n    act: type[nn.Module] = nn.ELU,\n    layer_norm: bool = False,\n) -> nn.Sequential:",
+          "ast_sha256": "4cd37f97a3bd80cfc91f0cbb4db64218b45cbc95e3c3257de9156fa1e967ab6d"
+        },
+        "RunningNorm.__init__": {
+          "lineno": 37,
+          "end_lineno": 46,
+          "source_signature": "    def __init__(self, dim: int, max_count: float = 2e8, eps: float = 1e-2):",
+          "ast_sha256": "8133888c7fb9e11e09b6324d8f0682aec3b440fb38c38d1ec82a96e32c1d773c"
+        },
+        "RunningNorm.update": {
+          "lineno": 49,
+          "end_lineno": 64,
+          "source_signature": "    def update(self, x: torch.Tensor) -> None:",
+          "ast_sha256": "f19880f42afbb4606ae6b0b10d0eef39e2f307b7eaea6f93ef477dc4beefbc9a"
+        },
+        "RunningNorm.forward": {
+          "lineno": 66,
+          "end_lineno": 67,
+          "source_signature": "    def forward(self, x: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "7e26da7fd1ac53f4963a69bf3c02ec07431d94f0b023e1ffa9f67445ea19717d"
+        },
+        "RunningNorm.std": {
+          "lineno": 69,
+          "end_lineno": 70,
+          "source_signature": "    def std(self) -> torch.Tensor:",
+          "ast_sha256": "93631428cacb6bd3eb83b70d4007818f3631cafdc4ed3a9eaab703ae876d3a64"
+        },
+        "run_mlp": {
+          "lineno": 76,
+          "end_lineno": 84,
+          "source_signature": "def run_mlp(net: nn.Module, x: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "ea7e91a3889f07a830fd2e0581827c470b031e973f52eabe8cfc56f6f764a55e"
+        },
+        "WorldModel.__init__": {
+          "lineno": 90,
+          "end_lineno": 108,
+          "source_signature": "    def __init__(\n        self,\n        hidden: Sequence[int] = (2048, 2048, 2048),\n        num_joints: int = 29,\n        context_dim: int = 33,\n        action_dim: int | None = None,\n    ):",
+          "ast_sha256": "9d5f7e286ccbbcc7dcc7e72dbdb8208297d7a4296eead0b7ec115b2706b26417"
+        },
+        "WorldModel.inputs": {
+          "lineno": 110,
+          "end_lineno": 113,
+          "source_signature": "    def inputs(\n        self, state: State, action: torch.Tensor, normalized_context: torch.Tensor\n    ) -> torch.Tensor:",
+          "ast_sha256": "c9119f7f98efd48846fc335a8b92b43369f6654c452cb16446f485558be58864"
+        },
+        "WorldModel.targets": {
+          "lineno": 116,
+          "end_lineno": 134,
+          "source_signature": "    def targets(state: State, next_state: State) -> torch.Tensor:",
+          "ast_sha256": "546618071e1151b5de2b8ceb2653ff8b76f0d06fc9003d91790eaa7a8b24e46e"
+        },
+        "WorldModel.step": {
+          "lineno": 136,
+          "end_lineno": 163,
+          "source_signature": "    def step(\n        self,\n        state: State,\n        action: torch.Tensor,\n        normalized_context: torch.Tensor,\n    ) -> State:",
+          "ast_sha256": "61c1d9715032f8f6e5543548abf545ea351555fab84b151a385ffd5417297d25"
+        },
+        "WorldModel.state_error": {
+          "lineno": 166,
+          "end_lineno": 191,
+          "source_signature": "    def state_error(predicted_state: State, state: State) -> torch.Tensor:",
+          "ast_sha256": "ea03d2ae9a33fb6190c08cd71ece313ebc5b1079a71d3f4d9425a74dffd3fd28"
+        },
+        "Policy.__init__": {
+          "lineno": 197,
+          "end_lineno": 216,
+          "source_signature": "    def __init__(\n        self,\n        obs_dim: int,\n        goal_dim: int,\n        hist: int = 10,\n        z_dim: int = 32,\n        num_joints: int = 29,\n        hidden: Sequence[int] = (2048, 1024, 512, 256),\n    ):",
+          "ast_sha256": "fa6ee12114be41b7b34a10fb30a47cee80209127605881dbe53b129770a17246"
+        },
+        "Policy.forward": {
+          "lineno": 218,
+          "end_lineno": 222,
+          "source_signature": "    def forward(self, obs_hist: torch.Tensor, goal: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "43a43e86690ae3f91757b2cf077ee6ab6d3576ffdb24450320a3a992f36bdcbd"
+        },
+        "Critic.__init__": {
+          "lineno": 226,
+          "end_lineno": 229,
+          "source_signature": "    def __init__(self, in_dim: int, hidden: Sequence[int] = (256, 128)):",
+          "ast_sha256": "0e5f484c43d72257b742afec540b090cf2355b6e1d6e5a44876e6a33b0454d6d"
+        },
+        "Critic.forward": {
+          "lineno": 231,
+          "end_lineno": 232,
+          "source_signature": "    def forward(self, x: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "208f1048b8624e9c53f6d9b64d4be8325cae78b085236436dbd267deea3ee70c"
+        }
+      }
+    },
+    "vendor_replay": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\replay.py",
+      "sha256": "8c7ddacf5387e67e7ecdd57027401a84a2cff1c31469115837d60b90357350da",
+      "bytes": 4123,
+      "line_count": 105,
+      "parse_ok": true,
+      "functions": {
+        "_make_fields": {
+          "lineno": 8,
+          "end_lineno": 24,
+          "source_signature": "def _make_fields(\n    num_joints: int,\n    context_dim: int,\n    action_dim: int | None = None,\n) -> dict[str, tuple[int | tuple[()], torch.dtype]]:",
+          "ast_sha256": "bb7cf68c0ca94090d47c23f037e733b76c936d642674a8969c550251068b67a8"
+        },
+        "ReplayBuffer.__init__": {
+          "lineno": 31,
+          "end_lineno": 49,
+          "source_signature": "    def __init__(\n        self,\n        T: int,\n        N: int,\n        device: str | torch.device,\n        num_joints: int = 29,\n        context_dim: int = 33,\n        action_dim: int | None = None,\n    ):",
+          "ast_sha256": "a86bc390cf1be4138a0c6df43cd00d14728f32755d7ecc0d92d453b9ae5eb094"
+        },
+        "ReplayBuffer.add": {
+          "lineno": 51,
+          "end_lineno": 55,
+          "source_signature": "    def add(self, transition: dict[str, torch.Tensor]) -> None:",
+          "ast_sha256": "4ce5593d3be32f1b53a49cab6cfc94d69151805b9e60bfae547a602352595213"
+        },
+        "ReplayBuffer._row": {
+          "lineno": 57,
+          "end_lineno": 59,
+          "source_signature": "    def _row(self, age: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "0a209d54a7b929644b4bf0033e2f17246c2a5578faa99b2805256cbd5562aa16"
+        },
+        "ReplayBuffer.sample_windows": {
+          "lineno": 61,
+          "end_lineno": 77,
+          "source_signature": "    def sample_windows(self, B: int, k: int) -> dict[str, torch.Tensor]:",
+          "ast_sha256": "1a6e97c5e5f8a308d827887719bbe81ec55c229fd9e169748fa6d5e35a72ec16"
+        },
+        "ReplayBuffer.sample_starts": {
+          "lineno": 79,
+          "end_lineno": 102,
+          "source_signature": "    def sample_starts(\n        self,\n        B: int,\n        hist: int,\n    ) -> tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:",
+          "ast_sha256": "9dc1f3dd101c23a66db57fcfaa05625986d9160470d16026787b5140a564da64"
+        }
+      }
+    },
+    "vendor_geometry": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\geometry.py",
+      "sha256": "89ac3b9470fd6f041fd418365283355a07ad96c4bf38740cf3c5d2d98acb7787",
+      "bytes": 6960,
+      "line_count": 201,
+      "parse_ok": true,
+      "functions": {
+        "quat_to_mat": {
+          "lineno": 11,
+          "end_lineno": 27,
+          "source_signature": "def quat_to_mat(q: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "f0c2226d0c941a9b98d5404a6397c67cd109beccb7d034ede4eff4141ae3f523"
+        },
+        "mat_to_quat": {
+          "lineno": 30,
+          "end_lineno": 60,
+          "source_signature": "def mat_to_quat(m: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "dfa13fca6c2e999b5e2b5a2a423723e9cd9c48ac32f9eea9a4c26b713a41cf02"
+        },
+        "axis_angle_to_mat": {
+          "lineno": 63,
+          "end_lineno": 80,
+          "source_signature": "def axis_angle_to_mat(axis: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "132e1fdcb6d32361974ff5be87e058dca8b00a5b08799f254636f2b7def29282"
+        },
+        "skew": {
+          "lineno": 83,
+          "end_lineno": 88,
+          "source_signature": "def skew(vector: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "25d697a30a73b92b039194e8305e6b172c4c0afbb5c7a104c833f44b0c9997af"
+        },
+        "so3_exp": {
+          "lineno": 91,
+          "end_lineno": 99,
+          "source_signature": "def so3_exp(vector: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "5e2383b5b9270eaa33ca2db009a250cbf41f8e1036ab294cf3c2d5eb26172e32"
+        },
+        "quat_to_rotvec": {
+          "lineno": 102,
+          "end_lineno": 112,
+          "source_signature": "def quat_to_rotvec(q: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "2b6a45f45711636c337b53da2bc095acfb6c750450743e54d89a1aa952046be4"
+        },
+        "so3_log": {
+          "lineno": 115,
+          "end_lineno": 116,
+          "source_signature": "def so3_log(rotation: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "934fe148dd5d9069474750c70e39f2d5105d2a11ade533d7454424e16920acca"
+        },
+        "rot_angle_sq": {
+          "lineno": 119,
+          "end_lineno": 122,
+          "source_signature": "def rot_angle_sq(first: torch.Tensor, second: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "6a36039354dbac58e6e77da6802964c19d44f40b155b3f2eeac17e9d2e4dab7a"
+        },
+        "yaw_mat": {
+          "lineno": 125,
+          "end_lineno": 132,
+          "source_signature": "def yaw_mat(rotation: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "7fb616ea1154dd31ce422a3fc684a723912ec44162a9b0d8b3d0804a047273b6"
+        },
+        "mat_to_6d": {
+          "lineno": 135,
+          "end_lineno": 136,
+          "source_signature": "def mat_to_6d(rotation: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "1f4cb12b55d72c8656f752d36572d72dca084cb38438992a0edbc4aebf2730f6"
+        },
+        "quat_slerp": {
+          "lineno": 139,
+          "end_lineno": 148,
+          "source_signature": "def quat_slerp(first: torch.Tensor, second: torch.Tensor, t: torch.Tensor) -> torch.Tensor:",
+          "ast_sha256": "c9cf4caf56e9b5e0267075d1ce4bb4885894db8d898da38c5a25025c7d26ea4b"
+        },
+        "flatten_state": {
+          "lineno": 151,
+          "end_lineno": 153,
+          "source_signature": "def flatten_state(state: State) -> torch.Tensor:",
+          "ast_sha256": "e8b1fb809ff417708afc781648518a90e27251c722101d7a7e8177a56411e809"
+        },
+        "unflatten_state": {
+          "lineno": 156,
+          "end_lineno": 166,
+          "source_signature": "def unflatten_state(value: torch.Tensor) -> State:",
+          "ast_sha256": "bfe87a083ed19e2572e803423f59957c527e77aa14272d03a3aa23caa14f9d80"
+        },
+        "invariant_features": {
+          "lineno": 169,
+          "end_lineno": 183,
+          "source_signature": "def invariant_features(state: State) -> torch.Tensor:",
+          "ast_sha256": "3ced0360d3b501ce3b95fbff4be8087f203f897665524bb518fb6c0d123c94d3"
+        }
+      }
+    },
+    "vendor_contract": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\contract.py",
+      "sha256": "d756f2a102a81b2f16295dad66f46e9783b42a3f67e7416360fcf136c2ff06ce",
+      "bytes": 2517,
+      "line_count": 92,
+      "parse_ok": true,
+      "functions": {
+        "SuperMimicMdpProtocol.obs": {
+          "lineno": 32,
+          "end_lineno": 38,
+          "source_signature": "    def obs(\n        self,\n        state: State,\n        previous_action: torch.Tensor,\n        context: torch.Tensor,\n        frames: torch.Tensor,",
+          "ast_sha256": "aa0cb84224e1b8a090bc9c5f876f87560a4d1ded3d99145b5cc48e668347a209"
+        },
+        "SuperMimicMdpProtocol.add_noise": {
+          "lineno": 40,
+          "end_lineno": 40,
+          "source_signature": "    def add_noise(self, obs: torch.Tensor) -> torch.Tensor: ...",
+          "ast_sha256": "c75aa54bf929288035c826568945c85323dcca769be82caf583c57fd2ef070ca"
+        },
+        "SuperMimicMdpProtocol.goal": {
+          "lineno": 42,
+          "end_lineno": 42,
+          "source_signature": "    def goal(self, frames: torch.Tensor, num_frames: int) -> torch.Tensor: ...",
+          "ast_sha256": "c636d9749ab0a9e236eff5e4baccc9d55c844c73d1b34c3f88da61e8566ec286"
+        },
+        "SuperMimicMdpProtocol.reward": {
+          "lineno": 44,
+          "end_lineno": 50,
+          "source_signature": "    def reward(\n        self,\n        state: State,\n        frames: torch.Tensor,\n        action: torch.Tensor,\n        previous_action: torch.Tensor,",
+          "ast_sha256": "418ccfd936fff487b190390eeef2e7fb34467ba31677b8f0d3b02f7d9884420e"
+        },
+        "SuperMimicMdpProtocol.soft_termination": {
+          "lineno": 52,
+          "end_lineno": 52,
+          "source_signature": "    def soft_termination(self, state: State, frames: torch.Tensor) -> torch.Tensor: ...",
+          "ast_sha256": "be1c492f031e08c5ee6d8ce882edf6527502f722fafc5f320f4d5d54d2dc0150"
+        },
+        "SuperMimicMdpProtocol.critic_features": {
+          "lineno": 54,
+          "end_lineno": 59,
+          "source_signature": "    def critic_features(\n        self,\n        state: State,\n        frames: torch.Tensor,\n        normalized_context: torch.Tensor,",
+          "ast_sha256": "0d5a057faa5e1563f87e0ac21acd42dde3fa3ec7aa0516412a8faf818cca585b"
+        },
+        "SuperMimicMdpProtocol.normalize_context": {
+          "lineno": 61,
+          "end_lineno": 61,
+          "source_signature": "    def normalize_context(self, context: torch.Tensor) -> torch.Tensor: ...",
+          "ast_sha256": "fab7a5d15a3a72d129de040007d19cfc016735f21a34772304e471110cd7d3a9"
+        },
+        "SuperMimicMdpProtocol.valid_imagination_start": {
+          "lineno": 63,
+          "end_lineno": 63,
+          "source_signature": "    def valid_imagination_start(self, frames: torch.Tensor, horizon: int) -> torch.Tensor: ...",
+          "ast_sha256": "6b19bf962b5a86fa75b8452d6795ac1e19f3bdd3998554c304c4680dcd59cbc8"
+        },
+        "SuperMimicMdpProtocol.to": {
+          "lineno": 65,
+          "end_lineno": 67,
+          "source_signature": "    def to(self, device: str | torch.device) -> SuperMimicMdpProtocol:",
+          "ast_sha256": "6e6483c55f40b1e9e45ed13b187b70d4da62c12eae63e93a25805639492a73e6"
+        },
+        "SupportsSuperMimicProtocol.supermimic_mdp": {
+          "lineno": 75,
+          "end_lineno": 75,
+          "source_signature": "    def supermimic_mdp(self) -> SuperMimicMdpProtocol: ...",
+          "ast_sha256": "f6808373ab05618b4fc49b4fc57265a31e8bd8bfe2affecec5b6f7ed1f6cc1c1"
+        },
+        "get_supermimic_mdp": {
+          "lineno": 78,
+          "end_lineno": 82,
+          "source_signature": "def get_supermimic_mdp(env: Any) -> SuperMimicMdpProtocol:",
+          "ast_sha256": "ed0f57e257dbe524d416807f3c24f5704b925a2f5ace8871fb575a7e11033e1d"
+        }
+      }
+    },
+    "vendor___init__": {
+      "path": "F:\\RMPOLAR-RL\\supermimic_step270_e0_20261101\\discovery\\tasks\\H1step270_dual72_fudan_supermimic_E3_2610v85m2\\e2\\source\\supermimic_vendor_v2\\__init__.py",
+      "sha256": "cff7309715dda7ccc1736768b3e105292caefe7f0dbf879325c14f88b33b9349",
+      "bytes": 77,
+      "line_count": 1,
+      "parse_ok": true,
+      "functions": {}
+    }
+  },
+  "core_to_actual_resume": {
+    "ast_identical_functions": [
+      "ContextReplayBuffer.__init__",
+      "ContextReplayBuffer.add",
+      "ContextReplayBuffer.export_state",
+      "ContextReplayBuffer.import_state",
+      "ContextReplayBuffer.sample_transitions",
+      "ContextReplayBuffer.sample_windows",
+      "ContextReplayBuffer.seal_stream_boundary",
+      "ContextRewardLearner.__init__",
+      "ContextRewardLearner._checkpoint",
+      "ContextRewardLearner._goal",
+      "ContextRewardLearner._on_pi_step",
+      "ContextRewardLearner._sample_valid_starts",
+      "ContextRewardLearner.aux_update",
+      "ContextRewardLearner.collect",
+      "ContextRewardLearner.policy_update",
+      "ContextRewardLearner.train",
+      "ContextRewardLearner.wm_update",
+      "TaskAuxiliaryModel.__init__",
+      "TaskAuxiliaryModel.features",
+      "TaskAuxiliaryModel.forward",
+      "TaskAuxiliaryModel.supervised_loss",
+      "capture_rng",
+      "frozen_parameters",
+      "restore_rng"
+    ],
+    "ast_different_functions": [
+      "ContextRewardLearner.load"
+    ],
+    "added_functions": [
+      "ContextRewardLearner.load_full_checkpoint"
+    ],
+    "removed_functions": [],
+    "original_load_after_torch_load_equals_load_full_checkpoint_body": true
+  },
+  "pure_arithmetic": {
+    "wm_windows_per_update_vendor": 20480,
+    "wm_windows_per_update_actual": 2048,
+    "actor_transitions_per_update_vendor": 131072,
+    "actor_transitions_per_update_actual": 8192,
+    "actual_actor_transition_ratio": 0.0625,
+    "actual_wm_window_ratio": 0.1,
+    "actual_horizon_seconds": 0.32,
+    "lr_multiplier_i3100": 0.9996320405712291
+  },
+  "limits": [
+    "AST/source evidence only; no torch import, checkpoint, raw replay, simulator, hardware query, training, Git or remote operations.",
+    "Local vendor origin is not established as official repository.",
+    "No causal root cause conclusion from source or posthoc replay fits."
+  ]
+}

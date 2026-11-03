@@ -1,0 +1,60 @@
+"""Archive actual quality diagnosis, all close/reader failures and new source fixes.
+No remote/native/SDK/model/raw open or old trial replay. Point-in-time text delta.
+"""
+from pathlib import Path
+import json,hashlib,sys,subprocess,datetime
+R=Path(__file__).resolve().parent;REPO=Path(r'F:\RMPOLAR-RL\repo-lqr');REL=Path('history/experiments/mod4v1_supermimic_bptt_phase29_delta');D=REPO/REL
+sys.path.insert(0,str(REPO/'archive_tools'));from capture_history import redact
+import record_experiment
+G=lambda *a:subprocess.run(['git','-C',str(REPO),*a],check=True,capture_output=True,text=True,encoding='utf-8').stdout.strip()
+H=lambda raw:hashlib.sha256(raw).hexdigest()
+assert G('branch','--show-current')=='mod4v1-experts-fulldr-rm70'and G('rev-parse','HEAD')=='ba10b8473bf644479028c7cadcdc455feb8dbeca'and not G('status','--porcelain');assert not D.exists()
+quality=json.loads((R/'reports/QUALIFIED_E3_W35_REFERENCE_CANDIDATE_SCREEN_V1.json').read_bytes())
+assert quality['qualified_reference_execution']and quality['qualified_candidate_execution']and quality['decision']=='KEEP_REGISTRY_V12_SCOPED_BEST_NO_CANDIDATE_PROMOTION'
+assert quality['relative_improvement']is None and quality['matched_UID_pose_cohort']is None and quality['full_expert_pass_rate']is None and not quality['mother_checkpoint_registry_or_H1_mutated']and not quality['further_same_baseline_volume_scheduled_to_reach3000']
+assert [(x['reference']['n'],x['reference']['N'],x['candidate']['n'],x['candidate']['N'])for x in quality['conditions']]==[(0,74,0,74),(19,63,10,69),(26,26,16,17)]
+assert (R/'CURRENT_PROGRESS_v15_QUALIFIED_TEACHER_CANDIDATE_CLOSED_KEEP_MOTHERS.md').is_file()and(R/'QUALIFIED_QUALITY_COMPARISON_E3_W35_V1.md').is_file()
+alias=json.loads((R/'reports/RESUME_ALIAS_CONTROL_FIX_ACTUAL_CPU_COMPARISON_V1.json').read_bytes());assert [x['suite_passed']for x in alias['cases']]==[False,True]and all(x['completed_negative_cases']==14 and x['start']==3 and x['end']==5 for x in alias['cases']);assert (R/'CURRENT_PROGRESS_v17_ROUND8_CPU_ALIAS_FIXED_BOUND_PROBE_ORIGINAL_WAIT.md').is_file();stage=json.loads((R/'reports/BOUND_ONLY_E3_W35_V1_ACTUAL_SOURCE_STAGE_V1.json').read_bytes());assert stage['returncode']==0 and stage['stage']['staged']and stage['stage']['parent_launches']==0
+zero=json.loads((R/'reports/BOUND_ONLY_E3_W35_V1_ZERO_ADMISSION_CLOSED_TRUTH_V1.json').read_bytes());assert zero['actual_workers_created']==0 and zero['all_own_wait_and_original_EX_released']and zero['actual_parent_returncode']==1 and zero['skill_pass_rate']is None;assert (R/'CURRENT_PROGRESS_v19_BOUND_ZERO_GO_CLOSED_NEW_ADMISSION2_STAGED.md').is_file()
+ptr=json.loads((R/'BOUND_ONLY_E3_W35_V1_ADMISSION2_LATEST_CLOSED_RESULT_PATH.json').read_bytes());bound=json.loads(Path(ptr['path']).read_bytes());assert bound['closed']and bound['actual_external_parent_wait_bound']and not bound['early_controller_dead_without_wait_proof'];assert bound['top']['BOUND_PROBE_PARENT_WAITED_ACTUAL_V1.json']['actual_parent_p_wait_returned'];assert bound['top']['PARENT_EXIT_SCOPE.json']['all_own_children_waited']and bound['top']['PARENT_EXIT_SCOPE.json']['original_single_GPU_private_EX_released']and bound['top']['PARENT_EXIT_SCOPE.json']['original_global_finite_EX_released'];bound_quality_path=R/'reports/BOUND_ONLY_E3_W35_ORIGINAL_QUALITY_SCREEN_V1.json';bound_quality=json.loads(bound_quality_path.read_bytes())if bound_quality_path.exists()else None
+for role in ('E3','W35'):
+ q=json.loads((R/'reports'/('ACTUAL_SAVED_REPLAY_CONSISTENCY_'+role+'_V1.json')).read_bytes());assert q['returncode']==0;e=q['receipt']['execution'];assert e['physical_checkpoint_reads']==e['checkpoint_SHA_calculations']==e['weights_only_CPU_decodes']==1 and e['native_BPTT_updates_this_diagnostic']==0 and e['whole_root_tensor_identity_version_values_unchanged']and e['global_Torch_Python_NumPy_RNG_unchanged']
+assert (R/'SUPERMIMIC_PAPER_VS_OUR_BPTT_AUDIT_V1.md').is_file()and(R/'CURRENT_PROGRESS_v24_PRIMARY_PAPER_BPTT_AUDIT_COMPLETE_NO_HOTPATCH.md').is_file()
+known={}
+for part,commit in [('mod4v1_supermimic_bptt_phase18_sources','8e6160b8747af162b5a486b3f3aa1ad4782223fd'),('mod4v1_supermimic_bptt_phase19_delta','57626b09cbed02b5b2efabbfd0c0b632383bdce0'),('mod4v1_supermimic_bptt_phase20_delta','4afdba074f3d295cd78ed4bf46a5cc779ff97b70'),('mod4v1_supermimic_bptt_phase21_delta','d31b5349abb5ee7c7f3dcbae7eec84c02aae761a'),('mod4v1_supermimic_bptt_phase22_delta','53678ec8d2e05dcafb890a357078c25020101903'),('mod4v1_supermimic_bptt_phase23_delta','01232718ef0ae41207dc50315d1bdbdeaa1c60d9'),('mod4v1_supermimic_bptt_phase24_delta','60a5ee122fc45238d3c636383e0a2d5f71d0343e'),('mod4v1_supermimic_bptt_phase25_delta','8d2c00278fa7734144362074f990ab87d7061b5a'),('mod4v1_supermimic_bptt_phase26_delta','9d828219f6bf389318edd311ad340e9d74f97ebd'),('mod4v1_supermimic_bptt_phase27_delta','b2c500f91a3bc9c351065bd1bdd0bee0b11bb77c'),('mod4v1_supermimic_bptt_phase28_delta','ba10b8473bf644479028c7cadcdc455feb8dbeca')]:
+ for x in json.loads((REPO/'history/experiments'/part/'SOURCE_INDEX.json').read_bytes())['rows']:
+  if x.get('archive_path')and x.get('source_sha256'):known[x['source_path']]={**x,'known_commit':x.get('referenced_commit')or commit}
+D.mkdir(parents=True);rows=[];files=[];refs=0
+for p in sorted(R.rglob('*'),key=str):
+ row=dict(source_path=str(p))
+ if p.suffix.lower()in('.pt','.pth','.ckpt','.onnx','.safetensors'):
+  row.update(status='model_reference_only_no_stat_or_read',source_sha256=None);rows.append(row);continue
+ if not p.is_file():continue
+ try:
+  before=p.stat();row.update(stat_bytes=before.st_size,mtime_ns=before.st_mtime_ns)
+  if p.suffix.lower()in('.pdf','.gz','.tar','.pyc','.npz','.npy','.usd','.usdc','.zip','.zst','.mp4','.png','.jpg','.jpeg','.stl','.bin','.partial','.unpublished','.jsonl','.csv','.parquet')or p.name=='source_archive' or'__pycache__'in p.parts or before.st_size>50_000_000:
+   row.update(status='binary_large_raw_or_unpublished_metadata_only_no_content_read',source_sha256=None);rows.append(row);continue
+  raw=p.read_bytes();after=p.stat();row.update(bytes=len(raw),source_sha256=H(raw),unchanged_size_mtime_during_read=before.st_size==after.st_size and before.st_mtime_ns==after.st_mtime_ns)
+ except FileNotFoundError:
+  row.update(status='disappeared_during_capture_pending_next_append',source_sha256=None);rows.append(row);continue
+ if not row['unchanged_size_mtime_during_read']:row['status']='moving_index_only_pending_later_append'
+ elif str(p)in known and known[str(p)]['source_sha256']==row['source_sha256']:
+  old=known[str(p)];assert(REPO/old['archive_path']).is_file();row.update(status='unchanged_reference_existing_phase18_through28',archive_path=old['archive_path'],archive_sha256=old['archive_sha256'],referenced_commit=old['known_commit']);refs+=1
+ else:
+  try:text=raw.decode('utf-8')
+  except UnicodeDecodeError:row['status']='nonUTF8_metadata_index_only'
+  else:
+   safe,n=redact(text);data=safe.encode('utf-8')if n else raw;dest=D/'delta'/p.relative_to(R);dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data);name=dest.relative_to(REPO).as_posix();files.append(name);row.update(status='text_redacted'if n else'complete_new_or_changed_text',redactions=n,archive_path=name,archive_sha256=H(data))
+ rows.append(row)
+(D/'.gitattributes').write_text('* -text\n',encoding='utf-8');(D/'SOURCE_INDEX.json').write_text(json.dumps(dict(captured_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),prior_phase27_commit='b2c500f91a3bc9c351065bd1bdd0bee0b11bb77c',unchanged_reference_count=refs,rows=rows,not_captured_yet='Late replay-consistency diagnostic, disabled E3 reward and good-expert holdout SOURCE completions and subsequent actual tests/late handoffs after capture remain pending next append; actual bound admission/closure/grade are captured here; no physical or CPU purpose replay for Git.'),indent=2),encoding='utf-8')
+note='# SuperMimic primary-paper / actual BPTT audit and saved-replay consistency — phase29\n\nDirect user 2026-11-03 14:43 asked to inspect the original SuperMimic paper and assess our BPTT implementation. Captured primary arXiv2610.28480v1 paper/TeX references (never executed), independent literature and actual-source audits, combined user report, all exact file/API/provenance differences and unknowns. No author-confirmed training repository was found in checked primary sources; local vendor/third-party reproductions not promoted to official code. Paper allows learned/analytic heads and has DR/noisy POMDP training; default H32 does not make critic H16 automatically invalid. Actual survival/critic bootstrap/lambda/Adam-beta/gradientclip/no-EMA-target-critic largely align. Confirmed priority adaptations: noisy/delayed dynamic xi versus clean observation+fresh noise, true-context WM teacher forcing plus one-step heads versus actor full recursive chain, unbounded output residual, terrain invariant/Markov and command/timeout semantics, smaller model/data/critic exposure. No failure-causality/gradient-correctness claim and no new native training/hotpatch/physicsDR or threshold change.\n\nNEW saved-replay diagnostic actual own E3/W35 checkpoint bytes/SHA/CPU decode each once; whole root/live values+versions/global RNG unchanged; mother reads/optimizer/SDK/GPU/BPTT/C writes zero. Synthetic real-Torch smoke, import-only predecode, four exact FINAL/TASK pin checks, independent source review and all receipts preserved. One-step/actor64/H16matched32 per role; conditional true xi and FULL recursive-context modes explicitly not heldout, not policy counterfactual, not skill/causal proof. Human compact metrics formatting-only edit did not rerun diagnostics. Existing original teacher/unbounded/bound qualified quality and keep-mother decisions remain.\n\nNew disabled E3 dense upright reward SOURCE only kappa null, 28synthetic tests with first1ulp fixturefail preserved and immutable V1 plus A1 wrapper layering append. Good C878/S135 independent seeds20260929/30 SOURCE overlay20 and original dependencies sealed,21source tests, not materialized/graded. New stager/materializer SOURCE may be incomplete at capture; no actual native execution. Whole-resume CPU alias control/fix and previous errors remain; new20fd core not installed in current native. Historical originalC/resource/singlewriter/privateEX/trainSH-evalEX/reserve/3900-3600-300/1800, H1 and mothers unchanged. Updates only process, primary original80/90 quality not achieved. All captured sources/results/failures including partials preserved; later materializer seal and future stages/outcomes are pending subsequent append. No selected model/raw content/stat read or physical/CPU rerun for Git. Feature only; main read-only.\n'
+(D/'NOTE.md').write_text(note,encoding='utf-8');files +=[(REL/n).as_posix()for n in('.gitattributes','SOURCE_INDEX.json','NOTE.md')]
+original_git=record_experiment.git
+def exact_short_git(*a):
+ if len(a)>=2 and a[:2]==('add','--'):
+  dest=a[2];selected=set(a[3:]);assert selected==set(files)and all(Path(x).is_relative_to(REL)for x in selected)
+  value=original_git('add','--',dest,REL.as_posix());assert set(original_git('diff','--cached','--name-only').splitlines())==selected|{dest};return value
+ return original_git(*a)
+record_experiment.git=exact_short_git
+sys.argv=['record_experiment.py','--id','mod4v1-supermimic-primary-paper-bptt-audit-replay-consistency-phase29','--title','Audit original SuperMimic paper against actual BPTT and saved-replay consistency','--kind','evaluation','--note-file',str(D/'NOTE.md'),'--validation','quality-first;new-independent-bound-only-purpose;zero-optimizer-update-not-training-benefit;actual-original-resource-admission-and-control-evidence;actual-external-pwait-and-originalEXrelease;original-scope-predicates-physicsDR-unchanged;only-new-raw-once-for-qualified-grade;no-cohort-causal-or-90claim;keep-mothers;all-errors-retained;no-modelraw-Git-reopen','--files',*files]
+record_experiment.main();print(json.dumps(dict(commit=G('rev-parse','HEAD'),branch=G('branch','--show-current'),entries=len(rows),unchanged_references=refs,new_text_files=len(files),status=G('status','--porcelain')),indent=2))

@@ -1,0 +1,225 @@
+{
+  "schema_version": "supermimic-primary-literature-v1",
+  "checked_date": "2026-11-03",
+  "timezone": "Asia/Shanghai",
+  "scope": "Independent primary web literature research only; no inspection of local training actual, root-cause diagnosis or repair claim.",
+  "identity": {
+    "title": "SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model",
+    "authors": ["Qiayuan Liao", "Yiyang Shao", "Junfeng Long", "Kevin Zakka", "Roberto Horowitz", "Pieter Abbeel", "Koushil Sreenath"],
+    "affiliation": "UC Berkeley",
+    "arxiv_id": "2610.28480",
+    "version": "v1",
+    "submitted_utc": "2026-10-20T16:29:30Z",
+    "version_history_observed": ["v1"],
+    "venue_claim": "CoRL 2026 Oral, according to arXiv comments, project page and author homepage; proceedings not independently checked",
+    "abs_url": "https://arxiv.org/abs/2610.28480",
+    "fixed_abs_url": "https://arxiv.org/abs/2610.28480v1",
+    "api_url": "https://export.arxiv.org/api/query?id_list=2610.28480",
+    "pdf_url": "https://arxiv.org/pdf/2610.28480v1",
+    "source_url": "https://arxiv.org/src/2610.28480v1",
+    "project_url": "https://supermimic.github.io/",
+    "first_author_homepage": "https://qiayuanl.github.io/",
+    "official_training_github": null,
+    "official_training_github_status": "not found in checked primary sources; not proof no private or unlinked repo exists",
+    "repository_negative_evidence": [
+      {"url": "https://supermimic.github.io/", "observation": "paper, project and demo links; no public training repository link found"},
+      {"url": "https://qiayuanl.github.io/", "observation": "SuperMimic entry has Webpage/Paper/Video; unlike several other entries, no Code link"},
+      {"url": "https://api.github.com/users/supermimic/repos", "observation": "public list returned [] at retrieval"},
+      {"url": "https://supermimic.github.io/demo/LICENSE.html", "observation": "UC Berkeley proprietary terms include demo source, policy/world-model weights, architecture and configuration; browser demo is not a published open-source training implementation"}
+    ],
+    "same_name_check": "No second same-name paper verified by this search; found multiple independent reproductions of arXiv 2610.28480",
+    "non_official_examples": [
+      "https://github.com/CuboiLeo/SuperMimic-Reproduced",
+      "https://github.com/YHFone/supermimic-mjlab",
+      "https://github.com/NPCLEI/mjlab_supermimic",
+      "https://github.com/miao-org/awesome-supermimic"
+    ]
+  },
+  "artifacts": {
+    "directory": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_supermimic_primary_literature_v1",
+    "report": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_supermimic_primary_literature_v1/PRIMARY_LITERATURE_REPORT.md",
+    "source_archive": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_supermimic_primary_literature_v1/arxiv_2610.28480v1_source.tar.gz",
+      "url": "https://arxiv.org/src/2610.28480v1",
+      "bytes": 2901561,
+      "sha256": "256A25330DBD7A7F4EBBC56228A57E6F426C9F155F1E7ACE81E0A9D78A6292AB"
+    },
+    "pdf": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_supermimic_primary_literature_v1/arxiv_2610.28480v1.pdf",
+      "url": "https://arxiv.org/pdf/2610.28480v1",
+      "bytes": 3524904,
+      "sha256": "FE213017AB062F4ACC3965DA89ABD3C29969163E144A2628A662B8CE46691009"
+    },
+    "source_base": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_supermimic_primary_literature_v1/arxiv_source/sections/",
+    "source_reference_convention": "The paths in evidence below resolve under artifacts.source_base; all TeX files were obtained from the fixed v1 official arXiv source archive. No TeX or source code was executed."
+  },
+  "claims": [
+    {
+      "id": "C01_joint_online",
+      "statement": "Collect simulator data, fit model on short replay windows, improve actor and critic on imagined rollouts; both model and policy update throughout training. Prior-policy transitions remain valid dynamics data.",
+      "evidence": [{"file": "method.tex", "lines": "68-74", "section": "3.1"}, {"file": "appendix.tex", "lines": "169-185", "section": "D, Algorithm A.1"}, {"file": "related-work.tex", "lines": "52-55", "section": "2"}],
+      "boundary": "No separate-policy pretraining requirement. Initial replay fill/warmup details are unknown."
+    },
+    {
+      "id": "C02_action_data_alignment",
+      "statement": "Deterministic policy a=pi(o,g); simulator executes a+epsilon and replay stores the executed noisy action. Action noise only broadens WM action coverage and is optional.",
+      "evidence": [{"file": "method.tex", "lines": "72-72", "section": "3.1"}, {"file": "appendix.tex", "lines": "227-229", "section": "D, Table A.5"}],
+      "value": {"action_noise_distribution": "Normal(0,0.1^2) per dimension"},
+      "boundary": "Clipping/bounding of executed noisy actions is not stated."
+    },
+    {
+      "id": "C03_WM_conditioning",
+      "statement": "Deterministic WM conditions on recorded per-episode physical context xi and predicts noise-free observations; known observation noise is sampled externally and re-added before actor.",
+      "equations": ["s_hat[t+1]=f_omega(s_hat[t],a[t],xi)", "r_hat[t+1]=r_omega(s_hat[t],a[t],g[t])", "obs_clean_hat[t]=g_omega(s_hat[t],xi)", "d_hat[t]=d_omega(s_hat[t],g[t])"],
+      "evidence": [{"file": "method.tex", "lines": "72-85", "section": "3.1-3.2, unnumbered head equations"}, {"file": "appendix.tex", "lines": "44-125", "section": "A, Table A.3"}],
+      "context": {"friction_uniform": [0.3, 1.2], "joint_calibration_uniform_rad": [-0.01, 0.01], "torso_COM_x_uniform_m": [-0.025, 0.025], "torso_COM_yz_uniform_m": [-0.05, 0.05]},
+      "boundary": "WM state layout/dimension/delta parameterization/rotation representation/FK are not uniquely specified."
+    },
+    {
+      "id": "C04_head_selection",
+      "statement": "Reward, observation and termination heads can each be learned or analytic. An analytic head has no corresponding loss term.",
+      "evidence": [{"file": "method.tex", "lines": "80-92", "section": "3.2, head equations and Eq.(1)"}],
+      "exact_G1_selection": null,
+      "boundary": "Published reward formulas do not establish that the actual G1 reward head was analytic. Learned reward alone is not an established deviation."
+    },
+    {
+      "id": "C05_WM_fit",
+      "statement": "Autoregressive k=8 logged-action replay window seeded once at the logged initial state; fit per-step state MSE, reward MSE, clean observation MSE and done BCE, omitting analytic-head loss terms.",
+      "evidence": [{"file": "method.tex", "lines": "87-92", "section": "3.2, Eq.(1)"}, {"file": "appendix.tex", "lines": "179-179", "section": "D, Algorithm A.1"}],
+      "boundary": "Not one-step-only fit or intermediate full teacher forcing. No explicit Jacobian matching, ensemble uncertainty or KL term in Eq.(1). Reset-crossing masking, target scaling and per-feature weights unknown."
+    },
+    {
+      "id": "C06_actor_BPTT",
+      "statement": "H=32 on-policy imagination starts from replay state with recorded xi, adds sensor noise to clean predicted observation each step, and maximizes discounted reward plus terminal critic bootstrap with soft survival weights.",
+      "equations": ["c[0]=1; c[t+1]=c[t]*(1-d[t+1])", "J_hat(theta)=E[sum(t=0..H-1) gamma^t*c_hat[t]*r_hat[t+1]+gamma^H*c_hat[H]*V_psi(s_hat[H],g[H],xi)]"],
+      "evidence": [{"file": "method.tex", "lines": "72-72", "section": "3.1, continuation definition"}, {"file": "method.tex", "lines": "96-107", "section": "3.3, Eq.(2)"}],
+      "boundary": "Immediate r[t+1] is weighted by c[t], not c[t+1]. Actor Eq.(2) is not critic lambda-target fitting or advantage-weighted log-prob."
+    },
+    {
+      "id": "C07_stopgradient",
+      "statement": "Freeze omega only inside actor backward while preserving WM Jacobians with respect to state and action over H steps. Mathematically the terminal value retains its dependence on terminal imagined state for dJ/dtheta.",
+      "evidence": [{"file": "method.tex", "lines": "96-107", "section": "3.3, Eq.(2) and BPTT paragraph"}, {"file": "appendix.tex", "lines": "172-183", "section": "D, Algorithm A.1"}],
+      "boundary": "Freezing model parameters is not equivalent to detaching predicted states or executing entire WM forward under no_grad. Exact framework flags are not published."
+    },
+    {
+      "id": "C08_critic",
+      "statement": "Critic uses imagined-only lambda returns, terminal bootstrap, soft done gating, fixed once-per-rollout targets and no EMA target network.",
+      "equations": ["R_hat[H]=V[H]", "R_hat[t]=r_hat[t+1]+gamma*(1-d_hat[t+1])*((1-lambda)*V[t+1]+lambda*R_hat[t+1])", "L_V=E sum(t=0..H-1) (V[t]-R_hat[t])^2"],
+      "evidence": [{"file": "method.tex", "lines": "109-117", "section": "3.3, Eq.(3)"}, {"file": "appendix.tex", "lines": "219-224", "section": "D, Table A.5"}],
+      "value": {"gamma": 0.99, "lambda": 0.95, "epochs_per_update": 5, "shuffled_minibatches_per_epoch": 4},
+      "boundary": "Exact target/feature detach flags and time-limit truncation bootstrap convention unknown."
+    },
+    {
+      "id": "C09_observations_and_latent",
+      "statement": "Policy takes last 10 proprioceptive observation frames and a goal encoder. K=10 future reference frames feed motion encoder. The 32D tanh-bounded z is the policy goal/motor latent, not a stochastic world-model latent.",
+      "evidence": [{"file": "appendix.tex", "lines": "7-36", "section": "A, Table A.1"}, {"file": "appendix.tex", "lines": "139-161", "section": "C, Table A.4"}],
+      "observation_terms": [
+        {"term": "q-q0", "dimension": 29, "noise_uniform": [-0.01, 0.01]},
+        {"term": "joint_velocity", "dimension": 29, "noise_uniform": [-0.5, 0.5]},
+        {"term": "IMU_base_angular_velocity", "dimension": 3, "noise_uniform": [-0.2, 0.2]},
+        {"term": "projected_gravity", "dimension": 3, "noise_uniform": [-0.05, 0.05]},
+        {"term": "previous_action", "dimension": 29, "noise_uniform": null}
+      ],
+      "boundary": "93 per-frame observation dimensions is arithmetic from the table, not a disclosed WM state dimension. No RSSM posterior/prior/KL is specified."
+    },
+    {
+      "id": "C10_rewards_and_actions",
+      "statement": "Motion reward follows BeyondMimic with self-collision removed and joint-limit coefficient lowered from -10 to -2. All reward terms are multiplied by control dt=.02. Action maps q_sp=alpha*a+q0 with low PD gains.",
+      "evidence": [{"file": "appendix.tex", "lines": "35-110", "section": "A, Table A.2"}, {"file": "appendix.tex", "lines": "275-275", "section": "D, Table A.6 caption"}],
+      "reward_weights": {"body_position": 1.0, "body_orientation": 1.0, "body_linear_velocity": 1.0, "body_angular_velocity": 1.0, "root_position": 0.5, "root_orientation": 0.5, "action_smoothness": -0.1, "joint_limit": -2},
+      "tracking_denominators": {"position": "0.3^2", "orientation": "0.4^2", "linear_velocity": "1.0^2", "angular_velocity": "3.14^2"},
+      "boundary": "Per-joint alpha, gains, action clip/squash/bounds and training reward normalization are unknown; tanh is explicitly stated only for z."
+    },
+    {
+      "id": "C11_resets",
+      "statement": "Return-based simulator reset sampling over 1s bins: 50% uniform, 40% softmax(-25*G_b/Gmax), 10% proportional to historical softmax weight.",
+      "evidence": [{"file": "appendix.tex", "lines": "188-190", "section": "D.1"}],
+      "boundary": "This is episode reset curriculum, not evidence of prioritized WM replay windows. Running-estimate smoothing details unknown."
+    },
+    {
+      "id": "C12_termination_and_discontinuities",
+      "statement": "Motion tracking terminates on root height-reference deviation >.25m or gravity-z tilt error >.8 (~78deg upright), not end-effector deviation. Training omits root-velocity pushes because they inject discontinuities the deterministic WM cannot capture.",
+      "evidence": [{"file": "appendix.tex", "lines": "41-45", "section": "A"}],
+      "boundary": "Noise/physical DR alone is not a deviation; unconditioned hidden dynamic randomness and jump events test a different modeling premise."
+    },
+    {
+      "id": "C13_eval_scope",
+      "statement": "Large benchmark evaluates each of 129514 training motions once from first frame; friction1/noDR/noobsnoise/deterministic; each policy keeps its own gains/action scale/obs construction. Failure counts measure training coverage, not unseen-motion generalization.",
+      "evidence": [{"file": "appendix.tex", "lines": "343-357", "section": "F"}],
+      "web_url": "https://supermimic.github.io/",
+      "boundary": "These are evaluation settings, not evidence that training lacked DR/noise."
+    },
+    {
+      "id": "C14_surrogate_counterevidence",
+      "statement": "The paper explicitly calls its analytic policy gradient a gradient of a surrogate for expected return in simulation. Eq.(1) supervises prediction values, not Jacobians. Figure2c errors .007-.011 are normalized 8-step state-only errors on online policy rollouts.",
+      "evidence": [{"file": "method.tex", "lines": "78-92", "section": "3.2"}, {"file": "results.tex", "lines": "73-82", "section": "4, Figure 2 caption"}],
+      "boundary": "Not an unbiased true-simulator gradient guarantee, reward/done accuracy result, held-out bound, H32 error bound or Jacobian validation. Nominal-error normalization values unknown."
+    },
+    {
+      "id": "C15_horizon_counterevidence",
+      "statement": "Default H32 was fastest; larger H was not monotonically better. Critic helps short horizons and perturbation recovery even where no-critic nominal return is similar.",
+      "evidence": [{"file": "results.tex", "lines": "115-140", "section": "4.3, Figure 3"}, {"file": "results.tex", "lines": "205-208", "section": "4.3"}],
+      "chart_source_values": [
+        {"H": 8, "final_no_critic": 0.087, "final_critic": 0.392, "hours_to_082_no_critic": null, "hours_to_082_critic": null},
+        {"H": 16, "final_no_critic": 0.250, "final_critic": 0.843, "hours_to_082_no_critic": null, "hours_to_082_critic": 1.19},
+        {"H": 32, "final_no_critic": 0.840, "final_critic": 0.866, "hours_to_082_no_critic": 1.37, "hours_to_082_critic": 0.88},
+        {"H": 64, "final_no_critic": 0.862, "final_critic": 0.863, "hours_to_082_no_critic": 1.34, "hours_to_082_critic": 1.70},
+        {"H": 128, "final_no_critic": 0.835, "final_critic": 0.823, "hours_to_082_no_critic": 3.80, "hours_to_082_critic": 4.62}
+      ],
+      "boundary": "Source plot values, not cross-seed statistics. null means target not reached for this row. Training-episode return has evolving reset distribution and differs from fixed checkpoint evaluation."
+    },
+    {
+      "id": "C16_task_limits",
+      "statement": "Dense per-step tracking reward and flat-ground humanoid dynamics are the demonstrated setting. No terrain or object interactions; simulator-only dynamics. Several-seed stability is textually reported but seed variation is not plotted.",
+      "evidence": [{"file": "results.tex", "lines": "1-14", "section": "4"}, {"file": "conclusion.tex", "lines": "4-9", "section": "6, Limitations"}, {"file": "appendix.tex", "lines": "279-336", "section": "E"}],
+      "boundary": "Sparse rewards, terrain, object contact and arbitrary hidden stochastic dynamics require separate evidence."
+    },
+    {
+      "id": "C17_downstream_stopgradient",
+      "statement": "Interfaces share a WM and decoder, with separate encoders/rewards/dones/critics. Downstream objective freezes shared decoder weights but retains decoder input Jacobian; main motion objective still trains decoder. Velocity RL has weight .1 MSE alignment toward stopgrad motion latent on reference-command rollouts.",
+      "evidence": [{"file": "appendix.tex", "lines": "129-137", "section": "B"}, {"file": "appendix.tex", "lines": "432-450", "section": "G"}],
+      "value": {"iterations": 100000, "joint_training_from_scratch": true, "sim_env_and_imagined_batch_split": "half motion, half velocity", "reference_command_probability": 0.5, "vx_uniform_mps": [-1.5, 2.0], "vy_uniform_mps": [-1.32, 1.32], "yaw_uniform_radps": [-3.35, 3.35], "uniform_command_standing_probability": 0.1, "command_source_resample_steps": 250, "reference_centered_average_frames": 25, "latent_alignment_weight": 0.1, "training_seeds_per_velocity_variant": 1},
+      "boundary": "Algorithm A.1 samples one interface/update, while actual joint velocity experiment explicitly mixes interfaces per batch. Preliminary one-seed downstream result, not general multi-interface guarantee."
+    }
+  ],
+  "training_hyperparameters": {
+    "evidence": {"file": "appendix.tex", "lines": "203-241", "section": "D, Table A.5"},
+    "WM": {"k": 8, "optimizer": "Adam", "lr_1gpu": 0.0002, "lr_2gpu": "sqrt(2)*0.0002", "batches_per_update": 10, "windows_per_batch": 2048, "clip_global_norm": 1.0, "hidden_widths": [2048, 2048, 2048]},
+    "actor": {"H": 32, "optimizer": "Adam", "betas": [0.9, 0.95], "lr": "same as WM", "imagined_rollouts_per_update": 4096, "gradient_clip_order": ["global norm 1.0", "elementwise abs 0.1"], "gamma": 0.99, "encoder_decoder_hidden_widths": [2048, 1024, 512, 256]},
+    "critic": {"optimizer": "Adam", "lr": "same as WM", "lambda": 0.95, "clip_global_norm": 1.0, "epochs": 5, "minibatches_per_epoch": 4, "hidden_widths": [256, 128], "EMA_target_network": false},
+    "collection": {"envs_per_GPU": 4096, "action_noise_std": 0.1, "replay_steps_per_env": 1000},
+    "schedule": {"update_to_data_ratio_as_printed": 0.4, "policy_updates_per_WM_update": 1, "lr_cosine_final_multiplier": 0.03, "cosine_iterations": 250000, "total_iterations": 320000, "multiGPU_gradient_average": true},
+    "ratio_caveat": "WM update comprises 10 batches. Policy/model outer-update ratio 1 is not one policy update per WM optimizer minibatch. Exact UTD denominator and simulator steps per outer iteration are not further specified.",
+    "simulator": {"name": "MuJoCo Warp", "control_Hz": 50, "substeps_per_control": 4, "substep_ms": 5, "WM_precision": "TF32", "reported_GPU": "H100 80GB SXM5"}
+  },
+  "unknowns": [
+    "author-linked official training repository",
+    "WM physical state layout and dimension",
+    "delta-state, rotation representation and FK/integration details",
+    "G1 learned-versus-analytic head selection",
+    "WM input/target scaling and per-feature loss weights",
+    "policy input, reward and critic value/return normalizers",
+    "nominal-error denominator values in prediction metric",
+    "per-joint action scale and PD gains",
+    "action output bounds/squash/clip and noisy executed action clamp",
+    "non-latent activations, initialization and normalization layers",
+    "initial replay fill, warmup and initial controller",
+    "exact UTD counting denominator and outer iteration simulator step count",
+    "terminal/reset window masking and timeout bootstrap convention",
+    "framework-level stop-gradient/feature-detach flags",
+    "rollout initial observation-history population",
+    "reset-return running estimate smoothing and historical-weight update",
+    "quantified seed variance omitted from figures"
+  ],
+  "research_tooling": {
+    "catalog_checked": true,
+    "matching_RL_or_literature_skill": null,
+    "web_tools_used": ["web_search", "web_fetch"],
+    "generic_PDF_router_loaded": "office",
+    "official_HTML_result": "https://arxiv.org/html/2610.28480v1 returned 404 / No HTML; ar5iv redirected to arxiv",
+    "PDF_fetch_error": "Error: unsupported content type \"application/pdf\"",
+    "fallback": "Existing PowerShell Invoke-WebRequest plus system tar to download and inspect official arXiv TeX; no package installation, TeX execution or Office edit",
+    "all_external_content_untrusted": true,
+    "prohibited_operations_performed": false
+  }
+}

@@ -51,7 +51,11 @@ def source_path(key):
     row = registry()['files'][key]
     # A portable installation can reference an existing archive checkout. No tree copy.
     root = os.environ.get('MOD4_SCUT_SOURCE_ROOT')
-    path = Path(root) / row['git_path'] if root else Path(row['path'])
+    paths = os.environ.get('MOD4_SCUT_SOURCE_PATHS')
+    if paths:
+        path = Path(json.loads(Path(paths).read_text(encoding='utf-8'))[key])
+    else:
+        path = Path(root) / row['git_path'] if root else Path(row['path'])
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != row['sha256']:
         raise ValueError('Pinned source changed: ' + key)

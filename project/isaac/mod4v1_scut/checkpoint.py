@@ -4,7 +4,9 @@ Original physical nominals belong to the new USD constructor and are never
 overwritten by saved mass/COM/inertia. PhysX itself is explicitly not resumed.
 """
 import os
+import hashlib
 import random
+import io
 from pathlib import Path
 import numpy as np
 import torch
@@ -61,7 +63,12 @@ def save(runner, env, bridge, path, profile):
     output = Path(path)
     temporary = output.with_name(output.name+'.partial')
     torch.save(data, temporary)
+    with temporary.open('rb') as stream:
+        digest = hashlib.file_digest(stream,'sha256').hexdigest()
+    size = temporary.stat().st_size
     os.replace(temporary, output)
+    return dict(path=str(output),bytes=size,SHA=digest,format=FORMAT,
+                iteration=runner.current_learning_iteration,physics_ticks=bridge.physics_ticks)
 
 
 def restore(runner, env, bridge, path, profile):
@@ -100,3 +107,29 @@ def restore(runner, env, bridge, path, profile):
         group['last_apply_tick'].fill_(-1)
     # Do not restore old contact/state windows into the fresh physical episode.
     return env.reset()
+
+
+def restore_resized_learning(runner,path,expected_sha,expected_bytes,profile,new_envs):
+    """Keep complete PPO state; population-dependent DR queues start fresh.
+
+    A new population cannot restore80 rows into20000 actors. The old full file
+    remains intact, and this boundary is explicitly recorded as fresh physical
+    DR/queues, not exact simulator or per-environment random-stream continuation.
+    """
+    raw=Path(path).read_bytes()
+    if len(raw)!=expected_bytes or hashlib.sha256(raw).hexdigest()!=expected_sha:
+        raise ValueError('Resized learning source identity mismatch')
+    data=torch.load(io.BytesIO(raw),map_location=runner.device,weights_only=False)
+    if (data.get('format')!=FORMAT or data.get('interface')!=INTERFACE or data['profile']!=profile
+        or data['usd_SHA']!=USD_SHA or data['contract_SHA']!=CONTRACT_SHA):
+        raise ValueError('Resized continuation interface mismatch')
+    runner.alg.load(data,load_cfg=None,strict=True)
+    runner.current_learning_iteration=data['iter'];runner.alg.learning_rate=data['learning_rate']
+    for group in runner.alg.optimizer.param_groups:group['lr']=data['learning_rate']
+    torch.set_rng_state(data['cpu_rng'].cpu());torch.cuda.set_rng_state_all([r.cpu() for r in data['cuda_rng']])
+    random.setstate(data['python_rng']);np.random.set_state(data['numpy_rng'])
+    return dict(kind='FULL_PPO_RESIZED_POPULATION_FRESH_PHYSICS',source_path=str(path),source_SHA=expected_sha,
+        source_bytes=len(raw),source_model_decodes=1,source_envs=data['num_envs'],new_envs=new_envs,
+        actor_critic_STD_Adam_LR_iteration_restored=True,source_iteration=data['iter'],
+        optimizer_state_entries=len(runner.alg.optimizer.state),global_RNG_restored=True,
+        per_environment_DR_queues_fresh=True,per_environment_DR_RNG_same_stream=False,old_full_checkpoint_preserved=True)

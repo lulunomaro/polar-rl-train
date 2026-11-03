@@ -11,9 +11,21 @@ import json
 import os
 from pathlib import Path
 import random
+import runpy
 import signal
 import sys
 import time
+import traceback
+
+
+def put(path, value):
+    path = Path(path)
+    temporary = path.with_suffix(path.suffix+'.partial')
+    with temporary.open('w',encoding='utf-8') as stream:
+        json.dump(value,stream,indent=2,allow_nan=False)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary,path)
 
 
 def parse_args():
@@ -31,6 +43,10 @@ def parse_args():
     parser.add_argument('--save-deadline', type=float, required=True,
                         help='Original owner absolute epoch: full-save boundary')
     parser.add_argument('--resume')
+    parser.add_argument('--resize-resume')
+    parser.add_argument('--init-checkpoint')
+    parser.add_argument('--init-SHA')
+    parser.add_argument('--init-bytes', type=int)
     parser.add_argument('--device', default='cuda:0')
     return parser.parse_args()
 
@@ -51,7 +67,8 @@ def environment_settings(args):
         RM_WORLD_DRIFT_PROFILE='off', RM_CMD_VX_MIN='.6', RM_CMD_VX_MAX='.6',
         RM_REL_STANDING='0', RM_REL_HEADING='0', RM_HEADING_CMD='0',
         RM_HEIGHT_MIN='.25', RM_HEIGHT_MAX='.25', RM_NOMINAL_HEIGHT='.25',
-        RM_RANDOM_START='0', RM_EPISODE_S='8', MOD4_RESUME_QUEUE_CONTROL_US='20000')
+        RM_RANDOM_START='0', RM_EPISODE_S='8', RM_KEEP_STD='1',
+        MOD4_RESUME_QUEUE_CONTROL_US='20000')
 
 
 def load_guard(path):
@@ -131,32 +148,47 @@ def set_training_iteration(env, iteration):
     term.set_training_iteration(iteration)
 
 
-def main():
-    args = parse_args()
-    if args.iterations <= 0 or not 0 < args.save_deadline-time.time() <= 3600:
-        raise ValueError('Expected finite iterations within the original save window')
-    job = Path(args.job_root).resolve()
-    job.mkdir(parents=True, exist_ok=False)
+def boot(args, job):
+    """Use the existing proven isolated launcher/custom SDK extension activation."""
     environment_settings(args)
     runtime = Path(args.runtime).resolve()
     sys.path[:0] = [str(runtime), *args.support, str(runtime.parents[1])]
+    storage = job/'kit_isolation'
+    (storage/'data').mkdir(parents=True)
+    (storage/'DerivedDataCache').mkdir()
+    (storage/'data/user.config.json').write_text('{}')
+    # Original E0 feasible-joint-bank validator reads this declaration under
+    # its job root. Reuse the exact shared declaration; no copied asset/bank.
+    declaration=runtime.parents[2]/'MOD4V1_ASSET_DIFF.json'
+    (job/'MOD4V1_ASSET_DIFF.json').symlink_to(declaration)
+    os.environ.update(MOD4V1_E0_ASSET_DIR=str(args.assets),
+        MOD4V1_E0_JOB_ROOT=str(job),MOD4V1_E0_KIT_STORAGE_ROOT=str(storage))
+    entry = runtime/'train_mod4v1_e0.py'
+    argv = sys.argv
+    try:
+        sys.argv = [str(entry),'--headless','--device',args.device,
+            '--num_envs',str(args.num_envs),'--seed',str(args.seed),
+            '--steps_per_env','24','--additional_iterations','1']
+        return runpy.run_path(str(entry),run_name='scut_shared_constructor_only')
+    finally:
+        sys.argv = argv
+
+
+def main():
+    args = parse_args()
+    if args.iterations <= 0 or not 0 < args.save_deadline-time.time() <= 7200:
+        raise ValueError('Expected finite iterations within the original save window')
+    if sum(bool(v) for v in [args.resume,args.init_checkpoint,args.resize_resume])>1:
+        raise ValueError('Choose full continuation or weights-only finetune')
+    job = Path(args.job_root).resolve()
+    job.mkdir(parents=True, exist_ok=False)
+    ns = boot(args,job)
     guard_module = load_guard(args.guard)
-    identity = guard_module.bind_before_task_import(args.assets)
-    from isaaclab.app import AppLauncher
-    class IsolatedLauncher(AppLauncher):
-        def _create_app(self):
-            storage = job/'kit_isolation'
-            (storage/'data').mkdir(parents=True)
-            (storage/'DerivedDataCache').mkdir()
-            self._sim_app_config['enable_crashreporter'] = False
-            self._sim_app_config['extra_args'] = ['--portable-root', str(storage),
-                '--/app/userConfigPath='+str(storage/'data/user.config.json'),
-                '--/UJITSO/datastore/localCachePath='+str(storage/'DerivedDataCache')]
-            super()._create_app()
-    launcher = IsolatedLauncher(headless=True, device=args.device)
+    identity = ns['E0_IDENTITY']
     env = bridge = None
     runner = None
     started = False
+    error = None
     try:
         import torch
         import numpy as np
@@ -181,17 +213,32 @@ def main():
         if env.physics_dt != .0025 or env.step_dt != .02:
             raise RuntimeError('MOD4 400/100/50Hz clock mismatch')
         guard = guard_module.FreshDRNominalGuard(env, identity, torch_module=torch, tensor_converter=tensor)
+        from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
+        pose_events=[]
+        def pose_receipt(value):
+            if len(pose_events)<40:pose_events.append(value)
+            put(job/'POSE_CACHE_EVENTS.json',dict(events=pose_events,original_calls_preserved=True))
+        install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=pose_receipt)
         bridge = ScutBridge(env, task, contract, tensor, args.profile)
         vec = ScutVecEnv(env, bridge)
         # Runner construction only needs shapes, without resetting physics or RNG.
         vec.current = env.observation_manager.compute()
         runner = build_runner(vec, job)
+        if args.init_checkpoint:
+            from .finetune import initialize
+            receipt = initialize(runner,args.init_checkpoint,args.init_SHA,args.init_bytes)
+            put(job/'FINETUNE_INITIALIZATION.json',receipt)
+        if args.resize_resume:
+            from .checkpoint import restore_resized_learning
+            receipt=restore_resized_learning(runner,args.resize_resume,args.init_SHA,args.init_bytes,args.profile,env.num_envs)
+            put(job/'RESIZED_LEARNING_RESTORE.json',receipt)
         env._get_training_iteration = lambda: runner.current_learning_iteration
         with guard.around_original_fullstate_restore():
             reset = restore(runner, env, bridge, args.resume, args.profile) if args.resume else env.reset()
         vec.current = reset[0] if isinstance(reset, tuple) else reset
         initialize_episode_lengths(vec, args.profile)
         guard.check_observations(vec.current)
+        guard.verify_live_parameters()
         startup = guard.receipt()
         if not (env._mild_dr.profile == 'white_v3'
                 and env._sensor_mild.profile == 'noise_bias_mild_v1'
@@ -200,13 +247,14 @@ def main():
                 and env._chassis_com.component.enabled and env._explicit_pd.component.enabled):
             raise RuntimeError('Original full D0-D7 profiles must all be active')
         bridge.ready = True
-        (job/'STARTUP.json').write_text(json.dumps(dict(
+        from .course import metadata
+        put(job/'STARTUP.json',dict(epoch=time.time(),
             actual_native=True, profile=args.profile, usd_SHA=identity.usd_sha256,
             contract_SHA=identity.contract_sha256, D0_D7=startup, actor=35, critic=78,
             quaternion_order=bridge.quaternion_order,
             quaternion_readback=bridge.quaternion_readback,
             actions=6, physics_dt=.0025, policy_hz=50, feedback_hz=100,
-            closure_m=.01, mimic_rad=.01, trained_skill=False), indent=2))
+            closure_m=.01, mimic_rad=.01, course=metadata(),trained_skill=False))
         stop = False
         def stop_after_update(*unused):
             nonlocal stop
@@ -216,6 +264,14 @@ def main():
         runner.logger.init_logging_writer()
         obs = vec.get_observations().to(args.device)
         runner.alg.train_mode()
+        gradient = dict(steps=0,actor_norm=0.,critic_norm=0.)
+        def observe_gradient(optimizer,*unused):
+            gradient['steps'] += 1
+            for name in ('actor','critic'):
+                values=[p.grad.detach().square().sum() for p in getattr(runner.alg,name).parameters() if p.grad is not None]
+                norm=float(torch.stack(values).sum().sqrt()) if values else 0.
+                gradient[name+'_norm']=max(gradient[name+'_norm'],norm)
+        gradient_hook=runner.alg.optimizer.register_step_pre_hook(observe_gradient)
         started = True
         start_iteration = runner.current_learning_iteration
         total_iterations = start_iteration+args.iterations
@@ -226,7 +282,7 @@ def main():
         # save boundary as well; do not begin a rollout that cannot fit the last
         # observed full iteration. Never create a new/relative budget here.
         for iteration in range(start_iteration, total_iterations):
-            if stop or time.time()+max(30., 2*max_iteration_seconds) >= args.save_deadline:
+            if stop or (job.parent/'STOP_AFTER_SAVE.json').exists() or time.time()+max(30., 2*max_iteration_seconds) >= args.save_deadline:
                 break
             collect_start = time.time()
             set_training_iteration(env, iteration)
@@ -251,17 +307,34 @@ def main():
                 collect_time=collect_time, learn_time=time.time()-update_start,
                 loss_dict=losses, learning_rate=runner.alg.learning_rate,
                 action_std=runner.alg.get_policy().output_std, rnd_weight=None)
-            (job/'LATEST_PROGRESS.json').write_text(json.dumps(dict(
+            put(job/'LATEST_PROGRESS.json',dict(epoch=time.time(),
                 iteration=iteration+1, physics_ticks=bridge.physics_ticks,
                 actual_reward_mean=float(rewards.mean()), losses={k:float(v) for k,v in losses.items()},
                 strict270_current_count=int(bridge.acceptance.success.sum()),
                 strict270_completed_count=bridge.completed_strict,
-                completed_episodes=bridge.completed_episodes), indent=2))
+                completed_episodes=bridge.completed_episodes,gradient=gradient))
+            if iteration == start_iteration:
+                first=save(runner, env, bridge, job/'model_first_complete.pt', args.profile)
+                if gradient['actor_norm'] <= 0 or gradient['critic_norm'] <= 0:
+                    raise RuntimeError('First actual PPO update has zero gradient')
+                put(job/'FIRST_UPDATED.json',dict(epoch=time.time(),
+                    actual_native=True,iteration=iteration+1,physics_ticks=bridge.physics_ticks,
+                    PPO_updates=1,rollout_controls=runner.cfg['num_steps_per_env'],
+                    actual_onpolicy_samples=env.num_envs*runner.cfg['num_steps_per_env'],
+                    losses={k:float(v) for k,v in losses.items()},gradient=gradient.copy(),
+                    full_save=True,checkpoint=first))
             if (iteration+1) % runner.cfg['save_interval'] == 0:
                 save(runner, env, bridge, job/f'model_{iteration+1}.pt', args.profile)
             max_iteration_seconds = max(max_iteration_seconds, time.time()-collect_start)
-        save(runner, env, bridge, job/'model_final.pt', args.profile)
+        final=save(runner, env, bridge, job/'model_final.pt', args.profile)
+        put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=final,
+            PPO_updates=runner.current_learning_iteration-start_iteration,
+            strict270_completed=bridge.completed_strict,episodes_completed=bridge.completed_episodes))
         started = False
+    except BaseException:
+        error=traceback.format_exc()
+        put(job/'ERROR.json',dict(epoch=time.time(),error=error))
+        raise
     finally:
         try:
             if started and runner is not None:
@@ -277,8 +350,11 @@ def main():
                         bridge.close()
                     if env is not None:
                         env.close()
+                        put(job/'ENV_CLOSED.json',dict(epoch=time.time(),returned=True))
                 finally:
-                    launcher.app.close()
+                    put(job/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,
+                        env_closed=(job/'ENV_CLOSED.json').exists(),final_exists=(job/'FINAL.json').exists()))
+                    ns['app'].close()
 
 
 if __name__ == '__main__':

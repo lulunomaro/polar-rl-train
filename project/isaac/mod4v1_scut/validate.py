@@ -250,6 +250,13 @@ class Tests(unittest.TestCase):
         bridge.original_done=lambda:terminated|timeout
         bridge.original_reward=lambda dt:None
         bridge.original_reset=lambda ids:env.extras.update(log={})
+        # Actual MOD4 feasible-pose reset is followed by the selected SCUT
+        # root height without touching its closed-chain joint coordinates.
+        root=torch.zeros(n,13);root[:,2]=.25
+        bridge.tensor=lambda value:value
+        env.scene.env_origins=torch.zeros(n,3)
+        bridge.robot=SimpleNamespace(data=SimpleNamespace(root_state_w=root),
+            write_root_state_to_sim=lambda value,env_ids:root.__setitem__(env_ids,value))
         bridge.top_force=torch.zeros(n,2);bridge.ground_force=bridge.top_force.clone()
         bridge.acceptance=Strict270(n,'cpu')
         bridge.task=SimpleNamespace(height_cmd=lambda env:torch.zeros(n,1))
@@ -264,6 +271,8 @@ class Tests(unittest.TestCase):
         self.assertTrue(bool(env.termination_manager.compute()[0]))
         reward=env.reward_manager.compute(.02)
         env._reset_idx(torch.tensor([0]))
+        self.assertAlmostEqual(float(root[0,2]),.38,places=6)
+        self.assertAlmostEqual(float(root[1,2]),.25,places=6)
         self.assertEqual(float(reward[0]),7.)
         self.assertEqual(bridge.terminal_snapshot['endpoint'],7.)
         self.assertEqual([row[0] for row in events],['endpoint','reward','reset'])

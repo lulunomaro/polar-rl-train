@@ -14,6 +14,7 @@ from .commands import build_command_cfg, RewardTailCommand
 from .math_ops import euler_xyz_from_quat, quat_apply, detect_sdk_quaternion_order
 from .rewards import ScutRewards, indices
 from .acceptance import Strict270, wheel_bounds
+from .course import BOXES, HEIGHT, POSE_RANGE, SPAWN_HEIGHT, FourSideStrict270, top_mask
 
 MESH = '/World/ground/scut_step270'
 COURSE_N = 80
@@ -25,23 +26,24 @@ def layout(n):
 
 
 def spawn_course(prim_path, cfg, **kwargs):
-    from pxr import UsdGeom, UsdPhysics
+    from pxr import UsdGeom, UsdPhysics, Gf, Vt
     from isaaclab.sim import get_current_stage, define_collision_properties, bind_physics_material
     points, faces = [], []
     for ox, oy, _ in layout(COURSE_N):
         start = len(points)
-        points.extend((ox+x, oy+y, 0.) for x, y in [(-3,-3),(4,-3),(4,3),(-3,3)])
+        points.extend((ox+x, oy+y, 0.) for x, y in [(-3.6,-3.6),(3.6,-3.6),(3.6,3.6),(-3.6,3.6)])
         faces.extend([(start,start+1,start+2),(start,start+2,start+3)])
-        start = len(points)
-        points.extend((ox+.8+x, oy+y, z) for z in (0., .27)
-                      for x, y in [(0,-1),(3,-1),(3,1),(0,1)])
         box = [(0,3,2),(0,2,1),(4,5,6),(4,6,7),(0,4,7),(0,7,3),
                (1,2,6),(1,6,5),(0,1,5),(0,5,4),(3,7,6),(3,6,2)]
-        faces.extend(tuple(start+x for x in f) for f in box)
+        for xmin,xmax,ymin,ymax in BOXES:
+            start = len(points)
+            points.extend((ox+x,oy+y,z) for z in (0.,HEIGHT)
+                          for x,y in [(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)])
+            faces.extend(tuple(start+x for x in f) for f in box)
     stage = get_current_stage()
     root = UsdGeom.Xform.Define(stage, prim_path).GetPrim()
     mesh = UsdGeom.Mesh.Define(stage, MESH)
-    mesh.CreatePointsAttr().Set(points)
+    mesh.CreatePointsAttr().Set(Vt.Vec3fArray([Gf.Vec3f(*map(float,p)) for p in points]))
     mesh.CreateFaceVertexCountsAttr().Set([3]*len(faces))
     mesh.CreateFaceVertexIndicesAttr().Set([x for f in faces for x in f])
     mesh.CreateSubdivisionSchemeAttr().Set('none')
@@ -68,6 +70,7 @@ def configure(cfg, n, profile='trained_stair'):
     cfg.scene.num_envs, cfg.scene.env_spacing = n, 8.
     cfg.scene.ground.spawn.func = spawn_course
     cfg.scene.ground.init_state.pos = (0., 0., 0.)
+    cfg.scene.robot.init_state.pos = (0.,0.,SPAWN_HEIGHT)
     cfg.scene.scut_contacts = ContactSensorCfg(
         prim_path='{ENV_REGEX_NS}/Robot/links/.*', update_period=.005,
         history_length=3, track_air_time=False)
@@ -101,7 +104,7 @@ def configure(cfg, n, profile='trained_stair'):
                                       mimic=cfg.terminations.mimic)
     cfg.scene.chassis_contact.filter_prim_paths_expr = [MESH]
     cfg.events.reset_base.params.update(
-        pose_range={'x':(-.05,.05), 'y':(-.03,.03), 'yaw':(-.05,.05)},
+        pose_range=dict(POSE_RANGE),
         velocity_range={k:(0.,0.) for k in ('x','y','z','roll','pitch','yaw')})
     cfg.commands.twist = build_command_cfg(profile)
     return cfg
@@ -134,7 +137,8 @@ class ScutBridge:
         self.last_reward = torch.zeros(self.n, device=self.device)
         self.reset_scan_pending = torch.ones(self.n, dtype=torch.bool, device=self.device)
         self.scan_max_distance = ground_scan_config()['max_distance']
-        self.acceptance = Strict270(self.n, self.device)
+        self.acceptance = FourSideStrict270(self.n, self.device)
+        self.physics_observer = None
         self.completed_episodes = 0
         self.completed_strict = 0
         self.ready = False
@@ -168,6 +172,8 @@ class ScutBridge:
                 _ = self.sensor.data  # exactly the original 5ms/three-sample history
             self.read_manifold()
             self.measure_acceptance()
+            if self.physics_observer is not None:
+                self.physics_observer(self)
         env.scene.update = update
 
         def done(*args, **kwargs):
@@ -201,6 +207,14 @@ class ScutBridge:
             self.ground_force[ids] = 0
             self.acceptance.reset(ids)
             result = self.original_reset(ids)
+            # The MOD4 constraint-consistent bank supplies valid JOINT poses,
+            # then overrides root z to its old flat height. Apply the selected
+            # SCUT spawn height after it, retaining closure/mimic coordinates
+            # and the sampled original roll/pitch/yaw from reset_base.
+            root=self.tensor(self.robot.data.root_state_w)[ids].clone()
+            root[:,2]=self.env.scene.env_origins[ids,2]+SPAWN_HEIGHT
+            root[:,7:]=0.
+            self.robot.write_root_state_to_sim(root,env_ids=ids)
             # Read sensors after the manager has flushed reset poses to PhysX,
             # when it constructs the returned observation (no extra sim step).
             self.reset_scan_pending[ids] = True
@@ -248,6 +262,14 @@ class ScutBridge:
     def measure_acceptance(self):
         r = self.reward
         body = r.robot.data
+        if hasattr(self.acceptance, 'update_world'):
+            contact = self.tensor(self.current_sensor.data.net_forces_w)[:,self.current_contact_order]
+            nonwheel = contact[:,r._nonwheel_contact_link_idx].norm(dim=-1).amax(-1)
+            self.acceptance.update_world(body.body_pos_w[:,r._wheel_link_idx],
+                body.body_quat_w[:,r._wheel_link_idx],r.contract,self.env.scene.env_origins,
+                self.top_force,self.ground_force,contact[:,r._wheel_link_idx],nonwheel,
+                body.root_lin_vel_w,body.root_quat_w,torch.ones(self.n,dtype=torch.bool,device=self.device))
+            return
         low, high = wheel_bounds(body.body_pos_w[:, r._wheel_link_idx],
                                  body.body_quat_w[:, r._wheel_link_idx], r.contract)
         offset = self.env.scene.env_origins.clone()
@@ -264,8 +286,8 @@ class ScutBridge:
     def raycast(self, points, fallback_z):
         """Actual scene mesh rays, never analytic course GT in reward/observation."""
         from isaaclab.utils.warp import raycast_mesh
-        from isaaclab.sensors.ray_caster.ray_caster import RayCaster
-        mesh = RayCaster.meshes[MESH]
+        sensor = self.env.scene['scut_ground']
+        mesh = sensor.meshes[(MESH,sensor._device)]
         starts = points.clone()
         starts[..., 2] += 5.
         direction = torch.zeros_like(starts)
@@ -371,7 +393,7 @@ class ScutBridge:
             ids = (start[:, None]+offset).clamp(0, len(f)-1)
             pts = p[ids]-self.env.scene.env_origins[:, None]
             upward = normal[ids, 2].abs() > .8
-            top = valid & upward & ((pts[..., 2]-.27).abs() < .001) & (pts[..., 0] >= .799) & (pts[..., 0] <= 3.801) & (pts[..., 1].abs() <= 1.001)
+            top = valid & upward & top_mask(pts)
             ground = valid & upward & (pts[..., 2].abs() < .001)
             self.top_force[:, wi] = torch.where(top, f[ids], 0.).sum(-1)
             self.ground_force[:, wi] = torch.where(ground, f[ids], 0.).sum(-1)

@@ -1,6 +1,6 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
-本目录是独立的 USD 适配实现，原 H1 冻结训练目录继续保留。2026-11-03 已完成软件接口和 CPU 集成验证；尚未在目标定制 Isaac SDK 上启动本适配的原生物理或训练，不能称原生适配验收完成，也没有新策略跳过 270mm 的结果。
+本目录是独立的 USD 适配实现，原 H1 冻结训练目录继续保留。2026-11-03 21:17 已在目标定制 SDK 实际完成首轮 PPO/完整保存，按人类随后要求在26次更新后完整保存退出；独立80首局0严格成功，已回放实际保存姿态。最新要求改为 **20,000环境、一小时**；具体运行状态、精确进程与冻结版本以 `history/reviews/20261103-mod4v1-scut-native-training/WORK_ORDER.json` 和 scope CURRENT_STATE 为准。目录源码或CPU通过不等于270mm技能通过。
 
 本轮按最终生效的 **V14 → V13 → wheelbipe25_v3** 继承链补齐了逐行适配，修正了 critic 字段顺序、原始终止计数、命令采样与同步、观测时序和导轮接触分组。当前代码的行号、处理理由和检查依据见 `history/reviews/20261103-mod4v1-scut-adaptation/LINE_ADAPTATION.md`、`LINE_ALIGNMENT.jsonl`、`LINE_ALIGNMENT_RULES.json`；每条来源行都有处理记录。原 `LINE_MAP.jsonl` 的14,492行和 `REAUDIT_FINDINGS.md` 保留为历史记录，不能拿旧行号或旧结论描述当前代码。
 
@@ -22,7 +22,7 @@
 | 关节软限位 | SCUT rear2/rear1 特定联动 | MOD4 没有同义 rear2，改为四个独立 crank/hip 的真实上下界；基础分支归一化平方、Airborne 分支弧度 L1 分别保留原定义。这是语义替换；两个 CLI profile 均未给这些项非零权重，仅当前 V14 候选分支使用 |
 | 基础奖励 | 86 个 rew 项与门控 | 原函数体计算86项；保存配方37个权重键中26项非零，jump270为39键/28项非零。先状态机处理，后乘一次 dt=.02、配置权重、逐环境 sanitize，再求和 |
 | 腾空与台阶分支 | Airborne/JumpTakeoff/StepUp/Stair | 原状态函数保留；顺序 Airborne→JumpTakeoff→StepUp→Stair；启用范围由下方 profile 明示；物理助推关闭 |
-| 场地与扫描 | 原粗糙地形扫描 | 每环境真实 0.27m 高台，近沿 x=.8、长3m、宽2m；机身扫描恢复保存配置的1cm分辨率/2cm网格/+5m起点。保存配置轮下scanner为空，两轮地面高度同取机身扫描；前扫用真实mesh，漏扫依原函数回退 |
+| 场地与扫描 | 原粗糙地形扫描 | 人类仅要求出生/相对台沿对齐：选原反向阶梯1m中央平台分支，中央低地1m见方、四边距中心.5m、外侧台高.27m；根位置(0,0,.38)、roll/pitch±.15/yaw±3.14，无xy偏移和初速。保留MOD4约束一致关节姿态。扫描保持原分辨率/网格/+5m起点，前扫读实际mesh。原单沿.8m为旧CPU阶段配置 |
 | 接触 | 三帧、5ms 历史窗口；V14覆盖基础接触列表 | 奖励读5ms/三帧传感器，按名字重排到31body次序；29个非主轮body含8导轮用于有害接触。无云台分支的终止集合为chassis+8导轮；strict270另读400Hz实际manifold |
 | 观测 | SCUT actor35、critic78 | actor为基础28+mode7；critic为clean基础28+body velocity3+observed height1+mode7+特权39，顺序与原代码一致；MOD4 100Hz noise/bias/delay及clip→scale保留 |
 | 生命周期 | DirectRLEnv callbacks | 同一 pre-reset 端点先done后reward；Airborne按原height helper更新，StepUp/Stair原command hook在reward尾部及observation各一次。重复读取同一观测不再次推进状态；仅重置环境重新取扫描，清除上一局历史 |
@@ -66,4 +66,6 @@ PPO：actor/critic各 `[256,128,64]` ELU，Gaussian std初值1，rollout24、5 e
 
 2026-11-03 17:15 +08 的一次有限只读检查读到远端 RSL5.0.1、IsaacLab6.1.14；原 canonical 正被 owner1535837 占用。`find_spec(isaaclab_physx)=false` 仅表示应用启动前默认路径不可见，历史原生任务会在 app 启动后启用扩展，不能据此断言远端扩展缺失。检查未导入 SDK、未扫描 GPU、未启动 worker、未读取 PT、未写 canonical；SSH 最终关闭并恢复 FREE。本机的依赖差异与远端当前资源占用分别记录。
 
-原生运行须给出 `--assets --runtime --runtime-manifest --guard --job-root --iterations --save-deadline`；`--profile jump270 --num-envs 80` 对应本任务，原保存边界前停止启动新 rollout 并完成原子 full save。异常路径仍尝试完整保存，然后关闭 logger/env/app。resume 还原的是学习与随机流，fresh reset 后 episode/接触窗口清空；不是旧物理场景续态。
+原生运行须给出 `--assets --runtime --runtime-manifest --guard --job-root --iterations --save-deadline`。原保存边界前停止启动新rollout并完成原子full save。最新人类配置为jump270/20,000环境/3600s+原300s安全退出。`--resize-resume`按明确字段恢复旧完整actor/critic/STD/Adam/LR/iteration/globalRNG；不同环境数的DR行和队列重新建立，旧完整检查点不改，不能称逐环境随机流或PhysX续态。`--init-checkpoint`是SCUT风格的成熟MOD4 E0权重微调，新的Adam/iteration；critic38按语义映射至78，新增字段系数置零；E0静态mode与SCUT状态aux不同，已明确记录。
+
+目标SDK启动实际修正：USD顶点显式GfVec3f/Vt数组；RayCaster mesh缓存按(path,device)从实例取；原共享E0 asset-diff声明按路径引用；MOD4可行关节库之后恢复指定根出生高度。独立评测整段env/状态生命周期保持inference_mode一致。失败原件/各attempt source SHA均保留。80环境26次更新后的完整模型SHA为d5dddb7a638fbc7de0152f8d383d818f4c5e794ada1829b9bdb89ab429e1a205，独立80首局全于10–22controls终止、0wholeclear/0top/0strict；未把短训或接触当交付。

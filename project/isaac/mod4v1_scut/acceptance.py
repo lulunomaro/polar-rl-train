@@ -32,8 +32,9 @@ def wheel_bounds(position, quaternion, contract):
 
 
 class Strict270:
-    def __init__(self, n, device):
+    def __init__(self, n, device, half_width=1.):
         self.n, self.device = n, device
+        self.half_width = half_width
         self.support_seen = torch.zeros(n, dtype=torch.bool, device=device)
         self.previous_air = self.support_seen.clone()
         self.up = self.support_seen.clone()
@@ -71,7 +72,7 @@ class Strict270:
         self.ground_return |= self.wholeclear & (ground_force > 1).any(-1) & active
         self.edge_return |= self.wholeclear & (low[..., 0] < -.02).any(-1) & active
         inside = ((low[..., 0] >= 0) & (high[..., 0] <= 3)
-                  & (low[..., 1] >= -1) & (high[..., 1] <= 1)).all(-1)
+                  & (low[..., 1] >= -self.half_width) & (high[..., 1] <= self.half_width)).all(-1)
         roll, pitch, yaw = euler_xyz_from_quat(root_quaternion)
         supported = (inside & (top_force > 1).all(-1) & (nonwheel_force <= 1)
                      & self.wholeclear & ~self.ground_return & ~self.edge_return & active)

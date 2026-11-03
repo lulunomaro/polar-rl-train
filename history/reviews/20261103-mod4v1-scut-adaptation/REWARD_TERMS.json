@@ -1,0 +1,1032 @@
+{
+  "upstream_commit": "1a26356d6f591734d4f6f666f5cead1a6925da67",
+  "unique_terms": 86,
+  "terms": [
+    {
+      "name": "termination",
+      "source_line": 3502,
+      "end_line": 3502,
+      "weight": -200.0,
+      "expression": "        rew_termination = self.reset_terminated",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "epi_len",
+      "source_line": 3503,
+      "end_line": 3503,
+      "weight": null,
+      "expression": "        rew_epi_len = self.episode_length_buf",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "joint_acc",
+      "source_line": 3507,
+      "end_line": 3507,
+      "weight": null,
+      "expression": "        rew_joint_acc = torch.sum(torch.square(joint_acc[:,self._actuate_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_acc",
+      "source_line": 3508,
+      "end_line": 3508,
+      "weight": -5e-07,
+      "expression": "        rew_leg_joint_acc = torch.sum(torch.square(joint_acc[:,self._legs_act_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_com_acc",
+      "source_line": 3509,
+      "end_line": 3509,
+      "weight": null,
+      "expression": "        rew_leg_joint_com_acc = torch.sum(torch.square(0.5*(joint_acc[:,self._legs_front_idx]+joint_acc[:,self._legs_rear_idx])), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_diff_acc",
+      "source_line": 3510,
+      "end_line": 3510,
+      "weight": null,
+      "expression": "        rew_leg_joint_diff_acc = torch.sum(torch.square(0.5*(joint_acc[:,self._legs_front_idx]-joint_acc[:,self._legs_rear_idx])), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_acc",
+      "source_line": 3511,
+      "end_line": 3511,
+      "weight": -1e-08,
+      "expression": "        rew_wheel_acc = torch.sum(torch.square(joint_acc[:,self._wheel_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_com_acc",
+      "source_line": 3512,
+      "end_line": 3512,
+      "weight": null,
+      "expression": "        rew_wheel_com_acc = torch.square(0.5*(joint_acc[:,self._wheel_idx[0]]+joint_acc[:,self._wheel_idx[1]]))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_diff_acc",
+      "source_line": 3513,
+      "end_line": 3513,
+      "weight": null,
+      "expression": "        rew_wheel_diff_acc = torch.square(0.5*(joint_acc[:,self._wheel_idx[0]]-joint_acc[:,self._wheel_idx[1]]))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "joint_vel",
+      "source_line": 3514,
+      "end_line": 3514,
+      "weight": null,
+      "expression": "        rew_joint_vel = torch.sum(torch.square(self.joint_vel[:,self._actuate_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_vel",
+      "source_line": 3515,
+      "end_line": 3515,
+      "weight": -0.005,
+      "expression": "        rew_leg_joint_vel = torch.sum(torch.square(self.joint_vel[:,self._legs_act_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_com_vel",
+      "source_line": 3516,
+      "end_line": 3516,
+      "weight": null,
+      "expression": "        rew_leg_joint_com_vel = torch.sum(torch.square(0.5*(self.joint_vel[:,self._legs_front_idx]+self.joint_vel[:,self._legs_rear_idx])), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_diff_vel",
+      "source_line": 3517,
+      "end_line": 3517,
+      "weight": null,
+      "expression": "        rew_leg_joint_diff_vel = torch.sum(torch.square(0.5*(self.joint_vel[:,self._legs_front_idx]-self.joint_vel[:,self._legs_rear_idx])), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_pair_pos_diff",
+      "source_line": 3521,
+      "end_line": 3521,
+      "weight": -0.0,
+      "expression": "            rew_leg_joint_pair_pos_diff = torch.sum(torch.square(leg_pair_pos_diff), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_joint_pair_pos_diff",
+      "source_line": 3523,
+      "end_line": 3523,
+      "weight": -0.0,
+      "expression": "            rew_leg_joint_pair_pos_diff = torch.zeros(self.num_envs, dtype=torch.float, device=self.device)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_vel",
+      "source_line": 3524,
+      "end_line": 3524,
+      "weight": -1e-05,
+      "expression": "        rew_wheel_vel = torch.sum(torch.square(self.joint_vel[:,self._wheel_idx]), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_com_vel",
+      "source_line": 3525,
+      "end_line": 3525,
+      "weight": null,
+      "expression": "        rew_wheel_com_vel = torch.square(0.5*(self.joint_vel[:,self._wheel_idx[0]]+self.joint_vel[:,self._wheel_idx[1]]))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_diff_vel",
+      "source_line": 3526,
+      "end_line": 3526,
+      "weight": null,
+      "expression": "        rew_wheel_diff_vel = torch.square(0.5*(self.joint_vel[:,self._wheel_idx[0]]-self.joint_vel[:,self._wheel_idx[1]]))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "joint_torque",
+      "source_line": 3528,
+      "end_line": 3528,
+      "weight": -1e-05,
+      "expression": "        rew_joint_torque = torch.sum(torch.square(applied_torque[:,self._actuate_idx]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "torque_rate",
+      "source_line": 3535,
+      "end_line": 3535,
+      "weight": null,
+      "expression": "        rew_torque_rate = torch.sum(torch.square(torque_rate[:, self._actuate_idx]), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "torque_smoothness_leg",
+      "source_line": 3536,
+      "end_line": 3538,
+      "weight": null,
+      "expression": "        rew_torque_smoothness_leg = torch.sum(\n            torch.square(torque_second_diff[:, self._legs_act_idx]), dim=-1\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "torque_smoothness_wheel",
+      "source_line": 3539,
+      "end_line": 3541,
+      "weight": null,
+      "expression": "        rew_torque_smoothness_wheel = torch.sum(\n            torch.square(torque_second_diff[:, self._wheel_idx]), dim=-1\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_power",
+      "source_line": 3546,
+      "end_line": 3546,
+      "weight": -1e-05,
+      "expression": "        rew_wheel_power = torch.sum(comsume_wheel_power, dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "leg_len_vel",
+      "source_line": 3550,
+      "end_line": 3550,
+      "weight": null,
+      "expression": "        rew_leg_len_vel = torch.square(left_leg_length_dot) + torch.square(right_leg_length_dot)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "lin_vel_z",
+      "source_line": 3551,
+      "end_line": 3551,
+      "weight": -0.5,
+      "expression": "        rew_lin_vel_z = torch.square(self.robot.data.root_lin_vel_b[:, 2])",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "lin_vel_z_exp",
+      "source_line": 3552,
+      "end_line": 3552,
+      "weight": null,
+      "expression": "        rew_lin_vel_z_exp = torch.exp(-rew_lin_vel_z / self.cfg.lin_vel_z_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "ang_vel_xy",
+      "source_line": 3553,
+      "end_line": 3553,
+      "weight": -0.05,
+      "expression": "        rew_ang_vel_xy = torch.sum(torch.square(self.robot.data.root_ang_vel_b[:, :2]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_rate",
+      "source_line": 3554,
+      "end_line": 3554,
+      "weight": -0.01,
+      "expression": "        rew_action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_smoothness",
+      "source_line": 3556,
+      "end_line": 3556,
+      "weight": null,
+      "expression": "        rew_action_smoothness = torch.sum(torch.square(action_second_diff), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_rate_leg",
+      "source_line": 3558,
+      "end_line": 3558,
+      "weight": null,
+      "expression": "        rew_action_rate_leg = torch.sum(torch.square(self._actions[:, leg_action_slice] - self._previous_actions[:, leg_action_slice]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_rate_wheel",
+      "source_line": 3559,
+      "end_line": 3559,
+      "weight": null,
+      "expression": "        rew_action_rate_wheel = torch.sum(torch.square(self._actions[:, wheel_action_slice] - self._previous_actions[:, wheel_action_slice]), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_smoothness_leg",
+      "source_line": 3560,
+      "end_line": 3560,
+      "weight": -0.05,
+      "expression": "        rew_action_smoothness_leg = torch.sum(torch.square(action_second_diff[:, leg_action_slice]), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "action_smoothness_wheel",
+      "source_line": 3561,
+      "end_line": 3561,
+      "weight": -0.01,
+      "expression": "        rew_action_smoothness_wheel = torch.sum(torch.square(action_second_diff[:, wheel_action_slice]), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation",
+      "source_line": 3587,
+      "end_line": 3587,
+      "weight": null,
+      "expression": "        rew_flat_orientation = torch.sum(torch.square(pgb), dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_y",
+      "source_line": 3588,
+      "end_line": 3588,
+      "weight": -0.0,
+      "expression": "        rew_flat_orientation_y = torch.square(self.cfg.orientation_y_square_sigma*pgb[:,0])",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_x",
+      "source_line": 3589,
+      "end_line": 3589,
+      "weight": -0.0,
+      "expression": "        rew_flat_orientation_x = torch.square(self.cfg.orientation_x_square_sigma*pgb[:,1])",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_y_exp",
+      "source_line": 3590,
+      "end_line": 3590,
+      "weight": 1.0,
+      "expression": "        rew_flat_orientation_y_exp = torch.exp(-torch.square(pgb[:,0]) / self.cfg.orientation_y_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_x_exp",
+      "source_line": 3591,
+      "end_line": 3591,
+      "weight": 1.0,
+      "expression": "        rew_flat_orientation_x_exp = torch.exp(-torch.square(pgb[:,1]) / self.cfg.orientation_x_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_y_v",
+      "source_line": 3593,
+      "end_line": 3599,
+      "weight": -2.0,
+      "expression": "        rew_flat_orientation_y_v = torch.square(\n            (\n                self.cfg.orientation_y_A * torch.exp(-lin_vel_x_cmd / self.cfg.orientation_y_sigma)\n                + self.cfg.orientation_y_bias\n            )\n            * pgb[:, 0]\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_orientation_x_v",
+      "source_line": 3600,
+      "end_line": 3600,
+      "weight": -2.0,
+      "expression": "        rew_flat_orientation_x_v = torch.square((self.cfg.orientation_x_A * torch.exp(-lin_vel_x_cmd/self.cfg.orientation_x_sigma) + self.cfg.orientation_x_bias)*pgb[:,1])",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_pitch_l1",
+      "source_line": 3706,
+      "end_line": 3706,
+      "weight": null,
+      "expression": "        rew_flat_pitch_l1 = torch.abs(pitch*self.cfg.flat_pitch_l1_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_pitch_tanh",
+      "source_line": 3707,
+      "end_line": 3707,
+      "weight": null,
+      "expression": "        rew_flat_pitch_tanh = 1 - torch.tanh(torch.abs(pitch)/self.cfg.flat_pitch_tanh_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_roll_l1",
+      "source_line": 3708,
+      "end_line": 3708,
+      "weight": null,
+      "expression": "        rew_flat_roll_l1 = torch.abs(roll*self.cfg.flat_roll_l1_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "flat_roll_tanh",
+      "source_line": 3709,
+      "end_line": 3709,
+      "weight": null,
+      "expression": "        rew_flat_roll_tanh = 1 - torch.tanh(torch.abs(roll)/self.cfg.flat_roll_tanh_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy",
+      "source_line": 3719,
+      "end_line": 3719,
+      "weight": 1.0,
+      "expression": "        rew_track_lin_vel_xy = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_soft",
+      "source_line": 3720,
+      "end_line": 3720,
+      "weight": null,
+      "expression": "        rew_track_lin_vel_xy_soft = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_soft_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_tight",
+      "source_line": 3721,
+      "end_line": 3721,
+      "weight": 0.0,
+      "expression": "        rew_track_lin_vel_xy_tight = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_tight_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_huge_gap",
+      "source_line": 3722,
+      "end_line": 3722,
+      "weight": null,
+      "expression": "        rew_track_lin_vel_xy_huge_gap = track_lin_vel_err>self.cfg.lin_vel_xy_torlarance_gap",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_square",
+      "source_line": 3723,
+      "end_line": 3725,
+      "weight": -0.1,
+      "expression": "        rew_track_lin_vel_xy_square = torch.square(\n            lin_vel_err * self.cfg.lin_vel_xy_square_sigma\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "pen_high_speed",
+      "source_line": 3727,
+      "end_line": 3727,
+      "weight": null,
+      "expression": "        rew_pen_high_speed = torch.square(torch.clamp(lin_vel_abs_err, max=0.)*self.cfg.high_speed_pen_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z",
+      "source_line": 3736,
+      "end_line": 3736,
+      "weight": 1.0,
+      "expression": "        rew_track_ang_vel_z = torch.exp(-track_yaw_rate_err / self.cfg.ang_vel_z_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_soft",
+      "source_line": 3737,
+      "end_line": 3737,
+      "weight": null,
+      "expression": "        rew_track_ang_vel_z_soft = torch.exp(-track_yaw_rate_err / self.cfg.amg_vel_z_soft_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_huge_gap",
+      "source_line": 3738,
+      "end_line": 3738,
+      "weight": null,
+      "expression": "        rew_track_ang_vel_z_huge_gap = track_yaw_rate_err>self.cfg.ang_vel_z_torlarance_gap",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_square",
+      "source_line": 3739,
+      "end_line": 3739,
+      "weight": -0.1,
+      "expression": "        rew_track_ang_vel_z_square = torch.square(ang_vel_err*self.cfg.ang_vel_z_square_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "pen_high_angVel",
+      "source_line": 3741,
+      "end_line": 3741,
+      "weight": null,
+      "expression": "        rew_pen_high_angVel = torch.square(torch.clamp(ang_vel_abs_err, max=0.)*self.cfg.high_angVel_pen_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "stand_still",
+      "source_line": 3743,
+      "end_line": 3747,
+      "weight": -0.0,
+      "expression": "        rew_stand_still = (\n            torch.sum(torch.square(self.robot.data.root_lin_vel_b[:, :2]), dim=1)\n            * stand_still_lin_mask.float()\n            + torch.square(self.robot.data.root_ang_vel_b[:, 2]) * stand_still_yaw_mask.float()\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "stand_still_lin_vel",
+      "source_line": 3748,
+      "end_line": 3751,
+      "weight": -1.0,
+      "expression": "        rew_stand_still_lin_vel = (\n            torch.sum(torch.abs(self.robot.data.root_lin_vel_b[:, :2]), dim=1)\n            * stand_still_lin_mask.float()\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "stand_nice",
+      "source_line": 3761,
+      "end_line": 3761,
+      "weight": null,
+      "expression": "        rew_stand_nice = torch.sum(torch.square(wheel_pos_heading_b[:,:,0]),dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_raw",
+      "source_line": 3762,
+      "end_line": 3762,
+      "weight": null,
+      "expression": "        rew_no_fork_raw = torch.abs(wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0])>self.cfg.no_fork_distance",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork",
+      "source_line": 3763,
+      "end_line": 3763,
+      "weight": -1.0,
+      "expression": "        rew_no_fork = rew_no_fork_raw.float()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_exp",
+      "source_line": 3767,
+      "end_line": 3767,
+      "weight": -0.0,
+      "expression": "        rew_no_fork_exp = 1.0 - torch.exp(-no_fork_over / self.cfg.no_fork_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_z_raw",
+      "source_line": 3769,
+      "end_line": 3769,
+      "weight": null,
+      "expression": "        rew_no_fork_z_raw = torch.abs(wheel_pos_b[:,0,2]-wheel_pos_b[:,1,2]) > no_fork_z_distance",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_z",
+      "source_line": 3770,
+      "end_line": 3770,
+      "weight": null,
+      "expression": "        rew_no_fork_z = rew_no_fork_z_raw.float()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_z_exp",
+      "source_line": 3774,
+      "end_line": 3774,
+      "weight": -0.0,
+      "expression": "        rew_no_fork_z_exp = 1.0 - torch.exp(-no_fork_z_over / no_fork_z_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_square",
+      "source_line": 3782,
+      "end_line": 3782,
+      "weight": -1.0,
+      "expression": "        rew_no_fork_square = torch.square((wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0])*self.cfg.no_fork_square_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "no_fork_z_square",
+      "source_line": 3784,
+      "end_line": 3784,
+      "weight": null,
+      "expression": "        rew_no_fork_z_square = torch.square((wheel_pos_b[:,0,2]-wheel_pos_b[:,1,2]) * no_fork_z_square_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_motor_z_axis_align_exp",
+      "source_line": 3807,
+      "end_line": 3809,
+      "weight": null,
+      "expression": "        rew_wheel_motor_z_axis_align_exp = torch.exp(\n            -wheel_motor_z_axis_align_err_sq / wheel_motor_z_axis_align_sigma\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_motor_z_axis_align_exp_tight",
+      "source_line": 3810,
+      "end_line": 3812,
+      "weight": null,
+      "expression": "        rew_wheel_motor_z_axis_align_exp_tight = torch.exp(\n            -wheel_motor_z_axis_align_err_sq / wheel_motor_z_axis_align_tight_sigma\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "l_leg_ang_exp",
+      "source_line": 3818,
+      "end_line": 3818,
+      "weight": null,
+      "expression": "        rew_l_leg_ang_exp = torch.exp(-torch.square(left_leg_angle)/self.cfg.l_leg_ang_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "r_leg_ang_exp",
+      "source_line": 3819,
+      "end_line": 3819,
+      "weight": null,
+      "expression": "        rew_r_leg_ang_exp = torch.exp(-torch.square(right_leg_angle)/self.cfg.r_leg_ang_exp_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_square",
+      "source_line": 3829,
+      "end_line": 3829,
+      "weight": -1.0,
+      "expression": "        rew_track_height_square = torch.square(self.cfg.height_square_sigma * (height_err))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_l1",
+      "source_line": 3830,
+      "end_line": 3830,
+      "weight": null,
+      "expression": "        rew_track_height_l1 = torch.abs(self.cfg.height_l1_sigma * (height_err))",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp",
+      "source_line": 3831,
+      "end_line": 3831,
+      "weight": 0.0,
+      "expression": "        rew_track_height_exp = torch.exp(-track_height_err / self.cfg.height_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp_soft",
+      "source_line": 3832,
+      "end_line": 3832,
+      "weight": 0.0,
+      "expression": "        rew_track_height_exp_soft = torch.exp(-track_height_err / self.cfg.height_soft_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp_tight",
+      "source_line": 3833,
+      "end_line": 3833,
+      "weight": 1.0,
+      "expression": "        rew_track_height_exp_tight = torch.exp(-track_height_err / self.cfg.height_tight_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_tanh",
+      "source_line": 3834,
+      "end_line": 3834,
+      "weight": null,
+      "expression": "        rew_track_height_tanh = 1 - torch.tanh(torch.abs(height_err)/self.cfg.height_tanh_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "pen_base_too_low",
+      "source_line": 3835,
+      "end_line": 3835,
+      "weight": null,
+      "expression": "        rew_pen_base_too_low = torch.square(torch.clamp((self.cfg.base_height_bound-height_reward_ref), min=0.)*self.cfg.pen_base_too_low_sigma)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy",
+      "source_line": 3887,
+      "end_line": 3887,
+      "weight": 1.0,
+      "expression": "        rew_track_lin_vel_xy = rew_track_lin_vel_xy * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_soft",
+      "source_line": 3888,
+      "end_line": 3888,
+      "weight": null,
+      "expression": "        rew_track_lin_vel_xy_soft = rew_track_lin_vel_xy_soft * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_tight",
+      "source_line": 3889,
+      "end_line": 3889,
+      "weight": 0.0,
+      "expression": "        rew_track_lin_vel_xy_tight = rew_track_lin_vel_xy_tight * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_square",
+      "source_line": 3890,
+      "end_line": 3890,
+      "weight": -0.1,
+      "expression": "        rew_track_lin_vel_xy_square = rew_track_lin_vel_xy_square * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z",
+      "source_line": 3891,
+      "end_line": 3891,
+      "weight": 1.0,
+      "expression": "        rew_track_ang_vel_z = rew_track_ang_vel_z * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_soft",
+      "source_line": 3892,
+      "end_line": 3892,
+      "weight": null,
+      "expression": "        rew_track_ang_vel_z_soft = rew_track_ang_vel_z_soft * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_square",
+      "source_line": 3893,
+      "end_line": 3893,
+      "weight": -0.1,
+      "expression": "        rew_track_ang_vel_z_square = rew_track_ang_vel_z_square * vel_reward_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_lin_vel_xy_huge_gap",
+      "source_line": 3894,
+      "end_line": 3894,
+      "weight": null,
+      "expression": "        rew_track_lin_vel_xy_huge_gap = rew_track_lin_vel_xy_huge_gap.float()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_ang_vel_z_huge_gap",
+      "source_line": 3895,
+      "end_line": 3895,
+      "weight": null,
+      "expression": "        rew_track_ang_vel_z_huge_gap = rew_track_ang_vel_z_huge_gap.float()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp",
+      "source_line": 3897,
+      "end_line": 3897,
+      "weight": 0.0,
+      "expression": "        rew_track_height_exp = rew_track_height_exp * height_upright_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp_soft",
+      "source_line": 3898,
+      "end_line": 3898,
+      "weight": 0.0,
+      "expression": "        rew_track_height_exp_soft = rew_track_height_exp_soft * height_upright_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp_tight",
+      "source_line": 3899,
+      "end_line": 3899,
+      "weight": 1.0,
+      "expression": "        rew_track_height_exp_tight = rew_track_height_exp_tight * height_upright_gate",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_huge_gap",
+      "source_line": 3900,
+      "end_line": 3900,
+      "weight": null,
+      "expression": "        rew_track_height_huge_gap = height_reward_target - obs_height > self.cfg.height_torlarance_gap",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "wheel_air_spin",
+      "source_line": 3920,
+      "end_line": 3923,
+      "weight": 0.0,
+      "expression": "        rew_wheel_air_spin = self._get_wheel_air_spin_reward(\n            wheel_contact_force_peaks,\n            desired_contact_force_threshold,\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "track_height_exp_both_wheels_contact",
+      "source_line": 3924,
+      "end_line": 3926,
+      "weight": 0.0,
+      "expression": "        rew_track_height_exp_both_wheels_contact = (\n            rew_track_height_exp_soft * both_wheels_contact.float()\n        )",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "undesired_contact",
+      "source_line": 3935,
+      "end_line": 3935,
+      "weight": -2.0,
+      "expression": "            rew_undesired_contact = is_contact.float()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "undesired_contact",
+      "source_line": 3937,
+      "end_line": 3937,
+      "weight": -2.0,
+      "expression": "            rew_undesired_contact = torch.zeros(self.num_envs, device=self.device)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "desired_contact",
+      "source_line": 3947,
+      "end_line": 3947,
+      "weight": null,
+      "expression": "            rew_desired_contact = torch.sum(is_not_contact.float(), dim=1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "desired_contact",
+      "source_line": 3949,
+      "end_line": 3949,
+      "weight": null,
+      "expression": "            rew_desired_contact = torch.zeros(self.num_envs, device=self.device)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "actions_joint_limits",
+      "source_line": 3958,
+      "end_line": 3958,
+      "weight": null,
+      "expression": "            rew_actions_joint_limits = torch.sum(upper_error+lower_error,dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "current_joint_limits",
+      "source_line": 3967,
+      "end_line": 3967,
+      "weight": null,
+      "expression": "            rew_current_joint_limits = torch.sum(upper_error+lower_error,dim=-1)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "actions_joint_limits",
+      "source_line": 3969,
+      "end_line": 3969,
+      "weight": null,
+      "expression": "            rew_actions_joint_limits = torch.zeros(self.num_envs, device=self.device)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "current_joint_limits",
+      "source_line": 3970,
+      "end_line": 3970,
+      "weight": null,
+      "expression": "            rew_current_joint_limits = torch.zeros(self.num_envs, device=self.device)",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "rear2_rear1_joint_pos_limits",
+      "source_line": 3972,
+      "end_line": 3976,
+      "weight": null,
+      "expression": "        (\n            rew_rear2_rear1_joint_pos_limits,\n            rew_rear2_rear1_joint_pos_limits_torque,\n            rew_rear2_rear1_joint_pos_limits_vel,\n        ) = self._get_rear2_rear1_joint_limit_terms()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "rear2_rear1_joint_pos_limits_torque",
+      "source_line": 3972,
+      "end_line": 3976,
+      "weight": null,
+      "expression": "        (\n            rew_rear2_rear1_joint_pos_limits,\n            rew_rear2_rear1_joint_pos_limits_torque,\n            rew_rear2_rear1_joint_pos_limits_vel,\n        ) = self._get_rear2_rear1_joint_limit_terms()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    },
+    {
+      "name": "rear2_rear1_joint_pos_limits_vel",
+      "source_line": 3972,
+      "end_line": 3976,
+      "weight": null,
+      "expression": "        (\n            rew_rear2_rear1_joint_pos_limits,\n            rew_rear2_rear1_joint_pos_limits_torque,\n            rew_rear2_rear1_joint_pos_limits_vel,\n        ) = self._get_rear2_rear1_joint_limit_terms()",
+      "implementation": "Unchanged pinned AST _get_rewards with MOD4 name/geometry inputs",
+      "context": "Conditional definitions retained; duplicate names are different original branches"
+    }
+  ],
+  "weights": {
+    "termination": -200.0,
+    "leg_joint_acc": -5e-07,
+    "leg_joint_vel": -0.005,
+    "leg_joint_pair_pos_diff": -0.0,
+    "joint_torque": -1e-05,
+    "wheel_acc": -1e-08,
+    "wheel_vel": -1e-05,
+    "wheel_power": -1e-05,
+    "wheel_air_spin": 0.0,
+    "lin_vel_z": -0.5,
+    "ang_vel_xy": -0.05,
+    "action_smoothness_leg": -0.05,
+    "action_rate": -0.01,
+    "action_smoothness_wheel": -0.01,
+    "flat_orientation_y": -0.0,
+    "flat_orientation_y_v": -2.0,
+    "flat_orientation_y_exp": 1.0,
+    "flat_orientation_x": -0.0,
+    "flat_orientation_x_v": -2.0,
+    "flat_orientation_x_exp": 1.0,
+    "track_lin_vel_xy": 1.0,
+    "track_lin_vel_xy_tight": 0.0,
+    "track_lin_vel_xy_square": -0.1,
+    "track_ang_vel_z": 1.0,
+    "track_ang_vel_z_square": -0.1,
+    "stand_still_lin_vel": -1.0,
+    "stand_still": -0.0,
+    "track_height_exp": 0.0,
+    "track_height_exp_soft": 0.0,
+    "track_height_exp_tight": 1.0,
+    "track_height_square": -1.0,
+    "track_height_exp_both_wheels_contact": 0.0,
+    "no_fork": -1.0,
+    "no_fork_square": -1.0,
+    "no_fork_exp": -0.0,
+    "no_fork_z_exp": -0.0,
+    "undesired_contact": -2.0
+  },
+  "dt": 0.02,
+  "final_formula": "dt * sum(weight * state_processed_term)",
+  "trained_PPO": {
+    "num_steps_per_env": 24,
+    "save_interval": 500,
+    "obs_groups": {
+      "actor": [
+        "policy"
+      ],
+      "critic": [
+        "critic"
+      ]
+    },
+    "actor": {
+      "class_name": "MLPModel",
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "activation": "elu",
+      "obs_normalization": false,
+      "distribution_cfg": {
+        "class_name": "GaussianDistribution",
+        "init_std": 1.0,
+        "std_type": "scalar"
+      }
+    },
+    "critic": {
+      "class_name": "MLPModel",
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "activation": "elu",
+      "obs_normalization": false
+    },
+    "algorithm": {
+      "class_name": "PPO",
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "learning_rate": 0.0001,
+      "schedule": "adaptive",
+      "gamma": 0.99,
+      "lam": 0.95,
+      "entropy_coef": 0.005,
+      "desired_kl": 0.01,
+      "max_grad_norm": 1.0,
+      "value_loss_coef": 2.0,
+      "use_clipped_value_loss": true,
+      "clip_param": 0.2,
+      "normalize_advantage_per_mini_batch": false,
+      "rnd_cfg": null,
+      "symmetry_cfg": null
+    },
+    "logger": "tensorboard",
+    "check_for_nan": true,
+    "empirical_normalization": false
+  }
+}

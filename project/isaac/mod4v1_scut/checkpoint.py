@@ -1,0 +1,98 @@
+"""One full checkpoint write; restore learning and streams, then ONE fresh reset.
+
+Original physical nominals belong to the new USD constructor and are never
+overwritten by saved mass/COM/inertia. PhysX itself is explicitly not resumed.
+"""
+import os
+import random
+from pathlib import Path
+import numpy as np
+import torch
+
+from .config import USD_SHA, CONTRACT_SHA
+
+COMPONENTS = ('_sensor_mild', '_feedback_delay_mild', '_physics_action_delay',
+              '_spring_pressure', '_gas_damping', '_chassis_com', '_explicit_pd')
+
+
+def named_rngs(obj):
+    return {key: value.get_state().clone() for key, value in vars(obj).items()
+            if isinstance(value, torch.Generator)}
+
+
+def restore_named(obj, states):
+    actual = {key: value for key, value in vars(obj).items() if isinstance(value, torch.Generator)}
+    if set(actual) != set(states):
+        raise ValueError('Named RNG schema mismatch')
+    for key, value in actual.items():
+        value.set_state(states[key].cpu())
+
+
+def learning_state(runner):
+    return dict(**runner.alg.save(), iter=runner.current_learning_iteration,
+                learning_rate=runner.alg.learning_rate)
+
+
+def tensor_fields(obj):
+    return {key: value.clone() for key, value in vars(obj).items() if torch.is_tensor(value)}
+
+
+def save(runner, env, bridge, path, profile):
+    data = learning_state(runner)
+    data.update(format='MOD4V1_SCUT_FULL_V1', usd_SHA=USD_SHA, contract_SHA=CONTRACT_SHA,
+                profile=profile, num_envs=env.num_envs, actor_dim=35, critic_dim=78,
+                components={key: getattr(env, key).state_dict() for key in COMPONENTS},
+                command_rng=named_rngs(env.command_manager.get_term('twist')),
+                command_fields=tensor_fields(env.command_manager.get_term('twist')),
+                physical_rng=named_rngs(env._mild_dr),
+                physical_episode={key: getattr(env._mild_dr, key).clone()
+                                  for key in ('factor', 'nominal', 'mu', 'reset_count')},
+                motor_episode_gain={key: value.clone() for key, value in env._mild_dr.output.items()},
+                cpu_rng=torch.get_rng_state(), cuda_rng=torch.cuda.get_rng_state_all(),
+                python_rng=random.getstate(), numpy_rng=np.random.get_state(),
+                source_reward_state={key: value.clone() for key, value in vars(bridge.reward).items()
+                                     if torch.is_tensor(value)},
+                source_reward_dicts={key: {k:v.clone() for k,v in getattr(bridge.reward,key,{}).items()}
+                                     for key in ('_episode_sums', '_last_reward_terms')},
+                resume_scope='Complete learning/DR streams then one fresh physical episode; not PhysX state',
+                physics_ticks=bridge.physics_ticks)
+    output = Path(path)
+    temporary = output.with_name(output.name+'.partial')
+    torch.save(data, temporary)
+    os.replace(temporary, output)
+
+
+def restore(runner, env, bridge, path, profile):
+    data = torch.load(path, map_location='cpu', weights_only=False)
+    if (data.get('format') != 'MOD4V1_SCUT_FULL_V1' or data['usd_SHA'] != USD_SHA
+            or data['contract_SHA'] != CONTRACT_SHA or data['profile'] != profile
+            or data['num_envs'] != env.num_envs or data['actor_dim'] != 35 or data['critic_dim'] != 78):
+        raise ValueError('Checkpoint is not this MOD4v1 SCUT interface; no automatic input expansion')
+    runner.alg.load(data, load_cfg=None, strict=True)
+    runner.current_learning_iteration = data['iter']
+    runner.alg.learning_rate = data['learning_rate']
+    for group in runner.alg.optimizer.param_groups:
+        group['lr'] = data['learning_rate']
+    for key in COMPONENTS:
+        getattr(env, key).load_state_dict(data['components'][key])
+    restore_named(env.command_manager.get_term('twist'), data['command_rng'])
+    command = env.command_manager.get_term('twist')
+    for key, value in data['command_fields'].items():
+        current = getattr(command, key)
+        if current.shape != value.shape:
+            raise ValueError('Command tensor schema mismatch: '+key)
+        current.copy_(value)
+    restore_named(env._mild_dr, data['physical_rng'])
+    for key, value in data['physical_episode'].items():
+        getattr(env._mild_dr, key).copy_(value)
+    for key, value in data['motor_episode_gain'].items():
+        env._mild_dr.output[key].copy_(value)
+    torch.set_rng_state(data['cpu_rng'])
+    torch.cuda.set_rng_state_all(data['cuda_rng'])
+    random.setstate(data['python_rng'])
+    np.random.set_state(data['numpy_rng'])
+    # Full queue restoration is complete before a new-scene clock rebase.
+    for group in env._physics_action_delay.queue.groups.values():
+        group['last_apply_tick'].fill_(-1)
+    # Do not restore old contact/state windows into the fresh physical episode.
+    return env.reset()

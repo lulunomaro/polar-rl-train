@@ -1,0 +1,56 @@
+"""Finalize current handoff, retaining old source facts under prior_V8 only."""
+from pathlib import Path
+import hashlib,importlib.util,json,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v8-eval-v10-antiwindup-v13'
+
+
+def main():
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    assert w['run_id']=='MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    old={}
+    for key in ['final_actual_metrics','close_local_evidence','route_diagnosis','render_report','action_diagnosis',
+        'repair_cpu','evaluation_closed_and_transferred','evaluation_once_consumed','original_evaluation',
+        'evaluation_result_not_retrieved','original_parent_exit','close_read_once']:
+        if key in w:old[key]=w.pop(key)
+    w['prior_V8']['historical_fields']=old
+    w.update(current_run_final=None,evaluation_closed_and_transferred=False,
+        evaluation_once_consumed=False,
+        evaluation_status='V13 current model still training; same original owner independent80 after fullsave and close; V8 already evaluated0/80',
+        repair_cpu='reports/ANTIWINDUP_V13_ACTUAL.json',
+        prior_native_analysis=str(R/'actual_closed'/w['prior_V8']['run_id']/'independent_eval_v10/analysis/ANALYSIS.json'),
+        report_origin_warning='Old V6/V8 results are historical only; do not apply their consumed once or final counts to live V13.')
+    w['archival']['V8_eval_V13_repair']=dict(status='pushed;remote main annotatedtag peeled and priorV8tag verified with tool output',
+        phase='mod4-standing200-v8-eval-antiwindup-v13',commit='a129e10d278e0bcb9c9641aedb54a248a9a692f4',
+        tag='trial-20261103-mod4-standing200-v8-eval-antiwindup-v13',tagobject='3ba22ac6f49d2a8b9a46eb60680b7b5316bf15ca',
+        path=str(DEST.relative_to(REPO)),later='ordinary supplements only; never record or retag this phase')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    receipt=R/'reports/V13_RECORD_AND_CURRENT_HANDOFF.json'
+    with receipt.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),record=w['archival']['V8_eval_V13_repair'],
+        current_run=w['run_id'],current_status=w['status'],current_final=None,current_eval_pending=True,
+        old_V8_actual_eval='completed0/80 mean.1195s, not pending',
+        first_saturation_remains=True,remote_metadata_reader_closed=True,
+        next=w['next'],no_new_training_OR_model_read_OR_SSH=True),f,ensure_ascii=False,indent=2)
+    spec=importlib.util.spec_from_file_location('standing_supplement_guard_v13',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for index in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(index.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    sub=DEST/'supplement-current-handoff';sub.mkdir(exist_ok=False);rows=[]
+    for file in [p,receipt,Path(__file__),D/'evidence.py']:
+        raw=file.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(file),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,
+            mode='complete_text'if not n else'redacted_text'))
+    (sub/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,model_network_physics_operations=0),indent=2)+'\n')
+    print(json.dumps(dict(status=w['status'],supplement=str(sub),next_save=w['original_save_local'])))
+
+
+if __name__=='__main__':main()

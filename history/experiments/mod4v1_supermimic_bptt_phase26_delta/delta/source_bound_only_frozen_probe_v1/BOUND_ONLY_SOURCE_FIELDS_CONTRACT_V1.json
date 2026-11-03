@@ -1,0 +1,117 @@
+{
+  "kind": "SOURCE_IMPLEMENTED_ZERO_UPDATE_BOUND_ONLY_FIELDS_CONTRACT_V1",
+  "source_implemented": true,
+  "native_enabled": false,
+  "new_native_parent_worker_or_task_schema_supplied": false,
+  "full_native_stage_index_supplied": false,
+  "policy_variant": "A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_RESIDUAL_PROBE_V1",
+  "purpose": "FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_N80_V1",
+  "effective_action": "clip(teacher(raw35,stochastic_output=False)+0.05*tanh(residual(history10,raw35[:,:3])),-6,6)",
+  "source_container": {
+    "E3": "a4c56390b4c549ba8bfb808a63206c0816ad50e8c9659dc053f98cc66b3c8127",
+    "W35": "b2f2878ff9aa04ddcd283fe71f5b5924b1bff78b3f04118cfa689244b0665cff",
+    "algorithm_family_in_storage": "a1_raw35_legacy_v1",
+    "algorithm_variants_in_storage": ["A1_RAW35_FRESH", "A1_RAW35_RESUME"],
+    "storage_is_NOT_relabelled_as_new_training": true,
+    "same_original_bootstrap_teacher_from_full_pi_state": true,
+    "source_counts_are_historical_not_probe_updates": true
+  },
+  "new_source_files": [
+    {"relative": "bound_only_frozen_probe_v1.py", "bytes": 19125, "SHA256": "4a47700a046d6c7d496223f551745c956d3ff693cd0f02c559354a9627bf61a6"},
+    {"relative": "bound_only_frozen_route_v1.py", "bytes": 3210, "SHA256": "bffc1a3426e7c072176a09140f3edbaaaffb115f88d4dba13736b4271a2eb403"}
+  ],
+  "APIs": {
+    "build": "build_bound_only_mean_policy(cache, device, num_envs=80, *, expected_container_sha=None, collect_action_statistics=False, synthetic_only=False)",
+    "cache_input": "fresh original FrozenA1CheckpointCache whose _built is False; no existing mean or rearm",
+    "actor_call": "BoundOnlyPolicyCaller(mean, *, boundary=ORIGINAL_OriginalEpisodeBoundary)",
+    "native_source_route_class": "bound_only_frozen_route_v1.BoundOnlyCheckpointAdapter",
+    "component_validator": "validate_bound_probe_receipt(value, *, expected_role, expected_source_sha, expected_actor_calls)",
+    "inherited_act_function": "frozen_a1_raw35_v1.FrozenA1MeanPolicy.act",
+    "inherited_route_guards": ["check", "assert_entire_root_unchanged", "check_actor"],
+    "route_overrides_only": ["explicit_new_task_gate_then_original_constructor", "actor", "receipt"]
+  },
+  "required_NEW_task_fragment": {
+    "bound_only_probe": {
+      "purpose": "FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_N80_V1",
+      "policy_variant": "A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_RESIDUAL_PROBE_V1",
+      "zero_update": true,
+      "native_enabled": false,
+      "collect_action_statistics": false
+    }
+  },
+  "same_original_scope": {
+    "requested_roles": ["E3", "W35"],
+    "num_envs": 80,
+    "seed": 20260928,
+    "controls": {"E3": 160, "W35": 1600},
+    "policy_dt_s": 0.02,
+    "physics_dt_s": 0.0025,
+    "decimation": 8,
+    "actor_history": [80, 10, 35],
+    "known_command": "same sampled raw35[:,:3], not refreshed separately",
+    "first_padding": "repeat current original noisy/delayed raw35 ten frames",
+    "episode_boundary": "first_OR_previous_true_terminated_OR_true_truncated; no xi-valid substitute",
+    "E3_denominator": "original first-episode requested recipes 0..11 only, N74; normal recipe12 N6 separate diagnostic",
+    "W35_denominator": "original same-UID natural-complete nonterminal facts; moving/standing separate; partial/unknown/drops separate",
+    "DR_physics_speed_reward_predicate_changes": false,
+    "standing_is_NOT_spliced_into_moving": true
+  },
+  "freeze_and_updates": {
+    "original_whole_CPU_root_and_bytes_retained": true,
+    "full_pi_all_parameters_buffers_teacher_norms_strict_loaded": true,
+    "original_constructor_zeroing_precedes_strict_load": true,
+    "no_saved_N1024_replay_or_history_slicing": true,
+    "cache_build_claim_is_never_cleared_even_after_failure": true,
+    "physical_byte_opens_per_fresh_process_cache": 1,
+    "SHA_calculations_per_cache": 1,
+    "CPU_decodes_per_cache": 1,
+    "mother_checkpoint_opens": 0,
+    "normalization_updates": 0,
+    "probe_BPTT_policy_steps": 0,
+    "probe_training_updates": 0,
+    "probe_optimizer_updates": {"pi": 0, "wm": 0, "aux": 0, "critic": 0},
+    "learner_WM_critic_optimizer_or_replay_created_or_restored": false,
+    "original_total_clip": 6
+  },
+  "mathematical_claims": {
+    "preclip_residual_component_Linf_bound_real_arithmetic": 0.05,
+    "postclip_difference_vs_clipped_teacher_component_Linf_bound_real_arithmetic": 0.05,
+    "same_bound_vs_old_unbounded_candidate": false,
+    "L2_component_bound_is_not_0point05": true,
+    "float32_fixture_absolute_tolerance_not_acceptance_threshold": 0.000001,
+    "bounded_training_gradient_differs_and_requires_a_separate_future_version": true
+  },
+  "action_statistics": {
+    "default_enabled": false,
+    "only_same_forward_existing_base_delta_arithmetic": true,
+    "extra_teacher_or_residual_forwards": 0,
+    "extra_observation_RNG_or_physics_calls": 0,
+    "walltime_host_scalar_synchronization_possible_if_enabled": true,
+    "walltime_is_not_simulation_time": true,
+    "legacy_counterfactual_at_probe_observations_is_NOT_paired_skill_rollout": true,
+    "clip_hit_definition": "abs(already_computed_preclip_action)>6"
+  },
+  "original_source_dependencies": {
+    "frozen_a1_raw35_v1.py": {"bytes": 19226, "SHA256": "1ea4bcfa1081d63d0da2136fedf8c9fafa508d7bb2155095352da496327e4a21"},
+    "a1_frozen_eval_runtime_v2.py": {"bytes": 37927, "SHA256": "7a092364cf63e9621481dc0a5554b56a22e4412cf89870c3db9a124864074b2e"},
+    "rsl_rl.models.mlp_model.MLPModel": {"bytes": 10334, "SHA256": "6219ebb3ed4df036dae7ff1c30d0fbb169eaaa659e44a659dd757a292124476b"},
+    "keep_existing_fourteen_index_and_all_original_static_native_dependencies": true,
+    "required_close_chain": ["app_close_semantics_v5.py (published V6 bytes)", "resume_runtime_contracts_v3.py (_base)"],
+    "do_not_treat_only_the_two_new_modules_as_complete_native_payload": true
+  },
+  "parent_future_integration_requirements_before_any_native_execution": [
+    "NEW explicit group/task kind and purpose; never masquerade as the old unbounded A1 mean or embedded-teacher reference",
+    "NEW runtime/worker route selecting BoundOnlyCheckpointAdapter, plus correct source-cache/frozen-mean semantic gate",
+    "NEW complete hashed stage index preserving all original static and AppV6-to-Base dependencies; no edit of old sealed sources",
+    "Actual producer/source-container/asset/contract/whole-state evidence and original known-command/raw35 checks",
+    "Original private-GPU EX plus global-finite EX admission, canonical C read-only, fresh checks, actual p.wait and close semantics",
+    "NEW independent physical cohort and original role predicates; partial/unknown/standing retain their original separate meanings",
+    "One-seed unequal cohorts do not identify relative or causal skill effects",
+    "Bound-only zero-update result must precede separately versioned bounded short training; no claim this probe is BPTT/retraining"
+  ],
+  "actual_Torch_CPU_fixture_result": {"report": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/reports/BOUND_ONLY_FROZEN_CPU_V1.json", "parent_returncode": 0, "passed": true, "own_synthetic_only": true, "controls": 4, "num_envs": 80, "maximum_independent_formula_error": 0.0, "maximum_component_difference_vs_clipped_teacher": 0.050000011920928955, "maximum_component_difference_vs_legacy_unbounded": 0.954431414604187, "actual_skill_or_training_effect": null},
+  "actual_native_admission_wait_close_or_probe_skill": null,
+  "relative_or_causal_effect": null,
+  "training_benefit": null,
+  "eligible_for_promotion": false
+}

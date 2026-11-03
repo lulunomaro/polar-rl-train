@@ -1,0 +1,683 @@
+--- SEALED_INPUT/bound_only_native_helper_v1.py
++++ NEW/bound_only_native_helper_v1.py
+@@ -1,4 +1,4 @@
+-"""SOURCE-only ZERO_UPDATE tanh-residual probe; no native entry or eager Torch.
++"""Native-capable ZERO_UPDATE tanh actor; capability is NOT actual admission or execution.
+ 
+ The full original A1 cache is passed in fresh. Only its ONE actor build is claimed.
+ Inherited mean.act keeps the exact raw35/history/command/real-boundary behavior.
+@@ -12,10 +12,10 @@
+ import re
+ import frozen_a1_raw35_v1 as h
+ 
+-VARIANT = 'A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_RESIDUAL_PROBE_V1'
+-PURPOSE = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_N80_V1'
+-KIND = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_MEAN_RECEIPT_V1'
+-NATIVE_ENABLED = False
++VARIANT = 'A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1'
++PURPOSE = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_N80_V1'
++KIND = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_NATIVE_MEAN_RECEIPT_V1'
++NATIVE_ENABLED = True  # Selected-route CAPABILITY; actual external admission/execution is never inferred.
+ BASE_PIN = (19226, '1ea4bcfa1081d63d0da2136fedf8c9fafa508d7bb2155095352da496327e4a21')
+ BOUNDARY_PIN = (37927, '7a092364cf63e9621481dc0a5554b56a22e4412cf89870c3db9a124864074b2e')
+ APPROVED_RSL = dict(module='rsl_rl.models.mlp_model', qualname='MLPModel', bytes=10334,
+@@ -261,9 +261,9 @@
+            'effective bound-probe helper source/forward identity differs')
+     h.need(value.get('container_algorithm_family') == h.FAMILY and value.get('container_algorithm_variant') in h.VARIANTS
+            and value.get('container_algorithm_actor_view') == h.VIEW and value.get('residual_scale') == .05
+-           and value.get('action_clip') == 6. and value.get('native_enabled') is False
++           and value.get('action_clip') == 6. and value.get('native_enabled') is True
+            and value.get('qualified_native_execution') is None and value.get('eligible_for_promotion') is False,
+-           'source-only probe/container semantics differ')
++           'native-capable probe/container semantics differ')
+     h.need(value.get('actor_frozen') is True and value.get('whole_root_CPU_unchanged') is True
+            and value.get('inference_failed') is False, 'bound probe frozen state failed')
+     h.need(all(type(value.get(k)) is int and value[k] == 1 for k in ('physical_byte_opens', 'SHA_calculations', 'CPU_decodes'))
+@@ -285,5 +285,5 @@
+     h.need(type(forward_calls) is int and forward_calls == expected_actor_calls,
+            'one teacher/residual same-forward pair per original action required')
+     return dict(passed_policy_component=True, policy_variant=VARIANT, purpose=PURPOSE,
+-                native_enabled=False, actual_admission_wait_close_or_skill=None,
++                native_enabled=True, actual_admission_wait_close_or_skill=None,
+                 ZERO_UPDATE=True, relative_or_training_effect=None)
+--- SEALED_INPUT/bound_only_native_route_v1.py
++++ NEW/bound_only_native_route_v1.py
+@@ -1,4 +1,4 @@
+-"""SOURCE-only adapter route, NOT a runnable native parent/worker or training loop.
++"""Explicit native-capable ZERO_UPDATE route; not a dispatch or training loop.
+ 
+ Import alongside the PINNED original a1_frozen_eval_runtime_v2/core alias. A future
+ NEW task schema/worker/index must explicitly select this route and validate its
+@@ -7,18 +7,18 @@
+ import hashlib
+ from pathlib import Path
+ import a1_frozen_eval_runtime_v2 as base
+-import bound_only_frozen_probe_v1 as p
++import bound_only_native_helper_v1 as p
+ 
+-INTEGRATION = 'SOURCE_ONLY_ZERO_UPDATE_BOUND_PROBE_ADAPTER_V1'
+-NATIVE_ENABLED = False
++INTEGRATION = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_NATIVE_INTEGRATION_V1'
++NATIVE_ENABLED = True  # Capability only, not a receipt of actual native admission.
+ 
+ 
+ def validate_source_route_task(task):
+     config = task.get('bound_only_probe', {})
+     p.h.need(task.get('role') in p.QUALIFIED_CONTAINERS and config.get('purpose') == p.PURPOSE
+         and config.get('policy_variant') == p.VARIANT and config.get('zero_update') is True
+-        and config.get('native_enabled') is False and type(config.get('collect_action_statistics')) is bool,
+-        'NEW explicit SOURCE-only ZERO_UPDATE bound-probe route task required')
++        and config.get('native_enabled') is True and type(config.get('collect_action_statistics')) is bool,
++        'NEW explicit selected native-capable ZERO_UPDATE bound-probe route task required')
+     raw = Path(base.__file__).resolve().read_bytes()
+     p.h.need((len(raw), hashlib.sha256(raw).hexdigest()) == p.BOUNDARY_PIN,
+              'original full A1 adapter/boundary core source differs')
+@@ -26,6 +26,7 @@
+ 
+ 
+ class BoundOnlyCheckpointAdapter(base.A1CheckpointAdapter):
++    caller_type = p.BoundOnlyPolicyCaller  # Virtual factory; never build or wrap a loaded mean twice.
+     def __init__(self, torch_module, task):
+         self.probe_config = dict(validate_source_route_task(task))
+         # Original own FINAL binding and ONE original full A1 cache read/decode.
+@@ -36,7 +37,7 @@
+         mean = p.build_bound_only_mean_policy(self.cache, device, num_envs=80,
+             expected_container_sha=p.QUALIFIED_CONTAINERS[self.task['role']],
+             collect_action_statistics=self.probe_config['collect_action_statistics'], synthetic_only=False)
+-        self.caller = p.BoundOnlyPolicyCaller(mean, boundary=base.OriginalEpisodeBoundary(mean.t, mean.device))
++        self.caller = self.caller_type(mean, boundary=base.OriginalEpisodeBoundary(mean.t, mean.device))
+         return self.caller
+     # check/assert_entire_root_unchanged/check_actor are inherited without changes.
+     def receipt(self):
+@@ -49,7 +50,7 @@
+             source_producer_counts_are_historical_not_probe_updates=True,
+             probe_BPTT_policy_steps=0, probe_training_updates=0,
+             probe_optimizer_updates=dict(pi=0, wm=0, aux=0, critic=0),
+-            approved_RSL_model_source=dict(p.APPROVED_RSL), native_enabled=False,
++            approved_RSL_model_source=dict(p.APPROVED_RSL), native_enabled=True,
+             actual_qualified_native_execution=None, relative_or_training_effect=None)
+         if self.caller is not None: value['frozen_mean'] = self.caller.receipt()
+         return value
+--- SEALED_INPUT/producer_bound_probe_guard_v1.py
++++ NEW/producer_bound_probe_guard_v1.py
+@@ -15,7 +15,7 @@
+ WORKER_PIN = (17704, '7c42986077de62278e33a49f560f22602c9ba4d4e69b058f5f5f8f0893c099c7')
+ BRIDGE_PIN = (13125, '8211964c2ce3dd78fdb9fee6603ee4a4dcfbca6fa9d7df44f20d3ddb7aaead29')
+ EVIDENCE_KIND = 'PARENT_VERIFIED_ACTUAL_PRODUCER_TEACHER_STATE_GUARD_V1'
+-POLICY_VARIANT = 'ORIGINAL_EMBEDDED_TEACHER_MEAN_FROM_FULL_A1_V1'
++POLICY_VARIANT = 'A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1'
+ 
+ 
+ def need(value, message):
+@@ -122,12 +122,20 @@
+         mother_checkpoint_stat_open_hash=0, A1_checkpoint_stat_open_hash=0)
+ 
+ 
+-def validate_reference_row(row):
+-    need(type(row) is dict and row.get('policy_variant') == POLICY_VARIANT, 'explicit embedded-original-teacher row required')
++def validate_bound_probe_row(row):
++    need(type(row) is dict and row.get('policy_variant') == POLICY_VARIANT, 'explicit ZERO_UPDATE bound-only actor row required')
+     producer = row.get('a1_producer'); evidence = derive_producer_guard(producer)
+     need(row.get('producer_teacher_freeze_evidence') == evidence, 'teacher producer guard must match rederived actual source evidence')
+     mother = teacher_identity(producer['FINAL']['teacher'])
+     need(row.get('original_bootstrap_teacher') == mother, 'explicit original mother identity differs from producer')
+-    need(row.get('actor_semantics') == 'EMBEDDED_ORIGINAL_TEACHER_MEAN'
+-         and row.get('actor_container_identity') == 'OWN_A1_FULL_CHECKPOINT_CONTAINER_NOT_MOTHER_FILE', 'reference actor/container semantic identity differs')
++    need(row.get('actor_semantics') == 'OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE'
++         and row.get('actor_container_identity') == 'OWN_A1_FULL_CHECKPOINT_CONTAINER_NOT_MOTHER_FILE', 'bound probe effective-actor/container semantic identity differs')
++    config = row.get('bound_only_probe', {})
++    need(type(config) is dict and config.get('purpose') == 'FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_N80_V1'
++         and config.get('policy_variant') == POLICY_VARIANT and config.get('zero_update') is True
++         and config.get('native_enabled') is True and type(config.get('collect_action_statistics')) is bool,
++         'explicit native-capable ZERO_UPDATE selection required')
++    expected = {'E3': 'a4c56390b4c549ba8bfb808a63206c0816ad50e8c9659dc053f98cc66b3c8127', 'W35': 'b2f2878ff9aa04ddcd283fe71f5b5924b1bff78b3f04118cfa689244b0665cff'}
++    need(row.get('role') in expected and row.get('source_SHA') == producer['FINAL']['checkpoint']['SHA'] == expected[row['role']],
++         'bound probe must retain the actual qualified original A1 container')
+     return evidence
+--- SEALED_INPUT/bound_only_native_runtime_v1.py
++++ NEW/bound_only_native_runtime_v1.py
+@@ -1,4 +1,4 @@
+-"""Embedded ORIGINAL TEACHER reference E3/W35 schema; original plant/barrier/close retained.
++"""ZERO_UPDATE tanh-bound-only E3/W35 schema; original plant/barrier/close retained.
+ 
+ Import reads one pinned small Python source, never a checkpoint/SDK/resource.
+ Import executes no training, ledger, lock acquisition, model decoder, SDK, or actor.
+@@ -14,12 +14,12 @@
+ import time
+ 
+ CORE_PIN = (37927, '7a092364cf63e9621481dc0a5554b56a22e4412cf89870c3db9a124864074b2e')
+-BATCH_PURPOSE = 'FROZEN_EMBEDDED_ORIGINAL_TEACHER_E3_W35_REFERENCE_V1'
+-PLAN_KIND = 'FROZEN_EMBEDDED_TEACHER_E3_W35_REFERENCE_PLAN_V1'
++BATCH_PURPOSE = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_N80_V1'
++PLAN_KIND = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_NATIVE_PLAN_V1'
+ REQUESTED_ROLES = ('E3', 'W35')
+ STAGE_REQUIRED_ALIASES = (
+-    'single_gpu_e3_w35_embedded_teacher_parent_v1.py', 'frozen_embedded_teacher_native_runtime_v1.py',
+-    'embedded_teacher_reference_v1.py', 'producer_teacher_guard_v1.py', 'resume_runtime_contracts_v3.py',
++    'single_gpu_e3_w35_bound_only_parent_v1.py', 'bound_only_native_runtime_v1.py',
++    'bound_only_native_helper_v1.py', 'bound_only_native_route_v1.py', 'producer_bound_probe_guard_v1.py', 'resume_runtime_contracts_v3.py',
+     'worker_sources/parent/worker_five_original_n80.py',
+     'worker_sources/e1/e1_parallel_worker_safe.py', 'worker_sources/e1/e1_fresh_runtime_bridge.py',
+     'a1_frozen_eval_runtime_v2.py', 'frozen_a1_raw35_v1.py', 'pose_cache_runtime_adapter_v3.py',
+@@ -47,12 +47,13 @@
+ _base = _load_core()
+ ROLES = _base.ROLES
+ CONTROLS = _base.CONTROLS
+-KIND = 'FROZEN_EMBEDDED_TEACHER_N80_REFERENCE_TASK_V1'
+-INTEGRATION = 'FROZEN_EMBEDDED_TEACHER_NATIVE_REFERENCE_INTEGRATION_V1'
+-POLICY_VARIANT = 'ORIGINAL_EMBEDDED_TEACHER_MEAN_FROM_FULL_A1_V1'
+-_guard = _base._pinned_module('producer_teacher_guard_v1', (8902, '855e13c931eb8b8711a15b829a4ca95b10692f11b6a68df73a1dece18f98ecf0'))
+-validate_reference_row = _guard.validate_reference_row
+-_ref = _base._pinned_module('embedded_teacher_reference_v1', (16333, '400e06ea2c04edaab8330022a53455e13629b7f35d3ac7066f51df1acfcd0407'))
++KIND = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_N80_TASK_V1'
++INTEGRATION = 'FROZEN_ZERO_UPDATE_BOUND_ONLY_NATIVE_INTEGRATION_V1'
++POLICY_VARIANT = 'A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1'
++_guard = _base._pinned_module('producer_bound_probe_guard_v1', (9754, 'a840746e22eab3a55781069521b77ba92f67427baae1001b117d732453c76f1e'))
++validate_bound_probe_row = _guard.validate_bound_probe_row
++_probe = _base._pinned_module('bound_only_native_helper_v1', (19233, '3375168c0d11fe349c8428cb81bb343a90d1520feb90c1e034f829f98ef4a0c9'))
++_route = _base._pinned_module('bound_only_native_route_v1', (3378, '0f241475909a7c84e325416f2f6530f7ad912526ff41d7779f5ac0bcb2c87458'))
+ USD, CONTRACT = _base.USD, _base.CONTRACT
+ need = _base.need
+ _validate_approved_reference = _base._validate_approved_reference
+@@ -76,9 +77,9 @@
+ 
+ 
+ def _batch_fields(value):
+-    need(value.get('policy_variant') == POLICY_VARIANT, 'explicit original teacher reference policy required')
++    need(value.get('policy_variant') == POLICY_VARIANT, 'explicit ZERO_UPDATE bounded effective policy required')
+     need(type(value) is dict and value.get('batch_purpose') == BATCH_PURPOSE,
+-         'explicit independent ORIGINAL TEACHER reference purpose required')
++         'explicit independent ZERO_UPDATE bound-only purpose required')
+     need(value.get('requested_roles') == list(REQUESTED_ROLES)
+          and type(value.get('requested_roles')) is list, 'this version requests E3 then W35 only')
+     need(value.get('deferred_roles') == list(DEFERRED_ROLES)
+@@ -103,7 +104,7 @@
+              'source file bytes/SHA metadata required before original byte verification')
+         relatives.append(relative)
+     need(len(set(relatives)) == len(relatives)
+-         and set(STAGE_REQUIRED_ALIASES) <= set(relatives), 'all sixteen complete reference mappings must be present once')
++         and set(STAGE_REQUIRED_ALIASES) <= set(relatives), 'all seventeen complete bound-only mappings must be present once')
+ 
+ 
+ def select_requested_roles(plan):
+@@ -137,7 +138,7 @@
+         need(row.get('worker') == 'worker_sources/parent/worker_five_original_n80.py',
+              'requested formal worker must retain its original installed alias')
+         _producer_descriptor(row.get('a1_producer'), row['role'])
+-        validate_reference_row(row)
++        validate_bound_probe_row(row)
+     return selected
+ 
+ 
+@@ -178,7 +179,7 @@
+     need(Path(case).resolve().is_relative_to(Path(group_root).resolve()), 'own original eval group scope required')
+     need(type(task.get('absolute_worker_deadline_epoch')) in (float, int) and task['absolute_worker_deadline_epoch'] > now(), 'original finite worker deadline elapsed')
+     _validate_batch_members(task, role)
+-    validate_reference_row(task)
++    validate_bound_probe_row(task)
+     _validate_approved_reference(task)
+     producer = _producer_descriptor(task.get('a1_producer'), role)
+     checkpoint = producer['FINAL']['checkpoint']
+@@ -197,7 +198,7 @@
+                   deferred_roles=list(DEFERRED_ROLES), role_catalog=list(ROLES),
+                   eval_members=list(REQUESTED_ROLES), overall_eight_pass_rate=None, comparison=None)
+     result.update(kind=KIND, purpose=KIND, integration=INTEGRATION, policy_variant=POLICY_VARIANT)
+-    validate_reference_row(result)
++    validate_bound_probe_row(result)
+     _validate_batch_members(result, role['role'])
+     return result
+ 
+@@ -208,7 +209,7 @@
+     task, _ = _base._metadata(args.task)
+     validate_group_task(task, task.get('role'), args.group_root, args.task.parent)
+     _base.configure_candidate_runtime(task, args.task.parent)
+-    _base.put_json(args.task.parent / 'REFERENCE_POLICY_IDENTITY.json', dict(policy_variant=POLICY_VARIANT,
++    _base.put_json(args.task.parent / 'BOUND_PROBE_POLICY_IDENTITY_V1.json', dict(policy_variant=POLICY_VARIANT,
+         batch_purpose=BATCH_PURPOSE, actor_semantics=task['actor_semantics'], actor_container_identity=task['actor_container_identity'],
+         source_path=task['source_path'], source_SHA=task['source_SHA'], source_bytes=task['source_bytes'],
+         original_bootstrap_teacher=task['original_bootstrap_teacher'], actual_paired_protocol_UID_match=None))
+@@ -223,7 +224,7 @@
+                 all_members_ready=True, epoch=epoch, batch_purpose=BATCH_PURPOSE,
+                 requested_roles=list(REQUESTED_ROLES), deferred_roles=list(DEFERRED_ROLES),
+                 overall_eight_pass_rate=None, comparison=None,
+-                source='BothRequestedOriginalScenes_EmbeddedOriginalTeacher_N80FullDR_BeforeAnyControlledStep')
++                source='BothRequestedOriginalScenes_ZERO_UPDATE_BoundOnly_N80FullDR_BeforeAnyControlledStep')
+ 
+ 
+ def validate_start(task, value):
+@@ -317,7 +318,7 @@
+                if _terminal_success(row)
+                else dict(absolute_original_scope_rate=None, reason='actual waited semantic success required'))
+                for row in terminal}
+-    return dict(kind='ACTUAL_EMBEDDED_ORIGINAL_TEACHER_E3_W35_REFERENCE_V1', batch_purpose=BATCH_PURPOSE, policy_variant=POLICY_VARIANT,
++    return dict(kind='ACTUAL_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_PROBE_V1', batch_purpose=BATCH_PURPOSE, policy_variant=POLICY_VARIANT,
+         group_id=plan['group_id'], GPU_UUID=plan['GPU_UUID'], requested_roles=list(REQUESTED_ROLES),
+         deferred_roles=list(DEFERRED_ROLES), original_eight_role_catalog=copy.deepcopy(plan['roles']),
+         original_scopes=copy.deepcopy(ORIGINAL_SCOPES), common_start_epoch=group_start,
+@@ -329,6 +330,7 @@
+         reference_cache_match=None, reward_effect_identification=None,
+         E0_original_binary_predicate=None, SLOPE_INDEPENDENT50_original_binary_predicate=None,
+         source20k_DR_history_sliced=False, source20k_histories_physically_applied=False,
++        probe_training_updates=0, probe_BPTT_policy_steps=0, probe_optimizer_updates=dict(pi=0, wm=0, aux=0, critic=0),
+         old20k_fullrestore_proof_preserved_separately=True, new_PPO_BPTT_GO=0, canonical_writes=0,
+         training_counts_are_not_skill_success=True, epoch=epoch)
+ 
+@@ -436,48 +438,33 @@
+         Path.resolve = original
+ 
+ 
+-class ReferenceCaller(_ref.EmbeddedTeacherReferenceCaller):
++class BoundProbeCaller(_probe.BoundOnlyPolicyCaller):
+     def receipt(self):
+         return dict(super().receipt(), paired_reset_protocol=paired_protocol_receipt(), unresolved_evidence=unresolved_evidence())
+ 
+ 
+-class A1CheckpointAdapter(_base.A1CheckpointAdapter):
+-    """Same ONE whole A1 cache; effective actor is only the embedded original teacher."""
++class A1CheckpointAdapter(_route.BoundOnlyCheckpointAdapter):
++    """ONE original cache; virtual caller factory, never super().actor then rebuild."""
++    caller_type = BoundProbeCaller
+     def __init__(self, torch_module, task):
+-        validate_reference_row(task)
++        validate_bound_probe_row(task)
+         super().__init__(torch_module, task)
+-    def actor(self, device, n=80):
+-        original = super().actor(device, n)
+-        from tensordict import TensorDict
+-        reference = _ref.EmbeddedTeacherMeanReference(original.mean, tensor_dict_cls=TensorDict,
+-            producer_final=self.task['a1_producer']['FINAL'], expected_rsl_source=self.task['approved_RSL_model_source'],
+-            producer_freeze_evidence=validate_reference_row(self.task))
+-        self.caller = ReferenceCaller(reference, boundary=original.boundary)
+-        return self.caller
+     def receipt(self):
+-        result = dict(self.cache.receipt(), integration=INTEGRATION, policy_variant=POLICY_VARIANT,
+-            policy_family='EMBEDDED_ORIGINAL_TEACHER_MEAN', batch_purpose=BATCH_PURPOSE,
++        value = super().receipt()
++        value.update(integration=INTEGRATION, batch_purpose=BATCH_PURPOSE,
++            actor_semantics='OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE',
+             actor_container_identity='OWN_A1_FULL_CHECKPOINT_CONTAINER_NOT_MOTHER_FILE',
+             original_bootstrap_teacher=dict(self.task['original_bootstrap_teacher']),
+-            producer_teacher_freeze_evidence=validate_reference_row(self.task),
++            producer_teacher_freeze_evidence=validate_bound_probe_row(self.task),
+             old_RSL_actor_checkpoint_loader_used=False,
+             approved_reference_provenance=dict(self.task['approved_reference_provenance']),
+-            approved_RSL_model_source=dict(self.task['approved_RSL_model_source']),
+-            actual_eval_RSL_source_binding=(dict(self.caller.mean.actual_RSL_source) if self.caller is not None else None),
+             admitted_producer_run_id=self.task['a1_producer']['run_id'],
+-            actual_BPTT_policy_steps=self.task['a1_producer']['FINAL']['actual_BPTT_policy_steps'])
++            actual_BPTT_policy_steps=self.task['a1_producer']['FINAL']['actual_BPTT_policy_steps'],
++            legacy_source_provenance_aliases_are_historical_not_probe_updates=True,
++            actual_eval_RSL_source_binding=(dict(self.caller.mean.source_bindings['rsl_rl.models.MLPModel']) if self.caller is not None else None))
+         if self.caller is not None:
+-            reference = self.caller.receipt()
+-            result['embedded_teacher_reference'] = reference
+-            states = reference['full_teacher_state_manifest']
+-            norms = [row['name'] for row in states if 'norm' in row['name'].lower()]
+-            buffers = [row['name'] for row in states if row['kind'] == 'buffer']
+-            result['actual_teacher_state_capabilities'] = dict(normalization_state_names=norms, named_buffers=buffers,
+-                normalization='identity_no_persistent_teacher_norm_state_observed' if not norms else 'actual_manifest_above',
+-                persistent_buffer_case='not_applicable_no_buffer_in_actual_schema' if not buffers else 'all_buffers_value_checked',
+-                std_state_names=[row['name'] for row in states if 'std' in row['name'].lower()],
+-                whole_pi_residual_RMS_guard_still_active=True)
+-        return result
++            value['bound_only_probe'] = value.pop('frozen_mean')
++        return value
+ 
+ 
+ def evaluate_waited_eval_case(case, returncode, role_entry, group_id):
+@@ -510,18 +497,22 @@
+              and source.get('replay_or_saved_history_sliced_or_restored') is False
+              and source.get('live_optimizer_WM_critic_replay_created') is False,
+              'whole CPU cache/mother-zero receipt required')
+-        need(final.get('policy_variant') == POLICY_VARIANT and final.get('evaluation_purpose') == BATCH_PURPOSE,
+-             'explicit reference FINAL variant/purpose required')
+-        evidence = validate_reference_row(role_entry)
+-        reference = source.get('embedded_teacher_reference')
+-        _ref.validate_reference_semantics(reference, expected_role=role, expected_source_sha=checkpoint['SHA'],
+-            expected_bootstrap_teacher_sha=role_entry['original_bootstrap_teacher']['source_SHA'], expected_actor_calls=CONTROLS[role])
+-        need(reference.get('producer_teacher_state_guard') == evidence
++        need(final.get('policy_variant') == POLICY_VARIANT and final.get('evaluation_purpose') == BATCH_PURPOSE
++             and final.get('actor_semantics') == 'OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE', 
++             'explicit bound-probe FINAL variant/purpose required')
++        evidence = validate_bound_probe_row(role_entry)
++        probe = source.get('bound_only_probe')
++        _probe.validate_bound_probe_receipt(probe, expected_role=role, expected_source_sha=checkpoint['SHA'], expected_actor_calls=CONTROLS[role])
++        need(probe.get('synthetic_only') is False and source.get('native_enabled') is True
++             and source.get('probe_training_updates') == source.get('probe_BPTT_policy_steps') == 0
++             and source.get('probe_optimizer_updates') == dict(pi=0, wm=0, aux=0, critic=0)
+              and source.get('producer_teacher_freeze_evidence') == evidence and 'frozen_mean' not in source
+-             and source.get('policy_variant') == POLICY_VARIANT
+-             and source.get('policy_family') == 'EMBEDDED_ORIGINAL_TEACHER_MEAN'
+-             and source.get('original_bootstrap_teacher') == role_entry['original_bootstrap_teacher'], 'reference source/producer/actor identity differs')
+-        paired = reference.get('paired_reset_protocol')
++             and 'embedded_teacher_reference' not in source and source.get('policy_variant') == POLICY_VARIANT
++             and source.get('policy_family') == 'zero_update_tanh_postprocess_of_original_full_A1_not_training'
++             and source.get('actor_semantics') == 'OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE'
++             and source.get('original_bootstrap_teacher') == role_entry['original_bootstrap_teacher'],
++             'ZERO_UPDATE effective actor/source/producer identity differs')
++        paired = probe.get('paired_reset_protocol')
+         need(type(paired) is dict and paired.get('candidate_pose_installed') is True
+              and paired.get('protocol') == validate_paired_protocol(role_entry.get('paired_reset_protocol')),
+              'shared original pose installer/protocol receipt missing; no matched UID claim')
+@@ -549,13 +540,13 @@
+             _validate_returned_app_binding(binding, helper)
+     except BaseException as exc:
+         reasons.append('semantic_metadata:' + str(exc))
+-    return dict(kind='ACTUAL_WAITED_EMBEDDED_ORIGINAL_TEACHER_N80_REFERENCE_SEMANTIC_V1', role=role, group_id=group_id,
++    return dict(kind='ACTUAL_WAITED_ZERO_UPDATE_BOUND_ONLY_N80_SEMANTIC_V1', role=role, group_id=group_id,
+                 actual_waited_returncode=returncode, passed_execution=not reasons, original_error=bool(reasons), reasons=reasons,
+                 original_fast_close_expected_nonreturn_accepted=bool(not reasons and intent is not None),
+                 actual_resource_admission_or_parent_wait_proof='CALLER_ORIGINAL_P_WAIT_REQUIRED_NOT_CREATED_HERE',
+                 UID_alignment=None, reference_cache_match=None, paired_reward_effect=None)
+ 
+-def grade_closed_reference_group(group_root):
++def grade_closed_bound_probe_group(group_root):
+     """Read-only original close/exit receipts; never creates external parent-wait proof."""
+     root = Path(group_root).resolve(); reasons = []; checked = []
+     def read(name):
+@@ -570,11 +561,11 @@
+         plan = read('GROUP_PLAN.json'); rows = select_requested_roles(plan)
+         need(plan['group_id'] == root.name, 'own closed reference group identity differs')
+         final = read('FINAL.json'); _batch_fields(final)
+-        need(final.get('kind') == 'ACTUAL_EMBEDDED_ORIGINAL_TEACHER_E3_W35_REFERENCE_V1'
++        need(final.get('kind') == 'ACTUAL_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_PROBE_V1'
+              and final.get('group_id') == plan['group_id'] and final.get('GPU_UUID') == plan['GPU_UUID']
+              and final.get('all_requested_actual_execution_complete') is True
+              and final.get('requested_ready_before_start') is True
+-             and final.get('original_eight_role_catalog') == plan['roles'], 'original reference batch FINAL incomplete or mismatched')
++             and final.get('original_eight_role_catalog') == plan['roles'], 'original bound-probe batch FINAL incomplete or mismatched')
+         admission = read('ACTUAL_GROUP_ADMISSION.json')
+         need(admission.get('group_id') == plan['group_id'] and admission.get('original_private_GPU_EX_held') is True
+              and admission.get('original_global_finite_EX_held') is True and admission.get('canonical_writes') == 0
+@@ -599,17 +590,17 @@
+             semantic = evaluate_waited_eval_case(case, row['returncode'],
+                 dict(entry, paired_reset_protocol=plan['paired_reset_protocol']), plan['group_id'])
+             need(semantic.get('passed_execution') is True and row.get('semantic') == semantic,
+-                 'reference original semantic gate differs after close: ' + role)
++                 'bound-probe original semantic gate differs after close: ' + role)
+             case_final, _ = _base._metadata(case / 'FINAL.json')
+             need(row.get('data') == case_final, 'original terminal/actual case FINAL differs: ' + role)
+             checked.append(role)
+     except Exception as error:
+         reasons.append(type(error).__name__ + ':' + str(error))
+-    return dict(kind='CLOSED_EMBEDDED_TEACHER_REFERENCE_SOURCE_GRADE_V1', policy_variant=POLICY_VARIANT,
+-        batch_purpose=BATCH_PURPOSE, group_root=str(root), passed_closed_reference_source_grade=not reasons,
++    return dict(kind='CLOSED_ZERO_UPDATE_BOUND_ONLY_NATIVE_SOURCE_GRADE_V1', policy_variant=POLICY_VARIANT,
++        batch_purpose=BATCH_PURPOSE, group_root=str(root), passed_closed_bound_probe_source_grade=not reasons,
+         original_error=bool(reasons), reasons=reasons, checked_roles=checked,
+         external_executing_parent_actual_wait_required=True, external_parent_wait_proof_created_here=False,
+-        qualified_reference_execution=None, UID_alignment=None, reference_cache_match=None,
++        qualified_bound_probe_execution=None, UID_alignment=None, reference_cache_match=None,
+         relative_improvement=None, paired_reward_effect=None, overall_eight_pass_rate=None,
+         C_or_lock_or_SDK_or_checkpoint_operations=0)
+ 
+@@ -621,12 +612,12 @@
+     modes.add_argument('--grade-closed-group', type=Path)
+     args = parser.parse_args()
+     if args.grade_closed_group is not None:
+-        result = grade_closed_reference_group(args.grade_closed_group)
++        result = grade_closed_bound_probe_group(args.grade_closed_group)
+         print(json.dumps(result, sort_keys=True))
+-        raise SystemExit(0 if result['passed_closed_reference_source_grade'] else 1)
++        raise SystemExit(0 if result['passed_closed_bound_probe_source_grade'] else 1)
+     plan, _ = _base._metadata(args.validate_plan)
+     rows = select_requested_roles(plan)
+     print(json.dumps(dict(kind='SOURCE_MICROBATCH_PLAN_VALIDATION_NOT_NATIVE',
+         requested_roles=[row['role'] for row in rows], deferred_roles=list(DEFERRED_ROLES),
+-        policy_variant=POLICY_VARIANT, reference_not_candidate=True,
++        policy_variant=POLICY_VARIANT, zero_update_bound_probe=True, native_capable=True, actual_native_enabled=False, actual_staged=False,
+         overall_eight_pass_rate=None, comparison=None, resources_acquired=0, model_opens=0), sort_keys=True))
+--- SEALED_INPUT/worker_formal_bound_only_v1.py
++++ NEW/worker_formal_bound_only_v1.py
+@@ -1,10 +1,10 @@
+-"""E0/E2/E3/H1normal/W35 ownactualfactory N80freshDR, EMBEDDED ORIGINAL TEACHER MEAN, explicit E3/W35 reference barrier. No saved20k projection/no learning."""
++"""E0/E2/E3/H1normal/W35 ownactualfactory N80freshDR, ZERO_UPDATE BOUND ONLY, explicit E3/W35 probe barrier. No saved20k projection/no learning."""
+ from pathlib import Path
+ import os,sys,json,time,runpy,traceback,math,types
+ sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+ from parallel_eval_safe import put
+-from frozen_embedded_teacher_native_runtime_v1 import wait_start
+-from frozen_embedded_teacher_native_runtime_v1 import task_args,A1CheckpointAdapter,install_paired_pose_before_original_reset,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
++from bound_only_native_runtime_v1 import wait_start
++from bound_only_native_runtime_v1 import task_args,A1CheckpointAdapter,install_paired_pose_before_original_reset,record_primary_error,close_original_eval_resources,INTEGRATION,paired_protocol_receipt,unresolved_evidence
+ from launch_storage_contract import parent_five_storage
+ from n80_gpu_capacity import capacity_ctor
+ 
+@@ -116,7 +116,7 @@
+   if role=='H1_normal':skill.update(original_phase_natural_boolean_event_counts={k:int(v.sum())for k,v in h1_flags.items()},horizon_scope='20secondsoriginalcfgdefaultnotprovedoriginalacceptedcohort',original_270mm_event_source='Owntrue270physicalcallbackstate; no generic18cmheightreplacement')
+   if role=='E2':skill.update(domain='OwnE2_WORLD_MOVING_SIGNED4',cycle_rule='SameUIDepisode/direction/sign fullsigned2pi plus .5±.05/cross±.05/yaw±.2 andnonterminal/nontimeout',exact_cycle_observer_status='OriginalE2Cycles213sameUIDsigned2pi observerattachedtofreshN80; notoriginal20kcohort',original_E2_sameUID_cycle_facts=e2cycles.finish())
+   if book is not None:skill['original_RM70_interval_route_facts']=book.finish();book.uninstall();book=None
+-  result=dict(policy_variant=task['policy_variant'],evaluation_purpose=task['batch_purpose'],actor_semantics='EMBEDDED_ORIGINAL_TEACHER_MEAN',kind=task['kind'],group_id=task['group_id'],role=role,GPU_UUID=task['GPU_UUID'],passed_execution=True,num_envs=80,controls=completed,seconds=.02*completed,physics_callbacks=physics,feedback_samples=feedback,delay_calls=actual_delay,source_cache=cache.receipt(),A1_entire_pi_weights_norms_before_after_frozen=True,cached_full_checkpoint_before_after_exact=True,live_critic_optimizer_created=False,optimizer_updates=0,original_RSL_clip_actions=6.,max_raw_action_abs=maxraw,max_applied_action_abs=maxapplied,source_saved20k_DR_history_applied=False,source20k_DR_sliced=False,D0_D7_fresh_audit_before=audit,D0_D7_fresh_audit_after=after,termination_events_by_reason=reasons,unique_envs_terminated=int(terminated_env.sum()),unique_envs_truncated=int(truncated_env.sum()),episode_end_events=int(episode_events.sum()),reward_sum_per_env=reward_sum.cpu().tolist(),max_current_closure_m=current_closure_max,max_current_mimic_rad=current_mimic_max,old002_closure_prefix_hit_envs=int(original_old_closure_boundary.sum()),skill=skill,first_eval_epoch=eval_started,last_eval_epoch=time.time(),wall_seconds=time.time()-start_wall,integration=INTEGRATION,paired_reset_protocol=paired_protocol_receipt(),unresolved_evidence=unresolved_evidence(),canonical_access=False,new_PPO_or_BPTT=False,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);put(out/'FINAL.json',result);env.termination_manager.compute=oldterm
++  result=dict(policy_variant=task['policy_variant'],evaluation_purpose=task['batch_purpose'],actor_semantics='OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE',kind=task['kind'],group_id=task['group_id'],role=role,GPU_UUID=task['GPU_UUID'],passed_execution=True,num_envs=80,controls=completed,seconds=.02*completed,physics_callbacks=physics,feedback_samples=feedback,delay_calls=actual_delay,source_cache=cache.receipt(),A1_entire_pi_weights_norms_before_after_frozen=True,cached_full_checkpoint_before_after_exact=True,live_critic_optimizer_created=False,optimizer_updates=0,original_RSL_clip_actions=6.,max_raw_action_abs=maxraw,max_applied_action_abs=maxapplied,source_saved20k_DR_history_applied=False,source20k_DR_sliced=False,D0_D7_fresh_audit_before=audit,D0_D7_fresh_audit_after=after,termination_events_by_reason=reasons,unique_envs_terminated=int(terminated_env.sum()),unique_envs_truncated=int(truncated_env.sum()),episode_end_events=int(episode_events.sum()),reward_sum_per_env=reward_sum.cpu().tolist(),max_current_closure_m=current_closure_max,max_current_mimic_rad=current_mimic_max,old002_closure_prefix_hit_envs=int(original_old_closure_boundary.sum()),skill=skill,first_eval_epoch=eval_started,last_eval_epoch=time.time(),wall_seconds=time.time()-start_wall,integration=INTEGRATION,paired_reset_protocol=paired_protocol_receipt(),unresolved_evidence=unresolved_evidence(),canonical_access=False,new_PPO_or_BPTT=False,asset_SHA=task['asset_SHA'],contract_SHA=task['contract_SHA']);put(out/'FINAL.json',result);env.termination_manager.compute=oldterm
+  except BaseException:
+   record_primary_error(out,role=role,phase='formal_worker',error=traceback.format_exc(),cache=cache);raise
+  finally:
+--- SEALED_INPUT/single_gpu_e3_w35_bound_only_parent_v1.py
++++ NEW/single_gpu_e3_w35_bound_only_parent_v1.py
+@@ -1,15 +1,15 @@
+-"""Independent E3/W35 EMBEDDED ORIGINAL TEACHER reference; original EX/readiness/wait blocks unchanged."""
++"""Independent E3/W35 ZERO_UPDATE BOUND ONLY probe; original EX/readiness/wait blocks unchanged."""
+ from pathlib import Path
+ import os,sys,json,time,hashlib,fcntl,subprocess,traceback,signal,shutil
+ import psutil
+-from frozen_embedded_teacher_native_runtime_v1 import make_task,ROLES,evaluate_waited_eval_case,select_requested_roles,batch_start,batch_result,grade_closed_reference_group
++from bound_only_native_runtime_v1 import make_task,ROLES,evaluate_waited_eval_case,select_requested_roles,batch_start,batch_result,grade_closed_bound_probe_group
+ B=Path(__file__).resolve().parent;OWN=Path('/home/lc01/Zonglin Li/zonglin2')
+ def put(n,v):
+  p=B/n;q=p.with_suffix(p.suffix+'.partial');q.write_text(json.dumps(v,indent=2,allow_nan=False));q.replace(p)
+ def nvidia(uuid):
+  raw=subprocess.check_output(['/usr/bin/nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.total,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip();x=[v.strip()for v in raw.split(',')];return dict(GPU_UUID=x[0],name=x[1],total_MiB=int(x[2]),free_MiB=int(x[3]),utilization_percent=int(x[4]))
+ def main():
+- assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=select_requested_roles(plan);requested=tuple(plan['requested_roles']);put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_EMBEDDED_ORIGINAL_TEACHER_E3_W35_REFERENCE_V1',requested_roles=list(requested),deferred_roles=plan['deferred_roles'],overall_eight_pass_rate=None,GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
++ assert B.is_relative_to(OWN/'tasks')and not(B/'PARENT_STARTED.json').exists();plan=json.loads((B/'GROUP_PLAN.json').read_bytes());uuid=plan['GPU_UUID'];roles=select_requested_roles(plan);requested=tuple(plan['requested_roles']);put('PARENT_STARTED.json',dict(pid=os.getpid(),creation=psutil.Process().create_time(),epoch=time.time(),kind='ONEGPU_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_PROBE_V1',requested_roles=list(requested),deferred_roles=plan['deferred_roles'],overall_eight_pass_rate=None,GPU_UUID=uuid));locks=[];children=[];errors=[];group_start=None;started=time.time();terminal=[]
+  try:
+   for r in plan['worker_files']:
+    p=B/r['relative'];raw=p.read_bytes();assert len(raw)==r['bytes']and hashlib.sha256(raw).hexdigest()==r['SHA']
+@@ -76,9 +76,9 @@
+    for fd in reversed(locks):fcntl.flock(fd,fcntl.LOCK_UN)
+   for fd in locks:fd.close()
+   put('PARENT_EXIT_SCOPE.json',dict(epoch=time.time(),all_own_children_waited=waited,child_waits=waits,original_single_GPU_private_EX_released=waited,original_global_finite_EX_released=waited,errors=errors,no_foreign_scope_touched=True,canonical_writes=0,SDK_PT_opens_by_parent=0,wall_seconds=time.time()-started))
+-def reference_parent_entry():
++def bound_probe_parent_entry():
+  main()
+  # Original complete main/finally ran first; no lock/account/wait operation is replaced.
+- grade=grade_closed_reference_group(B);put('REFERENCE_GROUP_CLOSED_SOURCE_GRADE_V1.json',grade)
+- if not grade['passed_closed_reference_source_grade']:raise SystemExit(1)
+-if __name__=='__main__':reference_parent_entry()
++ grade=grade_closed_bound_probe_group(B);put('BOUND_PROBE_GROUP_CLOSED_SOURCE_GRADE_V1.json',grade)
++ if not grade['passed_closed_bound_probe_source_grade']:raise SystemExit(1)
++if __name__=='__main__':bound_probe_parent_entry()
+--- SEALED_INPUT/stage_bound_only_native_v1.py
++++ NEW/stage_bound_only_native_v1.py
+@@ -1,4 +1,4 @@
+-"""Teacher-reference stdlib ONLY: sixteen complete mappings and original static plant; one NEW stage, NEVER dispatch.
++"""ZERO_UPDATE bound-only stdlib ONLY: seventeen complete mappings and original static plant; one NEW stage, NEVER dispatch.
+ 
+ Index Windows paths are provenance only; actual input sources are flat basenames.
+ No selected/mother checkpoint stat, hash, read, copy, decode, SDK, C or lock access.
+@@ -27,19 +27,19 @@
+ REQUESTED = ('E3', 'W35')
+ CONTROLS = dict(E0=1000, E2=1200, E3=160, W35=1600, CURB_PROTECTED878=750,
+                 CURB_INDEPENDENT113=750, SLOPE135=750, SLOPE_INDEPENDENT50=1000)
+-INDEX_PIN = (5685, 'cfedd40d5c70d61a5a32e10861c3af3b6da16cab86c23306053eeccb650c5205')
++INDEX_PIN = (6085, 'd0519c7a351513a61f4c0c5c055b74bc7df41ac0300ce964207dd9508254f19a')
+ ORIGINAL_GROUP_ID = 'MOD4V1_NINE_N80_SINGLE_GPU_PARALLEL_V8_20261102_101426_1793585666425343700'
+ NATIVE_RUN_ID = 'MOD4V1_A1_RAW35_V6_ADMISSION2_20261102_231937_1793632777470828000'
+ USD = '2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'
+ CONTRACT = 'bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755'
+ VENDOR_PIN = (7, 'ddf9d6e1744c050fd5298805d125a611673ff22ade52c5177fb02c488ff8f0c0')
+-ALIASES = {'single_gpu_e3_w35_embedded_teacher_parent_v1.py', 'frozen_embedded_teacher_native_runtime_v1.py',
++ALIASES = {'single_gpu_e3_w35_bound_only_parent_v1.py', 'bound_only_native_runtime_v1.py',
+     'worker_sources/parent/worker_five_original_n80.py', 'worker_sources/e1/e1_parallel_worker_safe.py',
+     'worker_sources/e1/e1_fresh_runtime_bridge.py', 'a1_frozen_eval_runtime_v2.py',
+     'frozen_a1_raw35_v1.py', 'pose_cache_runtime_adapter_v3.py', 'app_close_semantics_v5.py',
+     'native_supermimic_bridge.py', 'supermimic_vendor_v2/networks.py',
+     'supermimic_vendor_v2/geometry.py', 'supermimic_vendor_v2/contract.py', 'resume_runtime_contracts_v3.py',
+-    'embedded_teacher_reference_v1.py', 'producer_teacher_guard_v1.py'}
++    'bound_only_native_helper_v1.py', 'bound_only_native_route_v1.py', 'producer_bound_probe_guard_v1.py'}
+ MODEL_SUFFIXES = {'.pt', '.pth', '.ckpt', '.safetensors', '.onnx', '.pt2', '.pkl', '.pickle'}
+ DENIED_SUFFIXES = MODEL_SUFFIXES | {'.pyc', '.pyo', '.partial', '.jsonl', '.log', '.lock'}
+ DENIED_NAMES = {'model', 'models', 'adaptation', 'production', 'checkpoint', 'checkpoints',
+@@ -155,9 +155,9 @@
+ 
+ def source_mappings(source_dir, source_index):
+     index, raw = metadata(source_index)
+-    need((len(raw), H(raw)) == INDEX_PIN, 'sealed sixteen-mapping index pin differs')
+-    need(index.get('kind') == 'SOURCE_ONLY_16_MAPPINGS_EMBEDDED_ORIGINAL_TEACHER_NATIVE_V1', 'index schema differs')
+-    entries = index.get('entries'); need(type(entries) is list and len(entries) == 16, 'exact sixteen mappings required')
++    need((len(raw), H(raw)) == INDEX_PIN, 'sealed seventeen-mapping index pin differs')
++    need(index.get('kind') == 'SOURCE_ONLY_17_MAPPINGS_ZERO_UPDATE_BOUND_ONLY_NATIVE_V1', 'index schema differs')
++    entries = index.get('entries'); need(type(entries) is list and len(entries) == 17, 'exact seventeen mappings required')
+     result = {}; basenames = set(); source_dir = Path(source_dir)
+     for entry in entries:
+         rel = safe_relative(entry['relative'])
+@@ -169,7 +169,7 @@
+         need((info['bytes'], info['SHA']) == (entry['bytes'], entry['SHA256']), 'flat source pin differs: ' + basename)
+         ast.parse(path.read_bytes())  # Validate complete module; never slice/transform it.
+         result[rel] = (path, info)
+-    need(set(result) == ALIASES, 'complete sixteen reference mappings required once')
++    need(set(result) == ALIASES, 'complete seventeen reference mappings required once')
+     return result, dict(path=str(source_index), bytes=len(raw), SHA=H(raw), provenance_paths_not_dereferenced=True)
+ 
+ 
+@@ -270,7 +270,8 @@
+ 
+ 
+ def prepare(original_group_root, original_plan, source_dir, source_index, native_root, new_root, group_id, gpu_uuid,
+-            *, vendor_pin=VENDOR_PIN):
++            *, vendor_pin=VENDOR_PIN, collect_action_statistics=False):
++    need(type(collect_action_statistics) is bool, 'statistics selection must be an explicit bool')
+     original_group_root, new_root = lexical(original_group_root), lexical(new_root)
+     need(not new_root.is_symlink() and not new_root.exists(), 'new-root must not exist; no overwrite or retry')
+     need(group_id == new_root.name and group_id != ORIGINAL_GROUP_ID
+@@ -296,7 +297,7 @@
+         need(info == {k: item[k] for k in ('bytes', 'SHA')}, 'actual original worker-file pin differs: ' + rel)
+         materials[rel] = (src, info)
+     need(old.get('worker_files') and len({r['relative'] for r in old['worker_files']}) == len(old['worker_files']), 'unique original worker list required')
+-    plan = dict(kind='FROZEN_EMBEDDED_TEACHER_E3_W35_REFERENCE_PLAN_V1', batch_purpose='FROZEN_EMBEDDED_ORIGINAL_TEACHER_E3_W35_REFERENCE_V1', policy_variant='ORIGINAL_EMBEDDED_TEACHER_MEAN_FROM_FULL_A1_V1',
++    plan = dict(kind='FROZEN_ZERO_UPDATE_BOUND_ONLY_NATIVE_PLAN_V1', batch_purpose='FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_N80_V1', policy_variant='A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1',
+         group_id=group_id, GPU_UUID=gpu_uuid, asset_SHA=USD, contract_SHA=CONTRACT,
+         requested_roles=list(REQUESTED), deferred_roles=[r for r in ROLES if r not in REQUESTED],
+         comparison=None, relative_improvement=None, paired_actual_reference=None, UID_alignment=None,
+@@ -320,13 +321,15 @@
+             row['a1_producer'] = producers[role]; checkpoint = producers[role]['FINAL']['checkpoint']
+             row.update(source_path=checkpoint['path'], source_SHA=checkpoint['SHA'], source_bytes=checkpoint['bytes'],
+                        source_identity='OWN_A1_FULL_NEW_CHECKPOINT_NOT_MOTHER_OR_OLD_PPO')
+-            guard_path = sources['producer_teacher_guard_v1.py'][0]
++            guard_path = sources['producer_bound_probe_guard_v1.py'][0]
+             spec = importlib.util.spec_from_file_location('_teacher_guard_stage_v1', guard_path)
+             guard = importlib.util.module_from_spec(spec); spec.loader.exec_module(guard)
+-            row.update(policy_variant='ORIGINAL_EMBEDDED_TEACHER_MEAN_FROM_FULL_A1_V1', actor_semantics='EMBEDDED_ORIGINAL_TEACHER_MEAN',
++            row.update(policy_variant='A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1', actor_semantics='OWN_A1_TEACHER_PLUS_POINT05_TANH_RESIDUAL_ZERO_UPDATE',
+                 actor_container_identity='OWN_A1_FULL_CHECKPOINT_CONTAINER_NOT_MOTHER_FILE',
+                 original_bootstrap_teacher=guard.teacher_identity(producers[role]['FINAL']['teacher']),
+-                producer_teacher_freeze_evidence=guard.derive_producer_guard(producers[role]))
++                producer_teacher_freeze_evidence=guard.derive_producer_guard(producers[role]),
++                bound_only_probe=dict(purpose='FROZEN_ZERO_UPDATE_BOUND_ONLY_E3_W35_NATIVE_N80_V1', policy_variant='A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1',
++                    zero_update=True, native_enabled=True, collect_action_statistics=collect_action_statistics))
+         plan['roles'].append(row)
+     vendor = tree(Path(native_root) / 'roles' / 'E3' / 'worker_sources' / 'supermimic_vendor_v2')
+     observed = digest_tree(vendor)
+@@ -407,7 +410,7 @@
+     root = Path(root); old_path = list(sys.path); old_argv = sys.argv; old_bytecode = sys.dont_write_bytecode
+     old_resolve, old_open, old_io_open = Path.resolve, builtins.open, io.open
+     old_stat, old_lstat = os.stat, os.lstat
+-    watched = ('a1_frozen_eval_runtime_v2', 'frozen_embedded_teacher_native_runtime_v1', 'embedded_teacher_reference_v1', 'producer_teacher_guard_v1', 'app_close_semantics_v5', 'resume_runtime_contracts_v3')
++    watched = ('a1_frozen_eval_runtime_v2', 'bound_only_native_runtime_v1', 'bound_only_native_helper_v1', 'bound_only_native_route_v1', 'frozen_a1_raw35_v1', 'producer_bound_probe_guard_v1', 'app_close_semantics_v5', 'resume_runtime_contracts_v3')
+     old_modules = {name: sys.modules.get(name) for name in watched}; avoided = []
+     def resolve(path, *args, **kwargs):
+         if model_path(path): avoided.append(str(path)); return lexical(path)
+@@ -424,7 +427,7 @@
+         return call
+     output = io.StringIO()
+     try:
+-        sys.path.insert(0, str(root)); sys.argv = [str(root / 'frozen_embedded_teacher_native_runtime_v1.py'), '--validate-plan', str(root / 'GROUP_PLAN.json')]
++        sys.path.insert(0, str(root)); sys.argv = [str(root / 'bound_only_native_runtime_v1.py'), '--validate-plan', str(root / 'GROUP_PLAN.json')]
+         sys.dont_write_bytecode = True
+         for name in watched: sys.modules.pop(name, None)
+         Path.resolve = resolve; builtins.open = guarded(old_open); io.open = guarded(old_io_open)
+@@ -433,9 +436,9 @@
+             root / ('app_close_semantics_v6.py' if plan_bytes is not None else 'app_close_semantics_v5.py'),
+             root / 'resume_runtime_contracts_v3.py')
+         with contextlib.redirect_stdout(output):
+-            runpy.run_path(str(root / 'frozen_embedded_teacher_native_runtime_v1.py'), run_name='__main__')
++            runpy.run_path(str(root / 'bound_only_native_runtime_v1.py'), run_name='__main__')
+         result = json.loads(output.getvalue())
+-        need(result.get('policy_variant') == 'ORIGINAL_EMBEDDED_TEACHER_MEAN_FROM_FULL_A1_V1' and result.get('reference_not_candidate') is True, 'reference metadata CLI variant differs')
++        need(result.get('policy_variant') == 'A1_RAW35_ZERO_UPDATE_BOUND_ONLY_TANH_NATIVE_PROBE_V1' and result.get('zero_update_bound_probe') is True and result.get('actual_native_enabled') is False, 'bound-only metadata CLI variant differs')
+         need(result.get('requested_roles') == list(REQUESTED) and result.get('resources_acquired') == result.get('model_opens') == 0,
+              'sealed metadata CLI did not validate exact requested batch')
+         need('torch' not in sys.modules and 'isaacsim' not in sys.modules, 'metadata CLI imported native package')
+@@ -462,18 +465,18 @@
+ 
+ 
+ def preflight_summary(prepared):
+-    return dict(kind='SOURCE_TEACHER_REFERENCE_PREFLIGHT_ONLY_NO_ADMISSION_V1', passed=True,
++    return dict(kind='SOURCE_BOUND_ONLY_NATIVE_PREFLIGHT_NO_ADMISSION_V1', passed=True,
+         new_root=str(prepared['new_root']), requested_roles=list(REQUESTED), deferred_roles=list(ROLES[2:]),
+         files=len(prepared['materials']), source_index=prepared['source_index'], native_boundary=prepared['boundary'],
+         native_vendor=prepared['native_vendor'], original_plan_SHA=prepared['original_plan_SHA'],
+         metadata_validation=prepared['metadata_validation'], resource_admission=None, actual_frozen_evaluation=None, comparison=None, overall_eight_pass_rate=None,
+-        model_stat_hash_open_decode=0, C_lock_SDK_GPU_GO_operations=0, parent_launches=0, staged=False)
++        model_stat_hash_open_decode=0, C_lock_SDK_GPU_GO_operations=0, parent_launches=0, staged=False, actual_native_enabled=False)
+ 
+ 
+ def stage(prepared):
+     root = prepared['new_root']; need(not root.is_symlink() and not root.exists(), 'actual stage root already exists')
+     root.mkdir(parents=False, exist_ok=False)  # once only; no automatic cleanup or overwrite after failure
+-    put_json(root / 'STAGE_BEGIN_EMBEDDED_TEACHER_REFERENCE_V1.json', preflight_summary(prepared))
++    put_json(root / 'STAGE_BEGIN_BOUND_ONLY_NATIVE_V1.json', preflight_summary(prepared))
+     try:
+         rows = []
+         for rel, (source, info) in sorted(prepared['materials'].items()):
+@@ -487,18 +490,18 @@
+             rows.append(dict(relative=rel, **info))
+         put_once(root / 'GROUP_PLAN.json', prepared['encoded_plan'])
+         validation = metadata_validate(root)
+-        put_json(root / 'STAGED_STATIC_FILES_EMBEDDED_TEACHER_REFERENCE_V1.json', dict(files=rows, source_index=prepared['source_index'],
++        put_json(root / 'STAGED_STATIC_FILES_BOUND_ONLY_NATIVE_V1.json', dict(files=rows, source_index=prepared['source_index'],
+             actual_source_index_aliases=sorted(ALIASES), native_boundary=prepared['boundary']))
+-        receipt = dict(kind='SOURCE_TEACHER_REFERENCE_STAGE_COMPLETE_NOT_DISPATCH_V1', staged=True,
++        receipt = dict(kind='SOURCE_BOUND_ONLY_NATIVE_STAGE_COMPLETE_NOT_DISPATCH_V1', staged=True, actual_native_enabled=False,
+             group_id=prepared['plan']['group_id'], root=str(root), requested_roles=list(REQUESTED),
+             source_files=len(rows), metadata_validation=validation, native_boundary=prepared['boundary'],
+             original_plan_SHA=prepared['original_plan_SHA'], model_stat_hash_open_decode=0,
+             C_lock_SDK_GPU_GO_operations=0, parent_launches=0, resource_admission=None,
+             actual_frozen_evaluation=None, comparison=None, overall_eight_pass_rate=None)
+-        put_json(root / 'STAGE_COMPLETE_EMBEDDED_TEACHER_REFERENCE_V1.json', receipt)
++        put_json(root / 'STAGE_COMPLETE_BOUND_ONLY_NATIVE_V1.json', receipt)
+         return receipt
+     except BaseException:
+-        put_json(root / 'STAGE_ERROR_EMBEDDED_TEACHER_REFERENCE_V1.json', dict(error=traceback.format_exc(), dispatch=False,
++        put_json(root / 'STAGE_ERROR_BOUND_ONLY_NATIVE_V1.json', dict(error=traceback.format_exc(), dispatch=False,
+             root_consumed_no_same_root_retry=True, parent_launches=0))
+         raise
+ 
+@@ -509,6 +512,7 @@
+         parser.add_argument('--' + arg, required=True, type=Path)
+     parser.add_argument('--original-group-plan', '--original-plan', '--plan', type=Path)
+     parser.add_argument('--group-id', required=True); parser.add_argument('--gpu-uuid', required=True)
++    parser.add_argument('--collect-action-statistics', action='store_true', help='Read-only SAME-forward scalar reductions; default off, host synchronization affects walltime only.')
+     modes = parser.add_mutually_exclusive_group(required=True)
+     modes.add_argument('--preflight-only', action='store_true'); modes.add_argument('--stage', action='store_true')
+     args = parser.parse_args()
+@@ -516,7 +520,7 @@
+     if plan_path is None: plan_path = lexical(args.original_group_root) / 'GROUP_PLAN.json'
+     elif not plan_path.is_absolute(): plan_path = lexical(args.original_group_root) / plan_path
+     prepared = prepare(args.original_group_root, plan_path, args.source_dir, args.source_index,
+-                       args.native_root, args.new_root, args.group_id, args.gpu_uuid)
++                       args.native_root, args.new_root, args.group_id, args.gpu_uuid, collect_action_statistics=args.collect_action_statistics)
+     print(json.dumps(stage(prepared) if args.stage else preflight_summary(prepared), indent=2, allow_nan=False))
+ 
+ 
+--- SEALED_INPUT/remote_cpu_bound_only_native_synthetic_v1.py
++++ NEW/remote_cpu_bound_only_native_synthetic_v1.py
+@@ -7,7 +7,7 @@
+ import hashlib
+ import json
+ from pathlib import Path
+-import bound_only_frozen_probe_v1 as p
++import bound_only_native_helper_v1 as p
+ from a1_frozen_eval_runtime_v2 import OriginalEpisodeBoundary
+ 
+ 

@@ -1,0 +1,65 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_quality_microtrain_torch_validation_v1\test_quality_microtrain_torch_cpu_v1.py
++++ NEW/test_quality_microtrain_torch_cpu_v2.py
+@@ -43,7 +43,8 @@
+     'contract.py': 'd756f2a102a81b2f16295dad66f46e9783b42a3f67e7416360fcf136c2ff06ce',
+ }
+ CPU_BATCH = 512  # Actual toy tensors, not N8 with forged production metadata.
+-REPORT_KIND = 'SYNTHETIC_CPU_A1_LEGACY_QUALITY_MICROTRAIN_FULL_RESUME_V1'
++REPORT_KIND = 'SYNTHETIC_CPU_A1_LEGACY_MICROTRAIN_CORRECTED_FIXTURE_ORIGINAL_811_V2'
++REPORT_PURPOSE = 'LEGAL_ORDERING_METADATA4_VS_PAYLOAD3_THEN_ORIGINAL_811_ALIAS_GUARD_V2'
+ 
+ 
+ def identity(path):
+@@ -488,12 +489,17 @@
+     reject('raw FINAL byte pin stale', 'q.bind_plan_source_final exact SHA/bytes before retained metadata',
+         lambda: q.bind_plan_source_final(entry, reader=lambda _: final_bytes + b' '))
+     stale = copy.deepcopy(final)
+-    stale['counts']['pi_bptt_optimizer_steps'] += 1
+-    stale['actual_BPTT_policy_steps'] += 1
+-    # A self-consistent newly pinned JSON still loses to actual decoded payload counts.
++    for name in ('policy_attempts', 'pi_optimizer_steps', 'pi_bptt_optimizer_steps'):
++        stale['counts'][name] += 1
++    stale['actual_BPTT_policy_steps'] = stale['counts']['pi_bptt_optimizer_steps']
++    stale['checkpoint']['counts'] = copy.deepcopy(stale['counts'])
++    assert base.validate_count_snapshot(stale['counts']) == stale['counts']
++    assert stale['checkpoint']['counts'] == stale['counts']
++    # Ordering is valid: metadata4 must lose to actual decoded payload3, not to metadata ordering.
+     stale_bound = rebound(stale)
+     reject('self-consistent stale JSON counter versus real payload', 'q.validate_microtrain_payload BEFORE original loader',
+         lambda: q.validate_microtrain_payload(root_values, stale_bound))
++    assert negatives[-1]['message'] == 'actual full payload counters differ from source FINAL'
+     for field, wrong in (('run_id', 'STALE_OTHER_PRODUCER'), ('role', 'W35'), ('role_key', 'STALE_OTHER_KEY')):
+         wrong_final = copy.deepcopy(final)
+         wrong_final[field] = wrong
+@@ -512,7 +518,7 @@
+         if key.startswith('residual.') and value.ndim == 2 and value.shape[0] > 1)
+     bad_shape['pi'][bad_key] = bad_shape['pi'][bad_key][:-1].clone()
+     q.validate_microtrain_payload(bad_shape, task)  # Metadata is not a strict shape checker.
+-    reject('wrong residual tensor shape', 'isolated original core811 full loader -> strict pi.load_state_dict; prior models may already load',
++    reject('wrong residual tensor shape', 'isolated SHA-pinned payload-core full loader -> strict pi.load_state_dict; prior models may already load',
+         lambda: base.load_decoded_full_checkpoint_once(isolated,
+             types.SimpleNamespace(payload=bad_shape, receipt=pinned.receipt), task, layout), expected=RuntimeError)
+     reset_env = LegacyCPUEnv()
+@@ -551,7 +557,7 @@
+     result['passed'] = result['whole_CPU_source_strict_check_passed']
+     if not result['passed']:
+         result['strict_failures'] = ['retained decoded whole CPU source changed through original full-loader/training path; raw bytes staying equal is not a substitute']
+-        result['erratum_scope'] = 'OBSERVED_CPU_SOURCE_ALIASING_ONLY; old sealed sources remain unchanged; parent decides NEW erratum/v2'
++        result['erratum_scope'] = 'OBSERVED_CPU_SOURCE_ALIASING_ONLY; sealed inputs unchanged; no automatic repair or acceptance downgrade'
+     result['validations_not_claimed'] = ['native owner/worker execution or admission', 'SDK/CUDA/PhysX/noisy sensor or 100Hz evidence',
+         'original selected/bootstrap PT byte loading', 'App.close/cost/resource wait proof', 'skill pass-rate or 50/300 quality threshold',
+         'bitwise trajectory continuation', 'shape-loader transactional rollback', 'native reset interception from metadata flags']
+@@ -568,11 +574,11 @@
+     args = parser.parse_args()
+     output = args.output_dir.resolve()
+     output.mkdir(parents=True, exist_ok=False)
+-    result = dict(kind=REPORT_KIND, passed=False, only_new_synthetic_checkpoints=True,
++    result = dict(kind=REPORT_KIND, evidence_purpose=REPORT_PURPOSE, passed=False, only_new_synthetic_checkpoints=True,
+         original_selected_PT_reads=0, native_expert_BPTT_updates_counted=0,
+         owner_worker_SDK_C_GO_locks_Git_operations=0, actual_training_implemented_or_enabled=False,
+         A1_LEGACY_ONLY=True, bound_H32_reward_command_changes=False)
+-    receipt = output / 'QUALITY_MICROTRAIN_TORCH_CPU_RECEIPT_V1.json'
++    receipt = output / 'QUALITY_MICROTRAIN_TORCH_CPU_RECEIPT_V2.json'
+     try:
+         run(args, output, result)
+     except BaseException:

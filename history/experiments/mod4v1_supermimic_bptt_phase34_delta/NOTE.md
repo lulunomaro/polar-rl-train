@@ -1,0 +1,11 @@
+# Phase34 — V3 complete B2 source propagation and actual interface outcome
+
+Ordered Goal remains phase1; no Stage2 native training, mother replacement, H1 change or skill-rate claim. V1 missing bootstrap and V2 SDK reset-callable identity failures remain unsuccessful original trials with actual double waits, EX release and preserved null producer counters.
+
+Final V3 five candidates are exact V2 bytes; only B2 three sensor dependencies and complete source metadata are propagated. Frozen worker13/index, materializer11, collector9 and pure processor6 are independently pinned. Parent source tests44/42/43/27 passed, not SDK/skill evidence. Isolated textual mirror actually rebuilt original B2 source manifest435refs/155 complete Python sources plus four fixed E1 routing JSONs and diagnostic final+4. Only explicit source_path roots normalize; SHA/module/code/numbers/status remain exact. Full original8runtime/banks/assets/vendor7, independent pre-overlay origin, three retained collisions and actual stream hashes, original27/AppV6-fullBase/canonical/bootstrap/resource/deadline/physics/DR behavior remain.
+
+NEW unique V3 purpose performed actual preflight/materialization and same original parent/controller through original GPU/finite EX/C-readonly gate. This archive requires actual outer Popen.wait and original child waits plus both EX releases, regardless of success/failure. The dynamic outcome below is not promoted from RC0 or source tests. Whole-FINAL collection uses one complete hash/parse/cache and honestly strips trace payload only on export; missing counts stay null. Capture controls64/N80 synthetic zero6/PT0 is neither trained policy nor skill quality. Any gaps/failures remain original published documents.
+
+Pure evidence verifier is SOURCE/decoded-only: no actual capture processing or exact/Stage2 approval is implied merely by its27 synthetic tests. Any late own-artifact full trace processing/final provenance/next fixes/holdout/source seals/handoffs after capture stay pending next append. No model/raw replay forGit, foreign signal, ledger copy/refund/extension or main push/reset.
+
+Actual V3 collector status: FAIL_CLOSED_CAPTURE_EXECUTION; outer returncode: 1; observed controls: None; Gate1: UNKNOWN

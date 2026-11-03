@@ -1,0 +1,19 @@
+200mm站姿攀爬：V13实际失败与V14学习修复准备
+
+V13最终模型2bc1c10b51252d93b80f224eaffaaaae2015f184a230c233f4a42c384aa14a40已完整保存、安全关闭。原独立评测已实际完成并取回：80首episode、seed9137、新DR、最多500控制拍10秒、台沿0.8m/台高0.2m，0/80严格成功，80姿态终止，平均0.5115秒，范围0.36–0.80秒，双轮台顶支持峰值0。原评测与传回once已消费，不得再执行。
+
+当前模型已原生审8张实际bodypose侧/俯视图和两张曲线；半速视频是已记录姿态渲染，0新模型读取、0新physics。四个选例的前0.2秒左右轮目标约7.73–9.98/59.35–59.41rad/s；还距台沿0.25–0.47m就达到约−40度pitch、19–21度roll。初始depth正确识别200mm；降低了精确tanh饱和但没有获得轮腿协调。选例不能外推为all80视觉，也不证明唯一因果。
+
+定向改动：保留全部最终V13网络/四Adam/teacher/normalizers/replay/RNG，冻结恢复后的actor观测和goal归一化；每次新采64个实际控制拍、512环境，共32768新样本，原std0.1高斯采样与原动作裁剪不改，使用裁剪前样本的精确似然。原实际reward与done进入GAE(gamma0.99/lambda1，done无reset bootstrap)，一次PPOclip0.2目标加0.1原H32 BPTT目标、0.1原latent抗饱和项。后Adam实际Gaussian均值KL≤0.01、归一化动作delta≤0.05/logitdelta≤0.25；拒绝完整回滚weights+Adam，仅接受一次提交。原H32和全部物理/DR/奖励/验收保持；不是脚本对称控制或力矩克隆。
+
+本地合成CPU数学与接口测试通过，随后新增生产形状测试也通过：64拍×512环境/32768合成样本，actor/H32 batch512，约6.4秒。终止截断、概率/梯度、候选回滚、一次计数、H32跨时梯度、stop-before-action保存边界均通过。合成fixture不等于实际robot rollout，不是技能通过。
+
+2026-11-03 13:52前共享controller释放后，check_full_restore.py已唯一执行通过：必要finalV13一次decode完整恢复四模型/四Adam，源pi3002、v12008、wm/aux12536；CPU合成actorgrad6.53494、H32跨时梯度非零，acceptedKL0.0086538；全部CPU候选权重和Adam恢复，0生产优化/SDK/physics。该once已消费不得重跑。
+
+全四卡13:52实际检查：72两张空compute各24203MiBfree；210空compute23890MiBfree但HOME771657728Bfree，未选；86仍有21602MiB作业，仅2462MiBfree，未选。freshLOCAL/serialFREE、原canonical-none、privateGPU/finite准入后原owner1528908创建新run MOD4_STANDING200_RLBPTT_V14_1793685133426758900。实际GO13:53:48.817635+08；SAVE14:53:48.817635/NOMINAL14:58:48.817635，原reserve/3900save3600exit300不变。冻结FROZEN/launch/FIRST均已消费，不得重放或热改。
+
+实际FIRST：64新拍32768新onpolicy样本、1278实际done，terminal bootstrap0，真实reward actor biasgrad0.04801489，H32 crossgrad0.06671072/WMpath0.04396296；4 proposals后三次回滚，第4个factor0.125 acceptedKL0.00557925，一次commit。首完整239087697B SHA8d0e60260a75d6a87dc274b650f42490f62c1110063fea25c3aec7ec3f944562，pi3003/v12016/wmaux12604。训练多episode6199orientation/0top事件不是80独立评测，也不是200mm成功。更新前ratio最大偏差0.12053，精确似然一致性未证实；可能与CUDA batch512采样和32768梯度前向的数值路径有关，尚非归因证据。保留原冻结生产到完整保存边界，不热改；结束后实际评测及后续必要诊断需要核此项。
+
+owner/evaluator通过小wrapper执行SHA固定原源码，__file__绑定新任务位置；不能直接symlink owner让resolve回到已消费V13。共用依赖只引用，不复制完整运行树。当前无新watcher/新SSH/新GPU作业；其它scope不操作。
+
+接续：先读CURRENT_WORK_ORDER和实际once。健康V14不重CPU/prepare/gpu/launch/FIRST，不加watcher。相同原owner完整保存/关闭后立即独立80评测。只有实际OWNER_EXIT且freshLOCAL/serialFREE，repair_v14/control.py closed唯一取回实际contact/bodypose；原生审图并对比早期轮差速/姿态/轮净空/台顶支持及似然问题；0严格成功仍不得毕业。

@@ -1,0 +1,70 @@
+{
+  "epoch": 1793685661.2686377,
+  "run_id": "MOD4_STANDING200_RLBPTT_V14_1793685133426758900",
+  "source_first": "reports/STATUS_V14_FIRST_UPDATED.json",
+  "checkpoint": {
+    "epoch": 1793685544.7773736,
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V14_1793685133426758900/production/checkpoints/BPTT003003_I003103_1793685544259517313_complete.pt",
+    "bytes": 239087697,
+    "SHA": "8d0e60260a75d6a87dc274b650f42490f62c1110063fea25c3aec7ec3f944562",
+    "counts": {
+      "policy_attempts": 3003,
+      "pi_optimizer_steps": 3003,
+      "pi_bptt_optimizer_steps": 3003,
+      "pi_unverified_steps": 0,
+      "pi_skipped_nonfinite": 0,
+      "pi_skipped_zero": 0,
+      "wm_optimizer_steps": 12604,
+      "aux_optimizer_steps": 12604,
+      "critic_optimizer_steps": 12016
+    },
+    "iteration": 3103,
+    "full_models_four_optimizers_replay_RNG": true,
+    "last_bptt_receipt": {
+      "iteration": 3102,
+      "pi_optimizer_steps": 3003,
+      "horizon": 32,
+      "policy_dt_s": 0.02,
+      "cross_time_finite": true,
+      "cross_time_grad_norm": 0.06671071797609329,
+      "wm_path_finite": true,
+      "wm_path_grad_norm": 0.043962959200143814,
+      "parameter_grad_norm": 5.607445240020752,
+      "loss": -0.3300081193447113,
+      "wm_weights_frozen": true,
+      "auxiliary_weights_frozen": true,
+      "imagined_reward_source": "original_real_reward_supervised_head",
+      "optimizer_regularizer": {
+        "version": "standing200_latent_antiwindup_bptt_v13",
+        "source_action_formula": "standing200_reachable_action_v8_UNCHANGED",
+        "optimizer_regularizer": "0.1 * mean(relu(abs(total_pre_tanh_logit)-2)^2)",
+        "threshold": 2.0,
+        "weight": 0.1,
+        "post_Adam_max_normalized_action_delta": 0.05,
+        "post_Adam_max_logit_delta": 0.25,
+        "max_proposals": 12,
+        "candidate_rejection": "restore all trainable weights and complete actor Adam",
+        "real_reward_done_WM_critic_physics": "unchanged",
+        "source_weights_Adam_reset": false
+      },
+      "probe_parameter_delta_l2": 8.27585324714164e-07,
+      "verified_bptt_optimizer_step": true,
+      "pi_bptt_optimizer_steps": 3003,
+      "policy_attempts": 3003
+    }
+  },
+  "diagnostic": {
+    "observed_max_ratio_abs_from_one": 0.12053167819976807,
+    "exact_preupdate_likelihood_equality_proven": false,
+    "source_norms_frozen": true,
+    "collection_batch": 512,
+    "recomputed_gradient_batch": 32768,
+    "hypothesis": "CUDA batchsize/TF32 numeric path may shift mean; no attribution without bounded evidence",
+    "production_source_modified": false,
+    "healthy_original_save_boundary_preserved": true,
+    "next": "After current independent80/native review, diagnose mean/likelihood batch drift from exact source before further algorithm change; preserve originalV14."
+  },
+  "newmodelreads": 0,
+  "newphysics": 0,
+  "newSSH": 0
+}

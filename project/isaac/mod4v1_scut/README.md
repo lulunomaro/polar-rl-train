@@ -1,5 +1,9 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04修复版E0来源20,000环境一小时窗已完整关闭、正式传回并审看早晚4图：60次PPO、28,800,000实际样本、FULL_V3 final SHA `d86732f97d0020c15036281bac2e23d300eb777db6643bb09b8cdc1740a7ae9a`。独立80首局0strict/0wholeclear/0leading/0top；54个原20连续终止、26timeout，平均4.1415s；闭链/mimic/数值和raw异常重置均0。具体证据见 `history/reviews/20261103-mod4v1-scut-native-training/REPAIRED_E0_FINAL_REVIEW.md`。
+
+原E0历史retention已经有第一轴STD23.351587和maxraw140.443，所以此前把相同大输出直接称为SCUT新训练造成的退化，证据不充分，现追加纠正。下一步是显式 `--e0-source-diagnostic`：仅固定SHA的原E0推理，0优化器；在同一实际端点记录原MOD4/适配后观测和各自动作，两者中仅适配后动作进入物理。它仍需原canonical和资源锁释放；不是已执行结果或新一小时训练。普通SCUT检查点检查与生产入口保持显式兼容要求。
+
 本目录是独立的增强 MOD4v1 USD 适配。2026-11-03 的 **20,000环境、一小时**运行已完整保存关闭：46次新PPO更新、22,080,000样本，final为iteration72、SHA `305f5a9e57086fd7e1b75ef3536e7c375081278479a91f33a9bb18c760b4cfcf`。独立80首局0整轮越沿、0触台、0严格成功，10–17controls终止，保存姿态已原生审图。该运行不是live或待评。
 
 随后全面检查修复了动作执行裁剪遗漏、原debug终止时钟推进错误、评测首局接触统计与出生yaw基准，并补齐全局计数器保存恢复和pre-reset诊断。修复后的六组56项CPU检查通过。2026-11-04已在72第二张4090实际完成同final独立80复测：42–399controls、平均182.55，58个原连续终止、22个timeout；raw异常/closure/mimic/数值重置均0，应用动作最大6，但0触台/0strict且第一轴100%裁剪。早/晚4幅实际姿态已原生审看。后续从原成熟增强E0重新开始修复版20000环境一小时窗，实际运行以 `history/reviews/20261103-mod4v1-scut-native-training/WORK_ORDER.json` 为准。历史18,540行索引提供追溯，不是全程序等价保证。

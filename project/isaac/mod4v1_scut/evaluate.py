@@ -29,6 +29,8 @@ def main():
     p.add_argument('--support',action='append',default=[])
     p.add_argument('--profile',choices=['trained_stair','jump270'],default='jump270')
     p.add_argument('--repair-unclipped-v2',action='store_true')
+    p.add_argument('--e0-source-diagnostic',action='store_true',
+                   help='Explicit weights-only E0 inference, no optimizer; compare source/adapted inputs')
     a=p.parse_args();a.num_envs=80;a.seed=9137;a.device='cuda:0'
     out=Path(a.job_root);out.mkdir(parents=True,exist_ok=False)
     ns=boot(a,out);env=bridge=None;error=None
@@ -63,8 +65,15 @@ def main():
         actor=MLPModel(vec.get_observations(),rc['obs_groups'],'actor',6,**actor_cfg).to(a.device)
         raw=Path(a.checkpoint).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=a.checkpoint_SHA:raise ValueError('Final checkpoint identity mismatch')
+        checkpoint_bytes=len(raw)
         saved=torch.load(io.BytesIO(raw),map_location=a.device,weights_only=False);del raw
-        compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2)
+        if a.e0_source_diagnostic:
+            if (a.checkpoint_SHA != '6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693'
+                    or checkpoint_bytes != 14035411):
+                raise ValueError('E0 diagnostic requires the explicitly selected source')
+            compatibility=dict(kind='E0_SOURCE_WEIGHTS_ONLY_DIAGNOSTIC',optimizer_operations=0)
+        else:
+            compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2)
         actor.load_state_dict(saved['actor_state_dict'],strict=True);actor.eval().requires_grad_(False)
         with guard.around_original_fullstate_restore():
             obs=env.reset();vec.current=obs[0] if isinstance(obs,tuple) else obs
@@ -75,6 +84,7 @@ def main():
             compatibility=compatibility,course=metadata()))
         active=torch.ones(80,dtype=torch.bool,device=a.device)
         allticks=[];poses=[];curves=[];result=[None]*80;record_ids=[0,1,40,41]
+        input_comparison=[]
         # Use a bounded callback; physical stepping remains solely env.step.
         def observe(b):
             d=b.reward.robot.data
@@ -94,7 +104,16 @@ def main():
             # Reward/state helpers cache tensors during rollout. Keep the
             # entire native environment lifecycle in the same inference scope.
             with torch.inference_mode():
-                action=actor(vec.get_observations())
+                adapted=vec.get_observations()
+                action=actor(adapted)
+                if a.e0_source_diagnostic and control < 24:
+                    original=vec.current['policy']
+                    source_action=actor(TensorDict({'policy':original},batch_size=[80]))
+                    input_comparison.append(dict(control=control+1,
+                        original_policy=original.detach().cpu().tolist(),
+                        adapted_policy=adapted['policy'].detach().cpu().tolist(),
+                        original_input_action=source_action.detach().cpu().tolist(),
+                        adapted_input_action=action.detach().cpu().tolist()))
                 obs,rewards,dones,extras=vec.step(action)
             snap=bridge.terminal_snapshot
             done=(snap['terminated']|snap['time_out']|((control+1)==400))&active
@@ -116,6 +135,11 @@ def main():
             return dict(path=str(path),bytes=path.stat().st_size,SHA=sha)
         ticks=npz('actual400hz.npz',allticks);posefile=npz('selected_actual_poses.npz',poses)
         put(out/'CONTROL_CURVES.json',dict(curves=curves))
+        if a.e0_source_diagnostic:
+            put(out/'E0_INPUT_COMPARISON.json',dict(source_SHA=a.checkpoint_SHA,
+                same_weights_same_physical_endpoint=True,physics_action='adapted input only',
+                source_input_inference_not_independent_physical_rollout=True,
+                optimizer_operations=0,rows=input_comparison))
         put(out/'ALL80.json',dict(seed=9137,first_episodes=result))
         top=np.stack([r['top_force'] for r in allticks]);mask=np.stack([r['active'] for r in allticks])
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in result),

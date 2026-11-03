@@ -1,0 +1,82 @@
+"""Freeze only new deltas; shared originals remain pinned references."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+HERE=Path(__file__).resolve().parent;R=HERE.parent
+
+
+def row(path,relative=None):
+    raw=path.read_bytes()
+    value=dict(path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    if relative is not None:value['relative']=relative
+    return value
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    review=json.loads((R/'reports/SCUT22_ACTUAL_NATIVE_CURVES_REVIEW_AND_V21_DECISION.json').read_bytes())
+    cpu=json.loads((R/'reports/SCUT21_FULL_RESUME_COUNTERS_CPU.json').read_bytes())
+    clock=json.loads((R/'reports/SCUT21_PINNED_V20_SOURCE_CLOCK_CPU.json').read_bytes())
+    assert cpu['passed'] and clock['passed'] and review['native_review']['actual_400Hz_route_support_curve_reviewed']
+    plan=json.loads((R/'scut_recipe_v20/PLAN.json').read_bytes())
+    oldroot=plan['remote_root']
+    runid='MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_'+str(time.time_ns())
+    final=review['actual_source_final']
+    plan.update(run_id=runid,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        resume_checkpoint=final,source_checkpoint=final,new_task_from_seed=False,
+        target_iterations=8000-final['iteration'],absolute_target_iterations=8000,
+        resume='same4096 full actor critic STD Adam LR all RNG then one fresh physical reset',
+        source_clock_delta='Original debug enabled reward tail only; legacy missing debugcounter explicit0/common=54336//8; future full saves include scalars',
+        evaluation_repair='pose callback/pre-reset target and physical reason flags; same80firstepisodes500controls200mmactual400Hz',
+        source_review=str(R/'reports/SCUT22_ACTUAL_NATIVE_CURVES_REVIEW_AND_V21_DECISION.json'),
+        CPU_full_resume=row(R/'reports/SCUT21_FULL_RESUME_COUNTERS_CPU.json'),
+        CPU_original_clock=row(R/'reports/SCUT21_PINNED_V20_SOURCE_CLOCK_CPU.json'),
+        no_action_clip6=True,original_saved_clip_actions=None,
+        frozen_old_root=oldroot,entry_base_SHA='c08e5fefdbcbddb42e662817c5b622576a687babcc3bdf3bfcae6b9b28ed68bf',
+        integration_repair='V19 no flat scanner and V20 original rotation compatibility retained; no physics/PD/reward changes')
+    plan['support'].append(oldroot)
+    (HERE/'PLAN.json').write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    # Small original source-path dictionary is the same frozen dependency reference.
+    raw=(R/'scut_recipe_v20/SOURCE_PATHS.json').read_bytes()
+    with (HERE/'SOURCE_PATHS.json').open('xb') as f:f.write(raw)
+    shared=json.loads((R/'scut_recipe_v20/FROZEN.json').read_bytes())['shared_text']
+    for version in ['scut_recipe_v18','scut_recipe_v19','scut_recipe_v20']:
+        frozen=json.loads((R/version/'FROZEN.json').read_bytes())
+        for item in frozen['files']:
+            remote=dict(path=frozen['job']+'/'+item['relative'],bytes=item['bytes'],SHA=item['SHA'])
+            if remote['path'] not in {x['path'] for x in shared}:shared.append(remote)
+    remoteowner='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_1h/owner.py'
+    if remoteowner not in {x['path'] for x in shared}:
+        shared.append(dict(path=remoteowner,bytes=8500,SHA='d631e9e8a8dc7182ecc13bb33459a3aa77703b5d76d80969906e75cead4f6aee'))
+    # Published exact owner bytes are sourced from the archived original text.
+    owner=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/history/reviews/20261103-mod4v1-scut-native-training/objects/d631e9e8a8dc7182ecc13bb33459a3aa77703b5d76d80969906e75cead4f6aee.py')
+    for item in shared:
+        if item['path']==remoteowner:item['bytes']=owner.stat().st_size
+    names=['recipe.py','source_clock.py','full_resume.py','entry.py','evaluate.py','owner.py','control.py','PLAN.json','SOURCE_PATHS.json']
+    files=[]
+    for name in names:
+        p=HERE/name
+        if p.suffix=='.py':ast.parse(p.read_text(encoding='utf-8-sig'))
+        files.append(row(p,name))
+    frozen=dict(epoch=time.time(),run_id=runid,job=plan['remote_root'],files=files,shared_text=shared,
+        complete_runtime_copies=0,production_PT_reads_for_prepare=0,physics=0,all_old_once_preserved=True)
+    with (HERE/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,indent=2)
+    wpath=R/'CURRENT_WORK_ORDER.json';w=json.loads(wpath.read_bytes())
+    w.update(status='SCUT20_FINAL283_V22_ACTUAL_0OF80_NATIVE_REVIEWED_V21_FROZEN_UNUSED',
+        evaluation_result=review['all80']|dict(path=str(R/'reports/SCUT22_ACTUAL_NATIVE_CURVES_REVIEW_AND_V21_DECISION.json')),
+        evaluation_status='V22 actual complete0/80; no both-wheel top supports. Original V20callbackfailed0episodes retained.',
+        model_native_reviewed=True,current_model_native_reviewed=True,replay_native_reviewed=review['native_review'],
+        standing200_evaluation='V22actual80firstepisodes;strict0/80;all80topforce0',
+        latest_status='reports/SCUT22_FULL_RETURNED.json',evaluation_closed_and_transferred=True,
+        pending_repair=dict(version='SCUT_RECIPE_V21_SOURCE_CLOCK',root=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            frozen_SHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest(),launch_once_consumed=False,
+            status='FROZEN_UNUSED_FULL_RESUME_CPU_PASS',source=final),
+        next='Fresh local FREE/allfour resource snapshot and original canonical/privateGPU/finite admission;launch V21 once. Continue flat283 toward8000 with explicit source-clock repair and fulllearningrestore. No premature rough transfer; fullsave/safeclose/immediateindependent200eval/native review.')
+    wpath.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(frozen=str(HERE/'FROZEN.json'),run_id=runid,remaining_iterations=plan['target_iterations'],source_PT_reads=0)))
+
+
+if __name__=='__main__':main()

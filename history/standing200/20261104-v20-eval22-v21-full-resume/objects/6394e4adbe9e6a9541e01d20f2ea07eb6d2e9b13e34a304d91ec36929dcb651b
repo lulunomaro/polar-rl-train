@@ -1,0 +1,156 @@
+"""One finite samefinal evaluation and result transfer, no optimizer or ledger."""
+from pathlib import Path
+import argparse
+import ast
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent;R=HERE.parent
+sys.path.insert(0,str(R))
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with (R/'reports'/name).open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def gate():
+    spec=importlib.util.spec_from_file_location('eval22_original_local_gate',R/'repair_v11/control.py')
+    m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    return m.admission()
+
+
+def prepare():
+    assert not (HERE/'FROZEN.json').exists()
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    final=w['current_run_final'];assert final['SHA']=='4b6255e6f9f3bf15ccfe5f65b02015dae990f7f9ab61ae7e6d4ced61b4197d13'
+    closed=R/'actual_closed'/w['run_id']
+    own=json.loads((closed/'OWNER_EXIT.json').read_bytes());assert own['all_own_waited'] and own['original_leases_released']
+    source=R/'scut_recipe_v18/evaluate.py';raw=source.read_bytes();text=raw.decode()
+    required=["install_pose_cache_runtime_adapter_v4(env.scene['robot'])","final = json.loads((out.parent / 'production/FINAL.json').read_bytes())['checkpoint']","bridge.physics_observer = observe"]
+    assert all(text.count(k)==1 for k in required)
+    entry=(HERE/'entry.py').read_text(encoding='utf-8')
+    ast.parse(entry)
+    assert 'receipt_callback=lambda value:' in entry and "task['independent_checkpoint']" in entry
+    plan=dict(kind='STANDING200_FINAL20_FIRST_ACTUAL_EVAL22',closed_root=w['remote_job'],
+        remote_root=w['remote_job']+'/independent_eval_v22',checkpoint=final,
+        GPU_UUID='GPU-16828f91-2b45-b646-8dc0-9481138e2842',expected_source_format='MOD4V1_SCUT_STANDING_RECIPE_V20',
+        frozen_evaluate_path=w['remote_job'].rsplit('/',1)[0]+'/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/evaluate.py',
+        frozen_evaluate_SHA=hashlib.sha256(raw).hexdigest(),seed=9137,num_envs=80,controls=500,seconds=10,
+        neural_checkpoint_reads=1,optimizer_steps=0,ledger_writes=0,original_SOURCE_clock_unchanged=True,
+        task_change='only requiredposecachecallback and independentoutput/finalpaths;pre-resetmotorrecordfix',
+        acceptance='same200mm fullfootprint400Hzbothwheel/stable.5s/no return/unsupported<=.10s',
+        original_failed_evaluation_error=json.loads((closed/'evaluation/ERROR.json').read_bytes()))
+    (HERE/'PLAN.json').write_text(json.dumps(plan,indent=2)+'\n',encoding='utf-8')
+    files=[]
+    for name in ['entry.py','owner.py','control.py','PLAN.json']:
+        p=HERE/name;raw=p.read_bytes()
+        if p.suffix=='.py':ast.parse(raw.decode())
+        files.append(dict(relative=name,path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    frozen=dict(epoch=time.time(),files=files,source_model_reads=0,SDK=0,physics=0)
+    (HERE/'FROZEN.json').write_text(json.dumps(frozen,indent=2)+'\n',encoding='utf-8')
+    put('SCUT22_STATIC_CALLBACK_IDENTITY_ADMISSION.json',dict(epoch=time.time(),passed=True,original_actor_evaluation_contract_unchanged=True,
+        source_evaluate_SHA=plan['frozen_evaluate_SHA'],samefinalSHA=final['SHA'],source_model_reads=0,physics=0))
+    print(json.dumps(dict(prepared=True,remote=plan['remote_root'],model_reads=0)))
+
+
+PREFLIGHT=r'''
+from pathlib import Path
+import fcntl,json,hashlib,subprocess,time
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes())
+if c['active_segment'] is not None:
+ print(json.dumps(dict(ready=False,canonical_active={k:c['active_segment'].get(k) for k in ['owner_run_id','owner_parent_pid']},physics=0,PTreads=0)))
+else:
+ try:
+  for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+   with p.open('rb+') as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+  apps=subprocess.check_output(['nvidia-smi','-i',v['uuid'],'--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+  assert not apps.strip()
+  assert not Path(v['job']).exists()
+  print(json.dumps(dict(epoch=time.time(),ready=True,all_original_locks_free=True,selectedGPUempty=True,physics=0,PTreads=0)))
+ except BlockingIOError:
+  print(json.dumps(dict(ready=False,original_lock_busy=True,physics=0,PTreads=0)))
+'''
+
+
+def execute():
+    rows,blocked=gate()
+    if blocked:print(json.dumps(dict(localbusy=blocked,network=0,once_consumed=False)));return
+    plan=json.loads((HERE/'PLAN.json').read_bytes());frozen=json.loads((HERE/'FROZEN.json').read_bytes())
+    marker=R/'reports/SCUT22_EVAL_ONCE.json';assert not marker.exists()
+    for row in frozen['files']:
+        raw=Path(row['path']).read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+    client=sf=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client=connect72()
+        admission=run(client,PREFLIGHT,dict(uuid=plan['GPU_UUID'],job=plan['remote_root']))
+        if not admission['ready']:
+            print(json.dumps(dict(resource_wait=admission,once_consumed=False)));return
+        put('SCUT22_EVAL_LOCAL_ADMISSION.json',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+        put(marker.name,dict(epoch=time.time(),admission=admission,frozenSHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest()))
+        sf=client.open_sftp();sf.get_channel().settimeout(60);sf.mkdir(plan['remote_root'])
+        for row in frozen['files']:
+            with sf.open(plan['remote_root']+'/'+row['relative'],'wx') as f:f.write(Path(row['path']).read_bytes())
+        with sf.open(plan['remote_root']+'/INSTALL_MANIFEST.json','wx') as f:f.write(json.dumps(dict(files=[{k:r[k] for k in ['relative','bytes','SHA']} for r in frozen['files']]),indent=2).encode())
+        code=r'''
+from pathlib import Path
+import subprocess,psutil,json,time
+J=Path(v['job'])
+with (J/'OWNER.log').open('xb') as f:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'owner.py')],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+ q=psutil.Process(p.pid);print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd())))
+'''
+        owner=run(client,code,dict(job=plan['remote_root']));put('SCUT22_OWNER_LAUNCHED.json',owner)
+        start=time.monotonic();value={}
+        names=['OWNER_STARTED.json','OWNER_ERROR.json','WORKER_IDENTITY.json','WORKER_WAITED.json','RELEASE.json',
+            'evaluation/RESULT.json','evaluation/ERROR.json','evaluation/NATIVE_STARTUP.json','evaluation/ALL80.json',
+            'evaluation/CONTROL_CURVES.json','evaluation/POSE_CACHE_EVENTS.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json']
+        while True:
+            value=dict(epoch=time.time(),job=plan['remote_root'],files={},logs={})
+            for name in names:
+                try:
+                    with sf.open(plan['remote_root']+'/'+name,'rb') as f:value['files'][name]=json.loads(f.read())
+                except FileNotFoundError:pass
+            for name in ['OWNER.log','WORKER.log']:
+                try:
+                    size=sf.stat(plan['remote_root']+'/'+name).st_size
+                    with sf.open(plan['remote_root']+'/'+name,'rb') as f:f.seek(max(0,size-12000));value['logs'][name]=f.read().decode('utf-8','replace')
+                except FileNotFoundError:pass
+            p=R/'reports/SCUT22_STATUS_LOCAL.json';tmp=p.with_suffix('.partial');tmp.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8');tmp.replace(p)
+            if value['files'].get('RELEASE.json'):break
+            if time.monotonic()-start>600:raise TimeoutError('finite observer ended; originalowner remains; use independent receiver after closure')
+            time.sleep(10)
+        release=value['files']['RELEASE.json'];assert release['all_own_waited'] and release['locks_released']
+        dest=R/'actual_closed'/Path(plan['closed_root']).name/'independent_eval_v22';dest.mkdir(exist_ok=False)
+        copied=[]
+        def store(name,raw):
+            p=dest/name;p.parent.mkdir(parents=True,exist_ok=True)
+            with p.open('xb') as f:f.write(raw)
+            copied.append(dict(path=plan['remote_root']+'/'+name,local_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        for name,v in value['files'].items():store(name,(json.dumps(v,indent=2)+'\n').encode())
+        result=value['files'].get('evaluation/RESULT.json')
+        if result:
+            for key in ['all80_manifold','actual_poses']:
+                r=result[key];relative='evaluation/'+Path(r['path']).name;assert r['path']==plan['remote_root']+'/'+relative
+                with sf.open(r['path'],'rb') as f:raw=f.read()
+                assert len(raw)==r['bytes'] and hashlib.sha256(raw).hexdigest()==r['SHA'];store(relative,raw)
+        value.update(transfer=copied,source_PT_reads_by_controller=0,new_physics_by_controller=0)
+        put('SCUT22_FULL_RETURNED.json',value)
+        print(json.dumps(dict(result=result,release=release,destination=str(dest))))
+    except BaseException:
+        put('SCUT22_ORIGINAL_CONTROLLER_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),once_consumed=marker.exists(),never_replay=marker.exists()));raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        if marker.exists():put('SCUT22_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSIONrestored=True,serial='FREE'))
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['prepare','execute']);a=p.parse_args();globals()[a.mode]()

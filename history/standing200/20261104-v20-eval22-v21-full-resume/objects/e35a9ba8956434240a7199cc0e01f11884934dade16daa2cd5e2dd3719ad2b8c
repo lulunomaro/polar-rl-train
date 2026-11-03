@@ -1,0 +1,76 @@
+"""Diagnose recorded first episodes only; no neural model or new simulation."""
+from pathlib import Path
+import json
+import time
+import numpy as np
+
+ROOT=Path(__file__).resolve().parent.parent
+E=ROOT/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300/independent_eval_v22/evaluation'
+
+
+def main():
+    output=ROOT/'reports/SCUT22_ACTUAL_NATIVE_CURVES_REVIEW_AND_V21_DECISION.json'
+    assert not output.exists()
+    a=np.load(E/'actual400hz.npz'); poses=np.load(E/'selected_actual_poses.npz')
+    result=json.loads((E/'RESULT.json').read_bytes())
+    episodes=json.loads((E/'ALL80.json').read_bytes())['first_episodes']
+    curves=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+    active=np.asarray([row['active'] for row in curves])
+    action=np.asarray([row['action'] for row in curves])
+    targets=np.asarray([row['joint_pos_target'] for row in curves])
+    measured=np.asarray([row['joint_vel'] for row in curves])
+    rows=[]
+    for i in range(80):
+        mask=a['active'][:,i]; xyz=a['root_pos'][mask,i]-np.asarray(result['origins'][i])
+        ticks=a['tick'][mask]; low=np.flatnonzero(xyz[:,2]<.25)
+        q=a['root_quat'][mask,i];w,x,y,z=q.T
+        pitch=np.arcsin(np.clip(2*(w*y-z*x),-1,1))*180/np.pi
+        roll=np.arctan2(2*(w*x+y*z),1-2*(x*x+y*y))*180/np.pi
+        rows.append(dict(env=i,seconds=episodes[i]['seconds'],terminated=episodes[i]['terminated'],
+            whole=episodes[i]['whole_footprint'],strict=episodes[i]['strict200_standing'],
+            initial_z_m=float(xyz[0,2]),minimum_z_m=float(xyz[:,2].min()),terminal_z_m=float(xyz[-1,2]),
+            first_below_025_s=None if not len(low) else float(ticks[low[0]]/400),
+            max_root_axis_displacement_m=float(np.abs(xyz[:,:2]).max()),terminal_xy_m=xyz[-1,:2].tolist(),
+            max_abs_roll_deg=float(abs(roll).max()),max_abs_pitch_deg=float(abs(pitch).max()),
+            top_force_max_N=float(a['top_force'][mask,i].max()),
+            nonwheel_vertical_net_support_max_N=float(a['support_force'][mask,i,2].max())))
+    selected=[]
+    for j,i in enumerate(result['recorded_envs']):
+        m=poses['active'][:,j];p=poses['body_pos'][m,j];q=poses['body_quat'][m,j]
+        cm=active[:,i]; early=cm & (np.arange(len(cm))<10)
+        # Exact authored wheel cylinder bounds are evaluated without physics.
+        import sys, torch
+        sys.path.insert(0,'C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/project/isaac')
+        from mod4v1_scut.acceptance import wheel_bounds
+        contract=json.loads(Path('F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json').read_bytes())
+        low,high=wheel_bounds(torch.from_numpy(p[:,[26,29]]),torch.from_numpy(q[:,[26,29]]),contract)
+        selected.append(dict(rows[i],wheel_centres_z_max_m=p[:,[26,29],2].max(0).tolist(),
+            lower_of_two_wheel_bottom_max_m=float(low[...,2].min(-1).values.max()),
+            first_020s_action_mean=action[early,i].mean(0).tolist(),
+            first_020s_leg_target_mean_rad=targets[early,i].mean(0).tolist(),
+            first_020s_measured_wheel_speed_mean_rad_s=measured[early,i].mean(0).tolist()))
+    values=action[active]
+    report=dict(epoch=time.time(),actual_source_final=result['source'],evaluation='V22 first actual V20final skill evaluation',
+        all80=dict(cases=80,strict=sum(x['strict200_standing'] for x in episodes),whole=sum(x['whole_footprint'] for x in episodes),
+            both_top=result['bothtop_envs'],max_top_force_N=result['max_top_force'],terminated=sum(x['terminated'] for x in episodes),
+            full10s=sum(x['seconds']==10 for x in episodes),mean_seconds=float(np.mean([x['seconds'] for x in episodes])),
+            median_seconds=float(np.median([x['seconds'] for x in episodes])),
+            root_below025_cases=sum(x['first_below_025_s'] is not None for x in rows)),
+        measured_action_channels=dict(min=values.min(0).tolist(),max=values.max(0).tolist(),abs_p99=np.quantile(abs(values),.99,axis=0).tolist()),
+        selected=selected,per_environment=rows,
+        native_review=dict(viewer='current model native view_image',actual_four_side_and_four_top_sheets_reviewed=True,
+            actual_400Hz_route_support_curve_reviewed=True,selected_envs=result['recorded_envs'],
+            observation='All four selected robots lose initial height in approximately .16s, settle near root z .18m and move slowly in the lower centre. Both-wheel top support absent in all80.',
+            scope='Four selected rendered cases; all80 measured contact, trajectory and first-episode result. Projection alone does not identify each supporting part.'),
+        interpretation=dict(first_problem='Standing posture and forward approach have not yet formed; selected four do not reach a step edge.',
+            route='No explicit route planner; Gaussian actor motor outputs create motion. Initial yaw is randomized; small world XY displacement does not establish purposeful avoidance.',
+            source_parity='Confirmed misplaced debug counter increment; its causal contribution to skill failure is not isolated.',
+            training_stage='283/8000 of original flat stage; no rough training yet. Do not interpret this as a trained rough-policy failure.',
+            actuator='Saved active action ranges do not justify copying the other chat action clip6; original saved SCUT clip_actions=null.'),
+        decision='Repair only confirmed source-clock lifecycle, preserve full actor/critic/STD/Adam/LR/RNG, continue original flat stage toward8000. Correct evaluation callback and record reason masks in new frozen continuation. Retain same hardware, physics, DR, reward coefficients and original budget.',
+        original_callback_false_preserved=True,production_PT_reads=0,new_physics=0,optimizer_steps=0)
+    with output.open('x',encoding='utf-8') as f:json.dump(report,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(report=str(output),all80=report['all80'],selected=selected)))
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,20 @@
+"""Reuse proven finite controller; independent V21 labels and full restore."""
+from pathlib import Path
+import hashlib
+
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v20/control.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='6f07bdbce9ba32fe3906b30f57c1ffaddf4c7e8bc0f3d7a46b83b5d472cc855c'
+source=raw.decode().replace('SCUT20','SCUT21').replace('RECIPE_V20_','RECIPE_V21_')
+old="w['prior_V19_startup_false'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w.get('current_run_final'), evaluation=w.get('evaluation_result'))"
+new="w['prior_V20_closed_actual_V22'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w.get('current_run_final'), evaluation=w.get('evaluation_result'), native_review=w.get('replay_native_reviewed'))"
+assert source.count(old)==1;source=source.replace(old,new)
+old="'production/ERROR.json', 'production/ENV_CLOSED.json'"
+new="'production/ERROR.json', 'production/FULL_RESTORE.json', 'production/ENV_CLOSED.json'"
+assert source.count(old)==1;source=source.replace(old,new)
+# Original FIRST metadata collector receives this single extra text receipt.
+old="ns = dict(__name__='standing_scut18_first', __file__=reader.__file__)"
+new="""s = s.replace("'production/STARTUP.json'", "'production/STARTUP.json','production/FULL_RESTORE.json'")
+    ns = dict(__name__='standing_scut21_first', __file__=reader.__file__)"""
+assert source.count(old)==1;source=source.replace(old,new)
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

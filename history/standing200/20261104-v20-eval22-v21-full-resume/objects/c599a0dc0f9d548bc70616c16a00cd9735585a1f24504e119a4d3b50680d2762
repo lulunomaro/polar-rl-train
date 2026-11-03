@@ -1,0 +1,55 @@
+"""Same finalV20 independent200mm evaluation; fix required callback only."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import os
+import sys
+
+HERE=Path(__file__).resolve().parent
+
+
+def main():
+    plan=json.loads((HERE/'PLAN.json').read_bytes())
+    original=Path(plan['closed_root'])
+    sys.path.insert(0,str(original))
+    spec=importlib.util.spec_from_file_location('frozen_scut20_entry',original/'entry.py')
+    base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+    task=json.loads((original/'TASK.json').read_bytes())
+    sys.path.insert(0,task['package_root'])
+    os.environ['MOD4_SCUT_SOURCE_PATHS']=str(original/'SOURCE_PATHS.json')
+    import mod4v1_scut.sdk,mod4v1_scut.train,mod4v1_scut.checkpoint
+    for name in ['sdk','checkpoint','train']:
+        row=task['shared_modules'][name];base.pinned_module(name,row['path'],row['SHA'])
+    spec=importlib.util.spec_from_file_location('frozen_scut20_recipe',original/'recipe.py')
+    recipe=importlib.util.module_from_spec(spec);spec.loader.exec_module(recipe)
+    recipe.install('eval200',source_stage='flat')
+    common=['--assets',task['assets'],'--runtime',task['runtime'],'--runtime-manifest',task['runtime_manifest'],'--guard',task['guard'],'--profile','trained_stair']
+    for path in task['support']:common+=['--support',path]
+    source=Path(plan['frozen_evaluate_path']).read_bytes()
+    assert hashlib.sha256(source).hexdigest()==plan['frozen_evaluate_SHA']
+    text=source.decode()
+    replacements={
+        "install_pose_cache_runtime_adapter_v4(env.scene['robot'])":"install_pose_cache_runtime_adapter_v4(env.scene['robot'], receipt_callback=lambda value: put(out / 'POSE_CACHE_EVENTS.json', dict(actual_latest=value)))",
+        "final = json.loads((out.parent / 'production/FINAL.json').read_bytes())['checkpoint']":"final = task['independent_checkpoint']",
+    }
+    for old,new in replacements.items():
+        if old==new:continue
+        if text.count(old)!=1:raise ValueError('Unexpected frozen evaluator pattern: '+old)
+        text=text.replace(old,new)
+    # Pre-reset output is necessary for interpreting finalcontrol motor targets.
+    old="joint_pos_target=tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx].cpu().tolist()"
+    new="joint_pos_target=pre_reset_targets.cpu().tolist()"
+    if text.count(old)!=1:raise ValueError('Missing selectedtarget record')
+    text=text.replace(old,new)
+    old="bridge.physics_observer = observe"
+    new="bridge.physics_observer = observe\n        pre_reset_targets = torch.zeros(80, 4, device=args.device)\n        original_snapshot = bridge.snapshot\n        def snapshot(terminated, timeout):\n            pre_reset_targets.copy_(tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx])\n            return original_snapshot(terminated, timeout)\n        bridge.snapshot = snapshot"
+    if text.count(old)!=1:raise ValueError('Missing observer binding')
+    text=text.replace(old,new)
+    ns=dict(__name__='standing200_eval22',__file__=str(HERE/'evaluate_fixed.py'))
+    exec(compile(text,plan['frozen_evaluate_path'],'exec'),ns)
+    task['independent_checkpoint']=plan['checkpoint']
+    ns['evaluate'](task,common)
+
+
+if __name__=='__main__':main()

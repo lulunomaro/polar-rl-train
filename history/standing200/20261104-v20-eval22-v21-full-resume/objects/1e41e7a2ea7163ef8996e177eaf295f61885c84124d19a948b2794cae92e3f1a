@@ -1,0 +1,55 @@
+"""Archive new actual evaluation/continuation text; binaries by published index."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import time
+
+R=Path(__file__).resolve().parent.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261104-v20-eval22-v21-full-resume'
+
+
+def main():
+    assert not (DEST/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('standing_actual_archive_redactor',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    text={'.py','.json','.md','.yaml','.yml','.toml','.txt','.log','.csv'}
+    files=set()
+    for root in [R/'reports',R/'scut_recipe_v21',R/'scut_eval_v22',
+                 R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300']:
+        files.update(p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in text
+            and 'localdeps' not in p.parts and '__pycache__' not in p.parts)
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True,exist_ok=True);(DEST/'objects').mkdir(exist_ok=True)
+    rows=[];large=[]
+    def artifacts(value,published_by):
+        if isinstance(value,dict):
+            path=value.get('path') or value.get('local_path') or value.get('remote_path')
+            if isinstance(path,str) and Path(path).suffix.lower() in {'.pt','.pth','.npz','.npy','.usd','.usda','.png','.mp4','.gif','.zip'} and value.get('bytes') is not None:
+                large.append(dict(value,published_by=published_by))
+            for child in value.values():artifacts(child,published_by)
+        elif isinstance(value,list):
+            for child in value:artifacts(child,published_by)
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))
+        content=raw if not count else safe.encode();sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha;out.write_bytes(content);target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,
+            archive_SHA=sha,archive_bytes=len(content),redactions=count,mode='redacted_text' if count else 'complete_text'))
+        if p.suffix=='.json':artifacts(json.loads(raw),str(p))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    (DEST/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284',
+        rows=rows,large_external_artifacts=large,source_model_media_reads_for_archive=0,shared_runtime_copies=0,
+        existing_sourceclock_tagobject='a99d27ada6eb504fb6ecfc93003f1f12f5afec63',
+        existing_sourceclock_peel='84137c65824b0cac3be504e20e1c8e4924b88661',status=w['status']),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DEST/'README.md').write_bytes((R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md').read_bytes())
+    print(json.dumps(dict(destination=str(DEST),textrows=len(rows),newobjects=len(list((DEST/'objects').iterdir())),external_artifact_references=len(large))))
+
+
+if __name__=='__main__':main()

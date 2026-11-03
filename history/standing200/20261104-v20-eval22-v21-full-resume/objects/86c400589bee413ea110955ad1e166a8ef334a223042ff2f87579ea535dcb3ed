@@ -1,0 +1,52 @@
+"""Finite frozen evaluation, original authority/private/finite locks;0budgetwrites."""
+from pathlib import Path
+import fcntl
+import importlib.util
+import hashlib
+import json
+import os
+import subprocess
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent
+
+
+def put(name,value):
+    with (HERE/name).open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+
+
+def main():
+    plan=json.loads((HERE/'PLAN.json').read_bytes());original=Path(plan['closed_root'])
+    spec=importlib.util.spec_from_file_location('standing22_original_owner',original/'owner.py')
+    owner=importlib.util.module_from_spec(spec);spec.loader.exec_module(owner)
+    put('OWNER_STARTED.json',dict(epoch=time.time(),identity=owner.b.ident(os.getpid())))
+    locks=[];worker=None;error=None
+    try:
+        for path in [*owner.b.LOCKS,owner.C.parent.parent/('three_expert_v2_'+plan['GPU_UUID']+'.lock'),owner.C.parent.parent/'finite_environment_validation.lock']:
+            f=path.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        assert json.loads(owner.C.read_bytes())['active_segment'] is None
+        own=json.loads((original/'OWNER_EXIT.json').read_bytes())
+        assert own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+        owner.resource(plan['GPU_UUID'])
+        manifest=json.loads((HERE/'INSTALL_MANIFEST.json').read_bytes())
+        for row in manifest['files']:
+            raw=(HERE/row['relative']).read_bytes()
+            assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+        env=owner.environment(plan['GPU_UUID'])
+        with (HERE/'WORKER.log').open('xb') as f:
+            worker=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(HERE/'entry.py')],
+                env=env,cwd=HERE,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,pass_fds=tuple(f.fileno() for f in locks))
+        put('WORKER_IDENTITY.json',owner.b.ident(worker.pid))
+        rc=worker.wait();put('WORKER_WAITED.json',dict(epoch=time.time(),own_waited=True,returncode=rc))
+        if rc or not (HERE/'evaluation/RESULT.json').exists():raise RuntimeError('Independent evaluator did not publish RESULT')
+    except BaseException:
+        error=traceback.format_exc();put('OWNER_ERROR.json',dict(epoch=time.time(),error=error))
+    finally:
+        if worker is not None and worker.poll() is None:worker.wait()
+        for f in reversed(locks):fcntl.flock(f,fcntl.LOCK_UN);f.close()
+        put('RELEASE.json',dict(epoch=time.time(),error=error,all_own_waited=worker is None or worker.poll() is not None,
+            locks_released=True,optimizer_operations=0,ledger_writes=0))
+
+
+if __name__=='__main__':main()

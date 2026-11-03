@@ -1,0 +1,9 @@
+"""Reuse immutable original single canonical owner and immediate evaluation."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_1h/owner.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='d631e9e8a8dc7182ecc13bb33459a3aa77703b5d76d80969906e75cead4f6aee'
+source=raw.decode().replace('scut_step270','scut_standing200_recipe21')
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

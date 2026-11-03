@@ -1,0 +1,102 @@
+"""Single decode of the declared full checkpoint; preserve learning and streams."""
+import ast
+import hashlib
+import io
+import json
+import time
+from pathlib import Path
+
+LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'
+FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'
+
+
+def same(left,right):
+    import torch
+    if torch.is_tensor(left):
+        return torch.is_tensor(right) and left.shape==right.shape and left.dtype==right.dtype and torch.equal(left.cpu(),right.cpu())
+    if isinstance(left,dict):return isinstance(right,dict) and left.keys()==right.keys() and all(same(v,right[k]) for k,v in left.items())
+    if isinstance(left,(tuple,list)):return type(left)==type(right) and len(left)==len(right) and all(same(a,b) for a,b in zip(left,right))
+    return left==right
+
+
+def install(checkpoint,expected,report_path):
+    import torch
+    # Reuse every proven component/command/physical RNG restore statement.
+    text=Path(checkpoint.__file__).read_text(encoding='utf-8-sig')
+    tree=ast.parse(text)
+    restore=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='restore')
+    source=ast.get_source_segment(text,restore)
+    original="data = torch.load(path, map_location='cpu', weights_only=False)"
+    assert source.count(original)==1
+    source=source.replace(original,'data = declared_source(path, env, bridge, profile)')
+    source=source.replace("data.get('format') != FORMAT","data.get('format') not in (FORMAT, LEGACY)")
+    assert source.count('runner.alg.load(data, load_cfg=None, strict=True)')==1
+    source=source.replace('runner.alg.load(data, load_cfg=None, strict=True)',
+        'runner.alg.load(data, load_cfg=None, strict=True)\n    verify_learning(runner, data)')
+    assert source.count('return env.reset()')==1
+    source=source.replace('return env.reset()',
+        'restore_globals(bridge.reward, data)\n    result = env.reset()\n    publish(runner, bridge, data)\n    return result')
+
+    def declared_source(path,env,bridge,profile):
+        if str(path)!=expected['path']:raise ValueError('Full resume path differs from frozen plan')
+        raw=Path(path).read_bytes()
+        if len(raw)!=expected['bytes'] or hashlib.sha256(raw).hexdigest()!=expected['SHA']:
+            raise ValueError('Full resume checkpoint identity mismatch')
+        data=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=False)
+        if data['format']!=expected['format'] or data['iter']!=expected['iteration']:
+            raise ValueError('Full resume source format/iteration mismatch')
+        return data
+
+    verified={}
+    def verify_learning(runner,data):
+        actual=runner.alg.save()
+        for key in ('actor_state_dict','critic_state_dict','optimizer_state_dict'):
+            if not same(data[key],actual[key]):raise ValueError('Full learning restore mismatch: '+key)
+        states=actual['optimizer_state_dict']['state']
+        steps=[int(v['step'].item()) for v in states.values() if 'step' in v]
+        verified.update(actor_critic_STD_complete_Adam_equal=True,optimizer_states=len(states),
+            Adam_step_min=min(steps),Adam_step_max=max(steps),source_model_decodes=1)
+
+    def restore_globals(reward,data):
+        counters=data.get('source_reward_globals')
+        if counters is not None:
+            for key in ('_value_debug_step','common_step_counter'):setattr(reward,key,int(counters[key]))
+        else:
+            # The old full checkpoint did not save these two scalar counters.
+            # New semantics start debug at zero; common step follows actual controls.
+            reward._value_debug_step=0
+            reward.common_step_counter=int(data['physics_ticks'])//8
+
+    def publish(runner,bridge,data):
+        value=dict(epoch=time.time(),source=expected,**verified,learning_rate=runner.alg.learning_rate,
+            LR_restored=runner.alg.learning_rate==data['learning_rate'] and all(g['lr']==data['learning_rate'] for g in runner.alg.optimizer.param_groups),
+            iteration=runner.current_learning_iteration,global_and_named_RNG_restored_by_original=True,
+            full_original_components_restored_before_one_fresh_physical_reset=True,
+            per_episode_contact_and_reward_windows_fresh=True,
+            old_scalar_clock_missing='source_reward_globals' not in data,
+            corrected_debug_step=int(bridge.reward._value_debug_step),common_step_counter=int(bridge.reward.common_step_counter),
+            global_clock_migration='restore saved V21 scalars, or explicit debug0/common=sourcephysicsticks//8 for legacyV20; no claim of exact missing legacy clock',
+            source_preserved=True,weights_or_Adam_reset=False)
+        if not value['LR_restored']:raise ValueError('Learning rate restore mismatch')
+        with Path(report_path).open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+
+    ns=dict(vars(checkpoint),LEGACY=LEGACY,declared_source=declared_source,
+        verify_learning=verify_learning,restore_globals=restore_globals,publish=publish)
+    exec(compile(source,str(checkpoint.__file__),'exec'),ns)
+    checkpoint.restore=ns['restore']
+    original_learning=checkpoint.learning_state
+    # Add global scalars to every new complete save without rereading the PT.
+    original_save=checkpoint.save
+    def save(runner,env,bridge,path,profile):
+        def learning_state(r):
+            state=original_learning(r)
+            state['source_reward_globals']={k:int(getattr(bridge.reward,k)) for k in ('_value_debug_step','common_step_counter')}
+            state['source_clock_semantics']='original reward-tail debug enabled only'
+            return state
+        checkpoint.learning_state=learning_state
+        try:return original_save(runner,env,bridge,path,profile)
+        finally:checkpoint.learning_state=original_learning
+    checkpoint.save=save
+    checkpoint.FORMAT=FORMAT
+    return dict(full_learning_restore=True,legacy_format=LEGACY,target_format=FORMAT,
+        old_scalar_clock_missing_explicit=True,save_global_counters=True,production_source_decodes_in_restore=1)

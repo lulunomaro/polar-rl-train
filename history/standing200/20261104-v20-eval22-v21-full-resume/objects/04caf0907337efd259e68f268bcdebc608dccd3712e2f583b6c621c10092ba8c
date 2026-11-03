@@ -1,0 +1,38 @@
+"""Fixed independent200 evaluator; same frozen80 first-episode protocol."""
+from pathlib import Path
+import hashlib
+import json
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/evaluate.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='fef775cb73918f07e89c94af42ae89c2a1e86933af61c050d7a71ee5a740a902'
+source=raw.decode()
+
+
+def replace(old,new):
+    global source
+    assert source.count(old)==1,old
+    source=source.replace(old,new)
+
+
+replace("install_pose_cache_runtime_adapter_v4(env.scene['robot'])",
+    "install_pose_cache_runtime_adapter_v4(env.scene['robot'], receipt_callback=lambda value: put(out / 'POSE_CACHE_EVENTS.json', dict(actual_latest=value)))")
+replace("joint_pos_target=tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx].cpu().tolist()",
+    'joint_pos_target=pre_reset_targets.cpu().tolist()')
+replace('bridge.physics_observer = observe',
+    """bridge.physics_observer = observe
+        pre_reset_targets = torch.zeros(80, 4, device=args.device)
+        original_snapshot = bridge.snapshot
+        def snapshot(terminated, timeout):
+            pre_reset_targets.copy_(tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx])
+            value = original_snapshot(terminated, timeout)
+            r = bridge.reward
+            value.update(closure_reset=env.termination_manager.get_term('closure').clone(),
+                mimic_reset=env.termination_manager.get_term('mimic').clone(),
+                numerical_safety=r._numerical_safety_reset_buf.clone(),
+                raw_policy_max=r._obs_raw_policy_max_abs.clone(),
+                raw_critic_max=r._obs_raw_critic_max_abs.clone(),
+                source_clock=int(r._value_debug_step))
+            return value
+        bridge.snapshot = snapshot""")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

@@ -1,0 +1,278 @@
+"""SHA-deduplicated text archive; media/model/replay are indexed, never opened."""
+from pathlib import Path
+import argparse,hashlib,importlib.util,json,sys,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v13-eval-v14-actual-return-bptt'
+
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_v14_text_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for path in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(path.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    text={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    closed=R/'actual_closed/MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    files=[]
+    for base in[D,R/'repair_v11',R/'reports',closed]:
+        files.extend(p for p in base.rglob('*')if p.is_file()and p.suffix.lower()in text and '__pycache__'not in p.parts)
+    files.extend([R/'CURRENT_WORK_ORDER.json',R/'repair_v11/analyze_final_v13.py',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir();rows=[]
+    for path in sorted(set(files),key=str):
+        raw=path.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,
+            mode='complete_text'if not n else'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes());large=[dict(w['current_run_final'],published_by='own final receipt')]
+    transfers=json.loads((R/'reports/V13_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())
+    for row in transfers['files']:
+        if Path(row['local_path']).suffix.lower()not in text:large.append(dict(row,published_by='V13 closed actual transfer'))
+    for rel in ['rendered_v2/RENDER_REPORT.json','analysis/MEDIA_INDEX.json']:
+        large.extend(dict(row,published_by=str(closed/rel))for row in json.loads((closed/rel).read_bytes())['media'])
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    (DEST/'INDEX.json').write_text(json.dumps(dict(kind='V13_ACTUAL_EVAL_COORDINATION_FAILURE_AND_V14_SOURCE_LOCAL_FIXTURES',epoch=time.time(),
+        rows=rows,large_external_artifacts=large,model_media_reads_for_archive=0,shared_runtime_copies=0,
+        V13_trialobject_preserved='3ba22ac6f49d2a8b9a46eb60680b7b5316bf15ca',
+        V13_trialpeel_preserved='a129e10d278e0bcb9c9641aedb54a248a9a692f4',
+        V13_eval_status='actual0/80,notpending',V14_status=w['pending_repair']['status'],
+        future='If this phase alreadyrecorded,ordinarysupplements; never rerecord or retag'),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),text_rows=len(rows),new_objects=len(list((DEST/'objects').iterdir())),large_indexed=len(large))))
+
+
+def finalize():
+    # Record the already-pushed objects. This never calls record/retag again.
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    sys.path.insert(0,str(R))
+    from check_four4090_once import local_rows
+    _,blocked=local_rows()
+    record=dict(commit='4d88bb97207242227289b02b9f8d51b211764600',
+        tag='trial-20261103-mod4-standing200-v13-eval-v14-actual-return',
+        tagobject='2252f5e5ff5af7b0bdd75b62963a903375cb120a',
+        path=DEST.relative_to(REPO).as_posix(),status='pushed remote main/tag/peeled verified in tool output',
+        future='ordinary supplements only; never rerecord or retag')
+    w['archival']['V13_eval_V14_hybrid']=record
+    w.update(archived_this_update='V13 actualeval and V14localhybrid phase pushed; finalhandoff ordinarysupplement follows',
+        current_resource_blocker=blocked,last_local_check=dict(epoch=time.time(),network_operations=0,serial_free=not blocked))
+    w['pending_repair'].update(CPU_once_consumed=False,CPU_latest_attempt='local exactcontroller busy;0network/noonce consumed',
+        fullsource_CPU=False,physical_training=False)
+    assert not(R/'reports/HYBRID_ACTUAL_V14_ONCE.json').exists()
+    assert not(D/'FROZEN.json').exists()
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    receipt=R/'reports/V14_RECORD_AND_PENDING_ADMISSION_HANDOFF.json'
+    with receipt.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),record=record,
+        V13_actual_eval='completed0/80,80orientation,mean.5115s;nativepose+curvesreviewed',
+        V14='local synthetic algorithmpass; fullsourceCPUunused/notfrozen/notlaunched',
+        blockers=blocked,cpu_once_consumed=False,newSSH=0,source_model_reads=0,newSDK_physics=0,
+        next=w['next']),f,ensure_ascii=False,indent=2)
+    spec=importlib.util.spec_from_file_location('standing_finalhandoff_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for ip in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(ip.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    sub=DEST/'supplement-final-handoff';sub.mkdir(exist_ok=False);rows=[]
+    for file in[p,receipt,Path(__file__)]:
+        raw=file.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(file),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text'if not n else'redacted_text'))
+    (sub/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,model_network_physics_operations=0),indent=2)+'\n')
+    print(json.dumps(dict(current_status=w['status'],phase=record['commit'],CPU_once_unused=True,blockers=len(blocked),supplement=str(sub))))
+
+
+def live_handoff():
+    from datetime import datetime
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    s=json.loads((R/'reports/STATUS_V14_FIRST_UPDATED.json').read_bytes())
+    assert s.get('SSHclosed')and s['serial']=='FREE'and s['job']==w['remote_job']
+    files=s['files'];first=files.get('production/FIRST_UPDATED.json');go=files.get('GO_PRODUCTION.json')
+    full=files.get('production/FULL_RESTORE_V14.json')
+    errors={key:files[key]for key in['OWNER_ERROR.json','production/WORKER_ERROR.json','evaluation/EVAL_ERROR.json']if key in files}
+    status='V14_ACTUAL_GO_AWAIT_FIRST'if go else'V14_DISPATCH_NO_GO_IN_FIRST_RECEIPT'
+    if first:
+        real=first['actual_returns'];counts=first['checkpoint']['counts']
+        assert first['new_BPTT_steps']==1 and counts['pi_bptt_optimizer_steps']==3003
+        assert real['controls']==64 and real['samples']==32768
+        assert real['actual_actor_bias_gradient_norm']>0 and real['accepted_actor_commit']
+        assert real['actual_done_next_bootstrap_max']==0 and real['post_Adam_actual_Gaussian_KL']<=.01
+        assert first['repair']['committed_steps']==1 and first['checkpoint']['full_models_four_optimizers_replay_RNG']
+        assert first['checkpoint']['last_bptt_receipt']['verified_bptt_optimizer_step']
+        assert full['receipt']['all_four_Adam_tensors_equal']and full['receipt']['original_RNG_restored']
+        status='LIVE_V14_ACTUAL_RETURN_H32_BPTT_FIRST_UPDATE_FULLSAVE_CONFIRMED'
+    if errors:status='V14_ACTUAL_ERROR_REQUIRES_OWN_SAFE_CLOSE_AND_EVIDENCE'
+    closed=files.get('OWNER_EXIT.json')
+    if closed:status='V14_ACTUAL_ORIGINAL_OWNER_CLOSED_REVIEW_RESULTS_REQUIRED'
+    inventory=json.loads((R/'reports/FOUR4090_RESOURCE_ACTUAL_V14.json').read_bytes())
+    cpu=json.loads((R/'reports/HYBRID_ACTUAL_V14_ACTUAL.json').read_bytes())['result']
+    w.update(status=status,training_started=bool(go)and not errors and not closed,
+        training_completed=closed is not None,training_skill_pass=False,GO=go,
+        original_worker=files.get('WORKER_IDENTITY.json'),
+        original_worker_current=files.get('OWNER_CURRENT.json',{}).get('worker'),
+        first_checkpoint=None if first is None else first['checkpoint'],
+        first_actual_metrics=None if first is None else first['metrics'],
+        first_actual_repair=None if first is None else first['repair'],
+        first_actual_returns=None if first is None else first['actual_returns'],
+        first_actual_action_path=None if first is None else first['actual_action_path'],
+        full_restore_receipt=full,latest_checkpoint=files.get('production/latest_complete.json'),
+        latest_status='reports/STATUS_V14_FIRST_UPDATED.json',first_readonly_status_consumed=True,
+        first_readonly_status_finished=True,current_resource_blocker=None,actual_errors=errors,
+        actual_owner_exit=closed,current_run_final=files.get('production/FINAL.json',{}).get('checkpoint'),
+        current_model_independent_evaluation='not yet complete'if not files.get('evaluation/RESULT.json')else'actual result available; inspect once',
+        current_model_native_reviewed=False,
+        current_diagnosis=dict(actual_V13='prior_V13 actual0/80mean.5115s/80orientation;8native views+2curves reviewed',
+            algorithm_repair='actual64 true r/done PPO gradient plus.1 originalH32 BPTT and.1 existing latent antiwindup',
+            CPU='reports/HYBRID_ACTUAL_V14_ACTUAL.json',physical_skill_pass=False),
+        close_and_eval=dict(controller='same original remote owner; no localpostround or secondwatcher',
+            training_save_before_close=True,max_parent_seconds=3900,save_at_seconds=3600,exit_headroom_seconds=300,
+            independent80=True,seconds=10,controls=500,seed=9137,height_m=.2,edge_m=.8,
+            current_actor_single_decode_embedded_teacher=True,actual_400Hz_manifold=True),
+        current_CPU_admission=cpu,
+        fourGPU_latest_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_V14.json',resource_snapshot_is_historical=True,
+        fourGPU_latest_summary=dict(captured=inventory['captured'],
+            host72='both4090 computeempty24203MiB free atsnapshot; firstcard selected by originalowner',
+            host210='computeempty23890MiB free butHOME771657728Bfree;notselected',
+            host86='computeprocess21602MiB allocated,2462MiBfree;notselected'),
+        pending_repair=dict(version='V14',root=str(D),status='CPU_PASS_FROZEN_LAUNCH_AND_FIRST_CONSUMED',
+            CPU_once_consumed=True,fullsource_CPU=True,production_GO=bool(go),physical_training=bool(go)and not closed,
+            freeze=str(D/'FROZEN.json'),source_final=w['source_resume'],no_new_waiter=True),
+        next='HealthyV14 do not relaunch/FIRST/CPU/resource or hotpatch. Same originalowner fullsave at originaldeadline, safeclose/costsettlement/immediate independent80. At actualOWNER_EXIT and freshLOCAL/serialFREE use repair_v14/control.py closed once; inspect actualeval/error then render savedposes/native review and curves. Actively repair by actualevidence.',
+        archived_this_update='same alreadyrecordedV13eval/V14phase; newCPU/freeze/allfour/GO/FIRST included in ordinarysupplement')
+    if first:
+        w['first_likelihood_diagnostic']=dict(observed_max_ratio_abs_from_one=first['actual_returns']['pre_Adam_ratio_max_abs_from_one'],
+            exact_preupdate_likelihood_equality_proven=False,
+            source_norms_frozen=True,collection_batch=512,recomputed_gradient_batch=32768,
+            hypothesis='CUDA batchsize/TF32 numeric path may change composedmean enough to affect std.1 likelihood; not established solecause',
+            next='Preserve healthy frozen production and originalsave. At finalactualeval compare behavior; future independent learner correction should match collection forwardbatch or measure mean drift. Do not hotpatch currentV14.')
+    if go:
+        w['original_save_local']=datetime.fromtimestamp(go['save_deadline']).astimezone().isoformat()
+        w['original_nominal_local']=datetime.fromtimestamp(go['nominal_end_epoch']).astimezone().isoformat()
+    w['followup_commands']=dict(
+        CPU='V14 fullsourceCPU/onefinalV13decode consumedPASS; never rerun forarchive.',
+        resources='V14allfour consumed; healthy no recheck/startup/modelverification.',
+        launch='V14launch consumedGO; neverlaunch again or resetAdam.',
+        first='V14uniqueFIRST collectorconsumed; do not bind anotherwatcher.',
+        status='After originalsavetime and freshLOCAL/serialFREE, finite metadataread with newPOSTWINDOWlabel onlyifOWNER_EXITnotpublished; avoidsecondwatcher.',
+        closed='OnlyactualoriginalOWNER_EXIT and allcontrollers released: repair_v14/control.py closed once; checkV14_CLOSED_EVIDENCE_TRANSFER_ONCE first.',
+        render='Afteractualevaltransfer: render_standing_recorded_v2.py with currentV14evaluation and newUSD, then native view_image actualside/top/curves; noNN/newphysicsrender.')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    with(R/'reports/V14_ACTUAL_FIRST_FULLSAVE_CONTINUATION.json').open('x',encoding='utf-8')as f:
+        json.dump(dict(epoch=time.time(),current_run=w['run_id'],status=status,GO=go,source_final=w['source_resume'],
+            original_owner=w['original_owner'],original_worker=w['original_worker'],fullrestore=full,
+            actual_FIRST=first,actual_errors=errors,
+            CPUalgorithm_admission_only=cpu['fixture'],newphysical_200mm_skill_not_proven=True,
+            latest_owncheckpoint=w['latest_checkpoint'],next=w['next'],
+            consumed=['V13closedtransfer','V14CPU','V14allfour','V14launch','V14FIRST'],
+            parent270mm_scope_operated=False,canonical_reserve_and_window_unchanged=True),f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(status=status,FIRST=first is not None,save=w.get('original_save_local'),nominal=w.get('original_nominal_local'),errors=list(errors))))
+
+
+def append_likelihood_diagnostic():
+    # Update metadata only after original livehandoff is already saved. Never
+    # rewrite the immutable originalFIRST or the frozen production source.
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    first=json.loads((R/'reports/STATUS_V14_FIRST_UPDATED.json').read_bytes())['files']['production/FIRST_UPDATED.json']
+    diagnostic=dict(observed_max_ratio_abs_from_one=first['actual_returns']['pre_Adam_ratio_max_abs_from_one'],
+        exact_preupdate_likelihood_equality_proven=False,source_norms_frozen=True,
+        collection_batch=512,recomputed_gradient_batch=32768,
+        hypothesis='CUDA batchsize/TF32 numeric path may shift mean; no attribution without bounded evidence',
+        production_source_modified=False,healthy_original_save_boundary_preserved=True,
+        next='After current independent80/native review, diagnose mean/likelihood batch drift from exact source before further algorithm change; preserve originalV14.')
+    w['first_likelihood_diagnostic']=diagnostic
+    w['pending_repair']['physical_skill_pass']=False
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    with(R/'reports/V14_FIRST_LIKELIHOOD_NUMERIC_CONCERN.json').open('x',encoding='utf-8')as f:
+        json.dump(dict(epoch=time.time(),run_id=w['run_id'],source_first='reports/STATUS_V14_FIRST_UPDATED.json',
+            checkpoint=first['checkpoint'],diagnostic=diagnostic,newmodelreads=0,newphysics=0,newSSH=0),f,ensure_ascii=False,indent=2)
+    print(json.dumps(diagnostic))
+
+
+def supplement():
+    spec=importlib.util.spec_from_file_location('standing_v14_supplement_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for ip in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(ip.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    sub=DEST/('supplement-'+time.strftime('%Y%m%d-%H%M%S')+'-actual-v14');sub.mkdir(exist_ok=False)
+    text={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    files=[p for base in[D,R/'reports']for p in base.rglob('*')if p.is_file()and p.suffix.lower()in text and '__pycache__'not in p.parts]
+    files.extend([R/'CURRENT_WORK_ORDER.json',R/'repair_v11/analyze_final_v13.py',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    rows=[]
+    for file in sorted(set(files),key=str):
+        raw=file.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(file),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text'if not n else'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    large=[]
+    for field in['source_resume','first_checkpoint','latest_checkpoint','current_run_final']:
+        if w.get(field):large.append(dict(w[field],published_by='workorder.'+field))
+    (sub/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,current_run=w['run_id'],status=w['status'],
+        large_external_artifacts=large,model_media_reads_for_archive=0,
+        phase_commit='4d88bb97207242227289b02b9f8d51b211764600',phase_tagobject='2252f5e5ff5af7b0bdd75b62963a903375cb120a',
+        ordinarysupplement_no_record_or_retag=True),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(supplement=str(sub),textrows=len(rows),currentstatus=w['status'])))
+
+
+def boundary_handoff():
+    """Read already published exact owner evidence, or retain unknown closure."""
+    from datetime import datetime
+    sys.path.insert(0,str(R))
+    from check_four4090_once import local_rows
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    assert w['run_id']=='MOD4_STANDING200_RLBPTT_V14_1793685133426758900'
+    peer=Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/h1_target_limit_cont_20261103/reports/EXACT_ORIGINAL_PEER_RELEASED.json')
+    timer=peer.parent.parent/'RESOURCE_WAIT_FROZEN.json'
+    rows,blocked=local_rows();published=None;identity=None
+    if peer.exists():
+        raw=peer.read_bytes();published=json.loads(raw)
+        assert published['passed']and published['peer_run']==w['run_id']
+        own=published['owner_exit'];closed=published['train_closed'];final=closed['final']
+        assert own['run_id']==w['run_id']and own['all_own_waited']and own['original_cost_settled']and own['original_leases_released']
+        assert closed['all_own_waited']and closed['original_cost_settled']
+        identity=dict(path=str(peer),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+        w.update(status='V14_FULLSAVE_AND_OWN_CLOSE_PUBLISHED_EVALUATION_NOT_RETRIEVED',training_started=False,
+            training_completed=True,current_run_final=final['checkpoint'],latest_checkpoint=final['checkpoint'],
+            final_actual_metrics=final,actual_owner_exit=own,close_local_evidence=identity,
+            original_closed_local=datetime.fromtimestamp(own['epoch']).astimezone().isoformat())
+    else:
+        w['status']='V14_ORIGINAL_SAVE_DEADLINE_PASSED_CLOSE_AND_EVAL_NOT_RETRIEVED_LOCAL_BUSY'
+    w.update(current_resource_blocker=blocked,last_local_check=dict(epoch=time.time(),network_operations=0,serial_free=not blocked),
+        evaluation_status='V14 actual independent80 result not yet retrieved; V13 completed0/80 is historical',
+        current_model_native_reviewed=False,
+        next='Read local exact published peer release/own receipts first. While original H1release-timer or any knowncontroller alive only local. Do not infer closure/eval from clock. Once actualV14OWNER_EXIT plus freshLOCAL/serialFREE, unique repair_v14/control.py closed; actual result/replay then render nativepose and compare curves. Never repeat V14CPU/launch/FIRST/eval.',
+        curve_reader='repair_v11/analyze_final_v13.py --evaluation <actualV14/evaluation> --prior <actualV13/evaluation> --output <actualV14/analysis> --label V14 --prior-label V13; outputs pending native review until actual view_image')
+    w['followup_commands']['published_close']=str(peer)+'; local only, must match exact run/own allwaited/costsettled/leasesreleased; no evaluator success inferred'
+    w['followup_commands']['closed']='V14_CLOSED_EVIDENCE_TRANSFER_ONCE still unused; only actual originalOWNER_EXIT and freshLOCAL/serialFREE run repair_v14/control.py closed. Livecontroller means local only.'
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    report=R/'reports'/('V14_SAVE_BOUNDARY_LOCAL_EVIDENCE_'+time.strftime('%Y%m%d_%H%M%S')+'.json')
+    with report.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),run_id=w['run_id'],status=w['status'],
+        original_GO=w['GO'],actual_published_closure=published,published_identity=identity,
+        local_CIM=dict(rows=rows,blocked=blocked),timer_metadata=json.loads(timer.read_bytes())if timer.exists()else None,
+        training_closure_not_inferred_from_time=True,evaluation_result_not_retrieved=True,
+        closed_transfer_once_consumed=(R/'reports/V14_CLOSED_EVIDENCE_TRANSFER_ONCE.json').exists(),
+        new_model_reads=0,new_SDK_physics=0,newSSH=0,
+        local_reader_change='Parameterize existing actualcurves reader fornewV14versusV13; native_review_pending until currentmodel actualview_image; oldV13report/figures unchanged.',
+        next=w['next']),f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(status=w['status'],published_closure=published is not None,blocked=len(blocked),report=str(report))))
+
+
+if __name__=='__main__':
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['archive','finalize','live_handoff','likelihood','supplement','boundary'],nargs='?',default='archive');a=q.parse_args()
+    dict(archive=main,finalize=finalize,live_handoff=live_handoff,likelihood=append_likelihood_diagnostic,supplement=supplement,boundary=boundary_handoff)[a.mode]()

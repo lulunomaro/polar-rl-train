@@ -1,0 +1,97 @@
+"""SHA-deduplicated text archive; media/model/replay are indexed, never opened."""
+from pathlib import Path
+import argparse,hashlib,importlib.util,json,sys,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v13-eval-v14-actual-return-bptt'
+
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_v14_text_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for path in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(path.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    text={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    closed=R/'actual_closed/MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    files=[]
+    for base in[D,R/'repair_v11',R/'reports',closed]:
+        files.extend(p for p in base.rglob('*')if p.is_file()and p.suffix.lower()in text and '__pycache__'not in p.parts)
+    files.extend([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir();rows=[]
+    for path in sorted(set(files),key=str):
+        raw=path.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,
+            mode='complete_text'if not n else'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes());large=[dict(w['current_run_final'],published_by='own final receipt')]
+    transfers=json.loads((R/'reports/V13_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())
+    for row in transfers['files']:
+        if Path(row['local_path']).suffix.lower()not in text:large.append(dict(row,published_by='V13 closed actual transfer'))
+    for rel in ['rendered_v2/RENDER_REPORT.json','analysis/MEDIA_INDEX.json']:
+        large.extend(dict(row,published_by=str(closed/rel))for row in json.loads((closed/rel).read_bytes())['media'])
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    (DEST/'INDEX.json').write_text(json.dumps(dict(kind='V13_ACTUAL_EVAL_COORDINATION_FAILURE_AND_V14_SOURCE_LOCAL_FIXTURES',epoch=time.time(),
+        rows=rows,large_external_artifacts=large,model_media_reads_for_archive=0,shared_runtime_copies=0,
+        V13_trialobject_preserved='3ba22ac6f49d2a8b9a46eb60680b7b5316bf15ca',
+        V13_trialpeel_preserved='a129e10d278e0bcb9c9641aedb54a248a9a692f4',
+        V13_eval_status='actual0/80,notpending',V14_status=w['pending_repair']['status'],
+        future='If this phase alreadyrecorded,ordinarysupplements; never rerecord or retag'),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),text_rows=len(rows),new_objects=len(list((DEST/'objects').iterdir())),large_indexed=len(large))))
+
+
+def finalize():
+    # Record the already-pushed objects. This never calls record/retag again.
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    sys.path.insert(0,str(R))
+    from check_four4090_once import local_rows
+    _,blocked=local_rows()
+    record=dict(commit='4d88bb97207242227289b02b9f8d51b211764600',
+        tag='trial-20261103-mod4-standing200-v13-eval-v14-actual-return',
+        tagobject='2252f5e5ff5af7b0bdd75b62963a903375cb120a',
+        path=DEST.relative_to(REPO).as_posix(),status='pushed remote main/tag/peeled verified in tool output',
+        future='ordinary supplements only; never rerecord or retag')
+    w['archival']['V13_eval_V14_hybrid']=record
+    w.update(archived_this_update='V13 actualeval and V14localhybrid phase pushed; finalhandoff ordinarysupplement follows',
+        current_resource_blocker=blocked,last_local_check=dict(epoch=time.time(),network_operations=0,serial_free=not blocked))
+    w['pending_repair'].update(CPU_once_consumed=False,CPU_latest_attempt='local exactcontroller busy;0network/noonce consumed',
+        fullsource_CPU=False,physical_training=False)
+    assert not(R/'reports/HYBRID_ACTUAL_V14_ONCE.json').exists()
+    assert not(D/'FROZEN.json').exists()
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    receipt=R/'reports/V14_RECORD_AND_PENDING_ADMISSION_HANDOFF.json'
+    with receipt.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),record=record,
+        V13_actual_eval='completed0/80,80orientation,mean.5115s;nativepose+curvesreviewed',
+        V14='local synthetic algorithmpass; fullsourceCPUunused/notfrozen/notlaunched',
+        blockers=blocked,cpu_once_consumed=False,newSSH=0,source_model_reads=0,newSDK_physics=0,
+        next=w['next']),f,ensure_ascii=False,indent=2)
+    spec=importlib.util.spec_from_file_location('standing_finalhandoff_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for ip in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(ip.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    sub=DEST/'supplement-final-handoff';sub.mkdir(exist_ok=False);rows=[]
+    for file in[p,receipt,Path(__file__)]:
+        raw=file.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(file),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text'if not n else'redacted_text'))
+    (sub/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,model_network_physics_operations=0),indent=2)+'\n')
+    print(json.dumps(dict(current_status=w['status'],phase=record['commit'],CPU_once_unused=True,blockers=len(blocked),supplement=str(sub))))
+
+
+if __name__=='__main__':
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['archive','finalize'],nargs='?',default='archive');a=q.parse_args()
+    (main if a.mode=='archive'else finalize)()

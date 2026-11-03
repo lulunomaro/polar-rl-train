@@ -1,0 +1,668 @@
+--- B2/passive_capture.py
++++ NEW_B3/passive_capture.py
+@@ -1,4 +1,4 @@
+-"""Bounded passive observer of ORIGINAL feedback calls; stdlib import only.
++"""V3 typed passive observer of ORIGINAL feedback calls; no Torch/SDK import.
+ 
+ No step/reset/observation/SDK getter is called by this module. install() only
+ wraps already-bound functions after preflight. The wrapped original is called
+@@ -14,6 +14,8 @@
+ from source_api import (CHANNELS, SCALES, verify_callable, verify_class, closure_functions, sha,
+                         verify_existing_reset_chain, diagnose_preflight_bindings)
+ 
++from field_snapshot import FieldSnapshot, tensor_snapshot_adapter
++
+ UNKNOWN = 'UNKNOWN'
+ 
+ 
+@@ -30,28 +32,6 @@
+     raise TypeError('Snapshot adapter required for ' + type(value).__name__)
+ 
+ 
+-def tensor_snapshot_adapter(tensor_class, row_ids, num_envs):
+-    """Parent supplies existing torch.Tensor class and bounded device row index.
+-
+-    No torch import, RNG, dtype cast, CPU copy, SDK access, allocation of a new
+-    index, or conversion to lists occurs here. row_ids must be prepared in the
+-    admitted window. Input/native tensors are copied, never stored by reference.
+-    export to CPU/JSON is an explicit later parent operation, outside callbacks.
+-    """
+-    if int(row_ids.numel()) < 1 or int(row_ids.numel()) > 8:
+-        raise ValueError('Select one through eight witness rows')
+-    def snapshot(value):
+-        if isinstance(value, tensor_class):
+-            x = value.detach()
+-            if x.ndim and x.shape[0] == num_envs:
+-                x = x.index_select(0, row_ids)
+-            return x.clone()
+-        if type(value) is dict:
+-            return {k: snapshot(v) for k, v in value.items()}
+-        if type(value) in (list, tuple):
+-            return type(value)(snapshot(v) for v in value)
+-        return stdlib_snapshot(value)
+-    return snapshot
+ 
+ 
+ class BoundedRecorder:
+@@ -288,14 +268,30 @@
+ 
+ 
+ class PassiveCapture:
+-    def __init__(self, env, bridge, module, recorder, snapshot, inspection):
++    """V3 thin tap. Scientific ownership is independent of mixed debug rings.
++
++    Parent must call begin_control before the already-existing bridge.step, and
++    end_control only after that same step and strict boundary. This class never
++    performs a step, actor calculation, reset, SDK getter or terminal reduction.
++    """
++    def __init__(self, env, bridge, module, recorder, snapshot, inspection, *, ledger, source_refs):
++        if type(snapshot) is not FieldSnapshot or ledger.codec is not snapshot.codec:
++            raise TypeError('V3 explicit FieldSnapshot and same-codec ledger required')
++        if set(source_refs) != {'feedback', 'sensor', 'delay', 'bridge', 'reset'}:
++            raise ValueError('Explicit pinned field provenance required')
++        if any(type(value) is not str or not value for value in source_refs.values()):
++            raise ValueError('Nonempty source references required')
+         self.env, self.bridge, self.module = env, bridge, module
+         self.recorder, self.snapshot, self.inspection = recorder, snapshot, inspection
++        self.ledger, self.source_refs = ledger, dict(source_refs)
+         self._patches = []
+         self._active = None
+         self._phase = 'outside_scene_update'
+         self._reset_depth = 0
+-        self._call_id = 0
++        self._call_id = self._event_sequence = 0
++        self._control_index = None
++        self._pending_control = None
++        self._ledger_result = None
+         self.calls = Counter()
+         self.closed = False
+ 
+@@ -306,36 +302,113 @@
+             self.recorder.capture_error(error)
+             return UNKNOWN
+ 
+-    def _clock(self):
+-        e = self.env
+-        tick = vars(e)['_sim_step_counter']
+-        return dict(physics_tick=tick, sim_time_us=tick * 2500,
+-                    feedback_tick=vars(e)['_feedback_100hz_tick'],
+-                    common_control_counter=vars(e)['common_step_counter'], phase=self._phase,
+-                    control_slot=('mid' if tick % 8 == 4 else 'end' if tick > 0 and tick % 8 == 0 else UNKNOWN),
+-                    reset_depth=self._reset_depth,
+-                    is_original_100hz_slot=self._phase == 'scene_update' and self._reset_depth == 0 and tick % 4 == 0,
+-                    sample_identity='key + per-row episode + feedback_tick; repeated calls are not fresh samples')
++    def _rows(self, value, field, origin, clock):
++        return self.snapshot.rows(value, source_ref=self.source_refs[origin],
++                                  source_field=field, clock=clock)
++
++    def _state(self, value, field, origin, clock):
++        return self.snapshot.state(value, source_ref=self.source_refs[origin],
++                                   source_field=field, clock=clock)
++
++    def _event_id(self, kind):
++        self._event_sequence += 1
++        return kind + ':' + str(self._event_sequence)
++
++    def _pending_summary(self):
++        pending = self._pending_control
++        if pending is None:
++            return None
++        counts = pending['original_callback_counts']
++        reset = pending['reset_callback']
++        owned_ids = (type(reset) is dict and type(reset.get('ids')) is dict
++                     and reset['ids'].get('semantic_role') == 'ENV_IDS_FULL')
++        return dict(original_terminal_callbacks=counts['terminal'], original_reset_callbacks=counts['reset'],
++                    observer_error_count=self.recorder.capture_errors - pending['capture_errors_at_begin'],
++                    reset_observation=('NOT_OBSERVED' if counts['reset'] == 0 else
++                                       'OBSERVED_WITH_OWNED_IDS' if owned_ids else 'OBSERVED_METADATA_FAILED'))
++
++    def _close_metadata(self, pack):
++        summary = self._pending_summary()
++        pack['b3_callback_provenance'] = summary
++        problems = []
++        if summary['observer_error_count']:
++            problems.append('B3_OBSERVER_METADATA_ERRORS')
++        if summary['original_terminal_callbacks'] != 1:
++            problems.append('B3_ORIGINAL_TERMINAL_CALLBACK_COUNT')
++        count = summary['original_reset_callbacks']
++        if (count not in (0, 1) or
++                (count == 1) != (pack['reset']['callback_status'] == 'OBSERVED')):
++            problems.append('B3_OBSERVED_RESET_NOT_EXACTLY_RETAINED')
++        if problems:
++            pack['retention_status'] = 'INCOMPLETE'
++            pack['missing'].extend(problems)
++
++    def begin_control(self, control_index):
++        """Parent-only explicit context; contains no original task call."""
++        def begin():
++            self.ledger.begin(control_index, clock=self._clock())
++            self._control_index = control_index
++            self._pending_control = dict(worker_control_index=control_index,
++                normal_samples={'mid': {}, 'end': {}}, terminal_callback=None, reset_callback=None, post_return_callback=None,
++                original_callback_counts=dict(terminal=0, reset=0),
++                capture_errors_at_begin=self.recorder.capture_errors)
++            return True
++        return self._try(begin)
++
++    def end_control(self, *, post_term, post_trunc, source_ref, actor35=None):
++        """Consume only caller's already-returned original flags/END actor buffer.
++
++        No flag recreation, terminal reduction, observation, context/pack getter,
++        or fallback actor is performed. Missing actor remains UNKNOWN in ledger.
++        """
++        def end():
++            clock = self._clock()
++            owned_post = dict(clock=clock, source_ref=source_ref, term=UNKNOWN, trunc=UNKNOWN,
++                              actor35_original_buffer='UNKNOWN_NOT_CAPTURED')
++            if self._pending_control is not None:
++                self._pending_control['post_return_callback'] = owned_post
++            term = self.snapshot.mask(post_term, source_ref=source_ref,
++                                      source_field='original_post_return.terminated', clock=clock)
++            owned_post['term'] = term
++            trunc = self.snapshot.mask(post_trunc, source_ref=source_ref,
++                                       source_field='original_post_return.truncated', clock=clock)
++            owned_post['trunc'] = trunc
++            actor = None if actor35 is None else self.snapshot.rows(
++                actor35, source_ref=source_ref, source_field='original_END_actor35_buffer', clock=clock)
++            owned_post['actor35_original_buffer'] = actor if actor is not None else 'UNKNOWN_NOT_CAPTURED'
++            result = self.ledger.end(post_term=term, post_trunc=trunc, clock=clock, actor=actor)
++            self._close_metadata(result)
++            self._control_index = None
++            self._pending_control = None
++            return result
++        return self._try(end)
+ 
+     def _delay_state(self):
+         d = self.env._feedback_delay_mild
+         key = self._active['key'] if self._active is not None else None
+-        return self.snapshot(dict(enabled=d.enabled, delay_steps=d.delay,
+-                                  episode=d.episode,
+-                                  cache=d.cache.get(key, UNKNOWN) if key else d.cache))
+-
+-    def _patch(self, owner, name, wrapped):
+-        values = vars(owner)
+-        present, original_stored = name in values, values.get(name)
+-        original_resolved = getattr(owner, name)
+-        setattr(owner, name, wrapped)
+-        self._patches.append((owner, name, present, original_stored, wrapped, original_resolved))
++        return self._state(dict(enabled=d.enabled, delay_steps=d.delay, episode=d.episode,
++                                cache=d.cache.get(key, UNKNOWN) if key else d.cache),
++                           'original_delay_state', 'delay', self._clock())
++
++    def _boundary_state(self, clock):
++        sensor, delay = self.env._sensor_mild, self.env._feedback_delay_mild
++        return dict(sensor_episode=self._state(sensor.episode, 'sensor.episode', 'sensor', clock),
++                    delay_episode=self._state(delay.episode, 'delay.episode', 'delay', clock),
++                    queue=self._state(delay.cache, 'delay.cache', 'delay', clock))
++
++    @staticmethod
++    def _normal(clock, key):
++        return (type(clock) is dict and type(key) is str and key in CHANNELS
++                and clock.get('phase') == 'scene_update' and clock.get('reset_depth') == 0
++                and clock.get('is_original_100hz_slot') is True
++                and clock.get('control_slot') in ('mid', 'end'))
+ 
+     def attach(self):
+         e, m, r = self.env, self.module, self.recorder
+         sensor, delay = e._sensor_mild, e._feedback_delay_mild
+         original_feedback, original_sensor, original_delay = m.feedback, sensor.apply, delay.apply
+         original_update, original_term, original_reset = e.scene.update, e.termination_manager.compute, e._reset_idx
++
+         def feedback(env, key, raw):
+             if env is not e:
+                 return original_feedback(env, key, raw)
+@@ -343,63 +416,74 @@
+             self._call_id += 1
+             ticket = r.begin('feedback')
+             parent = self._active
+-            record = dict(call_id=self._call_id, key=key, clock=self._clock(),
++            clock = self._try(self._clock)
++            normal = self._normal(clock, key)
++            retain = normal or ticket is not None
++            record = dict(call_id=self._call_id, key=key, clock=clock,
+                           clean_origin='actual feedback raw argument, before noise and lag',
+-                          clean=self._try(lambda: self.snapshot(raw)) if ticket else UNKNOWN,
+-                          full_clean35=UNKNOWN, sensor_stage=UNKNOWN, delay_stage=UNKNOWN,
++                          clean=self._try(lambda: self._rows(raw, 'feedback.raw', 'feedback', clock)) if retain else UNKNOWN,
++                          full_clean35='UNKNOWN_NOT_COMPUTED', sensor_stage=UNKNOWN, delay_stage=UNKNOWN,
+                           exception=None)
+-            self._active = record if ticket else None
++            self._active = record if retain else None
+             try:
+                 out = original_feedback(env, key, raw)
+-                if ticket:
+-                    record['return'] = self._try(lambda: self.snapshot(out))
++                if retain:
++                    record['return'] = self._try(lambda: self._rows(out, 'feedback.original_return', 'feedback', clock))
+                 return out
+             except BaseException as error:
+-                if ticket:
+-                    record['exception'] = dict(type=type(error).__name__, message=str(error)[:320])
++                record['exception'] = self._try(lambda: dict(type=type(error).__name__, message=str(error)[:320]))
+                 raise
+             finally:
+                 self._active = parent
+-                r.commit(ticket, record)
++                if normal:
++                    if self._pending_control is not None:
++                        self._pending_control['normal_samples'][clock['control_slot']].setdefault(key, record)
++                    self._try(lambda: self.ledger.normal_sample(
++                        key, clock['control_slot'], record['clean'], clock=clock,
++                        payload={name: value for name, value in record.items() if name != 'clean'}))
++                self._try(lambda: r.commit(ticket, record))
++
+         def sensor_apply(*args, **kwargs):
+             self.calls['sensor_apply'] += 1
+             record = self._active
+             def capture_before():
+                 cached = sensor.cache.get(record['key'])
+-                return dict(noise_cache_last=self.snapshot(cached[0]) if cached is not None else UNKNOWN,
+-                            episode=self.snapshot(sensor.episode), draw_counts=dict(sensor.draw_counts))
++                clock = self._clock()
++                return dict(noise_cache_last=self._rows(cached[0], 'sensor.cache.last.before', 'sensor', clock) if cached is not None else UNKNOWN,
++                            episode=self._state(sensor.episode, 'sensor.episode.before', 'sensor', clock),
++                            draw_counts=dict(sensor.draw_counts))
+             before = self._try(capture_before) if record is not None else UNKNOWN
+             out = original_sensor(*args, **kwargs)
+             if record is not None:
+                 key = record['key']
+                 def capture_sensor():
+                     cached = sensor.cache.get(key)
+-                    # Store the actual cache, not noisy-clean subtraction or a new draw.
+-                    return dict(profile=sensor.profile, before=before,
+-                                fresh_due_local=UNKNOWN,
+-                                noise_used=self.snapshot(cached[1]) if cached is not None and sensor.profile != 'off' else UNKNOWN,
+-                                noise_cache_last=self.snapshot(cached[0]) if cached is not None and sensor.profile != 'off' else UNKNOWN,
+-                                leg_bias_used=self.snapshot(sensor.bias) if key == 'leg_pos' and sensor.profile != 'off' else UNKNOWN,
+-                                episode=self.snapshot(sensor.episode), draw_counts=dict(sensor.draw_counts),
+-                                actual_noisy_return=self.snapshot(out),
++                    clock = self._clock()
++                    return dict(profile=sensor.profile, before=before, fresh_due_local=UNKNOWN,
++                                noise_used=self._rows(cached[1], 'sensor.cache.noise_used', 'sensor', clock) if cached is not None and sensor.profile != 'off' else UNKNOWN,
++                                noise_cache_last=self._rows(cached[0], 'sensor.cache.last.after', 'sensor', clock) if cached is not None and sensor.profile != 'off' else UNKNOWN,
++                                leg_bias_used=self._rows(sensor.bias, 'sensor.bias', 'sensor', clock) if key == 'leg_pos' and sensor.profile != 'off' else UNKNOWN,
++                                episode=self._state(sensor.episode, 'sensor.episode.after', 'sensor', clock),
++                                draw_counts=dict(sensor.draw_counts),
++                                actual_noisy_return=self._rows(out, 'sensor.original_return', 'sensor', clock),
+                                 dtype=str(getattr(out, 'dtype', UNKNOWN)))
+                 record['sensor_stage'] = self._try(capture_sensor)
+             return out
++
+         def delay_apply(*args, **kwargs):
+             self.calls['delay_apply'] += 1
+             record = self._active
+             before = self._try(self._delay_state) if record is not None else UNKNOWN
+-            # key,x,tick is the ORIGINAL bound method signature; all arguments forwarded.
+             if record is not None:
+-                x = args[1] if len(args) > 1 else kwargs['x']
+-                record['delay_actual_input'] = self._try(lambda: self.snapshot(x))
++                record['delay_actual_input'] = self._try(lambda: self._rows(
++                    args[1] if len(args) > 1 else kwargs['x'], 'delay.actual_input', 'delay', self._clock()))
+             out = original_delay(*args, **kwargs)
+             if record is not None:
+                 record['delay_stage'] = dict(before=before, after=self._try(self._delay_state),
+-                                             actual_return=self._try(lambda: self.snapshot(out)),
+-                                             selection_origin='original cache.sample_tick/out, not replayed delay logic',
+-                                             local_delayed_mask=UNKNOWN)
++                    actual_return=self._try(lambda: self._rows(out, 'delay.original_return', 'delay', self._clock())),
++                    selection_origin='original cache.sample_tick/out, not replayed delay logic', local_delayed_mask=UNKNOWN)
+             return out
++
+         def update(*args, **kwargs):
+             self.calls['scene_update'] += 1
+             previous = self._phase
+@@ -408,43 +492,69 @@
+                 return original_update(*args, **kwargs)
+             finally:
+                 self._phase = previous
++
+         def terminal(*args, **kwargs):
+             self.calls['terminal_boundary'] += 1
++            if self._pending_control is not None:
++                self._pending_control['original_callback_counts']['terminal'] += 1
+             out = original_term(*args, **kwargs)
+             ticket = r.begin('terminal_pre_reset')
+-            if ticket:
+-                r.commit(ticket, dict(clock=self._clock(),
+-                    bridge_pre=self._try(lambda: self.snapshot(self.bridge.pre)),
+-                    queue_before_any_reset=self._try(lambda: self.snapshot(delay.cache)),
+-                    episode=self._try(lambda: self.snapshot(sensor.episode)),
+-                    terminal_clean35=UNKNOWN,
+-                    origin='existing bridge.pre after original termination capture, before reset'))
++            clock = self._try(self._clock)
++            event_id = self._event_id('terminal')
++            def capture_terminal():
++                pre = self.bridge.pre
++                return dict(term=self.snapshot.mask(pre['term'], source_ref=self.source_refs['bridge'],
++                                                    source_field='bridge.pre.term', clock=clock),
++                            trunc=self.snapshot.mask(pre['trunc'], source_ref=self.source_refs['bridge'],
++                                                     source_field='bridge.pre.trunc', clock=clock),
++                            state=self._rows(pre['s1'], 'bridge.pre.s1', 'bridge', clock),
++                            boundary=self._boundary_state(clock), terminal_clean35='UNKNOWN_NOT_COMPUTED')
++            retained = self._try(capture_terminal)
++            if self._pending_control is not None and self._pending_control['terminal_callback'] is None:
++                self._pending_control['terminal_callback'] = dict(clock=clock, event_id=event_id, retained=retained)
++            def retain_terminal():
++                self.ledger.pre_reset(retained['term'], retained['trunc'], clock=clock,
++                                      event_id=event_id, payload={key: value for key, value in retained.items()
++                                                                 if key not in ('term', 'trunc')})
++            self._try(retain_terminal)
++            self._try(lambda: r.commit(ticket, dict(clock=clock, event_id=event_id, bridge_pre=retained,
++                origin='existing bridge.pre after original termination capture, before reset')))
+             return out
++
+         def reset(*args, **kwargs):
+             self.calls['reset_boundary'] += 1
++            if self._pending_control is not None:
++                self._pending_control['original_callback_counts']['reset'] += 1
+             ticket = r.begin('reset_boundary')
+             ids = args[0] if args else kwargs.get('env_ids', kwargs.get('ids', UNKNOWN))
+-            record = dict(clock=self._clock(), ids=self._try(lambda: self.snapshot(ids)) if ticket else UNKNOWN,
+-                          before=self._try(lambda: self.snapshot(dict(sensor_episode=sensor.episode,
+-                                  delay_episode=delay.episode, queue=delay.cache))) if ticket else UNKNOWN,
+-                          after=UNKNOWN, exception=None)
++            clock = self._try(self._clock)
++            event_id = self._event_id('reset')
++            retained_ids = self._try(lambda: self.snapshot.ids(ids, source_ref=self.source_refs['reset'],
++                                        source_field='original_reset_callback_entry_ids', clock=clock))
++            record = dict(clock=clock, event_id=event_id, ids=retained_ids,
++                          before=self._try(lambda: self._boundary_state(clock)), after=UNKNOWN,
++                          exception=None, outcome='RAISED')
+             previous = self._phase
+             self._phase = 'inside_reset'
+             self._reset_depth += 1
+             try:
+                 out = original_reset(*args, **kwargs)
+-                if ticket:
+-                    record['after'] = self._try(lambda: self.snapshot(dict(sensor_episode=sensor.episode,
+-                                  delay_episode=delay.episode, queue=delay.cache)))
++                record['outcome'] = 'RETURNED'
+                 return out
+             except BaseException as error:
+-                if ticket:
+-                    record['exception'] = dict(type=type(error).__name__, message=str(error)[:320])
++                record['exception'] = self._try(lambda: dict(type=type(error).__name__, message=str(error)[:320]))
+                 raise
+             finally:
++                # On RAISED, this is the actually remaining partial state, not a completed reset claim.
++                record['after'] = self._try(lambda: self._boundary_state(self._clock()))
+                 self._reset_depth -= 1
+                 self._phase = previous
+-                r.commit(ticket, record)
++                if self._pending_control is not None and self._pending_control['reset_callback'] is None:
++                    self._pending_control['reset_callback'] = record
++                self._try(lambda: self.ledger.reset(retained_ids, clock=clock, event_id=event_id,
++                    before=record['before'], after=record['after'], outcome=record['outcome']))
++                self._try(lambda: r.commit(ticket, record))
++
+         try:
+             self._patch(sensor, 'apply', sensor_apply)
+             self._patch(delay, 'apply', delay_apply)
+@@ -457,11 +567,50 @@
+             raise
+         return self
+ 
++    def finish(self):
++        """Explicit outside-step ownership finalization, not JSON/CPU export."""
++        self._ledger_result = self._try(self.ledger.finish)
++        return self.report()
++
+     def report(self):
+-        return dict(binding=self.inspection, bounded=self.recorder.report(),
++        ledger = self._ledger_result if self._ledger_result is not None else 'PENDING_EXPLICIT_FINISH'
++        retained = (type(ledger) is dict and ledger.get('all_controls_observed') is True
++                    and all(pack['retention_status'] == 'EXPECTED_FIELDS_RETAINED' for pack in ledger['controls']))
++        pending = None if self._pending_control is None else dict(
++            kind='B3_INCOMPLETE_OWNED_CONTROL', retention_status='INCOMPLETE',
++            original_post_return=('NOT_OBSERVED' if self._pending_control['post_return_callback'] is None
++                                  else 'CALLER_SUPPLIED_BUFFERS_END_NOT_CLOSED'), provenance=self._pending_summary(),
++            owned_partial_control=self._pending_control)
++        return dict(kind='PASSIVE_SENSOR_CAPTURE_V3', binding=self.inspection,
++                    bounded_debug_not_complete_sampling=self.recorder.report(), control_ledger=ledger,
++                    incomplete_current_control=pending,
+                     original_wrapper_call_counts=dict(self.calls), native_enabled=False, exact=False,
+-                    capture_complete=self.recorder.capture_errors == 0,
++                    metadata_retention_complete=bool(retained and self.recorder.capture_errors == 0),
++                    metadata_retention_is_not_native_admission=True,
++                    clean0='UNKNOWN_NOT_CAPTURED', mid_remaining19='UNKNOWN_NOT_SAMPLED_AT_MID',
++                    mid_full_clean35='UNKNOWN_NOT_COMPUTED', mid_actor35='UNKNOWN_50HZ_ONLY',
++                    untapped_bitwise_actor35='UNKNOWN', private_global_RNG_parity='UNKNOWN',
+                     source_only_not_native_admission=True)
++
++    def _clock(self):
++        e = self.env
++        tick = vars(e)['_sim_step_counter']
++        return dict(physics_tick=tick, sim_time_us=tick * 2500,
++                    feedback_tick=vars(e)['_feedback_100hz_tick'],
++                    common_control_counter=vars(e)['common_step_counter'], phase=self._phase,
++                    control_slot=('mid' if tick % 8 == 4 else 'end' if tick > 0 and tick % 8 == 0 else UNKNOWN),
++                    reset_depth=self._reset_depth,
++                    is_original_100hz_slot=self._phase == 'scene_update' and self._reset_depth == 0 and tick % 4 == 0,
++                    sample_identity='key + per-row episode + feedback_tick; repeated calls are not fresh samples')
++
++
++    def _patch(self, owner, name, wrapped):
++        values = vars(owner)
++        present, original_stored = name in values, values.get(name)
++        original_resolved = getattr(owner, name)
++        setattr(owner, name, wrapped)
++        self._patches.append((owner, name, present, original_stored, wrapped, original_resolved))
++
+ 
+     def close(self):
+         if self.closed:
+@@ -478,10 +627,31 @@
+         self.closed = True
+ 
+ 
++
++def _pin_reference(pin):
++    return (pin['source_path'] + ':' + str(pin['definition_line']) + '-' + str(pin['end_line'])
++            + '@sha256:' + pin['source_sha256'] + '::' + pin['module'] + '.' + pin['qualname'])
++
++
++def _source_references(role_api, bridge_pin):
++    pins = role_api['pins']
++    return dict(feedback=_pin_reference(pins['feedback']), sensor=_pin_reference(pins['sensor_apply']),
++                delay=_pin_reference(pins['delay_apply']), bridge=_pin_reference(bridge_pin),
++                reset=_pin_reference(role_api['reset_chain']['layers'][0]['function']))
++
++
+ def install_passive_capture(env, bridge, feedback_module, role_api, bridge_pin, *,
+-                            recorder=None, snapshot=stdlib_snapshot):
+-    """Explicit install only. Caller owns original resource admission and bounded stepping."""
+-    inspection = preflight(env, bridge, feedback_module, role_api, bridge_pin)
++                            snapshot, ledger, recorder=None, dependency_pins=None):
++    """V3 explicit install; no backward fallback to B2 generic snapshot.
++
++    Parent owns source admission and supplies an existing same-codec ledger.
++    All dependency and original binding checks happen before any assignment.
++    """
++    from dependency_contract import verify_typed_dependency
++    codec_binding = verify_typed_dependency(snapshot, ledger, dependency_pins=dependency_pins)
++    inspection = dict(preflight(env, bridge, feedback_module, role_api, bridge_pin),
++                      capture_schema='PASSIVE_SENSOR_CAPTURE_V3', typed_codec_binding=codec_binding)
+     return PassiveCapture(env, bridge, feedback_module,
+                           recorder if recorder is not None else BoundedRecorder(),
+-                          snapshot, inspection).attach()
++                          snapshot, inspection, ledger=ledger,
++                          source_refs=_source_references(role_api, bridge_pin)).attach()
+--- /dev/null
++++ NEW_B3/field_snapshot.py
+@@ -0,0 +1,64 @@
++"""V3 explicit field semantics over the independently published typed codec.
++
++No leading-dimension heuristic, new device index, cast, MDP evaluation or export.
++Cache/episode state trees are explicitly ENV_ROWS_WITNESS by their call site;
++reset arguments and original bool masks have separate non-recursive entry points.
++"""
++from typed_capture_codec import CaptureCodec
++
++
++class FieldSnapshot:
++    def __init__(self, codec):
++        if type(codec) is not CaptureCodec:
++            raise TypeError('Exact published CaptureCodec instance required')
++        self.codec = codec
++
++    def rows(self, value, *, source_ref, source_field, clock):
++        return self.codec.capture(value, role='ENV_ROWS_WITNESS',
++                                  source_ref=source_ref, source_field=source_field,
++                                  clock=clock, env_axis=0)
++
++    def ids(self, value, *, source_ref, source_field, clock):
++        return self.codec.capture(value, role='ENV_IDS_FULL',
++                                  source_ref=source_ref, source_field=source_field,
++                                  clock=clock, env_axis=None)
++
++    def mask(self, value, *, source_ref, source_field, clock):
++        return self.codec.capture(value, role='TERMINAL_BOOL_FULL',
++                                  source_ref=source_ref, source_field=source_field,
++                                  clock=clock, env_axis=0)
++
++    def state(self, value, *, source_ref, source_field, clock):
++        """Only an explicitly designated per-env state/queue metadata tree.
++
++        Not the entry point for bridge.pre, reset IDs, actor trees or arbitrary
++        unknown structures. Every tensor in THIS tree has declared env axis 0.
++        Codec validation rejects a mismatched axis instead of guessing by shape.
++        """
++        if isinstance(value, self.codec.tensor_type):
++            return self.rows(value, source_ref=source_ref,
++                             source_field=source_field, clock=clock)
++        if type(value) is dict:
++            if not all(type(key) is str for key in value):
++                raise TypeError('State field keys must be strings')
++            return {key: self.state(item, source_ref=source_ref,
++                                    source_field=source_field + '.' + key, clock=clock)
++                    for key, item in value.items()}
++        if type(value) in (tuple, list):
++            return [self.state(item, source_ref=source_ref,
++                               source_field=source_field + '[' + str(index) + ']', clock=clock)
++                    for index, item in enumerate(value)]
++        if value is None or type(value) in (bool, int, float, str):
++            return value
++        raise TypeError('Unsupported explicit state field: ' + type(value).__name__)
++
++
++def tensor_snapshot_adapter(tensor_class, row_ids, num_envs, *, witness_env_ids):
++    """V3 API: caller supplies the existing same-device index AND Python mapping.
++
++    The codec records CALLER_DECLARED_INDEX_BINDING_NOT_READBACK; no index
++    readback or equality claim is made. This is intentionally not B2's generic
++    callable snapshot API. Reset ID dtype is never inferred from this index.
++    """
++    return FieldSnapshot(CaptureCodec(tensor_class, witness_index=row_ids,
++                                     witness_env_ids=witness_env_ids, n=num_envs))
+--- /dev/null
++++ NEW_B3/dependency_contract.py
+@@ -0,0 +1,109 @@
++"""V3 fail-closed typed-source checks. Pre-install only, not a callback.
++
++Reads fixed NEW SOURCE pins; never discovers a replacement expected SHA from
++whatever happens to be imported. No SDK/MDP call, tensor readback or device index
++construction. B2 source_api and its exact four-reset-layer contract are retained.
++"""
++import inspect
++import json
++from pathlib import Path
++import sys
++
++from source_api import sha, verify_class, verify_callable
++from field_snapshot import FieldSnapshot
++
++HERE = Path(__file__).resolve().parent
++
++
++def _function(value, expected, module, owner=None):
++    if inspect.ismethod(value):
++        if owner is not None and value.__self__ is not owner:
++            raise ValueError('Typed method belongs to a different owner')
++        fn = value.__func__
++    else:
++        fn = value
++    if not inspect.isfunction(fn) or hasattr(fn, '__wrapped__'):
++        raise ValueError('Exact published typed function required, no unwrap skip')
++    if fn.__globals__ is not module.__dict__ or fn.__closure__:
++        raise ValueError('Typed function globals/closure changed')
++    if list(fn.__defaults__ or ()) != expected['literal_defaults']:
++        raise ValueError('Typed positional defaults changed')
++    if (fn.__kwdefaults__ or {}) != expected['literal_kwdefaults']:
++        raise ValueError('Typed keyword defaults changed')
++    return verify_callable(fn, expected)
++
++
++def verify_typed_dependency(snapshot, ledger, *, dependency_pins=None):
++    """Reject a stale/unknown codec BEFORE assignment of the first MDP wrapper.
++
++    Source pins are made only after the independent publisher's final seal.
++    The installed module may have a deployment path different from source pins;
++    source bytes, line/signature/live compiled code and actual owner/module bind.
++    """
++    pins = (json.loads((HERE / 'CODEC_SOURCE_PINS.json').read_text(encoding='utf-8'))
++            if dependency_pins is None else dependency_pins)
++    if pins.get('kind') != 'B3_TYPED_SOURCE_DEPENDENCY_PINS_V1' or pins.get('publisher_final') is not True:
++        raise ValueError('Final published typed source pins required')
++    module = sys.modules.get(pins['codec_module'])
++    if module is None or sha(module.__file__) != pins['codec_source_sha256']:
++        raise ValueError('Published typed codec module/source mismatch')
++    if type(snapshot) is not FieldSnapshot or type(snapshot.codec) is not vars(module)['CaptureCodec']:
++        raise ValueError('Exact V3 FieldSnapshot and published CaptureCodec required')
++    if type(ledger) is not vars(module)['ControlLedger'] or ledger.codec is not snapshot.codec:
++        raise ValueError('Exact published same-codec ControlLedger required')
++    if type(snapshot.codec.n) is not int or snapshot.codec.n != 80:
++        raise ValueError('Typed source lineage requires N80')
++    codec = snapshot.codec
++    ids = codec.witness_env_ids
++    if (type(ids) is not tuple or not 1 <= len(ids) <= 8
++            or any(type(item) is not int or not 0 <= item < 80 for item in ids)
++            or len(set(ids)) != len(ids)):
++        raise ValueError('Declared witness metadata changed')
++    if (not isinstance(codec.tensor_type, type)
++            or not isinstance(codec.witness_index, codec.tensor_type)
++            or tuple(codec.witness_index.shape) != (len(ids),)
++            or str(codec.witness_index.dtype) != 'torch.int64'):
++        raise ValueError('Existing witness index metadata changed')
++    if type(ledger.controls) is not int or ledger.controls not in (64, 128):
++        raise ValueError('Control ledger cap must be 64 or 128')
++    if type(ledger.run_id) is not str or not ledger.run_id:
++        raise ValueError('Explicit run ID required')
++    if type(ledger._packs) is not list or ledger._packs or ledger._open is not None or ledger._finished is not False:
++        raise ValueError('Install requires an unused existing control ledger')
++    for name, expected in pins['codec_constants'].items():
++        if vars(module).get(name) != expected:
++            # JSON turns tuple constants into lists; only the declared tuple
++            # constants may use this one explicit metadata representation.
++            if name not in ('ROLES', 'INTEGER_DTYPES') or tuple(vars(module).get(name, ())) != tuple(expected):
++                raise ValueError('Published typed module constant changed: ' + name)
++    class_receipts = {name: verify_class(vars(module)[name], expected)
++                      for name, expected in pins['codec_classes'].items()}
++    receipts = {}
++    for qualname, expected in pins['codec_functions'].items():
++        if '.' in qualname:
++            class_name, method = qualname.split('.')
++            cls = vars(module)[class_name]
++            owner = snapshot.codec if class_name == 'CaptureCodec' else ledger
++            value = getattr(owner, method)
++            if not inspect.ismethod(value) or value.__func__ is not vars(cls)[method]:
++                raise ValueError('Typed class descriptor/instance method changed: ' + qualname)
++            receipts[qualname] = _function(value, expected, module, owner)
++        else:
++            receipts[qualname] = _function(vars(module)[qualname], expected, module)
++    field_module = sys.modules.get(FieldSnapshot.__module__)
++    if field_module is None or vars(field_module).get('FieldSnapshot') is not FieldSnapshot:
++        raise ValueError('FieldSnapshot module binding changed')
++    if vars(field_module).get('CaptureCodec') is not vars(module)['CaptureCodec']:
++        raise ValueError('FieldSnapshot resolves a different CaptureCodec')
++    verify_class(FieldSnapshot, pins['field_class'])
++    for name, expected in pins['field_functions'].items():
++        value = getattr(snapshot, name)
++        if not inspect.ismethod(value) or value.__func__ is not vars(FieldSnapshot)[name]:
++            raise ValueError('Explicit field method changed: ' + name)
++        receipts['FieldSnapshot.' + name] = _function(value, expected, field_module, snapshot)
++    return dict(kind='V3_TYPED_SOURCE_BINDING_INSPECTION_V1', source_only=True,
++                native_enabled=False, exact=False, publisher_final=True,
++                codec_source_sha256=pins['codec_source_sha256'], classes=class_receipts,
++                checked_functions=receipts,
++                witness_mapping='CALLER_DECLARED_INDEX_BINDING_NOT_READBACK',
++                actual_MDP_calls=0, actual_tensor_index_readback=False)

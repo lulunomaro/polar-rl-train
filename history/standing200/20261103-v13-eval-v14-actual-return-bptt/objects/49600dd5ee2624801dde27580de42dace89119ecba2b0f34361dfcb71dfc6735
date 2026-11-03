@@ -1,0 +1,102 @@
+"""Synthetic CPU collection/H32/actual-gradient integration; no native physics.
+
+The arithmetic fixture deliberately resets every fifth control and has an
+action-dependent scalar reward. Its transitions are not robot training data.
+"""
+from pathlib import Path
+import copy,json,sys,tempfile,time
+from types import SimpleNamespace
+import torch
+
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path[:0]=[str(D),str(R/'source_v2'),str(R/'repair_v8')]
+from hybrid_actual import Learner,Policy,CONTRACT
+from standing_core_v1 import StandingMDP
+from supermimic_vendor_v2.learner import SuperMimicConfig
+from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY,SUPERMIMIC_TRANSITION_KEY
+from check_local_math import same
+
+
+class Teacher(torch.nn.Module):
+    def forward(self,obs,stochastic_output=False):return obs['policy'][...,:6]*.01
+
+
+class ArithmeticFixture:
+    device=torch.device('cpu');num_envs=8
+    def __init__(self):
+        self.mdp=StandingMDP(60);self.controls=0;self.before_calls=0
+        self.s=torch.zeros(self.num_envs,73);self.s[:,3]=1.;self.s[:,2]=.25
+        self.xi=torch.zeros(self.num_envs,60);self.xi[:,0]=.35;self.xi[:,35]=.8;self.xi[:,36]=.2;self.xi[:,43]=1.
+        self.ep=torch.zeros(self.num_envs,dtype=torch.int32);self.prev=torch.zeros(self.num_envs,6)
+        self.publish()
+    @property
+    def supermimic_mdp(self):return self.mdp
+    def publish(self,transition=None):
+        info={SUPERMIMIC_STATE_KEY:dict(s=self.s.clone(),xi=self.xi.clone(),f=self.ep.long().clone(),ep_step=self.ep.clone(),a_prev=self.prev.clone())}
+        if transition is not None:info[SUPERMIMIC_TRANSITION_KEY]=transition
+        self.state=SimpleNamespace(info=info)
+    def before_action(self):self.before_calls+=1
+    def step(self,action):
+        old=self.state.info[SUPERMIMIC_STATE_KEY];applied=action.clamp(-6,6).detach();next_s=self.s.clone()
+        next_s[:,0]+=applied[:,4]*.001;next_s[:,7]=applied[:,4]*.05;next_s[:,13:19]+=.001*applied
+        done=self.ep==4;term=done.clone();trunc=torch.zeros_like(done)
+        xi1=self.xi.clone();xi1[:,22:28]=applied;xi1[:,28]=next_s[:,0]
+        masked=xi1.clone();masked[done]=0
+        reward=1.-.1*(applied[:,4]-.25).square()-.1*(applied[:,5]-.25).square()
+        transition=dict(s=old['s'],s1=next_s.clone(),a=applied.clone(),a_prev=old['a_prev'],xi=old['xi'],
+            xi1=masked,xi1_valid=~done,r=reward,f=old['f'],ep_step=old['ep_step'],done=done,term=term,trunc=trunc)
+        self.ep=torch.where(done,0,self.ep+1).to(torch.int32);self.s=next_s;self.xi=xi1;self.prev=applied.clone()
+        self.s[done]=0.;self.s[done,3]=1.;self.s[done,2]=.25;self.prev[done]=0
+        self.xi[done,22:35]=0;self.controls+=1;self.publish(transition)
+        return self.state
+
+
+def main():
+    torch.set_num_threads(4);env=ArithmeticFixture()
+    cfg=SuperMimicConfig(buffer_steps=128,hist=10,horizon=32,goal_frames=1,z_dim=8,
+        wm_hidden=(32,32),policy_hidden=(32,16),critic_hidden=(32,16),wm_window=8,
+        wm_batches=1,wm_batch=16,pi_batch=16,critic_minibatches=2,critic_epochs=1,
+        warmup_steps=64,wm_only_iters=0,amp='none',compile=False,seed=1913,log_backend='none')
+    class Actual(Learner):
+        def _make_policy(self):return Policy(super()._make_policy(),Teacher())
+    with tempfile.TemporaryDirectory(prefix='standing200_v14_arithmetic_')as tmp:
+        learner=Actual(env,cfg,tmp,device='cpu');learner.collect(128)
+        for _ in range(4):learner.wm_update()
+        normalizers=copy.deepcopy(learner.pi.obs_norm.state_dict()),copy.deepcopy(learner.pi.goal_norm.state_dict())
+        counts=copy.deepcopy(vars(learner.counts));learner.policy_update()
+        actual=copy.deepcopy(learner.last_actual);bptt=copy.deepcopy(learner.last_bptt_receipt)
+        assert actual['controls']==64 and actual['samples']==64*env.num_envs
+        assert actual['actual_done']>0 and actual['actual_done_next_bootstrap_max']==0
+        assert actual['actual_actor_bias_gradient_norm']>0
+        assert actual['pre_Adam_ratio_max_abs_from_one']<1e-4
+        assert actual['accepted_actor_commit']and actual['post_Adam_actual_Gaussian_KL']<=.01
+        assert bptt['verified_bptt_optimizer_step']and bptt['horizon']==32
+        assert learner.counts.pi_optimizer_steps==counts['pi_optimizer_steps']+1
+        assert learner.counts.pi_bptt_optimizer_steps==counts['pi_bptt_optimizer_steps']+1
+        assert learner.counts.critic_optimizer_steps==counts['critic_optimizer_steps']+6
+        assert same(normalizers[0],learner.pi.obs_norm.state_dict())and same(normalizers[1],learner.pi.goal_norm.state_dict())
+        assert learner.actual_batch is None and learner.actual_rows is None
+        checkpoint=learner._checkpoint(True)
+        assert checkpoint['standing_actual_return']['contract']==CONTRACT
+        assert checkpoint['context_reward_extension']['update_boundary_safe']
+        # Stop-before-action is the real owner boundary. An interrupted chunk
+        # is marked collect-safe, and no partial on-policy samples survive it.
+        class StopBoundary(Exception):pass
+        learner.pending_iteration=dict(phase='policy',collect_left=0,wm_left=0)
+        env.before_action=lambda:(_ for _ in ()).throw(StopBoundary())
+        try:learner.prepare_actual_batch()
+        except StopBoundary:pass
+        else:raise AssertionError('stop-before-action must escape')
+        assert learner.actual_rows is None and learner.actual_batch is None
+        assert learner.pending_iteration['phase']=='collect'
+        assert learner._checkpoint(True)['context_reward_extension']['update_boundary_safe']
+        result=dict(kind='V14_SYNTHETIC_CPU_LEARNER_INTEGRATION',epoch=time.time(),passed=True,
+            arithmetic_controls=env.controls,source_models_opened=0,production_optimization=0,
+            native_SDK_physics=0,physical_skill_pass=False,actual=actual,H32=bptt,
+            frozen_source_actor_norms=True,one_actor_commit=True,stop_boundary_safe=True,
+            synthetic_data_not_actual_robot_rollout=True)
+    with(R/'reports/V14_LOCAL_INTEGRATION_ACTUAL.json').open('x',encoding='utf-8')as f:json.dump(result,f,indent=2)
+    print(json.dumps(result))
+
+
+if __name__=='__main__':main()

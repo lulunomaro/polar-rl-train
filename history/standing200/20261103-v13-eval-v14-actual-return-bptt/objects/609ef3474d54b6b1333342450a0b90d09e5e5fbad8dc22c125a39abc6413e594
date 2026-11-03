@@ -1,0 +1,112 @@
+"""Unique finalV13 decode and full restored learner CPU integration admission.
+
+Stored rows plus synthetic likelihood samples form an algorithm fixture only;
+they are never called new physical/on-policy data and never enter production.
+"""
+from pathlib import Path
+import argparse,copy,json,sys,tempfile,time
+
+SHARED='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/source'
+sys.path.insert(0,SHARED)
+
+
+def same(x,y):
+    import torch
+    if torch.is_tensor(x):return torch.equal(x,y)
+    if isinstance(x,dict):return x.keys()==y.keys()and all(same(v,y[k])for k,v in x.items())
+    if isinstance(x,(tuple,list)):return len(x)==len(y)and all(same(v,w)for v,w in zip(x,y))
+    return x==y
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job',required=True,type=Path);q.add_argument('--output',required=True,type=Path);a=q.parse_args()
+    a.output.mkdir(exist_ok=False)
+    sys.path[:0]=[str(Path(__file__).resolve().parent),str(a.job/'source'),str(a.job/'sm_deps')]
+    import torch
+    torch.set_num_threads(4)
+    from native_supermimic_bridge import BridgeState
+    from standing_core_v1 import StandingMDP
+    from standing_resume_v8 import load_pinned,build_embedded_actor,restore_learner,optimizer_steps
+    from hybrid_actual import Learner,Policy,components,CONTRACT
+    from actual_returns import actual_gae,gaussian_log_prob
+    from supermimic_vendor_v2.learner import SuperMimicConfig
+    from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY
+    receipt=json.loads((a.job/'production/FINAL.json').read_bytes())['checkpoint']
+    assert receipt['SHA']=='2bc1c10b51252d93b80f224eaffaaaae2015f184a230c233f4a42c384aa14a40'
+    source=load_pinned(receipt);ext=source['context_reward_extension'];replay=ext['replay']
+    actor=build_embedded_actor(source,'cpu')
+    class Fixture:
+        device=torch.device('cpu');num_envs=replay['N'];mdp=StandingMDP(replay['data']['xi'].shape[-1])
+        @property
+        def supermimic_mdp(self):return self.mdp
+    env=Fixture();row=(replay['ptr']-1)%replay['T']
+    env.state=BridgeState(info={SUPERMIMIC_STATE_KEY:{k:replay['data'][k][row].clone()for k in ('s','xi','f','ep_step','a_prev')}},
+        reward=torch.zeros(env.num_envs),terminated=torch.zeros(env.num_envs,dtype=torch.bool),truncated=torch.zeros(env.num_envs,dtype=torch.bool),obs={})
+    class Actual(Learner):
+        def _make_policy(self):return Policy(super()._make_policy(),actor,1.)
+    cfg=SuperMimicConfig(**source['args'])
+    with tempfile.TemporaryDirectory(prefix='standing_actual_v14_fullrestore_')as tmp:
+        learner=Actual(env,cfg,tmp,device='cpu',predict_context_mask=ext['context_predict_mask'])
+        restored=restore_learner(learner,source,cpu_fixture=True)
+        offsets=optimizer_steps(learner)
+        assert offsets['pi']['min']==offsets['pi']['max']==3002
+        assert offsets['wm']['min']==offsets['wm']['max']==12536
+        assert offsets['aux']['min']==offsets['aux']['max']==12536
+        assert offsets['v']['min']==offsets['v']['max']==12008
+        snapshots={n:copy.deepcopy(getattr(learner,n).state_dict())for n in ['wm','pi','critic','aux','opt_wm','opt_pi','opt_v','opt_aux']}
+        count=copy.deepcopy(learner.counts)
+        hist,goal=learner._guard_reset_histories();hist,goal=hist[:512].clone(),goal[:512].clone()
+        with torch.no_grad():
+            action,_=components(learner.pi,hist,goal)
+            from standing_action_v8 import compose
+            from tensordict import TensorDict
+            direct=compose(actor(TensorDict(dict(policy=hist[:,-1,:35]),batch_size=[len(hist)]),stochastic_output=False),learner.pi.residual(hist,goal))
+        action_difference=float((action-direct).abs().max());assert action_difference<1e-5
+        generator=torch.Generator().manual_seed(9147)
+        sample=action+.1*torch.randn(action.shape,generator=generator)
+        # A known synthetic action-dependent advantage tests score-function
+        # propagation using saved reset observations, without reusing old r as
+        # fresh on-policy data. Production always collects a real fresh64.
+        adv=(sample[:,4]-action[:,4])-(sample[:,5]-action[:,5]);adv=(adv-adv.mean())/(adv.std(unbiased=False)+1e-8)
+        age=torch.arange(64,device=learner.device);rows=learner.buffer._row(age)
+        reward=learner.buffer.data['r'][rows];done=learner.buffer.data['done'][rows]
+        value=torch.zeros_like(reward);nxt=torch.full_like(reward,100.)
+        _,returns=actual_gae(reward,done,value,nxt)
+        assert torch.allclose(returns[done],reward[done])
+        learner.actual_batch=dict(history=hist,goal=goal,mean=action,raw=sample,logprob=gaussian_log_prob(sample,action),advantages=adv)
+        learner.last_actual=dict(fixture_only=True,actual_robot_onpolicy_samples=0,saved_reset_inputs=len(hist),source_norms_frozen=True)
+        # Exercise the exact combined-loss/H32/accepted-Adam implementation.
+        learner.prepare_actual_batch=lambda:None
+        def critic_fixture():
+            from supermimic_vendor_v2.geometry import unflatten_state
+            row=learner.buffer._row(torch.tensor([learner.buffer.size-1]))[0]
+            data={k:v[row,:len(hist)]for k,v in learner.buffer.data.items()}
+            ci=learner._critic_input(unflatten_state(data['s']),data['f'],data['xi'],data['xi'][:,:3])
+            learner.actual_batch.update(critic_input=ci,returns=data['r'].clone())
+            Learner.fit_actual_critic(learner)
+        learner.fit_actual_critic=critic_fixture
+        learner.policy_update()
+        actual=copy.deepcopy(learner.last_actual);bptt=copy.deepcopy(learner.last_bptt_receipt)
+        assert actual['accepted_actor_commit']and actual['actual_actor_bias_gradient_norm']>0
+        assert actual['post_Adam_actual_Gaussian_KL']<=.01
+        assert actual['pre_Adam_ratio_max_abs_from_one']<1e-4
+        assert bptt['verified_bptt_optimizer_step']and bptt['horizon']==32
+        assert learner.counts.pi_optimizer_steps==count.pi_optimizer_steps+1
+        assert learner.counts.pi_bptt_optimizer_steps==count.pi_bptt_optimizer_steps+1
+        assert learner.counts.critic_optimizer_steps==count.critic_optimizer_steps+8
+        assert learner.counts.wm_optimizer_steps==count.wm_optimizer_steps
+        assert learner.counts.aux_optimizer_steps==count.aux_optimizer_steps
+        for name,state in snapshots.items():getattr(learner,name).load_state_dict(state)
+        learner.counts=count
+        assert all(same(getattr(learner,name).state_dict(),state)for name,state in snapshots.items())
+        assert not torch.cuda.is_initialized()
+        result=dict(kind='STANDING200_V14_FULL_RESTORE_HYBRID_CPU',epoch=time.time(),passed=True,source=receipt,restore=restored,
+            contract=CONTRACT,fixture=dict(actual=actual,H32=bptt,all_weights_four_Adam_restored=True,
+                source_Adam_offsets=offsets,production_updates=0,synthetic_samples=len(hist),actual_new_robot_samples=0,
+                deterministic_formula_max_difference=action_difference,terminal_next_bootstrap_zero=True),
+            source_model_decodes=1,source_teacher_PT_opens=0,SDK_physics_GPU_C_writes=0,physical_skill_pass=False)
+    (a.output/'RESULT.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(dict(passed=True,actual=actual,H32verified=bptt['verified_bptt_optimizer_step'])))
+
+
+if __name__=='__main__':main()

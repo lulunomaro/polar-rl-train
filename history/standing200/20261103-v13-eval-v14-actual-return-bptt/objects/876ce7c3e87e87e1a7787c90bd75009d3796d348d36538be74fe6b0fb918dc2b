@@ -1,0 +1,50 @@
+"""SHA-deduplicated text archive; media/model/replay are indexed, never opened."""
+from pathlib import Path
+import hashlib,importlib.util,json,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v13-eval-v14-actual-return-bptt'
+
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_v14_text_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for path in(REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(path.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    text={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    closed=R/'actual_closed/MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    files=[]
+    for base in[D,R/'repair_v11',R/'reports',closed]:
+        files.extend(p for p in base.rglob('*')if p.is_file()and p.suffix.lower()in text and '__pycache__'not in p.parts)
+    files.extend([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir();rows=[]
+    for path in sorted(set(files),key=str):
+        raw=path.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,
+            mode='complete_text'if not n else'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes());large=[dict(w['current_run_final'],published_by='own final receipt')]
+    transfers=json.loads((R/'reports/V13_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())
+    for row in transfers['files']:
+        if Path(row['local_path']).suffix.lower()not in text:large.append(dict(row,published_by='V13 closed actual transfer'))
+    for rel in ['rendered_v2/RENDER_REPORT.json','analysis/MEDIA_INDEX.json']:
+        large.extend(dict(row,published_by=str(closed/rel))for row in json.loads((closed/rel).read_bytes())['media'])
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    (DEST/'INDEX.json').write_text(json.dumps(dict(kind='V13_ACTUAL_EVAL_COORDINATION_FAILURE_AND_V14_SOURCE_LOCAL_FIXTURES',epoch=time.time(),
+        rows=rows,large_external_artifacts=large,model_media_reads_for_archive=0,shared_runtime_copies=0,
+        V13_trialobject_preserved='3ba22ac6f49d2a8b9a46eb60680b7b5316bf15ca',
+        V13_trialpeel_preserved='a129e10d278e0bcb9c9641aedb54a248a9a692f4',
+        V13_eval_status='actual0/80,notpending',V14_status=w['pending_repair']['status'],
+        future='If this phase alreadyrecorded,ordinarysupplements; never rerecord or retag'),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),text_rows=len(rows),new_objects=len(list((DEST/'objects').iterdir())),large_indexed=len(large))))
+
+
+if __name__=='__main__':main()

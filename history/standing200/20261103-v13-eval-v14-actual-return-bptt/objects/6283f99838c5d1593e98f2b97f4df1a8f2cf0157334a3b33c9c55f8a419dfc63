@@ -1,0 +1,228 @@
+"""Small pending V14 override; original serial/owner/admission runtime reused.
+
+No background waiter is added. Each remote operation first checks exact local
+controllers; CPU, inventory, launch and FIRST each have a unique consumed once.
+"""
+from pathlib import Path
+import argparse,ast,hashlib,importlib.util,json,sys,time,traceback
+D=Path(__file__).resolve().parent;R=D.parent;PRIOR=R/'repair_v11'
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+from stage_start_standing200_v6 import run,PREFLIGHT
+SHARED='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400'
+SHAS='21e4a1ef44bc36af36a4d93a488e8727db4ad9c315a471efa4e0823b053a554b'
+
+
+def prior_runtime():
+    spec=importlib.util.spec_from_file_location('standing_existing_v13_control',PRIOR/'control.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    return module
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def cpu():
+    module=prior_runtime()
+    _,blocked=module.admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    # Original finite controller provides local gate, canonical-none, 3EX,
+    # ownwait/finally closure. Only file lookup changes to this small override.
+    spec=importlib.util.spec_from_file_location('standing_existing_finite_cpu',PRIOR/'finite_cpu.py')
+    finite=importlib.util.module_from_spec(spec);spec.loader.exec_module(finite)
+    finite.D=D
+    sys.argv=[str(PRIOR/'finite_cpu.py'),'hybrid_actual_v14','check_full_restore.py','actual_returns.py','hybrid_actual.py']
+    finite.main()
+
+
+def prepare():
+    assert not(D/'FROZEN.json').exists()
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    assert w['run_id']=='MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    assert w['evaluation_closed_and_transferred']and w['replay_native_reviewed']
+    receipt=json.loads((R/'reports/HYBRID_ACTUAL_V14_ACTUAL.json').read_bytes())
+    assert receipt['returncode']==0 and receipt['own_waited']
+    cpu=receipt['result'];assert cpu['passed']and cpu['source']['SHA']==w['current_run_final']['SHA']
+    assert cpu['fixture']['all_weights_four_Adam_restored']and cpu['SDK_physics_GPU_C_writes']==0
+    for name in ['V14_LOCAL_MATH_ACTUAL.json','V14_LOCAL_INTEGRATION_ACTUAL.json']:
+        assert json.loads((R/'reports'/name).read_bytes())['passed']
+    replace=lambda text,old,new:exact_replace(text,old,new)
+    worker=(PRIOR/'standing_worker_v1.py').read_text(encoding='utf-8')
+    worker=replace(worker,'from antiwindup import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,REPAIR_CONTRACT',
+        'from hybrid_actual import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,CONTRACT as REPAIR_CONTRACT')
+    worker=replace(worker,"put(out/'FULL_RESTORE_V13.json'","put(out/'FULL_RESTORE_V14.json'")
+    worker=replace(worker,'new_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-source_steps,repair=learner.last_repair,',
+        'new_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-source_steps,repair=learner.last_repair,actual_returns=learner.last_actual,')
+    worker=replace(worker,"last_bptt=learner.last_bptt_receipt,repair=learner.last_repair,**bridge.metrics()",
+        "last_bptt=learner.last_bptt_receipt,repair=learner.last_repair,actual_returns=learner.last_actual,**bridge.metrics()")
+    worker=replace(worker,"skill_graduated=False,independent80_required=True,**bridge.metrics()",
+        "skill_graduated=False,independent80_required=True,actual_returns=learner.last_actual,**bridge.metrics()")
+    ast.parse(worker);(D/'standing_worker_v1.py').write_text(worker,encoding='utf-8',newline='\n')
+    # A direct symlink would resolve __file__ back to the consumed V13 job.
+    # These tiny wrappers execute pinned shared bytes with the NEW task path.
+    for filename in ['standing_owner_v1.py','evaluate_standing200_v1.py']:
+        folder='control'if filename.startswith('standing_owner')else'source'
+        raw=(PRIOR/filename).read_bytes();sha=hashlib.sha256(raw).hexdigest()
+        target=w['remote_job']+'/'+folder+'/'+filename
+        wrapper=('from pathlib import Path\nimport hashlib\n'
+            f"_shared=Path({target!r})\n_raw=_shared.read_bytes()\n"
+            f"assert hashlib.sha256(_raw).hexdigest()=={sha!r}\n"
+            "exec(compile(_raw,str(Path(__file__).absolute()),'exec'),globals())\n")
+        ast.parse(wrapper);(D/filename).write_text(wrapper,encoding='utf-8',newline='\n')
+    plan=json.loads((PRIOR/'PLAN.json').read_bytes());runid='MOD4_STANDING200_RLBPTT_V14_'+str(time.time_ns())
+    plan.update(run_id=runid,resume=w['current_run_final'],
+        algorithm='actual64 onpolicy returns PPO + .1 originalH32 learnedWM BPTT + .1 original latent antiwindup',
+        action_repair='unchangedV8 deterministic action; complete finalV13 weights/fourAdam; freeze retained actor observation+goal normalization',
+        optimizer_repair=dict(contract=cpu['contract'],CPU='reports/HYBRID_ACTUAL_V14_ACTUAL.json',
+            actual_evidence='actual finalV13 independent80:0strict,80orientation,mean.5115s'),
+        actual_return_contract=cpu['contract'])
+    (D/'PLAN.json').write_text(json.dumps(plan,indent=2)+'\n')
+    # Owner and evaluator are shared by SHA, not copied from prior run output.
+    shared={}
+    for rel,name,local in [
+        ('source/standing_action_v8.py','standing_action_v8.py',R/'repair_v8'),
+        ('source/standing_resume_v8.py','standing_resume_v8.py',R/'repair_v8')]:
+        raw=(local/name).read_bytes()
+        shared[rel]=dict(path=w['remote_job']+'/'+rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    files=['actual_returns.py','hybrid_actual.py','standing_worker_v1.py','standing_owner_v1.py','evaluate_standing200_v1.py','PLAN.json','control.py','check_full_restore.py']
+    frozen=dict(epoch=time.time(),run_id=runid,job='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        source_job=SHARED,source_manifest_SHA=SHAS,prior_job=w['remote_job'],shared=shared,
+        files=[dict(name=n,bytes=(D/n).stat().st_size,SHA=hashlib.sha256((D/n).read_bytes()).hexdigest())for n in files],
+        CPU_report_SHA=hashlib.sha256((R/'reports/HYBRID_ACTUAL_V14_ACTUAL.json').read_bytes()).hexdigest(),
+        runtime_full_copies=0,source_PT_copies=0)
+    (D/'FROZEN.json').write_text(json.dumps(frozen,indent=2)+'\n')
+    print(json.dumps(dict(frozen=True,run_id=runid,production_launched=False)))
+
+
+def exact_replace(text,old,new):
+    assert text.count(old)==1,old
+    return text.replace(old,new)
+
+
+def gpu():
+    module=prior_runtime();_,blocked=module.admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    import check_four4090_once as inventory
+    source=Path(inventory.__file__).read_text(encoding='utf-8')
+    for old,new in [('FOUR4090_READ_V1_ONCE.json','FOUR4090_READ_V14_ONCE.json'),
+        ('FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json','FRESH_LOCAL_CIM_BEFORE_FOUR4090_V14.json'),
+        ('FOUR4090_RESOURCE_ACTUAL_V1.json','FOUR4090_RESOURCE_ACTUAL_V14.json')]:source=exact_replace(source,old,new)
+    ns=dict(__name__='standing_inventory_v14',__file__=inventory.__file__)
+    exec(compile(source,inventory.__file__,'exec'),ns);ns['local_rows']=module.admission;ns['main']()
+
+
+STAGE=r'''
+from pathlib import Path
+import ast,fcntl,hashlib,json,os,subprocess,sys,time
+J=Path(v['job']);S=Path(v['source_job']);P=Path(v['prior_job']);assert not J.exists()
+assert hashlib.sha256((S/'INSTALL_MANIFEST.json').read_bytes()).hexdigest()==v['source_manifest_SHA']
+own=json.loads((P/'OWNER_EXIT.json').read_bytes());assert own['all_own_waited']and own['original_leases_released']
+J.mkdir();(J/'source').mkdir();(J/'control').mkdir()
+for name in ['runtime','assets','lib','sm_deps','original_run_manifest.json','MOD4V1_ASSET_DIFF.json','MOD4V1_DERIVATION_INDEX.json']:
+ if(S/name).exists():(J/name).symlink_to(S/name,target_is_directory=(S/name).is_dir())
+for rel,row in v['shared'].items():
+ p=Path(row['path']);assert p.stat().st_size==row['bytes']and hashlib.sha256(p.read_bytes()).hexdigest()==row['SHA']
+ (J/rel).symlink_to(p)
+rows=[]
+for rel,item in v['deploy'].items():
+ p=J/rel;raw=item['text'].encode();assert hashlib.sha256(raw).hexdigest()==item['SHA']
+ if p.suffix=='.py':ast.parse(raw.decode())
+ p.write_bytes(raw);rows.append(dict(relative=rel,bytes=len(raw),SHA=item['SHA']))
+def write(rel,value):
+ raw=json.dumps(value,indent=2).encode();(J/rel).write_bytes(raw);rows.append(dict(relative=rel,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+write('SHARED_REFERENCE.json',dict(root=str(S),manifest_SHA=v['source_manifest_SHA'],original_dependencies_immutable=True))
+write('control/SCHEDULE_PUBLIC.json',dict(experts={'standing200':dict(max_parent_seconds=3900,GPU_UUID=v['uuid'])}))
+write('SHARED_OVERRIDE_REFERENCE.json',v['shared'])
+sys.path[:0]=[str(J/'source'),str(S/'source')]
+from standing_resume_v8 import verify_shared_source
+shared=verify_shared_source(J)
+from hybrid_actual import CONTRACT
+assert CONTRACT==json.loads((J/'PLAN.json').read_bytes())['actual_return_contract']
+(J/'INSTALL_MANIFEST.json').write_text(json.dumps(dict(kind='STANDING200_ACTUAL_RETURN_H32_V14_SMALL_OVERRIDE',files=rows,shared=shared,PT_copies=0),indent=2))
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes());assert c['active_segment']is None and c['remaining_training_seconds']>86412.86069250107+3900
+for path in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+ with path.open('rb+')as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+assert v['uuid']not in subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)
+env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1')
+with(J/'OWNER.log').open('xb')as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'control/standing_owner_v1.py')],cwd=J,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+import psutil
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),job=str(J),owner=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd()),shared=shared,
+ manifest_SHA=hashlib.sha256((J/'INSTALL_MANIFEST.json').read_bytes()).hexdigest(),first_GO_pending=True,parent_model_reads=0)))
+'''
+
+
+def launch():
+    assert not(R/'reports/HYBRID_ACTUAL_V14_LAUNCH_ONCE.json').exists()
+    frozen=json.loads((D/'FROZEN.json').read_bytes());plan=json.loads((D/'PLAN.json').read_bytes())
+    for row in frozen['files']:
+        raw=(D/row['name']).read_bytes();assert len(raw)==row['bytes']and hashlib.sha256(raw).hexdigest()==row['SHA']
+    module=prior_runtime();rows,blocked=module.admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    inventory=json.loads((R/'reports/FOUR4090_RESOURCE_ACTUAL_V14.json').read_bytes())
+    assert inventory['all_clients_closed']and inventory['SESSION_restored']and inventory['serial']=='FREE'
+    assert all(row['passed']for row in inventory['hosts'].values())
+    put('HYBRID_ACTUAL_V14_LAUNCH_LOCAL_ADMISSION.json',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+    put('HYBRID_ACTUAL_V14_LAUNCH_ONCE.json',dict(epoch=time.time(),frozen_SHA=hashlib.sha256((D/'FROZEN.json').read_bytes()).hexdigest(),run_id=frozen['run_id']))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72()
+        check=run(c,PREFLIGHT,dict(job=frozen['job'],base=SHARED,uuid=plan['GPU_UUID'],super='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SUPERMIMIC_BPTT8_V1_20261102_181251_1793614371303119100/roles/E0'))
+        put('HYBRID_ACTUAL_V14_PARENT_ADMISSION.json',check)
+        deploy={}
+        for name in ['actual_returns.py','hybrid_actual.py','standing_worker_v1.py','standing_owner_v1.py','evaluate_standing200_v1.py','PLAN.json']:
+            raw=(D/name).read_bytes();rel=(''if name=='PLAN.json'else'control/'if name=='standing_owner_v1.py'else'source/')+name
+            deploy[rel]=dict(text=raw.decode(),SHA=hashlib.sha256(raw).hexdigest())
+        result=run(c,STAGE,dict(frozen,deploy=deploy,uuid=plan['GPU_UUID']),180)
+        put('HYBRID_ACTUAL_V14_OWNER_LAUNCH_ACTUAL.json',result)
+        p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+        w['prior_V13']=dict(run_id=w['run_id'],job=w['remote_job'],final=w['current_run_final'],evaluation=w['evaluation_result'],native=w['replay_native_reviewed'])
+        w.update(status='V14_ORIGINAL_OWNER_DISPATCHED_AWAIT_GO_FIRST',run_id=frozen['run_id'],remote_job=frozen['job'],
+            training_started='AWAIT_GO_FIRST',training_completed=False,source_resume=plan['resume'],original_owner=result['owner'],
+            latest_status='reports/HYBRID_ACTUAL_V14_OWNER_LAUNCH_ACTUAL.json',
+            source_version=dict(shared_source=SHARED,overlay=str(D),frozen=str(D/'FROZEN.json'),manifest_SHA=result['manifest_SHA']),
+            next='Collect V14 unique FIRST only; same original owner fullsave/safeclose/immediate independent80. Healthy no relaunch/hotpatch.',
+            fourGPU_latest_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_V14.json',resource_snapshot_is_historical=True,
+            evaluation_status='V14 awaits FIRST; completedV13 actual0/80 retained under prior_V13',
+            current_run_final=None,evaluation_closed_and_transferred=False,evaluation_once_consumed=False,replay_native_reviewed=False)
+        for key in ['GO','original_worker','original_worker_current','latest_checkpoint','first_checkpoint','first_actual_metrics','first_actual_action_path','evaluation_result','actual_owner_exit','first_readonly_status_consumed','first_actual_repair','first_actual_action_path']:
+            w.pop(key,None)
+        p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(result))
+    except BaseException:
+        put('HYBRID_ACTUAL_V14_LAUNCH_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),never_replay=True));raise
+    finally:
+        if c is not None:c.close()
+        put('HYBRID_ACTUAL_V14_LAUNCH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+def first():
+    assert not(R/'reports/STATUS_V14_FIRST_UPDATED.json').exists()
+    module=prior_runtime();_,blocked=module.admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    import collect_standing_status_v1 as reader
+    source=Path(reader.__file__).read_text(encoding='utf-8')
+    source=exact_replace(source,"'evaluation/RESULT.json','evaluation/EVAL_ERROR.json','EVAL_WAITED.json']",
+        "'evaluation/RESULT.json','evaluation/EVAL_ERROR.json','EVAL_WAITED.json','production/FULL_RESTORE_V14.json']")
+    ns=dict(__name__='standing_first_v14',__file__=reader.__file__)
+    exec(compile(source,reader.__file__,'exec'),ns);ns['local_rows']=module.admission
+    sys.argv=[reader.__file__,'--label','V14_FIRST_UPDATED','--wait-seconds','300'];ns['main']()
+
+
+def closed():
+    assert not(R/'reports/V14_CLOSED_EVIDENCE_TRANSFER_ONCE.json').exists()
+    import collect_closed_evaluation_once as transfer
+    source=Path(transfer.__file__).read_text(encoding='utf-8')
+    for old in ['CLOSED_EVIDENCE_TRANSFER_ONCE.json','CLOSED_ACTUAL_EVALUATION_TRANSFER.json','CLOSED_TRANSFER_ORIGINAL_ERROR.json','CLOSED_TRANSFER_SSH_CLOSED.json']:
+        source=exact_replace(source,old,'V14_'+old)
+    ns=dict(__name__='standing_closed_v14',__file__=transfer.__file__)
+    exec(compile(source,transfer.__file__,'exec'),ns);ns['main']()
+
+
+if __name__=='__main__':
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['cpu','prepare','gpu','launch','first','closed']);a=q.parse_args();globals()[a.mode]()

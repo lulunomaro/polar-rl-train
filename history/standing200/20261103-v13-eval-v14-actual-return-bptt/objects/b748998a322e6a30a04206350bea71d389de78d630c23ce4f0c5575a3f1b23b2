@@ -1,0 +1,65 @@
+"""Local-only close evidence handoff. No model/physics/network/controller writes."""
+from pathlib import Path
+import ast,hashlib,json,subprocess,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+
+
+def main():
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    assert w['run_id']=='MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    analysis=R/'actual_closed'/w['run_id']/'analysis/ANALYSIS.json';a=json.loads(analysis.read_bytes())
+    transfer=json.loads((R/'reports/V13_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())
+    assert transfer['job']==w['remote_job']
+    assert json.loads((R/'reports/V13_CLOSED_TRANSFER_SSH_CLOSED.json').read_bytes())['SSHclosed']
+    from check_four4090_once import local_rows
+    rows,blocked=local_rows()
+    checkpoint=w['current_run_final'];assert checkpoint['SHA']==a['checkpoint']['SHA']
+    w.update(status='V13_ACTUAL_EVALUATED_0_OF_80_NATIVE_REVIEWED_V14_LOCAL_HYBRID_PASS_CPU_UNUSED_CONTROLLER_BUSY',
+        training_started=False,training_completed=True,training_skill_pass=False,
+        evaluation_closed_and_transferred=True,evaluation_once_consumed=True,
+        evaluation_status='COMPLETED: V13 independent80 actual0strict/80orientation/0bothwheelTop/mean.5115s; not pending',
+        latest_status='reports/V13_CLOSED_ACTUAL_EVALUATION_TRANSFER.json',
+        evaluation_result=dict(a['all80'],path=str(analysis),evaluation='original same-owner independent80 finalV13',protocol=dict(seed=9137,max_controls=500,max_seconds=10,step_height=.2,edge=.8,fresh_DR=True)),
+        replay_native_reviewed=dict(eight_side_top_sheets=True,four_cases=[0,1,40,41],two_curve_images=True,
+            by='current model native view_image',analysis=str(analysis),
+            render_report=str(analysis.parent.parent/'rendered_v2/RENDER_REPORT.json')),
+        current_diagnosis=dict(reason='Still falls before approach: selected rightwheel~59.4rad/s vs left~8-10rad/s, large pitch/roll,0top support; no initialdepthblindness or solecause proof',
+            actual=str(analysis),repair='repair_v14: actual64 PPO score-function plus.1 originalH32 BPTT and.1 existing antiwindup; retainedsource norms frozen',
+            local_math='reports/V14_LOCAL_MATH_ACTUAL.json',local_integration='reports/V14_LOCAL_INTEGRATION_ACTUAL.json',
+            physical_pass=False,fullsource_CPU_not_run=True),
+        current_resource_blocker=blocked,last_local_check=dict(epoch=time.time(),network_operations=0,serial_free=not blocked),
+        pending_repair=dict(version='V14',root=str(D),status='SOURCE_READY_LOCAL_SYNTHETIC_CPU_PASS_FULLSOURCE_CPU_UNUSED_NOT_FROZEN_NOT_LAUNCHED',
+            CPU_once_consumed=(R/'reports/HYBRID_ACTUAL_V14_ONCE.json').exists(),
+            fullsource_CPU=False,physical_training=False,source_final=checkpoint,
+            components={n:dict(bytes=(D/n).stat().st_size,SHA=hashlib.sha256((D/n).read_bytes()).hexdigest())for n in ['actual_returns.py','hybrid_actual.py','check_full_restore.py','control.py']},
+            no_new_waiter=True),
+        next='Read exact local knowncontroller and serialFREE first. While H1postround/SUPERMIMICcollector alive onlylocal. Once released use repair_v14/control.py cpu onefresh finalV13 fullrestore fixture; ifpass prepare then allfour gpu then originalcanonical/private/finite launch. Never redo V13closed/CPU/launch/FIRST/eval.',
+        fourGPU_check_deferred_reason='Current local controllers alive; no newSSH/resourcequery. All-four 09:56 is historical, not current free status.',
+        archived_this_update='PENDING_NEW_PHASE_V13_ACTUAL_EVAL_V14_LOCAL_HYBRID')
+    w['followup_commands']=dict(CPU='Python314 -B -X utf8 repair_v14/control.py cpu; uniqueHYBRID_ACTUAL_V14onceunused; onlyafterfreshLOCAL+canonicalnone',
+        prepare='OnlyactualCPUfullrestorepass: repair_v14/control.py prepare (onefreeze)',
+        resources='repair_v14/control.py gpu (allfour, serial once) after allcontrollers release',
+        launch='OnlynewV14freeze+allfour+originalparentadmission: repair_v14/control.py launch; no V13 replay',
+        first='IfactualV14launched, repair_v14/control.py first once; inspect fullrestore/counts/actualgradient/H32/FIRSTfullsave',
+        closed='V13 evidence transfer DONE; do not invoke. Future V14 actualOWNER_EXIT only: repair_v14/control.py closed once.',
+        render='V13 render/analysis/native review DONE; do not rerender for archive. Future evaluate current actual model.')
+    for file in D.glob('*.py'):ast.parse(file.read_bytes(),filename=str(file))
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    report=R/'reports/V13_ACTUAL_EVAL_V14_LOCAL_REPAIR_DECISION.json'
+    with report.open('x',encoding='utf-8')as f:json.dump(dict(epoch=time.time(),status=w['status'],
+        actual_V13=a['all80'],source_final=checkpoint,native_review=w['replay_native_reviewed'],
+        interpretation='Anti-saturation alone did not coordinate wheel/leg control. Add actual reward/done actor gradient, preserving H32; this is a new testable repair, not proven skill.',
+        new_repair=w['pending_repair'],controller_blockers=blocked,all_consumed_original_operations_preserved=True,
+        source_model_reads_this_update=0,newphysical_steps=0,newSSH_afterblocker=0,source_parse_all=True,
+        local_errors=[dict(kind='shellquotation',result='Earlier Python -c literal backslash-n SyntaxError beforeexecution,0NN/network/physics'),
+            dict(kind='optionalREADMEreader',result='repair_v11/README.md absent; actualinstructions/sources read via exactpaths,0NN/network/physics'),
+            dict(kind='source_edit',result='Untestedhybrid else0 spacing and grad diagnostics detach corrected beforefreeze; originaldraftneverexecuted'),
+            dict(kind='fixture_warning',result='Local synthetic integration passed; requiresgradscalar warning diagnostic fixed withdetach beforefreeze; priorreceiptretained')],
+        next=w['next']),f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(status=w['status'],CPU_once_unused=not w['pending_repair']['CPU_once_consumed'],blocked=len(blocked),saved=str(report))))
+
+
+if __name__=='__main__':
+    import sys
+    sys.path.insert(0,str(R))
+    main()

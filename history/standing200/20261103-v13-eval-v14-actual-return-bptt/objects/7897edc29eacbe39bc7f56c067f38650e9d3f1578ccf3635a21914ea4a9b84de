@@ -1,0 +1,49 @@
+"""Actual-rollout policy-gradient math. No environment, checkpoint or I/O."""
+import math
+import torch
+
+CONTRACT=dict(version='standing200_actual_return_plus_H32_BPTT_v14',
+    actual_controls=64,actual_samples=32768,num_envs=512,
+    Gaussian_native_action_std=.1,Gaussian_sample='unclipped pre-action-manager sample',
+    applied_action='original [-20,20] learner then native [-6,6] clipping',
+    likelihood='log_prob of sampled preclip Gaussian; reward belongs to its actual clipped action',
+    original_task_reward_and_done=True,gamma=.99,GAE_lambda=1.,PPO_clip=.2,epochs=1,
+    actor_actual_surrogate_weight=1.,actor_H32_BPTT_weight=.1,
+    latent_antiwindup_weight=.1,source_antiwindup_threshold=2.,
+    source_actor_obs_goal_norm='strict source restore then frozen; no re-estimation during rollout',
+    post_Adam_actual_Gaussian_mean_KL_max=.01,
+    post_Adam_normalized_action_delta_max=.05,post_Adam_logit_delta_max=.25,
+    all_rejected_proposal_weights_and_Adam_restored=True,
+    original_deterministic_action_formula='unchanged standing_action_v8.compose',
+    new_optimizers=0,future_actual_depth_in_imagination=False,
+    true_done_and_timeout_bootstrap='zero for both original term|trunc, no reset observation bootstrap',
+    final_nonterminal_chunk_bootstrap='critic value of actual next observation, detached',
+    physical_reset='fresh DR/native queues; partial onpolicy chunk discarded, never reused across resume')
+
+
+def gaussian_log_prob(sample,mean,std=.1):
+    return (-.5*((sample-mean)/std).square()-math.log(std)-.5*math.log(2*math.pi)).sum(-1)
+
+
+def actual_gae(reward,done,value,next_value,gamma=.99,lam=1.):
+    if not(reward.shape==done.shape==value.shape==next_value.shape):
+        raise ValueError('Actual [controls,env] arrays must share shape')
+    continuation=(~done.bool()).to(reward.dtype)
+    delta=reward+gamma*continuation*next_value-value
+    following=torch.zeros_like(reward[0]);reverse=[]
+    for k in range(len(reward)-1,-1,-1):
+        following=delta[k]+gamma*lam*continuation[k]*following
+        reverse.append(following)
+    advantage=torch.stack(reverse[::-1])
+    return advantage,advantage+value
+
+
+def surrogate(mean,preclip_sample,old_logprob,advantage,std=.1,clip=.2):
+    logprob=gaussian_log_prob(preclip_sample,mean,std)
+    ratio=(logprob-old_logprob).exp()
+    objective=torch.minimum(ratio*advantage,ratio.clamp(1-clip,1+clip)*advantage)
+    return -objective.mean(),ratio
+
+
+def actual_mean_kl(old_mean,new_mean,std=.1):
+    return .5*((old_mean-new_mean)/std).square().sum(-1).mean()

@@ -1,0 +1,185 @@
+"""Actual score-function gradient plus original differentiable H32 model path.
+
+Shared frozen antiwindup code supplies its original H32 rollout and four Adam
+states. A single explicit loss hook combines actual and modeled objectives
+BEFORE clipping gradients. No torque cloning or symmetry-scripted controller.
+"""
+import copy
+from pathlib import Path
+import hashlib,json
+import torch
+from torch import nn
+from supermimic_vendor_v2.geometry import unflatten_state
+from supermimic_vendor_v2.contract import SUPERMIMIC_TRANSITION_KEY
+from actual_returns import CONTRACT,actual_gae,gaussian_log_prob,surrogate,actual_mean_kl
+
+FROZEN_ANTIWINDUP=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V13_1793670990137789700/source/antiwindup.py')
+if not FROZEN_ANTIWINDUP.exists():
+    # Local source-only fixtures use the same byte-pinned source, never a model.
+    FROZEN_ANTIWINDUP=Path(__file__).resolve().parents[1]/'repair_v11/antiwindup.py'
+raw=FROZEN_ANTIWINDUP.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='df6e015090a3d103d293516c359cb4d21ff86f8ee5997ebb65a7730a6b74ef38'
+source=raw.decode();old="loss=-objective.mean()+REPAIR_CONTRACT['weight']*penalty"
+assert source.count(old)==1
+source=source.replace(old,"loss=self.mix_actor_loss(-objective.mean(),penalty)")
+namespace=dict(__name__='standing_frozen_H32_with_explicit_actual_loss_hook',__file__=str(FROZEN_ANTIWINDUP))
+exec(compile(source,str(FROZEN_ANTIWINDUP),'exec'),namespace)
+Base=namespace['Learner'];Policy=namespace['Policy'];components=namespace['components']
+
+
+class Learner(Base):
+    def __init__(self,*args,**kwargs):
+        self.actual_rows=None;self.actual_batch=None;self.last_actual={}
+        super().__init__(*args,**kwargs)
+        assert self.cfg.action_noise==CONTRACT['Gaussian_native_action_std']
+
+    def _checkpoint(self,include_optimizers):
+        full=super()._checkpoint(include_optimizers)
+        full['standing_actual_return']=dict(contract=CONTRACT,last=self.last_actual.copy(),
+            partial_actual_chunk_resume='discard on explicit physical reset, collect fresh before optimization')
+        return full
+
+    @torch.no_grad()
+    def collect(self,n_steps):
+        for _ in range(n_steps):
+            info=self._state_info();state=unflatten_state(info['s'])
+            obs=self.mdp.add_noise(self.mdp.obs(state,info['a_prev'],info['xi'],info['f']))
+            shifted=torch.cat((self.obs_hist[:,1:],obs.unsqueeze(1)),1)
+            self.obs_hist=torch.where((info['ep_step']==0)[:,None,None],obs[:,None].expand_as(self.obs_hist),shifted)
+            goal=self._goal(info['f'],info['xi'])
+            # Source normalization is retained and frozen so sampled likelihood
+            # cannot change from running moments outside the Adam transaction.
+            if hasattr(self.env,'before_action'):self.env.before_action()
+            mean=self.pi(self.obs_hist,goal)
+            raw=mean+self.cfg.action_noise*torch.randn_like(mean)
+            if self.actual_rows is not None:
+                ci=self._critic_input(state,info['f'],self.mdp.normalize_context(info['xi']),goal)
+                saved=dict(history=self.obs_hist.detach().clone(),goal=goal.detach().clone(),
+                    mean=mean.detach().clone(),raw=raw.detach().clone(),logprob=gaussian_log_prob(raw,mean),
+                    critic_input=ci.detach().clone(),value=self.critic(ci).detach())
+            step=self.env.step(raw.clamp(-20,20).to(self.env_device))
+            transition=step.info[SUPERMIMIC_TRANSITION_KEY]
+            if self._bridged:transition={k:v.to(self.device)for k,v in transition.items()}
+            if self.actual_rows is not None:
+                next_info=self._state_info();next_state=unflatten_state(next_info['s'])
+                next_goal=self._goal(next_info['f'],next_info['xi'])
+                next_ci=self._critic_input(next_state,next_info['f'],self.mdp.normalize_context(next_info['xi']),next_goal)
+                done=transition['done'].bool()
+                saved.update(reward=transition['r'].detach().clone(),done=done.detach().clone(),
+                    # Never use post-reset observation in a done return.
+                    next_value=torch.where(done,torch.zeros_like(saved['value']),self.critic(next_ci)).detach(),
+                    applied=transition['a'].detach().clone())
+                self.actual_rows.append(saved)
+            self.buffer.add(transition)
+            initial,next_state=unflatten_state(transition['s']),unflatten_state(transition['s1'])
+            self.wm.in_norm.update(self.wm.inputs(initial,transition['a'],self.mdp.normalize_context(transition['xi'])))
+            self.wm.out_norm.update(self.wm.targets(initial,next_state))
+            self.sim_steps+=self.env.num_envs
+            self.stats['r'].append(transition['r'].mean()/self.mdp.max_step_reward)
+            if 'ep_len' in transition:
+                self.stats['ep_len'].append(transition['ep_len'].mean())
+                self.stats['ep_ret'].append(transition['ep_ret_norm'].mean())
+                if 'term' in transition:self.stats['term'].append(transition['term'].float().sum())
+                self.stats['done'].append(transition['done'].float().sum())
+
+    def prepare_actual_batch(self):
+        self.actual_rows=[]
+        # A safe stop during this physical collection is a collection boundary,
+        # not a half-applied optimizer transaction. Source checkpoint remains.
+        pending=self.pending_iteration
+        if pending is not None:pending.update(phase='collect',collect_left=CONTRACT['actual_controls'])
+        try:
+            for _ in range(CONTRACT['actual_controls']):
+                self.collect(1)
+                if pending is not None:pending['collect_left']-=1
+        except BaseException:
+            self.actual_rows=None;self.actual_batch=None
+            raise
+        if pending is not None:pending['phase']='policy'
+        rows=self.actual_rows;self.actual_rows=None
+        batch={k:torch.stack([row[k]for row in rows])for k in rows[0]}
+        advantage,returns=actual_gae(batch['reward'],batch['done'],batch['value'],batch['next_value'])
+        batch['advantages']=(advantage-advantage.mean())/(advantage.std(unbiased=False)+1e-8)
+        batch['returns']=returns
+        self.actual_batch={k:v.flatten(0,1).detach()for k,v in batch.items()}
+        self.last_actual=dict(controls=CONTRACT['actual_controls'],samples=len(self.actual_batch['reward']),
+            actual_done=int(batch['done'].sum()),actual_reward_mean=float(batch['reward'].mean()),
+            real_return_mean=float(returns.mean()),actual_done_next_bootstrap_max=float(batch['next_value'][batch['done']].abs().max())if batch['done'].any()else 0.,
+            algorithm='actual unclipped Gaussian score-function plus differentiable H32 BPTT',
+            source_norms_frozen=True,future_actual_depth_in_H32=False,old_onpolicy_rows_reused=False)
+
+    def mix_actor_loss(self,model_loss,penalty):
+        batch=self.actual_batch
+        mean=self.pi(batch['history'],batch['goal'])
+        actual_loss,ratio=surrogate(mean,batch['raw'],batch['logprob'],batch['advantages'])
+        probe=self.pi.residual.dec[-1].bias
+        pg=torch.autograd.grad(actual_loss,probe,retain_graph=True)[0]
+        if not bool(torch.isfinite(actual_loss)&torch.isfinite(pg).all()):raise FloatingPointError('actual policy gradient nonfinite')
+        self.last_actual.update(actual_actor_loss=float(actual_loss.detach()),actual_actor_bias_gradient_norm=float(pg.detach().norm()),
+            pre_Adam_ratio_max_abs_from_one=float((ratio.detach()-1).abs().max()),
+            original_model_loss=float(model_loss.detach()),H32_weight=CONTRACT['actor_H32_BPTT_weight'])
+        return actual_loss+CONTRACT['actor_H32_BPTT_weight']*model_loss+CONTRACT['latent_antiwindup_weight']*penalty
+
+    @torch.no_grad()
+    def candidate_actual_kl(self):
+        b=self.actual_batch
+        means=[]
+        for lo in range(0,len(b['mean']),2048):means.append(self.pi(b['history'][lo:lo+2048],b['goal'][lo:lo+2048]))
+        mean=torch.cat(means)
+        return float(actual_mean_kl(b['mean'],mean))
+
+    def accepted_step(self,histories,goals,trainable):
+        with torch.no_grad():before_action,before_logit=components(self.pi,histories,goals)
+        weights=[p.detach().clone()for p in trainable];state=copy.deepcopy(self.opt_pi.state_dict())
+        rates=[g['lr']for g in self.opt_pi.param_groups]
+        radius=before_action.new_tensor([2.1,1,2.1,1,6,6]);proposals=[];accepted=False
+        for trial in range(12):
+            if trial:
+                with torch.no_grad():
+                    for p,s in zip(trainable,weights):p.copy_(s)
+                self.opt_pi.load_state_dict(copy.deepcopy(state))
+            factor=.5**trial
+            for g,lr in zip(self.opt_pi.param_groups,rates):g['lr']=lr*factor
+            self.candidate=True
+            try:self.opt_pi.step()
+            finally:self.candidate=False
+            with torch.no_grad():
+                action,logit=components(self.pi,histories,goals)
+                da=float(((action-before_action)/radius).abs().max());dl=float((logit-before_logit).abs().max())
+                kl=self.candidate_actual_kl()
+                finite=bool(torch.isfinite(action).all()and torch.isfinite(logit).all()and torch.isfinite(torch.tensor(kl)))
+            accepted=finite and da<=.05 and dl<=.25 and kl<=.01
+            proposals.append(dict(factor=factor,action_delta=da,logit_delta=dl,actual_Gaussian_mean_KL=kl,accepted=accepted,finite=finite))
+            if accepted:break
+        if accepted:
+            # Call ContextRewardLearner's counted post-step exactly once.
+            self.candidate=False
+            super(Base,self)._on_pi_step(self.opt_pi,(),{})
+        else:
+            with torch.no_grad():
+                for p,s in zip(trainable,weights):p.copy_(s)
+            self.opt_pi.load_state_dict(copy.deepcopy(state))
+        for g,lr in zip(self.opt_pi.param_groups,rates):g['lr']=lr
+        self.last_actual.update(accepted_actor_commit=accepted,post_Adam_actual_Gaussian_KL=proposals[-1]['actual_Gaussian_mean_KL'],proposals=len(proposals))
+        return dict(accepted=accepted,proposals=proposals,guard_samples=len(histories),committed_steps=int(accepted),
+            all_rejected_weights_Adam_restored=True,actual_actor=self.last_actual.copy(),
+            pre_abs_logit_max=float(before_logit.abs().max()),post_abs_logit_max=float(logit.abs().max())if accepted else float(before_logit.abs().max()))
+
+    def fit_actual_critic(self):
+        b=self.actual_batch;loss=torch.zeros((),device=self.device);n=len(b['returns'])
+        permutation=torch.randperm(n,device=self.device)
+        for ids in permutation.chunk(4):
+            loss=(self.critic(b['critic_input'][ids])-b['returns'][ids]).square().mean()
+            self.opt_v.zero_grad(set_to_none=True);loss.backward()
+            grad=nn.utils.clip_grad_norm_(self.critic.parameters(),1.)
+            if not bool(torch.isfinite(loss)&torch.isfinite(grad)):raise FloatingPointError('actual critic nonfinite')
+            self.opt_v.step()
+        self.last_actual['actual_critic_loss']=float(loss.detach())
+
+    def policy_update(self):
+        self.prepare_actual_batch()
+        try:
+            result=super().policy_update()
+            self.fit_actual_critic()
+            return result
+        finally:self.actual_batch=None

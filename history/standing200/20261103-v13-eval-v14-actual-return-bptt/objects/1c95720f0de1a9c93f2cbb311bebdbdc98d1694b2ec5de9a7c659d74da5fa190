@@ -1,0 +1,91 @@
+"""Bounded synthetic CPU tests of actual-return math and Adam transactions.
+
+No source checkpoint or native environment is opened. The small teacher is a
+test fixture, not a replacement production policy or an on-policy data source.
+"""
+from pathlib import Path
+import copy,json,sys,time
+import torch
+
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path[:0]=[str(D),str(R/'source_v2'),str(R/'repair_v8')]
+from actual_returns import actual_gae,gaussian_log_prob,surrogate,actual_mean_kl
+from hybrid_actual import Learner,Policy,components
+from supermimic_vendor_v2.networks import Policy as Residual
+from ctx_reward_learner import ContextRewardLearner
+
+
+def same(x,y):
+    if torch.is_tensor(x):return torch.equal(x,y)
+    if isinstance(x,dict):return x.keys()==y.keys()and all(same(v,y[k])for k,v in x.items())
+    if isinstance(x,(tuple,list)):return len(x)==len(y)and all(same(v,w)for v,w in zip(x,y))
+    return x==y
+
+
+def main():
+    torch.set_num_threads(4);torch.manual_seed(1941)
+    r=torch.tensor([[1.,2.],[3.,4.],[10.,20.],[30.,40.]],dtype=torch.float64)
+    done=torch.tensor([[False,True],[True,False],[False,False],[True,False]])
+    v=torch.tensor([[.1,.2],[.3,.4],[.5,.6],[.7,.8]],dtype=torch.float64)
+    nxt=torch.full_like(v,1000.);nxt[-1,1]=7.
+    advantage,ret=actual_gae(r,done,v,nxt)
+    expected=torch.tensor([[3.97,2.],[3.,4.+.99*(20.+.99*(40.+.99*7.))],
+        [39.7,20.+.99*(40.+.99*7.)],[30.,40.+.99*7.]],dtype=torch.float64)
+    # Values must be temporal neighbors for a valid rollout. Large reset values
+    # are deliberately present on done rows and must never enter the return.
+    for k in range(len(r)-1):nxt[k]=torch.where(done[k],nxt[k],v[k+1])
+    advantage,ret=actual_gae(r,done,v,nxt)
+    assert torch.allclose(ret,expected,atol=1e-10,rtol=0)
+    assert torch.allclose(advantage+v,ret)
+    mean=torch.randn(128,6,dtype=torch.float64);raw=mean+.1*torch.randn_like(mean)
+    raw[0,0]=6.25;mean[0,0]=5.98
+    actual=gaussian_log_prob(raw,mean)
+    reference=torch.distributions.Normal(mean,.1).log_prob(raw).sum(-1)
+    assert torch.allclose(actual,reference,atol=1e-12,rtol=0)
+    assert not torch.allclose(actual,gaussian_log_prob(raw.clamp(-6,6),mean))
+    probe=mean.clone().requires_grad_();adv=torch.linspace(-1,1,128,dtype=torch.float64)
+    loss,ratio=surrogate(probe,raw,actual,adv);gradient=torch.autograd.grad(loss,probe)[0]
+    assert torch.allclose(ratio,torch.ones_like(ratio),atol=1e-12,rtol=0)
+    assert bool(torch.isfinite(gradient).all())and float(gradient.norm())>0
+    changed=mean+.01
+    kl=actual_mean_kl(mean,changed)
+    refkl=torch.distributions.kl_divergence(torch.distributions.Normal(mean,.1),torch.distributions.Normal(changed,.1)).sum(-1).mean()
+    assert torch.allclose(kl,refkl,atol=1e-12,rtol=0)
+    class Teacher(torch.nn.Module):
+        def forward(self,obs,stochastic_output=False):return obs['policy'][...,:6]*.01
+    pi=Policy(Residual(44,3,hist=10,z_dim=4,hidden=(16,8),num_joints=6),Teacher())
+    hist=torch.randn(128,10,44);goal=torch.randn(128,3)
+    learner=object.__new__(Learner);learner.pi=pi;learner.last_actual={};learner.candidate=False
+    learner.opt_pi=torch.optim.Adam([p for p in pi.parameters()if p.requires_grad],lr=.02,betas=(.9,.95))
+    # Populate Adam moments, then test rejection against nonempty state.
+    pi(hist,goal).square().mean().backward();learner.opt_pi.step();learner.opt_pi.zero_grad(set_to_none=True)
+    with torch.no_grad():old=pi(hist,goal).detach().clone()
+    learner.actual_batch=dict(history=hist,goal=goal,mean=old)
+    (-pi(hist,goal).mean()).backward()
+    params=[p for g in learner.opt_pi.param_groups for p in g['params']if p.requires_grad]
+    weights=[p.detach().clone()for p in params];adam=copy.deepcopy(learner.opt_pi.state_dict())
+    receipts=[]
+    original=ContextRewardLearner._on_pi_step
+    ContextRewardLearner._on_pi_step=lambda self,*args:receipts.append('accepted')
+    try:
+        learner.candidate_actual_kl=lambda:1.
+        rejected=learner.accepted_step(hist,goal,params)
+        assert not rejected['accepted']and len(rejected['proposals'])==12 and not receipts
+        assert all(torch.equal(p,w)for p,w in zip(params,weights))
+        assert same(learner.opt_pi.state_dict(),adam)
+        learner.candidate_actual_kl=lambda:float(actual_mean_kl(old,pi(hist,goal)))
+        accepted=learner.accepted_step(hist,goal,params)
+        assert accepted['accepted']and receipts==['accepted']
+        assert int(next(iter(learner.opt_pi.state.values()))['step'])==int(next(iter(adam['state'].values()))['step'])+1
+    finally:ContextRewardLearner._on_pi_step=original
+    result=dict(epoch=time.time(),kind='V14_LOCAL_SYNTHETIC_MATH_AND_TRANSACTION',passed=True,
+        terminal_no_reset_bootstrap=True,final_nondone_bootstrap=7.,Gaussian_preclip_logprob_max_error=float((actual-reference).abs().max()),
+        surrogate_gradient_norm=float(gradient.norm()),KL_error=float(abs(kl-refkl)),
+        all12_rejected_weights_nonempty_Adam_exact_restored=True,accepted=accepted,
+        model_reads=0,SDK_physics=0,production_optimizations=0,physical_skill_pass=False)
+    path=R/'reports/V14_LOCAL_MATH_ACTUAL.json'
+    with path.open('x',encoding='utf-8')as f:json.dump(result,f,indent=2)
+    print(json.dumps(result))
+
+
+if __name__=='__main__':main()

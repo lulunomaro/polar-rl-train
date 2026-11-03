@@ -1,0 +1,108 @@
+"""Compare stored actual V13 and V8 episodes; no new NN or physical step."""
+from pathlib import Path
+import csv,hashlib,json
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+R=Path(__file__).resolve().parents[1]
+J=R/'actual_closed/MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+E=J/'evaluation';O=J/'analysis';O.mkdir(exist_ok=False)
+old=R/'actual_closed/MOD4_STANDING200_RLBPTT_V8_1793656033704803700/independent_eval_v10/evaluation'
+meta=json.loads((E/'REPLAY_METADATA.json').read_bytes());result=json.loads((E/'RESULT.json').read_bytes())
+prior=json.loads((old/'RESULT.json').read_bytes());prior_meta=json.loads((old/'REPLAY_METADATA.json').read_bytes())
+low=np.array([-2.4,-1,-2.4,-1,-6,-6],np.float32);high=np.array([1.8,1,1.8,1,6,6],np.float32)
+mid=(low+high)/2;radius=(high-low)/2
+cases=[];csvrows=[]
+fig,axes=plt.subplots(3,2,figsize=(14,12));axes=axes.flatten()
+comparison,ca=plt.subplots(2,2,figsize=(13,9))
+def load(folder,row):
+    p=folder/Path(row['path']).name;raw=p.read_bytes()
+    assert len(raw)==row['bytes']and hashlib.sha256(raw).hexdigest()==row['SHA']
+    with np.load(p,allow_pickle=False)as z:return {k:z[k].copy()for k in z.files}
+for index,row in enumerate(meta['replay']):
+    d=load(E,row);t=d['time'];n=len(t);origin=np.asarray(meta['origins'][row['env']],dtype=np.float32)
+    root=d['root'].copy();root[:,:3]-=origin
+    a=d['action'];base=d['teacher_raw'];latent=d['residual_latent'];rpy=np.rad2deg(d['euler'])
+    unit=(a-mid)/radius
+    # float32 tanh is the exact actuator-map arithmetic; do not label a float64
+    # reconstruction's tiny derivative as a production live-gradient proof.
+    z=np.arctanh(np.clip((base-mid)/radius,-.8,.8))+latent/6
+    mapped=mid+radius*np.tanh(z)
+    derivative=radius/6*(1-np.tanh(z)**2)
+    early=t<=.20+1e-6
+    front=d['upper'][:,:,0];lower=d['lower'][:,:,2]
+    yaw=rpy[:,2];roll=rpy[:,0];pitch=rpy[:,1]
+    wheelvel=d['joint_vel'][:,[25,28]];wheelq=d['joint_pos'][:,[25,28]]
+    targets=d['joint_vel_target'][:,[25,28]]
+    label='env%d'%row['env'];color='C%d'%index
+    axes[0].plot(t,pitch,label=label+' pitch',color=color);axes[0].plot(t,roll,'--',label=label+' roll',color=color)
+    axes[1].plot(t,root[:,0],label=label,color=color)
+    axes[2].plot(t,targets[:,0],color=color,label=label+' left');axes[2].plot(t,targets[:,1],'--',color=color,label=label+' right')
+    axes[3].plot(t,z[:,4],color=color,label=label+' leftwheel');axes[3].plot(t,z[:,5],'--',color=color,label=label+' rightwheel')
+    axes[4].plot(t,lower.min(-1),color=color,label=label+' lowerwheel')
+    axes[5].plot(t,d['reward'],color=color,label=label)
+    oldrow=next(x for x in prior_meta['replay']if x['env']==row['env'])
+    od=load(old,oldrow)
+    ca[0,0].plot(od['time'],np.rad2deg(od['euler'][:,1]),':',color=color,label=label+' V8')
+    ca[0,0].plot(t,pitch,color=color,label=label+' V13')
+    ca[0,1].plot(t,a[:,5]*10-a[:,4]*10,color=color,label=label)
+    ca[1,0].plot(t,wheelvel[:,0],color=color,label=label+' leftactual');ca[1,0].plot(t,wheelvel[:,1],'--',color=color,label=label+' rightactual')
+    ca[1,1].plot(t,a[:,0]*.5,color=color,label=label+' leftcrank');ca[1,1].plot(t,a[:,2]*.5,'--',color=color,label=label+' rightcrank')
+    case=dict(env=row['env'],controls=n,seconds=float(t[-1]),first_root=root[0,:3].tolist(),final_root=root[-1,:3].tolist(),
+        initial_to_final_delta=root[-1,:3].tolist()if False else(root[-1,:3]-root[0,:3]).tolist(),
+        wheel_front_max_m=float(front.max()),remaining_wheel_front_distance_m=float(.8-front.max()),
+        bothwheel_bottom_max_m=float(lower.min(-1).max()),each_wheel_bottom_max_m=lower.max(0).tolist(),
+        final_roll_pitch_yaw_deg=rpy[-1].tolist(),peak_abs_roll_pitch_yaw_deg=np.abs(rpy).max(0).tolist(),
+        first_action=a[0].tolist(),last_action=a[-1].tolist(),
+        first_latent=latent[0].tolist(),last_latent=latent[-1].tolist(),
+        base_min=base.min(0).tolist(),base_max=base.max(0).tolist(),
+        total_logit_min=z.min(0).tolist(),total_logit_max=z.max(0).tolist(),
+        near_bound_fraction=(np.abs(unit)>.999).mean(0).tolist(),
+        exact_float32_zero_derivative_fraction=(derivative==0).mean(0).tolist(),
+        initial_action_formula_numpy_float32_max_difference=float((mapped-a).abs().max())if hasattr(mapped,'abs')else float(np.abs(mapped-a).max()),
+        first20_targets_rad_s=targets[early].mean(0).tolist(),first20_actual_wheel_rad_s=wheelvel[early].mean(0).tolist(),
+        first20_target_differential_rad_s=float((targets[early,1]-targets[early,0]).mean()),
+        actual_wheel_target_minmax=[targets.min(0).tolist(),targets.max(0).tolist()],
+        actual_wheel_speed_minmax=[wheelvel.min(0).tolist(),wheelvel.max(0).tolist()],
+        initial_crank_hip_targets_rad=d['joint_pos_target'][0,[1,0,5,4]].tolist(),
+        first_depth=d['depth'][0].tolist(),depth_valid_fraction=float((d['depth'][:,8]>.5).mean()),
+        top_max_N=float(d['top'].max()),ground_max_N=float(d['ground'].max()),
+        recorded_reward_mean=float(d['reward'].mean()),
+        limits='selected 4 actual cases only; no all80 visual or unique causal inference')
+    cases.append(case)
+    for k in range(n):
+        out=dict(env=row['env'],seconds=float(t[k]),x=float(root[k,0]),y=float(root[k,1]),z=float(root[k,2]),roll_deg=float(roll[k]),pitch_deg=float(pitch[k]),yaw_deg=float(yaw[k]),reward=float(d['reward'][k]))
+        for name,values in [('action',a),('latent',latent),('pretanh',z)]:out.update({name+str(j):float(values[k,j])for j in range(6)})
+        out.update(left_target_rad_s=float(targets[k,0]),right_target_rad_s=float(targets[k,1]),left_actual_rad_s=float(wheelvel[k,0]),right_actual_rad_s=float(wheelvel[k,1]))
+        csvrows.append(out)
+titles=['Actual body pitch and roll','Actual root progress; edge .8m','Actual wheel speed targets','Total pre-tanh logits after antiwindup','Lower wheel bottom height; top .2m','Recorded physical reward']
+for axis,title in zip(axes,titles):axis.set(title=title,xlabel='seconds');axis.grid(alpha=.2);axis.legend(fontsize=6)
+axes[1].axhline(.8,color='k',ls=':');axes[4].axhline(.2,color='k',ls=':');axes[3].axhline(2,color='k',ls=':')
+axes[2].set_ylabel('rad/s');axes[0].set_ylabel('deg');fig.tight_layout()
+fig.savefig(O/'ACTUAL_V13_ACTION_POSE_CURVES.png',dpi=140);plt.close(fig)
+for axis,title in zip(ca.flatten(),['Pitch V8 versus V13 (same protocol; not bitwise matched plant)','Right minus left wheel targets, V13','Actual wheel joint velocities, V13','Crank joint position targets, V13']):
+    axis.set(title=title,xlabel='seconds');axis.grid(alpha=.2);axis.legend(fontsize=6)
+comparison.tight_layout();comparison.savefig(O/'V8_V13_SATURATION_COORDINATION_COMPARISON.png',dpi=140);plt.close(comparison)
+with(O/'ACTUAL_V13_FOUR_CASES.csv').open('x',newline='',encoding='utf-8')as f:
+    writer=csv.DictWriter(f,fieldnames=list(csvrows[0]));writer.writeheader();writer.writerows(csvrows)
+c=json.loads((E/'CURVES.json').read_bytes())['rows'];manifold=json.loads((E/'ACTUAL_MANIFOLD.json').read_bytes())
+times=[r['seconds']for r in result['results']]
+terms={k:sum(r['termination_terms'][k]for r in result['results'])for k in result['results'][0]['termination_terms']}
+report=dict(kind='ACTUAL_FINAL_V13_STANDING200_FAILURE_COORDINATION_DIAGNOSIS',checkpoint=result['checkpoint'],
+    all80=dict(cases=80,strict=result['strict_successes'],min_seconds=min(times),max_seconds=max(times),mean_seconds=result['mean_seconds'],
+        termination_terms=terms,both_top_peak_cases=max(x['actual_top_cases']for x in c),stable_peak_s=max(x['stable_peak_ticks']for x in c)*.0025),
+    previous_V8=dict(strict=prior['strict_successes'],mean_seconds=prior['mean_seconds']),selected_cases=cases,
+    manifold=dict(rows=len(manifold['contact_rows']),maximum_recorded_contact_z_m=max((p[2]for r in manifold['contact_rows']for p in r['point']),default=None)),
+    native_review=dict(current_model=True,eight_sheets=True,envs=[0,1,40,41],views=['side','top'],
+        observed='All four move a short distance and develop large pitch/roll while still before riser; no wheel reaches top. V13 removed exact float saturation on selected outputs but large asymmetric wheel and leg commands remain.'),
+    next='Do not repeat unchanged V13. Diagnose the learned transition reward gradients versus actual rolling behavior, and make a targeted policy/model correction with retained source weights+fourAdam. No physics or skill threshold relaxation.',
+    interpretation=['Longer lifetime is not standing climb skill.0/80strict and0both top remain decisive.',
+        'Reduced huge logits did not establish coordinated locomotion: selected left wheel targets negative while right remains~60rad/s; hip/crank commands asymmetric.',
+        'Differential target is evidence of coordination error, not an explicit path planner or a unique solecause proof.',
+        'Original actual reward term reconstruction is bounded to recorded signals; recorded reward timing may differ from pre-reset pose sample.'],
+    model_reads=0,new_physics=0)
+(O/'ANALYSIS.json').write_text(json.dumps(report,indent=2)+'\n')
+media=[dict(path=str(p),bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest())for p in O.iterdir()if p.suffix=='.png']
+(O/'MEDIA_INDEX.json').write_text(json.dumps(dict(media=media),indent=2)+'\n')
+print(json.dumps(dict(all80=report['all80'],selected=cases,output=str(O))))

@@ -1,0 +1,22 @@
+"""Small pending source-parity delta; V20 stays immutable until evidence review."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import sys
+
+HERE=Path(__file__).resolve().parent
+BASE=HERE.parent/'scut_recipe_v20' if (HERE.parent/'scut_recipe_v20').exists() else Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300')
+sys.path.append(str(BASE))
+
+
+def install(stage,source_stage=None):
+    spec=importlib.util.spec_from_file_location('standing_frozen_v20_recipe',BASE/'recipe.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    receipt=module.install(stage,source_stage)
+    from source_clock import install_source_clock
+    receipt['original_source_clock_repair']=install_source_clock()
+    # Future admission must name the changed learning/termination interface.
+    # No production model is opened, no new run is frozen or dispatched here.
+    import mod4v1_scut.checkpoint as checkpoint
+    checkpoint.FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'
+    return receipt

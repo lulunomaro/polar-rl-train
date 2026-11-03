@@ -1,0 +1,36 @@
+"""Restore the pinned SCUT debug clock lifecycle; does not alter reward terms."""
+import ast
+from pathlib import Path
+
+
+def install_source_clock():
+    import mod4v1_scut.rewards as rewards
+    from mod4v1_scut.upstream import load_functions
+    cls=rewards.ScutRewards
+    # Retain the complete cache method except its misplaced scalar increment.
+    # This works on the actual immutable package imported by the task.
+    text=Path(rewards.__file__).read_text(encoding='utf-8-sig')
+    tree=ast.parse(text)
+    source_class=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='ScutRewards')
+    cache=next(n for n in source_class.body if isinstance(n,ast.FunctionDef) and n.name=='cache_raw_observations')
+    removed=[n for n in cache.body if isinstance(n,ast.AugAssign) and isinstance(n.target,ast.Attribute) and n.target.attr=='_value_debug_step']
+    if len(removed)!=1:raise ValueError('Expected exactly the known V20 misplaced clock increment')
+    cache.body=[n for n in cache.body if n not in removed]
+    ns=dict(vars(rewards))
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[cache],type_ignores=[])),str(rewards.__file__),'exec'),ns)
+    cls.cache_raw_observations=ns['cache_raw_observations']
+    original=load_functions('base_env',['_debug_print_reward_and_state_stats'])['_debug_print_reward_and_state_stats']
+    cls._debug_print_reward_and_state_stats=original
+    old_init=cls.__init__
+    def init(self,*args,**kwargs):
+        old_init(self,*args,**kwargs)
+        self._value_debug_enabled=bool(getattr(self.cfg,'debug_value_diagnosis',False))
+        self._value_debug_print_interval=int(getattr(self.cfg,'debug_value_diagnosis_interval',200))
+        self._value_debug_topk=int(getattr(self.cfg,'debug_value_diagnosis_topk',5))
+        self._value_debug_threshold_only=bool(getattr(self.cfg,'debug_value_diagnosis_threshold_only',False))
+        self._value_debug_thresholds=dict(getattr(self.cfg,'debug_value_diagnosis_thresholds',{}))
+        self._value_debug_step=0
+    cls.__init__=init
+    return dict(original_debug_function_unchanged_AST=True,cache_only_misplaced_increment_removed=True,
+        original_debug_configuration_fields=True,reward_coefficients_changed=False,physical_or_PPO_changes=False,
+        V20_source_and_false_preserved=True,production_model_reads=0)

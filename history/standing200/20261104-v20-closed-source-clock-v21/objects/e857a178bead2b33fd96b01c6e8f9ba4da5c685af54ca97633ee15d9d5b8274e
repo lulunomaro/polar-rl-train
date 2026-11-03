@@ -1,0 +1,58 @@
+{
+  "epoch": 1793723758.063513,
+  "status": "SCUT20_ORIGINAL_OWNER_EXIT_EXTERNALLY_CONFIRMED_FULL_RESULT_TRANSFER_WAIT_LOCAL_SERIAL",
+  "run_id": "MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300",
+  "original_exit": {
+    "epoch": 1793722478.9888444,
+    "run_id": "MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300",
+    "error": null,
+    "all_own_waited": true,
+    "original_cost_settled": true,
+    "original_leases_released": true,
+    "no_new_budget_or_refund": true
+  },
+  "external_exit_evidence": {
+    "path": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v1_scut_step270_2h_20261103\\env20000_1h\\action_clip_eval1\\reports\\ORIGINAL_ADMISSION_READ.json",
+    "bytes": 465,
+    "SHA": "cd9be7bd06d90716cc9f334e8569ddfe7215e654c5d361a36788cbaadc2188c9",
+    "role": "actual original owner receipt read by same-known peer finite admission; no foreign process operations"
+  },
+  "local_blocker": {
+    "rows": [
+      {
+        "ProcessId": 52704,
+        "ParentProcessId": 10112,
+        "CreationDate": "2026-11-04T00:32:58.698759+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "CommandLine": "C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe -B -X utf8 F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v1_scut_step270_2h_20261103\\repaired_training_control.py collect"
+      }
+    ],
+    "serial": "BUSY",
+    "network_operations": 0,
+    "closed_transfer_once_consumed": false
+  },
+  "final_checkpoint_and_evaluation": "unknown until own closed evidence returned; do not infer fullsave or failure from owner exit",
+  "static_source_parity": {
+    "pinned_old_runtime": {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/package/mod4v1_scut/rewards.py",
+      "bytes": 18124,
+      "SHA": "5788e2ff38b8e97e521d719fdf30ae76117a7b78adacf35a3307aa7226bc7207"
+    },
+    "old_git_source": "359505569da8dddb7d4ffb5ba25962cad60a23ab:project/isaac/mod4v1_scut/rewards.py",
+    "old_methods": {
+      "_debug_print_reward_and_state_stats": "def _debug_print_reward_and_state_stats(self, *args):\n        pass",
+      "cache_raw_observations": "def cache_raw_observations(self, policy, critic):\n        # Cache before clip/scale/sanitize, as env.py:3177 and 3236 require.\n        for stream, blocks in (('policy', policy), ('critic', critic)):\n            maximum, invalid = self._per_env_max_abs_from_blocks(blocks, self.num_envs, self.device)\n            setattr(self, '_obs_raw_'+stream+'_max_abs', maximum)\n            setattr(self, '_obs_raw_'+stream+'_has_nonfinite', invalid)\n        self._value_debug_step += 1"
+    },
+    "original_source": {
+      "path": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\workspace\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\SCUT_UPSTREAM_JUMP_STAIRS_REWARD_REVIEW_V245_20261101\\primary\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe25_v3\\env.py",
+      "SHA": "9959c7fae6eff8591d655a18c29986f2c184c13f4905361b6c722efefbad12bc",
+      "method": "def _debug_print_reward_and_state_stats(self, reward_terms: dict[str, torch.Tensor], total_reward: torch.Tensor) -> None:\n        \"\"\"按固定间隔打印奖励和关键状态统计。\"\"\"\n        if not self._value_debug_enabled:\n            return\n        self._value_debug_step += 1\n        if self._value_debug_print_interval <= 0:\n            return\n        if self._value_debug_step % self._value_debug_print_interval != 0:\n            return\n        if self._value_debug_threshold_only and not self._should_print_value_debug(reward_terms, total_reward):\n            return\n\n        topk = max(1, self._value_debug_topk)\n        finite_mask = torch.isfinite(total_reward)\n        finite_ratio = finite_mask.float().mean().item()\n        if finite_mask.any():\n            total_finite = total_reward[finite_mask]\n            total_max = total_finite.max().item()\n            total_min = total_finite.min().item()\n            total_p99 = torch.quantile(total_finite, 0.99).item()\n        else:\n            total_max = float(\"nan\")\n            total_min = float(\"nan\")\n            total_p99 = float(\"nan\")\n        print(\n            f\"[ValueDebug][step={self._value_debug_step}] reward_total \"\n            f\"max={total_max:.6f} min={total_min:.6f} p99={total_p99:.6f} finite_ratio={finite_ratio:.4f}\"\n        )\n\n        for term_name in self.cfg.rewards.keys():\n            term_tensor = reward_terms.get(term_name, None)\n            if term_tensor is None:\n                continue\n            abs_val = torch.abs(term_tensor)\n            finite_mask = torch.isfinite(abs_val)\n            if finite_mask.any():\n                abs_val = torch.where(finite_mask, abs_val, torch.full_like(abs_val, -1.0))\n            k = min(topk, abs_val.numel())\n            if k <= 0:\n                continue\n            top_vals, top_ids = torch.topk(abs_val, k=k, largest=True)\n            ids_str = \",\".join([str(i) for i in top_ids.tolist()])\n            vals_str = \",\".join([f\"{v:.6f}\" for v in top_vals.tolist()])\n            max_abs = top_vals[0].item()\n            print(\n                f\"[ValueDebug][step={self._value_debug_step}] reward_term={term_name} \"\n                f\"max_abs={max_abs:.6f} top{topk}_env_ids=[{ids_str}] top{topk}_abs=[{vals_str}]\"\n            )\n\n        # 关键状态\n        wheel_vel = self.joint_vel[:, self._wheel_idx]\n        root_lin_vel = self.robot.data.root_lin_vel_b\n        root_ang_vel = self.robot.data.root_ang_vel_b\n        applied_torque = self.robot.data.applied_torque\n        self._print_tensor_stats(\"state/joint_vel_wheel\", wheel_vel)\n        self._print_tensor_stats(\"state/root_lin_vel_b\", root_lin_vel)\n        self._print_tensor_stats(\"state/root_ang_vel_b\", root_ang_vel)\n        self._print_tensor_stats(\"state/applied_torque\", applied_torque)"
+    },
+    "finding": "Pinned ScutRewards increments original debug clock in cache_raw_observations; original only increments at reward tail when debug enabled. Confirmed adapter mismatch; impact on this model not established without returned result. Do not continue stale adapter blindly.",
+    "reward_coefficients_changed": false,
+    "shared_running_source_changed": false,
+    "new_models_read": 0,
+    "new_physics": 0
+  },
+  "next": "No second SSH/watcher while collector alive. After freshLOCAL FREE invoke unused SCUT20closed once, inspect actual result/manifold/pose/native curves. Repair original source clock in a new small version before any continuation; retain V20 original and complete learning state. No clip6 substitution as SCUT YAML clip_actions=null; MOD4 actuator mapping needs explicit independent treatment."
+}

@@ -1,0 +1,60 @@
+"""Exercise the pinned V20 reward class and exact original done/debug functions."""
+from pathlib import Path
+from types import SimpleNamespace
+import ast
+import hashlib
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent;R=HERE.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+sys.path[:0]=[str(HERE),str(R/'scut_recipe_v18/localdeps'),str(REPO/'project/isaac')]
+
+
+def main():
+    report=R/'reports/SCUT21_PINNED_V20_SOURCE_CLOCK_CPU.json';assert not report.exists()
+    value=dict(epoch=time.time(),passed=False,production_PT_reads=0,SDK=0,physics=0,production_optimizer_steps=0)
+    try:
+        import torch
+        import mod4v1_scut.rewards as rewards
+        raw=subprocess.check_output(['git','-C',str(REPO),'show','359505569da8dddb7d4ffb5ba25962cad60a23ab:project/isaac/mod4v1_scut/rewards.py'])
+        frozen=json.loads((R/'scut_recipe_v20/FROZEN.json').read_bytes())
+        expected=next(row for row in frozen['shared_text'] if row['path'].endswith('/package/mod4v1_scut/rewards.py'))
+        assert len(raw)==expected['bytes'] and hashlib.sha256(raw).hexdigest()==expected['SHA']
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'rewards.py';path.write_bytes(raw)
+            rewards.__file__=str(path)
+            exec(compile(raw,str(path),'exec'),vars(rewards))
+            from source_clock import install_source_clock
+            receipt=install_source_clock()
+            from mod4v1_scut.upstream import load_functions
+            source=load_functions('base_env',['_debug_print_reward_and_state_stats'])['_debug_print_reward_and_state_stats']
+            assert rewards.ScutRewards._debug_print_reward_and_state_stats.__code__.co_code==source.__code__.co_code
+            from mod4v1_scut.validate import fixture
+            cases=[]
+            for enabled in (False,True):
+                reward,robot,_=fixture(2,'trained_stair')
+                reward._value_debug_enabled=enabled;reward._value_debug_print_interval=0
+                reference=SimpleNamespace(_value_debug_enabled=enabled,_value_debug_step=0,_value_debug_print_interval=0)
+                for i in range(12):
+                    reward.cache_raw_observations({'actions':torch.tensor([[121.],[0.]])},{})
+                    assert reward._value_debug_step==reference._value_debug_step
+                    reward.compute();source(reference,{},torch.zeros(2))
+                    assert reward._value_debug_step==reference._value_debug_step
+                terminated,_=reward._get_dones()
+                assert bool(terminated[0])==enabled
+                robot.data.root_lin_vel_b[1,0]=101.
+                assert bool(reward._get_dones()[0][1]),'Physical outlier must remain immediate'
+                cases.append(dict(debug_enabled=enabled,clock=reward._value_debug_step,obs_gate_expected=enabled,physical_outlier_immediate=True))
+            value.update(passed=True,receipt=receipt,actual_old_package_rewards_SHA=expected['SHA'],cases=cases,
+                classification='CPU source parity; no physical skill evidence or production checkpoint reads')
+    except BaseException:value['error']=traceback.format_exc()
+    report.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8');print(json.dumps(value,indent=2));raise SystemExit(0 if value['passed'] else 1)
+
+
+if __name__=='__main__':main()

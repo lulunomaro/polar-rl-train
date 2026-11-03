@@ -1,0 +1,64 @@
+"""Synthetic distribution math and collection/H32 integration; no model I/O."""
+from pathlib import Path
+import argparse
+import json
+import sys
+import time
+import torch
+
+R = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(R / n) for n in ['repair_v17', 'repair_v16', 'repair_v15', 'repair_v14', 'source_v2', 'repair_v8']]
+
+
+def main():
+    q = argparse.ArgumentParser()
+    q.add_argument('mode', choices=['math', 'integration'])
+    a = q.parse_args()
+    if a.mode == 'integration':
+        p = R / 'repair_v14/check_local_integration.py'
+        s = p.read_text(encoding='utf-8')
+        s = s.replace("sys.path[:0]=[str(D),str(R/'source_v2'),str(R/'repair_v8')]", '')
+        s = s.replace('from hybrid_actual import Learner,Policy,CONTRACT', 'from logit_exploration import Learner,Policy,CONTRACT')
+        s = s.replace("checkpoint['standing_actual_return']['contract']", "checkpoint['standing_logit_exploration']['contract']")
+        s = s.replace('V14_LOCAL_PRODUCTION_SHAPE_ACTUAL.json', 'V17_LOCAL_PRODUCTION_SHAPE_ACTUAL.json').replace('V14_LOCAL_INTEGRATION_ACTUAL.json', 'V17_LOCAL_INTEGRATION_ACTUAL.json')
+        s = s.replace('V14_SYNTHETIC_CPU_LEARNER_INTEGRATION', 'V17_SYNTHETIC_CPU_LEARNER_INTEGRATION')
+        sys.argv = [str(p), '--production-shape']
+        exec(compile(s, str(p), 'exec'), dict(__name__='__main__', __file__=str(p)))
+        return
+    from logit_exploration import exploration_std, log_probability, mean_kl, bounded_action, surrogate, CONTRACT
+    torch.set_num_threads(4)
+    generator = torch.Generator().manual_seed(202617)
+    mean = torch.randn(2048, 6, generator=generator, dtype=torch.float64) * 3
+    sample = mean + exploration_std(mean) * torch.randn(mean.shape, generator=generator, dtype=mean.dtype)
+    other = mean + .03 * torch.randn(mean.shape, generator=generator, dtype=mean.dtype)
+    normal = torch.distributions.Normal(mean, exploration_std(mean))
+    compared = torch.distributions.Normal(other, exploration_std(other))
+    probability_error = float((normal.log_prob(sample).sum(-1) - log_probability(sample, mean)).abs().max())
+    kl_error = float((torch.distributions.kl_divergence(normal, compared).sum(-1).mean() - mean_kl(mean, other)).abs())
+    assert probability_error < 1e-12 and kl_error < 1e-12
+    action = bounded_action(sample)
+    low = mean.new_tensor([-2.4, -1, -2.4, -1, -6, -6])
+    high = mean.new_tensor([1.8, 1, 1.8, 1, 6, 6])
+    assert ((action >= low) & (action <= high)).all()
+    probe = mean.clone().requires_grad_()
+    loss, ratio = surrogate(probe, sample, log_probability(sample, mean), torch.linspace(-1, 1, len(mean)))
+    gradient = torch.autograd.grad(loss, probe)[0]
+    assert float((ratio - 1).abs().max()) == 0 and torch.isfinite(gradient).all() and gradient.norm() > 0
+    z = torch.full((200000, 6), 2.956, dtype=torch.float64)
+    old_action = 6 * z[:, 5].tanh() + .1 * torch.randn(200000, generator=generator, dtype=mean.dtype)
+    latent = z + exploration_std(z) * torch.randn(z.shape, generator=generator, dtype=mean.dtype)
+    new_action = bounded_action(latent)[:, 5]
+    report = dict(epoch=time.time(), passed=True, kind='V17_SYNTHETIC_GAUSSIAN_MATH', contract=CONTRACT,
+        log_probability_max_error=probability_error, full_Gaussian_KL_error=kl_error,
+        score_gradient_norm=float(gradient.norm()), pre_step_ratio_error=0,
+        old_right_action_fraction_below4p8=float((old_action < 4.8).double().mean()),
+        new_right_action_fraction_below4p8=float((new_action < 4.8).double().mean()),
+        old_right_action_std=float(old_action.std()), new_right_action_std=float(new_action.std()),
+        initial_sampling_example_only=True, source_model_reads=0, physics=0, production_optimization=0)
+    with (R / 'reports/V17_LOCAL_MATH_ACTUAL.json').open('x', encoding='utf-8') as f:
+        json.dump(report, f, indent=2)
+    print(json.dumps(report))
+
+
+if __name__ == '__main__':
+    main()

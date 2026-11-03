@@ -1,0 +1,162 @@
+"""V17: explore before the existing bounded action map; actual RL + H32 BPTT.
+
+The deterministic actor, source weights/four Adam states and task are unchanged.
+Likelihoods use the sampled Gaussian primitive, never an inverse of a rounded
+saturated actuator command. State-dependent scales enter both likelihood/KL.
+"""
+from pathlib import Path
+import hashlib
+import importlib.util
+import math
+import torch
+from supermimic_vendor_v2.geometry import unflatten_state
+from supermimic_vendor_v2.contract import SUPERMIMIC_TRANSITION_KEY
+
+HERE = Path(__file__).resolve().parent
+PRIOR = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V16_1793702292525110700/source/actual_led.py')
+if not PRIOR.exists():
+    PRIOR = HERE.parent / 'repair_v16/actual_led.py'
+assert hashlib.sha256(PRIOR.read_bytes()).hexdigest() == '2e948fdf3e32d88daba2d74a3e76bf01dc44ce3dd7bfae3a27bfa801d4455b1e'
+spec = importlib.util.spec_from_file_location('standing_shared_actual_led_v16', PRIOR)
+previous = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(previous)
+Policy = previous.Policy
+components = previous.components
+CONTRACT = dict(previous.CONTRACT,
+    version='standing200_squashed_logit_exploration_H32_v17',
+    Gaussian_native_action_std=None, original_cfg_action_noise_metadata=.1,
+    sampling='z ~ Normal(total_pre_tanh_logit, sqrt(.15**2 + (.6*logit)**2).clamp_max(2)); action=mid+radius*tanh(z)',
+    logit_std_floor=.15, logit_std_gain=.6, logit_std_cap=2.,
+    likelihood='full state-dependent Gaussian of sampled z; bijection Jacobian cancels from PPO ratio',
+    candidate_KL='full old-to-new latent Gaussian including state-dependent scales',
+    deterministic_actor_formula_unchanged=True, original_learned_STD_frozen=True,
+    training_native_action_clipping='original action manager retained; samples already within original joint ranges',
+    original_task_reward_and_done=True, source_weights_four_Adam_reset=False)
+
+
+def exploration_std(mean):
+    return (CONTRACT['logit_std_floor'] ** 2 + (CONTRACT['logit_std_gain'] * mean).square()).sqrt().clamp_max(CONTRACT['logit_std_cap'])
+
+
+def bounded_action(logit):
+    low = logit.new_tensor([-2.4, -1., -2.4, -1., -6., -6.])
+    high = logit.new_tensor([1.8, 1., 1.8, 1., 6., 6.])
+    return (low + high) / 2 + (high - low) / 2 * logit.tanh()
+
+
+def log_probability(sample, mean):
+    std = exploration_std(mean)
+    return (-.5 * ((sample - mean) / std).square() - std.log() - .5 * math.log(2 * math.pi)).sum(-1)
+
+
+def mean_kl(old, new):
+    old_std, new_std = exploration_std(old), exploration_std(new)
+    return ((new_std / old_std).log() + (old_std.square() + (old - new).square()) / (2 * new_std.square()) - .5).sum(-1).mean()
+
+
+def surrogate(mean, sample, old_log_probability, advantage):
+    ratio = (log_probability(sample, mean) - old_log_probability).exp()
+    objective = torch.minimum(ratio * advantage, ratio.clamp(.8, 1.2) * advantage)
+    return -objective.mean(), ratio
+
+
+def forward_logits(policy, history, goal, batch=512):
+    return torch.cat([components(policy, history[k:k + batch], goal[k:k + batch])[1]
+                      for k in range(0, len(history), batch)], 0)
+
+
+class Learner(previous.Learner):
+    def _checkpoint(self, include_optimizers):
+        full = super()._checkpoint(include_optimizers)
+        full['standing_logit_exploration'] = dict(contract=CONTRACT, last=self.last_actual.copy())
+        return full
+
+    @torch.no_grad()
+    def collect(self, n_steps):
+        for _ in range(n_steps):
+            info = self._state_info()
+            state = unflatten_state(info['s'])
+            obs = self.mdp.add_noise(self.mdp.obs(state, info['a_prev'], info['xi'], info['f']))
+            shifted = torch.cat((self.obs_hist[:, 1:], obs.unsqueeze(1)), 1)
+            self.obs_hist = torch.where((info['ep_step'] == 0)[:, None, None], obs[:, None].expand_as(self.obs_hist), shifted)
+            goal = self._goal(info['f'], info['xi'])
+            if hasattr(self.env, 'before_action'):
+                self.env.before_action()
+            action_mean, mean = components(self.pi, self.obs_hist, goal)
+            sample = mean + exploration_std(mean) * torch.randn_like(mean)
+            action = bounded_action(sample)
+            if self.actual_rows is not None:
+                ci = self._critic_input(state, info['f'], self.mdp.normalize_context(info['xi']), goal)
+                saved = dict(history=self.obs_hist.detach().clone(), goal=goal.detach().clone(),
+                    mean=mean.detach().clone(), action_mean=action_mean.detach().clone(), raw=sample.detach().clone(),
+                    logprob=log_probability(sample, mean), critic_input=ci.detach().clone(), value=self.critic(ci).detach())
+            step = self.env.step(action.clamp(-20, 20).to(self.env_device))
+            transition = step.info[SUPERMIMIC_TRANSITION_KEY]
+            if self._bridged:
+                transition = {k: v.to(self.device) for k, v in transition.items()}
+            if self.actual_rows is not None:
+                next_info = self._state_info()
+                next_state = unflatten_state(next_info['s'])
+                next_goal = self._goal(next_info['f'], next_info['xi'])
+                next_ci = self._critic_input(next_state, next_info['f'], self.mdp.normalize_context(next_info['xi']), next_goal)
+                done = transition['done'].bool()
+                saved.update(reward=transition['r'].detach().clone(), done=done.detach().clone(),
+                    next_value=torch.where(done, torch.zeros_like(saved['value']), self.critic(next_ci)).detach(),
+                    applied=transition['a'].detach().clone())
+                self.actual_rows.append(saved)
+            self.buffer.add(transition)
+            initial, next_state = unflatten_state(transition['s']), unflatten_state(transition['s1'])
+            self.wm.in_norm.update(self.wm.inputs(initial, transition['a'], self.mdp.normalize_context(transition['xi'])))
+            self.wm.out_norm.update(self.wm.targets(initial, next_state))
+            self.sim_steps += self.env.num_envs
+            self.stats['r'].append(transition['r'].mean() / self.mdp.max_step_reward)
+            if 'ep_len' in transition:
+                self.stats['ep_len'].append(transition['ep_len'].mean())
+                self.stats['ep_ret'].append(transition['ep_ret_norm'].mean())
+                if 'term' in transition:
+                    self.stats['term'].append(transition['term'].float().sum())
+                self.stats['done'].append(transition['done'].float().sum())
+
+    def prepare_actual_batch(self):
+        super().prepare_actual_batch()
+        b = self.actual_batch
+        self.last_actual.update(algorithm=CONTRACT['version'], original_cfg_action_noise_metadata=.1,
+            exploration_std_mean=float(exploration_std(b['mean']).mean()),
+            exploration_std_max=float(exploration_std(b['mean']).max()),
+            sampled_action_min=b['applied'].amin(0).tolist(), sampled_action_max=b['applied'].amax(0).tolist(),
+            sampled_latent_logprob=True, deterministic_formula_unchanged=True)
+
+    def mix_actor_loss(self, model_loss, penalty):
+        b = self.actual_batch
+        mean = forward_logits(self.pi, b['history'], b['goal'])
+        actual_loss, ratio = surrogate(mean, b['raw'], b['logprob'], b['advantages'])
+        weighted_other = .1 * model_loss + .1 * penalty
+        trainable = [p for g in self.opt_pi.param_groups for p in g['params'] if p.requires_grad]
+        ag = torch.autograd.grad(actual_loss, trainable, retain_graph=True, allow_unused=True)
+        og = torch.autograd.grad(weighted_other, trainable, retain_graph=True, allow_unused=True)
+        an, on, cosine = previous.gradient_statistics(ag, og)
+        if not bool(torch.isfinite(torch.tensor([an, on, cosine])).all() and torch.isfinite(ratio).all()):
+            raise FloatingPointError('latent actual/model gradient or ratio nonfinite')
+        scale = min(1., .25 * an / max(on, 1e-30))
+        probe = self.pi.residual.dec[-1].bias
+        pg = torch.autograd.grad(actual_loss, probe, retain_graph=True)[0]
+        self.actual_loss_before = float(actual_loss.detach())
+        self.last_actual.update(actual_actor_loss=self.actual_loss_before, actual_actor_bias_gradient_norm=float(pg.norm()),
+            pre_Adam_ratio_max_abs_from_one=float((ratio.detach() - 1).abs().max()),
+            original_model_loss=float(model_loss.detach()), H32_weight=.1,
+            distribution_recomputation=dict(matched_forward_batch=512, samples=len(mean),
+                mean_max_abs=float((mean.detach() - b['mean']).abs().max()),
+                pre_Adam_ratio_max_abs_from_one=float((ratio.detach() - 1).abs().max()),
+                pre_Adam_Gaussian_KL=float(mean_kl(b['mean'], mean.detach())), full_state_dependent_latent_Gaussian=True),
+            gradient_balance=dict(actual_full_actor_norm=an, original_weighted_H32_plus_regularizer_norm=on,
+                original_other_to_actual_ratio=on / max(an, 1e-30), cosine_actual_other=cosine,
+                applied_other_scale=scale, applied_other_to_actual_ratio=scale * on / max(an, 1e-30),
+                measured_before_global_clipping=True, original_H32_graph_preserved=True, single_Adam_transaction=True))
+        return actual_loss + scale * weighted_other
+
+    @torch.no_grad()
+    def candidate_actual_objective(self):
+        b = self.actual_batch
+        mean = forward_logits(self.pi, b['history'], b['goal'])
+        loss, _ = surrogate(mean, b['raw'], b['logprob'], b['advantages'])
+        return float(mean_kl(b['mean'], mean)), float(loss)

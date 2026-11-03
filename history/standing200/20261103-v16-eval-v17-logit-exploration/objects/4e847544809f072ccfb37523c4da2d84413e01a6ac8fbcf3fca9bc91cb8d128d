@@ -1,0 +1,60 @@
+"""Publish actual V17 CPU/freeze status with fresh local-only admission."""
+from pathlib import Path
+from datetime import datetime
+import hashlib
+import importlib.util
+import json
+import time
+
+R = Path(__file__).resolve().parents[1]
+
+
+def main():
+    spec = importlib.util.spec_from_file_location('standing_original_local_gate', R / 'repair_v11/control.py')
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    rows, blocked = gate.admission()
+    frozen = json.loads((R / 'repair_v17/FROZEN.json').read_bytes())
+    cpu = json.loads((R / 'reports/LOGIT_EXPLORATION_V17_ACTUAL.json').read_bytes())
+    closed = json.loads((R / 'reports/LOGIT_EXPLORATION_V17_CLOSED.json').read_bytes())
+    assert cpu['returncode'] == 0 and cpu['own_waited'] and cpu['result']['passed']
+    assert closed['SSHclosed'] and closed['SESSION_restored'] and closed['serial'] == 'FREE'
+    for row in frozen['files']:
+        raw = (R / 'repair_v17' / row['name']).read_bytes()
+        assert len(raw) == row['bytes'] and hashlib.sha256(raw).hexdigest() == row['SHA']
+    prefix = R / 'reports'
+    assert not (prefix / 'LOGIT_EXPLORATION_V17_LAUNCH_ONCE.json').exists()
+    inventory_once = (prefix / 'FOUR4090_READ_V17_ONCE.json').exists()
+    report = dict(epoch=time.time(), captured=datetime.now().astimezone().isoformat(),
+        kind='V17_PREPARED_CPU_PASS_FROZEN_LOCAL_RESOURCE_ADMISSION', run_id=frozen['run_id'],
+        local_rows=rows, blocked=blocked, serial='BUSY' if blocked else 'FREE',
+        CPU_pass=True, CPU_once_consumed=True, CPU_source=cpu['result']['source'],
+        source_counts=cpu['result']['restore']['counts'], source_fourAdam=cpu['result']['fixture']['source_Adam_offsets'],
+        CPU_fixture=cpu['result']['fixture'], frozen_SHA=hashlib.sha256((R / 'repair_v17/FROZEN.json').read_bytes()).hexdigest(),
+        allfour_once_consumed=inventory_once, launch_once_consumed=False,
+        training_started=False, network_operations_this_report=0, model_reads_this_report=0,
+        next='Whenactualknowncollectorclosed and freshLOCALserialFREE, run V17gpu once across72two/210/86; then same frozen V17launch/first. Do not repeatCPU/prepare, createwatcher, probe other task or bypass sharedlocks.')
+    p = prefix / 'V17_PREPARED_CPU_FROZEN_LOCAL_RESOURCE_WAIT.json'
+    with p.open('x', encoding='utf-8') as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    p = R / 'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    w.update(status='V16_EVAL_FAILED_V17_CPU_PASS_FROZEN_WAIT_LOCAL_CONTROLLER' if blocked else 'V16_EVAL_FAILED_V17_CPU_PASS_FROZEN_AWAIT_FRESH_ALLFOUR',
+        pending_repair=dict(version='V17', root=str(R / 'repair_v17'), status='CPU_PASS_FROZEN_UNUSED',
+            CPU_once_consumed=True, physical_training=False, run_id=frozen['run_id'], frozen=str(R / 'repair_v17/FROZEN.json'),
+            frozen_SHA=report['frozen_SHA'], source_final_SHA=cpu['result']['source']['SHA'],
+            allfour_once_consumed=inventory_once, launch_once_consumed=False),
+        current_resource_blocker=dict(captured=report['captured'], exact_local_controllers=blocked, report=str(prefix / 'V17_PREPARED_CPU_FROZEN_LOCAL_RESOURCE_WAIT.json')) if blocked else None,
+        next=report['next'], latest_status=str(prefix / 'V17_PREPARED_CPU_FROZEN_LOCAL_RESOURCE_WAIT.json'))
+    w['followup_commands'].update(CPU='V17CPUconsumed/PASS;do notrepeatfullmodeldecode.',
+        resources='V17allfourunused;onlyafterknowncollectorclosed/freshLOCALserialFREE: repair_v17/control.py gpu',
+        launch='V17frozenunused;afterfreshallfour/privatecanonicaladmission: repair_v17/control.py launch',
+        first='V17FIRSTunused;onlyafteroriginalV17GO: repair_v17/control.py first',
+        closed='V16closedtransfer consumed;V17closedtransfer unused and only afteractualV17OWNER_EXIT')
+    p.write_text(json.dumps(w, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(dict(status=w['status'], blocked=[dict(pid=x['ProcessId'], argv=x['CommandLine']) for x in blocked],
+        CPU_pass=True, frozen_unused=True, launch_consumed=False)))
+
+
+if __name__ == '__main__':
+    main()

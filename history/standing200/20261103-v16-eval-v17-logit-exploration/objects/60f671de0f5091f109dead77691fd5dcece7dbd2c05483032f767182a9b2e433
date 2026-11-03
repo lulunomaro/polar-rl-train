@@ -1,0 +1,259 @@
+{
+  "epoch": 1793711350.1566398,
+  "returncode": 0,
+  "own_waited": true,
+  "result": {
+    "kind": "STANDING200_V17_FULL_RESTORE_LATENT_EXPLORATION_CPU",
+    "epoch": 1793711349.7014487,
+    "passed": true,
+    "source": {
+      "epoch": 1793705958.1200411,
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V16_1793702292525110700/production/checkpoints/BPTT003153_I003256_1793705957600606289_complete.pt",
+      "bytes": 239095569,
+      "SHA": "51ba7bf4ac55bbb706581b2585e57a244589215b6e271dff0e07134c251bb94f",
+      "counts": {
+        "policy_attempts": 3156,
+        "pi_optimizer_steps": 3154,
+        "pi_bptt_optimizer_steps": 3153,
+        "pi_unverified_steps": 1,
+        "pi_skipped_nonfinite": 0,
+        "pi_skipped_zero": 0,
+        "wm_optimizer_steps": 13348,
+        "aux_optimizer_steps": 13348,
+        "critic_optimizer_steps": 13240
+      },
+      "iteration": 3256,
+      "full_models_four_optimizers_replay_RNG": true,
+      "last_bptt_receipt": {
+        "iteration": 3255,
+        "pi_optimizer_steps": 3154,
+        "horizon": 32,
+        "policy_dt_s": 0.02,
+        "cross_time_finite": true,
+        "cross_time_grad_norm": 0.7369900941848755,
+        "wm_path_finite": true,
+        "wm_path_grad_norm": 0.6161691546440125,
+        "parameter_grad_norm": 6.352694034576416,
+        "loss": -0.07598619908094406,
+        "wm_weights_frozen": true,
+        "auxiliary_weights_frozen": true,
+        "imagined_reward_source": "original_real_reward_supervised_head",
+        "optimizer_regularizer": {
+          "version": "standing200_latent_antiwindup_bptt_v13",
+          "source_action_formula": "standing200_reachable_action_v8_UNCHANGED",
+          "optimizer_regularizer": "0.1 * mean(relu(abs(total_pre_tanh_logit)-2)^2)",
+          "threshold": 2.0,
+          "weight": 0.1,
+          "post_Adam_max_normalized_action_delta": 0.05,
+          "post_Adam_max_logit_delta": 0.25,
+          "max_proposals": 12,
+          "candidate_rejection": "restore all trainable weights and complete actor Adam",
+          "real_reward_done_WM_critic_physics": "unchanged",
+          "source_weights_Adam_reset": false
+        },
+        "probe_parameter_delta_l2": 3.1815265089107925e-08,
+        "verified_bptt_optimizer_step": true,
+        "pi_bptt_optimizer_steps": 3153,
+        "policy_attempts": 3156
+      }
+    },
+    "restore": {
+      "counts": {
+        "policy_attempts": 3156,
+        "pi_optimizer_steps": 3154,
+        "pi_bptt_optimizer_steps": 3153,
+        "pi_unverified_steps": 1,
+        "pi_skipped_nonfinite": 0,
+        "pi_skipped_zero": 0,
+        "wm_optimizer_steps": 13348,
+        "aux_optimizer_steps": 13348,
+        "critic_optimizer_steps": 13240
+      },
+      "optimizer_steps": {
+        "wm": {
+          "min": 13348,
+          "max": 13348,
+          "states": 14
+        },
+        "pi": {
+          "min": 3154,
+          "max": 3154,
+          "states": 16
+        },
+        "v": {
+          "min": 13240,
+          "max": 13240,
+          "states": 6
+        },
+        "aux": {
+          "min": 13348,
+          "max": 13348,
+          "states": 6
+        }
+      },
+      "all_four_Adam_tensors_equal": true,
+      "networks_and_normalizers_strict_restored": true,
+      "original_RNG_restored": false,
+      "CUDA_RNG_opaque_cpu_fixture": true,
+      "replay_stream_boundary_sealed": true,
+      "physical_queues": "new explicit fresh reset",
+      "algorithmic_cfg_unchanged": true,
+      "source_optimizer_steps": 0
+    },
+    "contract": {
+      "version": "standing200_squashed_logit_exploration_H32_v17",
+      "actual_controls": 64,
+      "actual_samples": 32768,
+      "num_envs": 512,
+      "Gaussian_native_action_std": null,
+      "Gaussian_sample": "unclipped pre-action-manager sample",
+      "applied_action": "original [-20,20] learner then native [-6,6] clipping",
+      "likelihood": "full state-dependent Gaussian of sampled z; bijection Jacobian cancels from PPO ratio",
+      "original_task_reward_and_done": true,
+      "gamma": 0.99,
+      "GAE_lambda": 1.0,
+      "PPO_clip": 0.2,
+      "epochs": 1,
+      "actor_actual_surrogate_weight": 1.0,
+      "actor_H32_BPTT_weight": 0.1,
+      "latent_antiwindup_weight": 0.1,
+      "source_antiwindup_threshold": 2.0,
+      "source_actor_obs_goal_norm": "strict source restore then frozen; no re-estimation during rollout",
+      "post_Adam_actual_Gaussian_mean_KL_max": 0.01,
+      "post_Adam_normalized_action_delta_max": 0.05,
+      "post_Adam_logit_delta_max": 0.25,
+      "all_rejected_proposal_weights_and_Adam_restored": true,
+      "original_deterministic_action_formula": "unchanged standing_action_v8.compose",
+      "new_optimizers": 0,
+      "future_actual_depth_in_imagination": false,
+      "true_done_and_timeout_bootstrap": "zero for both original term|trunc, no reset observation bootstrap",
+      "final_nonterminal_chunk_bootstrap": "critic value of actual next observation, detached",
+      "physical_reset": "fresh DR/native queues; partial onpolicy chunk discarded, never reused across resume",
+      "actual_policy_forward_batch": 512,
+      "actual_KL_forward_batch": 512,
+      "pre_Adam_distribution_diagnostic": true,
+      "first_chunk_compare_legacy32768": true,
+      "physical_reward_action_H32_changes": false,
+      "auxiliary_gradient_norm_to_actual_max": 0.25,
+      "gradient_cap_scope": "full trainable actor parameters; .1 H32 + .1 antiwindup combined",
+      "accepted_Adam_actual_surrogate_nonincreasing": true,
+      "actual_surrogate_numeric_tolerance": 1e-07,
+      "actual_gradient_and_model_diagnostics": true,
+      "original_cfg_action_noise_metadata": 0.1,
+      "sampling": "z ~ Normal(total_pre_tanh_logit, sqrt(.15**2 + (.6*logit)**2).clamp_max(2)); action=mid+radius*tanh(z)",
+      "logit_std_floor": 0.15,
+      "logit_std_gain": 0.6,
+      "logit_std_cap": 2.0,
+      "candidate_KL": "full old-to-new latent Gaussian including state-dependent scales",
+      "deterministic_actor_formula_unchanged": true,
+      "original_learned_STD_frozen": true,
+      "training_native_action_clipping": "original action manager retained; samples already within original joint ranges",
+      "source_weights_four_Adam_reset": false
+    },
+    "fixture": {
+      "actual": {
+        "fixture_only": true,
+        "actual_robot_onpolicy_samples": 0,
+        "saved_reset_inputs": 512,
+        "source_norms_frozen": true,
+        "actual_actor_loss": 2.2351741790771484e-08,
+        "actual_actor_bias_gradient_norm": 0.176735058426857,
+        "pre_Adam_ratio_max_abs_from_one": 0.0,
+        "original_model_loss": -25.536426544189453,
+        "H32_weight": 0.1,
+        "distribution_recomputation": {
+          "matched_forward_batch": 512,
+          "samples": 512,
+          "mean_max_abs": 0.0,
+          "pre_Adam_ratio_max_abs_from_one": 0.0,
+          "pre_Adam_Gaussian_KL": 0.0,
+          "full_state_dependent_latent_Gaussian": true
+        },
+        "gradient_balance": {
+          "actual_full_actor_norm": 18.823018181182277,
+          "original_weighted_H32_plus_regularizer_norm": 69.53231112983732,
+          "original_other_to_actual_ratio": 3.694004354697488,
+          "cosine_actual_other": 0.1881315464258543,
+          "applied_other_scale": 0.06767723478238108,
+          "applied_other_to_actual_ratio": 0.25,
+          "measured_before_global_clipping": true,
+          "original_H32_graph_preserved": true,
+          "single_Adam_transaction": true
+        },
+        "accepted_actor_commit": true,
+        "post_Adam_actual_Gaussian_KL": 0.003881632350385189,
+        "proposals": 3,
+        "post_Adam_actual_surrogate": -0.009496192447841167,
+        "actual_critic_loss": 900.7278442382812
+      },
+      "H32": {
+        "iteration": 3256,
+        "pi_optimizer_steps": 3155,
+        "horizon": 32,
+        "policy_dt_s": 0.02,
+        "cross_time_finite": true,
+        "cross_time_grad_norm": 0.7331032156944275,
+        "wm_path_finite": true,
+        "wm_path_grad_norm": 0.5712342262268066,
+        "parameter_grad_norm": 20.242979049682617,
+        "loss": -0.17230316996574402,
+        "wm_weights_frozen": true,
+        "auxiliary_weights_frozen": true,
+        "imagined_reward_source": "original_real_reward_supervised_head",
+        "optimizer_regularizer": {
+          "version": "standing200_latent_antiwindup_bptt_v13",
+          "source_action_formula": "standing200_reachable_action_v8_UNCHANGED",
+          "optimizer_regularizer": "0.1 * mean(relu(abs(total_pre_tanh_logit)-2)^2)",
+          "threshold": 2.0,
+          "weight": 0.1,
+          "post_Adam_max_normalized_action_delta": 0.05,
+          "post_Adam_max_logit_delta": 0.25,
+          "max_proposals": 12,
+          "candidate_rejection": "restore all trainable weights and complete actor Adam",
+          "real_reward_done_WM_critic_physics": "unchanged",
+          "source_weights_Adam_reset": false
+        },
+        "probe_parameter_delta_l2": 5.8548562265059445e-06,
+        "verified_bptt_optimizer_step": true,
+        "pi_bptt_optimizer_steps": 3154,
+        "policy_attempts": 3157
+      },
+      "all_weights_four_Adam_restored": true,
+      "source_Adam_offsets": {
+        "wm": {
+          "min": 13348,
+          "max": 13348,
+          "states": 14
+        },
+        "pi": {
+          "min": 3154,
+          "max": 3154,
+          "states": 16
+        },
+        "v": {
+          "min": 13240,
+          "max": 13240,
+          "states": 6
+        },
+        "aux": {
+          "min": 13348,
+          "max": 13348,
+          "states": 6
+        }
+      },
+      "production_updates": 0,
+      "synthetic_samples": 512,
+      "actual_new_robot_samples": 0,
+      "deterministic_formula_max_difference": 0.0,
+      "terminal_next_bootstrap_zero": true
+    },
+    "source_model_decodes": 1,
+    "source_teacher_PT_opens": 0,
+    "SDK_physics_GPU_C_writes": 0,
+    "physical_skill_pass": false
+  },
+  "canonical_writes": 0,
+  "stderr": "",
+  "stdout": "{\"passed\": true, \"actual\": {\"fixture_only\": true, \"actual_robot_onpolicy_samples\": 0, \"saved_reset_inputs\": 512, \"source_norms_frozen\": true, \"actual_actor_loss\": 2.2351741790771484e-08, \"actual_actor_bias_gradient_norm\": 0.176735058426857, \"pre_Adam_ratio_max_abs_from_one\": 0.0, \"original_model_loss\": -25.536426544189453, \"H32_weight\": 0.1, \"distribution_recomputation\": {\"matched_forward_batch\": 512, \"samples\": 512, \"mean_max_abs\": 0.0, \"pre_Adam_ratio_max_abs_from_one\": 0.0, \"pre_Adam_Gaussian_KL\": 0.0, \"full_state_dependent_latent_Gaussian\": true}, \"gradient_balance\": {\"actual_full_actor_norm\": 18.823018181182277, \"original_weighted_H32_plus_regularizer_norm\": 69.53231112983732, \"original_other_to_actual_ratio\": 3.694004354697488, \"cosine_actual_other\": 0.1881315464258543, \"applied_other_scale\": 0.06767723478238108, \"applied_other_to_actual_ratio\": 0.25, \"measured_before_global_clipping\": true, \"original_H32_graph_preserved\": true, \"single_Adam_transaction\": true}, \"accepted_actor_commit\": true, \"post_Adam_actual_Gaussian_KL\": 0.003881632350385189, \"proposals\": 3, \"post_Adam_actual_surrogate\": -0.009496192447841167, \"actual_critic_loss\": 900.7278442382812}, \"H32verified\": true}\n",
+  "locks_released_in_finally": true
+}

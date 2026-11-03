@@ -1,0 +1,55 @@
+"""Record completed V16 independent evaluation and genuine native review."""
+from pathlib import Path
+import json
+import time
+
+R = Path(__file__).resolve().parents[1]
+J = R / 'actual_closed/MOD4_STANDING200_RLBPTT_V16_1793702292525110700'
+
+
+def main():
+    analysis = json.loads((J / 'analysis/ANALYSIS.json').read_bytes())
+    final = json.loads((J / 'production/FINAL.json').read_bytes())
+    owner = json.loads((J / 'OWNER_EXIT.json').read_bytes())
+    assert owner['error'] is None and owner['all_own_waited'] and owner['original_leases_released']
+    all80 = analysis['all80']
+    assert all80['strict'] == 0 and all80['termination_terms']['bad_orientation'] == 39
+    review = dict(epoch=time.time(), kind='V16_ACTUAL_NATIVE_REVIEW_AND_V17_EXPLORATION_DECISION',
+        checkpoint=final['checkpoint'], all80=all80,
+        actual_images_reviewed_by='current model native view_image',
+        images=[str(J / 'rendered_v2' / f'ACTUAL_env{i}_{v}.png') for i in [0, 1, 40, 41] for v in ['side', 'top']],
+        curves=[str(J / 'analysis/ACTUAL_V16_ACTION_POSE_CURVES.png'), str(J / 'analysis/V15_V16_SATURATION_COORDINATION_COMPARISON.png')],
+        observations=[
+            'env0/1/40 reach the riser around .9s then retain a tilted stationary posture until10s. Wheels remain below the platform. env41 pitches to44deg and terminates1.16s.',
+            'Selected early right targets59.34-59.38rad/s versus left7.59-8.99rad/s. Later right remains58-59rad/s while left oscillates; cranks do not lift the lower wheel bottom above.036m.',
+            'All80 actual both-wheel top support0/stable0; selected manifold maxz.07149m. No success from survival increase2.14575 to5.65275s.',
+            'Selected stuck states retain about.5-.65 reward/control. Reward plateau and sampling limitations are hypotheses, not a unique causal conclusion.',
+            'At right-wheel mean near5.934, original additive action std.1 almost never samples a meaningful reduction to4.8. Sample before tanh to test exploration while keeping deterministic actions identical.',
+            'Initial depth valid and.2m. There is no explicit route planner. Do not infer all80 poses from four selected replays.',
+        ], next='V17 fullfinalV16/fourAdam restore; state-dependent Gaussian in existing total-logit space, exact sampled-primitive likelihood/fullKL, sameV16 actual-led H32 gradient/candidate guards. CPU admission then fresh allfour then uniqueproduction. No reward/physical/acceptance/networkreset.',
+        source_counter_warning='final actorAdam3154,verifiedBPTT3153,oneunverified preserved explicitly; no silent count correction',
+        local_reader_error=dict(path='repair_v11/check_full_restore.py',error='nonexistent file in read-only path probe',network=0,model_reads=0,physics=0),
+        limits='selected4visual;all80measuredoutcomes;no singlecauseclaim', model_reads=0, new_SDK_physics=0)
+    report = R / 'reports/V16_ACTUAL_EVAL_NATIVE_REVIEW_V17_DECISION.json'
+    with report.open('x', encoding='utf-8') as f:
+        json.dump(review, f, ensure_ascii=False, indent=2)
+    p = R / 'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    w.update(status='V16_CLOSED_ACTUAL80_0STRICT_NATIVE_REVIEWED_V17_EXPLORATION_PREPARING',
+        training_started=False, training_completed=True, current_run_final=final['checkpoint'], latest_checkpoint=final['checkpoint'],
+        actual_owner_exit=owner, final_actual_metrics=final,
+        evaluation_result=dict(all80, path=str(J / 'evaluation/RESULT.json')),
+        evaluation_status='ActualfinalV16 complete0/80strict39orientation41timeoutsmean5.65275s;0bothtop',
+        current_model_independent_evaluation='COMPLETE_ACTUAL_FINAL_V16_80_FIRST_EPISODES',
+        current_model_native_reviewed=True, replay_native_reviewed=review['images'] + review['curves'], native_review_report=str(report),
+        evaluation_closed_and_transferred=True, evaluation_once_consumed=True, closed_transfer_once_consumed=True,
+        latest_status='reports/STATUS_V16_POSTWINDOW_2002_SERIAL.json', current_resource_blocker=None, next=review['next'],
+        pending_repair=dict(version='V17', root=str(Path(__file__).resolve().parent), status='LOCAL_SOURCE_NEEDS_FULLRESTORE_ALGORITHM_FIXTURE', CPU_once_consumed=False, physical_training=False))
+    w['followup_commands']['closed'] = 'V16closedtransfer consumed;neverreplay.'
+    w['followup_commands']['render'] = 'V16actual80 rendered/currentmodelnative8poses2curvesreviewed;use existing media.'
+    p.write_text(json.dumps(w, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(dict(status=w['status'], all80=all80)))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,39 @@
+"""One finalV16 full restore; exact new Gaussian/Adam fixture, 0 physics."""
+from pathlib import Path
+import hashlib
+
+PRIOR = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V13_1793670990137789700/source_checks/hybrid_actual_v14/check_full_restore.py')
+if not PRIOR.exists():
+    PRIOR = Path(__file__).resolve().parents[1] / 'repair_v14/check_full_restore.py'
+raw = PRIOR.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == '609ef3474d54b6b1333342450a0b90d09e5e5fbad8dc22c125a39abc6413e594'
+code = raw.decode()
+
+
+def change(old, new):
+    global code
+    assert code.count(old) == 1, old
+    code = code.replace(old, new)
+
+
+change('from hybrid_actual import Learner,Policy,components,CONTRACT',
+       'from logit_exploration import Learner,Policy,components,CONTRACT,exploration_std,log_probability,bounded_action')
+change('from actual_returns import actual_gae,gaussian_log_prob', 'from actual_returns import actual_gae')
+change("assert receipt['SHA']=='2bc1c10b51252d93b80f224eaffaaaae2015f184a230c233f4a42c384aa14a40'",
+       "assert receipt['SHA']=='51ba7bf4ac55bbb706581b2585e57a244589215b6e271dff0e07134c251bb94f'")
+for name, old, new in [('pi', 3002, 3154), ('wm', 12536, 13348), ('aux', 12536, 13348), ('v', 12008, 13240)]:
+    change(f"assert offsets['{name}']['min']==offsets['{name}']['max']=={old}",
+           f"assert offsets['{name}']['min']==offsets['{name}']['max']=={new}")
+change("snapshots={n:copy.deepcopy", "assert learner.counts.pi_bptt_optimizer_steps==3153 and learner.counts.pi_unverified_steps==1\n        snapshots={n:copy.deepcopy")
+change('action,_=components(learner.pi,hist,goal)', 'action,logit=components(learner.pi,hist,goal)')
+change('sample=action+.1*torch.randn(action.shape,generator=generator)',
+       'sample=logit+exploration_std(logit)*torch.randn(logit.shape,generator=generator)')
+change("adv=(sample[:,4]-action[:,4])-(sample[:,5]-action[:,5]);", "adv=(sample[:,4]-logit[:,4])-(sample[:,5]-logit[:,5]);")
+change('mean=action,raw=sample,logprob=gaussian_log_prob(sample,action)',
+       'mean=logit,raw=sample,logprob=log_probability(sample,logit),applied=bounded_action(sample)')
+change("assert actual['post_Adam_actual_Gaussian_KL']<=.01", """assert actual['post_Adam_actual_Gaussian_KL']<=.01
+        assert actual['gradient_balance']['applied_other_to_actual_ratio']<=.250001
+        assert actual['post_Adam_actual_surrogate']<=actual['actual_actor_loss']+1e-7
+        assert learner.counts.pi_unverified_steps==1""")
+change("kind='STANDING200_V14_FULL_RESTORE_HYBRID_CPU'", "kind='STANDING200_V17_FULL_RESTORE_LATENT_EXPLORATION_CPU'")
+exec(compile(code, str(Path(__file__).absolute()), 'exec'), globals())

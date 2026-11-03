@@ -1,0 +1,71 @@
+"""SHA-deduplicated standing-task delta archive; existing binary receipts only."""
+from pathlib import Path
+import argparse
+import hashlib
+import importlib.util
+import json
+import time
+
+R = Path(__file__).resolve().parents[1]
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEFAULT = 'history/standing200/20261103-v16-eval-v17-logit-exploration'
+
+
+def main():
+    q = argparse.ArgumentParser()
+    q.add_argument('--destination', default=DEFAULT)
+    a = q.parse_args()
+    dest = REPO / a.destination
+    assert dest.resolve().is_relative_to(REPO / 'history/standing200') and not dest.exists()
+    spec = importlib.util.spec_from_file_location('existing_text_redactor', REPO / 'archive_tools/capture_history.py')
+    guard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    known = {}
+    for index in (REPO / 'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(index.read_bytes()).get('rows', []):
+            if row.get('archive_SHA') and row.get('archive_path'):
+                known[row['archive_SHA']] = row['archive_path']
+    closed = R / 'actual_closed/MOD4_STANDING200_RLBPTT_V16_1793702292525110700'
+    suffixes = {'.py', '.json', '.md', '.txt', '.toml', '.diff', '.log', '.csv'}
+    files = set()
+    for base in [R / 'repair_v17', R / 'reports', closed]:
+        files.update(p for p in base.rglob('*') if p.is_file() and p.suffix.lower() in suffixes and '__pycache__' not in p.parts)
+    files.update([R / 'CURRENT_WORK_ORDER.json', Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    dest.mkdir(parents=True)
+    (dest / 'objects').mkdir()
+    rows = []
+    for path in sorted(files, key=str):
+        raw = path.read_bytes()
+        safe, count = guard.redact(raw.decode('utf-8-sig'))
+        content = raw if count == 0 else safe.encode()
+        sha = hashlib.sha256(content).hexdigest()
+        target = known.get(sha)
+        if target is None:
+            out = dest / 'objects' / sha
+            out.write_bytes(content)
+            target = out.relative_to(REPO).as_posix()
+            known[sha] = target
+        rows.append(dict(source_path=str(path), bytes=len(raw), SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target, archive_SHA=sha, archive_bytes=len(content), redactions=count,
+            mode='complete_text' if count == 0 else 'redacted_text'))
+    large = []
+    for row in json.loads((R / 'reports/V16_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())['files']:
+        if Path(row['local_path']).suffix.lower() not in suffixes:
+            large.append(dict(row, published_by='actual uniqueV16closedtransfer'))
+    for rel in ['rendered_v2/RENDER_REPORT.json', 'analysis/MEDIA_INDEX.json']:
+        large.extend(dict(row, published_by=str(closed / rel)) for row in json.loads((closed / rel).read_bytes())['media'])
+    w = json.loads((R / 'CURRENT_WORK_ORDER.json').read_bytes())
+    for key in ['source_resume', 'first_checkpoint', 'latest_checkpoint', 'current_run_final']:
+        if w.get(key):
+            large.append(dict(w[key], published_by='currentworkorder.' + key))
+    large.append(dict(json.loads((closed / 'production/FINAL.json').read_bytes())['checkpoint'], published_by='actualV16final'))
+    (dest / 'README.md').write_bytes((R / 'repair_v17/README.md').read_bytes())
+    (dest / 'INDEX.json').write_text(json.dumps(dict(epoch=time.time(), kind='V16_ACTUAL_EVAL_FAILURE_V17_EXPLORATION_CPU_PASS_FROZEN_UNUSED',
+        rows=rows, large_external_artifacts=large, source_model_or_media_reads_for_archive=0, shared_runtime_copies=0,
+        priorV16_tagobject='309f9e323697e57f0e11338428eaa667c22a9cd6', priorV16_peel='81d11f8a0aae775e2be866c1888ccb1eb35a5b4e',
+        currentstatus=w['status'], archive_pending_record=True), ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(dict(destination=str(dest), textrows=len(rows), newobjects=len(list((dest / 'objects').iterdir())), large=len(large))))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,160 @@
+"""One phase, SHA-deduplicated text, actual media receipts; no model opens."""
+from pathlib import Path
+from datetime import datetime
+import argparse
+import hashlib
+import importlib.util
+import json
+import time
+
+D = Path(__file__).resolve().parent
+R = D.parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST = REPO / 'history/standing200/20261103-v14-eval-v15-matched-batch'
+
+
+def handoff():
+    p = R / 'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    s = json.loads((R / 'reports/STATUS_V15_FIRST_UPDATED.json').read_bytes())
+    assert s.get('SSHclosed') and s['serial'] == 'FREE'
+    assert s['job'] == w['remote_job']
+    f = dict(s['files'])
+    newer = R / 'reports/STATUS_V15_POSTGO_FINITE_READ.json'
+    if newer.exists():
+        follow = json.loads(newer.read_bytes())
+        assert follow.get('SSHclosed') and follow['serial'] == 'FREE'
+        assert follow['job'] == w['remote_job'] and follow['epoch'] >= s['epoch']
+        f.update(follow['files'])
+    first = f.get('production/FIRST_UPDATED.json')
+    go = f.get('GO_PRODUCTION.json')
+    full = f.get('production/FULL_RESTORE_V15.json')
+    error = {k: f[k] for k in ['OWNER_ERROR.json','production/WORKER_ERROR.json','evaluation/EVAL_ERROR.json'] if k in f}
+    own = f.get('OWNER_EXIT.json')
+    status = 'V15_ORIGINAL_GO_FIRST_NOT_YET_IN_FINITE_COLLECTOR'
+    if first:
+        real = first['actual_returns']
+        assert first['new_BPTT_steps'] == 1
+        assert first['checkpoint']['counts']['pi_bptt_optimizer_steps'] == 3056
+        assert real['controls'] == 64 and real['samples'] == 32768
+        assert real['actual_actor_bias_gradient_norm'] > 0
+        assert real['actual_done_next_bootstrap_max'] == 0
+        assert first['checkpoint']['full_models_four_optimizers_replay_RNG']
+        assert full['receipt']['all_four_Adam_tensors_equal'] and full['receipt']['original_RNG_restored']
+        status = 'LIVE_V15_MATCHED_BATCH_ACTUAL_FIRST_FULLSAVE_CONFIRMED'
+    if error:
+        status = 'V15_ACTUAL_ERROR_ORIGINAL_OWNER_SAFE_CLOSE_REQUIRED'
+    if own:
+        status = 'V15_ORIGINAL_OWNER_CLOSED_ACTUAL_EVALUATION_REVIEW_REQUIRED'
+    cpu = json.loads((R/'reports/MATCHED_ACTUAL_V15_ACTUAL.json').read_bytes())['result']
+    inventory = json.loads((R/'reports/FOUR4090_RESOURCE_ACTUAL_V15.json').read_bytes())
+    w.update(status=status, training_started=bool(go) and not own and not error,
+        training_completed=own is not None, training_skill_pass=False,
+        GO=go, original_worker=f.get('WORKER_IDENTITY.json'),
+        original_worker_current=f.get('OWNER_CURRENT.json',{}).get('worker'),
+        full_restore_receipt=full, current_CPU_admission=cpu,
+        first_checkpoint=None if first is None else first['checkpoint'],
+        first_actual_metrics=None if first is None else first['metrics'],
+        first_actual_repair=None if first is None else first['repair'],
+        first_actual_returns=None if first is None else first['actual_returns'],
+        first_actual_action_path=None if first is None else first['actual_action_path'],
+        latest_checkpoint=f.get('production/latest_complete.json'),
+        current_model_independent_evaluation='PENDING_FINAL_V15_ACTUAL_80',
+        current_model_native_reviewed=False, replay_native_reviewed=False,
+        evaluation_result=None, evaluation_status='CurrentV15 pending independent final80; completedV14 remains under prior_V14',
+        closed_transfer_once_consumed=False,
+        actual_owner_exit=own, actual_errors=error,
+        latest_status='reports/STATUS_V15_POSTGO_FINITE_READ.json' if newer.exists() else 'reports/STATUS_V15_FIRST_UPDATED.json',
+        first_readonly_status_consumed=True, first_readonly_status_finished=True,
+        current_resource_blocker=None,
+        fourGPU_latest_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_V15.json',
+        resource_snapshot_is_historical=True,
+        fourGPU_latest_summary=dict(captured=inventory['captured'],host72='bothcomputeempty24203MiB atpreGO;GPU0selected',
+            host210='empty23890MiB butHOME707248128Bfree at snapshot',host86='21602MiB computeallocated,2462MiBfree at snapshot'),
+        pending_repair=dict(version='V15',status='CPU_PASS_FROZEN_GO_FIRST_CONSUMED' if first else 'CPU_PASS_FROZEN_GO_FIRST_COLLECTOR_FINISHED',
+            CPU_once_consumed=True,fullsource_CPU=True,physical_training=bool(go) and not own,physical_skill_pass=False),
+        close_and_eval=dict(controller='same original remote owner',training_save_before_close=True,
+            max_parent_seconds=3900,save_at_seconds=3600,exit_headroom_seconds=300,
+            independent80=True,seconds=10,controls=500,seed=9137,height_m=.2,edge_m=.8,
+            actual_400Hz_manifold=True,current_actor_single_decode_embedded_teacher=True),
+        next='Preserve healthy originalV15 source/owner/save boundary. FIRST/CPU/inventory/launch consumed; no secondwatcher. At actualOWNER_EXIT and freshLOCAL/serialFREE unique repair_v15/control.py closed, then recorded-pose render/nativeview and all80/action/lift/top-support comparison. Act by evidence, no unchanged blind continuation.')
+    if first:
+        w['first_likelihood_diagnostic'] = first['actual_returns'].get('distribution_recomputation')
+    if go:
+        w['original_save_local'] = datetime.fromtimestamp(go['save_deadline']).astimezone().isoformat()
+        w['original_nominal_local'] = datetime.fromtimestamp(go['nominal_end_epoch']).astimezone().isoformat()
+    w['followup_commands'] = dict(
+        CPU='V15 finalV14 one-decode fullrestore fixturePASS consumed; no reread forarchive.',
+        resources='Allfour actualV15 consumed; preservehealthy owner, no repeat startup/model checks.',
+        launch='V15 consumed; neverlaunch again or resetAdam.',
+        first='V15 finiteFIRST collectorconsumed; do not bindnewwatcher. Read localstatus file.',
+        closed='V15 unique closed transfer stillunused; only actual originalOWNER_EXIT and freshLOCAL/serialFREE. Do not mistake V14 oldexit for V15 exit.',
+        render='After actualnewV15 transfer use existing render_standing_recorded_v2.py/currentUSD then nativepose+curves review. V14 actual80already0/80native reviewed.')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    report=R/'reports/V15_ACTUAL_FIRST_FULLSAVE_CONTINUATION.json'
+    if report.exists():
+        report=R/'reports/V15_ACTUAL_FIRST_NOW_CONFIRMED_FULLSAVE_AND_LIKELIHOOD.json'
+    with report.open('x',encoding='utf-8') as out:
+        json.dump(dict(epoch=time.time(),status=status,run_id=w['run_id'],GO=go,FIRST=first,errors=error,
+            fullrestore=full,CPU=cpu,own=own,followup=w['next'],
+            V14_actual_eval='completed0/80;75orientation5timeoutsmean1.30775s;zeroactualbothtop;native8poses2curvesreviewed',
+            newphysicalskillnotproven=True,canonicalreserveandwindowunchanged=True),out,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(status=status,FIRST=first is not None,save=w.get('original_save_local'),errors=list(error))))
+
+
+def archive():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_v15_archive_guard',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    known={}
+    for index in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(index.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):
+                known[row['archive_SHA']]=row['archive_path']
+    closed=R/'actual_closed/MOD4_STANDING200_RLBPTT_V14_1793685133426758900'
+    suffixes={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    files=[]
+    for base in [D,R/'repair_v14',R/'reports',closed]:
+        files.extend(p for p in base.rglob('*') if p.is_file() and p.suffix.lower() in suffixes and '__pycache__' not in p.parts)
+    files.extend([R/'CURRENT_WORK_ORDER.json',R/'repair_v11/analyze_final_v13.py',R/'render_standing_recorded_v2.py',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True)
+    (DEST/'objects').mkdir()
+    rows=[]
+    for path in sorted(set(files),key=str):
+        raw=path.read_bytes()
+        safe,n=guard.redact(raw.decode('utf-8-sig'))
+        content=raw if n==0 else safe.encode()
+        sha=hashlib.sha256(content).hexdigest()
+        target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix()
+            known[sha]=target
+        rows.append(dict(source_path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text' if n==0 else 'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    large=[]
+    for row in json.loads((R/'reports/V14_CLOSED_ACTUAL_EVALUATION_TRANSFER.json').read_bytes())['files']:
+        if Path(row['local_path']).suffix.lower() not in suffixes:
+            large.append(dict(row,published_by='actualV14 uniqueclosedtransfer'))
+    for rel in ['rendered_v2/RENDER_REPORT.json','analysis/MEDIA_INDEX.json']:
+        large.extend(dict(row,published_by=str(closed/rel)) for row in json.loads((closed/rel).read_bytes())['media'])
+    for key in ['source_resume','first_checkpoint','latest_checkpoint','current_run_final']:
+        if w.get(key):
+            large.append(dict(w[key],published_by='workorder.'+key))
+    large.append(dict(json.loads((closed/'production/FINAL.json').read_bytes())['checkpoint'],published_by='V14 originalcompletefinal'))
+    (DEST/'README.md').write_text((D/'README.md').read_text(encoding='utf-8'),encoding='utf-8')
+    (DEST/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='ACTUAL_V14_FAILURE_AND_MATCHED_BATCH_V15',
+        rows=rows,large_external_artifacts=large,model_media_reads_for_archive=0,shared_runtime_copies=0,
+        oldV14_trialobject='2252f5e5ff5af7b0bdd75b62963a903375cb120a',
+        oldV14_trialpeel='4d88bb97207242227289b02b9f8d51b211764600',
+        currentstatus=w['status'],future='recordonce newV15phase;ordinarysupplementafterrecord;no retag'),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),textrows=len(rows),newobjects=len(list((DEST/'objects').iterdir())),large=len(large))))
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('mode',choices=['handoff','archive'])
+    globals()[parser.parse_args().mode]()

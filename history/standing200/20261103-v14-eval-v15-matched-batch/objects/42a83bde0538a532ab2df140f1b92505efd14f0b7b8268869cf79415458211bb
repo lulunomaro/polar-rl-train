@@ -1,0 +1,67 @@
+"""Record the completed native review without altering the numerical report."""
+from pathlib import Path
+import hashlib
+import json
+import time
+
+R = Path(__file__).resolve().parents[1]
+J = R / 'actual_closed/MOD4_STANDING200_RLBPTT_V14_1793685133426758900'
+
+
+def main():
+    analysis = json.loads((J / 'analysis/ANALYSIS.json').read_bytes())
+    final = json.loads((J / 'production/FINAL.json').read_bytes())
+    result = json.loads((J / 'evaluation/RESULT.json').read_bytes())
+    owner = json.loads((J / 'OWNER_EXIT.json').read_bytes())
+    assert owner['error'] is None and owner['all_own_waited'] and owner['original_leases_released']
+    assert result['passed_execution'] and result['strict_successes'] == 0
+    rendered = json.loads((J / 'rendered_v2/RENDER_REPORT.json').read_bytes())
+    native = dict(epoch=time.time(), kind='V14_ACTUAL_NATIVE_REVIEW_AND_NEXT_REPAIR',
+        checkpoint=final['checkpoint'], independent80=analysis['all80'],
+        actual_images_reviewed_by='current model native view_image before compaction; eight pose sheets and two curves',
+        cases=[0, 1, 40, 41], views=['side', 'top'],
+        images=[str(J / 'rendered_v2' / f'ACTUAL_env{i}_{v}.png') for i in [0, 1, 40, 41] for v in ['side', 'top']],
+        curves=[str(J / 'analysis/ACTUAL_V14_ACTION_POSE_CURVES.png'), str(J / 'analysis/V13_V14_SATURATION_COORDINATION_COMPARISON.png')],
+        observations=[
+            'Selected four ground-roll with strong wheel differential, then tip before or at riser. No staged wheel lift onto top is visible.',
+            'Env0 wheel front reaches riser near .8s; float32 wheel-front proximity is not whole-footprint clearance.',
+            'Env1/40/41 tip before reaching riser. Final pitch about -41 to -44 degrees.',
+            'Each of the two wheel bottoms remains far below .2m. Both-wheel minimum-bottom peak about .0015-.0031m.',
+            'First .4s wheel-target differential is about50-54rad/s; right target about59.3rad/s.',
+            'Initial depth is valid and correctly reports .2m. No evidence for initial blindness.',
+            'All80 have zero actual both-wheel top support. Five10s survivors have no selected body-pose replay; do not describe them visually.',
+        ],
+        evidence_limits='Selected four poses plus all80 measured outcomes; no unique causal attribution to wheel differential or likelihood numerics.',
+        decision='Do not repeat unchanged V14. Test matching collection512 for actual-gradient and KL recomputation; retain full finalV14/fourAdam and H32 BPTT.',
+        numerical_concern=dict(observed_preupdate_ratio_error_first=.12053167819976807,
+            final=.0997018814086914, collection_batch=512, gradient_batch=32768, KL_batch=2048,
+            hypothesis='Different batch arithmetic may cause mean/logprob drift; requires measured evidence, not established cause.'),
+        render_index=rendered, new_model_reads=0, new_SDK_physics=0, SSH=0)
+    report = R / 'reports/V14_ACTUAL_EVAL_NATIVE_REVIEW_AND_V15_DECISION.json'
+    with report.open('x', encoding='utf-8') as f:
+        json.dump(native, f, ensure_ascii=False, indent=2)
+    p = R / 'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    w.update(status='V14_CLOSED_ACTUAL80_FAILED_NATIVE_REVIEWED_V15_MATCHED_BATCH_PREPARING',
+        training_started=False, training_completed=True, training_skill_pass=False,
+        current_resource_blocker=None, actual_owner_exit=owner,
+        current_run_final=final['checkpoint'], latest_checkpoint=final['checkpoint'],
+        final_actual_metrics=final, evaluation_result=dict(analysis['all80'], path=str(J / 'evaluation/RESULT.json')),
+        evaluation_status='Actual finalV14 evaluated:0/80strict,75orientation5timeouts,mean1.30775s,both-wheel top0',
+        current_model_independent_evaluation='COMPLETE_ACTUAL_80_FIRST_EPISODES',
+        current_model_native_reviewed=True, replay_native_reviewed=native['images'] + native['curves'],
+        native_review_report=str(report), evaluation_closed_and_transferred=True,
+        evaluation_once_consumed=True, closed_transfer_once_consumed=True,
+        next=native['decision'],
+        pending_repair=dict(version='V15', root=str(Path(__file__).resolve().parent),
+            status='LOCAL_SOURCE_READY_NEEDS_FINALV14_FULLRESTORE_ALGORITHM_FIXTURE',
+            source_final=final['checkpoint'], CPU_once_consumed=False, physical_training=False,
+            algorithm_only=True, reward_physics_acceptance_unchanged=True))
+    w['followup_commands']['closed'] = 'V14 unique closed transfer CONSUMED; do not replay.'
+    w['followup_commands']['render'] = 'ActualV14 rendered once/native reviewed; use existing evidence.'
+    p.write_text(json.dumps(w, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(dict(status=w['status'], review=str(report), next=w['next'])))
+
+
+if __name__ == '__main__':
+    main()

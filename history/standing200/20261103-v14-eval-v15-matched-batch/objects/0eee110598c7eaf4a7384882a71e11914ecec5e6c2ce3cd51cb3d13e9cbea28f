@@ -1,0 +1,21 @@
+"""Source recipe for the V15 arithmetic fixture already run during preparation.
+
+The fixture ran by the equivalent stdin transform before this recipe was
+saved. V15_LOCAL_INTEGRATION_ACTUAL.json is already consumed; do not rerun it.
+"""
+from pathlib import Path
+import sys
+
+R = Path(__file__).resolve().parents[1]
+p = R / 'repair_v14/check_local_integration.py'
+s = p.read_text(encoding='utf-8')
+s = s.replace("sys.path[:0]=[str(D),str(R/'source_v2'),str(R/'repair_v8')]",
+              "sys.path[:0]=[str(R/'repair_v15'),str(D),str(R/'source_v2'),str(R/'repair_v8')]")
+s = s.replace('from hybrid_actual import Learner,Policy,CONTRACT', 'from matched_actual import Learner,Policy,CONTRACT')
+s = s.replace("assert checkpoint['standing_actual_return']['contract']==CONTRACT",
+              "assert checkpoint['standing_matched_collection']['contract']==CONTRACT")
+s = s.replace('V14_LOCAL_PRODUCTION_SHAPE_ACTUAL.json', 'V15_LOCAL_PRODUCTION_SHAPE_ACTUAL.json')
+s = s.replace('V14_LOCAL_INTEGRATION_ACTUAL.json', 'V15_LOCAL_INTEGRATION_ACTUAL.json')
+s = s.replace("learner=Actual(env,cfg,tmp,device='cpu');learner.collect(128)",
+              "learner=Actual(env,cfg,tmp,device='cpu');learner.distribution_diagnostic_done=False;learner.collect(128)")
+exec(compile(s, str(p), 'exec'), dict(__name__='__main__', __file__=str(p)))

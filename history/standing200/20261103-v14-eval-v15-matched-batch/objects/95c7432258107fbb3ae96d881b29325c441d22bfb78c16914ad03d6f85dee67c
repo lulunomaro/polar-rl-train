@@ -1,0 +1,60 @@
+# V14 actual standing200 failure and V15 matched collection batch
+
+The finalV14 checkpoint is complete and closed: 239087825B,
+SHA0f0d1c06f09bab30da74a799f706b072925d375ef17b7932e46639525185fae3,
+Pi3055/WM12816/critic12432/aux12816. Original owner waited for worker/eval,
+settled its cost and released leases. Its independent80 completed:0strict,
+75orientation/5timeouts,mean1.30775s,zero both-wheel actual top support.
+
+Eight actual pose sheets and two curve images were native-reviewed. Four
+selected cases ground-roll and tilt before/at the riser. They do not lift
+both wheel bottoms onto200mm. The first0.20s wheel-speed targets differ by
+about50-54rad/s, with the right close to59rad/s; actual speeds differ as
+well. Initial depth is valid and detects200mm. These selected data are
+evidence of coordination failure, not all80 visual coverage or proof of
+one unique cause. The five10s survivors were not saved among selected4.
+
+V14 recorded an unexplained preAdam likelihood ratio deviation, first.12053
+and final.09970. It collected at512, recomputed gradient at32768 and KL at
+2048. V15 recomputes the actual distribution in chronological512 chunks
+for gradient and KL, preserving the deterministic action map, reward,
+physical/DR/PD queues, H32 learned-model BPTT,source norms and all fourAdam.
+The same first physical sample batch also measures the old32768 method.
+This is a measured diagnostic, not a claim that batch arithmetic alone
+explains the failed ascent.
+
+CPU admission decoded finalV14 once, restored full state/fourAdam, exercised
+the hybrid accepted-step/rollback and H32 path, and restored fixture weights.
+Matched512 likelihood ratio error0, KL.002803886 accepted after5proposals;
+CPU legacy32768 also had zero mean drift. CUDA explanation remains pending
+the real first rollout at CPU-admission time. Stored reset inputs repeated into64x512 are only a
+numerical fixture and never production on-policy data. Original CUDA RNG
+bytes remain opaque for CPU; production restores original CUDA RNG.
+
+The subsequent actualFIRST measured the same32768 fresh512env physical
+samples before Adam. Legacy32768 recomputation changed the mean by at most
+.0046389848 and the probability ratio by.096273005. Matched512 recomputation
+had exactly0 mean difference,0 ratio difference and0 GaussianKL. This proves
+the mismatch in these same weights/inputs and fixes it for that measured
+actual batch; the backend/TF32 attribution and effect on climb skill remain
+unproven. Accepted actualRL+BPTT step3056 after5proposals/factor.0625:
+GaussianKL.00817417,normalizedactiondelta.00820645. Actual actor bias gradient
+.07893616,verifiedH32 cross-time gradient.81965727,WM path.68656945. Exactly
+one actor commit,complete fourAdam state retained. First full checkpoint
+239091409B SHA88412d980c88f52f19765d8c853fd65700537874b2baffb44490420e4a976632.
+The366controls/187392transitions/3647orientation are repeated training events,
+not an independent80 evaluation or standing-climb success.
+
+All four4090 were checked at2026-11-03 17:08+08:72both compute-empty,
+210empty but only707248128B HOME free,86has21602MiB compute allocation.
+The sole original owner admitted72GPU0 for V15, original3900/save3600/exit300
+and canonicalreserve unchanged. No second writer or background watcher.
+The original owner saves/closes then immediately evaluates80 first episodes,
+freshDRseed9137,500controls/10s,200mm,actual400Hzmanifold and recorded poses.
+
+Original V14 source/false/once/results stay unchanged. Shared modules use
+existing SHA-pinned files and runtime links. This folder contains only
+actual changed source and control wrappers; no copied model or runtime.
+New V15 source and CPU/launch are one new trial; all V14 evaluation artifacts
+and original failures are included in its complete text index. Large media,
+NPZ and checkpoint originals are indexed from existing receipts only.

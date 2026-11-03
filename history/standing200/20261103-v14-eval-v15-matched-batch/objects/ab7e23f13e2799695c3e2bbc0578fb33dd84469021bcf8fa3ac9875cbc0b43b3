@@ -1,0 +1,92 @@
+"""V15: match the physical collection batch for actual PPO and its KL check.
+
+The frozen V14 learner, reward, action map and H32 path remain shared. This
+override changes only recomputation of the collected policy distribution.
+"""
+from pathlib import Path
+import hashlib
+import importlib.util
+import torch
+
+HERE = Path(__file__).resolve().parent
+PRIOR = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V14_1793685133426758900/source')
+if not PRIOR.is_dir():
+    PRIOR = HERE.parent / 'repair_v14'
+
+for name, expected in {
+    'hybrid_actual.py': 'ef6a7935a94e401317ad558e7485d85967353b4f57fe5daba8aa67d9b503ce42',
+    'actual_returns.py': '7897edc29eacbe39bc7f56c067f38650e9d3f1578ccf3635a21914ea4a9b84de',
+}.items():
+    assert hashlib.sha256((PRIOR / name).read_bytes()).hexdigest() == expected
+
+spec = importlib.util.spec_from_file_location('standing_frozen_actual_v14', PRIOR / 'hybrid_actual.py')
+previous = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(previous)
+Policy = previous.Policy
+components = previous.components
+CONTRACT = dict(previous.CONTRACT,
+    version='standing200_matched_collection_batch_actual_H32_v15',
+    actual_policy_forward_batch=512,
+    actual_KL_forward_batch=512,
+    pre_Adam_distribution_diagnostic=True,
+    first_chunk_compare_legacy32768=True,
+    physical_reward_action_H32_changes=False)
+
+
+def forward_collected(policy, history, goal, batch=512):
+    """Keep chronological complete environment batches, including autograd."""
+    return torch.cat([policy(history[lo:lo + batch], goal[lo:lo + batch])
+                      for lo in range(0, len(history), batch)], 0)
+
+
+class Learner(previous.Learner):
+    def __init__(self, *args, **kwargs):
+        self.distribution_diagnostic_done = False
+        super().__init__(*args, **kwargs)
+
+    def _checkpoint(self, include_optimizers):
+        full = super()._checkpoint(include_optimizers)
+        full['standing_matched_collection'] = dict(contract=CONTRACT,
+            last=self.last_actual.copy())
+        return full
+
+    def mix_actor_loss(self, model_loss, penalty):
+        b = self.actual_batch
+        mean = forward_collected(self.pi, b['history'], b['goal'])
+        actual_loss, ratio = previous.surrogate(mean, b['raw'], b['logprob'], b['advantages'])
+        probe = self.pi.residual.dec[-1].bias
+        pg = torch.autograd.grad(actual_loss, probe, retain_graph=True)[0]
+        if not bool(torch.isfinite(actual_loss) & torch.isfinite(pg).all()):
+            raise FloatingPointError('matched actual policy gradient nonfinite')
+        with torch.no_grad():
+            drift = dict(
+                matched_forward_batch=512,
+                samples=len(mean),
+                mean_max_abs=float((mean - b['mean']).abs().max()),
+                pre_Adam_ratio_max_abs_from_one=float((ratio - 1).abs().max()),
+                pre_Adam_Gaussian_KL=float(previous.actual_mean_kl(b['mean'], mean)))
+            if not self.distribution_diagnostic_done:
+                old = self.pi(b['history'], b['goal'])
+                oldratio = (previous.gaussian_log_prob(b['raw'], old) - b['logprob']).exp()
+                drift.update(legacy_full_batch=len(mean),
+                    legacy_mean_max_abs=float((old - b['mean']).abs().max()),
+                    legacy_ratio_max_abs_from_one=float((oldratio - 1).abs().max()),
+                    legacy_pre_Adam_Gaussian_KL=float(previous.actual_mean_kl(b['mean'], old)),
+                    same_weights_observations_and_collected_samples=True)
+                self.distribution_diagnostic_done = True
+            if not bool(torch.isfinite(ratio).all()):
+                raise FloatingPointError('matched actual likelihood nonfinite')
+        self.last_actual.update(actual_actor_loss=float(actual_loss.detach()),
+            actual_actor_bias_gradient_norm=float(pg.detach().norm()),
+            pre_Adam_ratio_max_abs_from_one=drift['pre_Adam_ratio_max_abs_from_one'],
+            original_model_loss=float(model_loss.detach()),
+            H32_weight=CONTRACT['actor_H32_BPTT_weight'],
+            distribution_recomputation=drift)
+        return (actual_loss + CONTRACT['actor_H32_BPTT_weight'] * model_loss
+                + CONTRACT['latent_antiwindup_weight'] * penalty)
+
+    @torch.no_grad()
+    def candidate_actual_kl(self):
+        b = self.actual_batch
+        mean = forward_collected(self.pi, b['history'], b['goal'])
+        return float(previous.actual_mean_kl(b['mean'], mean))

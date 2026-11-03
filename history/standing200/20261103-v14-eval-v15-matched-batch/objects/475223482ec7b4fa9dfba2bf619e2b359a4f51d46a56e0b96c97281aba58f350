@@ -1,0 +1,11 @@
+from pathlib import Path
+import hashlib
+_p=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V14_1793685133426758900/source/standing_worker_v1.py')
+_r=_p.read_bytes()
+assert hashlib.sha256(_r).hexdigest()=='90b063013e4705e03128323a71e72c09ec6a84f3c063792304508f3fa4ae1ced'
+_s=_r.decode()
+_old='from hybrid_actual import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,CONTRACT as REPAIR_CONTRACT'
+assert _s.count(_old)==1
+_s=_s.replace(_old,'from matched_actual import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,CONTRACT as REPAIR_CONTRACT')
+_s=_s.replace('FULL_RESTORE_V14.json','FULL_RESTORE_V15.json')
+exec(compile(_s,str(Path(__file__).absolute()),'exec'),globals())

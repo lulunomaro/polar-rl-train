@@ -1,0 +1,133 @@
+"""Independent corrected eval of final V8; immutable training/eval errors retained.
+
+Shares original runtime/action/physics/reward source. Only the failed diagnostic
+batch assertion and distinct result destination change; no optimizer or C writes.
+"""
+from pathlib import Path
+import ast,hashlib,json,re,sys,time,traceback
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+
+
+EXECUTE=r'''
+from pathlib import Path
+import ast,fcntl,hashlib,json,os,runpy,subprocess,sys,time
+J=Path(v['job']);D=J/'source_checks/independent_eval_v9'
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+locks=[];private=None
+try:
+ for p in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/'finite_environment_validation.lock']:
+  f=p.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ c=json.loads(C.read_bytes());assert c['active_segment']is None and c['authority_generation']=='MOD4_SINGLE_WRITER72_20261026'
+ assert c['remaining_training_seconds']>86412.86069250107
+ uuid=v['uuid'];private=(C.parent.parent/('three_expert_v2_'+uuid+'.lock')).open('rb+')
+ fcntl.flock(private,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ own=json.loads((J/'OWNER_EXIT.json').read_bytes());assert own['all_own_waited']and own['original_cost_settled']and own['original_leases_released']
+ final=json.loads((J/'production/FINAL.json').read_bytes());assert final['checkpoint']['SHA']==v['final_SHA']
+ original_error=json.loads((J/'evaluation/EVAL_ERROR.json').read_bytes())
+ assert 'assert torch.equal(compose(selected_base,selected_latent),action[ids])'in original_error['error']
+ gpu=subprocess.check_output(['nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True).strip()
+ row=[x.strip()for x in gpu.split(',')];assert row[0]==uuid and row[1]=='NVIDIA GeForce RTX 4090'and int(row[2])>15669 and int(row[3])<=30
+ assert uuid not in subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader,nounits'],text=True)
+ assert not D.exists();D.mkdir(parents=True)
+ raw=v['source'].encode();assert hashlib.sha256(raw).hexdigest()==v['source_SHA'];ast.parse(raw.decode())
+ script=D/'evaluate_final_v8_independent_v9.py';script.write_bytes(raw)
+ spec=dict(kind='INDEPENDENT_STANDING200_FINALV8_EVAL_V9',epoch=time.time(),job=str(J),GPU_UUID=uuid,
+  source_SHA=v['source_SHA'],final=final['checkpoint'],protocol=dict(cases=80,max_controls=500,seconds=10,seed=9137,height_m=.2,edge_m=.8,new_DR=True),
+  original_error_retained=True,canonical_writes=0,model_parent_reads=0,optimizer_steps=0)
+ (D/'TASK_EVAL_V9.json').write_text(json.dumps(spec,indent=2))
+ sys.path.insert(0,str(J/'control'))
+ owner=runpy.run_path(str(J/'control/standing_owner_v1.py'),run_name='reuse_original_environment_only')
+ env=owner['environment'](uuid)
+ with(D/'STDOUT.log').open('xb')as out,(D/'STDERR.log').open('xb')as err:
+  p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(script),'--job-root',str(J),'--output',str(D/'evaluation')],
+    cwd=J,env=env,stdout=out,stderr=err,stdin=subprocess.DEVNULL)
+  import psutil
+  q=psutil.Process(p.pid);identity=dict(pid=p.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),cwd=q.cwd())
+  (D/'EVAL_IDENTITY.json').write_text(json.dumps(identity,indent=2))
+  rc=p.wait()
+ result_path=D/'evaluation/RESULT.json';error_path=D/'evaluation/EVAL_ERROR.json'
+ result=json.loads(result_path.read_bytes())if result_path.exists()else None
+ error=json.loads(error_path.read_bytes())if error_path.exists()else None
+ # Isaac fast shutdown can return0 even on an exception; receipt success requires
+ # actual RESULT and absence of EVAL_ERROR, not process exit status alone.
+ passed=rc==0 and result is not None and result['passed_execution']and error is None
+ files=[]
+ for root in [D]:
+  for path in sorted(root.rglob('*')):
+   if not path.is_file()or any(x in path.relative_to(D).parts for x in ['kit_isolation']):continue
+   if path.suffix not in ['.json','.npz','.py','.log']:continue
+   data=path.read_bytes();files.append(dict(path=str(path),relative=path.relative_to(D).as_posix(),bytes=len(data),SHA=hashlib.sha256(data).hexdigest()))
+ receipt=dict(epoch=time.time(),passed_execution=passed,returncode=rc,own_waited=True,identity=identity,
+  task=spec,result=result,error=error,files=files,original_locks_released_in_finally=True,
+  stdout_tail=(D/'STDOUT.log').read_text(errors='replace')[-1800:],stderr_tail=(D/'STDERR.log').read_text(errors='replace')[-4000:],
+  canonical_writes=0,original_training_not_restarted=True)
+ (D/'EVAL_V9_WAITED.json').write_text(json.dumps(receipt,indent=2))
+ print(json.dumps(receipt))
+finally:
+ for f in [private,*reversed(locks)]:
+  if f is not None:fcntl.flock(f,fcntl.LOCK_UN);f.close()
+'''
+
+
+def main():
+    assert not(R/'reports/EVAL_V9_ONCE_CONSUMED.json').exists()
+    source=(D/'evaluate_standing200_v1.py').read_text(encoding='utf-8')
+    def replace(old,new):
+        nonlocal source
+        assert source.count(old)==1,old;source=source.replace(old,new)
+    replace("sys.path.insert(0,str(Path(__file__).resolve().parent))", "sys.path.insert(0,'/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V8_1793656033704803700/source')")
+    replace("q=argparse.ArgumentParser();q.add_argument('--job-root',required=True,type=Path);a=q.parse_args()", "q=argparse.ArgumentParser();q.add_argument('--job-root',required=True,type=Path);q.add_argument('--output',required=True,type=Path);a=q.parse_args()")
+    replace("out=J/'evaluation';out.mkdir(exist_ok=False)","out=a.output;out.mkdir(exist_ok=False)")
+    old='''                action=policy(history,raw35[:,:3])
+                # Exact current actor input and decomposition for selected cases;
+                # no assumed input reconstruction or additional physics.
+                ids=course.record_ids
+                from tensordict import TensorDict
+                selected_base=actor(TensorDict(dict(policy=raw35[ids]),batch_size=[len(ids)]),stochastic_output=False)
+                selected_latent=policy.residual(history[ids],raw35[ids,:3])
+                assert torch.equal(compose(selected_base,selected_latent),action[ids])'''
+    new='''                # Same exact deterministic formula and actual batch80. Save the
+                # same component tensors used to form these actual commands;
+                # no second batch4 inference or bitwise numeric assertion.
+                from tensordict import TensorDict
+                base_all=actor(TensorDict(dict(policy=raw35),batch_size=[80]),stochastic_output=False)
+                latent_all=policy.residual(history,raw35[:,:3])
+                action=compose(base_all,latent_all)
+                selected_base=base_all[course.record_ids]
+                selected_latent=latent_all[course.record_ids]'''
+    replace(old,new)
+    replace("put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=True", "put(out/'RESULT.json',dict(epoch=time.time(),evaluation_id='FINALV8_INDEPENDENT_V9',passed_execution=True")
+    ast.parse(source)
+    frozen=D/'EVAL_V9_SOURCE_FROZEN.py'
+    if frozen.exists():assert frozen.read_text(encoding='utf-8')==source
+    else:frozen.write_text(source,encoding='utf-8',newline='\n')
+    rows,blocked=local_rows()
+    pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+    blocked=[x for x in blocked if re.search(pat,x.get('CommandLine')or'',re.I)]
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    put('EVAL_V9_LOCAL_ADMISSION.json',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+    raw=frozen.read_bytes();w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    put('EVAL_V9_ONCE_CONSUMED.json',dict(epoch=time.time(),job=w['remote_job'],source_SHA=hashlib.sha256(raw).hexdigest(),source_bytes=len(raw),final_SHA=w['latest_checkpoint']['SHA']))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72()
+        result=run(c,EXECUTE,dict(job=w['remote_job'],uuid=w['selected_GPU'],source=raw.decode(),source_SHA=hashlib.sha256(raw).hexdigest(),final_SHA=w['latest_checkpoint']['SHA']),1500)
+        put('EVAL_V9_ACTUAL_RETURNED.json',result)
+        print(json.dumps(dict(passed=result['passed_execution'],result=result['result'],error=result['error'])))
+    except BaseException:
+        put('EVAL_V9_ORIGINAL_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),never_replay_once=True));raise
+    finally:
+        if c is not None:c.close()
+        put('EVAL_V9_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

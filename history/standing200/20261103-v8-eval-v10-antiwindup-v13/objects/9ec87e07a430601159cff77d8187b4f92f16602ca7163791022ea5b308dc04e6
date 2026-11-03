@@ -1,0 +1,39 @@
+"""Plot saved actual traces beside the frozen-model CPU diagnostic; no NN."""
+from pathlib import Path
+import csv,hashlib,json
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+R=Path(__file__).resolve().parents[1]
+O=R/'actual_closed/MOD4_STANDING200_RLBPTT_V8_1793656033704803700/independent_eval_v10/analysis'
+report=json.loads((R/'reports/DIAGNOSE_V12_ACTUAL.json').read_bytes())['result']
+traces=report['closed_model_rollout']
+with(O/'ACTUAL_FOUR_CASES.csv').open(newline='',encoding='utf-8')as f:rows=list(csv.DictReader(f))
+fig,axes=plt.subplots(2,2,figsize=(12,8))
+for env in [0,1,40,41]:
+    selected=[r for r in rows if int(r['env'])==env]
+    t=[float(r['time'])for r in selected]
+    axes[0,0].plot(t,[float(r['pitch_deg'])for r in selected],label='actual env%d'%env)
+    axes[1,0].plot(t,[float(r['action4'])*10 for r in selected],label='actual env%d'%env)
+axes[0,0].plot([r['seconds']for r in traces[:8]],[r['pitch_deg_mean']for r in traces[:8]],'k--',label='model reset mean, saved training replay')
+axes[0,1].plot([r['seconds']for r in traces[:8]],[r['predicted_done']for r in traces[:8]],'o-',label='model predicted done')
+axes[0,1].plot([r['seconds']for r in traces[:8]],[r['survival']for r in traces[:8]],'s-',label='model survival')
+axes[0,1].axvspan(.10,.14,color='red',alpha=.12,label='all80 actual termination window')
+cpu=json.loads((R/'reports/ANTIWINDUP_V13_ACTUAL.json').read_bytes())['result']['fixture']
+axes[1,1].bar(['source V8','4 CPU fixture steps'],[cpu['pre_saturated_logit_abs_mean'],cpu['post_fixture_saturated_logit_abs_mean']],color=['#b44','#478'])
+axes[1,1].axhline(2,color='k',ls='--',label='new optimizer regularizer threshold')
+titles=['Model predicts early fall too (not same DR cases)','Model terminal probability versus actual end window','Immediate selected left wheel targets','CPU recovery direction only; no physical skill claim']
+ylabels=['pitch (deg)','probability','rad/s','mean absolute saturated pre-tanh logit']
+for ax,title,ylabel in zip(axes.flatten(),titles,ylabels):
+    ax.set_title(title,fontsize=10);ax.set_ylabel(ylabel);ax.grid(alpha=.2);ax.legend(fontsize=7)
+for ax in [axes[0,0],axes[0,1],axes[1,0]]:ax.set_xlabel('seconds')
+fig.suptitle('Standing200 V8 actual failure and V13 targeted optimizer repair',fontsize=13)
+fig.tight_layout()
+p=O/'MODEL_CALIBRATION_AND_CPU_RECOVERY.png';fig.savefig(p,dpi=150);plt.close(fig)
+manifest=dict(kind='SAVED_TRACE_DIAGNOSTIC_FIGURE',media=dict(path=str(p),bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest()),
+    actual_cases=[0,1,40,41],model_inputs='different saved training reset histories; not matchedDR causal comparison',
+    calibration='8192 saved physical transitions, no extra model read',new_NN_model_reads=0,new_physics=0,
+    CPU_fixture_is_not_production_learning_or_skill=True)
+with(O/'MODEL_CALIBRATION_FIGURE.json').open('x',encoding='utf-8')as f:json.dump(manifest,f,indent=2)
+print(json.dumps(manifest))

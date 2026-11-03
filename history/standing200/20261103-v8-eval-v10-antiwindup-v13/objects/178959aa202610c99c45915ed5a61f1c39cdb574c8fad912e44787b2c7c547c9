@@ -1,0 +1,51 @@
+"""Finite evidence-only transfer of completed V10, no NN/SDK/physics."""
+from pathlib import Path
+import hashlib,json,re,sys,time,traceback
+R=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+
+
+def put(name,value):
+    with(R/'reports'/name).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+
+
+def main():
+    assert not(R/'reports/EVAL_V10_TRANSFER_ONCE.json').exists()
+    returned=json.loads((R/'reports/EVAL_V10_ACTUAL_RETURNED.json').read_bytes())
+    assert returned['passed_execution']and returned['own_waited']and returned['error']is None
+    rows,blocked=local_rows()
+    pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+    blocked=[x for x in blocked if re.search(pat,x.get('CommandLine')or'',re.I)]
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once=False)));return
+    put('EVAL_V10_TRANSFER_ONCE.json',dict(epoch=time.time(),rows=rows))
+    client=sf=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client=connect72();sf=client.open_sftp();sf.get_channel().settimeout(60)
+        w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+        remote=w['remote_job']+'/source_checks/independent_eval_v10'
+        dest=R/'actual_closed'/w['run_id']/'independent_eval_v10';dest.mkdir(exist_ok=False)
+        copied=[]
+        for item in returned['files']:
+            rel=Path(item['relative'])
+            assert str(rel)not in ['.','..']and '..'not in rel.parts
+            assert item['path']==remote+'/'+rel.as_posix()
+            with sf.open(item['path'],'rb')as f:raw=f.read()
+            assert len(raw)==item['bytes']and hashlib.sha256(raw).hexdigest()==item['SHA']
+            p=dest/rel;p.parent.mkdir(parents=True,exist_ok=True)
+            with p.open('xb')as f:f.write(raw)
+            copied.append(dict(source_path=item['path'],local_path=str(p),bytes=len(raw),SHA=item['SHA']))
+        put('EVAL_V10_TRANSFER_ACTUAL.json',dict(epoch=time.time(),passed=True,files=copied,
+            evaluation=str(dest/'evaluation'),model_reads=0,new_SDK_physics=0))
+        print(json.dumps(dict(passed=True,files=len(copied),evaluation=str(dest/'evaluation'))))
+    except BaseException:
+        put('EVAL_V10_TRANSFER_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        put('EVAL_V10_TRANSFER_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

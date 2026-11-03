@@ -1,0 +1,11 @@
+"""Small V9 transport-name repair; preserve consumed V9 before-model failure."""
+from pathlib import Path
+P=Path(__file__).resolve().parent/'eval_v9_once.py'
+source=P.read_text(encoding='utf-8')
+for old,new in [('EVAL_V9','EVAL_V10'),('independent_eval_v9','independent_eval_v10'),
+                ('independent_v9.py','independent_v10.py'),('FINALV8_INDEPENDENT_V9','FINALV8_INDEPENDENT_V10'),
+                ("v['source'].encode()","v['helper_source'].encode()"),
+                ('source=raw.decode()','helper_source=raw.decode()')]:
+    assert old in source,old
+    source=source.replace(old,new)
+exec(compile(source,str(P),'exec'),dict(__name__='__main__',__file__=str(P)))

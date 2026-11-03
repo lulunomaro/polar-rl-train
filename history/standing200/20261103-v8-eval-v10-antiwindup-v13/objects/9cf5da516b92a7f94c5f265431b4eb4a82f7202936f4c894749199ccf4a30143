@@ -1,0 +1,28 @@
+{
+  "epoch": 1793669521.7904458,
+  "rows": [
+    {
+      "ProcessId": 46448,
+      "ParentProcessId": 16440,
+      "CreationDate": "2026-11-01T18:11:47.027825+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe\" C:\\Users\\lulu\\.cc-switch\\catalog-maxfix\\watcher.py"
+    },
+    {
+      "ProcessId": 20404,
+      "ParentProcessId": 39772,
+      "CreationDate": "2026-11-03T09:32:00.124808+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n@'\nfrom pathlib import Path\nimport json,re,sys,hashlib,time\nr=Path('F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103');sys.path.insert(0,str(r))\nimport check_four4090_once as inventory\nsource=Path(inventory.__file__).read_text(encoding='utf-8')\nfor old,new in [('FOUR4090_READ_V1_ONCE.json','FOUR4090_READ_EVAL_V9_ONCE.json'),('FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json','FRESH_LOCAL_CIM_BEFORE_FOUR4090_EVAL_V9.json'),('FOUR4090_RESOURCE_ACTUAL_V1.json','FOUR4090_RESOURCE_ACTUAL_EVAL_V9.json')]:\n    assert source.count(old)==1;source=source.replace(old,new)\nns=dict(__name__='standing_eval9_inventory',__file__=inventory.__file__)\nexec(compile(source,inventory.__file__,'exec'),ns)\noriginal=ns['local_rows']\ndef exact():\n    rows,blocked=original()\n    pat=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'\n    return rows,[x for x in blocked if re.search(pat,x.get('CommandLine')or'',re.I)]\nns['local_rows']=exact\nassert not (r/'reports/FOUR4090_READ_EVAL_V9_ONCE.json').exists()\nns['main']()\n'@ | & 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 -\""
+    },
+    {
+      "ProcessId": 66372,
+      "ParentProcessId": 5296,
+      "CreationDate": "2026-11-03T09:32:00.514942+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "pwsh -NoProfile -NonInteractive -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5\""
+    }
+  ],
+  "blocked": [],
+  "passed": true
+}

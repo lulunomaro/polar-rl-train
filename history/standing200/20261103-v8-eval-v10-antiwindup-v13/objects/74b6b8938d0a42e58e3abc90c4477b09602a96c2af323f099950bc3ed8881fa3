@@ -1,0 +1,89 @@
+"""Full-source CPU repair fixture, using saved physical replay only."""
+from pathlib import Path
+import argparse, copy, json, sys, tempfile
+sys.path.insert(0,'/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/source')
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--job',required=True,type=Path);q.add_argument('--output',required=True,type=Path);a=q.parse_args()
+    a.output.mkdir(exist_ok=False)
+    sys.path[:0]=[str(Path(__file__).resolve().parent),str(a.job/'source'),str(a.job/'sm_deps')]
+    import torch
+    torch.set_num_threads(4)
+    from native_supermimic_bridge import BridgeState
+    from standing_core_v1 import StandingMDP
+    from standing_resume_v8 import load_pinned,build_embedded_actor,restore_learner,optimizer_steps
+    from standing_action_v8 import compose
+    from antiwindup import Learner,Policy,components,REPAIR_CONTRACT
+    from supermimic_vendor_v2.learner import SuperMimicConfig
+    from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY
+    receipt=json.loads((a.job/'production/FINAL.json').read_bytes())['checkpoint']
+    source=load_pinned(receipt);ext=source['context_reward_extension'];replay=ext['replay']
+    actor=build_embedded_actor(source,'cpu')
+    class Fixture:
+        device=torch.device('cpu');num_envs=replay['N'];mdp=StandingMDP(replay['data']['xi'].shape[-1])
+        @property
+        def supermimic_mdp(self):return self.mdp
+    env=Fixture();row=(replay['ptr']-1)%replay['T']
+    env.state=BridgeState(info={SUPERMIMIC_STATE_KEY:{k:replay['data'][k][row].clone()for k in ('s','xi','f','ep_step','a_prev')}},
+        reward=torch.zeros(env.num_envs),terminated=torch.zeros(env.num_envs,dtype=torch.bool),truncated=torch.zeros(env.num_envs,dtype=torch.bool),obs={})
+    class ActualLearner(Learner):
+        def _make_policy(self):return Policy(super()._make_policy(),actor,1.)
+    cfg=SuperMimicConfig(**source['args'])
+    with tempfile.TemporaryDirectory(prefix='standing_antiwindup_cpu_')as tmp:
+        learner=ActualLearner(env,cfg,tmp,device='cpu',predict_context_mask=ext['context_predict_mask'])
+        restored=restore_learner(learner,source,cpu_fixture=True)
+        snapshots={name:copy.deepcopy(getattr(learner,name).state_dict())for name in ['wm','pi','critic','aux','opt_wm','opt_pi','opt_v','opt_aux']}
+        counts=copy.deepcopy(learner.counts)
+        hist,goal=learner._guard_reset_histories()
+        hist,goal=hist[:128].clone(),goal[:128].clone()
+        with torch.no_grad():
+            action0,logit0=components(learner.pi,hist,goal)
+            from tensordict import TensorDict
+            base=actor(TensorDict(dict(policy=hist[:,-1,:35]),batch_size=[len(hist)]),stochastic_output=False)
+            direct=compose(base,learner.pi.residual(hist,goal))
+        assert float((action0-direct).abs().max())<1e-5
+        receipts=[]
+        for step in range(4):
+            # An enlarged first fixture LR exercises proposal rejection against
+            # actual restored Adam; no fixture parameter is used in production.
+            for group in learner.opt_pi.param_groups:group['lr']=cfg.lr*(16 if step==0 else 1)
+            learner.policy_update()
+            bias_grad=learner.pi.residual.dec[-1].bias.grad.detach().clone()
+            receipts.append(dict(step=step+1,repair=copy.deepcopy(learner.last_repair),
+                bptt=copy.deepcopy(learner.last_bptt_receipt),bias_gradient=bias_grad.tolist(),
+                Adam=optimizer_steps(learner)))
+            assert learner.last_repair['accepted'] and learner.last_repair['committed_steps']==1
+            assert learner.last_bptt_receipt['verified_bptt_optimizer_step']
+            assert torch.isfinite(bias_grad).all()
+            for k in [1,2,4,5]:assert bias_grad[k]>0 # descent reduces the saturated positive logits
+        with torch.no_grad():action1,logit1=components(learner.pi,hist,goal)
+        saturated=logit0.abs()>REPAIR_CONTRACT['threshold']
+        reduction=float((logit0.abs()[saturated]-logit1.abs()[saturated]).mean())
+        assert reduction>0
+        assert learner.counts.pi_optimizer_steps==counts.pi_optimizer_steps+4
+        assert learner.counts.pi_bptt_optimizer_steps==counts.pi_bptt_optimizer_steps+4
+        assert learner.counts.wm_optimizer_steps==counts.wm_optimizer_steps
+        assert learner.counts.aux_optimizer_steps==counts.aux_optimizer_steps
+        # Restore every candidate learner model and optimizer after this fixture.
+        for name,state in snapshots.items():getattr(learner,name).load_state_dict(state)
+        learner.counts=counts
+        def same(x,y):
+            if torch.is_tensor(x):return torch.equal(x,y)
+            if isinstance(x,dict):return x.keys()==y.keys()and all(same(v,y[k])for k,v in x.items())
+            if isinstance(x,(tuple,list)):return len(x)==len(y)and all(same(v,w)for v,w in zip(x,y))
+            return x==y
+        assert all(same(getattr(learner,name).state_dict(),state)for name,state in snapshots.items())
+        assert not torch.cuda.is_initialized()
+        result=dict(kind='STANDING200_ANTIWINDUP_FULL_RESTORE_CPU_V13',passed=True,source=receipt,restore=restored,
+            repair_contract=REPAIR_CONTRACT,fixture=dict(actual_saved_reset_inputs=len(hist),source_physical_replay=True,
+                changed_production_weights=0,CPU_candidate_updates=4,all_candidates_weights_four_Adam_restored=True,
+                pre_saturated_logit_abs_mean=float(logit0.abs()[saturated].mean()),post_fixture_saturated_logit_abs_mean=float(logit1.abs()[saturated].mean()),
+                saturated_logit_reduction_mean=reduction,deterministic_action_formula_max_difference=float((action0-direct).abs().max()),
+                receipts=receipts),source_model_decodes=1,source_teacher_PT_opens=0,SDK_physics_GPU_C_writes=0,
+            interpretation='Algorithm admission only; physical standing200 not passed or evaluated by this fixture.')
+    (a.output/'RESULT.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(dict(passed=True,reduction=reduction,proposals=[len(x['repair']['proposals'])for x in receipts])))
+
+
+if __name__=='__main__':main()

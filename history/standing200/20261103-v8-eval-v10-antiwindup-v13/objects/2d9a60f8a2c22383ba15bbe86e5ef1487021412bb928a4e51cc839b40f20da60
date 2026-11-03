@@ -1,0 +1,126 @@
+"""One full CPU restore to diagnose actual replay versus learned rollouts."""
+from pathlib import Path
+import argparse, json, sys, tempfile
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--job', required=True, type=Path)
+    parser.add_argument('--output', required=True, type=Path)
+    args = parser.parse_args()
+    args.output.mkdir(exist_ok=False)
+    J = args.job
+    sys.path[:0] = [str(J/'source'), str(J/'sm_deps')]
+    import torch
+    torch.set_num_threads(4)
+    from native_supermimic_bridge import BridgeState
+    from standing_core_v1 import StandingMDP
+    from standing_action_v8 import StandingResidualPolicy
+    from standing_resume_v8 import load_pinned, build_embedded_actor, restore_learner
+    from ctx_reward_learner import ContextRewardLearner
+    from supermimic_vendor_v2.learner import SuperMimicConfig
+    from supermimic_vendor_v2.contract import SUPERMIMIC_STATE_KEY
+    from supermimic_vendor_v2.geometry import unflatten_state, so3_log
+    from tensordict import TensorDict
+
+    receipt = json.loads((J/'production/FINAL.json').read_bytes())['checkpoint']
+    source = load_pinned(receipt)
+    ext = source['context_reward_extension']
+    replay = ext['replay']
+    assert ext['counts']['pi_bptt_optimizer_steps'] == 2035
+    actor = build_embedded_actor(source, 'cpu')
+    class Fixture:
+        device = torch.device('cpu')
+        num_envs = replay['N']
+        mdp = StandingMDP(replay['data']['xi'].shape[-1])
+        @property
+        def supermimic_mdp(self): return self.mdp
+    env = Fixture()
+    row = (replay['ptr']-1) % replay['T']
+    env.state = BridgeState(info={SUPERMIMIC_STATE_KEY: {
+        k: replay['data'][k][row].clone() for k in ('s','xi','f','ep_step','a_prev')}},
+        reward=torch.zeros(env.num_envs), terminated=torch.zeros(env.num_envs,dtype=torch.bool),
+        truncated=torch.zeros(env.num_envs,dtype=torch.bool), obs={})
+    class Learner(ContextRewardLearner):
+        def _make_policy(self):
+            return StandingResidualPolicy(super()._make_policy(), actor, 1.)
+    cfg = SuperMimicConfig(**source['args'])
+    with tempfile.TemporaryDirectory(prefix='standing200_diagnose_v11_') as tmp:
+        learner = Learner(env, cfg, tmp, device='cpu', predict_context_mask=ext['context_predict_mask'])
+        restored = restore_learner(learner, source, cpu_fixture=True)
+        data = learner.buffer.data
+        ages = torch.arange(0, replay['size'], 2)
+        es = torch.arange(0, replay['N'], 8)
+        rows = learner.buffer._row(ages[:,None].expand(-1,len(es))).flatten()
+        es = es[None,:].expand(len(ages),-1).flatten()
+        sample = {k:v[rows,es] for k,v in data.items()}
+        with torch.no_grad():
+            state = unflatten_state(sample['s'])
+            truth = unflatten_state(sample['s1'])
+            normalized = learner.mdp.normalize_context(sample['xi'])
+            predicted = learner.wm.step(state, sample['a'], normalized)
+            error = learner.wm.state_error(predicted,truth)
+            reward_true_s1, _, done_true_s1 = learner.aux(learner.aux.features(
+                state, truth, sample['a'], sample['a_prev'], normalized, sample['f']))
+            reward_pred_s1, _, done_pred_s1 = learner.aux(learner.aux.features(
+                state, predicted, sample['a'], sample['a_prev'], normalized, sample['f']))
+            d = sample['done'].float()
+            def calibration(r, logit):
+                p = logit.sigmoid()
+                return dict(reward_actual_mean=float(sample['r'].mean()), reward_predicted_mean=float(r.mean()),
+                    reward_mae=float((r-sample['r']).abs().mean()),
+                    terminal_actual_fraction=float(d.mean()), terminal_predicted_mean=float(p.mean()),
+                    terminal_brier=float((p-d).square().mean()),
+                    predicted_p_on_actual_terminal=float(p[d.bool()].mean()) if d.any() else None,
+                    predicted_p_on_actual_continue=float(p[~d.bool()].mean()))
+            terminal = sample['term']
+            terminal_pitch = torch.asin((-truth[1][...,2,0]).clamp(-1,1))
+            calibration_report = dict(samples=len(rows), actual_next_state_head=calibration(reward_true_s1,done_true_s1),
+                learned_next_state_head=calibration(reward_pred_s1,done_pred_s1),
+                position_mae_m=error[:,:3].abs().mean(0).tolist(),
+                rotation_mae_rad=error[:,3:6].abs().mean(0).tolist(),
+                linvel_mae=error[:,6:9].abs().mean(0).tolist(),
+                actual_terminal_pitch_deg_mean=float(terminal_pitch[terminal].abs().mean()*180/torch.pi))
+            # Reconstruct the replay's exact episode-padded observation history.
+            age = torch.arange(replay['size'])[:,None].expand(-1,replay['N']).flatten()
+            eid = torch.arange(replay['N'])[None,:].expand(replay['size'],-1).flatten()
+            rr = learner.buffer._row(age)
+            reset_ids = ((data['ep_step'][rr,eid] == 0) & (age >= cfg.hist)).nonzero().squeeze(-1)[:128]
+            age, eid, rr = age[reset_ids], eid[reset_ids], rr[reset_ids]
+            back = torch.arange(cfg.hist-1,-1,-1)[None,:]
+            back = torch.minimum(back,data['ep_step'][rr,eid].long()[:,None])
+            hr = learner.buffer._row(age[:,None]-back)
+            history = data['xi'][hr,eid[:,None],:44].clone()
+            xi, s, f, ap = data['xi'][rr,eid].clone(), unflatten_state(data['s'][rr,eid]), data['f'][rr,eid].clone(), data['a_prev'][rr,eid].clone()
+            initial = dict(position=s[0].tolist(), teacher=actor(TensorDict(dict(policy=history[:,-1,:35]),batch_size=[len(rr)]),stochastic_output=False).tolist(),
+                obs35=history[:,-1,:35].tolist(), action=learner.pi(history,xi[:,:3]).tolist(),
+                logged_action=data['a'][rr,eid].tolist(), residual=learner.pi.residual(history,xi[:,:3]).tolist())
+            survival = torch.ones(len(rr))
+            traces=[]
+            for step in range(cfg.horizon):
+                action = learner.pi(history,xi[:,:3]).clamp(-6,6)
+                s1 = learner.wm.step(s,action,xi)
+                rew, dx, logit = learner.aux(learner.aux.features(s,s1,action,ap,xi,f))
+                survival *= 1-logit.sigmoid()
+                pitch = torch.asin((-s1[1][...,2,0]).clamp(-1,1))*180/torch.pi
+                traces.append(dict(step=step+1,seconds=(step+1)*.02,reward=float(rew.mean()),
+                    predicted_done=float(logit.sigmoid().mean()),survival=float(survival.mean()),
+                    pitch_deg_mean=float(pitch.mean()),pitch_abs_deg_max=float(pitch.abs().max()),
+                    x_mean=float(s1[0][:,0].mean()),z_mean=float(s1[0][:,2].mean()),
+                    action_mean=action.mean(0).tolist()))
+                xi=learner.mdp.project_predicted_context(xi+learner.context_predict_mask*dx,s1,action,f+1)
+                obs=learner.mdp.obs(s1,action,xi,f+1)
+                history=torch.cat((history[:,1:],obs[:,None]),1)
+                s, f, ap=s1,f+1,action
+            teacher_buffers={k:dict(shape=list(v.shape),minimum=float(v.min()),maximum=float(v.max()),values=v.flatten()[:38].tolist())
+                for k,v in actor.state_dict().items() if torch.is_tensor(v) and any(x in k.lower() for x in ['normal','mean','var','count'])}
+        report=dict(kind='STANDING200_FINALV8_REAL_REPLAY_MODEL_CALIBRATION_V11',source=receipt,restore=restored,
+            calibration=calibration_report,reset_samples=len(rr),initial=initial,
+            closed_model_rollout=traces,teacher_normalizer_buffers=teacher_buffers,
+            optimizer_steps=0,model_decodes=1,source_teacher_PT_opens=0,SDK_physics_GPU_C_writes=0,
+            interpretation='Saved replay calibration and imagined rollout are diagnostic, never independent physical skill.')
+    (args.output/'RESULT.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(dict(calibration=calibration_report,rollout_first=traces[0],rollout_last=traces[-1])))
+
+
+if __name__=='__main__': main()

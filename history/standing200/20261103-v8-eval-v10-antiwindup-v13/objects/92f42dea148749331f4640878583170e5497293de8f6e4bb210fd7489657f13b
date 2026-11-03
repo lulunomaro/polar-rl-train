@@ -1,0 +1,73 @@
+{
+  "kind": "MOD4_STANDING200_RLBPTT_V1",
+  "run_id": "MOD4_STANDING200_RLBPTT_V13_1793670990137789700",
+  "GPU_UUID": "GPU-16828f91-2b45-b646-8dc0-9481138e2842",
+  "num_envs": 512,
+  "seed": 200,
+  "teacher_path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+  "teacher_SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693",
+  "teacher_bytes": 14035411,
+  "resume": {
+    "epoch": 1793659708.0179193,
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V8_1793656033704803700/production/checkpoints/BPTT002035_I002135_1793659707476538381_complete.pt",
+    "bytes": 239077457,
+    "SHA": "9afdde2753fe581daf3cede9f415a7b7fa41b69f080091cda2afc8f5bb0984dc",
+    "counts": {
+      "policy_attempts": 2035,
+      "pi_optimizer_steps": 2035,
+      "pi_bptt_optimizer_steps": 2035,
+      "pi_unverified_steps": 0,
+      "pi_skipped_nonfinite": 0,
+      "pi_skipped_zero": 0,
+      "wm_optimizer_steps": 8604,
+      "aux_optimizer_steps": 8604,
+      "critic_optimizer_steps": 8140
+    },
+    "iteration": 2135,
+    "full_models_four_optimizers_replay_RNG": true,
+    "last_bptt_receipt": {
+      "iteration": 2134,
+      "pi_optimizer_steps": 2035,
+      "horizon": 32,
+      "policy_dt_s": 0.02,
+      "cross_time_finite": true,
+      "cross_time_grad_norm": 0.1872750222682953,
+      "wm_path_finite": true,
+      "wm_path_grad_norm": 0.10572604089975357,
+      "parameter_grad_norm": 2.7387149333953857,
+      "loss": 2.6133735179901123,
+      "wm_weights_frozen": true,
+      "auxiliary_weights_frozen": true,
+      "imagined_reward_source": "original_real_reward_supervised_head",
+      "probe_parameter_delta_l2": 1.880723357317038e-05,
+      "verified_bptt_optimizer_step": true,
+      "pi_bptt_optimizer_steps": 2035,
+      "policy_attempts": 2035
+    }
+  },
+  "course_height_m": 0.2,
+  "target": "supported wheel-leg coordinated ascent, not ballistic jump",
+  "original_canonical_only": true,
+  "strict_reserve": 86412.86069250107,
+  "action_repair": "V8 deterministic composition unchanged; no network or Adam reset",
+  "algorithm": "H32 RL learnedWM BPTT plus latent antiwindup optimizer regularizer and accepted Adam commits",
+  "startup_refill_actual_controls": 256,
+  "startup_WM_aux_updates": 64,
+  "optimizer_repair": {
+    "contract": {
+      "version": "standing200_latent_antiwindup_bptt_v13",
+      "source_action_formula": "standing200_reachable_action_v8_UNCHANGED",
+      "optimizer_regularizer": "0.1 * mean(relu(abs(total_pre_tanh_logit)-2)^2)",
+      "threshold": 2.0,
+      "weight": 0.1,
+      "post_Adam_max_normalized_action_delta": 0.05,
+      "post_Adam_max_logit_delta": 0.25,
+      "max_proposals": 12,
+      "candidate_rejection": "restore all trainable weights and complete actor Adam",
+      "real_reward_done_WM_critic_physics": "unchanged",
+      "source_weights_Adam_reset": false
+    },
+    "CPU": "reports/ANTIWINDUP_V13_ACTUAL.json",
+    "calibration": "reports/DIAGNOSE_V12_ACTUAL.json"
+  }
+}

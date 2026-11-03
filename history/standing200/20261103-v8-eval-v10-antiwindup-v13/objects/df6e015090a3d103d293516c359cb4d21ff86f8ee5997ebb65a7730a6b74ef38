@@ -1,0 +1,206 @@
+"""H32 learned-model RL+BPTT with latent anti-windup and bounded Adam commits.
+
+Action composition, physical task reward and evaluation are unchanged. The new
+optimizer regularizer has a gradient even when tanh rounds to +/-1. Candidate
+steps retain the complete source Adam state and commit only after replay action
+and pre-tanh displacement checks. This module performs no I/O on import.
+"""
+import copy, math
+import torch
+from torch import nn
+from tensordict import TensorDict
+from ctx_reward_learner import ContextRewardLearner, frozen_parameters
+from standing_action_v8 import StandingResidualPolicy as V8Policy, ACTION_CONTRACT, compose
+from supermimic_vendor_v2.geometry import unflatten_state
+
+REPAIR_CONTRACT = dict(version='standing200_latent_antiwindup_bptt_v13',
+    source_action_formula='standing200_reachable_action_v8_UNCHANGED',
+    optimizer_regularizer='0.1 * mean(relu(abs(total_pre_tanh_logit)-2)^2)',
+    threshold=2.,weight=.1,post_Adam_max_normalized_action_delta=.05,
+    post_Adam_max_logit_delta=.25,max_proposals=12,
+    candidate_rejection='restore all trainable weights and complete actor Adam',
+    real_reward_done_WM_critic_physics='unchanged',source_weights_Adam_reset=False)
+
+
+def components(policy, history, goal):
+    obs=history[...,-1,:35]
+    base=policy.teacher(TensorDict(dict(policy=obs),batch_size=list(obs.shape[:-1])),stochastic_output=False)
+    latent=policy.residual(history,goal)
+    low=base.new_tensor(ACTION_CONTRACT['action_low']);high=base.new_tensor(ACTION_CONTRACT['action_high'])
+    mid,radius=(low+high)/2,(high-low)/2
+    logit=torch.atanh(((base-mid)/radius).clamp(-.8,.8))+latent/6
+    return compose(base,latent),logit
+
+
+class Policy(V8Policy):
+    """Same state_dict and deterministic actuator map as final V8."""
+    def forward(self, history, goal): return components(self,history,goal)[0]
+
+
+class Learner(ContextRewardLearner):
+    def __init__(self,*args,**kwargs):
+        self.candidate=False
+        self.last_repair={}
+        super().__init__(*args,**kwargs)
+
+    def _on_pi_step(self,optimizer,args,kwargs):
+        if not self.candidate: super()._on_pi_step(optimizer,args,kwargs)
+
+    def _checkpoint(self,include_optimizers):
+        full=super()._checkpoint(include_optimizers)
+        full['standing_antiwindup']=dict(contract=REPAIR_CONTRACT,last=self.last_repair)
+        return full
+
+    def accepted_step(self,histories,goals,trainable):
+        # All checks use the same real replay histories before and after Adam.
+        # Additional reset histories are supplied by policy_update; no ground
+        # truth or future depth is supplied to the actor.
+        with torch.no_grad():
+            before_action,before_logit=components(self.pi,histories,goals)
+        weights=[p.detach().clone() for p in trainable]
+        state=copy.deepcopy(self.opt_pi.state_dict())
+        nominal=[g['lr'] for g in self.opt_pi.param_groups]
+        radius=before_action.new_tensor(ACTION_CONTRACT['action_high'])-before_action.new_tensor(ACTION_CONTRACT['action_low'])
+        radius=radius/2
+        accepted=False;proposals=[]
+        for trial in range(REPAIR_CONTRACT['max_proposals']):
+            if trial:
+                with torch.no_grad():
+                    for p,saved in zip(trainable,weights):p.copy_(saved)
+                self.opt_pi.load_state_dict(copy.deepcopy(state))
+            factor=.5**trial
+            for group,lr in zip(self.opt_pi.param_groups,nominal):group['lr']=lr*factor
+            self.candidate=True
+            try:self.opt_pi.step()
+            finally:self.candidate=False
+            with torch.no_grad():
+                after_action,after_logit=components(self.pi,histories,goals)
+                da=float(((after_action-before_action)/radius).abs().max())
+                dl=float((after_logit-before_logit).abs().max())
+                finite=bool(torch.isfinite(after_action).all() and torch.isfinite(after_logit).all())
+            accepted=finite and da<=REPAIR_CONTRACT['post_Adam_max_normalized_action_delta'] and dl<=REPAIR_CONTRACT['post_Adam_max_logit_delta']
+            proposals.append(dict(factor=factor,action_delta=da,logit_delta=dl,finite=finite,accepted=accepted))
+            if accepted:break
+        if accepted:
+            # Candidate hooks were suppressed; count/write exactly one accepted
+            # optimizer transaction with its original cross-time BPTT evidence.
+            super()._on_pi_step(self.opt_pi,(),{})
+        else:
+            with torch.no_grad():
+                for p,saved in zip(trainable,weights):p.copy_(saved)
+            self.opt_pi.load_state_dict(copy.deepcopy(state))
+        for group,lr in zip(self.opt_pi.param_groups,nominal):group['lr']=lr
+        return dict(accepted=accepted,proposals=proposals,guard_samples=len(histories),
+            committed_steps=int(accepted),all_rejected_weights_Adam_restored=True,
+            pre_abs_logit_max=float(before_logit.abs().max()),
+            post_abs_logit_max=float(after_logit.abs().max()) if accepted else float(before_logit.abs().max()))
+
+    def _guard_reset_histories(self):
+        age=torch.arange(self.buffer.size,device=self.device)
+        rows=self.buffer._row(age)
+        mask=self.buffer.data['ep_step'][rows]==0
+        where=mask.nonzero()
+        if len(where)==0:return None
+        ids=torch.linspace(0,len(where)-1,min(self.cfg.pi_batch,len(where)),device=self.device).long()
+        selected=where[ids];xi=self.buffer.data['xi'][rows[selected[:,0]],selected[:,1]]
+        obs=xi[:,:44]
+        return obs[:,None].expand(-1,self.cfg.hist,-1),xi[:,:3]
+
+    def policy_update(self):
+        self.counts.policy_attempts+=1
+        start,history=self._sample_valid_starts(self.cfg.pi_batch)
+        state=unflatten_state(start['s'])
+        context,frames,previous_action=start['xi'],start['f'],start['a_prev']
+        with torch.no_grad():
+            obs_hist=self.mdp.obs(unflatten_state(history['s']),history['a_prev'],history['xi'],history['f'])
+        obs_hist=self.mdp.add_noise(obs_hist)
+        goal=self._goal(frames,context)
+        guard_hist=obs_hist.detach().clone();guard_goal=goal.detach().clone()
+        resets=self._guard_reset_histories()
+        if resets is not None:
+            guard_hist=torch.cat((guard_hist,resets[0]),0);guard_goal=torch.cat((guard_goal,resets[1]),0)
+        states,contexts,all_frames,goals=[state],[context],[frames],[goal]
+        actions,rewards,dones,windup=[],[],[],[]
+        with frozen_parameters(self.wm,self.critic,self.aux):
+            for _ in range(self.cfg.horizon):
+                normalized=self.mdp.normalize_context(context)
+                action,logit=components(self.pi,obs_hist,goal)
+                windup.append((logit.abs()-REPAIR_CONTRACT['threshold']).relu().square().mean(-1))
+                state1=self.wm.step(state,action,normalized)
+                next_frames=frames+1
+                reward,delta_context,done_logit=self.aux(self.aux.features(state,state1,action,previous_action,normalized,frames))
+                next_context=context+self.context_predict_mask*delta_context
+                next_context=self.mdp.project_predicted_context(next_context,state1,action,next_frames)
+                done=torch.sigmoid(done_logit)
+                timeout=getattr(self.mdp,'imagination_timeout',None)
+                if callable(timeout):done=1-(1-done)*(1-timeout(next_frames,next_context).float().clamp(0,1))
+                next_obs=self.mdp.add_noise(self.mdp.obs(state1,action,next_context,next_frames))
+                obs_hist=torch.cat((obs_hist[:,1:],next_obs.unsqueeze(1)),1)
+                goal=self._goal(next_frames,next_context)
+                state,context,frames,previous_action=state1,next_context,next_frames,action
+                states.append(state);contexts.append(context);all_frames.append(frames);goals.append(goal)
+                actions.append(action);rewards.append(reward);dones.append(done)
+            rewards,dones=torch.stack(rewards),torch.stack(dones)
+            alive=torch.cumprod(1-dones,0)
+            continuation=torch.cat((torch.ones_like(alive[:1]),alive[:-1]),0)
+            discount=self.cfg.gamma**torch.arange(self.cfg.horizon,device=self.device)[:,None]
+            contributions=discount*continuation*rewards
+            objective=contributions.sum(0)
+            bootstrap=torch.zeros_like(objective)
+            if not self.cfg.no_critic:
+                bootstrap=self.cfg.gamma**self.cfg.horizon*alive[-1]*self.critic(self._critic_input(state,frames,self.mdp.normalize_context(context),goal))
+                objective=objective+bootstrap
+            # Do not apply a policy regularizer to model states after predicted
+            # termination. Detach the survival weights to avoid incentivizing
+            # termination as a way to remove the regularizer.
+            valid=continuation.detach()
+            penalty=(torch.stack(windup)*valid).sum()/valid.sum().clamp_min(1)
+            loss=-objective.mean()+REPAIR_CONTRACT['weight']*penalty
+            delayed=contributions[1:].sum(0)+bootstrap
+            delayed_grad=torch.autograd.grad(delayed.mean(),actions[0],retain_graph=True,allow_unused=True)[0]
+            cross_finite=delayed_grad is not None and bool(torch.isfinite(delayed_grad).all())
+            cross_norm=float(delayed_grad.norm())if cross_finite else 0.
+            cotangents=torch.autograd.grad(delayed.mean(),states[1],retain_graph=True,allow_unused=True)
+            cotangents=tuple(torch.zeros_like(v)if c is None else c.detach() for v,c in zip(states[1],cotangents))
+            vjp=torch.autograd.grad(states[1],actions[0],grad_outputs=cotangents,retain_graph=True,allow_unused=True)[0]
+            wm_finite=vjp is not None and bool(torch.isfinite(vjp).all());wm_norm=float(vjp.norm())if wm_finite else 0.
+            self.opt_pi.zero_grad(set_to_none=True);loss.backward()
+            trainable=[p for group in self.opt_pi.param_groups for p in group['params']if p.requires_grad]
+            grad_norm=nn.utils.clip_grad_norm_(trainable,1.);nn.utils.clip_grad_value_(trainable,.1)
+            finite=bool(torch.isfinite(loss)&torch.isfinite(grad_norm))
+            probe=next((p for p in trainable if p.grad is not None and bool(p.grad.abs().max()>0)),None)
+            repair=dict(penalty=float(penalty.detach()),coefficient=REPAIR_CONTRACT['weight'],
+                original_imagined_return=float(objective.detach().mean()),source_action_formula_unchanged=True)
+            if finite and float(grad_norm)>0 and probe is not None:
+                self._pending_bptt=dict(probe=probe,before=probe.detach().clone(),
+                    cross_time_finite=cross_finite,cross_time_grad_norm=cross_norm,
+                    wm_path_finite=wm_finite,wm_path_grad_norm=wm_norm,parameter_grad_norm=float(grad_norm),loss=float(loss.detach()),
+                    wm_weights_frozen=True,auxiliary_weights_frozen=True,
+                    imagined_reward_source='original_real_reward_supervised_head',optimizer_regularizer=REPAIR_CONTRACT)
+                try:repair.update(self.accepted_step(guard_hist,guard_goal,trainable))
+                finally:self._pending_bptt=None
+            elif finite:self.counts.pi_skipped_zero+=1
+            else:self.counts.pi_skipped_nonfinite+=1
+            self.last_repair=repair
+        value_loss=torch.zeros((),device=self.device)
+        if not self.cfg.no_critic:
+            with torch.no_grad():
+                ci=torch.stack([self._critic_input(tuple(v.detach()for v in st),fr,self.mdp.normalize_context(xi.detach()),go.detach())
+                    for st,fr,xi,go in zip(states,all_frames,contexts,goals)])
+                self.critic.norm.update(ci);values=self.critic(ci);target=values[-1];targets=[]
+                for index in range(self.cfg.horizon-1,-1,-1):
+                    target=rewards[index].detach()+self.cfg.gamma*(1-dones[index].detach())*((1-self.cfg.lam)*values[index+1]+self.cfg.lam*target)
+                    targets.append(target)
+                flat_targets=torch.stack(targets[::-1]).flatten()
+            flat_input=ci[:-1].flatten(0,1);n=len(flat_input);m=n//self.cfg.critic_minibatches
+            for _ in range(self.cfg.critic_epochs):
+                permutation=torch.randperm(n,device=self.device)
+                for index in range(self.cfg.critic_minibatches):
+                    ids=permutation[index*m:(index+1)*m]
+                    value_loss=(self.critic(flat_input[ids])-flat_targets[ids]).square().mean()
+                    self.opt_v.zero_grad(set_to_none=True);value_loss.backward()
+                    grad=nn.utils.clip_grad_norm_(self.critic.parameters(),1.)
+                    if not bool(torch.isfinite(value_loss)&torch.isfinite(grad)):raise FloatingPointError('critic nonfinite')
+                    self.opt_v.step()
+        imagined_reward=((continuation*rewards).detach().sum(0)/self.cfg.horizon/self.mdp.max_step_reward).mean()
+        return loss.detach(),value_loss.detach(),imagined_reward,grad_norm.detach(),alive[-1].mean().detach()

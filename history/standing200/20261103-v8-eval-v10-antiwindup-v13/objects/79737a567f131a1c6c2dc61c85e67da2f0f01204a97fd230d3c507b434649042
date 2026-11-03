@@ -1,0 +1,132 @@
+"""Local receipt handoff and deduplicated text archive; never read model/media."""
+from pathlib import Path
+from datetime import datetime
+import argparse,hashlib,importlib.util,json,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-v8-eval-v10-antiwindup-v13'
+
+
+def handoff():
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    s=json.loads((R/'reports/STATUS_V13_FIRST_UPDATED.json').read_bytes())
+    assert s.get('SSHclosed')and s['serial']=='FREE'
+    files=s['files'];first=files.get('production/FIRST_UPDATED.json')
+    errors={key:files[key]for key in ['production/WORKER_ERROR.json','OWNER_ERROR.json']if key in files}
+    full=files.get('production/FULL_RESTORE_V13.json')
+    assert s['job']==w['remote_job']
+    go=files.get('GO_PRODUCTION.json')
+    if first:
+        assert first['new_BPTT_steps']==1
+        assert first['repair']['accepted']and first['repair']['committed_steps']==1
+        assert first['checkpoint']['counts']['pi_bptt_optimizer_steps']==2036
+        assert full['receipt']['all_four_Adam_tensors_equal']and full['receipt']['original_RNG_restored']
+        assert first['checkpoint']['last_bptt_receipt']['verified_bptt_optimizer_step']
+        status='LIVE_V13_ACTUAL_ANTIWINDUP_BPTT_FIRST_FULLSAVE_CONFIRMED'
+    else:
+        status='V13_ACTUAL_GO_FIRST_NOT_YET_CONFIRMED'if not errors else'V13_ACTUAL_ERROR_REQUIRES_SAVED_CLOSE_REVIEW'
+    w.update(status=status,training_started=bool(go)and not errors,latest_status='reports/STATUS_V13_FIRST_UPDATED.json',
+        GO=go,original_worker=files.get('WORKER_IDENTITY.json'),
+        original_worker_current=files.get('OWNER_CURRENT.json',{}).get('worker'),
+        first_readonly_status_consumed=True,first_readonly_status_finished=True,
+        latest_checkpoint=files.get('production/latest_complete.json'),
+        current_resource_blocker=None,full_restore_receipt=full,
+        first_checkpoint=None if first is None else first['checkpoint'],
+        first_actual_metrics=None if first is None else first['metrics'],
+        first_actual_repair=None if first is None else first['repair'],
+        first_actual_action_path=None if first is None else first['actual_action_path'],
+        first_action_saturation_remains=first is not None and any(x>0 for x in first['actual_action_path']['zero_derivative_fraction']),
+        actual_errors=errors,training_skill_pass=False,
+        close_and_eval=dict(controller='same original remote owner',training_save_before_close=True,
+            max_parent_seconds=3900,save_at_seconds=3600,exit_headroom_seconds=300,
+            independent80=True,seconds=10,controls=500,seed=9137,height_m=.2,edge_m=.8,
+            current_actor_single_decode_embedded_teacher=True,actual_400Hz_manifold=True),
+        next='Healthy V13 no relaunch/hotpatch/restart/model admission repeat. Same original remote owner fullsave/safe close/immediate independent80. FreshLOCAL before finite metadata collection, then original OWNER_EXIT and unique closed transfer, recorded-pose render and native review. If failure use actual cause, never replay consumed once.')
+    w['followup_commands']=dict(
+        status='After original save window, freshLOCAL exact broadCIM then run_standing_local_v2.py --mode status --label V13_POSTWINDOW_ONCE --wait-seconds 0; never repeat V13_FIRST_UPDATED. If busy only local metadata.',
+        closed='Only after actual original OWNER_EXIT, Python314 -B -X utf8 repair_v11/control.py closed; V13_CLOSED_EVIDENCE_TRANSFER_ONCE is unused. Never V8/V6 closed once.',
+        render='workspace .venv/Scripts/python.exe render_standing_recorded_v2.py --evaluation actual_closed/<V13run>/evaluation --usd F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd --output actual_closed/<V13run>/rendered_v2 --video; native view_image all side/top sheets and actual action/pose/reward curves.',
+        CPU='V11 import beforePT failure, V12 one full CPU diagnostic, V13 CPU repair all consumed; never repeat for archive.')
+    if go:
+        w['original_save_local']=datetime.fromtimestamp(go['save_deadline']).astimezone().isoformat()
+        w['original_nominal_local']=datetime.fromtimestamp(go['nominal_end_epoch']).astimezone().isoformat()
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    decision=dict(kind='STANDING200_ACTUAL_V8_EVAL_V10_AND_TARGETED_ANTIWINDUP_V13_DECISION',epoch=time.time(),
+        prior_final=w['prior_V8']['final'],prior_evaluation=w['prior_V8']['evaluation'],
+        actual_V8_original_eval='0 controls: diagnostic batch equality rejected; not0/80',
+        V9='transport source argument overwritten; static SHA rejected, before model/SDK/physics',
+        V10='actual independent80,0strict,.10-.14s mean.1195s; all80terminated; exact terms not recorded, selected4pitch48-53deg before edge',
+        native_review='current model already inspected8actual side/top sheets and actual action/pose curve figure,0extraNN/physics',
+        selected_evidence='both wheels~60rad/s; hips/right crank saturated; wheels near ground, no both-wheel top support; correct initial current-depth200mm',
+        CPU_V11='ModuleNotFoundError native_supermimic_bridge, before checkpoint open; original preserved',
+        CPU_V12='One complete source decode/fullrestore;8192saved transitions rewardMAE.253actual-s1/.281predicted-s1, terminal p on actualdone.923; learned rollout also predictsfallat.12s. Not evidence model totally blind.',
+        CPU_V13='Same deterministic action0difference. Restored allfourAdam.4candidateCPUsteps,saturated logits decrease.187mean; oversizedproposal rejected,onlyacceptedcommitcount. Allfixtureweights/fourAdam restored;0productionsteps/SDK/physics.',
+        production_V13=dict(status=status,run_id=w['run_id'],owner=w['original_owner'],GO=go,
+            source_final=w['source_resume'],first=first,errors=errors),
+        limits=['optimizer regularizer is new learning objective; actual physical task reward/done and deterministic formula unchanged',
+            'First update nonzero BPTT gradient is algorithm execution, never200mm skill improvement',
+            'Actual V13 FIRST still has exact zero action derivatives at saturated hips/crank/wheels; regularizer gradient is live but saturation is not yet physically repaired',
+            'saturation is observed; teacher large firstchannel still lacks established cause; no solecause claim',
+            'Worldmodel can predict failure yet poor pathwise gradients and policy saturation can prevent learning; repair must pass actual native evaluation'],
+        local_reader_errors=[dict(operation='rg current repo isaac path',result='missing directory; no model/network/physics',correction='used project/isaac/mod4'),
+            dict(operation='broad local file search',result='oversized truncated filename output; no files changed',correction='scope follow-up to exact source')],
+        canonical='same sole original,strictreserve86412.86069250107 unchanged,no grant/copy/refund/clearactive',
+        next=w['next'])
+    dest=R/'reports/V13_ACTUAL_FIRST_HANDOFF_DECISION.json'
+    with dest.open('x',encoding='utf-8')as f:json.dump(decision,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(status=status,first=first is not None,save=w.get('original_save_local'),errors=list(errors))))
+
+
+def archive():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_redact_v13',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    allowed={'.py','.json','.md','.txt','.toml','.diff','.log','.csv'}
+    files=[]
+    for base in [R/'repair_v8',D,R/'reports',R/'actual_closed/MOD4_STANDING200_RLBPTT_V8_1793656033704803700']:
+        files.extend(p for p in base.rglob('*')if p.is_file()and p.suffix.lower()in allowed and '__pycache__'not in p.parts)
+    files.extend([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir();rows=[]
+    for p in sorted(set(files),key=str):
+        raw=p.read_bytes();safe,n=guard.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,
+            archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='complete_text'if not n else'redacted_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    large=[]
+    for name in ['EVAL_V10_ACTUAL_RETURNED.json','EVAL_V10_TRANSFER_ACTUAL.json','V8_CLOSED_ACTUAL_EVALUATION_TRANSFER.json']:
+        report=json.loads((R/'reports'/name).read_bytes())
+        for row in report.get('files',[]):
+            pth=row.get('path',row.get('local_path',row.get('remote_path','')))
+            if Path(pth).suffix.lower()in ['.npz','.pt','.usd','.mp4','.png']:large.append(dict(row,published_by='reports/'+name))
+    render=R/'actual_closed/MOD4_STANDING200_RLBPTT_V8_1793656033704803700/independent_eval_v10/rendered/RENDER_REPORT.json'
+    for row in json.loads(render.read_bytes()).get('media',[]):large.append(dict(row,published_by=str(render)))
+    figure=render.parent.parent/'analysis/MODEL_CALIBRATION_FIGURE.json'
+    large.append(dict(json.loads(figure.read_bytes())['media'],published_by=str(figure),native_view_image_reviewed=True))
+    large.extend([dict(w['prior_V8']['final'],published_by='prior final owncomplete receipt'),
+        dict(w['first_checkpoint']or{},published_by='V13 actual FIRST checkpoint receipt')])
+    note='''Final V8 did not climb200mm: actual independent V10 finished80 firstepisodes (500control10s maximum,seed9137,newDR,edge.8m) with0strict,allterminated.10-.14s,mean.1195s. OriginalV8 batch4 diagnostic equality and V9 transport SHA failures are retained and were not skill tests. Native current-model review of8recorded side/top sheets and curves shows saturated hips/crank and~60rad/s wheeltargets before approach.
+
+V12 CPU fullrestore compared8192saved physical transitions with learned model: terminal probability on actualdone~.923, rotation pitchMAE~.00573rad; learned reset rollouts also predictfallaround.12s. Saturation is observed; do not call total modelblindness or teacherchannel cause proven.
+
+V13 changes only learning optimization: differentiable0.1*mean(relu(abs(totalpretanhlogit)-2)^2) plus postAdam replay actiondelta<=.05 and logitdelta<=.25; rejected proposals restore complete weights+Adam. Same deterministic actuator formula and native task reward/physics, restored finalV8 networks/fourAdam/replay/RNG. CPU fixture preserved source, demonstrated recovery gradients and candidate rollback. Production uses one original canonical/privateGPU/finite owner with3900/save3600/exit300 and immediate independent80eval after fullsave. FIRST proves execution only. Standing200 skill remains unpassed. Parent270mm scope untouched.
+
+All changed source, originalfalse/once, complete text receipts/diagnosis, current workorder/automation are indexed with SHA-deduplication. Shared runtime/assets stay referenced. Models/NPZ/media only published actualpath/bytes/SHA; no model reads or physics for Git. Existing V8/V6 trial tags and all historicalobjects remain unchanged. Phase currentstatus: '''+w['status']+'\n'
+    (DEST/'README.md').write_text(note,encoding='utf-8')
+    (DEST/'INDEX.json').write_text(json.dumps(dict(kind='STANDING200_V8_ACTUAL_EVAL_AND_V13_ANTIWINDUP',epoch=time.time(),rows=rows,
+        external_large_artifacts=large,model_media_reads_for_archive=0,shared_runtime_copies=0,
+        prior_trial_object='e154d52430e3200386472f7d686a634f833d0aaa',prior_trial_peel='179c700613b1d5412d15df28f7cbf0dfcfd7f8d7',
+        current_run=w['run_id'],current_status=w['status']),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(destination=str(DEST),rows=len(rows),new_objects=len(list((DEST/'objects').iterdir())),large_only_indexed=len(large))))
+
+
+if __name__=='__main__':
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['handoff','archive']);a=q.parse_args();globals()[a.mode]()

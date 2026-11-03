@@ -1,0 +1,71 @@
+"""Single serial CPU operation; no SDK, canonical writes or source hotpatches."""
+from pathlib import Path
+import argparse, hashlib, json, re, sys, time, traceback
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R))
+from check_four4090_once import local_rows
+from stage_start_standing200_v6 import run
+
+CPU=r'''
+from pathlib import Path
+import ast,fcntl,hashlib,json,os,subprocess,time
+J=Path(v['job']);D=J/'source_checks'/v['operation']
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+locks=[]
+try:
+ for path in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/'finite_environment_validation.lock']:
+  f=path.open('rb+');locks.append(f);fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ c=json.loads(C.read_bytes());assert c['active_segment']is None
+ own=json.loads((J/'OWNER_EXIT.json').read_bytes());assert own['all_own_waited']and own['original_leases_released']
+ assert not D.exists();D.mkdir(parents=True)
+ for name,item in v['files'].items():
+  raw=item['text'].encode();assert hashlib.sha256(raw).hexdigest()==item['SHA'];ast.parse(raw.decode());(D/name).write_bytes(raw)
+ env=dict(os.environ,CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',OMP_NUM_THREADS='4')
+ for key in ['PYTHONPATH','PYTHONHOME','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE']:env.pop(key,None)
+ with(D/'STDOUT.txt').open('xb')as out,(D/'STDERR.txt').open('xb')as err:
+  p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-B',str(D/v['entry']),'--job',str(J),'--output',str(D/'result')],cwd=J,env=env,stdout=out,stderr=err,stdin=subprocess.DEVNULL)
+  rc=p.wait()
+ path=D/'result/RESULT.json'
+ result=json.loads(path.read_bytes())if path.exists()else None
+ receipt=dict(epoch=time.time(),returncode=rc,own_waited=True,result=result,canonical_writes=0,
+  stderr=(D/'STDERR.txt').read_text(errors='replace')[-6000:],stdout=(D/'STDOUT.txt').read_text(errors='replace')[-3000:],locks_released_in_finally=True)
+ (D/'WAITED.json').write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt))
+finally:
+ for f in reversed(locks):fcntl.flock(f,fcntl.LOCK_UN);f.close()
+'''
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('operation');q.add_argument('entry');q.add_argument('files',nargs='*');a=q.parse_args()
+    assert re.fullmatch('[a-z0-9_]+',a.operation)
+    prefix=a.operation.upper();once=R/'reports'/(prefix+'_ONCE.json')
+    assert not once.exists()
+    rows,blocked=local_rows()
+    pattern=r'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|stage_new|dispatch|retention|(?<![a-z])PAIR[0-9_]*(?![a-z])'
+    blocked=[x for x in blocked if re.search(pattern,x.get('CommandLine')or'',re.I)]
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    def put(suffix,value):
+        with(R/'reports'/(prefix+'_'+suffix+'.json')).open('x',encoding='utf-8')as f:json.dump(value,f,indent=2)
+    put('LOCAL_ADMISSION',dict(epoch=time.time(),rows=rows,blocked=[],serial='FREE'))
+    files={}
+    for name in [a.entry,*a.files]:
+        p=D/name;raw=p.read_bytes();files[p.name]=dict(text=raw.decode(),SHA=hashlib.sha256(raw).hexdigest())
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    put('ONCE',dict(epoch=time.time(),job=work['remote_job'],entry=a.entry,files=files.keys().__iter__().__class__.__name__ if False else {k:v['SHA']for k,v in files.items()}))
+    c=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        c=connect72()
+        result=run(c,CPU,dict(job=work['remote_job'],operation=a.operation,entry=a.entry,files=files),900)
+        put('ACTUAL',result)
+        if result['returncode']!=0 or result['result']is None:raise RuntimeError(result['stderr'])
+        print(json.dumps(dict(passed=True,operation=a.operation,result=result['result'].get('calibration',result['result'].get('fixture',{})))))
+    except BaseException:
+        put('ERROR',dict(epoch=time.time(),error=traceback.format_exc(),never_replay=True));raise
+    finally:
+        if c is not None:c.close()
+        put('CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

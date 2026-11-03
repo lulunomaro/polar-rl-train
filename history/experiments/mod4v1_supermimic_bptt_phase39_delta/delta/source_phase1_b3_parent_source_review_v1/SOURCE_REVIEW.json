@@ -1,0 +1,596 @@
+{
+  "kind": "PHASE1_B3_INDEPENDENT_STATIC_SOURCE_REVIEW_V1",
+  "mode": "STATIC_ONLY",
+  "verdict": "STATIC_REVIEW_TWO_BINDING_CONTRACT_GAPS_NOT_INTEGRATED",
+  "scope": {
+    "skills_catalog": "Office/ACL only; no RL match",
+    "tools": "read/glob/grep; explicit Python314 -I -S -B stdlib hashing, JSON and whole AST only",
+    "output_directory": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_b3_parent_source_review_v1",
+    "project_modules_executed": 0,
+    "project_tests_executed": 0,
+    "project_entries_or_workers_started": 0,
+    "actual_Torch_CPU_fixtures_executed": 0,
+    "SDK_Torch_imports": 0,
+    "SSH_network_actions": 0,
+    "model_PT_raw_reads": 0,
+    "GPU_C_locks_ledger_Git_actions": 0,
+    "old_sealed_files_edited": 0,
+    "reseals": 0,
+    "actual_reports_read": 0,
+    "runtime_profiler_or_audit_hook_installed": false,
+    "dynamic_audit_counts": "NOT_MEASURED; no dynamic audit coverage claimed"
+  },
+  "confirmed_binding_contract_gaps": [
+    {
+      "id": "G1",
+      "classification": "STATIC_PUBLIC_OVERRIDE_KEYSET_AND_AUTHORITY_GAP",
+      "locations": [
+        {
+          "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/dependency_contract.py",
+          "lines": [
+            43,
+            44,
+            73,
+            79,
+            82,
+            99,
+            103
+          ]
+        },
+        {
+          "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/verify_seal.py",
+          "lines": [
+            82
+          ]
+        }
+      ],
+      "fixed_default_path": "Current fixed JSON has 17 codec functions, 5 Field methods, 3 codec classes and 3 constants; all actual static pins match, and these checks run on the normal path. No missing published member is alleged.",
+      "public_override_path": "The caller dictionary is selected wholesale. Supplied collections are iterated by .items() without fixed required-keyset, cardinality or equality-to-sealed-authority checks. Retaining the collection keys with empty/trimmed contents drops checks even when top-level kind/publisher/module/source, Field class and structural conditions match. Removing a top-level key may raise; that does not close the empty/trimmed-content gap.",
+      "exact_source": "pins = (json.loads((HERE / 'CODEC_SOURCE_PINS.json').read_text(encoding='utf-8')) if dependency_pins is None else dependency_pins)",
+      "seal_verifier_does_not_close_public_path": "Its 17/5 length assertion is not invoked by public install.",
+      "builtin_source_only_example": "caller_pins = dict(sealed_pins)\ncaller_pins.update(codec_functions={}, codec_classes={}, field_functions={})\n# supplied iteration over these three collections has zero elements",
+      "project_counterexample_executed_by_this_review": false,
+      "proposed_NEW_only_closure": "Bind full required keysets/content to fixed authority before original preflight and six hooks; retain overrides only if strict-authority-equal or in a separate own negative fixture. No B3 hotpatch or weaker guard."
+    },
+    {
+      "id": "G2",
+      "classification": "STATIC_LITERAL_DEFAULT_TYPE_EQUALITY_GAP_ALSO_ON_DEFAULT_PATH",
+      "locations": [
+        {
+          "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/dependency_contract.py",
+          "lines": [
+            29,
+            31
+          ]
+        },
+        {
+          "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/source_api.py",
+          "lines": [
+            170,
+            194
+          ]
+        }
+      ],
+      "exact_checks": [
+        "list(fn.__defaults__ or ()) != expected['literal_defaults']",
+        "(fn.__kwdefaults__ or {}) != expected['literal_kwdefaults']"
+      ],
+      "builtin_semantics": {
+        "list_boolFalse_equals_int0": true,
+        "keyword_float80_equals_int80": true
+      },
+      "fixed_default_path": "Current source defaults match the fixed pins; the live-default comparison algorithm itself is value-equality rather than strict recursive type-plus-value equality.",
+      "code_pin_does_not_close_gap": "verify_callable checks module/qualname/source SHA/line/compiled code key/parameters. Signature is returned as receipt, not compared with expected literal types. Live defaults can change without changing function code object or source SHA.",
+      "project_defaults_modified_by_this_review": false,
+      "builtin_function_examples_in_MD": "Illustrative source only; no project function was called or modified.",
+      "proposed_NEW_only_closure": "Strict recursive type-and-value default comparison; own bool/int/float and wrapper/default negatives before unchanged original preflight."
+    }
+  ],
+  "additional_confirmed_B3_source_defects": [],
+  "static_preservation_checks": {
+    "whole_SOURCE_DIFF_patch_read_lines": 668,
+    "whole_patch_reproduced_exactly": true,
+    "complete_test_source_read_lines": 643,
+    "author_test_definitions_counted_by_AST": 30,
+    "codec_17_function_qualnames": [
+      "_need",
+      "_metadata",
+      "_clock",
+      "_clock_key",
+      "CaptureCodec.__init__",
+      "CaptureCodec.capture",
+      "CaptureCodec.validate_owned",
+      "CaptureCodec._validate_tree",
+      "CaptureCodec.materialize",
+      "ControlLedger.__init__",
+      "ControlLedger._active",
+      "ControlLedger.begin",
+      "ControlLedger.normal_sample",
+      "ControlLedger.pre_reset",
+      "ControlLedger.reset",
+      "ControlLedger.end",
+      "ControlLedger.finish"
+    ],
+    "Field_5_function_qualnames": [
+      "FieldSnapshot.__init__",
+      "FieldSnapshot.rows",
+      "FieldSnapshot.ids",
+      "FieldSnapshot.mask",
+      "FieldSnapshot.state"
+    ],
+    "class_pin_count": 4,
+    "constant_pin_count": 3,
+    "new_component_pin_count": 22,
+    "function_pin_static_fields": "whole source SHA, module/qualname, def/end/code-first lines, parameters/vararg/kwonly/kwarg/default expressions and literal defaults match",
+    "immutable_AST_10": [
+      "stdlib_snapshot",
+      "BoundedRecorder",
+      "_same_callable",
+      "_plain_scale",
+      "_root_asset_configuration",
+      "preflight",
+      "_preflight_impl",
+      "PassiveCapture._clock",
+      "PassiveCapture._patch",
+      "PassiveCapture.close"
+    ],
+    "immutable_AST_equal_B2": true,
+    "source_API_and_fake_runtime_byteidentical_B2": true,
+    "original_call_AST_sites": {
+      "original_feedback": 2,
+      "original_sensor": 1,
+      "original_delay": 1,
+      "original_update": 1,
+      "original_term": 1,
+      "original_reset": 1
+    },
+    "feedback_two_sites_mutually_exclusive_foreign_env_and_normal": true,
+    "original_callback_arguments_returns_and_exception_propagation_structure_preserved": true,
+    "no_extra_forbidden_observation_RNG_CPU_transfer_attribute_calls_in_callback_AST": true,
+    "install_order": {
+      "typed_dependency_line": 651,
+      "unchanged_original_preflight_line": 652,
+      "construct_and_attach_lines": [
+        654,
+        657
+      ]
+    },
+    "no_parent_approved_gate_added": true,
+    "typed_roles": {
+      "ENV_ROWS_WITNESS": "metadata before selection; axis0, N80, W1..8, caller-owned existing same-device int64 index",
+      "ENV_IDS_FULL": "whole K0..80 original integer dtype; clone, no witness selection/cast",
+      "TERMINAL_BOOL_FULL": "whole bool80 including non-witness 79/78"
+    },
+    "witness_mapping": "CALLER_DECLARED_INDEX_BINDING_NOT_READBACK",
+    "normal_protocol": "clean16=3+3+4+4+2; five channels MID/END; original physics tick*2500us, MID%8=4, END>0 and %8=0, scene_update/non-reset/original100Hz. Same-tick cached value is not a fresh draw; original noise cache and before/after delay queue, no subtraction-derived noise or replay/C2.",
+    "retention": "64/128-control ledger and normal cap1280 independent of debug rings; one bounded pending control; only complete end clears pending; CPU materialize outside loop.",
+    "original_reset_RAISED": "Same original exception and callback; whole owned IDs, before and actual partial after retained; pending INCOMPLETE, original_post_return NOT_OBSERVED, post None, no extra observe/fabricated post.",
+    "reset_ID_metadata_failure": "Original callback still forwarded once; codec may be NOT_OBSERVED/ids None, but B3 actual count1, OBSERVED_METADATA_FAILED, INCOMPLETE, B3_OBSERVED_RESET_NOT_EXACTLY_RETAINED and B3_OBSERVER_METADATA_ERRORS distinguish it from natural absence.",
+    "duplicate_reset": "Both original callbacks forwarded once each; B3 count2 and incomplete, first owned event retained; not adapter replay."
+  },
+  "integration": {
+    "current_status": "NOT_INSTALLED_IN_FROZEN_V4",
+    "parent_confirmed_current_scope": "Frozen V4 only, no B3 actual worker integration; README example is not installed binding.",
+    "worker": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/worker_passive_interface_v1.py",
+      "lines": [
+        127,
+        138,
+        153,
+        164
+      ]
+    },
+    "existing_adapter": "B2 generic snapshot/install; no B3 witness/ledger parameters, not a B3 drop-in.",
+    "existing_control_lines": {
+      "boundary_for_action": 157,
+      "only_bridge_step": 158,
+      "after_original_step_flags": 159,
+      "original_actor_policy_buffer": 161
+    },
+    "B3_begin_control_calls_in_existing_worker": 0,
+    "B3_end_control_calls_in_existing_worker": 0,
+    "bridge": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_runtime/native_supermimic_bridge.py",
+      "lines": [
+        93,
+        96,
+        141,
+        144
+      ]
+    },
+    "bridge_step_definition_line": 141,
+    "actual_real_step_call_line": 142,
+    "original_real_step_calls": 1,
+    "future_actor_buffer": "state.obs['policy'] from original returned state, not masked xi1 or fabricated pre-reset actor",
+    "future_NEW_caller_constraints": "Bracket the existing sole step and strict boundary, pass its returned term/trunc and original actor buffer; no extra action/observe/reset/getter.",
+    "physical_observer": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/phase1_capture_observer.py",
+    "observer_mapping_index_lines": [
+      651,
+      666
+    ],
+    "observer_summary": "Bounded B2 rings/global100Hz counter/original actor identity and shape80x35, not B3 full typed ledger.",
+    "V4_seal_members_declared": 13,
+    "V4_members_actually_verified": [
+      "worker_passive_interface_v1.py",
+      "phase1_capture_observer.py",
+      "CAPTURE_SOURCE_INDEX.json"
+    ],
+    "entire_V4_13_member_closure_audited": false,
+    "legacy_worker": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_native_v6_runtime_compat/_SOURCE_INPUT/sealed_source/worker_supermimic_bptt_app_close_candidate_v5.py",
+    "legacy_worker_not_current_Phase1_integration_evidence": true
+  },
+  "evidence_separation": {
+    "existing_author_SOURCE": {
+      "receipt": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/STDLIB_FAKE_TEST_RECEIPT.json",
+      "receipt_SHA256": "da14ff30a90f26710ccbc905a0732152291363dfbb07bfd649c5d442b857e3e3",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "read_only_not_rerun": true,
+      "fake_attach_bypasses_native_preflight": true,
+      "actual_Torch_CPU_SDK_native_proof": false
+    },
+    "parent_reported_codec_CPU": {
+      "attribution": "PARENT_REPORTED",
+      "checks": 565,
+      "scope": "codec only; not B3 integrated CPU/native proof"
+    },
+    "parent_reported_negative_reproduction": {
+      "attribution": "PARENT_REPORTED_NOT_READ_OR_REPRODUCED_BY_THIS_STATIC_REVIEW",
+      "parent_V2_status": "OBSERVED_SOURCE_BINDING_CONTRACT_GAPS",
+      "published_checks": {
+        "functions": 22,
+        "classes": 3
+      },
+      "override_four_empty_collections": "accepted with checked0",
+      "published_default_metadata_default_int0_to_boolFalse_or_float0": "both accepted; receipt signature contains False or 0.0; parent reports defaults finally restored",
+      "parent_reports_source_unchanged": "27 members and two seals; old30 not rerun",
+      "parent_V1": "StopIteration from own assumed scalar-int constant, before first case; 0 cases, not a pass",
+      "parent_actual_report_read_by_this_review": false
+    },
+    "this_review": "STATIC_ONLY; project tests0, project module executions0; no project runtime exploit claim."
+  },
+  "unknowns": [
+    "B3 real Torch CPU fixture coverage, actual SDK/native imports and live object/MRO binding",
+    "Future NEW caller installation around original sole step/boundary, real buffer binding and exact interface qualification",
+    "Physical MID other19/full35/actor/clean0 and untapped bitwise proof; caller witness mapping is not GPU readback",
+    "ID capture succeeds but subsequent boundary-tree metadata fails: future own negative coverage required",
+    "Actual physical/DR/acceptance/budget qualification; Stage2 remains false, Gate1 UNKNOWN"
+  ],
+  "unchanged_constraints": {
+    "H1": "frozen",
+    "physics_DR_acceptance_budget_locks": "unchanged",
+    "exact": false,
+    "Gate1": "UNKNOWN",
+    "stage2_GO": false
+  },
+  "future_NEW_fixture_priorities": [
+    "Own strict-binding completeness/empty/trimmed/extra/authority replacement negatives, bool-int-float defaults and wrappers before old preflight or any hook.",
+    "Actual Torch CPU full IDs0/1/79/80 across integer dtypes, full bool80 non-witness flags, owned clones, W1/W8/caller mapping declarations, no SDK.",
+    "Original reset RAISED partial state; IDs metadata error and IDs-good/tree-bad error; duplicates; bad end shape; pending ownership; same callback/return/exception identities.",
+    "64/128 ledger vs debug0/2, same-tick/no-draw/no-replay and original clock/queue differential; CPU materialization outside loop only.",
+    "Only after a separate NEW caller integration, separately establish actual source/MRO/buffer binding and original step/boundary and physical/DR/acceptance/budget evidence."
+  ],
+  "own_method_corrections": [
+    {
+      "error": "AssertionError",
+      "own_preliminary_assertion": "len(bs)==1 and bs[0].lineno==141",
+      "cause": "141 is bridge step definition line; actual self.real.step call is 142.",
+      "resolution": "Read original source, correct own stdlib locator only; subsequent actual source/PIN/AST checks passed. No project test/source failure or mutation."
+    },
+    {
+      "event": "Initial NEW output glob os error 2",
+      "cause": "Output directory not yet present, not an ACL denial."
+    }
+  ],
+  "inventory_proof": {
+    "unique_current_small_SOURCE": 47,
+    "Python_whole_AST": 22,
+    "JSON_parsed": 16,
+    "core41": 41,
+    "supplemental6": 6,
+    "algorithm": "SHA256 of sorted absolute POSIX path TAB bytes TAB SHA256 LF",
+    "core41_initial_and_after_MD_identity_SHA256": "e83cc1e7a8b8eb8ad78d11c629a4943b2188ff74be7417f1c8c02fb870141a11",
+    "supplemental6_first_complete_and_after_MD_identity_SHA256": "784cdb5fe2143f567aad15943855bf8d116288920da93149a5c669ecabd344ed",
+    "all47_before_report_and_after_MD_identity_SHA256": "58f3a8f7c82b3d402f961f6d106a86a8f014d302738162a72484675f2a9df553",
+    "supplemental_baseline_timing": "After parent scope expansion; not part of original core41 observation.",
+    "all_47_unchanged_at_after_MD_before_JSON_read": true,
+    "seal_roots": {
+      "B3": "084b507cd460909abb03a241860595d6c93cf66a30ac2f05c775d0827a202692",
+      "codec": "4ceeeda60cde6f8ca6cc496b8d299e5ea3b4ff2770b707f84898f06c1b75eec8",
+      "B2": null,
+      "B2_note": "No content-root field declared; no invented root",
+      "V4_declared_only_not_full13_audit": "758dc867cc4040a6f1eb9f587cc88f69a3866e03a9553290128a1681cda039e8"
+    },
+    "metadata_linked_external_files_followed": false
+  },
+  "MD_deliverable": {
+    "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_b3_parent_source_review_v1/SOURCE_REVIEW.md",
+    "bytes": 11717,
+    "SHA256": "a0ad4c1570b98bb0b3f8cd04ee15d1a91298e649b6946400c4a247d926d5af44"
+  },
+  "source_inventory": [
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_native_v6_runtime_compat/_SOURCE_INPUT/sealed_source/worker_supermimic_bptt_app_close_candidate_v5.py",
+      "bytes": 17704,
+      "SHA256": "7c42986077de62278e33a49f560f22602c9ba4d4e69b058f5f5f8f0893c099c7",
+      "collection": "supplemental6"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/CAPTURE_SOURCE_INDEX.json",
+      "bytes": 134423,
+      "SHA256": "75e36c0255a3b354dd0efeec33600f9b38d51ca28484de2dbed55db865fc7b2d",
+      "collection": "supplemental6"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/SOURCE_SEAL.json",
+      "bytes": 2919,
+      "SHA256": "ba3409a5450e378ea97eac64f0fec4c3409ac974a4c3378d0c6e6a6cfc405180",
+      "collection": "supplemental6"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/phase1_capture_observer.py",
+      "bytes": 10438,
+      "SHA256": "8a6faa66d55d4498fd1249aaabfeb9dfd7bb9e0b01013137adce3756b3c9004c",
+      "collection": "supplemental6"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_capture_worker_v4/worker_passive_interface_v1.py",
+      "bytes": 16326,
+      "SHA256": "25fa00939694f9558c8aa1a9af73a40bf9b6b1cae666e1e636c70e6e8ab2f7e9",
+      "collection": "supplemental6"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/NATIVE_BINDING_RECEIPT_TEMPLATE.json",
+      "bytes": 2015,
+      "SHA256": "244f80f310cf9bf79f994fe6a9e6051bd094edbd0463f88e269c2bafb451aab1",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/OBSERVER_HOOK_SPEC.md",
+      "bytes": 5159,
+      "SHA256": "49adf370ed726bb74eb9e7545805cd1be2bbed908e61dfa24d41c67179fb2a27",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/README.md",
+      "bytes": 15153,
+      "SHA256": "b4b90549d277dbe0e73177a49b083214c5d0db8fed3f3e7d83dbaedc038f4792",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/SOURCE_API_MANIFEST.json",
+      "bytes": 336133,
+      "SHA256": "2801135d1ff028f09a5eb7cd571cc3ca90694b60340d17e62374a42cbe60eaca",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/SOURCE_SEAL.json",
+      "bytes": 2909,
+      "SHA256": "be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/STDLIB_FAKE_TEST_RECEIPT.json",
+      "bytes": 837,
+      "SHA256": "8f48c2aab7ba9d3e87d767252019666abfd5c92f57eb795f75ec6a20129275cb",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/STDLIB_FAKE_TEST_RECEIPT_v2.json",
+      "bytes": 837,
+      "SHA256": "3ce48b8d3c7749832e6a80e11cafb077b066d64823f6151370849dd977ac6848",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/STDLIB_FAKE_TEST_RECEIPT_v3.json",
+      "bytes": 1188,
+      "SHA256": "f90ee5915b328fd42ca77cc51652c47405765deed0c772e0b3d30b00c0525b5d",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/cpu_reference_tap_fixture.py",
+      "bytes": 5023,
+      "SHA256": "9f5a6962b1e143ce23417bb12ddf8a956a84340e3894e4e0816c68d680f7772e",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/fake_runtime.py",
+      "bytes": 9447,
+      "SHA256": "6bd77f121da29a20a1a67709ac488bd8b672eec9ba84b00f2020420375920aca",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/passive_capture.py",
+      "bytes": 26599,
+      "SHA256": "4e05fe172068f8ed3e1f438ec73b57e89986e7da8316d16fd764026c8f53da9b",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/source_api.py",
+      "bytes": 31456,
+      "SHA256": "a334766d6a9ca88d02d682e73d70a15e9098f1e77d1aa7a45e6d0154a4b73b62",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/test_passive_capture.py",
+      "bytes": 39452,
+      "SHA256": "a27c0ddca8b93f666400bde270d5ae38e7d462ecf181b143374ad890026556ae",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/verify_seal.py",
+      "bytes": 2929,
+      "SHA256": "1e9f9a2e75d8c32150ee7723cedba7530be1662e1581b55a4499dfae7aa59c89",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/CODEC_SOURCE_PINS.json",
+      "bytes": 19153,
+      "SHA256": "5cd6c770c7f3541308201389f721b43f9e7c681199443c9a2f80d2f80347e452",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/README.md",
+      "bytes": 8750,
+      "SHA256": "846297545bcc9848ce543ebd9b0ba549afb904ed53f7bd2ae9a45baa142e39c7",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/SCHEMA.md",
+      "bytes": 6817,
+      "SHA256": "0a50ee6205e4196cb8a3df8c0b14a09c1a1582d3f730f66bea5068c98ddfe3b2",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/SOURCE_API_CONTRACT.json",
+      "bytes": 19527,
+      "SHA256": "19001df3ebd8ac909db5360e3c9719a007545bc0e51f99120c5e96c58039d059",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/SOURCE_DIFF.md",
+      "bytes": 3853,
+      "SHA256": "d1d94f8c18358039d1aa653ddb20d47d66f85f917834f7922573bd66e1581c8d",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/SOURCE_DIFF.patch",
+      "bytes": 38725,
+      "SHA256": "ffbe0cb8e5b77cfe6dcac8e2d221d12faad805ff20150d071aff97a7c9335790",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/SOURCE_SEAL.json",
+      "bytes": 3359,
+      "SHA256": "fc7e90950d26ea6f9007777c028574a11b224779d41efa7d7101d5e21b859f28",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/STDLIB_FAKE_TEST_LOG.txt",
+      "bytes": 5758,
+      "SHA256": "e3d2322657e3ab2f627e25eadd37a44893cf6825b39738e8abd7469532b553d0",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/STDLIB_FAKE_TEST_RECEIPT.json",
+      "bytes": 1019,
+      "SHA256": "da14ff30a90f26710ccbc905a0732152291363dfbb07bfd649c5d442b857e3e3",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/dependency_contract.py",
+      "bytes": 6378,
+      "SHA256": "f4d8f08f136ffe014802f63b81b7b1c739ed44401f9e58ebc1a0fb061047c4ba",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/fake_runtime.py",
+      "bytes": 9447,
+      "SHA256": "6bd77f121da29a20a1a67709ac488bd8b672eec9ba84b00f2020420375920aca",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/fake_tensor.py",
+      "bytes": 2741,
+      "SHA256": "26c24f019d7e16abfa2325ef814e7e1245087f0f4613fe05f21b2e9d4ad9c646",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/fake_typed_runtime.py",
+      "bytes": 4690,
+      "SHA256": "88835644c6cdb04dd0bd4e9e81cddd8df858565fe6ae31f5052b3d34415fa5d7",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/field_snapshot.py",
+      "bytes": 3327,
+      "SHA256": "ef4d1895e06087db023d55aa58203bd5b58f915fa71f65ade541e8ae588a61d4",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/passive_capture.py",
+      "bytes": 37157,
+      "SHA256": "ddead70de7cb1e01acc79899320c0aaadd9c217cd7ba35e9e9f4a00f03c54745",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/run_stdlib_tests.py",
+      "bytes": 4043,
+      "SHA256": "368291f6d518b3bf5c5e66070212beb698c0b9b4f9234c441113736433d77b43",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/source_api.py",
+      "bytes": 31456,
+      "SHA256": "a334766d6a9ca88d02d682e73d70a15e9098f1e77d1aa7a45e6d0154a4b73b62",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/test_passive_capture_v3.py",
+      "bytes": 37162,
+      "SHA256": "533dc59bea0ec276a95296c3773aa3ef1848e9addf51110838e50ad551eb8dec",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v3/verify_seal.py",
+      "bytes": 8223,
+      "SHA256": "07b3ca9443baa11e7e9127f5345b1aa623102c6e3978fdd246f453c22b6eae76",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/README.md",
+      "bytes": 8553,
+      "SHA256": "ac39ea3553b43ac64efcdc03c1c19278250747ca432d18e4d6b6e4fd67680c47",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/SCHEMA_V1.json",
+      "bytes": 5611,
+      "SHA256": "c4cd68b818bff3a46e37d9f5bdf2032c553637b800897471a2f06c35c9e6c279",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/SOURCE_PINS.json",
+      "bytes": 11178,
+      "SHA256": "d1d11e3ef72b212a6e0bf72e0115ff1b0784d5a620a48d2cedfe02248df11669",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/SOURCE_RECEIPT.json",
+      "bytes": 3558,
+      "SHA256": "e59a7fa1a5f094b8f54a357c35a4ff1cb14ffc36e8cd461d7bfc10ce2a30005c",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/SOURCE_SEAL.json",
+      "bytes": 1427,
+      "SHA256": "2cc26eaee058d30c9ac5b17ca8fb37541beb7c1e5ddbb738963ddef08c199219",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/TEST_LOG.txt",
+      "bytes": 2307,
+      "SHA256": "51e681aa2f2a26f64cd3503a0c7d55295c18cc750dc61216923089f9161d7a9a",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/test_typed_capture_codec.py",
+      "bytes": 18103,
+      "SHA256": "81edb092beac064d69290401b92857162fb1d2b8c9813f0e374485db55defc94",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_codec_v1/typed_capture_codec.py",
+      "bytes": 22318,
+      "SHA256": "77c007fb0b17088b54bb0c115913159c7a9bf99f50f29a0b203dea483f0d1ee4",
+      "collection": "core41"
+    },
+    {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_runtime/native_supermimic_bridge.py",
+      "bytes": 13125,
+      "SHA256": "8211964c2ce3dd78fdb9fee6603ee4a4dcfbca6fa9d7df44f20d3ddb7aaead29",
+      "collection": "supplemental6"
+    }
+  ]
+}

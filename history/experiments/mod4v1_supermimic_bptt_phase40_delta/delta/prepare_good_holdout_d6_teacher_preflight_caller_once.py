@@ -1,0 +1,20 @@
+"""Derive a new one-use D6 metadata preflight caller; never execute the old D5."""
+from pathlib import Path
+import ast,json,hashlib,time
+R=Path(__file__).resolve().parent;src=R/'upload_preflight_good_holdout_d5_root_seed20260929_once.py';new=R/'upload_preflight_good_holdout_d6_teacher_seed20260929_once.py';out=R/'reports/GOOD_HOLDOUT_D6_TEACHER_PREFLIGHT_CALLER_SOURCE_V1.json';assert not new.exists()and not out.exists();raw=src.read_bytes();t=raw.decode();H=lambda b:hashlib.sha256(b).hexdigest();assert(len(raw),H(raw))==(6006,'206e43b33c4b051de9296d0b053d884f2d8f354d6745477d6ab059301b641031')
+extra="""prior5=json.loads((R/'reports/GOOD_HOLDOUT_D5_SEED20260929_ACTUAL_PREFLIGHT_V1.json').read_bytes());assert prior5['returncode']==1 and 'identity distinction required'in prior5['stderr'];teacher_raw=(R/'reports/GOOD_HOLDOUT_ACTUAL_TEACHER_IDENTITY_SCHEMA_DIAGNOSIS_V2.json').read_bytes();assert(len(teacher_raw),H(teacher_raw))==(11764,'06faee44b02f910df7093eee19dc3bc1996f0b416fbd8945751aeed24706998a')and json.loads(teacher_raw)['returncode']==0
+"""
+a='review_path=R/';assert t.count(a)==1;t=t.replace(a,extra+a)
+old="pay=json.loads((R/'PAPER_ALIGNED_REBUILD_20261103/GOOD_HOLDOUT_D5_ROOT_SOURCE_PAYLOAD_V1.json').read_bytes());assert pay['unique_files']==169 and pay['mirror_files']==127 and pay['original_complete_source_mapping_passed']==20 and pay['old_payloads_and_failures_unchanged']and pay['actual_remote_stage_parent_SDK_model_C_or_resource_operations']==0;local=Path(pay['payload_root']);payload={}"
+newpay="pay=json.loads((R/'PAPER_ALIGNED_REBUILD_20261103/GOOD_HOLDOUT_D6_TEACHER_SOURCE_PAYLOAD_V2.json').read_bytes());assert pay['unique_files']==207 and pay['mirror_files']==145 and pay['original_complete_source_mapping_passed']==20 and pay['old169_payload_files_preserved_bytewise']and pay['new_active_flat20_separate_from_historical_flat20']and pay['all18_other_overlay_rows_unchanged']and pay['actual_remote_prepare_preflight_stage_parent_SDK_model_C_or_resource_operations']==0;local=Path(pay['payload_root']);payload={}"
+assert t.count(old)==1;t=t.replace(old,newpay)
+for before,after in [('sealed D5','sealed D6'),('GOOD_HOLDOUT_D5_SEED20260929_ACTUAL_PREFLIGHT_V1.json','GOOD_HOLDOUT_D6_SEED20260929_ACTUAL_PREFLIGHT_V1.json'),('GOOD_HOLDOUT_D5_SEED20260929_PREFLIGHT_STARTED_ONCE.json','GOOD_HOLDOUT_D6_SEED20260929_PREFLIGHT_STARTED_ONCE.json'),('source_stage_good_expert_holdout_v5/stage_good_expert_holdout_v5.py','source_stage_good_expert_holdout_v6/stage_good_expert_holdout_v6.py'),("(53521,'9f40b92f9cb13b74ff35dd21f152310a173333f4f68b2aeafa57a5ea4f1dbfc8')","(53543,'df7c144542db0e51bc8f79e41fc2cd39dfcab4c27e8dae685a4fd94a70f7db34')"),('MOD4V1_GOOD_TEACHER_HOLDOUT_20260929_D5_ROOT_V1_','MOD4V1_GOOD_TEACHER_HOLDOUT_20260929_D6_TEACHER_V1_'),("project+'/good_holdout_complete_flat20_v1'","ws+'/'+pay['flat_source_workspace_relative']"),("project+'/source_good_expert_holdout_subset_v1/GOOD_EXPERT_HOLDOUT_SOURCE_INDEX_V1.json'","ws+'/'+pay['source_index_workspace_relative']"),('NEW_GOOD_HOLDOUT_D5_SEED20260929_ROOT_METADATA_STRICT_WIRE_SOURCE_PREFLIGHT_NOT_NATIVE','NEW_GOOD_HOLDOUT_D6_SEED20260929_RAW_TEACHER_COMPATIBLE_SCHEMA_SOURCE_PREFLIGHT_NOT_NATIVE')]:
+ expected=2 if before=='GOOD_HOLDOUT_D5_SEED20260929_ACTUAL_PREFLIGHT_V1.json'else 1
+ assert t.count(before)==expected,(before,t.count(before))
+ # The inserted prior5 must keep the old failed D5 report; replace only output assignment.
+ t=t.replace(before,after,1)
+ast.parse(t)
+with new.open('x',encoding='utf8',newline='\n')as f:f.write(t)
+v=dict(kind='NEW_D6_COMPATIBLE_TEACHER_PREFLIGHT_CALLER_SOURCE_NOT_EXECUTED',epoch=time.time(),old_source=src.name,old_SHA256=H(raw),new_source=new.name,new_bytes=len(new.read_bytes()),new_SHA256=H(new.read_bytes()),payload_files=207,source_mirror_files=145,new_active_overlay_index_bytes=21472,new_active_overlay_index_SHA256='0012cf17c566e29648418a191a89e1e925db5df8406718f9e0c39b87c83780da',actual_remote_prepare_preflight_stage_parent_SDK_model_C_or_resource_operations=0)
+with out.open('x',encoding='utf8')as f:json.dump(v,f,indent=2)
+print(json.dumps(v,indent=2))

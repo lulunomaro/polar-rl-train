@@ -61,6 +61,13 @@ def inspect(args):
             curve['terms']['wheel_world_planar'] = planar.sum(-1).mean(-1)
             curve['cost'] += curve['terms']['wheel_world_planar']
             curve['reward'] = np.exp(-curve['cost']/5)
+        if args.target_limit:
+            target = packet['motor_pos_target'][:, [1, 0, 4, 3]]
+            lower, upper = np.asarray([-1.2, -.5, -1.2, -.5]), np.asarray([.9, .5, .9, .5])
+            excess = np.maximum(lower-target, 0)+np.maximum(target-upper, 0)
+            curve['terms']['leg_target_limit'] = (excess/.1)**2
+            curve['terms']['leg_target_limit'] = curve['terms']['leg_target_limit'].mean(-1)
+            curve['cost'] += curve['terms']['leg_target_limit']
         if args.reward_map == 'reciprocal':
             curve['reward'] = 1./(1.+curve['cost']/5.)
         errors = {key: float(value.mean()-row['result']['tracking_components'][key])
@@ -150,7 +157,7 @@ def inspect(args):
     fig.savefig(plot, dpi=150)
     plt.close(fig)
     report = dict(epoch=time.time(), model_SHA=result['model_SHA'], rotation=args.rotation, attitude_scale=args.attitude_scale, wheel_height=args.wheel_height,
-                  reward_map=args.reward_map, wheel_planar=args.wheel_planar,
+                  reward_map=args.reward_map, wheel_planar=args.wheel_planar, target_limit=args.target_limit,
                   source_result=identity(source), source_replay_receipt=identity(replay_path),
                   baseline_report=identity(args.baseline_report), baseline_csv=identity(args.baseline_report.parent/'phase_aligned456_curves.csv'), actual_all80=summary,
                   detailed_cases=cases, artifacts=[identity(csv_path), identity(plot)],
@@ -170,6 +177,7 @@ if __name__ == '__main__':
     parser.add_argument('--attitude-scale', type=float, default=.2)
     parser.add_argument('--wheel-height', action='store_true')
     parser.add_argument('--wheel-planar', action='store_true')
+    parser.add_argument('--target-limit', action='store_true')
     parser.add_argument('--reward-map', choices=['exponential', 'reciprocal'], default='exponential')
     parser.add_argument('--output', type=Path, required=True)
     inspect(parser.parse_args())

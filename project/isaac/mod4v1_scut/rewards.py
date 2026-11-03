@@ -6,7 +6,7 @@ below owns name/coordinate/geometry differences; upstream.py owns exact formulas
 from types import SimpleNamespace
 import torch
 
-from .config import LEGS, WHEELS, WHEEL_BODIES, reward_config
+from .config import LEGS, WHEELS, WHEEL_BODIES, GUIDE_BODIES, STRUCTURAL_BODIES, reward_config
 from .math_ops import quat_apply, wrap_to_pi
 from .upstream import bind_base_functions, initialize_buffers, state_classes
 
@@ -59,16 +59,35 @@ class ScutRewards:
             self._wheel_link_idx[:1], self._wheel_link_idx[1:])
         self._wheel_link_count = 2
         self._desired_contact_link_idx = self._wheel_link_idx
-        self._undesired_contact_link_idx = [i for i, n in enumerate(robot.body_names)
-                                             if n not in WHEEL_BODIES]
+        self._guide_link_idx = indices(robot.body_names, GUIDE_BODIES)
+        self._undesired_contact_link_idx = indices(robot.body_names, STRUCTURAL_BODIES+GUIDE_BODIES)
+        # V14 overrides the base list to include guides. Strict support keeps
+        # its own explicit group, independent of the training reward contract.
+        self._nonwheel_contact_link_idx = indices(robot.body_names, STRUCTURAL_BODIES+GUIDE_BODIES)
         self._airborne_base_contact_link_idx = indices(robot.body_names, ('chassis',))
-        self._rear2_joint_idx = self._legs_act_idx  # see explicit vector-limit adaptation below
+        # V14 env.py:134-145: without a gimbal the reset set is base + guides;
+        # there is no MOD4 counterpart for either gimbal link.
+        self._reset_contact_link_idx = indices(robot.body_names, ('chassis',)+GUIDE_BODIES)
+        self.max_episode_length = int(round(self.cfg.episode_length_s / self.step_dt))
+        self._terminate_on_obs_outlier = bool(getattr(self.cfg, 'terminate_on_obs_outlier', True))
+        self._terminate_obs_abs = float(getattr(self.cfg, 'terminate_obs_abs', 0.))
+        self._terminate_obs_print_interval = int(getattr(self.cfg, 'terminate_obs_print_interval', 50))
+        self._terminate_obs_print_counter = 0
+        self._value_debug_step = 0
+        for stream in ('policy', 'critic'):
+            setattr(self, '_obs_raw_'+stream+'_max_abs', torch.zeros(num_envs, device=device))
+            setattr(self, '_obs_raw_'+stream+'_has_nonfinite', torch.zeros(num_envs, dtype=torch.bool, device=device))
         self._previous_applied_torque = torch.zeros_like(self.robot.data.applied_torque)
         self._before_previous_applied_torque = self._previous_applied_torque.clone()
         self._actions = torch.zeros(num_envs, 6, device=device)
         self._previous_actions = self._actions.clone()
         self._before_previous_actions = self._actions.clone()
         self.command = torch.zeros(num_envs, 3, device=device)
+        self.command_counter = torch.zeros(num_envs, dtype=torch.long, device=device)
+        self.command_generator = SimpleNamespace(command=self.command,
+            command_counter=self.command_counter, compute=lambda dt: None)
+        self.command_height_sink = None
+        self.forward_scan_provider = None
         self.height_cmd = torch.full((num_envs,), .25, device=device)
         self.ground_z_est = torch.zeros(num_envs, device=device)
         self.episode_length_buf = torch.zeros(num_envs, dtype=torch.long, device=device)
@@ -169,14 +188,24 @@ class ScutRewards:
         return self.cfg.wheel_forward_scan_cfg
 
     def _get_wheel_forward_scan_points(self):
-        self._cached_wheel_forward_scan_direction_sign = torch.sign(self.command[:, 0]).where(
-            self.command[:, 0] != 0, torch.ones_like(self.command[:, 0]))
-        return self.forward_points, self.forward_hits
+        return self.forward_scan(False)
 
     def _get_wheel_forward_stair_scan_points(self):
-        self._cached_wheel_forward_stair_scan_direction_sign = torch.sign(self.command[:, 0]).where(
-            self.command[:, 0] != 0, torch.ones_like(self.command[:, 0]))
-        return self.near_points, self.near_hits
+        return self.forward_scan(True)
+
+    def forward_scan(self, stair):
+        prefix = '_cached_wheel_forward'+('_stair' if stair else '')
+        points = getattr(self, prefix+'_query_points')
+        hits = getattr(self, prefix+'_hit_points')
+        if points is None or hits is None:
+            if self.forward_scan_provider is not None:
+                points, hits = self.forward_scan_provider(stair)
+            else:
+                points, hits = (self.near_points, self.near_hits) if stair else (self.forward_points, self.forward_hits)
+            setattr(self, prefix+'_query_points', points)
+            setattr(self, prefix+'_hit_points', hits)
+            setattr(self, prefix+'_scan_direction_sign', torch.where(self.command[:,0] < 0, -1., 1.))
+        return points, hits
 
     def get_terrain_name_mask(self, names):
         if isinstance(names, str):
@@ -200,15 +229,34 @@ class ScutRewards:
     def _debug_print_reward_and_state_stats(self, *args):
         pass
 
-    def _resample_custom_cmd(self, *args):
-        # ManagerBasedRLEnv owns command sampling. Never draw a second stream here.
-        pass
+    def _resample_custom_cmd(self, command_counter):
+        # env.py:5592-5601. Optional airborne resets/height waves are disabled
+        # in both profiles; the saved special velocity modes have no height wave.
+        ids = (command_counter > self.command_counter).nonzero().flatten()
+        if len(ids):
+            self.resample_height(ids)
+        self.command_counter = command_counter.clone()
+        return ids
+
+    def resample_height(self, ids):
+        self.height_cmd[ids] = self._sample_height_command(ids)
+        if self.command_height_sink is not None:
+            self.command_height_sink(ids, self.height_cmd[ids])
+
+    def cache_raw_observations(self, policy, critic):
+        # Cache before clip/scale/sanitize, as env.py:3177 and 3236 require.
+        for stream, blocks in (('policy', policy), ('critic', critic)):
+            maximum, invalid = self._per_env_max_abs_from_blocks(blocks, self.num_envs, self.device)
+            setattr(self, '_obs_raw_'+stream+'_max_abs', maximum)
+            setattr(self, '_obs_raw_'+stream+'_has_nonfinite', invalid)
+        self._value_debug_step += 1
 
     def _on_command_updated(self):
         # Upstream invokes this at reward tail, then again at observations.
         # Temporal scan results stay cached within that control step.
         self.state_machine_manager.on_command_updated(self)
         self.state_machine_manager.apply_command_overrides(self)
+        self._sync_command_generator_command()  # final V13 hook, inherited by V14
 
     def _apply_predefined_reset_air_command_limits(self):
         # SCUT predefined airborne reset modes are not part of the ground-start task.
@@ -219,6 +267,8 @@ class ScutRewards:
         self.common_step_counter += 1
         self._invalidate_step_caches()
         self._actions = actions.clone()
+        # commands is the last returned observation command, including upstream
+        # overrides. Refreshing raw generator commands here changes the return.
         self.command = commands.clone()
         self.height_cmd = height.reshape(-1).clone()
         self.reset_terminated, self._numerical_safety_reset_buf = terminated.clone(), bad.clone()
@@ -228,15 +278,16 @@ class ScutRewards:
         self.ground_z_est, self.ground_wheels = ground_z, wheel_ground_z
         self.forward_points, self.forward_hits = forward_points, forward_hits
         self.near_points, self.near_hits = near_points, near_hits
-        self.state_machine_manager.apply_command_overrides(self)
-        self.command_generator = SimpleNamespace(command=self.command,
-            command_counter=torch.zeros(self.num_envs, device=self.device), compute=lambda dt: None)
+        if isinstance(self.command_generator, SimpleNamespace):
+            self.command_generator.command = self.command
 
     def compute(self):
-        result = self._get_rewards()
+        return self._get_rewards()
+
+    def finish_observation(self):
+        # env.py:3107-3108, once for each returned observation.
         self._before_previous_actions.copy_(self._previous_actions)
         self._previous_actions.copy_(self._actions)
-        return result
 
     def refresh_reset_scans(self, ids, ground, wheel_ground, far, far_hits, near, near_hits):
         """Seed only reset envs from their new pose, without an old-episode delta."""
@@ -252,6 +303,12 @@ class ScutRewards:
             cache = getattr(self, '_cached_'+prefix+'_temporal_height_diffs', None)
             if cache is not None:
                 cache[ids] = 0
+            # Keep non-reset endpoints cached while replacing only reset rows.
+            for suffix, value in (('_query_points', near if 'stair' in prefix else far),
+                                  ('_hit_points', hits), ('_scan_direction_sign', direction)):
+                cache = getattr(self, '_cached_'+prefix+suffix, None)
+                if cache is not None:
+                    cache[ids] = value
 
     def reset(self, ids):
         ids = torch.as_tensor(ids, device=self.device, dtype=torch.long)
@@ -266,6 +323,10 @@ class ScutRewards:
         self.reset_terminated[ids] = False
         self._numerical_safety_reset_buf[ids] = False
         self.episode_length_buf[ids] = 0
+        self._clear_termination_duration_buffers(ids)
+        for stream in ('policy', 'critic'):
+            getattr(self, '_obs_raw_'+stream+'_max_abs')[ids] = 0
+            getattr(self, '_obs_raw_'+stream+'_has_nonfinite')[ids] = False
         # Do not discard other environments' within-step scan deltas: upstream
         # invokes the command hook again when constructing observations.
         for key, value in vars(self).items():

@@ -29,11 +29,22 @@ BASE_METHODS = (
     '_get_vel_orientation_y_gate_zero_deg', '_as_reward_gate_tensor',
     '_as_reward_gate_bool_tensor', '_get_wheel_forward_temporal_height_diffs_raw',
     '_get_wheel_forward_stair_temporal_height_diffs_raw', '_get_ctrl_mode_obs_raw',
+    '_get_dones', '_apply_termination_duration', '_clear_termination_duration_buffers',
+    '_sample_height_command', '_as_env_ids_tensor', '_apply_special_mode_height_ranges',
+    '_apply_jump_takeoff_permission_height_range', '_get_jump_takeoff_permission_cfg',
+    '_is_jump_takeoff_permission_enabled', '_per_env_max_abs_from_blocks',
 )
 
 
 def registry():
-    return json.loads((HERE / 'SOURCES.json').read_text(encoding='utf-8'))
+    result = json.loads((HERE / 'SOURCES.json').read_text(encoding='utf-8'))
+    supplement = HERE / 'SOURCES_EXTENSION.json'
+    if supplement.exists():
+        extra = json.loads(supplement.read_text(encoding='utf-8'))
+        if extra['commit'] != result['commit'] or set(extra['files']) & set(result['files']):
+            raise ValueError('Source supplement must add files at the same fixed commit')
+        result['files'].update(extra['files'])
+    return result
 
 
 def source_path(key):
@@ -111,4 +122,8 @@ def bind_base_functions(cls):
     namespace = base_functions()
     for name in BASE_METHODS:
         setattr(cls, name, namespace[name])
+    # V14 inherits this synchronization through V13, even when the terrain
+    # command manager is disabled on the explicitly authored single course.
+    name = '_sync_command_generator_command'
+    setattr(cls, name, load_functions('parent_env', [name])[name])
     return cls

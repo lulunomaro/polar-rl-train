@@ -13,6 +13,8 @@ from .config import USD_SHA, CONTRACT_SHA
 
 COMPONENTS = ('_sensor_mild', '_feedback_delay_mild', '_physics_action_delay',
               '_spring_pressure', '_gas_damping', '_chassis_com', '_explicit_pd')
+FORMAT = 'MOD4V1_SCUT_FULL_V2'
+INTERFACE = 'actor28_mode7__critic28_velocity3_height1_mode7_priv39__scut_done_command_v2'
 
 
 def named_rngs(obj):
@@ -39,7 +41,7 @@ def tensor_fields(obj):
 
 def save(runner, env, bridge, path, profile):
     data = learning_state(runner)
-    data.update(format='MOD4V1_SCUT_FULL_V1', usd_SHA=USD_SHA, contract_SHA=CONTRACT_SHA,
+    data.update(format=FORMAT, interface=INTERFACE, usd_SHA=USD_SHA, contract_SHA=CONTRACT_SHA,
                 profile=profile, num_envs=env.num_envs, actor_dim=35, critic_dim=78,
                 components={key: getattr(env, key).state_dict() for key in COMPONENTS},
                 command_rng=named_rngs(env.command_manager.get_term('twist')),
@@ -64,7 +66,7 @@ def save(runner, env, bridge, path, profile):
 
 def restore(runner, env, bridge, path, profile):
     data = torch.load(path, map_location='cpu', weights_only=False)
-    if (data.get('format') != 'MOD4V1_SCUT_FULL_V1' or data['usd_SHA'] != USD_SHA
+    if (data.get('format') != FORMAT or data.get('interface') != INTERFACE or data['usd_SHA'] != USD_SHA
             or data['contract_SHA'] != CONTRACT_SHA or data['profile'] != profile
             or data['num_envs'] != env.num_envs or data['actor_dim'] != 35 or data['critic_dim'] != 78):
         raise ValueError('Checkpoint is not this MOD4v1 SCUT interface; no automatic input expansion')
@@ -82,6 +84,8 @@ def restore(runner, env, bridge, path, profile):
         if current.shape != value.shape:
             raise ValueError('Command tensor schema mismatch: '+key)
         current.copy_(value)
+    if hasattr(command, 'set_training_iteration'):
+        command.set_training_iteration(runner.current_learning_iteration)
     restore_named(env._mild_dr, data['physical_rng'])
     for key, value in data['physical_episode'].items():
         getattr(env._mild_dr, key).copy_(value)

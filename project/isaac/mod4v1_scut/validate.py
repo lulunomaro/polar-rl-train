@@ -212,7 +212,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(result['critic'].shape,(4,78))
         self.assertTrue(torch.equal(result['policy'][:,10:14],torch.full((4,4),.11)))
         self.assertTrue(torch.equal(result['critic'][:,10:14],torch.full((4,4),.22)))
-        self.assertTrue(torch.equal(result['critic'][:,35:38],robot.data.root_lin_vel_b))
+        self.assertTrue(torch.equal(result['critic'][:,28:31],robot.data.root_lin_vel_b))
         self.assertTrue(torch.equal(result['critic'][:,39:43],torch.full((4,4),100.)))
         self.assertTrue(torch.equal(result['critic'][:,51:57],torch.full((4,6),5.)))
         self.assertTrue(all(torch.equal(raw[k],before[k]) for k in raw))
@@ -231,6 +231,7 @@ class Tests(unittest.TestCase):
             _terminated_buf=terminated,_truncated_buf=timeout)
         env=SimpleNamespace(termination_manager=manager,
             scene=SimpleNamespace(update=lambda dt:None),reward_manager=SimpleNamespace(compute=lambda dt:None),
+            command_manager=SimpleNamespace(compute=lambda dt:None),
             extras={},max_episode_length_s=8.)
         bridge.env,bridge.ready=env,False
         events=[];state={'endpoint':7.}
@@ -240,8 +241,10 @@ class Tests(unittest.TestCase):
                 append_reset_logs=lambda r,log,ids:log.update({'State/scut_probe':2.}))
             _episode_sums={'probe':torch.tensor([8.,16.])}
             height_cmd=torch.zeros(n)
+            command_counter=torch.zeros(n,dtype=torch.long)
             def compute(self):events.append(('reward',state['endpoint']));return torch.full((n,),state['endpoint'])
             def reset(self,ids):events.append(('reset',ids.tolist()));state['endpoint']=0.
+            def resample_height(self,ids):pass
         bridge.reward=Reward()
         bridge.original_update=lambda dt:None
         bridge.original_done=lambda:terminated|timeout
@@ -251,7 +254,9 @@ class Tests(unittest.TestCase):
         bridge.acceptance=Strict270(n,'cpu')
         bridge.task=SimpleNamespace(height_cmd=lambda env:torch.zeros(n,1))
         bridge.prepare_endpoint=lambda:events.append(('endpoint',state['endpoint']))
-        bridge.resolve_done=lambda t,o:(t,o)
+        bridge.resolve_done=lambda:(terminated,timeout)
+        bridge.command_term=SimpleNamespace(command_counter=torch.zeros(n,dtype=torch.long))
+        bridge.original_command_compute=env.command_manager.compute
         bridge.snapshot=lambda t,o:{'endpoint':state['endpoint'],'terminated':t.clone()}
         bridge.completed_episodes=bridge.completed_strict=0
         bridge.ready=True

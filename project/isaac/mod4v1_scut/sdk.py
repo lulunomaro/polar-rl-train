@@ -9,7 +9,8 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 
-from .config import WHEEL_BODIES, observation_component, ground_scan_config
+from .config import WHEEL_BODIES, observation_component, ground_scan_config, reward_config
+from .commands import build_command_cfg, RewardTailCommand
 from .math_ops import euler_xyz_from_quat, quat_apply, detect_sdk_quaternion_order
 from .rewards import ScutRewards, indices
 from .acceptance import Strict270, wheel_bounds
@@ -59,7 +60,7 @@ def placeholder_reward(env):
     return torch.zeros(env.num_envs, device=env.device)
 
 
-def configure(cfg, n):
+def configure(cfg, n, profile='trained_stair'):
     global COURSE_N
     from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
     from isaaclab.managers import RewardTermCfg
@@ -87,21 +88,22 @@ def configure(cfg, n):
         mesh_prim_paths=[MESH], max_distance=scan['max_distance'])
     cfg.rewards = SimpleNamespace(scut=RewardTermCfg(func=placeholder_reward, weight=1.))
     cfg.curriculum = None
-    cfg.episode_length_s = 8.
+    cfg.episode_length_s = reward_config(profile).episode_length_s
     cfg.decimation, cfg.sim.dt, cfg.sim.render_interval = 8, .0025, 8
     cfg.sim.physics.solver_type = 1  # target SDK uses physics, never physx
     cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count = 32
     cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count = 4
     cfg.terminations.closure.params['threshold'] = .01
     cfg.terminations.mimic.params['threshold'] = .01
-    # Keep the physical source's chassis termination, now filtered to this course.
+    # Only model-specific mandatory guards remain in the manager. Contact,
+    # orientation, timeout and consecutive duration come from pinned _get_dones.
+    cfg.terminations = SimpleNamespace(closure=cfg.terminations.closure,
+                                      mimic=cfg.terminations.mimic)
     cfg.scene.chassis_contact.filter_prim_paths_expr = [MESH]
     cfg.events.reset_base.params.update(
         pose_range={'x':(-.05,.05), 'y':(-.03,.03), 'yaw':(-.05,.05)},
         velocity_range={k:(0.,0.) for k in ('x','y','z','roll','pitch','yaw')})
-    cmd = cfg.commands.twist
-    cmd.ranges.lin_vel_x, cmd.ranges.lin_vel_y, cmd.ranges.ang_vel_z = (.6,.6), (0.,0.), (0.,0.)
-    cmd.rel_standing_envs, cmd.heading_command = 0., False
+    cfg.commands.twist = build_command_cfg(profile)
     return cfg
 
 
@@ -140,11 +142,21 @@ class ScutBridge:
         self.original_reward = env.reward_manager.compute
         self.original_done = env.termination_manager.compute
         self.original_reset = env._reset_idx
+        self.original_command_compute = env.command_manager.compute
+        self.command_term = env.command_manager.get_term('twist')
+        self.reward.command_generator = RewardTailCommand(self.command_term, self.original_command_compute)
+        self.reward.command_counter = self.command_term.command_counter.clone()
+        self.reward.command_height_sink = self.write_height_command
+        self.reward.forward_scan_provider = self.read_forward_scan
+        self.reward.max_episode_length = env.max_episode_length
         env.scene.env_origins.copy_(torch.as_tensor(layout(self.n), device=self.device))
         self.install_hooks()
 
     def install_hooks(self):
         env = self.env
+        # DirectRLEnv's source advances commands inside _get_rewards, before
+        # resets. Do not advance them again in ManagerBasedRLEnv after resets.
+        env.command_manager.compute = lambda dt: None
         def update(dt):
             self.original_update(dt)
             if not self.ready:
@@ -161,8 +173,7 @@ class ScutBridge:
         def done(*args, **kwargs):
             result = self.original_done(*args, **kwargs)
             self.prepare_endpoint()
-            terminated, timeout = self.resolve_done(env.termination_manager.terminated.clone(),
-                                                   env.termination_manager.time_outs.clone())
+            terminated, timeout = self.resolve_done()
             # ManagerBasedRLEnv consumes both the return and these buffers.
             env.termination_manager._terminated_buf.copy_(terminated)
             env.termination_manager._truncated_buf.copy_(timeout)
@@ -196,31 +207,31 @@ class ScutBridge:
             # ManagerBasedRLEnv replaces extras['log'] inside its reset. Merge
             # the pre-reset reward/state values only after that replacement.
             env.extras.setdefault('log', {}).update(saved_log)
-            self.reward.height_cmd[ids] = self.task.height_cmd(env)[ids, 0]
+            self.reward.resample_height(ids)
+            self.reward.command_counter[ids] = self.command_term.command_counter[ids]
             return result
         env._reset_idx = reset
 
-    def resolve_done(self, terminated, timeout):
+    def write_height_command(self, ids, height):
+        self.task.height_cmd(self.env)[ids, 0] = height
+
+    def resolve_done(self, *_unused):
         r = self.reward
         body = r.robot.data
-        bad = torch.zeros_like(terminated)
+        terminated, timeout = r._get_dones()
+        bad = r._numerical_safety_reset_buf.clone()
         for key in ('joint_pos', 'joint_vel', 'root_pos_w', 'root_quat_w',
                     'root_lin_vel_b', 'root_ang_vel_b'):
             bad |= ~torch.isfinite(getattr(body, key)).flatten(1).all(-1)
-        # These are the pinned upstream numerical-safety limits, not new gates.
-        for value, key, default in (
-            (body.joint_vel[:, r._actuate_idx], 'terminate_joint_vel_abs', 500.),
-            (body.root_lin_vel_b, 'terminate_root_lin_vel_abs', 100.),
-            (body.root_ang_vel_b, 'terminate_root_ang_vel_abs', 200.)):
-            bad |= value.abs().amax(-1) > float(getattr(r.cfg, key, default))
         r._numerical_safety_reset_buf.copy_(bad)
-        terminated, timeout = r.state_machine_manager.apply_done_masks(r, terminated, timeout)
         # A wall event may change a task failure into a timeout in SCUT. It must
         # never suppress the user's mandatory MOD4 closure/mimic reset or NaNs.
         hard = bad.clone()
         for name in ('closure', 'mimic'):
             hard |= self.env.termination_manager.get_term(name)
-        return terminated | hard, timeout
+        # Preserve SCUT timeout/bootstrap semantics for its own task failures.
+        # Mandatory model/numerical resets alone cannot bootstrap a timeout.
+        return terminated | hard, timeout & ~hard
 
     def log_reset(self, ids):
         """Log original weighted reward sums before resetting only these episodes."""
@@ -245,7 +256,7 @@ class ScutBridge:
         high[..., :2] -= offset[:, None, :2]
         contact = self.tensor(self.current_sensor.data.net_forces_w)[:, self.current_contact_order]
         # Strict support uses current400Hz force, separate from SCUT5ms history.
-        nonwheel = contact[:, r._undesired_contact_link_idx].norm(dim=-1).amax(-1)
+        nonwheel = contact[:, r._nonwheel_contact_link_idx].norm(dim=-1).amax(-1)
         self.acceptance.update(low, high, self.top_force, self.ground_force,
             contact[:, r._wheel_link_idx], nonwheel, body.root_lin_vel_w,
             body.root_quat_w, torch.ones(self.n, dtype=torch.bool, device=self.device))
@@ -265,7 +276,21 @@ class ScutBridge:
         fallback[..., 2] = fallback_z[:, None]
         return starts, torch.where(torch.isfinite(hits).all(-1, keepdim=True), hits, fallback)
 
-    def read_reward_scans(self, ids=None):
+    def read_forward_scan(self, stair):
+        """Query lazily in the original helper order, after any command resample."""
+        r = self.reward
+        cfg = r.cfg.stair_state_machine_cfg if stair else r.cfg.wheel_forward_scan_cfg
+        if not r.cfg.wheel_forward_scan_cfg.get('enabled', False) or not cfg.get('enabled', False):
+            return None, None
+        body = r.robot.data
+        wheels = body.body_pos_w[:, r._wheel_link_idx]
+        _, _, yaw = euler_xyz_from_quat(body.root_quat_w)
+        direction = torch.where(r.command[:,0] < 0, -1., 1.)
+        heading = torch.stack((torch.cos(yaw)*direction, torch.sin(yaw)*direction, torch.zeros_like(yaw)), -1)
+        offset = float(cfg.get('scan', {}).get('forward_offset', .2 if stair else .1))
+        return self.raycast(wheels + heading[:,None,:]*offset, r.ground_z_est)
+
+    def read_reward_scans(self, ids=None, forward=True):
         """Read reset poses selectively; retain other envs' temporal scan cache."""
         r = self.reward
         body = r.robot.data
@@ -280,13 +305,13 @@ class ScutBridge:
         # chassis ground for both wheels. Direct wheel rays change this reward.
         wheel_ground = ground[:, None].expand(-1, 2).clone()
         _, _, yaw = euler_xyz_from_quat(body.root_quat_w[select])
-        commands = self.env.command_manager.get_command('twist')[select]
+        commands = r.command[select]
         direction = torch.where(commands[:, 0] >= 0, 1., -1.)
         heading = torch.stack((torch.cos(yaw)*direction, torch.sin(yaw)*direction,
                                torch.zeros_like(yaw)), -1)
         far = wheels + heading[:, None, :]*float(r.cfg.wheel_forward_scan_cfg.get('scan', {}).get('forward_offset', .10))
         near = wheels + heading[:, None, :]*float(r.cfg.stair_state_machine_cfg.get('scan', {}).get('forward_offset', .2))
-        if r.cfg.wheel_forward_scan_cfg.get('enabled', False):
+        if forward and r.cfg.wheel_forward_scan_cfg.get('enabled', False):
             far, far_hits = self.raycast(far, ground)
             near, near_hits = self.raycast(near, ground)
         else:
@@ -298,8 +323,8 @@ class ScutBridge:
     def prepare_endpoint(self):
         r = self.reward
         body = r.robot.data
-        ground, wheel_ground, far, far_hits, near, near_hits = self.read_reward_scans()
-        commands = self.env.command_manager.get_command('twist')
+        ground, wheel_ground, far, far_hits, near, near_hits = self.read_reward_scans(forward=False)
+        commands = r.command
         contacts = self.tensor(self.sensor.data.net_forces_w_history)[:, :, self.contact_order]
         bad = torch.zeros(self.n, dtype=torch.bool, device=self.device)
         for key in ('joint_pos', 'joint_vel', 'root_pos_w', 'root_quat_w'):
@@ -313,6 +338,7 @@ class ScutBridge:
         """Original post-reward observation hook, once per returned observation."""
         r = self.reward
         r._cached_wheel_kinematics_valid = False
+        r.finish_observation()  # env.py:3107-3108, before command/state hooks
         r.command = self.env.command_manager.get_command('twist').clone()
         r.height_cmd = self.task.height_cmd(self.env).reshape(-1).clone()
         r.episode_length_buf.copy_(self.env.episode_length_buf)
@@ -321,7 +347,6 @@ class ScutBridge:
             r.refresh_reset_scans(ids, *self.read_reward_scans(ids))
             self.reset_scan_pending[ids] = False
         r._on_command_updated()
-        r.state_machine_manager.on_observation_step(r)
 
     def read_manifold(self):
         """Read actual400Hz normal force, points and normals for strict evaluation."""
@@ -369,32 +394,37 @@ class ScutBridge:
         """35 actor; 78 critic with actual MOD4 equivalents of SCUT privileged fields."""
         r = self.reward
         self.refresh_observation_context()
-        part = lambda key, value, stream='critic': observation_component(r.cfg, key, value, stream=stream)
+        # env.py:3123-3131 captures height before the observation-state update.
+        # A machine may change its effective target on this very observation.
+        height_cmd = r._get_effective_height_cmd().clone()[:, None]
+        obs_height = r._get_observed_height()[:, None]
+        r.wheel_relative_ground_heights = r._get_wheel_relative_ground_heights_raw()
+        r.state_machine_manager.on_observation_step(r)
         mode = r._get_ctrl_mode_obs_raw()
-        actor, critic = raw['policy'].clone(), raw['critic'].clone()
+        actor, critic = raw['policy'], raw['critic']
         if actor.shape != (self.n, 35) or critic.shape != (self.n, 38):
             raise ValueError('Unexpected MOD4 observation layout')
-        for value, stream in ((actor, 'policy'), (critic, 'critic')):
-            value[:, -7:] = part('ctrl_mode_obs', mode, stream)
-            value[:, :3] = part('command', r.command, stream)
-            value[:, 3] = part('height_cmd', r._get_effective_height_cmd(), stream)
-        # MOD4 clean critic layout differs from SCUT: reorder base38 into the same
-        # 35 actor fields plus privileged base velocity(3) and measured height(1).
+        # Unscale only the known MOD4 measurement fields; command/height/actions
+        # come from the exact SCUT lifecycle, not stale manager placeholders.
         clean = torch.cat((critic[:, :7], critic[:, 10:]), -1)
-        for value, stream in ((actor, 'policy'), (clean, 'critic')):
-            # Original MOD4 managers already apply these scales. Undo only that
-            # known scale before the pinned clip -> scale transform.
-            for key, span, old_scale in (
-                ('root_ang_vel_b', slice(4, 7), .5),
-                ('projected_gravity_b', slice(7, 10), 1.),
-                ('joint_pos', slice(10, 16), 1.),
-                ('joint_vel_leg', slice(16, 20), .1),
-                ('joint_vel_wheel', slice(20, 22), .1),
-                ('actions', slice(22, 28), 1.)):
-                value[:, span] = part(key, value[:, span]/old_scale, stream)
-        height = part('obs_height', r._get_observed_height()[:, None])
-        velocity = part('root_lin_vel_b', r.robot.data.root_lin_vel_b)
-        obs = torch.cat((clean, velocity, height), -1)  # 39
+        def blocks(value):
+            return dict(command=r.command, height_cmd=height_cmd,
+                root_ang_vel_b=value[:, 4:7]/.5, projected_gravity_b=value[:, 7:10],
+                joint_pos=value[:, 10:16], joint_vel_leg=value[:, 16:20]/.1,
+                joint_vel_wheel=value[:, 20:22]/.1, actions=r._actions)
+        policy_blocks = blocks(actor)
+        policy_blocks['ctrl_mode_obs'] = mode
+        critic_blocks = blocks(clean)
+        # env.py:3262-3295: 28 base, velocity3, height1, mode7, privileged39.
+        # Placing mode before velocity/height preserves width78 but changes slots.
+        critic_blocks.update(root_lin_vel_b=r.robot.data.root_lin_vel_b,
+                             obs_height=obs_height, ctrl_mode_obs=mode)
+        r.cache_raw_observations(policy_blocks, critic_blocks)
+        def encode(blocks_, stream):
+            return torch.cat([observation_component(r.cfg, key, value, stream)
+                              for key, value in blocks_.items()], -1)
+        policy = encode(policy_blocks, 'policy')
+        obs = encode(critic_blocks, 'critic')
         ids = r._actuate_idx
         pd = self.env._explicit_pd
         pd_order = indices(pd.leg_ids+pd.wheel_ids, ids)
@@ -421,13 +451,15 @@ class ScutBridge:
                   ('act_delay_steps', act_delay), ('wheel_body_lin_vel', wheel_vel.flatten(1)),
                   ('wheel_contact_state', contacts), ('body_mass_scale', mass_ratio),
                   ('body_material', material)]
-        extra = torch.cat([part(name, value) for name, value in fields], -1)
+        extra = encode(dict(fields), 'critic')
         if extra.shape[-1] != 39:
             raise ValueError('SCUT privileged39 field layout mismatch')
-        return dict(policy=actor, critic=torch.cat((obs, extra), -1))
+        return dict(policy=torch.nan_to_num(policy, nan=0., posinf=0., neginf=0.),
+                    critic=torch.nan_to_num(torch.cat((obs, extra), -1), nan=0., posinf=0., neginf=0.))
 
     def close(self):
         self.env.scene.update = self.original_update
         self.env.reward_manager.compute = self.original_reward
         self.env.termination_manager.compute = self.original_done
         self.env._reset_idx = self.original_reset
+        self.env.command_manager.compute = self.original_command_compute

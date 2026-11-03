@@ -11,6 +11,13 @@ CONTRACT_SHA = 'bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755
 LEGS = ('left_crank', 'left_hip', 'right_crank', 'right_hip')
 WHEELS = ('left_wheel_spin', 'right_wheel_spin')
 WHEEL_BODIES = ('left_wheel', 'right_wheel')
+GUIDE_BODIES = tuple(f'guide_roller_{i:02d}' for i in range(8))
+# The V14 subclass (env.py:117-130) adds guides back to base harmful contacts.
+# MOD4's additional drive/gas bodies belong to the non-rolling leg structure.
+STRUCTURAL_BODIES = ('chassis',) + tuple(
+    side+'_'+part for side in ('left', 'right') for part in
+    ('coupler', 'distal', 'drive_hip', 'drive_input', 'gas_barrel', 'gas_inner',
+     'input', 'rocker', 'shin', 'thigh'))
 
 
 def read_yaml(key):
@@ -34,7 +41,7 @@ def reward_config(profile='trained_stair'):
     for key in ('rewards', 'airborne_state_machine_cfg', 'jump_takeoff_state_machine_cfg',
                 'stair_state_machine_cfg', 'wheel_forward_scan_cfg',
                 'obs_input_clip_cfg', 'obs_input_scale_cfg', 'obs_input_scale_streams',
-                'height_obs_clip_range'):
+                'height_obs_clip_range', 'height_range', 'jump_takeoff_permission_cfg'):
         values[key] = deepcopy(raw.get(key, {}))
     values['sim'] = SimpleNamespace(gravity=(0., 0., -9.81))
     values['use_absolute_height'] = False
@@ -42,6 +49,7 @@ def reward_config(profile='trained_stair'):
     values['front_rear_joint_limit_rewards_enabled'] = False
     values['leg_action_mode'] = 'joint_pos'
     values['leg_action_dim'] = 4
+    values['use_gimbal'] = False  # MOD4v1 has no gimbal; V14 no-gimbal contact branch
     values['reward_groups_enabled'] = False
     for key in ('airborne_state_machine_cfg', 'jump_takeoff_state_machine_cfg'):
         values[key].setdefault('enter', {})['wheel_radius'] = .0625
@@ -49,6 +57,8 @@ def reward_config(profile='trained_stair'):
     # Both optional physical assists remain disabled. These are reward/state hooks only.
     values['jump_takeoff_state_machine_cfg'].setdefault('assist', {})['enabled'] = False
     if profile == 'jump270':
+        values['height_range'] = (.25, .25)
+        values['episode_length_s'] = 8.
         values['enable_state_machines'] = True
         for key in ('airborne_state_machine_cfg', 'stair_state_machine_cfg', 'wheel_forward_scan_cfg'):
             values[key]['enabled'] = True
@@ -66,6 +76,18 @@ def reward_config(profile='trained_stair'):
         }
         values['rewards'].update(mod4_stair_wheel_clearance=1., mod4_stair_height=1.)
     return SimpleNamespace(**values)
+
+
+def command_recipe(profile):
+    """Saved command distribution; the 270mm course override is explicit."""
+    raw = deepcopy(read_yaml('trained_env')['commands'])
+    if profile == 'jump270':
+        raw.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0.,
+                   special_modes=())
+        raw['ranges'].update(lin_vel_x=(.6, .6), lin_vel_y=(0., 0.), ang_vel_z=(0., 0.))
+    elif profile != 'trained_stair':
+        raise ValueError('Unknown SCUT profile')
+    return raw
 
 
 def ground_scan_config():

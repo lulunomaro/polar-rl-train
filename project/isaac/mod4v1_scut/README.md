@@ -2,7 +2,9 @@
 
 本目录是独立的 USD 适配实现，原 H1 冻结训练目录继续保留。2026-11-03 已完成软件接口和 CPU 集成验证；尚未在目标定制 Isaac SDK 上启动本适配的原生物理或训练，不能称原生适配验收完成，也没有新策略跳过 270mm 的结果。
 
-**复核结论：这不是整条程序逐字、逐行为完全等价的移植。** 基础奖励函数体来自固定原源码；输入绑定、模型语义、观测、终止和训练接口需单独核对。本次复核发现并修复了扫描定义、状态更新时序、重置缓存和软限位公式等问题，详见 `history/reviews/20261103-mod4v1-scut-adaptation/REAUDIT_FINDINGS.md`。原 14,492 行处理索引保留为历史版本，不能据此声称每行已动态验证。当前实现仅有 USD 路径，未完成独立 MJCF 后端。
+本轮按最终生效的 **V14 → V13 → wheelbipe25_v3** 继承链补齐了逐行适配，修正了 critic 字段顺序、原始终止计数、命令采样与同步、观测时序和导轮接触分组。当前代码的行号、处理理由和检查依据见 `history/reviews/20261103-mod4v1-scut-adaptation/LINE_ADAPTATION.md`、`LINE_ALIGNMENT.jsonl`、`LINE_ALIGNMENT_RULES.json`；每条来源行都有处理记录。原 `LINE_MAP.jsonl` 的14,492行和 `REAUDIT_FINDINGS.md` 保留为历史记录，不能拿旧行号或旧结论描述当前代码。
+
+**这是一份逐行追溯的模型适配，不是整条程序逐字等价或所有行已原生执行的证明。** 原奖励函数体保持固定来源；MOD4几何、PD、随机化、场地与缺失机构均有明确替换。当前实现为USD后端；原生SDK验证与270mm技能验收尚待执行。
 
 原始来源固定为 `scutrobotlab/wheeled-legged_RL@1a26356d6f591734d4f6f666f5cead1a6925da67`。SOURCES.json 保存每个来源的原路径、SHA256、Git blob 和既有归档位置。原始 MIT 版权与许可位于仓库 `history/reviews/20261103-scut-jump-reward-linebyline/LICENSE_SCUT.txt`，原作者为 SCUTRobotLab。数学函数由 upstream.py 从原文件 AST 加载，保留函数体和原行号，不复制整个上游工程。
 
@@ -21,25 +23,26 @@
 | 基础奖励 | 86 个 rew 项与门控 | 原函数体计算86项；保存配方37个权重键中26项非零，jump270为39键/28项非零。先状态机处理，后乘一次 dt=.02、配置权重、逐环境 sanitize，再求和 |
 | 腾空与台阶分支 | Airborne/JumpTakeoff/StepUp/Stair | 原状态函数保留；顺序 Airborne→JumpTakeoff→StepUp→Stair；启用范围由下方 profile 明示；物理助推关闭 |
 | 场地与扫描 | 原粗糙地形扫描 | 每环境真实 0.27m 高台，近沿 x=.8、长3m、宽2m；机身扫描恢复保存配置的1cm分辨率/2cm网格/+5m起点。保存配置轮下scanner为空，两轮地面高度同取机身扫描；前扫用真实mesh，漏扫依原函数回退 |
-| 接触 | 三帧、5ms 历史窗口 | 奖励继续读 5ms/三帧传感器；独立验收读 400Hz actual manifold 点、法线、力，区分地面与台顶 |
-| 观测 | SCUT actor35、critic78 | 保留 MOD4 actor 100Hz noise/bias/delay，35维；critic clean38 重新排序成35字段，再加 base velocity3、高度1、特权39；裁剪后缩放遵循保存 YAML |
+| 接触 | 三帧、5ms 历史窗口；V14覆盖基础接触列表 | 奖励读5ms/三帧传感器，按名字重排到31body次序；29个非主轮body含8导轮用于有害接触。无云台分支的终止集合为chassis+8导轮；strict270另读400Hz实际manifold |
+| 观测 | SCUT actor35、critic78 | actor为基础28+mode7；critic为clean基础28+body velocity3+observed height1+mode7+特权39，顺序与原代码一致；MOD4 100Hz noise/bias/delay及clip→scale保留 |
 | 生命周期 | DirectRLEnv callbacks | 同一 pre-reset 端点先done后reward；Airborne按原height helper更新，StepUp/Stair原command hook在reward尾部及observation各一次。重复读取同一观测不再次推进状态；仅重置环境重新取扫描，清除上一局历史 |
-| 终止 | 原SCUT姿态/接触连续门槛 | 保留MOD4姿态.75rad、chassis50N等终止与closure/mimic；这不等于原SCUT40°/base1N/连续20controls。原数值异常阈值已接回，墙事件不可取消closure/mimic/数值异常的强制重置 |
+| 终止 | 原SCUT姿态/接触连续门槛 | 直接载入原_get_dones及duration函数：接触>1N、roll/pitch>40°、连续20controls、timeout=max_episode_length−1；MOD4 .01m closure/.01rad mimic和非有限仍立即单环境重置。移除旧.75rad/chassis50N/低机身终止；墙事件不可取消强制重置 |
+| 命令 | SpecialModeUniformVelocityCommand及V13同步 | 原完整命令模块按SHA引用，奖励先使用旧命令，再在reward尾部推进一次采样、height和state hooks；V13把覆盖后的命令写回generator。Manager后续compute被抑制，避免重复时钟 |
 | PPO | 上游普通 RSL PPO | 适配 RSL5 TensorDict 与分离 actor/critic API，保持保存配方的 rollout24→GAE→PPO；不是 H1 residual/WM 算法 |
-| 完整保存 | 上游 runner checkpoint | 原子保存 actor、critic、Gaussian STD、Adam、LR、iteration、D0–D7 RNG/组件/队列及奖励窗口；恢复后一次 fresh physical reset，不宣称续接 PhysX 状态 |
+| 完整保存 | 上游 runner checkpoint | 原子保存actor、critic、Gaussian STD、Adam、LR、iteration、D0–D7 RNG/组件/队列及奖励窗口。使用FULL_V2与显式观测语义标识；拒绝错位的V1。恢复后一次fresh physical reset，旧接触窗口不装入新场景 |
 | 成功验收 | SCUT 状态机成功事件 | 独立 strict270：首次飞行整轮后缘 footprint 越沿、双轮实际台顶支持、无地面/沿返回，速度≤.03m/s、roll/pitch≤10°、yaw≤.2rad 连续≥.5s；状态机事件不算验收通过 |
 
-actor35 顺序为 command3、height1、angular velocity3、gravity3、leg position4、wheel position占位2、leg velocity4、wheel velocity2、last action6、mode7。critic78 先使用上述 clean35，再加 body velocity3、observed height1；特权39为 stiffness6、damping6、torque6、feedback delay4、action delay2、轮相对速度6、轮接触2、chassis mass ratio1、左右轮材料6。MOD4 feedback 延迟是一个实际 0/10ms 通道配置，按上游四类特权位置表示；两动作队列的延迟仍以原物理 tick 表示，不伪造 SCUT 的时钟。
+actor35 顺序为 command3、height1、angular velocity3、gravity3、leg position4、wheel position占位2、leg velocity4、wheel velocity2、last action6、mode7。critic78 在前28个clean字段后接 body velocity3、observed height1、mode7、特权39；不能把mode放到velocity前面。特权39为 stiffness6、damping6、torque6、feedback delay4、action delay2、轮相对速度6、轮接触2、chassis mass ratio1、左右轮材料6。MOD4 feedback延迟是一个实际0/10ms通道配置，按上游四类特权位置表示；两动作队列的延迟仍以原物理tick表示。
 
 ## 配置选择与训练配方
 
-- `trained_stair`：公开台阶模型保存的全部基础 reward 权重和 helper 参数；状态机/前扫辅助关闭。模型、动作、DR、时钟和场地按 MOD4 替换，所以是该奖励配方的移植，不是原机器人复现。
+- `trained_stair`：公开台阶模型保存的基础reward权重、helper、PPO和基础命令配方；状态机/前扫辅助关闭。恢复原速度范围、heading、special modes、10% standing、5–15s重采样、height .2–.42m、20s episode及训练起始随机episode时钟。原rough地形生成器的按地形命令/高度覆盖、边界重置与云台分支未在当前固定270mm场地启用，所以不是完整rough训练复现。
 - `jump270`：在上述权重上开启 Airborne、StepUp、Stair；把原 0.12–0.14m 检测改为 0.25–0.29m，wall 阈值 .30m，前扫 height bias .27m/max .61m；Stair 相对台面身体高度目标 .25–.34m；启用原 Stair 支持的轮底净空与身体高度指数奖励，各权重1、sigma .01。这些是本任务配置选择，未经原生验证的可达性和效果不作结论。
 - `current_airborne_config()`：保留当前 V14 落地前轮速、零扭矩、居中、软限位等字典提取路径，仅供核对/CPU 分支测试，目前不是训练 CLI profile；不冒称它随两个 profile 自动启用。
 
-两个 CLI profile 的 JumpTakeoff 均关闭；其完整奖励函数已加载并测试可选分支，但不称生产执行。SCUT 可选外力/速度 assist 关闭。当前任务从地面起步，不搬入 SCUT airborne-reset 或 gimbal 模型。
+两个CLI profile的JumpTakeoff均关闭；其完整奖励函数已加载并测试可选分支，但不称生产执行。SCUT可选外力/速度assist关闭。当前任务从地面起步，使用MOD4 reset，不搬入SCUT airborne-reset、预定义倒地恢复或gimbal模型。jump270明确使用vx=.6、vy=wz=0、无special/heading/standing、height=.25、8s episode并从零episode时钟开始。
 
-PPO：actor/critic 各 `[256,128,64]` ELU，Gaussian std 初值1，rollout24、5 epochs、4 minibatches、LR1e-4/adaptive KL .01、gamma .99、lambda .95、clip .2、entropy .005、value coefficient2、gradient norm1、不作 observation normalization。actor35/critic78 与原 H1 actor103/critic106 不兼容；恢复只接受本适配格式，禁止自动扩输入或丢弃 Adam 假装完整续训。首次使用新接口需要新初始化，现有 H1 完整权重保留为其原始来源。
+PPO：actor/critic各 `[256,128,64]` ELU，Gaussian std初值1，rollout24、5 epochs、4 minibatches、LR1e-4/adaptive KL .01、gamma .99、lambda .95、clip .2、entropy .005、value coefficient2、gradient norm1、不作observation normalization。source任务失败与timeout同时出现时沿用原wrapper的timeout bootstrap；closure/mimic/数值强制重置清除timeout。actor35/critic78与原H1 actor103/critic106不兼容；恢复只接受 `MOD4V1_SCUT_FULL_V2` 及当前字段语义，禁止自动扩输入或丢弃Adam假装完整续训。旧V1即使维度相等也拒绝载入。
 
 时钟与物理保持 .0025s、TGS32/4、policy50Hz、feedback100Hz，0.01m closure 为单环境重置、mimic .01rad；D0white_v3/D1–D7、工程气弹簧400N/k2000/damping3、原 PD/DC 与队列使用原共享实现。D6 仅 gas damping，不能称覆盖所有关节摩擦。新 USD SHA256 为 `2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3`；contract 为 `bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755`。
 
@@ -47,9 +50,13 @@ PPO：actor/critic 各 `[256,128,64]` ELU，Gaussian std 初值1，rollout24、5
 
 仓库 `history/reviews/20261103-mod4v1-scut-adaptation/LINE_MAP.jsonl` 按原文件每个非空非注释行列出原行号、代码、函数、处理方式、目标文件与行号。`REWARD_TERMS.json` 另列每个基础项的原始表达式、行号与保存权重。被排除的 debug/视觉/gimbal/其它算法也列出原因。机械覆盖索引不等于每行都在原生运行中执行过。
 
+本轮 `LINE_ALIGNMENT.jsonl` 按20个固定来源文件的18,540个物理行补建当前对照，含空行/注释、V14/V13覆盖关系、原AST复用、模型替换、任务覆盖与未启用分支；再应用 `LINE_ALIGNMENT_CORRECTIONS.json` 的35行分类修正。原代码不另复制，行记录引用原SHA/blob和原行文本SHA；`LINE_ALIGNMENT_RULES.json` 给出具体目标文件/行、适配理由与检查函数。一个来源语句可能对应多个目标语句，反之亦然；不靠增加空行伪造一对一行号。
+
+本轮最新三份报告为 `LINE_PARITY_ATTEMPT6.json`（16项）、`LINE_PARITY_REGRESSION_ATTEMPT3.json`（14项）、`LINE_PARITY_RSL_INTEGRATION_ATTEMPT3.json`（12项），合计42项CPU检查通过，包含26个启用基础奖励的独立NumPy核算及真实RSL合成rollout/GAE/update/save/load。0生产PT读取、0原生physics、0GPU训练。Attempt3/4曾错误采用基类的导轮排除，虽fixture通过，人工追到V14后发现最终覆盖不同；已修复并在Attempt5/6验证，前报告完整保留并标明已被后续语义审查替代。
+
 `CPU_VALIDATION_ATTEMPT5.json`：12项通过，含86基础项、45类可选奖励、打乱 runtime 名称映射、四元数双约定、dt一次、终态/重置顺序、观测与接触清理、有限圆柱 footprint/首次飞行反例，以及真实 RSL5 的24步 rollout、独立重算GAE、PPO update、完整存取与命令计时张量恢复。使用合成张量，0生产PT读取、0新 physics、0新GPU训练。早期 fixture 错误和轮圆柱近轴 float32 消减误差保留在 Attempt1/3，修复未覆盖失败报告。
 
-2026-11-03 再复核：`REAUDIT_NUMPY_ORACLE_ATTEMPT2.json` 的14项通过，包含用独立 NumPy 方程核算全部26个非零基础奖励及其加权总和（9种合成姿态/速度/动作/接触/终止输入）；`CPU_REAUDIT_INTEGRATION_ATTEMPT1.json` 的原12项集成检查通过。合计26项检查，不代表26个原生episode或所有条件组合。首轮复核5失败/3缺API错误、独立方程首轮float64/float32死区边界差异均保留；后者是测试输入精度问题，修复测试未改生产奖励。最新目标位置与源SHA见 `REAUDIT_LINE_MAP_DELTA.json` 和 `REAUDIT_SOURCE_INDEX.json`。
+上一轮再复核：`REAUDIT_NUMPY_ORACLE_ATTEMPT2.json` 的14项通过，包含用独立NumPy方程核算全部26个非零基础奖励及其加权总和（9种合成姿态/速度/动作/接触/终止输入）；`CPU_REAUDIT_INTEGRATION_ATTEMPT1.json` 的原12项集成检查通过。旧报告合计26项检查，不代表26个原生episode或所有条件组合。首轮复核5失败/3缺API错误、独立方程首轮float64/float32死区边界差异均保留；后者是测试输入精度问题，修复测试未改生产奖励。`REAUDIT_LINE_MAP_DELTA.json` 和 `REAUDIT_SOURCE_INDEX.json` 是上一轮身份；当前以 `LINE_ALIGNMENT_RULES.json` 和 `LINE_ADAPTATION_SOURCE_INDEX.json` 为准。
 
 任务层面仍有两点需要实际训练验证：恒定前进命令0.6m/s没有台顶停稳阶段，不能等同于验收要求的速度≤0.03m/s；近沿机身仍在低地时，基础高度项相对机身下地面，而新增Stair项相对目标台面，两项可能暂时拉向不同高度。本次保留这些显式任务配置，未把奖励重设计混称为一比一修复。原生SDK、完整D0–D7读回、扫描和400Hz接触仍待验证。
 

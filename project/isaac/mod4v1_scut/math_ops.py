@@ -7,11 +7,12 @@ import torch
 
 
 def wrap_to_pi(x):
-    return (x + torch.pi) % (2 * torch.pi) - torch.pi
+    wrapped = (x + torch.pi) % (2 * torch.pi)
+    return torch.where((wrapped == 0) & (x > 0), torch.pi, wrapped - torch.pi)
 
 
-def quat_inv(q):
-    return torch.cat((q[..., :1], -q[..., 1:]), -1) / q.square().sum(-1, keepdim=True)
+def quat_inv(q, eps=1.e-9):
+    return torch.cat((q[..., :1], -q[..., 1:]), -1) / q.square().sum(-1, keepdim=True).clamp_min(eps)
 
 
 def quat_apply(q, v):
@@ -21,7 +22,11 @@ def quat_apply(q, v):
 
 
 def quat_apply_inverse(q, v):
-    return quat_apply(quat_inv(q), v)
+    # Isaac's inverse-rotation helper uses the conjugate directly; quat_inv
+    # additionally divides by squared norm and differs for rounded inputs.
+    xyz = q[..., 1:]
+    t = 2 * torch.cross(xyz, v, dim=-1)
+    return v - q[..., :1] * t + torch.cross(xyz, t, dim=-1)
 
 
 def quat_from_euler_xyz(r, p, y):

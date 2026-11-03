@@ -1,0 +1,922 @@
+{
+  "comment": {
+    "disposition": "non_executable",
+    "reason": "原空白/注释/文档字符串保留在固定来源；不伪造目标执行语句。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 50,
+        "end_line": 61,
+        "symbol": "source_path",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "not_applicable"
+  },
+  "module": {
+    "disposition": "module_binding",
+    "reason": "SCUT导入由SHA校验的AST绑定或原命令模块加载替代；不实例化原机器人。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 64,
+        "end_line": 82,
+        "symbol": "load_functions",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/commands.py",
+        "line": 9,
+        "end_line": 29,
+        "symbol": "build_command_cfg",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "base_exact": {
+    "disposition": "exact_ast_reference",
+    "reason": "BASE_METHODS原AST函数体和原行号未改；输入由MOD4桥接，具体分支不等于均已动态执行。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 121,
+        "end_line": 129,
+        "symbol": "bind_base_functions",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_reward_formula_and_one_dt",
+      "review_tests.test_all_26_enabled_base_terms_against_independent_numpy_equations"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "done_exact": {
+    "disposition": "exact_ast_plus_model_guards",
+    "reason": "原>1N/40deg/连续20controls/max-1终止；V14无云台接触集合按MOD4替换，closure/mimic/非有限立即重置。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 121,
+        "end_line": 129,
+        "symbol": "bind_base_functions",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 218,
+        "end_line": 234,
+        "symbol": "resolve_done",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_contact_and_orientation_need_twenty_consecutive_controls",
+      "parity_tests.test_duration_reset_is_per_environment_and_hard_guards_are_immediate",
+      "parity_tests.test_timeout_uses_original_maximum_minus_one_and_wall_is_not_failure"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "state_exact": {
+    "disposition": "exact_ast_reference",
+    "reason": "状态类原AST加载；trained_stair关闭状态机，jump270启用Airborne/StepUp/Stair；JumpTakeoff仅可选CPU分支。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 89,
+        "end_line": 99,
+        "symbol": "state_classes",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 40,
+        "end_line": 335,
+        "symbol": "ScutRewards",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_all_optional_reward_types_execute",
+      "review_tests.test_scan_state_is_advanced_after_current_reward"
+    ],
+    "profiles": "trained_stair:disabled; jump270:Airborne/StepUp/Stair only",
+    "target_native": "pending"
+  },
+  "state_visual": {
+    "disposition": "disabled_visual",
+    "reason": "状态图标仅可视化，本入口未调用；不得标成原生执行。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 89,
+        "end_line": 99,
+        "symbol": "state_classes",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "not_selected"
+  },
+  "assist": {
+    "disposition": "disabled_assist",
+    "reason": "外力/速度助推关闭，JumpTakeoff未选中；仅保留固定原函数来源。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 58,
+        "end_line": 58,
+        "symbol": "reward_config",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "neither",
+    "target_native": "not_selected"
+  },
+  "motors": {
+    "disposition": "robot_semantics_replaced",
+    "reason": "SCUT rear2没有MOD4同义关节，按四crank/hip真实限位替换；基础normalized square与Airborne弧度L1分别保留。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 142,
+        "end_line": 168,
+        "symbol": "motor_stop_terms",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_airborne_limit_keeps_upstream_l1_units",
+      "review_tests.test_base_limit_uses_configured_boundary_ratio"
+    ],
+    "profiles": "CLI weights disabled; optional current V14 CPU candidate",
+    "target_native": "pending"
+  },
+  "kinematic": {
+    "disposition": "robot_geometry_replaced",
+    "reason": "轮半径.0625、宽.02、hip锚点/圆柱姿态使用增强MOD4v1契约；保留原公式定义。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 128,
+        "end_line": 140,
+        "symbol": "_get_wheel_motor_z_axis_align_error_sq",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/acceptance.py",
+        "line": 10,
+        "end_line": 31,
+        "symbol": "wheel_bounds",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_joint_names_and_motor_stop",
+      "validate.test_cylinder_bounds_and_strict_first_flight"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "height": {
+    "disposition": "sdk_sensor_binding",
+    "reason": "保存配方无左右轮scanner，轮下地面均取机身实际ray；原高度语义保留，不输入解析平台GT。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 293,
+        "end_line": 321,
+        "symbol": "read_reward_scans",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 181,
+        "end_line": 182,
+        "symbol": "_get_current_wheel_ground_z_raw",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_saved_recipe_wheel_ground_uses_chassis_scan_and_invalid_fallback"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "forward": {
+    "disposition": "sdk_lazy_raycast_binding",
+    "reason": "按第一次helper请求延迟查询，缓存当步命令方向；+5m/原max_distance/漏扫回退，重置环境单独播种。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 196,
+        "end_line": 208,
+        "symbol": "forward_scan",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 279,
+        "end_line": 291,
+        "symbol": "read_forward_scan",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 264,
+        "end_line": 277,
+        "symbol": "raycast",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_forward_scan_is_lazy_at_first_use_and_keeps_resampled_direction",
+      "review_tests.test_reset_scan_reseeds_new_pose_without_erasing_peer_delta"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "obs": {
+    "disposition": "sdk_observation_binding",
+    "reason": "actor28+mode7，critic28+velocity3+height1+mode7+priv39；clip后scale。噪声/延迟按原MOD4 D0-D7。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 393,
+        "end_line": 458,
+        "symbol": "observations",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_critic_slot_order_and_sanitize_match_source_lines_3262_3295",
+      "review_tests.test_pd_privileged_fields_follow_named_action_order"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "obs_history": {
+    "disposition": "once_per_observation",
+    "reason": "动作历史在返回观测入口推进一次；getter缓存避免重复推进。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 287,
+        "end_line": 290,
+        "symbol": "finish_observation",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 90,
+        "end_line": 96,
+        "symbol": "get_observations",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_repeated_observation_read_does_not_advance_lifecycle"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "obs_height_order": {
+    "disposition": "ordered_endpoint_binding",
+    "reason": "有效height与observed height在observation状态更新前捕获，mode在其后捕获。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 399,
+        "end_line": 399,
+        "symbol": "observations",
+        "precision": "exact_statement"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 402,
+        "end_line": 402,
+        "symbol": "observations",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_critic_slot_order_and_sanitize_match_source_lines_3262_3295"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "obs_critic_slots": {
+    "disposition": "ordered_endpoint_binding",
+    "reason": "纠正相同78维却字段串位：前28后依次velocity3/height1/mode7/priv39。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 420,
+        "end_line": 420,
+        "symbol": "observations",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_critic_slot_order_and_sanitize_match_source_lines_3262_3295"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "obs_raw": {
+    "disposition": "raw_before_clip_binding",
+    "reason": "原raw最大值和非有限缓存，在裁剪/缩放/sanitize前采集，供原_get_dones读取。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 246,
+        "end_line": 252,
+        "symbol": "cache_raw_observations",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 422,
+        "end_line": 422,
+        "symbol": "observations",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_raw_observation_outliers_before_clip_reset_after_warmup"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "scale": {
+    "disposition": "clip_then_scale",
+    "reason": "原保存obs_input_clip_cfg/scale_cfg/scale_streams决定每个块，policy/critic分别处理。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 104,
+        "end_line": 117,
+        "symbol": "observation_component",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_observation_scaling_respects_stream_selection"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "command": {
+    "disposition": "source_command_timing",
+    "reason": "完整SpecialModeUniformVelocityCommand原模块复用；奖励尾部推进一次，V13同步覆盖结果；height按counter增长采样。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/commands.py",
+        "line": 32,
+        "end_line": 45,
+        "symbol": "RewardTailCommand",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 232,
+        "end_line": 239,
+        "symbol": "_resample_custom_cmd",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 254,
+        "end_line": 259,
+        "symbol": "_on_command_updated",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_real_reward_tail_uses_old_command_then_advances_once_and_samples_height",
+      "parity_tests.test_v13_inherited_hook_syncs_state_override_into_generator"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "command_exact": {
+    "disposition": "exact_module_reference",
+    "reason": "原命令模块完整SHA/blob引用；selected SpecialMode类及SDK父类CPU时序测试，另一个LinearStanding类未选中。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/commands.py",
+        "line": 9,
+        "end_line": 29,
+        "symbol": "build_command_cfg",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_original_command_class_and_sdk_parent_methods_on_cpu"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "v13_sync": {
+    "disposition": "exact_ast_reference",
+    "reason": "V13实际继承的_sync_command_generator_command原AST载入，在状态机覆盖后调用。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/upstream.py",
+        "line": 121,
+        "end_line": 129,
+        "symbol": "bind_base_functions",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 254,
+        "end_line": 259,
+        "symbol": "_on_command_updated",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_v13_inherited_hook_syncs_state_override_into_generator"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "contact_base_overridden": {
+    "disposition": "superseded_by_v14",
+    "reason": "基类contact集合不是最终集合；V13/V14再次覆盖。按V14含导轮语义映射MOD4实际body。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 63,
+        "end_line": 63,
+        "symbol": "ScutRewards",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_v14_subclass_guide_contact_override_reaches_reward_and_strict_support"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "contact_v14": {
+    "disposition": "robot_contact_names_replaced",
+    "reason": "最终V14有害接触含guide：MOD429个非轮body；无gimbal终止分支为chassis+8guides。原有gimbal rough仅gimbal终止不适用于本模型。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 70,
+        "end_line": 70,
+        "symbol": "ScutRewards",
+        "precision": "exact_statement"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 52,
+        "end_line": 52,
+        "symbol": "reward_config",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_v14_subclass_guide_contact_override_reaches_reward_and_strict_support"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "construct": {
+    "disposition": "mod4_constructor_binding",
+    "reason": "原SCUT资产/关节/actuator/DR构造替换为增强MOD4v1与原共享PD/DC/D0-D7；不是同物理MDP。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 134,
+        "end_line": 281,
+        "symbol": "main",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 63,
+        "end_line": 107,
+        "symbol": "configure",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 40,
+        "end_line": 335,
+        "symbol": "ScutRewards",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_joint_names_and_motor_stop"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "reset": {
+    "disposition": "mod4_ground_reset_and_state_reset",
+    "reason": "MOD4 ground-start重置；原状态窗口/duration/动作历史按env清理，实际reset后刷新扫描；无原air/predefined倒地重置。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 155,
+        "end_line": 213,
+        "symbol": "install_hooks",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 313,
+        "end_line": 335,
+        "symbol": "reset",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 292,
+        "end_line": 311,
+        "symbol": "refresh_reset_scans",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_termination_and_selected_reset",
+      "review_tests.test_reset_clears_episode_clock_only_for_selected_env"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "action": {
+    "disposition": "mod4_actuator_queue_binding",
+    "reason": "六动作按名字绑定crank/hip/wheels；保留MOD4 .5rad腿/10rad_s轮目标、PD/DC/物理延迟队列；不是SCUT actuator等价。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 38,
+        "end_line": 54,
+        "symbol": "environment_settings",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 134,
+        "end_line": 281,
+        "symbol": "main",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 40,
+        "end_line": 335,
+        "symbol": "ScutRewards",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_joint_names_and_motor_stop"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "gimbal": {
+    "disposition": "absent_robot_mechanism",
+    "reason": "MOD4无gimbal；不绑定假关节，use_gimbal=False，V14 gimbal覆盖/控制/奖励不选中。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 52,
+        "end_line": 52,
+        "symbol": "reward_config",
+        "precision": "exact_statement"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "neither",
+    "target_native": "not_selected"
+  },
+  "terrain": {
+    "disposition": "explicit_course_substitution",
+    "reason": "原rough generator/按地形command-height覆盖/边界reset没有移植到单270mm场地。manager无generator元数据时禁用；按V13 fallback保留基础命令。不是完整rough训练。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 27,
+        "end_line": 56,
+        "symbol": "spawn_course",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 81,
+        "end_line": 90,
+        "symbol": "command_recipe",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 210,
+        "end_line": 214,
+        "symbol": "get_terrain_name_mask",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_original_command_distribution_not_fixed_point_six_for_saved_recipe"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "height_special": {
+    "disposition": "disabled_height_mode_branch",
+    "reason": "保存special velocity modes没有height_wave/height_step/height_range，jump permission关闭；仅基础height sampler与state override启用。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 241,
+        "end_line": 244,
+        "symbol": "resample_height",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/rewards.py",
+        "line": 125,
+        "end_line": 126,
+        "symbol": "_get_effective_height_cmd",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 81,
+        "end_line": 90,
+        "symbol": "command_recipe",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_real_reward_tail_uses_old_command_then_advances_once_and_samples_height"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "unused_observations": {
+    "disposition": "unselected_observation_algorithm",
+    "reason": "本配方是单帧普通PPO actor35/critic78；原history/NP3O/legacy/scan-dot等接口未选中。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 156,
+        "end_line": 166,
+        "symbol": "runner_config",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 393,
+        "end_line": 458,
+        "symbol": "observations",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "not_selected"
+  },
+  "debug": {
+    "disposition": "diagnostics_replaced",
+    "reason": "SCUT debug/marker/trace输出未调用；本适配记录分项episode日志与独立strict快照，不当作算法等价证据。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 236,
+        "end_line": 246,
+        "symbol": "log_reset",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 379,
+        "end_line": 391,
+        "symbol": "snapshot",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "not_selected"
+  },
+  "train": {
+    "disposition": "rsl5_training_adapter",
+    "reason": "普通PPO配方由保存YAML读取，RSL5分离actor/critic与TensorDict；rollout→GAE→update，完整原子保存。CLI/日志/预算由本入口接入。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 134,
+        "end_line": 281,
+        "symbol": "main",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 107,
+        "end_line": 115,
+        "symbol": "build_runner",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/checkpoint.py",
+        "line": 42,
+        "end_line": 64,
+        "symbol": "save",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_real_rsl_rollout_gae_update_save_restore"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "train_clocks": {
+    "disposition": "source_initial_episode_clock",
+    "reason": "原learn(init_at_random_ep_len=True)映射到trained_stair首次随机clock；jump270显式从0开始。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 118,
+        "end_line": 126,
+        "symbol": "initialize_episode_lengths",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_original_random_episode_clock_only_for_saved_training_profile"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "train_progress": {
+    "disposition": "source_iteration_binding",
+    "reason": "原training iteration同步到special command scheduler；恢复时同步已保存iteration。rough height curriculum未启用。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 129,
+        "end_line": 131,
+        "symbol": "set_training_iteration",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/checkpoint.py",
+        "line": 67,
+        "end_line": 102,
+        "symbol": "restore",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "wrapper": {
+    "disposition": "source_timeout_semantics",
+    "reason": "原wrapper返回timeout bootstrap保留；任务失败可与timeout共存，MOD4强制reset除外。返回观测只转换一次。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/train.py",
+        "line": 65,
+        "end_line": 104,
+        "symbol": "ScutVecEnv",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/sdk.py",
+        "line": 218,
+        "end_line": 234,
+        "symbol": "resolve_done",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_source_timeout_bootstrap_with_task_failure_but_not_mandatory_reset"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "restore": {
+    "disposition": "strict_new_interface_restore",
+    "reason": "旧H1/V1输入或字段语义不兼容；不扩维/不丢Adam。FULL_V2完整恢复学习与随机流后一次fresh物理reset。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/checkpoint.py",
+        "line": 67,
+        "end_line": 102,
+        "symbol": "restore",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_real_rsl_rollout_gae_update_save_restore"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "ppo": {
+    "disposition": "saved_ppo_recipe",
+    "reason": "保存agent.yaml中的普通PPO配方映射RSL5，未选其它算法类；actor/critic各自读取hidden_dims。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 156,
+        "end_line": 166,
+        "symbol": "runner_config",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_runner_uses_separate_actor_and_critic_dimensions"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "saved_reward_config": {
+    "disposition": "saved_reward_recipe",
+    "reason": "trained_stair原权重/helper；jump270显式改state/scan阈值并加2项Stair奖励，不能称原配置不变。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 34,
+        "end_line": 78,
+        "symbol": "reward_config",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "review_tests.test_reward_recipe_counts_are_explicit"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "saved_command_config": {
+    "disposition": "saved_command_recipe_with_task_override",
+    "reason": "trained_stair原ranges/heading/special/standing/resample，jump270恒速.6/0/0明确覆盖。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 81,
+        "end_line": 90,
+        "symbol": "command_recipe",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/commands.py",
+        "line": 9,
+        "end_line": 29,
+        "symbol": "build_command_cfg",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "parity_tests.test_original_command_distribution_not_fixed_point_six_for_saved_recipe"
+    ],
+    "profiles": "both",
+    "target_native": "pending"
+  },
+  "current_config": {
+    "disposition": "separate_current_branch",
+    "reason": "当前V14源码配置与公开已训练YAML不同；仅current_airborne_config抽取候选分支，未冒充两CLI profile启用。",
+    "targets": [
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 120,
+        "end_line": 153,
+        "symbol": "current_airborne_config",
+        "precision": "function_or_file"
+      },
+      {
+        "path": "project/isaac/mod4v1_scut/config.py",
+        "line": 34,
+        "end_line": 78,
+        "symbol": "reward_config",
+        "precision": "function_or_file"
+      }
+    ],
+    "cpu_checks": [
+      "validate.test_optional_current_config_is_separate"
+    ],
+    "profiles": "optional CPU candidate",
+    "target_native": "pending"
+  }
+}

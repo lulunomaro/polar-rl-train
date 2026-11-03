@@ -63,7 +63,7 @@ def load_guard(path):
 
 
 class ScutVecEnv:
-    """RSL5 TensorDict adapter; pure timeout mask preserves terminal GAE semantics."""
+    """RSL5 TensorDict adapter with the source infinite-horizon timeout mask."""
     def __init__(self, env, bridge, initial=None):
         self.env, self.bridge = env, bridge
         self.num_envs, self.num_actions, self.device = env.num_envs, 6, env.device
@@ -100,7 +100,7 @@ class ScutVecEnv:
         raw, reward, terminated, timeout, extras = self.env.step(action)
         self.current = raw
         info = dict(extras)
-        info['time_outs'] = timeout & ~terminated
+        info['time_outs'] = timeout  # vecenv_wrapper.py:186; hard resets resolved upstream
         return self.get_observations(), reward, terminated | timeout, info
 
 
@@ -113,6 +113,22 @@ def build_runner(vec, directory):
         raise RuntimeError('This explicit adapter targets RSL5; actual version: '+version)
     return OnPolicyRunner(vec, deepcopy(runner_config()),
                           log_dir=str(directory) if directory is not None else None, device=vec.device)
+
+
+def initialize_episode_lengths(vec, profile):
+    """train.py:275 requests staggered initial episode clocks for saved training.
+
+    jump270 independent first-flight episodes instead start at time zero. This
+    explicit task override does not change physical states or source rewards.
+    """
+    if profile == 'trained_stair':
+        import torch
+        vec.episode_length_buf = torch.randint_like(vec.episode_length_buf, high=vec.max_episode_length)
+
+
+def set_training_iteration(env, iteration):
+    term = env.command_manager.get_term('twist')
+    term.set_training_iteration(iteration)
 
 
 def main():
@@ -159,7 +175,7 @@ def main():
         cfg = task.Mod4EnvCfg()
         cfg.seed = args.seed
         cfg.sim.device = args.device
-        configure(cfg, args.num_envs)
+        configure(cfg, args.num_envs, args.profile)
         guard_module.configure_new_task(cfg, identity)
         env = ChassisPDMod4Env(cfg=cfg)
         if env.physics_dt != .0025 or env.step_dt != .02:
@@ -170,9 +186,11 @@ def main():
         # Runner construction only needs shapes, without resetting physics or RNG.
         vec.current = env.observation_manager.compute()
         runner = build_runner(vec, job)
+        env._get_training_iteration = lambda: runner.current_learning_iteration
         with guard.around_original_fullstate_restore():
             reset = restore(runner, env, bridge, args.resume, args.profile) if args.resume else env.reset()
         vec.current = reset[0] if isinstance(reset, tuple) else reset
+        initialize_episode_lengths(vec, args.profile)
         guard.check_observations(vec.current)
         startup = guard.receipt()
         if not (env._mild_dr.profile == 'white_v3'
@@ -211,8 +229,9 @@ def main():
             if stop or time.time()+max(30., 2*max_iteration_seconds) >= args.save_deadline:
                 break
             collect_start = time.time()
+            set_training_iteration(env, iteration)
             with torch.inference_mode():
-                for _ in range(24):
+                for _ in range(runner.cfg['num_steps_per_env']):
                     actions = runner.alg.act(obs)
                     obs, rewards, dones, extras = vec.step(actions)
                     obs, rewards, dones = obs.to(args.device), rewards.to(args.device), dones.to(args.device)

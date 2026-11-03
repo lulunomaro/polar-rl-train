@@ -1,0 +1,56 @@
+"""Reuse the existing SHA text archive and handoff with current task identities."""
+from pathlib import Path
+import argparse
+
+D=Path(__file__).resolve().parent
+R=D.parent
+P=R/'repair_v15/archive_handoff.py'
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['handoff','archive']);a=q.parse_args()
+    s=P.read_text(encoding='utf-8')
+    # The identities change in a recipe, not in the frozen prior source.
+    for old,new in [
+        ('20261103-v14-eval-v15-matched-batch','20261103-v15-eval-v16-actual-led'),
+        ('MOD4_STANDING200_RLBPTT_V14_1793685133426758900','MOD4_STANDING200_RLBPTT_V15_1793696903830432800'),
+        ('MATCHED_ACTUAL_V15','ACTUAL_LED_V16'),
+        ('V14_CLOSED_ACTUAL_EVALUATION_TRANSFER','V15_CLOSED_ACTUAL_EVALUATION_TRANSFER'),
+        ('STATUS_V15_FIRST_UPDATED','STATUS_V16_FIRST_UPDATED'),
+        ('STATUS_V15_POSTGO_FINITE_READ','STATUS_V16_POSTGO_FINITE_READ'),
+        ('FULL_RESTORE_V15','FULL_RESTORE_V16'),
+        ("== 3056","== 3107"),
+        ('V15_ORIGINAL','V16_ORIGINAL'),
+        ('V15_ACTUAL','V16_ACTUAL'),
+        ('LIVE_V15_MATCHED_BATCH','LIVE_V16_ACTUAL_LED'),
+        ('version=\'V15\'','version=\'V16\''),
+        ('FOUR4090_RESOURCE_ACTUAL_V15','FOUR4090_RESOURCE_ACTUAL_V16'),
+        ('PENDING_FINAL_V15','PENDING_FINAL_V16'),
+        ('Preserve healthy originalV15','Preserve healthy originalV16'),
+        ('repair_v15/control.py closed','repair_v16/control.py closed'),
+        ('CurrentV15 pending independent final80; completedV14 remains under prior_V14','CurrentV16 pending final80; completedV15 is under prior_V15'),
+        ('currentactorV15','currentactorV16'),
+        ('V15 unique closed transfer stillunused','V16 unique closed transfer stillunused'),
+        ('V14 actual80already0/80native reviewed','V15 actual80already0/80native reviewed'),
+        ('After actualnewV15 transfer','After actualnewV16 transfer'),
+        ('V15 FIRST','V16 FIRST'),
+        ('V15 finiteFIRST','V16 finiteFIRST'),
+        ('V15 consumed;','V16 consumed;'),
+        ('V15 finalV14 one-decode','V16 finalV15 one-decode'),
+        ('V14_actual_eval','V15_actual_eval'),
+        ('completed0/80;75orientation5timeoutsmean1.30775s','completed0/80;68orientation12timeoutsmean2.14575s'),
+        ("[D,R/'repair_v14',R/'reports',closed]", "[D,R/'repair_v15',R/'reports',closed]"),
+        ('oldV14_trialobject','oldV15_trialobject'),
+        ('oldV14_trialpeel','oldV15_trialpeel'),
+        ('2252f5e5ff5af7b0bdd75b62963a903375cb120a','454976d727588fc0433164cfdbf6d338ee3d9b7a'),
+        ('4d88bb97207242227289b02b9f8d51b211764600','61e5c5116aee1fe998c4e9a2e4ba684daacff7ef'),
+        ('ACTUAL_V14_FAILURE_AND_MATCHED_BATCH_V15','ACTUAL_V15_FAILURE_AND_ACTUAL_LED_V16'),
+    ]:
+        if old in s:s=s.replace(old,new)
+    s=s.replace("'CURRENT_WORK_ORDER.json',R/'repair_v11/analyze_final_v13.py'", "'CURRENT_WORK_ORDER.json',R/'repair_v11/analyze_final_v13.py'")
+    ns=dict(__name__='standing_v16_archive_recipe',__file__=str(D/'archive_handoff.py'))
+    exec(compile(s,str(P),'exec'),ns)
+    ns[a.mode]()
+
+
+if __name__=='__main__':main()

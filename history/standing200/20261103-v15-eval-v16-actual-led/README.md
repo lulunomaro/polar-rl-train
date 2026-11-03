@@ -1,0 +1,70 @@
+# Actual V15 standing200 failure and V16 actual-return-led RL+BPTT
+
+FinalV15 completed and closed with all own children waited, originalcost settled
+and leases released. Complete checkpoint239091217B SHA
+9f453d8b9af26b7d2b3070d80afd2c3a2414423da5a64c34162512035280e867,
+Pi3106/WM13084/aux13084/critic12840. It added51 accepted actor updates.
+Independent80 first episodes/freshDRseed9137/500controls10s/200mm completed:
+0strict,68orientation,12timeouts,mean2.14575s,zeroactualboth-wheel-top and
+zero stabletop. This is a completed skill failure, not pending evaluation.
+
+The current model native-reviewed eight side/top actual-body-pose sheets and
+two curve images for env0/1/40/41. Env0/1/41 tipped short of the step. Env40
+reached the riser around.8s and remained below the top before tipping.
+Right-wheel targets remain near59rad/s and the first.20s wheel differential
+is about51-53rad/s. Lowerwheel bottoms remain near ground. Initialdepth
+correctly detected200mm. The twelve10s survivors are not among selected4;
+all80 contact and success outcomes, not visual coverage, establish zero top.
+The V15 likelihood fix holds through final but did not solve coordinated ascent.
+
+V16 changes actor optimization only. It measures full actual-policy gradients
+and the combined original.1H32BPTT+.1antiwindup gradients over the same set
+of trainable actor parameters. It limits the latter norm to.25 of actualnorm,
+using a detached coefficient, retaining the H32 graph and one originalAdam.
+Every candidate also evaluates the actual PPOsurrogate on the same fresh
+batch and rejects a worsening step, alongside unchangedKL/action/logit bounds.
+Rejected proposals restore allweights/fullactorAdam. The intent is to keep
+optimization tied to physical reward evidence; a model-dominance hypothesis
+requires actual measurements and is not established from unlike gradientnorms.
+
+FullfinalV15 one-decode CPU admission passed: allfour networks/Adam restored,
+counts3106/13084/12840/13084;512savedreset syntheticlikelihood inputs, nofresh
+robotonpolicy data. Actualfullactor norm699.56 versus weightedmodel52.67
+(ratio.0753), cosine-.1188; this synthetic fixture does not show dominance.
+The accepted candidate improved synthetic actualsurrogate to-.06008,
+KL.0085646, after5proposals;H32verified and allfixtureweights/Adam restored.
+Physicalreward, nativeactiondeterministic formula, sensor/DR/PDqueues,
+.0025/TGS32/4,10mmclosure,400Hzstandingacceptance and originalbudget stay.
+
+Four4090 were actually read2026-11-03 18:38+08:72both computeempty,210empty
+butHOME684052480Bfree,86compute21602MiBallocated. Originalcanonical inactive
+and freshprivate/authority/finite admission enabled one newowner on72GPU0.
+No copiedbudget/reserve/clearactive/foreignkill or additionalwatcher.
+Sameoriginalowner saves at3600s, safelycloses then immediately evaluates80
+and records400Hzcontacts/bodyposes. Real standing success is still unproven.
+
+ActualFIRST now completed64controls/32768freshsamples with fullgradientnorms:
+actual5.43086274,originalweightedH32+antiwindup101.6795176,ratio18.722535,
+cosine.0628762. The appliedother scale.0133529 limitednormratio to.25.
+Candidatefactor.03125 hadKL.00355405 but worsened actualsurrogate to
+.000254117, so the new actual-objective check rejected it. Factor.015625
+then passedKL.000940495/actiondelta.00296638 and improved the actualsurrogate
+to-.0000485107; exactlyoneactorcommit,Pi3107,verifiedH32cross-time1.56565,
+WMpath1.33866. This is evidence of the measured gradient imbalance and a
+candidate rejected for actualobjective regression, not proof of skill or
+that the same imbalance held for every prior update.
+Firstfullcheckpoint239095889B SHA
+c215fcd3c081a3416c0f0da66c510abe918f4754b11d094e83cf751f9d07464b.
+The370controls/189440transitions/2059orientation are repeatedtrainingevents,
+not independent80. Originalsave2026-11-03 19:39:16.829348+08,
+nominal19:44:16.829348+08; source/owner unchanged afterFIRST.
+
+LocalpreCPU recipe literal error was rejected beforeonce/network/model/SDK;
+originalsource and rawfailure preserved. An earlier postwindow reader rejected
+an overlapping read-only siblingPowerShell as localbusy,0network; preserved,
+then a separate serialread succeeded. Console-reader KeyError('selected')
+and a later guessed'cases' access were metadata-only; actualkeys show
+'selected_cases'. Both readerfailures and the correction are preserved.
+Noexperiment ormodel rerun for either.
+Alltextsource/results/rawfalse/receipts and realpose indices enterGit; model,
+NPZ/USD/video are indexed from existing actualpath/bytes/SHA only.

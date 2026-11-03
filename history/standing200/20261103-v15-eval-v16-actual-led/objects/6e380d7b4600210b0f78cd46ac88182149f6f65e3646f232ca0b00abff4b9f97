@@ -1,0 +1,110 @@
+"""Small V16 control recipe sharing the pinned V15 workflow and runtime."""
+from pathlib import Path
+import argparse
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+
+D=Path(__file__).resolve().parent
+R=D.parent
+sys.path.insert(0,str(R))
+P=R/'repair_v15/control.py'
+assert hashlib.sha256(P.read_bytes()).hexdigest()=='00e06e4b2198f70b911b6e1e9a5c313d5b662e938772c38ba9ba1b9c363bfcbe'
+
+
+def change(s,old,new):
+    assert s.count(old)==1,old
+    return s.replace(old,new)
+
+
+def inherited():
+    s=P.read_text(encoding='utf-8')
+    replacements=[
+        ("sys.argv = [str(R / 'repair_v11/finite_cpu.py'), 'matched_actual_v15', 'check_full_restore.py', 'matched_actual.py']",
+         "sys.argv = [str(R / 'repair_v11/finite_cpu.py'), 'actual_led_v16', 'check_full_restore.py', 'actual_led.py']"),
+        ('MATCHED_ACTUAL_V15','ACTUAL_LED_V16'),
+        ('FOUR4090_RESOURCE_ACTUAL_V15.json','FOUR4090_RESOURCE_ACTUAL_V16.json'),
+        ("name.replace('_V1.', '_V15.').replace('_V1_', '_V15_')","name.replace('_V1.', '_V16.').replace('_V1_', '_V16_')"),
+        ("for name in ['matched_actual.py', 'standing_worker_v1.py'", "for name in ['actual_led.py', 'standing_worker_v1.py'"),
+        ("'from matched_actual import CONTRACT'","'from actual_led import CONTRACT'"),
+        ('STANDING200_MATCHED_ACTUAL_H32_V15_SMALL_OVERRIDE','STANDING200_ACTUAL_LED_H32_V16_SMALL_OVERRIDE'),
+        ('V15_ORIGINAL_OWNER_DISPATCHED_AWAIT_GO_FIRST','V16_ORIGINAL_OWNER_DISPATCHED_AWAIT_GO_FIRST'),
+        ("w['prior_V14'] = dict", "w['prior_V15'] = dict"),
+        ("pending_repair=dict(version='V15'", "pending_repair=dict(version='V16'"),
+        ('PENDING_NEW_FINAL_V15','PENDING_NEW_FINAL_V16'),
+        ('UniqueV15 FIRST only.','UniqueV16 FIRST only.'),
+        ('STATUS_V15_FIRST_UPDATED.json','STATUS_V16_FIRST_UPDATED.json'),
+        ('production/FULL_RESTORE_V15.json','production/FULL_RESTORE_V16.json'),
+        ("'V15_FIRST_UPDATED'","'V16_FIRST_UPDATED'"),
+        ('V15_CLOSED_EVIDENCE_TRANSFER_ONCE.json','V16_CLOSED_EVIDENCE_TRANSFER_ONCE.json'),
+        ("'V15_' + name","'V16_' + name"),
+    ]
+    for old,new in replacements:
+        assert old in s,old
+        s=s.replace(old,new)
+    ns=dict(__name__='standing_v16_inherited_control',__file__=str(D/'control.py'))
+    exec(compile(s,str(P),'exec'),ns)
+    return ns
+
+
+def prepare():
+    assert not(D/'FROZEN.json').exists()
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    assert w['run_id']=='MOD4_STANDING200_RLBPTT_V15_1793696903830432800'
+    assert w['current_model_native_reviewed'] and w['evaluation_closed_and_transferred']
+    receipt=json.loads((R/'reports/ACTUAL_LED_V16_ACTUAL.json').read_bytes())
+    assert receipt['own_waited'] and receipt['returncode']==0 and receipt['result']['passed']
+    cpu=receipt['result']
+    assert cpu['source']['SHA']==w['current_run_final']['SHA']
+    assert cpu['fixture']['all_weights_four_Adam_restored']
+    assert cpu['fixture']['actual']['gradient_balance']['applied_other_to_actual_ratio']<=.250001
+    worker="""from pathlib import Path
+import hashlib
+_p=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V14_1793685133426758900/source/standing_worker_v1.py')
+_r=_p.read_bytes()
+assert hashlib.sha256(_r).hexdigest()=='90b063013e4705e03128323a71e72c09ec6a84f3c063792304508f3fa4ae1ced'
+_s=_r.decode()
+_old='from hybrid_actual import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,CONTRACT as REPAIR_CONTRACT'
+assert _s.count(_old)==1
+_s=_s.replace(_old,'from actual_led import Learner as ContextRewardLearner,Policy as StandingResidualPolicy,CONTRACT as REPAIR_CONTRACT')
+_s=_s.replace('FULL_RESTORE_V14.json','FULL_RESTORE_V16.json')
+exec(compile(_s,str(Path(__file__).absolute()),'exec'),globals())
+"""
+    (D/'standing_worker_v1.py').write_text(worker,encoding='utf-8',newline='\n')
+    for name,folder in [('standing_owner_v1.py','control'),('evaluate_standing200_v1.py','source')]:
+        raw=(R/'repair_v15'/name).read_bytes()
+        wrapper=("from pathlib import Path\nimport hashlib\n"
+            f"_p=Path({(w['remote_job']+'/'+folder+'/'+name)!r})\n_r=_p.read_bytes()\n"
+            f"assert hashlib.sha256(_r).hexdigest()=={hashlib.sha256(raw).hexdigest()!r}\n"
+            "exec(compile(_r,str(Path(__file__).absolute()),'exec'),globals())\n")
+        (D/name).write_text(wrapper,encoding='utf-8',newline='\n')
+    plan=json.loads((R/'repair_v15/PLAN.json').read_bytes())
+    runid='MOD4_STANDING200_RLBPTT_V16_'+str(time.time_ns())
+    plan.update(run_id=runid,resume=w['current_run_final'],
+        algorithm='actual64 matched512 PPO with full-gradient-relative cap .25 on weighted H32+antiwindup; actual surrogate candidate guard',
+        action_repair='unchangedV8 action/physical reward;fullfinalV15/fourAdam restore;measure actual/model fullactor gradient norms and cosine',
+        actual_return_contract=cpu['contract'],optimizer_repair=dict(contract=cpu['contract'],CPU='reports/ACTUAL_LED_V16_ACTUAL.json',
+            actual_evidence='ActualfinalV15 0/80,68orientation12timeoutsmean2.14575s,0bothtop;native4cases retain rightwheel59rad/s/no lift'))
+    (D/'PLAN.json').write_text(json.dumps(plan,indent=2)+'\n',encoding='utf-8')
+    shared={}
+    for name in ['standing_action_v8.py','standing_resume_v8.py','actual_returns.py','hybrid_actual.py','matched_actual.py']:
+        local=R/('repair_v8' if name.startswith('standing_') else 'repair_v15' if name=='matched_actual.py' else 'repair_v14')/name
+        raw=local.read_bytes()
+        shared['source/'+name]=dict(path=w['remote_job']+'/source/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    names=['actual_led.py','standing_worker_v1.py','standing_owner_v1.py','evaluate_standing200_v1.py','PLAN.json','control.py','check_full_restore.py']
+    frozen=dict(epoch=time.time(),run_id=runid,job='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        source_job='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400',
+        source_manifest_SHA='21e4a1ef44bc36af36a4d93a488e8727db4ad9c315a471efa4e0823b053a554b',
+        prior_job=w['remote_job'],shared=shared,
+        files=[dict(name=n,bytes=(D/n).stat().st_size,SHA=hashlib.sha256((D/n).read_bytes()).hexdigest())for n in names],
+        CPU_report_SHA=hashlib.sha256((R/'reports/ACTUAL_LED_V16_ACTUAL.json').read_bytes()).hexdigest(),runtime_full_copies=0,source_PT_copies=0)
+    (D/'FROZEN.json').write_text(json.dumps(frozen,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(frozen=True,run_id=runid,physical_training=False)))
+
+
+if __name__=='__main__':
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['cpu','prepare','gpu','launch','first','closed']);a=q.parse_args()
+    if a.mode=='prepare':prepare()
+    else:inherited()[a.mode]()

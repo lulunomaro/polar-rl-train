@@ -1,0 +1,143 @@
+"""V16 actual-return-led RL+BPTT with a measured gradient contribution cap.
+
+Full source models, Adam states, deterministic action, physical reward and
+H32 model graph stay intact. The model/antiwindup contribution is limited
+relative to the complete actual-return gradient before the single Adam step.
+"""
+from pathlib import Path
+import copy
+import hashlib
+import importlib.util
+import torch
+
+HERE = Path(__file__).resolve().parent
+PRIOR = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V15_1793696903830432800/source/matched_actual.py')
+if not PRIOR.exists():
+    PRIOR = HERE.parent / 'repair_v15/matched_actual.py'
+assert hashlib.sha256(PRIOR.read_bytes()).hexdigest() == 'ab7e23f13e2799695c3e2bbc0578fb33dd84469021bcf8fa3ac9875cbc0b43b3'
+spec = importlib.util.spec_from_file_location('standing_shared_matched_v15', PRIOR)
+previous = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(previous)
+Policy = previous.Policy
+components = previous.components
+forward_collected = previous.forward_collected
+base = previous.previous
+CONTRACT = dict(previous.CONTRACT,
+    version='standing200_actual_led_gradient_H32_v16',
+    auxiliary_gradient_norm_to_actual_max=.25,
+    gradient_cap_scope='full trainable actor parameters; .1 H32 + .1 antiwindup combined',
+    accepted_Adam_actual_surrogate_nonincreasing=True,
+    actual_surrogate_numeric_tolerance=1e-7,
+    actual_gradient_and_model_diagnostics=True)
+
+
+def gradient_statistics(actual_grad, other_grad):
+    device = next(g.device for g in actual_grad if g is not None)
+    aa = torch.zeros((), device=device, dtype=torch.float64)
+    bb = aa.clone()
+    ab = aa.clone()
+    for a, b in zip(actual_grad, other_grad):
+        if a is not None:
+            aa += a.double().square().sum()
+        if b is not None:
+            bb += b.double().square().sum()
+        if a is not None and b is not None:
+            ab += (a.double() * b.double()).sum()
+    return float(aa.sqrt()), float(bb.sqrt()), float(ab / (aa * bb).sqrt().clamp_min(1e-30))
+
+
+class Learner(previous.Learner):
+    def _checkpoint(self, include_optimizers):
+        full = super()._checkpoint(include_optimizers)
+        full['standing_actual_led_gradient'] = dict(contract=CONTRACT, last=self.last_actual.copy())
+        return full
+
+    def mix_actor_loss(self, model_loss, penalty):
+        # Reuse the exact matched512 likelihood and its measured diagnostics.
+        old_combined = super().mix_actor_loss(model_loss, penalty)
+        weighted_other = (previous.CONTRACT['actor_H32_BPTT_weight'] * model_loss
+                          + previous.CONTRACT['latent_antiwindup_weight'] * penalty)
+        actual_loss = old_combined - weighted_other
+        trainable = [p for group in self.opt_pi.param_groups for p in group['params'] if p.requires_grad]
+        # Calculate from the separate surrogate again to avoid cancellation
+        # when the modeled scalar return is much larger than the zero-mean PG.
+        b = self.actual_batch
+        mean = forward_collected(self.pi, b['history'], b['goal'])
+        actual_loss, _ = base.surrogate(mean, b['raw'], b['logprob'], b['advantages'])
+        ag = torch.autograd.grad(actual_loss, trainable, retain_graph=True, allow_unused=True)
+        og = torch.autograd.grad(weighted_other, trainable, retain_graph=True, allow_unused=True)
+        an, on, cosine = gradient_statistics(ag, og)
+        if not torch.isfinite(torch.tensor([an, on, cosine])).all():
+            raise FloatingPointError('actual/model actor gradient diagnostic nonfinite')
+        scale = min(1., CONTRACT['auxiliary_gradient_norm_to_actual_max'] * an / max(on, 1e-30))
+        self.actual_loss_before = float(actual_loss.detach())
+        self.last_actual.update(actual_actor_loss=self.actual_loss_before,
+            gradient_balance=dict(actual_full_actor_norm=an, original_weighted_H32_plus_regularizer_norm=on,
+                original_other_to_actual_ratio=on / max(an, 1e-30), cosine_actual_other=cosine,
+                applied_other_scale=scale, applied_other_to_actual_ratio=scale * on / max(an, 1e-30),
+                measured_before_global_clipping=True, original_H32_graph_preserved=True,
+                single_Adam_transaction=True))
+        return actual_loss + scale * weighted_other
+
+    @torch.no_grad()
+    def candidate_actual_objective(self):
+        b = self.actual_batch
+        mean = forward_collected(self.pi, b['history'], b['goal'])
+        loss, _ = base.surrogate(mean, b['raw'], b['logprob'], b['advantages'])
+        return float(base.actual_mean_kl(b['mean'], mean)), float(loss)
+
+    def accepted_step(self, histories, goals, trainable):
+        with torch.no_grad():
+            before_action, before_logit = components(self.pi, histories, goals)
+        weights = [p.detach().clone() for p in trainable]
+        state = copy.deepcopy(self.opt_pi.state_dict())
+        rates = [g['lr'] for g in self.opt_pi.param_groups]
+        radius = before_action.new_tensor([2.1, 1, 2.1, 1, 6, 6])
+        proposals = []
+        accepted = False
+        for trial in range(12):
+            if trial:
+                with torch.no_grad():
+                    for p, saved in zip(trainable, weights):
+                        p.copy_(saved)
+                self.opt_pi.load_state_dict(copy.deepcopy(state))
+            factor = .5 ** trial
+            for group, lr in zip(self.opt_pi.param_groups, rates):
+                group['lr'] = lr * factor
+            self.candidate = True
+            try:
+                self.opt_pi.step()
+            finally:
+                self.candidate = False
+            with torch.no_grad():
+                action, logit = components(self.pi, histories, goals)
+                da = float(((action - before_action) / radius).abs().max())
+                dl = float((logit - before_logit).abs().max())
+                kl, actual_after = self.candidate_actual_objective()
+                finite = bool(torch.isfinite(action).all() and torch.isfinite(logit).all()
+                              and torch.isfinite(torch.tensor([kl, actual_after])).all())
+            actual_improved = actual_after <= self.actual_loss_before + CONTRACT['actual_surrogate_numeric_tolerance']
+            accepted = finite and da <= .05 and dl <= .25 and kl <= .01 and actual_improved
+            proposals.append(dict(factor=factor, action_delta=da, logit_delta=dl, actual_Gaussian_mean_KL=kl,
+                actual_surrogate_before=self.actual_loss_before, actual_surrogate_after=actual_after,
+                actual_surrogate_nonincreasing=actual_improved, finite=finite, accepted=accepted))
+            if accepted:
+                break
+        if accepted:
+            # Frozen V14 Base is the antiwindup Learner. Its parent counts a
+            # complete accepted BPTT transaction once, as in V14/V15.
+            self.candidate = False
+            super(base.Base, self)._on_pi_step(self.opt_pi, (), {})
+        else:
+            with torch.no_grad():
+                for p, saved in zip(trainable, weights):
+                    p.copy_(saved)
+            self.opt_pi.load_state_dict(copy.deepcopy(state))
+        for group, lr in zip(self.opt_pi.param_groups, rates):
+            group['lr'] = lr
+        self.last_actual.update(accepted_actor_commit=accepted, post_Adam_actual_Gaussian_KL=proposals[-1]['actual_Gaussian_mean_KL'],
+            proposals=len(proposals), post_Adam_actual_surrogate=proposals[-1]['actual_surrogate_after'])
+        return dict(accepted=accepted, proposals=proposals, guard_samples=len(histories), committed_steps=int(accepted),
+            all_rejected_weights_Adam_restored=True, actual_actor=self.last_actual.copy(),
+            pre_abs_logit_max=float(before_logit.abs().max()),
+            post_abs_logit_max=float(logit.abs().max()) if accepted else float(before_logit.abs().max()))

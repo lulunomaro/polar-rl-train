@@ -1,0 +1,52 @@
+"""Record actual V15 native review and independent outcome, preserving raw."""
+from pathlib import Path
+import json
+import time
+
+R = Path(__file__).resolve().parents[1]
+J = R / 'actual_closed/MOD4_STANDING200_RLBPTT_V15_1793696903830432800'
+
+
+def main():
+    analysis = json.loads((J/'analysis/ANALYSIS.json').read_bytes())
+    final = json.loads((J/'production/FINAL.json').read_bytes())
+    owner = json.loads((J/'OWNER_EXIT.json').read_bytes())
+    assert owner['error'] is None and owner['all_own_waited'] and owner['original_leases_released']
+    all80 = analysis['all80']
+    assert all80['strict'] == 0 and all80['termination_terms']['bad_orientation'] == 68
+    review = dict(epoch=time.time(), kind='V15_ACTUAL_NATIVE_POSE_CURVE_REVIEW', checkpoint=final['checkpoint'],
+        all80=all80, actual_images_reviewed_by='current model native view_image',
+        images=[str(J/'rendered_v2'/f'ACTUAL_env{i}_{v}.png') for i in [0,1,40,41] for v in ['side','top']],
+        curves=[str(J/'analysis/ACTUAL_V15_ACTION_POSE_CURVES.png'),str(J/'analysis/V14_V15_SATURATION_COORDINATION_COMPARISON.png')],
+        observations=[
+            'env0/1/41 roll and pitch/roll toward a tip while still short of the riser. env40 reaches the riser around .8s and stops short, then tips without wheel-top lift.',
+            'Selected four right-wheel targets remain near59rad/s; early t<=.20s right-minus-left targets about51-53rad/s.',
+            'Lower wheel-bottom curve remains near ground, far below .2m; all80 actual both-wheel top support0 and stable0.',
+            'V14 andV15 selected motions preserve the same right-wheel saturation/asymmetry. The average survival increase does not establish standing climb skill.',
+            'Initial depth is valid and correctly detects.2m; no initial blindness claim.',
+        ], limits='Only four selected body-pose replays; all80 outcomes/contact support measured. No unique causal claim.',
+        next='Measure complete actual actor gradient and H32+regularizer gradient on the same source. V16 limits modeled contribution relative to actual and accepts candidate only if measured actual surrogate does not worsen; no reward/physical/action/reset changes.',
+        model_reads=0, new_SDK_physics=0)
+    p = R/'reports/V15_ACTUAL_EVAL_NATIVE_REVIEW_V16_DECISION.json'
+    with p.open('x',encoding='utf-8') as f:
+        json.dump(review,f,ensure_ascii=False,indent=2)
+    p = R/'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    w.update(status='V15_CLOSED_ACTUAL80_0STRICT_NATIVE_REVIEWED_V16_GRADIENT_REPAIR_PREPARING',
+        training_started=False, training_completed=True, current_run_final=final['checkpoint'], latest_checkpoint=final['checkpoint'],
+        actual_owner_exit=owner, final_actual_metrics=final,
+        evaluation_result=dict(all80,path=str(J/'evaluation/RESULT.json')),
+        evaluation_status='ActualfinalV15 complete0/80strict68orientation12timeoutsmean2.14575s;0bothtop',
+        current_model_independent_evaluation='COMPLETE_ACTUAL_FINAL_V15_80_FIRST_EPISODES',
+        current_model_native_reviewed=True,replay_native_reviewed=review['images']+review['curves'],native_review_report=str(R/'reports/V15_ACTUAL_EVAL_NATIVE_REVIEW_V16_DECISION.json'),
+        evaluation_closed_and_transferred=True,evaluation_once_consumed=True,closed_transfer_once_consumed=True,
+        current_resource_blocker=None,next=review['next'],
+        pending_repair=dict(version='V16',root=str(Path(__file__).resolve().parent),status='LOCAL_SOURCE_NEEDS_FULLRESTORE_GRADIENT_FIXTURE',CPU_once_consumed=False,physical_training=False))
+    w['followup_commands']['closed']='V15closedtransfer consumed;do notreplay.'
+    w['followup_commands']['render']='V15actual80 rendered/native8poses2curves reviewed;do notrepeat.'
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(status=w['status'],all80=all80)))
+
+
+if __name__=='__main__':
+    main()

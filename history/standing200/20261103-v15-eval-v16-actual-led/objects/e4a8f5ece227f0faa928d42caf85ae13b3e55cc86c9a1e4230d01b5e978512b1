@@ -1,0 +1,13 @@
+"""Exact saved recipe for the already-consumed synthetic V16 integration."""
+from pathlib import Path
+import sys
+
+R=Path(__file__).resolve().parents[1]
+p=R/'repair_v14/check_local_integration.py'
+s=p.read_text(encoding='utf-8')
+s=s.replace("sys.path[:0]=[str(D),str(R/'source_v2'),str(R/'repair_v8')]", "sys.path[:0]=[str(R/'repair_v16'),str(R/'repair_v15'),str(D),str(R/'source_v2'),str(R/'repair_v8')]")
+s=s.replace('from hybrid_actual import Learner,Policy,CONTRACT','from actual_led import Learner,Policy,CONTRACT')
+s=s.replace("assert checkpoint['standing_actual_return']['contract']==CONTRACT", "assert checkpoint['standing_actual_led_gradient']['contract']==CONTRACT")
+s=s.replace('V14_LOCAL_PRODUCTION_SHAPE_ACTUAL.json','V16_LOCAL_PRODUCTION_SHAPE_ACTUAL.json').replace('V14_LOCAL_INTEGRATION_ACTUAL.json','V16_LOCAL_INTEGRATION_ACTUAL.json')
+s=s.replace("assert actual['accepted_actor_commit']and actual['post_Adam_actual_Gaussian_KL']<=.01", "assert actual['accepted_actor_commit']and actual['post_Adam_actual_Gaussian_KL']<=.01\n        assert actual['gradient_balance']['applied_other_to_actual_ratio']<=.250001\n        assert actual['post_Adam_actual_surrogate']<=actual['actual_actor_loss']+1e-7")
+exec(compile(s,str(p),'exec'),dict(__name__='__main__',__file__=str(p)))

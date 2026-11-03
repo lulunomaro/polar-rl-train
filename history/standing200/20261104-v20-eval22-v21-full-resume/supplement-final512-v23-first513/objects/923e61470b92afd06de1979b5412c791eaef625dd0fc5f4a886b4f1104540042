@@ -1,0 +1,14 @@
+"""Ordinary supplement of the same recipe stage; reuse archive implementation."""
+from pathlib import Path
+import hashlib
+
+P=Path(__file__).resolve().parent.parent/'scut_eval_v22/archive_actual.py'
+raw=P.read_bytes()
+source=raw.decode()
+source=source.replace("20261104-v20-eval22-v21-full-resume'", "20261104-v20-eval22-v21-full-resume/supplement-final512-v23-first513'")
+old="R/'scut_recipe_v21',R/'scut_eval_v22',"
+new="R/'scut_recipe_v21',R/'scut_eval_v22',R/'scut_recipe_v23',R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300',"
+assert source.count(old)==1;source=source.replace(old,new)
+source=source.replace("V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284", "ORDINARY_SUPPLEMENT_V21_FINAL512_ACTUAL_EVAL_NATIVE_V23_FIRST513_SAME_RECIPE")
+source=source.replace("R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md'", "R/'scut_recipe_v23/README.md'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

@@ -1,0 +1,105 @@
+"""Synthetic real RSL Adam roundtrip; never opens the production checkpoint."""
+from pathlib import Path
+from types import SimpleNamespace
+from copy import deepcopy
+import hashlib
+import json
+import random
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent;ROOT=HERE.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+sys.path[:0]=[str(HERE),str(ROOT/'scut_recipe_v21'),str(ROOT/'scut_recipe_v18/localdeps'),str(REPO/'project/isaac')]
+
+
+def main():
+    report=ROOT/'reports/SCUT23_SAME_FORMAT_FULL_RESTORE_COUNTERS_CPU.json';assert not report.exists()
+    result=dict(epoch=time.time(),passed=False,production_PT_reads=0,SDK=0,physics=0,production_optimizer_steps=0)
+    try:
+        import numpy as np
+        import torch
+        from tensordict import TensorDict
+        import mod4v1_scut.checkpoint as cp
+        import mod4v1_scut.train as train
+        from full_resume import install,same,LEGACY,FORMAT
+        torch.set_num_threads(2);torch.manual_seed(66)
+        with tempfile.TemporaryDirectory() as temp:
+            tmp=Path(temp)
+            for module,name,sha in [(cp,'checkpoint','686f5a600cd640b54d37e8f40b1490996fbd8faf4fba7264d896453759a99413'),
+                                    (train,'train','1cad73fcd3033f9c2839bfc61930d1776168778087404273f9087731ac24c79c')]:
+                raw=subprocess.check_output(['git','-C',str(REPO),'show','bf5a683e3009ab7f73fdce3faeab3bc71189f890:project/isaac/mod4v1_scut/'+name+'.py'])
+                assert hashlib.sha256(raw).hexdigest()==sha
+                p=tmp/(name+'.py');p.write_bytes(raw);module.__file__=str(p);exec(compile(raw,str(p),'exec'),vars(module))
+            class Vec:
+                num_envs=8;num_actions=6;device='cpu';max_episode_length=1000;cfg={}
+                episode_length_buf=torch.zeros(8,dtype=torch.long)
+                def get_observations(self):return TensorDict(dict(policy=torch.randn(8,35)*.1,critic=torch.randn(8,78)*.1),batch_size=[8])
+            runner=train.build_runner(Vec(),None);obs=Vec().get_observations()
+            with torch.inference_mode():
+                for _ in range(24):
+                    action=runner.alg.act(obs);obs=Vec().get_observations()
+                    runner.alg.process_env_step(obs,1-action.square().mean(-1),torch.zeros(8,dtype=torch.bool),{'time_outs':torch.zeros(8,dtype=torch.bool)})
+                runner.alg.compute_returns(obs)
+            runner.alg.update();runner.current_learning_iteration=283
+            class State:
+                def __init__(self):self.value=torch.tensor([5.]);self.rng=torch.Generator().manual_seed(4)
+                def state_dict(self):return dict(value=self.value.clone(),rng=self.rng.get_state())
+                def load_state_dict(self,data):self.value.copy_(data['value']);self.rng.set_state(data['rng'])
+            command=SimpleNamespace(rng=torch.Generator().manual_seed(3),time_left=torch.full((8,),2.))
+            physical=SimpleNamespace(generator=torch.Generator().manual_seed(8),factor=torch.ones(8),nominal=torch.ones(8,dtype=torch.bool),
+                mu=torch.ones(8),reset_count=torch.ones(8,dtype=torch.long),output={'legs':torch.ones(8,4),'wheels':torch.ones(8,2)})
+            reset=[]
+            env=SimpleNamespace(num_envs=8,command_manager=SimpleNamespace(get_term=lambda _:command),_mild_dr=physical,reset=lambda:reset.append(1))
+            for k in cp.COMPONENTS:setattr(env,k,State())
+            env._physics_action_delay.queue=SimpleNamespace(groups={'legs':{'last_apply_tick':torch.tensor([20])}})
+            reward=SimpleNamespace(_value_debug_step=0,common_step_counter=0,_episode_sums={},_last_reward_terms={},probe=torch.ones(8))
+            bridge=SimpleNamespace(reward=reward,physics_ticks=54336)
+            cp.FORMAT=LEGACY;cp.INTERFACE='actor35_critic78_originalPPO_mod4_hardware_flat'
+            source=tmp/'legacy.pt';row=cp.save(runner,env,bridge,source,'trained_stair');saved=deepcopy(runner.alg.save())
+            expected=dict(path=str(source),bytes=row['bytes'],SHA=row['SHA'],format=LEGACY,iteration=283)
+            intended_torch=torch.rand(5);intended_numpy=np.random.rand(5);intended_python=random.random()
+            intended_cmd=torch.rand(5,generator=command.rng);intended_physical=torch.rand(5,generator=physical.generator)
+            for p in runner.alg.actor.parameters():p.data.add_(1)
+            for s in runner.alg.optimizer.state.values():
+                for v in s.values():
+                    if torch.is_tensor(v):v.zero_()
+            runner.alg.learning_rate=.007;runner.current_learning_iteration=0
+            torch.rand(11);np.random.rand(11);random.random();torch.rand(11,generator=command.rng);torch.rand(11,generator=physical.generator)
+            cp.FORMAT=FORMAT;install(cp,expected,tmp/'restore.json');cp.restore(runner,env,bridge,source,'trained_stair')
+            assert same(saved,runner.alg.save()) and runner.current_learning_iteration==283
+            assert torch.equal(torch.rand(5),intended_torch)
+            np.testing.assert_array_equal(np.random.rand(5),intended_numpy);assert random.random()==intended_python
+            assert torch.equal(torch.rand(5,generator=command.rng),intended_cmd)
+            assert torch.equal(torch.rand(5,generator=physical.generator),intended_physical)
+            assert reset==[1] and reward._value_debug_step==0 and reward.common_step_counter==6792
+            assert all(g['last_apply_tick'].item()==-1 for g in env._physics_action_delay.queue.groups.values())
+            reward._value_debug_step=37;reward.common_step_counter=7000
+            new=tmp/'v21.pt';cp.save(runner,env,bridge,new,'trained_stair')
+            data=torch.load(new,weights_only=False)
+            assert data['source_reward_globals']==dict(_value_debug_step=37,common_step_counter=7000)
+            assert same(saved,{k:data[k] for k in saved})
+            # New check: same-format continuation restores the newly saved scalars.
+            raw_cp=subprocess.check_output(['git','-C',str(REPO),'show','bf5a683e3009ab7f73fdce3faeab3bc71189f890:project/isaac/mod4v1_scut/checkpoint.py'])
+            exec(compile(raw_cp,str(tmp/'checkpoint.py'),'exec'),vars(cp))
+            cp.FORMAT=FORMAT;cp.INTERFACE='actor35_critic78_originalPPO_mod4_hardware_flat'
+            row=dict(path=str(new),bytes=new.stat().st_size,SHA=hashlib.sha256(new.read_bytes()).hexdigest(),format=FORMAT,iteration=283)
+            reward._value_debug_step=0;reward.common_step_counter=0
+            for p in runner.alg.actor.parameters():p.data.add_(1)
+            install(cp,row,tmp/'same_format_restore.json');cp.restore(runner,env,bridge,new,'trained_stair')
+            assert same(saved,runner.alg.save()) and reward._value_debug_step==37 and reward.common_step_counter==7000
+            assert reset==[1,1]
+            result['same_format_V21_scalar_and_all_learning_roundtrip']=json.loads((tmp/'same_format_restore.json').read_bytes())
+            result.update(passed=True,synthetic_real_RSL_24rollout_20Adam_updates=True,all_actor_critic_STD_Adam_tensors_equal=True,
+                global_command_physical_RNG_equal=True,LR_iteration_restored=True,one_fresh_reset=True,
+                legacy_clock_migration=dict(debug=0,common=6792,missing_legacy_clock_explicit=True),new_fullsave_scalar_counters_verified=True,
+                restore_receipt=json.loads((tmp/'restore.json').read_bytes()),classification='CPU synthetic interface, not physical skill')
+    except BaseException:result['error']=traceback.format_exc()
+    with report.open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)
+    print(json.dumps(result,indent=2));raise SystemExit(0 if result['passed'] else 1)
+
+
+if __name__=='__main__':main()

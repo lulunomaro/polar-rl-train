@@ -1,0 +1,69 @@
+"""Exercise the actual assembled new snapshot on synthetic contact/motor data."""
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+import ast
+import hashlib
+import json
+import sys
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent;ROOT=HERE.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+
+
+def assemble():
+    ns={'__file__':str(HERE/'evaluate.py'),'__name__':'static_eval23'}
+    tree=ast.parse((HERE/'evaluate.py').read_text(encoding='utf-8'));tree.body=tree.body[:-1]
+    raw=(ROOT/'scut_recipe_v21/evaluate.py').read_bytes();original=Path.read_bytes
+    with patch.object(Path,'read_bytes',lambda p:raw if str(p).endswith('evaluate.py') else original(p)):
+        exec(compile(tree,'static23','exec'),ns)
+    tree=ast.parse(ns['source']);tree.body=tree.body[:-1]
+    raw=(ROOT/'scut_recipe_v18/evaluate.py').read_bytes()
+    with patch.object(Path,'read_bytes',lambda p:raw if str(p).endswith('evaluate.py') else original(p)):
+        exec(compile(tree,'static21','exec'),ns)
+    return ns['source']
+
+
+def main():
+    report=ROOT/'reports/SCUT23_ASSEMBLED_EVAL_SNAPSHOT_CPU.json';assert not report.exists()
+    value=dict(epoch=time.time(),passed=False,production_PT_reads=0,SDK=0,physics=0,optimizer=0)
+    try:
+        import torch
+        sys.path.insert(0,str(REPO/'project/isaac'))
+        from mod4v1_scut.math_ops import quat_from_euler_xyz
+        source=assemble();tree=ast.parse(source)
+        node=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='snapshot')
+        data=SimpleNamespace(joint_pos_target=torch.arange(12.).reshape(2,6),applied_torque=torch.arange(12.).reshape(2,6)*.2,
+            root_quat_w=quat_from_euler_xyz(torch.tensor([0.,.9]),torch.zeros(2),torch.zeros(2)))
+        force=torch.zeros(2,5,3);force[0,1,2]=10.
+        r=SimpleNamespace(robot=SimpleNamespace(data=data),contact_sensor=SimpleNamespace(data=SimpleNamespace(net_forces_w=force)),
+            _legs_act_idx=[0,1,2,3],_actuate_idx=[0,1,2,3,4,5],_reset_contact_link_idx=[1,3],cfg=SimpleNamespace(termination_roll_deg=40.,termination_pitch_deg=40.),
+            _termination_duration_raw_buf=torch.tensor([True,False]),_termination_duration_counter=torch.tensor([20,0]),
+            _numerical_safety_reset_buf=torch.zeros(2,dtype=torch.bool),_obs_raw_policy_max_abs=torch.ones(2),
+            _obs_raw_critic_max_abs=torch.ones(2)*2,_value_debug_step=0,
+            joint_pos=torch.arange(12.).reshape(2,6)*.01,joint_vel=torch.arange(12.).reshape(2,6)*.1)
+        bridge=SimpleNamespace(reward=r);env=SimpleNamespace(scene={'robot':SimpleNamespace(data=data)},
+            termination_manager=SimpleNamespace(get_term=lambda _:torch.zeros(2,dtype=torch.bool)))
+        pre=torch.zeros(2,4)
+        ns=dict(torch=torch,bridge=bridge,env=env,tensor=lambda x:x,pre_reset_targets=pre,original_snapshot=lambda *_:{'existing_original':True})
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[node],type_ignores=[])),'actual_eval_snapshot','exec'),ns)
+        snap=ns['snapshot'](torch.tensor([True,False]),torch.zeros(2,dtype=torch.bool))
+        assert snap['source_contact_force_max_N'].tolist()==[10.,0.]
+        assert snap['source_roll_excess'].tolist()==[False,True] and not snap['source_pitch_excess'].any()
+        assert torch.equal(pre,data.joint_pos_target[:,:4])
+        assert torch.equal(snap['measured_actuated_joint_pos'],r.joint_pos)
+        assert torch.equal(snap['measured_actuated_joint_vel'],r.joint_vel)
+        assert torch.equal(snap['measured_applied_torque'],data.applied_torque)
+        assert snap['existing_original'] and snap['source_duration_counter'].tolist()==[20,0]
+        assert source.count('for control in range(500):')==1 and source.count('for i in done.nonzero().flatten().tolist():')==1
+        value.update(passed=True,assembled_source_SHA=hashlib.sha256(source.encode()).hexdigest(),actual_assembled_AST_snapshot_exercised=True,
+            original_snapshot_fields_preserved=True,synthetic_contact_vs_roll_distinguished=True,pre_reset_targets_motor_pos_vel_torque_equal=True,
+            original80firstepisode500controls_unchanged=True,classification='CPU synthetic diagnostics only; no physical success')
+    except BaseException:value['error']=traceback.format_exc()
+    with report.open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+    print(json.dumps(value));raise SystemExit(0 if value['passed'] else 1)
+
+
+if __name__=='__main__':main()

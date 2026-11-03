@@ -1,0 +1,9 @@
+"""Reuse original single finite serial controller; never replay V21 once."""
+from pathlib import Path
+import hashlib
+
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v21/control.py';raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='da226542de1ac36766ac268820d109c14c73f9fbff51d141179e413614e5d4a8'
+source=raw.decode().replace('SCUT21','SCUT23').replace('RECIPE_V21_','RECIPE_V23_')
+source=source.replace("w['prior_V20_closed_actual_V22']","w['prior_V21_closed_eval']")
+exec(compile(source,str(P),'exec'),globals())

@@ -1,0 +1,71 @@
+"""Freeze same recipe continuation and new diagnostics; shared text by SHA."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+HERE=Path(__file__).resolve().parent;R=HERE.parent
+
+
+def row(path,relative=None):
+    raw=path.read_bytes();v=dict(path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    if relative is not None:v['relative']=relative
+    return v
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    review=json.loads((R/'reports/SCUT21_FINAL512_NATIVE_CONTACT_REVIEW_V23_DECISION.json').read_bytes())
+    assert review['native_review']['actual_400Hz_route_support_curve_reviewed']
+    for name in ['SCUT23_SAME_FORMAT_FULL_RESTORE_COUNTERS_CPU.json','SCUT23_ASSEMBLED_EVAL_SNAPSHOT_CPU.json']:
+        assert json.loads((R/'reports'/name).read_bytes())['passed']
+    own=json.loads((R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/OWNER_EXIT.json').read_bytes())
+    assert own['all_own_waited'] and own['original_leases_released'] and own['original_cost_settled']
+    previous=json.loads((R/'scut_recipe_v21/FROZEN.json').read_bytes())
+    plan=json.loads((R/'scut_recipe_v21/PLAN.json').read_bytes());final=review['actual_source_final']
+    runid='MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_'+str(time.time_ns())
+    plan.update(run_id=runid,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        source_checkpoint=final,resume_checkpoint=final,target_iterations=8000-final['iteration'],absolute_target_iterations=8000,
+        entry_base_SHA=next(x['SHA'] for x in previous['files'] if x['relative']=='entry.py'),
+        source_review=str(R/'reports/SCUT21_FINAL512_NATIVE_CONTACT_REVIEW_V23_DECISION.json'),
+        recipe_changes_from_V21=[],training_algorithm_reward_physics_action_reset_changes=[],
+        added_evaluation_diagnostics=['original reset-contact force','roll/pitch condition','original duration raw/counter','pre-reset actuator position/velocity/applied torque'],
+        initial_spawn_diagnosis='V21 same saved .38m reset is initially unsupported; selected wheelbottom+.080-.157m; no support all80first20ms; descent close to freefall. Not all voluntary crouch. Reset held for sameprotocol.',
+        source_clock_delta='exact V21 saved scalar counters restored; no legacy clock migration needed',
+        CPU_full_resume=row(R/'reports/SCUT23_SAME_FORMAT_FULL_RESTORE_COUNTERS_CPU.json'),
+        CPU_new_eval=row(R/'reports/SCUT23_ASSEMBLED_EVAL_SNAPSHOT_CPU.json'),
+        integration_repair='same V21 flat no scanner/source rotation/clock and fullresume; evaluation diagnostics only')
+    plan['support'].append(previous['job'])
+    (HERE/'PLAN.json').write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    with (HERE/'SOURCE_PATHS.json').open('xb') as f:f.write((R/'scut_recipe_v21/SOURCE_PATHS.json').read_bytes())
+    shared=previous['shared_text']
+    for x in previous['files']:
+        shared.append(dict(path=previous['job']+'/'+x['relative'],bytes=x['bytes'],SHA=x['SHA']))
+    # Imports reused directly from V21, not copied into this new task.
+    names=['recipe.py','entry.py','owner.py','control.py','evaluate.py','PLAN.json','SOURCE_PATHS.json']
+    files=[]
+    for name in names:
+        p=HERE/name
+        if p.suffix=='.py':ast.parse(p.read_text(encoding='utf-8'))
+        files.append(row(p,name))
+    frozen=dict(epoch=time.time(),run_id=runid,job=plan['remote_root'],files=files,shared_text=shared,
+        whole_runtime_copies=0,production_PT_reads_for_freeze=0,new_physics=0)
+    with (HERE/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,indent=2)
+    wp=R/'CURRENT_WORK_ORDER.json';w=json.loads(wp.read_bytes())
+    w.update(status='SCUT21_FINAL512_CLOSED_0OF80_NATIVE_REVIEWED_SCUT23_FROZEN_UNUSED',
+        training_started=False,training_completed=True,current_run_final=final,final_save_verified=True,
+        final_actual_metrics=json.loads((R/'actual_closed'/previous['run_id']/'production/FINAL.json').read_bytes()),
+        evaluation_result=review['all80']|dict(path=str(R/'reports/SCUT21_FINAL512_NATIVE_CONTACT_REVIEW_V23_DECISION.json')),
+        current_model_native_reviewed=True,model_native_reviewed=True,replay_native_reviewed=review['native_review'],
+        initial_airborne_spawn_evidence=review['initial_spawn_evidence'],
+        latest_status='reports/SCUT21_CLOSED_TRANSFER_ACTUAL.json',standing200_evaluation='V21 final512 actual0/80 reviewed;0all80topforce',
+        evaluation_closed_and_transferred=True,
+        pending_repair=dict(version='SCUT_RECIPE_V23_SAME_RECIPE_CONTINUATION',root=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            frozen_SHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest(),launch_once_consumed=False,status='FROZEN_UNUSED_CPU_PASS',source=final),
+        next='Fresh allfour inventory/localserialFREE and originalcanonical/private/finite admission;singleV23launch fullsameformat restore final512 toward8000. New eval contact/actuator diagnostics; no training changes; after fullsaveclose immediateactual80/native review.')
+    wp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(run_id=runid,source_iteration=final['iteration'],remaining_iterations=plan['target_iterations'],source_PT_reads=0)))
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,27 @@
+"""Same eval protocol; append raw original reason and motor tracking evidence."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/evaluate.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='04caf0907337efd259e68f268bcdebc608dccd3712e2f583b6c621c10092ba8c'
+source=raw.decode()
+old='            r = bridge.reward\n            value.update('
+new='''            r = bridge.reward
+            from mod4v1_scut.math_ops import euler_xyz_from_quat, wrap_to_pi
+            roll, pitch, yaw = euler_xyz_from_quat(r.robot.data.root_quat_w)
+            original_contact = r.contact_sensor.data.net_forces_w[:, r._reset_contact_link_idx].norm(dim=-1)
+            value.update(source_contact_force_max_N=original_contact.amax(-1),
+                source_roll_excess=wrap_to_pi(roll).abs()>float(getattr(r.cfg,'termination_roll_deg',40.))*torch.pi/180,
+                source_pitch_excess=wrap_to_pi(pitch).abs()>float(getattr(r.cfg,'termination_pitch_deg',40.))*torch.pi/180,
+                source_duration_raw=r._termination_duration_raw_buf.clone(),
+                source_duration_counter=r._termination_duration_counter.clone(),
+                measured_actuated_joint_pos=r.joint_pos[:,r._actuate_idx].clone(),
+                measured_actuated_joint_vel=r.joint_vel[:,r._actuate_idx].clone(),
+                measured_applied_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone())
+            value.update('''
+assert source.count(old)==1;source=source.replace(old,new)
+old="'joint_pos_target=pre_reset_targets.cpu().tolist()'"
+new="'joint_pos_target=pre_reset_targets.cpu().tolist(), joint_pos_measured=snap[\\'measured_actuated_joint_pos\\'].cpu().tolist(), joint_vel_measured=snap[\\'measured_actuated_joint_vel\\'].cpu().tolist(), applied_torque=snap[\\'measured_applied_torque\\'].cpu().tolist()'"
+assert source.count(old)==1;source=source.replace(old,new)
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

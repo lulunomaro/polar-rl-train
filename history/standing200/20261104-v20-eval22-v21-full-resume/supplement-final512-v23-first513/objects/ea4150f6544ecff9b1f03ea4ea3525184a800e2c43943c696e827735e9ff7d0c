@@ -1,0 +1,11 @@
+"""Same frozen V21 original SCUT recipe; current task owns its resume path."""
+from pathlib import Path
+import hashlib
+import sys
+
+BASE=Path(__file__).resolve().parent.parent/'scut_recipe_v21'
+if not BASE.exists():BASE=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300')
+sys.path.append(str(BASE))
+P=BASE/'recipe.py';raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='a008a9ec748a553ceae29d3decf9d3d833817958c15b4725025f366f4bd298ff'
+exec(compile(raw,str(P),'exec'),globals())

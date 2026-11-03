@@ -1,0 +1,9 @@
+"""Same original finite entry; all recipe changes already frozen in V21."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/entry.py')
+raw=P.read_bytes()
+expected=__import__('json').loads((Path(__file__).parent/'PLAN.json').read_bytes())['entry_base_SHA']
+assert hashlib.sha256(raw).hexdigest()==expected
+exec(compile(raw,str(P),'exec'),globals())

@@ -11,3 +11,5 @@
 失败原件保留：CPU Attempt1/3、CIM首次本地拒绝、local22620未知退出、只补unused阶段的47096恢复、所有schema/路径错误见 ALL_ERRORS_AND_LIMITS.json。归档脚本首次拼接字符串与WindowsPath的 TypeError发生于任何归档写入前，改用Path后完成，记录于补充文件。EVIDENCE_INDEX.json索引75个新小文本、54个同Gitblob引用和15项大型raw/媒体外部引用；不复制模型、USD、轨迹或上游整树。
 
 FINAL_WORK_ORDER.json为本阶段冻结交接，当前实时状态以scope/admin/CURRENT_STATE.json及后续追加回执为准。原mod4-10继续ACTIVE、每小时、同一聊天；原prompt已改为476/477已完成、新MOD4v1软件适配待原生验证。归档使用新phase `mod4v1-scut-adaptation-final476-eval477`，唯一record一次；旧476phase和全部旧tagobjects不动。保存的后续回执通过ordinary supplement追加，postGit验证只在工具输出中显示。
+
+阶段已推送：peeled/main `7ffa796350362bd51e3e8f7729b3d305622dfd81`、annotated `83549b2205e212f07d8cbd554d3f034cde898feb`，标签 `trial-20261103-mod4v1-scut-adaptation-final476-eval477`。3098条既有标签及peel引用未变。普通补充中修复 manager reset 重建 log 导致分项记录丢失的问题；单项顺序检查通过，原12项记录不变。后续归档身份见 POSTRECORD_WORK_ORDER.json，不重record/retag。

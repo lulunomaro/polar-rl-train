@@ -177,15 +177,19 @@ class ScutBridge:
         env.reward_manager.compute = compute_reward
 
         def reset(ids):
+            saved_log = {}
             if self.ready:
                 self.completed_episodes += len(ids)
                 self.completed_strict += int(self.acceptance.success[ids].sum())
-                self.log_reset(ids)
+                saved_log = self.log_reset(ids)
             self.reward.reset(ids)
             self.top_force[ids] = 0
             self.ground_force[ids] = 0
             self.acceptance.reset(ids)
             result = self.original_reset(ids)
+            # ManagerBasedRLEnv replaces extras['log'] inside its reset. Merge
+            # the pre-reset reward/state values only after that replacement.
+            env.extras.setdefault('log', {}).update(saved_log)
             self.reward.height_cmd[ids] = self.task.height_cmd(env)[ids, 0]
             return result
         env._reset_idx = reset
@@ -193,13 +197,14 @@ class ScutBridge:
     def log_reset(self, ids):
         """Log original weighted reward sums before resetting only these episodes."""
         r = self.reward
-        log = self.env.extras.setdefault('log', {})
+        log = {}
         duration = self.env.max_episode_length_s
         for name, value in r._episode_sums.items():
             log['Episode_Reward/scut_'+name] = value[ids].mean()/duration
         r.state_machine_manager.append_reset_logs(r, log, ids)
         log['Metrics/strict270_completed'] = self.completed_strict
         log['Metrics/episodes_completed'] = self.completed_episodes
+        return log
 
     def measure_acceptance(self):
         r = self.reward

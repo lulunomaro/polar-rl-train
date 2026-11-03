@@ -46,6 +46,8 @@ PPO：actor/critic 各 `[256,128,64]` ELU，Gaussian std 初值1，rollout24、5
 
 `CPU_VALIDATION_ATTEMPT5.json`：12项通过，含86基础项、45类可选奖励、打乱 runtime 名称映射、四元数双约定、dt一次、终态/重置顺序、观测与接触清理、有限圆柱 footprint/首次飞行反例，以及真实 RSL5 的24步 rollout、独立重算GAE、PPO update、完整存取与命令计时张量恢复。使用合成张量，0生产PT读取、0新 physics、0新GPU训练。早期 fixture 错误和轮圆柱近轴 float32 消减误差保留在 Attempt1/3，修复未覆盖失败报告。
 
+阶段提交后的普通补充修复：原 manager 的 `_reset_idx` 会重新创建 `extras['log']`，现在先保存终态奖励/状态日志，原 reset 完成后再合并，避免分项曲线丢失。`CPU_RESET_LOG_SUPPLEMENT.json` 单项检查通过，已有12项结果保留，未重跑 physics/PPO。
+
 本机 stock IsaacLab 与目标运行时不同：本地没有原任务要求的 `isaaclab_physx.physics.PhysxCfg` 定制后端；不能改用其它 SDK 字段/solver 冒充验证。目标原生检查必须使用 `DEPENDENCIES.json` 中的实际共享 runtime，并由原 canonical owner 供应资源锁和绝对 save deadline；train.py 自身不申请/复制预算，不改变旧 once，不启动定时器。`--help` 可在无 physics 条件下查看参数；`--support` 仅引用已有共享模块目录。原生 startup/fullDR/400Hz 接触、独立技能评测与真实回放完成之前，本适配状态为 `CPU_VERIFIED_NATIVE_PENDING`。
 
 2026-11-03 17:15 +08 的一次有限只读检查读到远端 RSL5.0.1、IsaacLab6.1.14；原 canonical 正被 owner1535837 占用。`find_spec(isaaclab_physx)=false` 仅表示应用启动前默认路径不可见，历史原生任务会在 app 启动后启用扩展，不能据此断言远端扩展缺失。检查未导入 SDK、未扫描 GPU、未启动 worker、未读取 PT、未写 canonical；SSH 最终关闭并恢复 FREE。本机的依赖差异与远端当前资源占用分别记录。

@@ -226,12 +226,15 @@ class Tests(unittest.TestCase):
         manager=SimpleNamespace(terminated=terminated,time_outs=timeout,
             _terminated_buf=terminated,_truncated_buf=timeout)
         env=SimpleNamespace(termination_manager=manager,
-            scene=SimpleNamespace(update=lambda dt:None),reward_manager=SimpleNamespace(compute=lambda dt:None))
+            scene=SimpleNamespace(update=lambda dt:None),reward_manager=SimpleNamespace(compute=lambda dt:None),
+            extras={},max_episode_length_s=8.)
         bridge.env,bridge.ready=env,False
         events=[];state={'endpoint':7.}
         class Reward:
             reset_terminated=torch.zeros(n,dtype=torch.bool)
-            state_machine_manager=SimpleNamespace(apply_done_masks=lambda r,t,o:(t,o))
+            state_machine_manager=SimpleNamespace(apply_done_masks=lambda r,t,o:(t,o),
+                append_reset_logs=lambda r,log,ids:log.update({'State/scut_probe':2.}))
+            _episode_sums={'probe':torch.tensor([8.,16.])}
             height_cmd=torch.zeros(n)
             def compute(self):events.append(('reward',state['endpoint']));return torch.full((n,),state['endpoint'])
             def reset(self,ids):events.append(('reset',ids.tolist()));state['endpoint']=0.
@@ -239,12 +242,14 @@ class Tests(unittest.TestCase):
         bridge.original_update=lambda dt:None
         bridge.original_done=lambda:terminated|timeout
         bridge.original_reward=lambda dt:None
-        bridge.original_reset=lambda ids:None
+        bridge.original_reset=lambda ids:env.extras.update(log={})
         bridge.top_force=torch.zeros(n,2);bridge.ground_force=bridge.top_force.clone()
         bridge.acceptance=Strict270(n,'cpu')
         bridge.task=SimpleNamespace(height_cmd=lambda env:torch.zeros(n,1))
         bridge.prepare_endpoint=lambda:events.append(('endpoint',state['endpoint']))
         bridge.snapshot=lambda t,o:{'endpoint':state['endpoint'],'terminated':t.clone()}
+        bridge.completed_episodes=bridge.completed_strict=0
+        bridge.ready=True
         bridge.install_hooks()
         self.assertTrue(bool(env.termination_manager.compute()[0]))
         reward=env.reward_manager.compute(.02)
@@ -252,6 +257,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(float(reward[0]),7.)
         self.assertEqual(bridge.terminal_snapshot['endpoint'],7.)
         self.assertEqual([row[0] for row in events],['endpoint','reward','reset'])
+        self.assertEqual(float(env.extras['log']['Episode_Reward/scut_probe']),1.)
+        self.assertEqual(env.extras['log']['State/scut_probe'],2.)
         bridge.close()
 
     def test_optional_current_config_is_separate(self):

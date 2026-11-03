@@ -1,0 +1,52 @@
+{
+  "kind": "PREREGISTERED_BOUNDED_DESCRIPTIVE_TRAIN_TRACE_ANALYSIS_NOT_CONTROLLER_REPLAY",
+  "trace_allowlist": [
+    "results/r26_spin_cycle_201/trace.jsonl",
+    "results/r26_spin_cycle_202/trace.jsonl",
+    "results/r27_both_201/trace.jsonl",
+    "results/r27_both_202/trace.jsonl"
+  ],
+  "seeds": [201, 202],
+  "trace_limit": 4,
+  "max_rows_per_trace": 2650,
+  "rate_hz": 100,
+  "no_raw_archive_hash": true,
+  "raw_identity_check": "exact allowlisted path, producer-reported bytes/SHA recorded verbatim, actual size/mtime stable before and after scan; raw SHA NOT recomputed",
+  "imports": "Python standard library only; no old controller/runner/physics/SDK imports",
+  "stop_events": "first request yaw transition from positive or negative 4pi to zero within 0.03s of 10 or 22 control seconds; use actual estimate_time, not nominal boundary or row.time",
+  "retained_control_time_ranges_s": [[9.45, 13.05], [21.45, 26.01]],
+  "segments": {
+    "pre": "[-0.5,0) relative to actual zero request",
+    "early": "[0,0.5)",
+    "mid": "[0.5,1.5)",
+    "tail": "last 1.0s of the actual stop phase",
+    "whole_stop": "zero request until next nonzero request or final post-step root timestamp"
+  },
+  "snapshots_s": [0, 0.5, 1, 2, "last_control_sample"],
+  "snapshot_rule": "nearest existing control row, publish actual relative time; no interpolation",
+  "numeric_statistics": "mean/RMS/min/max and mean/RMS residuals with finite checks; no fitted gain, controller replay or new score",
+  "true_heading_rate": "(gyro_true[1]*sin(roll_true)+gyro_true[2]*cos(roll_true))/max(cos(pitch_true),0.15)",
+  "time_semantics": {
+    "control_epoch": "estimate_time; request/shaped/estimated state and requested torque were computed before apply_torque_request",
+    "truth_before": "V4grade current freejoint qpos/qvel at root_pose_velocity_time_s equal to control epoch; collision cache time is separate",
+    "truth_after": "current root pose/velocity after 20 existing substeps, normally control epoch+0.01s",
+    "estimate_pitch": "state14[2] first-order age-view to control epoch",
+    "estimate_vx_and_heading_rate": "state14[7:9] held source-epoch filter/rate, not aged by _predict_view",
+    "source_pair": "match source sensor_timestamp_s to prior/current truth_before within 1e-7s using at most 16-row history; otherwise null/unknown, never substitute current truth",
+    "sensor_aperture": "recorded source end epoch labels 20-sample 2k boxcar gyro/rates plus D1/D3; not instantaneous or synchronized truth"
+  },
+  "wheel_diagnostics": {
+    "order": "row6 LH LC LW RH RC RW, wheel indices 2 and 5",
+    "observed": "raw requested torque and last-substep actual_tau=d.ctrl; delayed boxcar wheel_rate2 is sensor feedback, not last-substep current-state speed",
+    "absolute_peak_hit": "abs(abs(tau)-5.775909774436091)<=1e-8 is ONLY an absolute-cap coincidence count, not a signed-DC clip counter",
+    "gap": "reported requested/last-substep gap may include processed target inversePD, D4 queue, current-state PD, D0 gain and signed DC; not uniquely saturation",
+    "unknown": ["pre-clip 2k raw torque", "instantaneous last-substep motor speed", "target stages and per-stage clip masks", "independent measured torque/current", "instantaneous electrical power"]
+  },
+  "state_diagnostics": "observe centering active, torque correction, capture mix/reference and accel_gain_used transitions; yaw I and enabled/low_ticks scalars are not logged and remain unknown",
+  "all_scan_transition_cap_per_kind": 32,
+  "preserve_scores": "copy four small-result phase metrics and transition_proposed_pass only; parent-supplied overall R26 0/8 and R27 both 2/8 unchanged; no heldout or other TRAIN trace opened",
+  "causal_limits": "both combines lowspin accel correction and capture and may differ since startup; paired seeds are not isolated stop interventions; no unique causal attribution from two seeds",
+  "next_hypothesis_limit": 2,
+  "output_limits": {"report_lines": 120, "window_summary_bytes": 98304},
+  "execution_limits": "one bounded stdlib analysis process, no physics/model construction/compile/old QA/Git/agents/goal/blockedIO; no interaction with parent R52"
+}

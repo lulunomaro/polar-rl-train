@@ -1,0 +1,18 @@
+{
+ "kind":"PREDECLARED_NOMINAL_STATIC_GUIDE05_GEOMETRY_ONLY",
+ "candidates":[{"name":"nominal_delta_minus_0p2","file":"nominal_gain_v1.json"},{"name":"tall_delta0","file":"TALL_ROUGH_BANK_V1/gain_delta0.json"},{"name":"tall_delta20","file":"TALL_ROUGH_BANK_V1/gain_delta20.json"}],
+ "start":{"file":"JUMP270_V1/GAIN_BANK.json","key":"gains.crouch.q"},
+ "reference_weights":[0.5,1.0],"pitches_rad":[-0.25,-0.2153,-0.15,0.0,0.15],"roll_rad":0.0,"yaw_rad":0.0,
+ "maximum_unique_joint_pitch_queries":30,
+ "interpolation":"Linearly interpolate only q[3:7] (hip,crank-minus-hip for left/right) using given reference weight, not a new controller/gain. Pure continuous-branch nominal kinematics.leg_configuration fills passive joints and existing drive mimics.",
+ "wheel_phase":"Canonical public nominal-FK wheel_spin=0 for each wheel; no rolling-radius support shortcut. This fixed phase is explicitly an additional nominal geometry convention, not actual 4505 wheel spin or an all-spin-phase certificate.",
+ "oracle":"One authoritative XML model normal boot with absolute compiler meshdir. No Plant/controller/DR construction. Thirty mj_forward calls at collision-free temporary rootZ=1m, qvel=0, ctrl=0. Each reported supported pose is exact rigid-Z translation of that same joint/pitch configuration; no extra pose sampling or second forward needed.",
+ "wheel_support":"Use only the two compiled actual tire mesh vertex caches, each geom_xmat/geom_xpos applied exactly once. dz=-min(all tire world vertex z); supported rootZ=1+dz, and report each tire residual min-z+dz. Both gaps <=1e-8m is only numerical co-support consistency, not a physical operating bound. Mark unknown if inconsistent.",
+ "primitive_support":"Verify compiled guide_wheel_05 is cylinder, compiled parent/offset/size/quaternion/axis. Exact min z = geom_center_z + dz - (radius*hypot(R20,R21) + half_length*abs(R22)); cylinder local axis is local Z. No rbound sphere.",
+ "clearance":"Compare complete cylinder minimum-z with z=0.06m horizontal top plane; no finite-bar XY overlap assumed. Positive/negative is conditional vertical clearance, not collision occurrence if XY differs.",
+ "nominal_assumptions":["ideal reference joint tracking","level floor z=0","roll=yaw=0","canonical wheel-spin phase0","nominal geometry/no DR","supported main tire meshes only; no static force equilibrium inferred"],
+ "source_scope":"Only named small authoritative source/pose refs, no raw/heldout/H5/DR values/R56 code. Normal model boot may load existing mesh assets but no archival asset rehash or 279-mesh per-pose traversal. Only two tire caches and guide05 primitive evaluated.",
+ "blocked_integrators":["mj_step","mj_step1","mj_step2","mj_Euler","mj_RungeKutta","mj_implicit"],
+ "report_max_lines":90,"PH7_pending":true,
+ "not_claimed":["actual4505 clearance/q","dynamic stability","probability certificate","new operating limit","gain selection","controller change","contact-confidence increase"]
+}

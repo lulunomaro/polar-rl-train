@@ -1,0 +1,91 @@
+{
+  "kind": "R56_MANUAL_POSITION_TRIGGER_TRAIN",
+  "configs": [
+    [
+      "r56_position_flat",
+      {
+        "scene": "flat",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "nominal_gain_v1.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6
+        },
+        "cohort": "R56_NEW_MANUAL_ODOMETRY_TRIGGER_TRAIN_NOT_HOLDOUT",
+        "case_id": "r56_position_flat"
+      }
+    ],
+    [
+      "r56_position_rm",
+      {
+        "scene": "rm",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "nominal_gain_v1.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6
+        },
+        "cohort": "R56_NEW_MANUAL_ODOMETRY_TRIGGER_TRAIN_NOT_HOLDOUT",
+        "case_id": "r56_position_rm",
+        "terrain_seed": 9001,
+        "terrain_difficulty": 1.0
+      }
+    ]
+  ],
+  "max_workers": 1,
+  "hypothesis": "R55 at fixed1.95 has estimated distance4503=1.25725 vs nominal1.19403. Schedule from measured relative odometry instead of fixed elapsed time; no unique cause or future success assumed.",
+  "target_selection": "1.18m chosen from nominal TRAIN sensor distance just before original1.95 trigger, with one tick decision-to-push delay; no true-root/DR cancellation or heldout fitting",
+  "not_autonomous_obstacle_or_contact_or_absolute_world_position": true,
+  "default_disabled": true,
+  "inherited_trigger_guards_unchanged": true,
+  "relative_push_flight_capture_and_observer_durations_unchanged": true,
+  "wheel_observation_phase": "Legacy keeps wheel update during push, disables during predicted post-push quarantine; not changed here",
+  "success_gates_unchanged": true,
+  "flat_gate_before_matched_RM": true,
+  "H1_H2_H4_H5_frozen": true,
+  "PH7_pending": true
+}

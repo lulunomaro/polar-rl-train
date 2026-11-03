@@ -1,0 +1,20 @@
+{
+ "kind":"PREDECLARED_12_ZERO_STEP_NOMINAL_AIR_DYNAMICS_QUERIES_NOT_CONTROLLER",
+ "poses":[{"name":"crouch","file":"JUMP270_V1/GAIN_BANK.json","key":"gains.crouch.q"},{"name":"pushend_delta_plus_0p2","file":"TALL_ROUGH_BANK_V1/gain_delta20.json","key":"gain.q"},{"name":"landing_delta0","file":"TALL_ROUGH_BANK_V1/gain_delta0.json","key":"gain.q"}],
+ "root_xyz_m":[0.0,0.0,1.0],"root_quaternion_wxyz":[1.0,0.0,0.0,0.0],"qvel":0,"wheel_spin_phase":0,
+ "actuator_order":["left_hip","left_crank","left_wheel_spin","right_hip","right_crank","right_wheel_spin"],
+ "queries":[{"name":"zero","ctrl6":[0,0,0,0,0,0]},{"name":"hip_pair_plus1","ctrl6":[1,0,0,1,0,0]},{"name":"crank_pair_plus1","ctrl6":[0,1,0,0,1,0]},{"name":"wheel_common_plus1","ctrl6":[0,0,1,0,0,1]}],
+ "maximum_mj_forward_calls":12,
+ "state_reset":"Before EVERY query mj_resetData; rebuild identical full continuous-branch FK qpos for that pose; qvel,ctrl,act,qacc_warmstart,qfrc_applied,xfrc_applied all zero before setting the declared ctrl6. Keep original solver/physics/actuator limits/equalities/PD/DR untouched. Verify same qpos bytes and zero warmstart across four queries per pose.",
+ "model":"Single original authoritative XML normal boot, retain ground/all geoms/equalities, only compiler.meshdir resolved to normal asset directory. No Plant/controller/DR construction; no raw/H5/DR sample reads; no asset rehash or 279-mesh traversal.",
+ "contact":"Record ncon and contact names for every query. Intended airborne rows require actual ncon=0, not just world-contact exclusion. If contact or changed constraint stage appears, preserve result and qualify/mark interpretation unknown; never remove contacts/constraints to force air.",
+ "frame":"Resolve floating_base compiled joint qposadr/dofadr and base_gyro sensor site/frame; record actuator joint IDs, axes, gears, transmission/gain/bias/dynamics. At root identity/qvel0, verify root rotational Jacobian columns and cross-check qacc[dofadr+4] against local/world chassis angular acceleration Y after explicit mj_rnePostConstraint/mj_objectAcceleration. No additional forward or rotated-velocity experiment.",
+ "response":"For each unit-pair row subtract SAME pose ctrl0 qacc. Root Euler pitch ddot equals angular Y ddot only at this queried identity orientation/zero velocity. Record full qacc and six actual hinge qacc, plus crank-minus-hip ddot differences. Units rad/s^2; input is +1 Nm PER selected motor, total +2 Nm per symmetric pair after gear/actuator_force verification.",
+ "linear_scope":"Finite +1-vs-zero nominal instantaneous control response with original soft constraints/passives. Compare efc types/states and solver residuals; do not certify arbitrary amplitude/other poses/negative direction/sustained dynamics from these 12 rows.",
+ "sign_rule":"For a scalar pair increment u=k*positive_pitch_error and measured local coefficient a=delta_pitch_ddot/u, restoring local sign requires a*k<0. If coefficient is zero/uncertain or stages differ, mark sign unknown. No gain magnitude selected or controller implemented.",
+ "wheel_limits":"Report wheel angular acceleration with root reaction but do not infer sustainable speed/momentum/electrical/signed-DC authority or D4 driver behavior. Direct model unit ctrl is not full inverse-PD/processed-target/D4 motor torque tracking.",
+ "blocked_integrators":["mj_step","mj_step1","mj_step2","mj_Euler","mj_RungeKutta","mj_implicit"],
+ "report_max_lines":90,"PH7_pending":true,
+ "parent_context_not_recomputed":"R60 fresh16 only10/16 local; old8 seed7/8 is not strong robustness evidence. No event/episode data read for this task.",
+ "not_claimed":["new runtime/controller","selected gain","actual large-pitch event cause","robustness/stability certificate","operating limit","contact confidence/permission increase"]
+}

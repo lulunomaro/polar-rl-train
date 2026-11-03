@@ -1,0 +1,9 @@
+# R60 two fresh TRAIN cases — bounded method fixed before raw access
+
+Only r60_tall0_fresh_RM_DR_4605 and r60_tall0_fresh_RM_DR_4606 result/config/SOURCE_MANIFEST, necessary original runner/grade/position+V3 sources, and each case trace.jsonl+physics.jsonl (four explicit producer paths) once. No otherTRAIN/H5/heldout/mesh or newphysics/compile/Git/agent/rawhash/control edits. Catalog Office/ACL does not match; read/files/CLI selected. PH7pending.
+
+Before raw open: persist small source/metadata/code SHA and four producer path/size/SHA records; raw SHA is reused claim, not rehashed. Read each trace once for actual decision/latch/push, phase/reference/weight/observer and bracketing sensor clock; read each physics stream once and retain only event first/peak/last, counters and short segment summaries, never exported time windows/cap-driven rescans.
+
+Air uses original all-world positive-normal sum<=1N contiguous20ms; report onset and confirmation, firstlanding first subsequent >1N. First ANYbar event uses summed positive contact normals per bar >1N including all robot parts; retain contacts/normal/point and orientation towardrobot, classify top/front-upper-edge only from actualnormal. Guide/hard gates original aggregate >1N per physics row; episodes contiguous sample_index with dt.0005. First/peak/last are same-stage actual rootPRE/rotation/force; rootPOST time kept separate.
+
+Only neighboring100Hz encoder/legacytarget/landing_position_ref4/weight/observer logs; NOT actual2klegq. No integration of biased/noisyD1/D2 q, no target substituted as pose, no fitting and no whole-robot clean-air inference from main wheels. Original result/gates/failure denominators unchanged. Compare two mechanisms without presupposing similarity or unique causation. Report<=90lines plus small eventJSON/receipt.

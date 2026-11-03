@@ -1,0 +1,20 @@
+{
+  "kind":"PREREGISTERED_READ_ONLY_TWO_R55_TRAIN_EVENT_ANALYSIS",
+  "cases":["r55_t195_RM_DR_4503","r55_t195_RM_DR_4505"],
+  "raw_paths":["results/r55_t195_RM_DR_4503/trace.jsonl","results/r55_t195_RM_DR_4503/physics.jsonl","results/r55_t195_RM_DR_4505/trace.jsonl","results/r55_t195_RM_DR_4505/physics.jsonl"],
+  "raw_content_passes_per_file":1,
+  "expected_rows":{"trace":800,"physics":16000},
+  "recorded_guide_ticks_preserved":{"r55_t195_RM_DR_4503":33,"r55_t195_RM_DR_4505":3},
+  "events":["first contact on result.first_transverse_bar.name with any individual normal_N > 1, regardless robot kind","first total <=1N run start and its first 20ms confirmation","first total >1N landing after qualified air","guide aggregate >1N first, peak and last, count and contiguous episodes"],
+  "air_definition":"All logged environment positive normals summed before threshold; <=1N for >=40 consecutive 0.5ms stages; retain original labels and verify not regrade scores",
+  "guide_definition":"row.guide_normal_N > 1, identical to actual runner result counter; separate positive contact identities and individual >1N contacts",
+  "same_stage":"drivepoint.root_xyz_pre_m + private_contact_diagnostic.root_rotation_world_from_body33_pre and stage_time_s. Root POST kept separate. Pitch = atan2(-R20,hypot(R00,R10)). No interpolation.",
+  "control_join":"physics sample_index //20 to actual current control interval; verify command_time <= stage < time_s. Retain event-adjacent previous/current/next control summaries only, deduplicated by index.",
+  "control_fields":["phase","landing_position_ref4","target_q4 (different semantic; not substituted)","landing_transition_weight (same schedule for K/ff/eq by frozen source)","landing_capture_started_s","observer quarantine flags/times","estimated pitch/vx/roll and source timestamp/age","true grade_before/after","requested_tau6","last 0.5ms stage bounded ctrl in that control interval"],
+  "unknowns":["2k actual active joint q4: not logged, do not integrate dq or decode biased/delayed encoder as truth","actual queued target/preclip torque/clip mask","independent measured motor output torque","uniquely identified failure mechanism"],
+  "finite_and_schema":"Reject explicit nonfinite/schema/stage mismatch; preserve completed event prefix/diagnostic and do not manufacture zero or rescan to repair",
+  "source_scope":"Only selected small config/result/manifest/protocol and actually necessary code SHA. No model/279mesh reads/hash, raw archival hashes, other TRAIN/heldout/H5 reads, project imports, physics, compilation, QA, gain fitting, controller modification or agent",
+  "report_max_lines":80,
+  "output_scope":"Small event JSON, <=80 line report, receipt. No dense extracted windows and no self-imposed byte-cap/rescan loop.",
+  "qualification":"Descriptive observations only; retain both original failures and guide33/guide3; PH7_pending, outside current PH6 cutoff"
+}

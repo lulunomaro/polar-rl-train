@@ -1,0 +1,44 @@
+{
+  "kind": "INSTALLED_API_FRAME_SEMANTICS",
+  "sources": [
+    {
+      "path": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\mujoco\\include\\mujoco\\mujoco\\mjtype.h",
+      "SHA": "b10ddbd6de35012331ac2e58912a0e2f790677d25aac15ca10bc6ede743ba445",
+      "excerpts": [
+        {
+          "first": 297,
+          "last": 300,
+          "text": "typedef enum mjtObj {             // type of MujoCo object\n  mjOBJ_UNKNOWN       = 0,        // unknown object type\n  mjOBJ_BODY,                     // body\n  mjOBJ_XBODY,                    // body, used to access regular frame instead of i-frame"
+        },
+        {
+          "first": 334,
+          "last": 339,
+          "text": "typedef enum mjtSensor {         // type of sensor\n  // common robotic sensors, attached to a site\n  mjSENS_TOUCH        = 0,        // scalar contact normal forces summed over sensor zone\n  mjSENS_ACCELEROMETER,           // 3D linear acceleration, in local frame\n  mjSENS_VELOCIMETER,             // 3D linear velocity, in local frame\n  mjSENS_GYRO,                    // 3D angular velocity, in local frame"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\mujoco\\include\\mujoco\\mujoco\\mjdata.h",
+      "SHA": "c568c75a0cccb97dcb84f2787a3b4e4c0a68b25da4455af01bde729113b72073",
+      "excerpts": [
+        {
+          "first": 214,
+          "last": 219,
+          "text": "  // computed by mj_fwdPosition/mj_kinematics\n  mjtNum* xpos;              // Cartesian position of body frame                 (nbody x 3)\n  mjtNum* xquat;             // Cartesian orientation of body frame              (nbody x 4)\n  mjtNum* xmat;              // Cartesian orientation of body frame              (nbody x 9)\n  mjtNum* xipos;             // Cartesian position of body com                   (nbody x 3)\n  mjtNum* ximat;             // Cartesian orientation of body inertia            (nbody x 9)"
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\mujoco\\include\\mujoco\\mujoco\\mujoco.h",
+      "SHA": "ed83c6855da476a29f75e95a51deade6d4e235a298dd8cab3be69945181802f8",
+      "excerpts": [
+        {
+          "first": 632,
+          "last": 638,
+          "text": "// Compute object 6D velocity (rot:lin) in object-centered frame, world/local orientation.\nMJAPI void mj_objectVelocity(const mjModel* m, const mjData* d,\n                             int objtype, int objid, mjtNum res[6], int flg_local);\n\n// Compute object 6D acceleration (rot:lin) in object-centered frame, world/local orientation.\nMJAPI void mj_objectAcceleration(const mjModel* m, const mjData* d,\n                                 int objtype, int objid, mjtNum res[6], int flg_local);"
+        }
+      ]
+    }
+  ],
+  "finding": "mjOBJ_BODY accesses i-frame; mjOBJ_XBODY accesses regular body frame; gyro is site-local. Use same RNE-postconstraint stage, compare appropriate frame/rotation, never relax numeric thresholds."
+}

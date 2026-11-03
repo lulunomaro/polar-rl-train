@@ -1,0 +1,91 @@
+{
+  "kind": "R58_POSITION_TALL0_LANDING_PROFILE_TRAIN",
+  "configs": [
+    [
+      "r58_tall0_position_flat",
+      {
+        "scene": "flat",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "TALL_ROUGH_BANK_V1/gain_delta0.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6
+        },
+        "cohort": "R58_LANDING_EQUILIBRIUM_PROFILE_TRAIN_NOT_HOLDOUT",
+        "case_id": "r58_tall0_position_flat"
+      }
+    ],
+    [
+      "r58_tall0_position_rm",
+      {
+        "scene": "rm",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "TALL_ROUGH_BANK_V1/gain_delta0.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6
+        },
+        "cohort": "R58_LANDING_EQUILIBRIUM_PROFILE_TRAIN_NOT_HOLDOUT",
+        "case_id": "r58_tall0_position_rm",
+        "terrain_seed": 9001,
+        "terrain_difficulty": 1.0
+      }
+    ]
+  ],
+  "max_workers": 1,
+  "selection_after_R57_TRAIN": "R57same8 local6/8, firstflight7/8 and joint5/8 vsR55joint3/8; retains4504regression and4505failure. Choose position scheduler for next experiment, not independent validation.",
+  "hypothesis": "New nominal reference geometry query reports greater guide05 clearance for delta0 than delta-.2 under ideal level support; it does NOT describe actual DR tracking or prove cure. Test delta0 landing equilibrium profile.",
+  "changed": "Only landing gain spec from nominaldelta-.2 to existing TALLdelta0; V3 simultaneously interpolates K,ff,eq/ref, so not pureheight-only ablation",
+  "scheduler_and_push_gains_and_relative_times_unchanged": true,
+  "guard_and_output_and_DR_and_success_thresholds_unchanged": true,
+  "no_new_model_linearization_or_online_DARE": true,
+  "no_true_DR_parameters_in_control": true,
+  "flat_actual_gate_before_matching_RM": true,
+  "scope": "nominal LOCAL first6cmbar manualodometry plan; no fullDR or dynamic stability or hardware claim",
+  "H1_H2_H4_H5_frozen": true,
+  "PH7_pending": true
+}

@@ -1,0 +1,43 @@
+{
+  "action": "SOURCE_PREPARATION_ONLY_NO_RECORD_COMMIT_TAG_OR_PUSH",
+  "cutoff": "Closed R54 through R61 plus sealed AIR_PITCH_AUTHORITY and listed diagnostics; all before active MINIHOP_AIR_PITCH_REF",
+  "task_root": "F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102",
+  "own_repo": "F:/RMPOLAR-RL/repo-lqr-robust",
+  "expected_branch": "mod4v1-lqr-mpc-robust",
+  "expected_prior_commit": "4e7a3fb9855657b5b501de08785f875b1e0bedfd",
+  "new_destination": "history/experiments/mod4v1_robust_traditional_phase7_SOURCE_PREPARATION",
+  "root_scripts_explicit": [
+    "prepare_r54_takeoff_window_v1.py", "launch_manual_profile_train_v1.py",
+    "record_r54_firstflight_facts_v1.py", "launch_r55_first_bar_DR8_v1.py", "record_r55_train_facts_v1.py",
+    "prepare_r56_position_trigger_v1.py", "run_manual_position_v4.py", "launch_manual_profile_train_v2.py",
+    "launch_r57_position_paired_DR8_v1.py", "record_r57_position_paired_facts_v1.py",
+    "prepare_r58_landing_margin_v1.py", "launch_r59_tall0_paired_DR8_v1.py", "launch_r60_tall0_fresh_DR16_v1.py",
+    "record_local_bar_train_v1.py", "prepare_r61_spin_decel_gate_v1.py", "prepare_r61_spin_decel_gate_retry02.py",
+    "prepare_r61_spin_decel_gate_v2.py", "run_spin_decel_gate_v1.py", "launch_r61_spin_decel_gate_v1.py", "record_r61_spin_decel_facts_v1.py"
+  ],
+  "root_trees_explicit": [
+    "MINIHOP_POSITION_TRIGGER_V1", "SPIN_CENTER_DECEL_GATE_V1", "SPIN_STOP_CAUSAL_V1",
+    "R55_GUIDE_FAILURE_CAUSAL_V1", "LANDING_GUIDE_CLEARANCE_PROPOSAL_V1",
+    "R60_FRESH_CONTACT_AUDIT_V1", "AIR_PITCH_AUTHORITY_V1"
+  ],
+  "closed_batch_families": ["R54_nominal4", "R55_DR8", "R56_nominal2", "R57_DR8", "R58_nominal2", "R59_DR8", "R60_DR16", "R61_nominal1_and_paired2"],
+  "reports": "Only reports/R54*,R55*,R57*,R59*,R60*,R61* matching the closed batch/source roots; names are routing hints, not proof of existence",
+  "handoffs": ["CONTINUATION_R55.md", "CONTINUATION_R56_PREEXEC.md", "CONTINUATION_R60.md", "CONTINUATION_R61.md", "PH7_ARCHIVE_CUTOFF_R61.json"],
+  "prior_postcommit_receipt": "history/experiments/mod4v1_robust_traditional_phase7_PENDING/ARCHIVE_PHASE6_RECEIPT.json",
+  "dependency_rule": "Resolve necessary text imports/gain specs/FK/schema/helper docs from explicit actual source+producer references. Same-byte prior Git entries become exact refs; new bytes snapshot without edits. Do not scan an mtime-based whole tree.",
+  "excluded": ["MINIHOP_AIR_PITCH_REF_V1 and all source/imports created for that active candidate", "R62+ and future physics/proposals", "other session RL/canonical/worktree/index", "outside ZIP/USD/assets except existing producer-reference metadata"],
+  "raw_rule": "All episode trace/physics/sensor JSONL and binary/large assets use existing producer bytes/SHA metadata; unknown remains unknown. No raw/asset/ZIP read solely for archive hashing. Failed empty prefixes remain and do not become robot failures.",
+  "source_audit": "Before/capture/after SHA for small text; no redaction or old source/score/seal mutation. Do not invent execution-time SHA from later seal-time hash. Installed API paths remain producer evidence, not permission for new outside reads.",
+  "expected_reconciliation_sanity_only_verify_actual": {"physical_results": 51, "controls": 46200, "physics_steps": 924000, "not_independent_samples_or_pooled_rate": true},
+  "qualification": {
+    "R55": "TRAIN8 local6/8, mainfirstflight4/8 joint3/8",
+    "R57": "same8 TRAIN local6/8, mainfirstflight7/8 joint5/8",
+    "R59": "same8 TRAIN local7/8 mainfirstflight7/8 joint6/8; guide2 remains failure",
+    "R60": "fresh TRAIN16 local10/16, mainfirstflight16/16 joint10/16; all6guide failures plus4606hard5 retained",
+    "R61": "3complete nominal1+pairedDR2, original composite0/3; nominal XY worsened while DR partly improved; defaultoff not recommended replacement",
+    "AIR": "12effective nominal instantaneous queries/13total forward after explicit frame fix,0integrator; no controller or robust qualification",
+    "old": "H1/H2/H4/H5/Stage1 immutable, no H5raw retuning; whole9m/270/auto-contact/driver-power/unique-send/BSP/HIL/WCET open"
+  },
+  "deliver_before_parent_review": ["REVIEW_HANDOFF <=100 lines", "REVIEW_INDEX and exact text/source manifest", "case reconciliation from actual closed PROTOCOL/case IDs and result/error", "complete provenance gaps including historical missing source versions and duplicate binary claims", "qualification boundaries and before/after consistency"],
+  "no_stage_record_commit_tag_push_until_new_parent_review": true
+}

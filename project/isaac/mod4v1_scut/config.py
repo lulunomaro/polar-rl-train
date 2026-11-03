@@ -68,7 +68,18 @@ def reward_config(profile='trained_stair'):
     return SimpleNamespace(**values)
 
 
-def observation_component(cfg, key, value):
+def ground_scan_config():
+    """Keep the saved SCUT height-estimation footprint, independent of robot size."""
+    raw = read_yaml('trained_env')['height_scanner']
+    return dict(offset=tuple(raw['offset']['pos']),
+                resolution=raw['pattern_cfg']['resolution'],
+                size=tuple(raw['pattern_cfg']['size']),
+                direction=tuple(raw['pattern_cfg']['direction']),
+                ordering=raw['pattern_cfg']['ordering'],
+                ray_alignment=raw['ray_alignment'], max_distance=raw['max_distance'])
+
+
+def observation_component(cfg, key, value, stream='policy'):
     """Pinned observation order is clip, then scale; shared with both streams."""
     limit = cfg.obs_input_clip_cfg.get(key)
     if limit is not None:
@@ -76,7 +87,7 @@ def observation_component(cfg, key, value):
             value = value.clamp(float(limit[0]), float(limit[1]))
         else:
             value = value.clamp(-abs(float(limit)), abs(float(limit)))
-    if not cfg.obs_input_scale_enabled:
+    if not cfg.obs_input_scale_enabled or stream not in cfg.obs_input_scale_streams:
         return value
     scale = cfg.obs_input_scale_cfg.get(key, 1.)
     if isinstance(scale, dict):
@@ -124,13 +135,12 @@ def runner_config():
     """Translate the pinned RSL ActorCritic schema into installed RSL 5 MLP schema."""
     raw = read_yaml('trained_agent')
     p = raw['policy']
-    model = dict(class_name='MLPModel', hidden_dims=p['actor_hidden_dims'],
-                 activation=p['activation'], obs_normalization=False)
+    model = dict(class_name='MLPModel', activation=p['activation'], obs_normalization=False)
     return dict(num_steps_per_env=raw['num_steps_per_env'], save_interval=raw['save_interval'],
                 obs_groups={'actor': ['policy'], 'critic': ['critic']},
-                actor=dict(**model, distribution_cfg=dict(
+                actor=dict(**model, hidden_dims=p['actor_hidden_dims'], distribution_cfg=dict(
                     class_name='GaussianDistribution', init_std=p['init_noise_std'], std_type='scalar')),
-                critic=dict(**model), algorithm=deepcopy(raw['algorithm']),
+                critic=dict(**model, hidden_dims=p['critic_hidden_dims']), algorithm=deepcopy(raw['algorithm']),
                 logger='tensorboard', check_for_nan=True, empirical_normalization=False)
 
 

@@ -124,18 +124,24 @@ class ScutRewards:
         ids = self._legs_act_idx
         limits = self.joint_pos.new_tensor([self.contract['joints'][name]['limits_si'] for name in LEGS])
         low, high = limits.unbind(-1)
-        lo_ratio = float(getattr(self.cfg, 'rear2_rear1_joint_limit_lower_boundary_ratio', .03)) if airborne else .03
-        hi_ratio = float(getattr(self.cfg, 'rear2_rear1_joint_limit_upper_boundary_ratio', .03)) if airborne else .03
-        lo_margin = ((high-low)*min(max(lo_ratio, 0.), .49)).clamp_min(1.e-6)
-        hi_margin = ((high-low)*min(max(hi_ratio, 0.), .49)).clamp_min(1.e-6)
+        ratio = float(getattr(self.cfg, 'rear2_rear1_joint_limit_boundary_ratio', .03))
+        lo_ratio = float(getattr(self.cfg, 'rear2_rear1_joint_limit_lower_boundary_ratio', ratio)) if airborne else ratio
+        hi_ratio = float(getattr(self.cfg, 'rear2_rear1_joint_limit_upper_boundary_ratio', ratio)) if airborne else ratio
+        lo_margin = (high-low)*min(max(lo_ratio, 0.), .49)
+        hi_margin = (high-low)*min(max(hi_ratio, 0.), .49)
         pos = wrap_to_pi(self.joint_pos[:, ids])
-        lo = ((low+lo_margin-pos)/lo_margin).clamp_min(0)
-        hi = ((pos-high+hi_margin)/hi_margin).clamp_min(0)
+        lo_over = (low+lo_margin-pos).clamp_min(0)
+        hi_over = (pos-high+hi_margin).clamp_min(0)
+        lo = lo_over/lo_margin.clamp_min(1.e-6)
+        hi = hi_over/hi_margin.clamp_min(1.e-6)
         torque, vel = self.robot.data.applied_torque[:, ids], self.joint_vel[:, ids]
         position_penalty = (lo+hi).square().sum(-1)
         torque_penalty = ((-torque).clamp_min(0)*lo+torque.clamp_min(0)*hi).square().sum(-1)
         if airborne:
-            threshold = float(getattr(self.cfg, 'rear2_rear1_joint_limit_vel_threshold', 10.))
+            # Original airborne.py:696 uses a sum of radians, whereas the base
+            # env.py:3457 uses normalized squares. Only joint geometry changes.
+            position_penalty = (lo_over+hi_over).sum(-1)
+            threshold = max(float(getattr(self.cfg, 'rear2_rear1_joint_limit_vel_threshold', 10.)), 0.)
             velocity_penalty = (((lo > 0) & (vel < -threshold)) |
                                 ((hi > 0) & (vel > threshold))).float().sum(-1)
         else:
@@ -199,7 +205,10 @@ class ScutRewards:
         pass
 
     def _on_command_updated(self):
-        pass
+        # Upstream invokes this at reward tail, then again at observations.
+        # Temporal scan results stay cached within that control step.
+        self.state_machine_manager.on_command_updated(self)
+        self.state_machine_manager.apply_command_overrides(self)
 
     def _apply_predefined_reset_air_command_limits(self):
         # SCUT predefined airborne reset modes are not part of the ground-start task.
@@ -219,8 +228,6 @@ class ScutRewards:
         self.ground_z_est, self.ground_wheels = ground_z, wheel_ground_z
         self.forward_points, self.forward_hits = forward_points, forward_hits
         self.near_points, self.near_hits = near_points, near_hits
-        self.state_machine_manager.on_observation_step(self)
-        self.state_machine_manager.on_command_updated(self)
         self.state_machine_manager.apply_command_overrides(self)
         self.command_generator = SimpleNamespace(command=self.command,
             command_counter=torch.zeros(self.num_envs, device=self.device), compute=lambda dt: None)
@@ -230,6 +237,21 @@ class ScutRewards:
         self._before_previous_actions.copy_(self._previous_actions)
         self._previous_actions.copy_(self._actions)
         return result
+
+    def refresh_reset_scans(self, ids, ground, wheel_ground, far, far_hits, near, near_hits):
+        """Seed only reset envs from their new pose, without an old-episode delta."""
+        for key, value in (('ground_z_est', ground), ('ground_wheels', wheel_ground),
+                           ('forward_points', far), ('forward_hits', far_hits),
+                           ('near_points', near), ('near_hits', near_hits)):
+            getattr(self, key)[ids] = value
+        direction = torch.where(self.command[ids, 0] < 0, -1., 1.)
+        for prefix, hits in (('wheel_forward', far_hits), ('wheel_forward_stair', near_hits)):
+            getattr(self, prefix+'_prev_ground_z')[ids] = hits[..., 2]
+            getattr(self, prefix+'_prev_ground_z_valid')[ids] = True
+            getattr(self, prefix+'_prev_direction_sign')[ids] = direction
+            cache = getattr(self, '_cached_'+prefix+'_temporal_height_diffs', None)
+            if cache is not None:
+                cache[ids] = 0
 
     def reset(self, ids):
         ids = torch.as_tensor(ids, device=self.device, dtype=torch.long)
@@ -243,4 +265,10 @@ class ScutRewards:
         self.contact_sensor.data.net_forces_w[ids] = 0
         self.reset_terminated[ids] = False
         self._numerical_safety_reset_buf[ids] = False
-        self._invalidate_step_caches()
+        self.episode_length_buf[ids] = 0
+        # Do not discard other environments' within-step scan deltas: upstream
+        # invokes the command hook again when constructing observations.
+        for key, value in vars(self).items():
+            if key.startswith('_cached_') and torch.is_tensor(value) and value.ndim and value.shape[0] == self.num_envs:
+                value[ids] = 0
+        self._cached_wheel_kinematics_valid = False

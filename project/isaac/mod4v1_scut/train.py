@@ -71,6 +71,15 @@ class ScutVecEnv:
         self.current = initial
 
     @property
+    def current(self):
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
+        self._adapted_observations = None
+
+    @property
     def episode_length_buf(self):
         return self.env.episode_length_buf
 
@@ -82,7 +91,9 @@ class ScutVecEnv:
         from tensordict import TensorDict
         if self.current is None:
             self.current = self.env.observation_manager.compute()
-        return TensorDict(self.bridge.observations(self.current), batch_size=[self.num_envs])
+        if self._adapted_observations is None:
+            self._adapted_observations = TensorDict(self.bridge.observations(self.current), batch_size=[self.num_envs])
+        return self._adapted_observations
 
     def step(self, action):
         self.bridge.pending_actions.copy_(action)

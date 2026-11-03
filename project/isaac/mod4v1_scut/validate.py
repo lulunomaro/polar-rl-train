@@ -190,13 +190,16 @@ class Tests(unittest.TestCase):
         robot.root_view=SimpleNamespace(get_masses=lambda:torch.ones(4,len(robot.body_names)),
             get_material_properties=lambda:material)
         env=SimpleNamespace(command_manager=SimpleNamespace(get_command=lambda name:torch.tensor([[.6,0.,0.]]*4)),
+            episode_length_buf=torch.zeros(4,dtype=torch.long),
             _explicit_pd=SimpleNamespace(legs=SimpleNamespace(stiffness=torch.full((4,4),150.),damping=torch.full((4,4),2.)),
-                wheels=SimpleNamespace(stiffness=torch.zeros(4,2),damping=torch.full((4,2),.6))),
+                wheels=SimpleNamespace(stiffness=torch.zeros(4,2),damping=torch.full((4,2),.6)),
+                leg_ids=r._legs_act_idx,wheel_ids=r._wheel_idx),
             _feedback_delay_mild=SimpleNamespace(delay=torch.ones(4)),
             _physics_action_delay=SimpleNamespace(queue=SimpleNamespace(groups={
                 'legs':{'lag_steps':torch.ones(4)},'wheels':{'lag_steps':torch.full((4,),2.)}})),
             _mild_dr=SimpleNamespace(mass=torch.ones(4,len(robot.body_names))))
         bridge=ScutBridge.__new__(ScutBridge)
+        bridge.reset_scan_pending=torch.zeros(4,dtype=torch.bool)
         bridge.env,bridge.reward,bridge.robot=env,r,robot
         bridge.n,bridge.tensor,bridge.device=4,lambda x:x,'cpu'
         bridge.wheel_material_ids=[[0],[1]]
@@ -222,6 +225,7 @@ class Tests(unittest.TestCase):
         from .sdk import ScutBridge
         n=2
         bridge=ScutBridge.__new__(ScutBridge)
+        bridge.reset_scan_pending=torch.zeros(n,dtype=torch.bool)
         terminated=torch.tensor([True,False]);timeout=torch.tensor([False,False])
         manager=SimpleNamespace(terminated=terminated,time_outs=timeout,
             _terminated_buf=terminated,_truncated_buf=timeout)
@@ -247,6 +251,7 @@ class Tests(unittest.TestCase):
         bridge.acceptance=Strict270(n,'cpu')
         bridge.task=SimpleNamespace(height_cmd=lambda env:torch.zeros(n,1))
         bridge.prepare_endpoint=lambda:events.append(('endpoint',state['endpoint']))
+        bridge.resolve_done=lambda t,o:(t,o)
         bridge.snapshot=lambda t,o:{'endpoint':state['endpoint'],'terminated':t.clone()}
         bridge.completed_episodes=bridge.completed_strict=0
         bridge.ready=True

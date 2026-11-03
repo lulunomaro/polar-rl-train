@@ -1,0 +1,83 @@
+"""Capture exact published V13 closure while another controller owns the channel.
+
+Local metadata only. Never infer evaluator success from OWNER_EXIT or rc0.
+"""
+from pathlib import Path
+from datetime import datetime
+import hashlib,importlib.util,json,sys,time
+R=Path(__file__).resolve().parents[1];D=Path(__file__).resolve().parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+PEER=Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/h1_attitude_tight_20261103/reports/EXACT_ORIGINAL_PEER_RELEASED.json')
+sys.path.insert(0,str(R))
+sys.path.insert(0,str(D))
+from control import admission
+
+
+def main():
+    raw=PEER.read_bytes();published=json.loads(raw)
+    path=R/'CURRENT_WORK_ORDER.json';work=json.loads(path.read_bytes())
+    assert work['run_id']==published['peer_run']=='MOD4_STANDING200_RLBPTT_V13_1793670990137789700'
+    closed=published['train_closed'];own=published['owner_exit'];final=closed['final']
+    assert published['passed']and own['run_id']==work['run_id']
+    assert own['all_own_waited']and own['original_cost_settled']and own['original_leases_released']and own['error']is None
+    assert closed['passed_execution']and closed['all_own_waited']and closed['original_cost_settled']
+    assert closed['app_close_intent']['error']is None and closed['app_close_intent']['env_closed']
+    assert final['checkpoint']['counts']['pi_bptt_optimizer_steps']==3002
+    assert final['source_native_BPTT_steps']==2035 and final['new_native_BPTT_steps']==967
+    assert final['checkpoint']['SHA']=='2bc1c10b51252d93b80f224eaffaaaae2015f184a230c233f4a42c384aa14a40'
+    assert not(R/'reports/V13_CLOSED_EVIDENCE_TRANSFER_ONCE.json').exists()
+    rows,blocked=admission()
+    receipt=R/'reports/V13_CLOSED_PUBLISHED_PEER_ACTUAL_20261103_1136.json'
+    with receipt.open('xb')as f:f.write(raw)
+    original=R/'reports/V13_PRE_CLOSED_WORK_ORDER_20261103_1136.json'
+    with original.open('xb')as f:f.write(path.read_bytes())
+    report=dict(kind='V13_PUBLISHED_CLOSED_AND_LOCAL_CHANNEL_WAIT',epoch=time.time(),
+        source_path=str(PEER),source_bytes=len(raw),source_SHA=hashlib.sha256(raw).hexdigest(),
+        exact_local_copy=str(receipt),run_id=work['run_id'],original_owner=work['original_owner'],
+        final=final,owner_exit=own,LOCAL_CIM=dict(rows=rows,blocked=blocked),
+        training_closed=True,independent_evaluation_result='NOT_RETRIEVED: no EVAL_WAITED/RESULT/EVAL_ERROR in published receipt',
+        evaluation_not_replayed=True,closed_transfer_once_unused=True,
+        native_replay_review='pending actual V13 saved replay transfer; priorV8 native review is historical only',
+        no_model_or_media_reads=True,network_SDK_physics_account_writes=0,
+        next='Once existing known controllers release, freshLOCAL broad exactCIM/serialFREE then unique repair_v11/control.py closed. Inspect actual EVAL_WAITED/RESULT/EVAL_ERROR before any evaluation repair; render actual recordedV13 poses and native review plus action/pose/manifold curves. Never repeat V13 launch/FIRST/CPU/original evaluator.')
+    report_path=R/'reports/V13_CLOSED_LOCALWAIT_DECISION_20261103_1136.json'
+    with report_path.open('x',encoding='utf-8')as f:json.dump(report,f,ensure_ascii=False,indent=2)
+    work.update(status='V13_FULLSAVED_SAFELY_CLOSED_EVAL_NOT_RETRIEVED_LOCAL_CONTROLLER_BUSY',
+        training_started=False,training_completed=True,current_run_final=final['checkpoint'],
+        latest_checkpoint=final['checkpoint'],final_actual_metrics=final,actual_owner_exit=own,
+        latest_status='reports/'+receipt.name,close_local_evidence=str(receipt),
+        current_resource_blocker=blocked,
+        last_local_check=dict(epoch=report['epoch'],network_operations=0,serial_free=not blocked),
+        evaluation_status=report['independent_evaluation_result'],evaluation_once_consumed='original same-owner evaluator must not be replayed; exact result not yet retrieved',
+        evaluation_closed_and_transferred=False,replay_native_reviewed=False,
+        next=report['next'],no_training_skill_claim=True,
+        original_closed_local=datetime.fromtimestamp(own['epoch']).astimezone().isoformat(),
+        original_final_saved_local=datetime.fromtimestamp(final['checkpoint']['epoch']).astimezone().isoformat())
+    work['followup_commands']['closed']='After all known local controllers release, freshLOCAL exact broadCIM/serialFREE then Python314 -B -X utf8 repair_v11/control.py closed. Original OWNER_EXIT already published; no extra status needed. V13_CLOSED_EVIDENCE_TRANSFER_ONCE is unused.'
+    work['followup_commands']['status']='Do not need extra status to prove closure: own exact OWNER_EXIT/TRAIN_CLOSED published. Original FIRST consumed. Use unique evidence transfer when existing controller releases.'
+    work['fourGPU_check_deferred_reason']='Known local controller active; last allfour read is historical09:56. No SSH/resource polling or otherGPU workaround until channel releases.'
+    path.write_text(json.dumps(work,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    spec=importlib.util.spec_from_file_location('v13_closure_archive_redact',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    dest=REPO/'history/standing200/20261103-v8-eval-v10-antiwindup-v13/supplement-20261103-1136-published-close'
+    dest.mkdir(exist_ok=False);(dest/'objects').mkdir();known={}
+    for index in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(index.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA')and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    archived=[]
+    for p in [Path(__file__),receipt,original,report_path,path]:
+        data=p.read_bytes();safe,n=guard.redact(data.decode('utf-8-sig'));content=data if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=dest/'objects'/sha
+            if not out.exists():out.write_bytes(content)
+            target=out.relative_to(REPO).as_posix();known[sha]=target
+        archived.append(dict(source_path=str(p),bytes=len(data),SHA=hashlib.sha256(data).hexdigest(),archive_path=target,
+            archive_bytes=len(content),archive_SHA=sha,redactions=n,mode='complete_text'if not n else'redacted_text'))
+    (dest/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=archived,external_checkpoint=final['checkpoint'],
+        no_model_media_reads_for_Git=True,no_new_trial_or_retag=True,prior_trial='trial-20261103-mod4-standing200-v8-eval-antiwindup-v13'),indent=2)+'\n')
+    print(json.dumps(dict(status=work['status'],newBPTT=967,final_saved=work['original_final_saved_local'],
+        owner_exit=work['original_closed_local'],blocked=blocked,evaluation_result='NOT_RETRIEVED',supplement=str(dest))))
+
+
+if __name__=='__main__':main()

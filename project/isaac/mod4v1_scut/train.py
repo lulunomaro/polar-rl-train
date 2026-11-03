@@ -28,6 +28,16 @@ def put(path, value):
     os.replace(temporary,path)
 
 
+def close_application(app, error):
+    """Preserve a recorded failure when the SDK closer requests exit0."""
+    try:
+        app.close()
+    except SystemExit:
+        if error is not None:
+            raise SystemExit(1)
+        raise
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets', required=True)
@@ -54,6 +64,9 @@ def parse_args():
 
 
 def environment_settings(args):
+    from .config import command_recipe, reward_config
+    recipe = command_recipe(args.profile)
+    reward = reward_config(args.profile)
     original = json.loads(Path(args.runtime_manifest).read_text(encoding='utf-8-sig'))['env']
     for key in list(os.environ):
         if key.startswith(('RM_', 'MOD4V1_', 'MOD4_RESUME_')):
@@ -69,8 +82,23 @@ def environment_settings(args):
         RM_WORLD_DRIFT_PROFILE='off', RM_CMD_VX_MIN='.6', RM_CMD_VX_MAX='.6',
         RM_REL_STANDING='0', RM_REL_HEADING='0', RM_HEADING_CMD='0',
         RM_HEIGHT_MIN='.25', RM_HEIGHT_MAX='.25', RM_NOMINAL_HEIGHT='.25',
-        RM_RANDOM_START='0', RM_EPISODE_S='8', RM_KEEP_STD='1',
+        RM_RANDOM_START='0', RM_EPISODE_S=str(reward.episode_length_s), RM_KEEP_STD='1',
         MOD4_RESUME_QUEUE_CONTROL_US='20000')
+    # Constructor globals must agree with the selected profile. The managers
+    # are replaced later, but their helpers also cache these values on import.
+    ranges = recipe['ranges']
+    os.environ.update(RM_CMD_VX_MIN=str(ranges['lin_vel_x'][0]),
+        RM_CMD_VX_MAX=str(ranges['lin_vel_x'][1]),
+        RM_CMD_WZ_MIN=str(ranges['ang_vel_z'][0]),
+        RM_CMD_WZ_MAX=str(ranges['ang_vel_z'][1]),
+        RM_REL_STANDING=str(recipe['rel_standing_envs']),
+        RM_REL_HEADING=str(recipe['rel_heading_envs']),
+        RM_HEADING_CMD=str(int(recipe['heading_command'])),
+        RM_HEIGHT_MIN=str(reward.height_range[0]), RM_HEIGHT_MAX=str(reward.height_range[1]))
+    # The shared Mod4Env treats gyro=0 as a straight-only command contract.
+    # trained_stair contains yaw commands. cfg.curriculum=None still disables
+    # the inherited gyro curriculum; this selects the correct command domain.
+    os.environ['RM_GYRO_CURRICULUM'] = '1' if args.profile == 'trained_stair' else '0'
 
 
 def load_guard(path):
@@ -365,7 +393,7 @@ def main():
                 finally:
                     put(job/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,
                         env_closed=(job/'ENV_CLOSED.json').exists(),final_exists=(job/'FINAL.json').exists()))
-                    ns['app'].close()
+                    close_application(ns['app'], error)
 
 
 if __name__ == '__main__':

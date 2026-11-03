@@ -1,6 +1,10 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
-当前生产 `jump270` **不等同于公开台阶保存配方仅替换机器人**：它开启了原保存配方关闭的状态机，改用固定前进命令、8秒episode和高度目标，并增加两项Stair奖励。逐行追溯记录不能替代这些任务改动的效果验证；具体原值、当前值与失败证据见 `history/reviews/20261103-mod4v1-scut-native-training/SCUT_RECIPE_PARITY_AND_FAILURE_CAUSE.md`。目前0触台的唯一主因尚未隔离，原E0同端点观测/动作对照诊断正在按独立工作单推进。
+2026-11-04原E0同端点原生诊断已完成：80首局0触台/0strict，61个原连续接触/姿态类终止、19timeout。前24步除高度外的35维输入最大差4.77e-7；第一步输入/动作几乎一致，原输入下第一轴仍100%超过执行裁剪范围，因此不能只归因于适配后actor字段错位。结果与有效早晚4图见 `history/reviews/20261103-mod4v1-scut-native-training/E0_SOURCE_INPUT_NATIVE_REVIEW.md`。保存姿态已由DataView转换为wxyz；一次误按原始SDKxyzw换序的中间图已明确作废，原回放顺序有效。
+
+接续候选改用既有 `trained_stair`：恢复公开保存基础奖励、关闭额外状态机和两项奖励、恢复原命令/高度/20秒训练episode；首次task导入前constructor环境参数也与profile同步。人类指定固定270mm场地/出生关系、增强资产/原物理与20,000环境一小时保持。该候选已实际launch，完整首个PPO保存与技能结果以当前工作单为准，不能称已学会上台阶。新增pre-reset各reset-body接触力、姿态与命令/高度记录，不修改终止阈值。见 `history/reviews/20261103-mod4v1-scut-native-training/PUBLISHED_RECIPE_RESTORATION.md`。
+
+此前生产 `jump270` **不等同于公开台阶保存配方仅替换机器人**：它开启了原保存配方关闭的状态机，改用固定前进命令、8秒episode和高度目标，并增加两项Stair奖励。逐行追溯记录不能替代这些任务改动的效果验证；具体原值、当前值与失败证据见 `history/reviews/20261103-mod4v1-scut-native-training/SCUT_RECIPE_PARITY_AND_FAILURE_CAUSE.md`。原E0同端点诊断已完成并见上文，0触台的唯一主因尚未隔离。
 
 2026-11-04修复版E0来源20,000环境一小时窗已完整关闭、正式传回并审看早晚4图：60次PPO、28,800,000实际样本、FULL_V3 final SHA `d86732f97d0020c15036281bac2e23d300eb777db6643bb09b8cdc1740a7ae9a`。独立80首局0strict/0wholeclear/0leading/0top；54个原20连续终止、26timeout，平均4.1415s；闭链/mimic/数值和raw异常重置均0。具体证据见 `history/reviews/20261103-mod4v1-scut-native-training/REPAIRED_E0_FINAL_REVIEW.md`。
 

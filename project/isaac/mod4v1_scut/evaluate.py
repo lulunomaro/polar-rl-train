@@ -7,17 +7,7 @@ from pathlib import Path
 import random
 import time
 import traceback
-from .train import boot,load_guard,put,ScutVecEnv
-
-
-def close_application(app, error):
-    """Some SDK closers exit0; retain an already recorded evaluation failure."""
-    try:
-        app.close()
-    except SystemExit:
-        if error is not None:
-            raise SystemExit(1)
-        raise
+from .train import boot,load_guard,put,ScutVecEnv,close_application
 
 
 def first_episode_contact_summary(top, active):
@@ -91,6 +81,7 @@ def main():
         bridge.ready=True
         put(out/'NATIVE_STARTUP.json',dict(epoch=time.time(),native=True,D0_D7=guard.receipt(),
             source_SHA=a.checkpoint_SHA,model_reads=1,optimizer_operations=0,seed=9137,
+            saved_pose_quaternion_order='wxyz',native_sdk_quaternion_order=bridge.quaternion_order,
             compatibility=compatibility,course=metadata()))
         active=torch.ones(80,dtype=torch.bool,device=a.device)
         allticks=[];poses=[];curves=[];result=[None]*80;record_ids=[0,1,40,41]
@@ -135,6 +126,8 @@ def main():
                 **{key:snap[key].detach().cpu().tolist() for key in (
                     'applied_action','joint_target','raw_policy_max_abs','raw_critic_max_abs',
                     'observation_outlier','closure_reset','mimic_reset','numerical_reset',
+                    'reset_body_contact_force','roll_pitch_rad','termination_raw',
+                    'command','command_height','effective_height',
                     'termination_duration_counter')}))
             active &= ~done
             if not bool(active.any()):break
@@ -154,6 +147,8 @@ def main():
         top=np.stack([r['top_force'] for r in allticks]);mask=np.stack([r['active'] for r in allticks])
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in result),
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
+            saved_pose_quaternion_order='wxyz',native_sdk_quaternion_order=bridge.quaternion_order,
+            reset_contact_body_names=[bridge.robot.body_names[i] for i in bridge.reward._reset_contact_link_idx],
             source_SHA=a.checkpoint_SHA,compatibility=compatibility,optimizer_operations=0,strict=sum(r['strict270'] for r in result),
             wholeclear=sum(r['first_flight_wholeclear'] for r in result),leading=sum(r['first_flight_leading'] for r in result),
             **first_episode_contact_summary(top,mask),all80_manifold=ticks,actual_poses=posefile,

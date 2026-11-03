@@ -414,6 +414,10 @@ class ScutBridge:
             if threshold > 0:
                 raw_bad |= r._obs_raw_critic_max_abs > threshold
         raw_bad &= bool(r._terminate_on_obs_outlier and r._value_debug_step > 10)
+        reset_contact_force = torch.linalg.vector_norm(
+            r.contact_sensor.data.net_forces_w[:, r._reset_contact_link_idx], dim=-1)
+        roll, pitch, _ = euler_xyz_from_quat(r.robot.data.root_quat_w)
+        roll_pitch = torch.stack((roll, pitch), -1)
         return dict(root_pos=r.robot.data.root_pos_w.clone(),
                     root_quat=r.robot.data.root_quat_w.clone(),
                     wheels=r.robot.data.body_pos_w[:, r._wheel_link_idx].clone(),
@@ -433,6 +437,12 @@ class ScutBridge:
                     closure_reset=self.env.termination_manager.get_term('closure').clone(),
                     mimic_reset=self.env.termination_manager.get_term('mimic').clone(),
                     numerical_reset=r._numerical_safety_reset_buf.clone(),
+                    reset_body_contact_force=reset_contact_force.clone(),
+                    roll_pitch_rad=roll_pitch.clone(),
+                    termination_raw=r._termination_duration_raw_buf.clone(),
+                    command=r.command.clone(),
+                    command_height=r.height_cmd.clone(),
+                    effective_height=r._get_effective_height_cmd().clone(),
                     termination_duration_counter=r._termination_duration_counter.clone(),
                     observation_debug_step=r._value_debug_step,
                     observation_debug_enabled=r._value_debug_enabled)

@@ -1,0 +1,1293 @@
+{
+  "kind": "ROW_CLOCK_PROVENANCE_DESIGN_SCHEMA_TOY_V1",
+  "status": "SOURCE_DESIGN_ONLY",
+  "implemented": false,
+  "Gate1": "UNKNOWN",
+  "stage2_GO": false,
+  "N": 80,
+  "witness_rows": [0, 1, 2, 3, 4, 5, 6, 7],
+  "evidence_level": "ALL_NUMERIC_EXAMPLES_ARE_SYNTHETIC_NOT_A2_DATA",
+  "required_tensor_envelope_fields": ["envelope_kind", "semantic_role", "source_pin_ref", "source_field", "original_shape", "original_dtype", "source_env_axis", "retained_shape", "row_mapping", "source_clock", "selection", "values", "evidence_level"],
+  "semantic_roles": {
+    "ENV_ROWS_WITNESS": {
+      "row_cap": 8,
+      "require_explicit_mapping": true,
+      "shape_only_inference": false
+    },
+    "ENV_IDS_FULL": {
+      "length_range": [0, 80],
+      "row_cap_applies": false,
+      "source_env_axis": null,
+      "preserve_argument_dtype": true
+    },
+    "TERMINAL_BOOL_FULL": {
+      "shape": [80],
+      "dtype": "torch.bool",
+      "row_cap_applies": false
+    }
+  },
+  "tensor_field_templates": [
+    {
+      "source_field": "feedback.clean",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "float input dtype from original raw",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.before.noise_cache_last",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer cache last",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.before.episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.noise_used",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original used noise dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.noise_cache_last",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer cache last",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.leg_bias_used",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", 4],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "only leg_pos original used bias",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "sensor_stage.actual_noisy_return",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original output dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_actual_input",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original passed tensor dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.delay",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer delay",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.delay",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer delay",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.cache.<key>.last",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer last",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.cache.<key>.last",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer last",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.cache.<key>.cur",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original cached value dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.cache.<key>.cur",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original cached value dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.cache.<key>.out",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original selected output dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.cache.<key>.out",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original selected output dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.cache.<key>.sample_tick",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer, -1 is legal warmup/reset sentinel",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.cache.<key>.sample_tick",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer, -1 is legal warmup/reset sentinel",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.before.cache.<key>.ready",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original bool",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.after.cache.<key>.ready",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original bool",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "delay_stage.actual_return",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original output dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "feedback.return",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "channel_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original output dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "terminal.bridge_pre.s1",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "physical_width"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "existing bridge cached physical state only",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.before.sensor_episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.after.sensor_episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.before.delay_episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.after.delay_episode",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N"],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original integer episode",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.before.queue.<key>.<field>",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "..."],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "existing cached tensor with its own dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "reset.after.queue.<key>.<field>",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "..."],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "existing cached tensor with its own dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "state.obs.policy",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", 35],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "original actor buffer dtype not synthetic action dtype",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "queue.<key>.<field>",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "..."],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "future C owner identifies actual source env axis",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    },
+    {
+      "source_field": "motor_static.<field>",
+      "semantic_role": "ENV_ROWS_WITNESS",
+      "source_shape_constraint": ["N", "..."],
+      "original_dtype": "ACTUAL_EXISTING_TENSOR_DTYPE_NOT_YET_CAPTURED",
+      "dtype_semantics": "existing cached tensor only",
+      "source_env_axis": 0,
+      "retained_rows": "explicit existing witness <=8",
+      "clock": "actual call clock and semantic phase"
+    }
+  ],
+  "scalar_fields": {
+    "draw_counts": "copy existing sensor draw_counts dictionary, not all RNG draws",
+    "clock": "existing scalar counters/phase/reset_depth",
+    "source": "SOURCE_PINS.json complete file and definition pins"
+  },
+  "retention": {
+    "allowed_controls": [64, 128],
+    "max_controls": 128,
+    "normal_slots_per_control": 2,
+    "channels_per_slot": 5,
+    "max_normal_channel_records": 1280,
+    "max_clean16_witness_scalars": 32768,
+    "max_boundary_packs": 128,
+    "full_masks_per_boundary": ["pre.term", "pre.trunc", "post.term", "post.trunc"],
+    "reset_ids": "complete existing argument only when original callback observed",
+    "other_tensors_max_rows": 8,
+    "missing_callback": "NOT_OBSERVED_NOT_FABRICATED_EMPTY_IDS",
+    "payload_strategy": "retain references to already-owned original snapshots, no additional sampling",
+    "overflow": "INCOMPLETE_RANGE_UNKNOWN_NO_EXTENSION_NO_NEW_RESET"
+  },
+  "toy_control": {
+    "worker_control_index": 0,
+    "synthetic_clock_base": 0,
+    "normal_slots": [
+      {
+        "slot": "MID",
+        "source_clock": {
+          "worker_control_index": 0,
+          "physics_tick": 4,
+          "feedback_tick": 1,
+          "common_control": 0,
+          "source_phase": "scene_update",
+          "reset_depth": 0,
+          "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+          "normal_100hz_slot": true,
+          "slot": "MID"
+        },
+        "channels": {
+          "base_ang_vel": {
+            "width": 3,
+            "scale": 0.5,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.base_ang_vel",
+              "original_shape": [80, 3],
+              "original_dtype": "torch.float16",
+              "source_env_axis": 0,
+              "retained_shape": [8, 3],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 4,
+                "feedback_tick": 1,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "MID"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "projected_gravity": {
+            "width": 3,
+            "scale": 1.0,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.projected_gravity",
+              "original_shape": [80, 3],
+              "original_dtype": "torch.float64",
+              "source_env_axis": 0,
+              "retained_shape": [8, 3],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 4,
+                "feedback_tick": 1,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "MID"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "leg_pos": {
+            "width": 4,
+            "scale": 1.0,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.leg_pos",
+              "original_shape": [80, 4],
+              "original_dtype": "torch.float32",
+              "source_env_axis": 0,
+              "retained_shape": [8, 4],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 4,
+                "feedback_tick": 1,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "MID"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "leg_vel": {
+            "width": 4,
+            "scale": 0.1,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.leg_vel",
+              "original_shape": [80, 4],
+              "original_dtype": "torch.bfloat16",
+              "source_env_axis": 0,
+              "retained_shape": [8, 4],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 4,
+                "feedback_tick": 1,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "MID"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "wheel_vel": {
+            "width": 2,
+            "scale": 0.1,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.wheel_vel",
+              "original_shape": [80, 2],
+              "original_dtype": "torch.float64",
+              "source_env_axis": 0,
+              "retained_shape": [8, 2],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 4,
+                "feedback_tick": 1,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "MID"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          }
+        }
+      },
+      {
+        "slot": "END",
+        "source_clock": {
+          "worker_control_index": 0,
+          "physics_tick": 8,
+          "feedback_tick": 2,
+          "common_control": 0,
+          "source_phase": "scene_update",
+          "reset_depth": 0,
+          "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+          "normal_100hz_slot": true,
+          "slot": "END"
+        },
+        "channels": {
+          "base_ang_vel": {
+            "width": 3,
+            "scale": 0.5,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.base_ang_vel",
+              "original_shape": [80, 3],
+              "original_dtype": "torch.float16",
+              "source_env_axis": 0,
+              "retained_shape": [8, 3],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 8,
+                "feedback_tick": 2,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "END"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "projected_gravity": {
+            "width": 3,
+            "scale": 1.0,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.projected_gravity",
+              "original_shape": [80, 3],
+              "original_dtype": "torch.float64",
+              "source_env_axis": 0,
+              "retained_shape": [8, 3],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 8,
+                "feedback_tick": 2,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "END"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "leg_pos": {
+            "width": 4,
+            "scale": 1.0,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.leg_pos",
+              "original_shape": [80, 4],
+              "original_dtype": "torch.float32",
+              "source_env_axis": 0,
+              "retained_shape": [8, 4],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 8,
+                "feedback_tick": 2,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "END"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "leg_vel": {
+            "width": 4,
+            "scale": 0.1,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.leg_vel",
+              "original_shape": [80, 4],
+              "original_dtype": "torch.bfloat16",
+              "source_env_axis": 0,
+              "retained_shape": [8, 4],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 8,
+                "feedback_tick": 2,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "END"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          },
+          "wheel_vel": {
+            "width": 2,
+            "scale": 0.1,
+            "clean": {
+              "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+              "semantic_role": "ENV_ROWS_WITNESS",
+              "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+              "source_field": "feedback.clean.wheel_vel",
+              "original_shape": [80, 2],
+              "original_dtype": "torch.float64",
+              "source_env_axis": 0,
+              "retained_shape": [8, 2],
+              "row_mapping": {
+                "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+                "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+              },
+              "source_clock": {
+                "worker_control_index": 0,
+                "physics_tick": 8,
+                "feedback_tick": 2,
+                "common_control": 0,
+                "source_phase": "scene_update",
+                "reset_depth": 0,
+                "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+                "normal_100hz_slot": true,
+                "slot": "END"
+              },
+              "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+              "values": [
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0],
+                [0.0, 0.0]
+              ],
+              "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+            },
+            "fresh_due_local": "UNKNOWN_NOT_CAPTURED",
+            "other_payload_fields": "Use tensor_field_templates; independently record each existing tensor dtype/shape, not inferred from clean dtype"
+          }
+        }
+      }
+    ],
+    "boundary_pack": {
+      "worker_control_index": 0,
+      "termination_event_id": "toy.control0.terminal0",
+      "reset_event_id": "toy.control0.reset0",
+      "event_ids_are_clock": false,
+      "pre_reset": {
+        "source_clock": {
+          "worker_control_index": 0,
+          "physics_tick": 8,
+          "feedback_tick": 2,
+          "common_control": 1,
+          "source_phase": "outside_scene_update",
+          "reset_depth": 0,
+          "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+          "normal_100hz_slot": false,
+          "slot": "END"
+        },
+        "term": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "TERMINAL_BOOL_FULL",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/bridge",
+          "source_field": "bridge.pre.term",
+          "original_shape": [80],
+          "original_dtype": "torch.bool",
+          "source_env_axis": 0,
+          "retained_shape": [80],
+          "row_mapping": {
+            "kind": "ALL_ENV_ROWS_IN_ORIGINAL_ORDER",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "FULL_SEMANTIC_EXCEPTION",
+          "values": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "trunc": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "TERMINAL_BOOL_FULL",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/bridge",
+          "source_field": "bridge.pre.trunc",
+          "original_shape": [80],
+          "original_dtype": "torch.bool",
+          "source_env_axis": 0,
+          "retained_shape": [80],
+          "row_mapping": {
+            "kind": "ALL_ENV_ROWS_IN_ORIGINAL_ORDER",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "FULL_SEMANTIC_EXCEPTION",
+          "values": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "physical_s1": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "bridge.pre.s1",
+          "original_shape": [80, 16],
+          "original_dtype": "torch.float32",
+          "source_env_axis": 0,
+          "retained_shape": [8, 16],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+          ],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        }
+      },
+      "reset": {
+        "callback_status": "OBSERVED",
+        "source_clock": {
+          "worker_control_index": 0,
+          "physics_tick": 8,
+          "feedback_tick": 2,
+          "common_control": 1,
+          "source_phase": "outside_scene_update",
+          "reset_depth": 0,
+          "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+          "normal_100hz_slot": false,
+          "slot": "END"
+        },
+        "input_ids": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_IDS_FULL",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/SDK_step",
+          "source_field": "original_reset_idx.ids",
+          "original_shape": [1],
+          "original_dtype": "torch.int32",
+          "source_env_axis": null,
+          "retained_shape": [1],
+          "row_mapping": {
+            "kind": "VALUES_ARE_ENV_IDS_NOT_ENV_AXIS",
+            "preserve_entire_argument": true
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "FULL_SEMANTIC_EXCEPTION",
+          "values": [79],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "before_sensor_episode": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "reset.before.sensor_episode",
+          "original_shape": [80],
+          "original_dtype": "torch.int64",
+          "source_env_axis": 0,
+          "retained_shape": [8],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [0, 0, 0, 0, 0, 0, 0, 0],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "after_sensor_episode": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "reset.after.sensor_episode",
+          "original_shape": [80],
+          "original_dtype": "torch.int64",
+          "source_env_axis": 0,
+          "retained_shape": [8],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [0, 0, 0, 0, 0, 0, 0, 0],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "before_delay_episode": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "reset.before.delay_episode",
+          "original_shape": [80],
+          "original_dtype": "torch.int64",
+          "source_env_axis": 0,
+          "retained_shape": [8],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [0, 0, 0, 0, 0, 0, 0, 0],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "after_delay_episode": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "reset.after.delay_episode",
+          "original_shape": [80],
+          "original_dtype": "torch.int64",
+          "source_env_axis": 0,
+          "retained_shape": [8],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [0, 0, 0, 0, 0, 0, 0, 0],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "nonwitness_episode_values": "UNKNOWN_NOT_CAPTURED",
+        "reset_internal_sampling": "NOT_NORMAL_100HZ"
+      },
+      "post_return": {
+        "source_clock": {
+          "worker_control_index": 0,
+          "physics_tick": 8,
+          "feedback_tick": 2,
+          "common_control": 1,
+          "source_phase": "outside_scene_update",
+          "reset_depth": 0,
+          "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+          "normal_100hz_slot": false,
+          "slot": "END"
+        },
+        "term": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "TERMINAL_BOOL_FULL",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/bridge",
+          "source_field": "state.terminated",
+          "original_shape": [80],
+          "original_dtype": "torch.bool",
+          "source_env_axis": 0,
+          "retained_shape": [80],
+          "row_mapping": {
+            "kind": "ALL_ENV_ROWS_IN_ORIGINAL_ORDER",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "FULL_SEMANTIC_EXCEPTION",
+          "values": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "trunc": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "TERMINAL_BOOL_FULL",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/bridge",
+          "source_field": "state.truncated",
+          "original_shape": [80],
+          "original_dtype": "torch.bool",
+          "source_env_axis": 0,
+          "retained_shape": [80],
+          "row_mapping": {
+            "kind": "ALL_ENV_ROWS_IN_ORIGINAL_ORDER",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "FULL_SEMANTIC_EXCEPTION",
+          "values": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        },
+        "actor35_original_buffer": {
+          "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+          "semantic_role": "ENV_ROWS_WITNESS",
+          "source_pin_ref": "SOURCE_PINS.json#/sources/B2",
+          "source_field": "state.obs.policy",
+          "original_shape": [80, 35],
+          "original_dtype": "torch.float32",
+          "source_env_axis": 0,
+          "retained_shape": [8, 35],
+          "row_mapping": {
+            "kind": "EXPLICIT_ORIGINAL_ENV_ROWS",
+            "env_ids": [0, 1, 2, 3, 4, 5, 6, 7]
+          },
+          "source_clock": {
+            "worker_control_index": 0,
+            "physics_tick": 8,
+            "feedback_tick": 2,
+            "common_control": 1,
+            "source_phase": "outside_scene_update",
+            "reset_depth": 0,
+            "counter_kind": "EXISTING_STORED_COUNTERS_NOT_EVENT_IDS",
+            "normal_100hz_slot": false,
+            "slot": "END"
+          },
+          "selection": "ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE",
+          "values": [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+          ],
+          "evidence_level": "SYNTHETIC_METADATA_TOY_NOT_ACTUAL_CAPTURE"
+        }
+      },
+      "link_scope": "SAME_CONTROL_AND_EVENT_IDS_WITH_ORIGINAL_CLOCKS_NOT_SAME_TICK_ALONE"
+    }
+  },
+  "unknowns": {
+    "mid_remaining19": "UNKNOWN_NOT_SAMPLED_AT_MID",
+    "mid_full_clean35": "UNKNOWN_NOT_COMPUTED",
+    "mid_actor35": "UNKNOWN_NOT_COMPUTED_50HZ_ONLY",
+    "terminal_clean35": "UNKNOWN_NOT_COMPUTED",
+    "initial_clean0": "UNKNOWN_SAME_TICK_CACHE_MAY_BE_REUSED",
+    "nonwitness_episodes": "UNKNOWN",
+    "untapped_bitwise_actor": "UNKNOWN",
+    "private_and_global_RNG_states": "UNKNOWN_NOT_CAPTURED",
+    "SDK_physical_DR_readback": "UNKNOWN",
+    "C2_interface_and_pins": "UNKNOWN_NOT_ACCESSED"
+  },
+  "rng": {
+    "claim_scope": "LIMITED_UNCHANGED_SOURCE_ONCE_CALL_RETURN_IDENTITY_AND_STORED_COUNTS_ONLY",
+    "counts": "sensor.draw_counts noise-row-draws only",
+    "bias_and_delay_reset_draw_counters": "NOT_CAPTURED",
+    "full_state_equality": "UNKNOWN_NOT_CAPTURED",
+    "new_rng_or_state_calls": 0,
+    "new_getter_obs_reset_calls": 0
+  },
+  "binding_metadata": {
+    "source_function": "verify_actuation_binding(env, api, role_source_rows)",
+    "definition_source_key": "observer",
+    "definition_lines": [129, 170],
+    "current_joint_ids_retained": false,
+    "current_sdk_setter_source_qualified": false,
+    "existing_target_writer_fields": ["group", "method", "same_asset_instance_id", "bound_self_is_asset", "module", "qualname", "binding"],
+    "proposed_source": "verified adapter and term __dict__ only",
+    "proposed_scalar_fields": ["calls", "formula_max_error", "collect"],
+    "statistics_evidence": "SOURCE_AVAILABLE_NOT_PUBLISHED_IN_A2",
+    "statistics_capture_times": ["before_controls", "after_controls"],
+    "joint_ids": {
+      "stored_python_list_tuple_slice": "retain exact values/order/slice triplet",
+      "stored_tensor": "metadata shape/dtype/identity only; values UNKNOWN",
+      "missing": "UNKNOWN"
+    },
+    "strict_join_requires": ["same_run", "same_asset", "term_binding", "known_DOF_ids", "setter_method", "original_writer_args_kwargs_ids", "actual_parent_scope"],
+    "original_adapter_check": {
+      "source_key": "D4",
+      "source_apply_lines": [38, 55],
+      "check_type": "ORIGINAL_ADAPTER_STORED_TARGET_BUFFER_CHECK",
+      "threshold": 1e-06,
+      "calls_increment": "AFTER_ASSERT",
+      "no_new_asset_data_read": true
+    },
+    "observer_independent_readback": "UNKNOWN_NOT_CAPTURED",
+    "external_physical_effect": "UNKNOWN",
+    "C2_API": "UNKNOWN_NOT_ACCESSED"
+  }
+}

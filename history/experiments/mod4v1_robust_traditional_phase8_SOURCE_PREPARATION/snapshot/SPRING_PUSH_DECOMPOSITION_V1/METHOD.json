@@ -1,0 +1,77 @@
+{
+  "kind": "NOMINAL_ELASTIC_SPRING_STATIC_FF_SIGN_AND_VIRTUAL_WORK_ZERO_STEP",
+  "coordinates": {
+    "q4": "absolute Lhip,Lcrank,Rhip,Rcrank joint-output rad; not passive knee",
+    "state14": "x,yaw,pitch,Lhip,crank-minus-hip,Rhip,crank-minus-hip,vx,yawrate,pitchrate,Lhipdot,deltaLdot,Rhipdot,deltaRdot",
+    "tau6": "Lhip,Lcrank,Lwheel,Rhip,Rcrank,Rwheel joint-output Nm"
+  },
+  "poses": [
+    "crouch",
+    "pushend",
+    "landing"
+  ],
+  "models_max": 1,
+  "FK_max": 27,
+  "FK_per_pose": 9,
+  "FD_central_rad": 1e-05,
+  "terms_inputs": {
+    "qd4": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "qdd4": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "proper_root_B_m_s2": [
+      0.0,
+      0.0,
+      9.81
+    ],
+    "omega_B_rad_s": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "alpha_B_rad_s2": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "cache": "Use exact 3*(base+4plus+4minus) FK values already called inside terms/derivatives for independent elastic U; no extra FK/potential query.",
+  "mixed_virtual_qd4_rad_s": [
+    0.13,
+    -0.21,
+    -0.17,
+    0.09
+  ],
+  "potential_J": "0.5*sum(k*(gas_slide-springref)^2); zero-velocity elastic term only",
+  "elastic_scalar_N": "k*(springref-gas_slide)",
+  "tauGas4_Nm": "Dgas.T@elastic_scalar",
+  "counter_compensation4_Nm": "-tauGas4",
+  "withdraw_counter_compensation": "newFF6=originalTrim6+tauGas6; only legs0,1,3,4, preserve wheels2,5 bit-exact",
+  "mixed_velocity": "Compute slide_rate=Dgas@fixed_qd and elastic/damping/total virtual powers using cached Dgas only. Never call terms with nonzero qd (would exceed FK budget). Do not remove damping in the static FF helper.",
+  "gates": {
+    "torque_abs_Nm": 1e-06,
+    "torque_rel": 1e-08,
+    "power_W": "1e-6*sum(abs(qd))+1e-8*sum(abs(tau_reference*qd))",
+    "mapping_abs_rad": 1e-14,
+    "wheel_delta_bits": 0,
+    "source_input_mutations": 0
+  },
+  "failure": "Stop at first budget/domain/numerical failure; save prefix once, keep unchanged gates, no new pose/test reruns.",
+  "runtime_helper": "Read and verify small public/gain sources once at load, return immutable precomputed endpoints; no model import/FK/runtime identification/interpolation. Default disabled, only exact timed_push may use bound endpoint reference/old trim. Other phases unchanged. No actuator/permission.",
+  "unknown": "Public nominal gas/trim decomposition is not measured spring force, hardware confidence or proof of a uniquely isolated spring term inside old trim. Endpoint-only, not nonlinear intermediate or actual-DR compensation.",
+  "forbidden": [
+    "MuJoCo/import/boot/forward/RNE/step",
+    "oldQA/DR sample/truth/raw/H5",
+    "Git/agents/goal/oldsource/gain/model/package edits",
+    "air h/wheel/event/controller integration",
+    "automatic physics/parameter tuning"
+  ]
+}

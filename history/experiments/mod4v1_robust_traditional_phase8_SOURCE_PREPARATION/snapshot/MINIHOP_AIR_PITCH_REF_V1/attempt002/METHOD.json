@@ -1,0 +1,90 @@
+{
+  "kind": "ATTEMPT002_EXPLICIT_PARENT_APPROVED_ASYMMETRIC_DOMAIN_PRECODE",
+  "fixed_parameters": {
+    "pitch_coefficient": 0.25,
+    "pitch_rate_coefficient_s": 0.04,
+    "rate_limit_rad_s": 1.0,
+    "period_s": 0.01,
+    "air_pitch_ref_enable_default": false,
+    "operator_enable_default": false,
+    "h_min_rad": -0.1,
+    "h_max_rad": 0.03
+  },
+  "cohorts": {
+    "default_off_exact_delegate_ticks": 600,
+    "enabled_synthetic_ticks": 600,
+    "FK_offset_count": 51,
+    "FK_offset_interval_rad": [
+      -0.1,
+      0.03
+    ],
+    "FK_sides": [
+      "left",
+      "right"
+    ],
+    "actual_entry_controlled_preloop_invocations": 2,
+    "entry_enable_values": [
+      false,
+      true
+    ],
+    "fault_scenarios_max": 16,
+    "finally_restore_scenarios": 1,
+    "extra_queries_after_failure": 0,
+    "flight_and_capture_reference_FK": "every actual commanded flight and timed_capture reference from enabled synthetic 600 ticks"
+  },
+  "synthetic_config": {
+    "operator_enable": true,
+    "position_trigger_enable": true,
+    "position_trigger_distance_m": 1.18,
+    "position_trigger_min_time_s": 1.0,
+    "position_trigger_deadline_s": 2.6,
+    "trigger_time_s": 1.5,
+    "push_for_s": 0.14,
+    "predicted_air_after_push_s": 0.25,
+    "observer_quarantine_after_push_s": 0.5,
+    "capture_blend_s": 0.1,
+    "landing_transition_enable": true,
+    "landing_transition_s": 0.2,
+    "max_trigger_speed_m_s": 1.2
+  },
+  "synthetic_inputs": "t=k*.01, sensed distance=.7*t, sensed vx=.7, encoder q4 from public crouch; preflight attitude bounded below original launch limits, flight piecewise pitch/rate exercises +/-goal and rate clipping; no plant/DR/truth source",
+  "references": {
+    "start": "JUMP270_V1/GAIN_BANK.json:gains.crouch",
+    "pushend": "TALL_ROUGH_BANK_V1/gain_delta20.json:gain",
+    "landing": "TALL_ROUGH_BANK_V1/gain_delta0.json:gain",
+    "baseline": "MINIHOP_POSITION_TRIGGER_V1/controller.py"
+  },
+  "budgets": {
+    "legacy_math_state_float_bit_differences_default_off": 0,
+    "legacy_log_field_differences_default_off": 0,
+    "enabled_approach_push_bit_differences": 0,
+    "enabled_flight_wheel_tau_bit_differences": 0,
+    "FK_common_rotation_abs_m": 1e-11,
+    "delta_abs_rad": 1e-12,
+    "reference_continuity_abs_rad": 1e-12,
+    "rate_bound_abs_rad": 1e-14,
+    "fixed_gain_feedforward_bit_differences": 0,
+    "final_eq1_bit_differences": 0,
+    "joint_limit_relaxation_rad": 0.0,
+    "report_max_lines": 90
+  },
+  "limits_gate": "All 51 new offsets and all synthetic flight/capture actual references must satisfy original XML limited joints and public delta envelope with zero limit relaxation; any failure stops NOT_READY, no third hypothesis.",
+  "state_comparison": "all legacy instance/controller/scheduler/shaper fields, arrays bytewise, scalar floats binary64 bits, original log keys; perf_counter_ns is deterministic 0 in synthetic harness because wall profiling is not control state. New enabled extension fields reported separately.",
+  "entry_admission": "Invoke actual derived main twice, real new controller/geometry/estimator and original StreamedRows, controlled fake plant/DR/bounds and small-source upstream manifest, explicit trace stop at first for-loop before any body; no real asset verification/model boot/forward/integration. Retain expected-stop prefix/errors as such, not a physics result.",
+  "forbidden_counts": {
+    "model_boot": 0,
+    "mj_forward": 0,
+    "integrator": 0,
+    "linearization": 0,
+    "new_gain_profile": 0,
+    "physics_episode": 0,
+    "old_QA_replay": 0,
+    "raw_H5_R60_read": 0,
+    "C_compile": 0,
+    "Git": 0,
+    "agent": 0
+  },
+  "status_policy": "Math/unit/AST PASS may coexist with domain FAIL; if any joint-limit violation, overall prototype NOT_READY_DOMAIN and no PHY launch. Real boot/driver/dynamic stability/contact permission remain UNKNOWN. No retries or widening to turn a domain failure into success.",
+  "PH7_pending": true,
+  "parent_amendment": "Only h upper .10->.03 based on public crouch/limit; lower -.10 and kp/kd/rate/period/timings/observer/wheel equations unchanged. Nominal margin is not DR safety guarantee."
+}

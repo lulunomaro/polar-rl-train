@@ -1,0 +1,180 @@
+{
+  "status": "SOURCE_BUDGET_AND_FIXED_ALGEBRA_CASES_LOCKED_BEFORE_NUMPY_MODEL_OR_FK",
+  "at_utc": "2026-11-03T07:39:30.038181+00:00",
+  "files": [
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\AIR_CENTROIDAL_COEFFICIENT_V1\\prototype.py",
+      "bytes": 13602,
+      "SHA": "3ea1b487bd76c5823e2771d2d3219ec3db5dd0d0b9058a769cc56243a0e30286"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\AIR_CENTROIDAL_COEFFICIENT_V1\\METHOD.json",
+      "bytes": 3442,
+      "SHA": "9230e64cddb1db8dfe9cdbfe58d5b290635e84532e159f0e6b0c4c5e8a788bdc"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\CONTACT_PROXY_NOMINAL_V1\\nominal_model.py",
+      "bytes": 11965,
+      "SHA": "d7d6092292e71bd3f028ce3dcd365e171b0c32b68030b460aec1d65bd6dc9323"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\CONTACT_PROXY_NOMINAL_V1\\PUBLIC_NOMINAL_CONSTANTS.json",
+      "bytes": 42917,
+      "SHA": "14c38264568f8859ba86b567509318a125355bbd24fe9d35aefa6e9354ea900f"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\JUMP270_V1\\GAIN_BANK.json",
+      "bytes": 66083,
+      "SHA": "4dee8dca07179a54fba9f51b0b47b41a493d9809396250b1876afa1ae7c44778"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\TALL_ROUGH_BANK_V1\\gain_delta20.json",
+      "bytes": 29484,
+      "SHA": "f97040665db51c4bc1686187f14aa46579d8d6f6eabff6ef2ee69dea5328d099"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\TALL_ROUGH_BANK_V1\\gain_delta0.json",
+      "bytes": 29493,
+      "SHA": "05ede4b3425e596fe2f1a9f47258e6c8024d2e0f9732b016442f56dbfb378e3a"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\AIR_PITCH_AUTHORITY_V1\\REPORT.md",
+      "bytes": 7228,
+      "SHA": "ef0dd5f0ca3fffa2948a33aca8e643db302f1978156efbd42d1df5ffec24446c"
+    }
+  ],
+  "method": {
+    "kind": "PARENT_APPROVED_ONCE_PUBLIC_NOMINAL_CENTROIDAL_COEFFICIENT_PROTOTYPE",
+    "scope": "3 existing public poses only; no controller, trajectory selection or h-range change",
+    "poses": [
+      {
+        "name": "crouch",
+        "path": "JUMP270_V1/GAIN_BANK.json",
+        "gain_key": "gains.crouch"
+      },
+      {
+        "name": "pushend_delta_plus_0p2",
+        "path": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "gain_key": "gain"
+      },
+      {
+        "name": "landing_delta0",
+        "path": "TALL_ROUGH_BANK_V1/gain_delta0.json",
+        "gain_key": "gain"
+      }
+    ],
+    "q4_order": [
+      "Lhip_absolute",
+      "Lcrank_absolute",
+      "Rhip_absolute",
+      "Rcrank_absolute"
+    ],
+    "q4_from_saved_gain_q7": "[q3,q3+q4,q5,q5+q6]",
+    "central_difference_epsilon_rad": 1e-05,
+    "FK_budget": {
+      "top_level_max": 27,
+      "all_entries_including_recursive_max": 27,
+      "per_pose": "1 base + 4 axes times plus/minus = 9",
+      "stop_before_any_overbudget_evaluation": true
+    },
+    "momentum_sum_budget": {
+      "evaluations_max": 60,
+      "per_pose": 20,
+      "states": "zero + 17 basis + fixed mixed + same mixed in constant rotated coordinates",
+      "zero_pass_also_assembles_I_and_A_in_same_31body_traversal": true,
+      "separate_coefficient_assembly_sweeps": 0,
+      "centroidal_COM_and_JCOM_reductions_per_pose": 2
+    },
+    "velocity_columns": [
+      "omega_Bx",
+      "omega_By",
+      "omega_Bz",
+      "Lhipdot",
+      "Lcrankdot",
+      "Rhipdot",
+      "Rcrankdot",
+      "Lwheel_relative_rate",
+      "Rwheel_relative_rate",
+      "guide00_relative_rate",
+      "guide01_relative_rate",
+      "guide02_relative_rate",
+      "guide03_relative_rate",
+      "guide04_relative_rate",
+      "guide05_relative_rate",
+      "guide06_relative_rate",
+      "guide07_relative_rate"
+    ],
+    "spin_columns": "2wheel + 8guide hinge axes/pivots and descendants from public body tree, analytic; no extra FK",
+    "wheel_and_guide_phases": "all zero synthetic fixtures only; independent rates explicit, not assumed zero in mixed or basis",
+    "fixed_mixed": {
+      "omega_B3": [
+        0.13,
+        -0.2,
+        0.07
+      ],
+      "qdot4": [
+        0.8,
+        -1.3,
+        0.6,
+        -0.9
+      ],
+      "wheel2": [
+        11,
+        -13
+      ],
+      "guide00_to07": [
+        -2,
+        3,
+        5,
+        -7,
+        11,
+        -13,
+        17,
+        -19
+      ]
+    },
+    "Q": {
+      "Euler_xyz_rad": [
+        0.3,
+        -0.4,
+        0.2
+      ],
+      "convention": "active extrinsic xyz: Q=Rz(0.2) Ry(-0.4) Rx(0.3), all B vectors/J axes transformed together"
+    },
+    "comparison": {
+      "abs_SI": 1e-08,
+      "rel": 1e-10,
+      "rule": "component abs(a-b)<=abs_SI+rel*max(abs(a),abs(b)); H in kg*m^2/s, inertia in kg*m^2; algebra consistency only",
+      "SPD": "symmetric locked inertia eigvals strictly positive; no tolerance relaxation",
+      "ratio_denominator_guard_kg_m2": "1e-8 + 1e-10*max(norm(Ac),norm(Adelta)); abs(Ac_y)<=guard gives UNKNOWN"
+    },
+    "direct_sum": "sum_i [I_i_B*(omega+Jrot_i*zdot) + (r_i-rG) cross m_i*((omega cross r_i + Jcom_i*zdot) - (omega cross rG + JG*zdot))]",
+    "matrix_prediction": "I_locked*omega+A*zdot; symmetric common columns Ac=Aq*[1,1,1,1], Adelta=Aq*[0,1,0,1]",
+    "covariance": "transform geometry/inertia/J/omega by Q with scalar joint rates unchanged; compare H_rotated to Q*H_mixed and transformed matrix prediction; no extra body sum",
+    "excluded_physics": "armature or virtual reflected rotor inertia not added; no independent massmatrix/plant/dynamic verification",
+    "unknowns": [
+      "initial H0",
+      "external contact or other torque",
+      "guide and wheel actual phases/rates/bounds",
+      "softpassive closure deviation",
+      "rotor/gear physical binding",
+      "trajectory/landing stability and actuator tracking"
+    ],
+    "SDK_modelboot_forward_RNE_integrator_runtime_calls": 0,
+    "NumPy_nominal_constants_container_initializations": 1,
+    "old_raw_DR_H5_mesh_Git_agents_oldQA": false,
+    "failure_policy": "preserve original source/trace/counters; stop, no rerun, new threshold or expanded budget",
+    "PH8pending": true
+  },
+  "counters_before": {
+    "FK_top_level": 0,
+    "FK_recursive": 0,
+    "FK_all_entries": 0,
+    "momentum_body_sum_evaluations": 0,
+    "separate_coefficient_assembly_sweeps": 0,
+    "centroidal_COM_JCOM_reductions": 0,
+    "nominal_constants_objects": 0,
+    "SDK_modelboot_forward_RNE_integrator_runtime": 0
+  },
+  "no_old_QA_or_physics_or_raw": true
+}

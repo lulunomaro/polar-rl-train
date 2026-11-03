@@ -1,0 +1,20 @@
+"""Hash/JSON-only preregistration. Does not import a model or NumPy."""
+from pathlib import Path
+import json,hashlib
+O=Path(__file__).resolve().parent;R=O.parent
+FILES=['CONTACT_PROXY_NOMINAL_V1/nominal_model.py','CONTACT_PROXY_NOMINAL_V1/PUBLIC_NOMINAL_CONSTANTS.json','JUMP270_V1/GAIN_BANK.json','TALL_ROUGH_BANK_V1/gain_delta20.json','TALL_ROUGH_BANK_V1/gain_delta0.json']
+raw={n:(R/n).read_bytes()for n in FILES};pub=json.loads(raw[FILES[1]])
+assert hashlib.sha256(raw[FILES[1]]).hexdigest()=='14c38264568f8859ba86b567509318a125355bbd24fe9d35aefa6e9354ea900f'
+gains={'crouch':json.loads(raw[FILES[2]])['gains']['crouch'],'pushend':json.loads(raw[FILES[3]])['gain'],'landing':json.loads(raw[FILES[4]])['gain']}
+poses={}
+for name,g in gains.items():
+    q=g['q'];assert len(q)==7 and len(g['tau'])==6
+    poses[name]=dict(source_q7_delta=q,reference_absolute_q4_rad=[q[3],q[3]+q[4],q[5],q[5]+q[6]],original_trim_row6_Nm=g['tau'])
+source=dict(kind='FROZEN_SMALL_PUBLIC_SOURCES_ONLY',files=[dict(relative=n,bytes=len(raw[n]),SHA=hashlib.sha256(raw[n]).hexdigest())for n in FILES],public_xml_SHA_declared=pub['source_xml_sha256'],poses=poses)
+method=dict(kind='NOMINAL_ELASTIC_SPRING_STATIC_FF_SIGN_AND_VIRTUAL_WORK_ZERO_STEP',coordinates=dict(q4='absolute Lhip,Lcrank,Rhip,Rcrank joint-output rad; not passive knee',state14='x,yaw,pitch,Lhip,crank-minus-hip,Rhip,crank-minus-hip,vx,yawrate,pitchrate,Lhipdot,deltaLdot,Rhipdot,deltaRdot',tau6='Lhip,Lcrank,Lwheel,Rhip,Rcrank,Rwheel joint-output Nm'),poses=list(poses),models_max=1,FK_max=27,FK_per_pose=9,FD_central_rad=1e-5,terms_inputs=dict(qd4=[0.,0.,0.,0.],qdd4=[0.,0.,0.,0.],proper_root_B_m_s2=[0.,0.,9.81],omega_B_rad_s=[0.,0.,0.],alpha_B_rad_s2=[0.,0.,0.]),cache='Use exact 3*(base+4plus+4minus) FK values already called inside terms/derivatives for independent elastic U; no extra FK/potential query.',mixed_virtual_qd4_rad_s=[.13,-.21,-.17,.09],potential_J='0.5*sum(k*(gas_slide-springref)^2); zero-velocity elastic term only',elastic_scalar_N='k*(springref-gas_slide)',tauGas4_Nm='Dgas.T@elastic_scalar',counter_compensation4_Nm='-tauGas4',withdraw_counter_compensation='newFF6=originalTrim6+tauGas6; only legs0,1,3,4, preserve wheels2,5 bit-exact',mixed_velocity='Compute slide_rate=Dgas@fixed_qd and elastic/damping/total virtual powers using cached Dgas only. Never call terms with nonzero qd (would exceed FK budget). Do not remove damping in the static FF helper.',gates=dict(torque_abs_Nm=1e-6,torque_rel=1e-8,power_W='1e-6*sum(abs(qd))+1e-8*sum(abs(tau_reference*qd))',mapping_abs_rad=1e-14,wheel_delta_bits=0,source_input_mutations=0),failure='Stop at first budget/domain/numerical failure; save prefix once, keep unchanged gates, no new pose/test reruns.',runtime_helper='Read and verify small public/gain sources once at load, return immutable precomputed endpoints; no model import/FK/runtime identification/interpolation. Default disabled, only exact timed_push may use bound endpoint reference/old trim. Other phases unchanged. No actuator/permission.',unknown='Public nominal gas/trim decomposition is not measured spring force, hardware confidence or proof of a uniquely isolated spring term inside old trim. Endpoint-only, not nonlinear intermediate or actual-DR compensation.',forbidden=['MuJoCo/import/boot/forward/RNE/step','oldQA/DR sample/truth/raw/H5','Git/agents/goal/oldsource/gain/model/package edits','air h/wheel/event/controller integration','automatic physics/parameter tuning'])
+def put(n,v):
+    with(O/n).open('x',encoding='utf-8',newline='\n')as f:json.dump(v,f,ensure_ascii=False,indent=2,allow_nan=False);f.write('\n')
+def rec(n):
+    b=(O/n).read_bytes();return dict(path=n,bytes=len(b),SHA=hashlib.sha256(b).hexdigest())
+put('SOURCE.json',source);put('METHOD.json',method);put('PREREGISTRATION.json',dict(status='LOCKED_BEFORE_NEW_HELPER_OR_MODEL_EXECUTION',source=rec('SOURCE.json'),method=rec('METHOD.json'),NumPy_FK_calls=0,models_created=0))
+print(json.dumps(dict(status='LOCKED',source=rec('SOURCE.json'),method=rec('METHOD.json'),poses=poses),indent=2))

@@ -1,0 +1,64 @@
+{
+  "kind": "INDEPENDENT_STATIC_LAUNCHER_AND_GATING_REVIEW_NOT_CORE_OR_DYNAMIC_QUALIFICATION",
+  "ready_for_fixed_paired_TRAIN": false,
+  "reviewed_launcher_SHA": "93b8731fa5ee9050611cec1013f76118502a2583c48c5bf4c4e37ac98fff5e81",
+  "readiness_meaning": "Only whether this exact launcher/helper code is suitable to wait for conditional fixed TRAIN admission; neither nominal passes nor permission to launch is granted by a review. Here false because two live guard gaps remain.",
+  "issues": [
+    {
+      "id": "R62-L1",
+      "severity": "blocking",
+      "title": "Software-error stop depends only on process returncode, not missing/error artifacts",
+      "evidence": [
+        {"path": "fresh_train_batch_v1.py", "lines": [29,35], "excerpt": "if(out/'result.json').is_file(): ... elif(out/'ERROR.json').is_file():row['software_error']=json.loads((out/'ERROR.json').read_bytes()); return row"},
+        {"path": "fresh_train_batch_v1.py", "lines": [37,45], "excerpt": "if any(row['returncode']!=0 for row in wave):break ... if any(row['returncode']!=0 for row in rows):raise SystemExit(1)"}
+      ],
+      "static_counterexample_not_executed": "With returncode==0 and ERROR.json present but result.json absent, the row has software_error but neither stop predicate fires; with both artifacts absent and returncode==0, no error is marked at all. Future waves run and final return is successful. This is a conditional source branch, not a claim that the current runner has produced it.",
+      "impact": "The declared software-errors-stop-future-waves rule is incomplete. Ordinary nonzero worker exits already stop future waves correctly; robot gate failures with valid result and rc0 correctly continue.",
+      "required_before_ready": "An explicit artifact/error-health failure path must stop future waves and remain failure at batch end, including rc0 missing/ERROR results. Preserve valid robot-failure results and continue their planned cohort; do not turn a false robot success gate or complete=false alone into a software error. No implementation or new test was performed by this review."
+    },
+    {
+      "id": "R62-L2",
+      "severity": "blocking",
+      "title": "Actual nominal result configuration is not tied to the locked enabled-candidate nominal profiles",
+      "evidence": [
+        {"path": "launch_r62_airref_paired_train_v1.py", "lines": [22,29], "excerpt": "flat=load(flatp);rm=load(rmp); assert flat['complete'] is True and flat['proposed_moving_flat_air80_stop_v1'] is True; assert rm['complete'] is True and rm['proposed_manual_first_bar_clear_stop_v1'] is True; ... approval result SHA checks; ... runner present in sources"},
+        {"path": "launch_r62_airref_paired_train_v1.py", "lines": [31,42], "excerpt": "for k in('case_id','cohort','nominal','seed'):c.pop(k,None); c['hop'].pop('air_pitch_ref_enable',None); ... assert key(old['config'])==key(rm['config']); ... c['hop']['air_pitch_ref_enable']=True"},
+        {"path": "R62_AIRREF_ADMISSION_V1/PROTOCOL.json", "lines": [3,78], "excerpt": "Both locked nominal configs are seed0/nominal=true/8s with air_pitch_ref_enable=true, correct flat/rm scene, and the original matched profile."}
+      ],
+      "static_counterexample_not_executed": "Even retaining explicit parent approval and all current result SHA checks, disabled-candidate nominal results can satisfy the predicates: flat.config is never compared; rm.config air flag is deleted before comparison to old R60. No assertion requires the two actual result configs to equal their corresponding locked PROTOCOL profiles or to have candidate enable true. A correct planned config is not itself proof that a result used it.",
+      "impact": "New paired configs enable the candidate, but the live gate does not mechanically establish that the two admitted nominal results exercised that same enabled configuration. Current planned configs are correct; this is not a claim of an observed incorrect nominal run, nor a bypass of the parent approval requirement.",
+      "required_before_ready": "Bind both actual nominal result configs to the already source-locked flat/RM PROTOCOL profiles, including scene/seed/nominal/duration and explicit air enable true; retain the original score booleans and the separate finite-mainfirstflight admission. This is configuration provenance enforcement, not a new success threshold or a new dynamic qualification."
+    }
+  ],
+  "positive_static_findings": [
+    "Parent approval is a separate required path within root; exact true flag, fixed seed list, launcher SHA, source-index SHA, review SHA and both nominal result SHAs are checked before launch.",
+    "Review ready flag and all review checked_sources SHAs plus all nominal source-index entries are checked. Source-index metadata includes the candidate entry and the shared batch helper; this review did not reread/hash all 79 source bodies.",
+    "Existing flat and RM named original gate fields, complete flags and finite numeric first-flight main-rear crossing are live checks; the extra crossing is distinct from rewriting the old local gate.",
+    "Seeds are fixed 4602/4605/4606/4610; each new config clones its old small config and changes only case/cohort/extension flag. Worker count is exactly 2; fresh case paths/batch directories/logs use no-overwrite creation.",
+    "Helper retains valid result robot failures and logs; ordinary nonzero software exit stops later waves after the in-flight wave finishes. No seed substitution, retry, gate relaxation or old score writes appear in these two code files.",
+    "Old R60 small facts support 4602/4610 pass, 4605 guide failure, 4606 guide+hard failure. These are selected after old TRAIN outcomes, not holdout or an unbiased reliability cohort. R60 global10/16 is unchanged."
+  ],
+  "checked_sources": [
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\launch_r62_airref_paired_train_v1.py","SHA":"93b8731fa5ee9050611cec1013f76118502a2583c48c5bf4c4e37ac98fff5e81"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\fresh_train_batch_v1.py","SHA":"40c46cc96350637537f11c55aff5a2ce3c753f73840cd40a1d8983d5ac2cefef"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_PROPOSED_PLAN_V1.json","SHA":"d9f893f7ef1c9418020d085cf033dcaa7b71467e26af0d395c7e2b596f4d1326"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\reports\\R60_TALL0_FRESH16_TRAIN_FACTS.json","SHA":"f9c23ca798e505e431a4a3bdd8a6f6e6b62bb765aab550f74456e2f22756cf87"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_ADMISSION_V1\\SOURCE_PREEXEC.json","SHA":"e0fce839bcd612192ae611aa5cf55a557c921f54cb18419263e96eea6eae74ec"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_ADMISSION_V1\\PROTOCOL.json","SHA":"f9ec788ede928647c8b0da3d75aa9ea9fd2d85b43392ad6e18d42f47cfd95f7e"}
+  ],
+  "scope": {
+    "catalog": "Office/Windows ACL only; no robotics match. Used file tools and native read-only Get-FileHash.",
+    "old_facts_read_portion": "R60 small summary header and selected-seed rows; producer raw paths/SHA were metadata only, no raw opened or hashed.",
+    "core_self_review": false,
+    "core_or_dynamic_qualification": "OUT_OF_SCOPE_NOT_GRANTED",
+    "nominal_result_files_read": false,
+    "parent_approval_read_or_written": false,
+    "project_import_or_execution": 0,
+    "launcher_help_or_unit_run": 0,
+    "model_PHY_compile_Git_agent_actions": 0,
+    "raw_H5_reads": 0,
+    "code_config_gate_or_source_index_changes": 0,
+    "review_does_not_authorize_launch": true,
+    "post_current_cutoff_pending": true
+  }
+}

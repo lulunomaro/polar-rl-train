@@ -1,0 +1,29 @@
+{
+  "kind":"PREDECLARED_BOUNDED_READONLY_R62_RESPONSE_DIAGNOSIS_NO_REPLAY_OR_NEW_HYPOTHESIS",
+  "catalog":"Office/ACL only; no robotics match. File tools and Python stdlib CLI; no project imports.",
+  "raw_allowlist":[
+    {"case":"r60_tall0_fresh_RM_DR_4606","file":"trace.jsonl","maximum_rows":800},
+    {"case":"r62_airref002_paired_RM_DR_4606","file":"trace.jsonl","maximum_rows":800},
+    {"case":"r60_tall0_fresh_RM_DR_4610","file":"trace.jsonl","maximum_rows":800},
+    {"case":"r62_airref002_paired_RM_DR_4610","file":"trace.jsonl","maximum_rows":800},
+    {"case":"r62_airref002_paired_RM_DR_4606","file":"physics.jsonl","maximum_rows":16000}
+  ],
+  "single_pass":"Each of these five raw files may be opened for analysis once only. No raw content hashing or archival copy, other TRAIN/heldout trace, old QA, project import, controller execution, new physics, compile, Git or agent. Capture partial counters/error if data/schema fails; no silent rescan.",
+  "source_lock":"Explicit small producer sources, these four result/manifest files, public crouch gain, and parent small facts only. Match selected actual producer source SHA; raw size/mtime and producer SHA recorded without rehashing raw.",
+  "control_time_semantics":"command_time_s is 100Hz acquisition/update/request time; time_s and grade_after are after 20 physics substeps (+.01). Sensor time is boxcar window-end with D1/D2/D3; estimated14 pitch[2] age-view to command time; rate[9] held source-window Euler pitch rate, not instantaneous current rate. Old h fields absent are null/not-applicable, never fabricated logs.",
+  "retention":"Retain every timed predicted_flight_retract row (max80/case) through first timed_capture anchor, plus capture offsets 0/.01/.05/.10/.20/.50/1s and final. Phase aggregations from all800 rows. Hard micro-window uses sample offsets [-20,-10,-1,0,1,10,20] around first hard; full positive hard-contact identities for every hard tick (max32). No dense raw archive.",
+  "flight_PD_reconstruction":{
+    "source":"MINIHOP_V1/controller.py:85-99; LEG=[0,1,3,4], EFFORT legs40 wheels5.775909774436091. target_q4 and encoder_q4/encoder_qd4 are recorded in same 100Hz row.",
+    "unclipped_leg":"u_i = 140*(phase.target_q4[i]-encoder_q4[i])-3*encoder_qd4[i]",
+    "validation":"clip u_i to [-40,40] against actual requested_tau6[LEG] for EVERY flight row, absolute error <=1e-9 Nm. Any missing input or failing comparison makes reconstruction/masking interpretation UNKNOWN rather than fixing values or running old code.",
+    "same_packet_no_h":"Only if validated: replace target by the public frozen crouch absolute q4 from GAIN_BANK, with SAME recorded packet. Compare clipped no-h vs clipped actual-target PD. This is algebraic per-request sensitivity, NOT an old-controller replay, old trajectory, actual motor action or unique closed-loop cause.",
+    "masking":"For nonzero preclip h effect >1e-9 Nm: fully masked when clipped delta <=1e-9; partially masked when clipped delta is positive and smaller than preclip effect minus1e-9; otherwise transmitted. Record per-axis counts. Baseline has no h function.",
+    "h_formula":"New flight only: goal=clip(.25*estimated14[2]+.04*estimated14[9],-.10,.03); h=clip(previous_h+clip(goal-previous_h,-.01,.01),-.10,.03). Validate metadata and target=crouch+h to1e-12 rad. Outside flight goal may be held/stale. First capture anchor must equal last flight h; actual landing_position_ref4 is reference, not generic target_q4 during capture.",
+    "capture":"No reconstruction of full ground/mixed/capture preclip demand; K/FF/mix/roll/feedback path differs. Observe actual requests and landing ref/weight. Capture wheels may change through the original LQR/reference path; no invariance extrapolation."
+  },
+  "limits":"Count requested legs coincident with +/-40 and wheels +/-5.775909774436091 with1e-9 Nm tolerance, h goal clipping/domain/rate-active counts with1e-12 rad tolerance. Push pre-roll +/-32 stage, inversePD target, D4/PD, motor gain and both signed-DC clip events are not separately logged: their clipping counts UNKNOWN. Requested-limit coincidence is not hardware/DC saturation.",
+  "prefix_bits":"Before min(old,new first-flight command time), compare common recorded public 100Hz sensor/state/request/reference/timer fields using IEEE754 binary64 encoding (signed zero preserved), bool/string/null tags. Exclude new-only air metadata, private physics/ground truth, performance timing. This is a snapshot comparison, never2k equality proof.",
+  "physics":"Only new4606. stage_time_s, drivepoint.actual_tau6_Nm and velocity6_rad_s, private regular root rotation and contact/mesh cache are PRE-integration; root_post is separate +.0005. Match sample_index//20 to command row and assert time interval; no 2k q reconstruction/integrating dq/nominal DR substitution. Bounded d.ctrl is model actuator command, not independent measured motor feedback.",
+  "hard_event":"First hard_normal_N>1 N using original aggregate predicate. Derive regular body PRE pitch from private R as atan2(-R20,hypot(R00,R10)), roll=atan2(R21,R22). Keep actual positive hard contacts, force, point and normal. Ground identified by name; first-bar top/front/back face only if outward-to-robot normal axis >=.95 AND point-plane distance<=.005m; otherwise ambiguous/unknown. Report raw normal and distances as evidence, not a hidden gate.",
+  "report":"<=100 lines; no score/gate/source/default changes, no parameter fit, third h candidate or new gain. Selected outcomes are mechanistic TRAIN evidence, not holdout or unique causal/stability qualification; PH8 pending."
+}

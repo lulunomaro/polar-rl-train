@@ -1,0 +1,13 @@
+# PH8 source preparation only — closed R62 + named evidence, not Git approval
+
+Authority: F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/PH8_ARCHIVE_CUTOFF_R62_INSIGHT.json. Own worktree F:/RMPOLAR-RL/repo-lqr-robust / mod4v1-lqr-mpc-robust; read-only HEAD observed223577994e0f750e0ae062ce9ffee204273c90a2. Catalog has Office/PDF/ACL operations but no matching source-archive workflow; use bounded filesystem/CLI, no application/model execution. AGENTS and both Git policies read.
+
+Only closed R62 actual batch PROTOCOL case_names admit physical results. Three actual batches observed: r62_airref002_nominal_v2_flat, r62_airref002_nominal_v2_rm, r62_airref002_paired_DR4. Cutoff case strings are routing hints: actual paired names contain paired_RM_DR_. Independently derive all6case/4800control/96000step counters, nominal2/2 and selected1/4 versus saved R60same4=2/4. No pooling or independent holdout claim; expected-error controlled preloop/mock1control20steps are not robot cases.
+
+Named roots/reports/families and their actual executed/provenance/import/gain/schema text closure only; no mtime-based whole-tree scan or active-source chasing. Prefer exact same-byte PH1–7 Git references. Capture original source/snapshot and before/after smalltextSHA; never substitute a later mutable version. Keep all failed001/heldV1/reviewer corrections/metadata errata and missing versions.
+
+Hard exclude R63+, SPRING_PUSH_RELEASE_V1, R63_PHASE_SOURCE_REVIEW_V1, generic candidate binder/V5/deriver/mock/preparer/plan and any other active postcut root. Spring decomposition root is closed nominal mathematics only, not controller-release/unit/entry work. Root filename families are not existence proof. No other expert worktree/index/canonical traversal; sourceRoot/oldscore/candidate/model untouched.
+
+Raw/PDF/ZIP/mesh/USD/large binary metadata only, existing producer paths/bytes/SHA or unknown. No Downloads read/re-extraction or raw content rehash. SPR CRC is not a SHA. Qi constructedLF versus actualCRLF hashes are different declared representations, preserve both and all original errata. Original external API/ZIP pointers remain pointers, not read permission. Historical FSM ERROR_REPORT saved version gap and conflicting exe claims remain unknown; no reconstruction/QA to fill history.
+
+Zero new PHY/model/FK/unit/compile/oldQA/once/GPU/newagent/realIO/environment/Goal operations. No record/helper/stage/commit/tag/push before fresh parent review and separate authorization. PH7 already recorded, never replay it. New postcutwork PH9pending; overall Goal active. Qualification remains H5 40/64, R62 selected1/4, no wholeRM/270/automaticcontact/board/Power/WCET upgrade. Deliver review handoff/index/manifest/case/gaps/qualification/consistency only, then stop.

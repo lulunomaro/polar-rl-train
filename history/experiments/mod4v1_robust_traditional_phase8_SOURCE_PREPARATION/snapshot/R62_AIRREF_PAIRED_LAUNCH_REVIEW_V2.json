@@ -1,0 +1,101 @@
+{
+  "kind": "DELTA_ONLY_INDEPENDENT_STATIC_PAIRED_LAUNCHER_REVIEW_V2_NO_CORE_OR_DYNAMIC_QUALIFICATION",
+  "ready_for_fixed_paired_TRAIN": true,
+  "issues": [],
+  "readiness_meaning": "Within the two previously identified L1/L2 software-gating deltas, this exact code can wait for conditional admission. This is not a statement that any nominal has passed, a current launch permission, or a core/dynamic qualification.",
+  "reviewed_launcher_SHA": "5727c24f624773a5298a25bc371a413c4f78c6a55b9e3801fd24050843366ec7",
+  "previous_review_preserved": {
+    "path": "R62_AIRREF_PAIRED_LAUNCH_REVIEW.json",
+    "SHA": "9a8f2c680f409765d43ff88dc460c4f45a12a7523516022eeb366f1ff4cebbd4",
+    "ready_for_fixed_paired_TRAIN_for_V1": false,
+    "V1_decision_not_rewritten": true
+  },
+  "resolved_issues": [
+    {
+      "id": "R62-L1",
+      "status": "CLOSED_IN_REVIEWED_V2_DELTA",
+      "evidence": [
+        {"path": "fresh_train_batch_v2.py", "lines": [26,61], "description": "Collect nonzero child return, launch exception, ERROR artifact (including parse error), missing result, bad result JSON and invalid basic schema/case into explicit issues; software_failure=bool(issues)."},
+        {"path": "fresh_train_batch_v2.py", "lines": [63,72], "description": "Any software_failure in a completed wave stops future waves; preserve rows and unstarted names in BATCH_RESULT, then SystemExit(1). No inference of unrecorded controls/steps."},
+        {"path": "fresh_train_batch_v2.py", "lines": [47,55], "description": "A schema-valid result may have complete=false or a false robot gate. Those values alone are not software failure, so legitimate robot failures remain and planned future cases continue."}
+      ],
+      "bounded_conclusion": "The original rc0+ERROR/missing-result fall-through is removed. Both artifacts, invalid JSON/basic schema, wrong case and nonzero rc are also explicit software failures. Stop means future waves; an already running same-wave peer is allowed to finish. This is static code review, not a new execution or a general audit of every host/filesystem fault."
+    },
+    {
+      "id": "R62-L2",
+      "status": "CLOSED_IN_REVIEWED_V2_DELTA",
+      "evidence": [
+        {"path": "r62_nominal_evidence_v1.py", "lines": [8,21], "description": "For actual flat/RM results, cfg==the corresponding locked PROTOCOL dictionary; explicit scene, nominal is True and air_pitch_ref_enable is True; exact candidate result/manifest kind and manifest enable; actual manifest core and entry SHA equal source-index entries."},
+        {"path": "r62_nominal_evidence_v1.py", "lines": [22,28], "description": "Keep original flat/local pass booleans; require finite nonnegative actual mainfirstflight timestamp. This is an added nominal-admission condition, not an old score rewrite."},
+        {"path": "launch_r62_airref_paired_train_v2.py", "lines": [17,30], "description": "Parent approval binds launcher/index/review SHA, both actual result SHAs and both actual SOURCE_MANIFEST SHAs; validate_enabled_nominals is called before constructing paired cases."},
+        {"path": "launch_r62_airref_paired_train_v2.py", "lines": [32,44], "description": "Removing the extension flag is now only for old-vs-new base-profile comparison AFTER the enabled nominal binding has already succeeded; it no longer substitutes for checking nominal candidate enable."}
+      ],
+      "bounded_conclusion": "The previous disabled/wrong nominal profile acceptance route is removed by actual dictionary and candidate manifest binding. This review has not read any actual nominal result or manifest, so it makes no claim that those live conditions are presently satisfied."
+    }
+  ],
+  "saved_preflight_report_only": {
+    "path": "PARENT_R62_DELTA_PREFLIGHT_V1/RESULT.json",
+    "SHA": "817ba9525026105a0226b191552de26baaa51e52a526739d632fb09458ce1a5f",
+    "recorded_status": "PASS_16_NEW_SOFTWARE_DELTA_FIXTURES_NO_PHYSICS",
+    "total_scenarios": 16,
+    "helper_scenarios": 8,
+    "helper_valid_or_robotfailure_continue": 2,
+    "helper_softwarefailure_stop": 6,
+    "nominal_binding_scenarios": 7,
+    "nominal_binding_valid": 1,
+    "nominal_binding_expected_rejections": 6,
+    "nominal_v4_abort_defer_RM_scenarios": 1,
+    "recorded_actual_subprocesses": 0,
+    "recorded_candidate_controller_or_entry_calls": 0,
+    "recorded_new_physics_integrator_old_QA_calls": 0,
+    "new_three_source_SHAs_match_recorded_after_hashes": true,
+    "review_reran_or_independently_executed_these_tests": false,
+    "nominal_v4_body_reinspection": "NOT_PERFORMED_HERE_INDEPENDENT_NOMINAL_DELTA_REVIEW_REMAINS_SEPARATE"
+  },
+  "source_index_metadata": {
+    "path": "R62_AIRREF_ADMISSION_V2/SOURCE_PREEXEC.json",
+    "SHA": "29d5374e04e4c5883391dfdecacdf731a169238b4cecc9cc1721fb134f8ae2bb",
+    "records": 90,
+    "declared_inherited_records": 79,
+    "declared_inherited_index_SHA": "e0fce839bcd612192ae611aa5cf55a557c921f54cb18419263e96eea6eae74ec",
+    "inherited_index_SHA_matches_saved_V1_review": true,
+    "new_delta_file_records_match_actual_three_code_hashes": true,
+    "old79_source_body_or_tree_rescan": false,
+    "core_or_nominal_model_review_not_repeated": true
+  },
+  "unchanged_training_contract": {
+    "seeds": [4602,4605,4606,4610],
+    "max_workers": 2,
+    "selected_after_old_TRAIN_outcomes_not_holdout": true,
+    "old_R60_qualification_inherited_from_V1_not_reread_or_recomputed": "4602/4610 old local pass; 4605 guide; 4606 guide+hard; overall10/16 unchanged",
+    "config_delta": "Clone each fixed old small config; new case/cohort plus candidate enable; other base-profile keys compared against bound nominal RM config.",
+    "no_seed_replacement_retry_gate_relaxation_or_old_result_write_added": true,
+    "fresh_no_overwrite_paths_and_original_robot_gates_preserved": true
+  },
+  "conditions_still_required_not_granted_by_this_review": [
+    "Independent core/nominal delta review and the parent's separate nominal admission/approval procedure remain separate.",
+    "Actual flat and RM complete results must pass the original named gates, with the RM mainfirstflight admission condition and exact locked enabled profiles/manifests.",
+    "An explicit separate fixed-paired parent approval must bind this launcher, D2 index, this review, both actual results and both actual manifests by SHA; all indexed and reviewed files must still match.",
+    "Current nominal outcome, PHY permission, dynamic robustness, hardware release and any holdout qualification are not assessed or granted here."
+  ],
+  "checked_sources": [
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\launch_r62_airref_paired_train_v2.py","SHA":"5727c24f624773a5298a25bc371a413c4f78c6a55b9e3801fd24050843366ec7"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\fresh_train_batch_v2.py","SHA":"30915257ecd9b1e832b23861e5c46f9348976b39bf4f7feecb73cdd6d52328d6"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\r62_nominal_evidence_v1.py","SHA":"89965a3aaa2146f32fd662320f66137a99f741abda25b03b6e055440e49c4ea7"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\PARENT_R62_DELTA_PREFLIGHT_V1\\RESULT.json","SHA":"817ba9525026105a0226b191552de26baaa51e52a526739d632fb09458ce1a5f"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_ADMISSION_V2\\PROTOCOL.json","SHA":"76200c858f67e87199d50fbc428b9371d7c66f3bbeec17b7c03fe7a57d4255be"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_ADMISSION_V2\\SOURCE_PREEXEC.json","SHA":"29d5374e04e4c5883391dfdecacdf731a169238b4cecc9cc1721fb134f8ae2bb"},
+    {"path":"F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\R62_AIRREF_PAIRED_LAUNCH_REVIEW.json","SHA":"9a8f2c680f409765d43ff88dc460c4f45a12a7523516022eeb366f1ff4cebbd4"}
+  ],
+  "scope": {
+    "catalog": "Office/ACL catalog has no robotics match; file tools and native read-only SHA256 only.",
+    "review_scope": "Delta closure of V1 L1/L2 only; no new or unrelated admission gates introduced.",
+    "project_execution_import_unit_help": 0,
+    "model_PHY_compile_Git_raw_H5_agent_actions": 0,
+    "self_authored_core_reread_or_dynamic_qualification": false,
+    "parent_approval_or_actual_nominal_results_read_or_written": false,
+    "old_review_code_configs_source_locks_modified": 0,
+    "current_launch_permission": false,
+    "post_PH7_cutoff_PH8_pending": true
+  }
+}

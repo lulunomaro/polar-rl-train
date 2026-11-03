@@ -1,0 +1,47 @@
+"""Original flat recipe has height_scanner=None; do not construct a ray sensor."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import sys
+
+HERE=Path(__file__).resolve().parent
+BASE=HERE.parent/'scut_recipe_v18' if (HERE.parent/'scut_recipe_v18').exists() else Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500')
+sys.path.append(str(BASE))
+spec=importlib.util.spec_from_file_location('standing_scut_recipe18_frozen',BASE/'recipe.py')
+base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+original_recipe=base.original_recipe
+terrain_recipe=base.terrain_recipe
+terrain_manager_class=base.terrain_manager_class
+boundary_functions=base.boundary_functions
+
+
+def install(stage,source_stage=None):
+    import torch
+    import mod4v1_scut.sdk as sdk
+    import mod4v1_scut.config as config
+    import mod4v1_scut.checkpoint as checkpoint
+    # The shared constructor allocates a scan descriptor unconditionally.
+    # Read its descriptor before selecting flat, then remove that scene field
+    # before any SDK scene is instantiated. Flat never calls this sensor.
+    if stage=='flat':
+        descriptor=config.ground_scan_config()
+        sdk.ground_scan_config=lambda: descriptor
+    receipt=base.install(stage,source_stage=source_stage)
+    if stage=='flat':
+        original=sdk.configure
+        def configure(cfg,n,profile='trained_stair'):
+            original(cfg,n,profile)
+            cfg.scene.scut_ground=None
+            return cfg
+        sdk.configure=configure
+        def read_reward_scans(self,ids=None,forward=True):
+            select=slice(None) if ids is None else ids
+            wheels=self.reward.robot.data.body_pos_w[select][:,self.reward._wheel_link_idx]
+            ground=torch.zeros(wheels.shape[0],device=self.device)
+            wheel_ground=ground[:,None].expand(-1,2).clone()
+            points=wheels.clone();hits=wheels.clone();hits[...,2]=0.
+            return ground,wheel_ground,points,hits,points.clone(),hits.clone()
+        sdk.ScutBridge.read_reward_scans=read_reward_scans
+        receipt.update(flat_height_scanner=None,flat_sensor_instantiated=False,flat_world_ground_z=0.)
+    checkpoint.FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V19'
+    return receipt

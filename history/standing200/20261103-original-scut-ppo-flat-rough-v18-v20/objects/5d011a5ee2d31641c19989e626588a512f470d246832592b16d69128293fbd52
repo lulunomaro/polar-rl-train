@@ -1,0 +1,50 @@
+"""Small independent integration repair; reference the frozen V18 package."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+HERE=Path(__file__).resolve().parent;R=HERE.parent;B=R/'scut_recipe_v18'
+
+
+def row(p,**extra):
+    raw=p.read_bytes();return dict(path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),**extra)
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    assert json.loads((R/'reports/SCUT19_FLAT_NO_SCANNER_CPU.json').read_bytes())['passed']
+    old=json.loads((B/'FROZEN.json').read_bytes());base=old['job']
+    own=json.loads((R/'actual_closed'/old['run_id']/'OWNER_EXIT.json').read_bytes())
+    assert own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    plan=json.loads((B/'PLAN.json').read_bytes());runid='MOD4_STANDING200_SCUT_RECIPE_V19_FLAT_'+str(time.time_ns())
+    job='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid
+    plan.update(run_id=runid,remote_root=job,entry_base_SHA=row(B/'entry.py')['SHA'],
+        support=[*plan['support'],base],integration_repair='flat height_scanner=None;no ray sensor/groundz0;originalrecipe/reward/PPO unchanged',
+        prior_V18_failure=dict(job=base,stage='before environment constructor',physical_steps=0,PPO_steps=0,original_exit=own))
+    (HERE/'PLAN.json').write_text(json.dumps(plan,indent=2)+'\n',encoding='utf-8')
+    (HERE/'SOURCE_PATHS.json').write_bytes((B/'SOURCE_PATHS.json').read_bytes())
+    # These files remain byte-identical and are referenced, not copied locally.
+    links={name:next(r for r in old['files'] if r['relative']==name) for name in ['evaluate.py','supported_meter.py','owner.py','render.py']}
+    # Remote symlinks cannot be written by the controller, so use tiny immutable loaders.
+    for name in links:
+        module=base+'/'+name
+        content="from pathlib import Path\nimport hashlib\nP=Path(%r)\nraw=P.read_bytes()\nassert hashlib.sha256(raw).hexdigest()==%r\nexec(compile(raw,str(P),'exec'),globals())\n"%(module,links[name]['SHA'])
+        (HERE/name).write_text(content,encoding='utf-8')
+    files=[row(p,relative=p.name) for p in HERE.iterdir() if p.name in ['recipe.py','entry.py','control.py','evaluate.py','supported_meter.py','owner.py','render.py','PLAN.json','SOURCE_PATHS.json']]
+    for r in files:
+        if Path(r['path']).suffix=='.py':ast.parse(Path(r['path']).read_text(encoding='utf-8'))
+    shared=old['shared_text']+[dict(path=base+'/'+r['relative'],bytes=r['bytes'],SHA=r['SHA']) for r in old['files']]
+    frozen=dict(epoch=time.time(),run_id=runid,job=job,files=files,shared_text=shared,
+        source_model_copies=0,shared_runtime_copies=0,CPU_report=row(R/'reports/SCUT19_FLAT_NO_SCANNER_CPU.json'))
+    (HERE/'FROZEN.json').write_text(json.dumps(frozen,indent=2)+'\n',encoding='utf-8')
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    w.update(status='SCUT19_FLAT_NO_SCANNER_REPAIR_FROZEN_UNUSED',training_started=False,training_completed=False,
+        pending_repair=dict(version='SCUT_RECIPE_V19',root=str(HERE),status='CPU_PASS_FROZEN_UNUSED',run_id=runid,launch_once_consumed=False),
+        scut_recipe_v19=dict(root=str(HERE),frozen=str(HERE/'FROZEN.json'),frozen_SHA=row(HERE/'FROZEN.json')['SHA'],algorithm='originalPPO'),
+        next='V18 failed at flat disabledscanner beforeenvironment;ownwaited/settled/released. V19 onlyno-scannerintegration,oldfailureimmutable. LaunchoriginalflatPPO,thenFIRST. Samefiniteoriginalownerfullsave/close/immediate200mmeval.')
+    (R/'CURRENT_WORK_ORDER.json').write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(frozen=True,run_id=runid,launch=False)))
+
+
+if __name__=='__main__':main()

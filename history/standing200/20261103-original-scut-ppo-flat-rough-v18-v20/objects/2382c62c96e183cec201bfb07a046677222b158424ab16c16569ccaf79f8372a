@@ -1,0 +1,98 @@
+"""Freeze a small original-SCUT recipe task; shared code stays referenced."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import subprocess
+import sys
+import time
+
+HERE = Path(__file__).resolve().parent
+R = HERE.parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+SHARED = '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400'
+PEER = Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103')
+REMOTE_PACKAGE = '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600'
+
+
+def row(path, **extra):
+    raw = path.read_bytes()
+    return dict(path=str(path), bytes=len(raw), SHA=hashlib.sha256(raw).hexdigest(), **extra)
+
+
+def main():
+    assert not (HERE / 'FROZEN.json').exists()
+    cpu = json.loads((R / 'reports/SCUT_RECIPE_V18_CPU_ATTEMPT4.json').read_bytes())
+    assert cpu['passed']
+    assert json.loads((R/'reports/SCUT_RECIPE_V18_ADAPTER_CPU_B.json').read_bytes())['passed']
+    base = json.loads((PEER / 'reports/INSTALL_MANIFEST_LOCAL.json').read_bytes())
+    overlay = json.loads((PEER / 'env20000_1h/reports/INSTALL_MANIFEST_LOCAL.json').read_bytes())
+    package_rows = [x for x in base['files'] if x['relative'].startswith('package/mod4v1_scut/')]
+    shared = [dict(path=REMOTE_PACKAGE + '/' + x['relative'], bytes=x['bytes'], SHA=x['SHA']) for x in package_rows]
+    shared += [x for x in overlay['shared_text'] if x['path'].startswith(SHARED + '/')]
+    modules = {}
+    for name in ('sdk.py', 'train.py', 'checkpoint.py'):
+        x = next(x for x in overlay['files'] if x['relative'] == 'overlay/' + name)
+        actual = REPO / 'project/isaac/mod4v1_scut' / name
+        assert row(actual)['SHA'] == x['SHA']
+        modules[name[:-3]] = dict(path=REMOTE_PACKAGE + '/env20000_1h/' + x['relative'], bytes=x['bytes'], SHA=x['SHA'])
+        shared.append(modules[name[:-3]])
+    runid = 'MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_' + str(time.time_ns())
+    job = '/home/lc01/Zonglin Li/zonglin2/tasks/' + runid
+    plan = dict(run_id=runid, remote_root=job, stage='flat', source_SCUT_commit='1a26356d6f591734d4f6f666f5cead1a6925da67',
+        GPU_UUID='GPU-16828f91-2b45-b646-8dc0-9481138e2842', num_envs=4096, seed=66,
+        target_iterations=8000, chain='originalflat8000 then rough weights-only PPO as originalresume_trainingfalse',
+        train_seconds=3600, max_parent_seconds=3900, exit_headroom_seconds=300, original_strictreserve=86412.86069250107,
+        assets=SHARED + '/assets', runtime=SHARED + '/runtime/isaac/mod4', runtime_manifest=SHARED + '/original_run_manifest.json',
+        guard=SHARED + '/runtime/isaac/mod4/mod4v1_fresh_dr_guard.py',
+        support=[SHARED + '/source', SHARED + '/sm_deps', SHARED + '/runtime', SHARED],
+        package_root=REMOTE_PACKAGE + '/package', shared_modules=modules,
+        source_checkpoint=None, resume_checkpoint=None, new_task_from_seed=True,
+        superseded_V17='preservedfrozenunused/noactororAdamimport',
+        skill_acceptance='Independent200mm fullwheel footprints/both actual400Hz top support/stable.5s/vxyvz<=.03/rp10deg/yaw.2/unsupported<=.10s/no groundedge return; chassisguidesupportallowed',
+        exact_SCUT_robot_reproduction=False, model_substitution='Enhanced MOD4v1/PD/DC/fullDR/2.5msTGS32/4/constraintconsistentreset explicitly retained',
+        source_recipe='pretrained/26_infantry/flat_and_rotation/2026-07-19_09-14-50/params then rough_rotation_stair/2026-07-23_16-23-21/params',
+        expected_first_rollout=24, expected_actor35critic78=True, original_one_canonical=True)
+    (HERE / 'PLAN.json').write_text(json.dumps(plan, indent=2) + '\n', encoding='utf-8')
+    paths = json.loads((PEER / 'SOURCE_PATHS.json').read_bytes())
+    registry = json.loads((REPO / 'project/isaac/mod4v1_scut/SOURCES_EXTENSION.json').read_bytes())
+    key = 'terrain_commands'
+    source = registry['files'][key]
+    src = Path(source['path'])
+    assert row(src)['SHA'] == source['sha256']
+    rel = 'primary/terrain_commands.py'
+    (HERE / rel).write_bytes(src.read_bytes())
+    paths[key] = job + '/' + rel
+    current_source = json.loads((REPO / 'project/isaac/mod4v1_scut/SOURCES.json').read_bytes())['files']['current_env']
+    current_path = Path(current_source['path'])
+    assert row(current_path)['SHA'] == current_source['sha256']
+    rel = 'primary/current_env.py'
+    (HERE / rel).write_bytes(current_path.read_bytes())
+    paths['current_env'] = job + '/' + rel
+    (HERE / 'SOURCE_PATHS.json').write_text(json.dumps(paths, indent=2) + '\n', encoding='utf-8')
+    files = [HERE / n for n in ['recipe.py', 'supported_meter.py', 'entry.py', 'evaluate.py', 'owner.py', 'control.py', 'render.py', 'PLAN.json', 'SOURCE_PATHS.json']]
+    files += [p for p in (HERE / 'primary').iterdir() if p.is_file()]
+    for path in files:
+        if path.suffix == '.py':
+            ast.parse(path.read_text(encoding='utf-8-sig'))
+    frozen = dict(epoch=time.time(), run_id=runid, job=job,
+        files=[row(p, relative=p.relative_to(HERE).as_posix()) for p in files],
+        shared_text=shared + [dict(path=REMOTE_PACKAGE + '/env20000_1h/owner.py', bytes=9063, SHA='d631e9e8a8dc7182ecc13bb33459a3aa77703b5d76d80969906e75cead4f6aee')],
+        CPU_report=row(R / 'reports/SCUT_RECIPE_V18_CPU_ATTEMPT4.json'), adapter_CPU_report=row(R/'reports/SCUT_RECIPE_V18_ADAPTER_CPU_B.json'), source_model_copies=0, shared_runtime_copies=0)
+    (HERE / 'FROZEN.json').write_text(json.dumps(frozen, indent=2) + '\n', encoding='utf-8')
+    p = R / 'CURRENT_WORK_ORDER.json'
+    w = json.loads(p.read_bytes())
+    w.update(status='SCUT_RECIPE_V18_FLAT_FROZEN_CPU_PASS_AWAIT_RESOURCE',
+        training_started=False, training_completed=False,
+        pending_repair=dict(version='SCUT_RECIPE_V18', root=str(HERE), status='CPU_PASS_FROZEN_UNUSED',
+            run_id=runid, stage='flat', model_imports_from_old_BPTT=0, launch_once_consumed=False),
+        scut_recipe_v18=dict(root=str(HERE), plan=str(HERE / 'PLAN.json'), frozen=str(HERE / 'FROZEN.json'),
+            frozen_SHA=row(HERE / 'FROZEN.json')['SHA'], algorithm='originalPPO', source_commit=plan['source_SCUT_commit'],
+            target='200mm supported standing ascent', chain=plan['chain'], fresh_initialization=True),
+        next='V17supersededneverlaunch. NeworiginalSCUTflatPPO4096env24rollout/freshseed66toward8000;perfinite3900save3600exit300fullsave. Then originalroughweights-onlystage,originalterrain/reward/commands. FreshLOCALgate/allfour/canonicalonlyafterknowncollectorreleased. Independent200mmstandingevaluationimmediateaftereachsafeclose;CPUisnotskill.')
+    p.write_text(json.dumps(w, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps(dict(frozen=True, run_id=runid, stage='flat', new_model_reads=0, launch=False)))
+
+
+if __name__ == '__main__':
+    main()

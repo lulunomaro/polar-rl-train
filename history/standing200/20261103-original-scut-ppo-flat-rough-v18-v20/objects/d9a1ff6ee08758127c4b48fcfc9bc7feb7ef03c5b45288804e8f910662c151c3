@@ -1,0 +1,55 @@
+"""Validate new stage bindings/boundary functions without SDK/model operations."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import subprocess
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+sys.path[:0]=[str(HERE/'localdeps'),str(HERE),str(Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/project/isaac'))]
+
+
+def child(stage):
+    import torch
+    from types import SimpleNamespace
+    from recipe import install, original_recipe, boundary_functions
+    from mod4v1_scut.config import reward_config as initial_reward_config
+    receipt=install(stage,source_stage=stage if stage!='eval200' else 'flat')
+    import mod4v1_scut.config as config
+    import mod4v1_scut.checkpoint as ck
+    raw,agent=original_recipe(stage)
+    cfg=config.reward_config()
+    assert cfg.rewards==raw['rewards']
+    assert config.runner_config()['algorithm']==agent['algorithm']
+    assert cfg.enable_state_machines is False
+    assert ck.INTERFACE.endswith('flat' if stage=='eval200' else stage)
+    if stage=='rough':
+        ns=boundary_functions()
+        b=SimpleNamespace(cfg=cfg,device='cpu',num_envs=3,
+            robot=SimpleNamespace(data=SimpleNamespace(root_pos_w=torch.tensor([[0.,0.,0.],[100.,0.,0.],[0.,100.,0.]]))))
+        assert ns['_get_rough_terrain_boundary_time_out'](b).tolist()==[False,True,True]
+    if stage=='eval200':
+        assert config.command_recipe('trained_stair')['ranges']['lin_vel_x']==(.35,.35)
+    print(json.dumps(dict(stage=stage,passed=True,recipe=receipt['source_PPO']['class_name'])))
+
+
+def main():
+    if len(sys.argv)==3 and sys.argv[1]=='--child':
+        child(sys.argv[2]);return
+    report=Path(sys.argv[1]);assert not report.exists()
+    rows=[]
+    for stage in ['flat','rough','eval200']:
+        p=subprocess.run([sys.executable,'-B',str(HERE/'check_adapter.py'),'--child',stage],text=True,capture_output=True)
+        rows.append(dict(stage=stage,returncode=p.returncode,stdout=p.stdout,stderr=p.stderr))
+    for p in HERE.glob('*.py'):ast.parse(p.read_text(encoding='utf-8-sig'))
+    owner=Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/owner.py')
+    assert hashlib.sha256(owner.read_bytes()).hexdigest()=='d631e9e8a8dc7182ecc13bb33459a3aa77703b5d76d80969906e75cead4f6aee'
+    value=dict(epoch=time.time(),passed=all(r['returncode']==0 for r in rows),rows=rows,source_model_reads=0,SDK=0,physics=0,
+        fullsave_original_owner_SHA_verified=True,source_rewrites_shared=0)
+    report.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(value,indent=2));raise SystemExit(0 if value['passed'] else 1)
+
+
+if __name__=='__main__':main()

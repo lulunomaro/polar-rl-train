@@ -1,0 +1,25 @@
+"""V19 flat scanner adapter plus source SCUT rotation compatibility."""
+from pathlib import Path
+import importlib.util
+import sys
+HERE=Path(__file__).resolve().parent
+BASE=HERE.parent/'scut_recipe_v19' if (HERE.parent/'scut_recipe_v19').exists() else Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V19_FLAT_1793718511454341000')
+sys.path.append(str(BASE))
+spec=importlib.util.spec_from_file_location('standing_scut_recipe19_frozen',BASE/'recipe.py')
+base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+
+
+def install(stage,source_stage=None):
+    receipt=base.install(stage,source_stage)
+    import mod4v1_scut.train as train
+    import mod4v1_scut.checkpoint as checkpoint
+    original_boot=train.boot
+    def boot(*args,**kwargs):
+        ns=original_boot(*args,**kwargs)
+        from mod4_env import Mod4Env
+        from step_adapter import adapt_step
+        receipt['source_command_compatibility']=adapt_step(Mod4Env)
+        return ns
+    train.boot=boot
+    checkpoint.FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V20'
+    return receipt

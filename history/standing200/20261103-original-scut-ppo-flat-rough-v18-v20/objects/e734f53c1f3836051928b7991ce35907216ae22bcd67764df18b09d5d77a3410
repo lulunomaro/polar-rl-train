@@ -1,0 +1,83 @@
+"""Render saved poses and400Hz curves; no neural or new physical trajectory."""
+from pathlib import Path
+import argparse
+import hashlib
+import io
+import json
+import sys
+import xml.etree.ElementTree as ET
+
+HERE = Path(__file__).resolve().parent
+R = HERE.parent
+sys.path.insert(0, str(R))
+
+
+def main():
+    q = argparse.ArgumentParser()
+    q.add_argument('--evaluation', required=True, type=Path)
+    q.add_argument('--usd', type=Path, default=Path('F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd'))
+    q.add_argument('--output', required=True, type=Path)
+    q.add_argument('--video', action='store_true')
+    a = q.parse_args()
+    import numpy as np
+    import render_standing_recorded_v1 as base
+    from render_standing_recorded_v2 import mesh_visuals
+    result = json.loads((a.evaluation/'RESULT.json').read_bytes())
+    assert result['saved_pose_quaternion_order'] == 'wxyz'
+    source = result['actual_poses']; p = a.evaluation/Path(source['path']).name
+    raw = p.read_bytes()
+    assert len(raw) == source['bytes'] and hashlib.sha256(raw).hexdigest() == source['SHA']
+    with np.load(io.BytesIO(raw), allow_pickle=False) as z:
+        poses = {k: z[k].copy() for k in z.files}
+    view = a.output.with_name(a.output.name+'_replay_input')
+    view.mkdir(parents=True, exist_ok=False)
+    rows = []
+    for j, env in enumerate(result['recorded_envs']):
+        active = poses['active'][:, j].astype(bool)
+        path = view/('REPLAY_env%d.npz' % env)
+        np.savez_compressed(path, time=poses['tick'][active]*.0025,
+            body_pos=poses['body_pos'][active, j], body_quat=poses['body_quat'][active, j][...,[1,2,3,0]])
+        rows.append(dict(path=str(path),env=env,bytes=path.stat().st_size,SHA=hashlib.sha256(path.read_bytes()).hexdigest()))
+    meta = dict(quaternion_order='xyzw', body_names=result['body_names'], origins=result['origins'],
+        replay=rows, checkpoint=result['source'], conversion_only=True, actual_source=source)
+    (view/'REPLAY_METADATA.json').write_text(json.dumps(meta, indent=2)+'\n', encoding='utf-8')
+    base.mesh_visuals = mesh_visuals
+    original_to_string = ET.tostring
+    def course_to_string(element, *args, **kwargs):
+        world = element.find('worldbody')
+        world.remove(world.find("geom[@name='step200']"))
+        for i, (xmin,xmax,ymin,ymax) in enumerate(result['course']['selected_evaluation_platform']['raised_boxes_xy']):
+            ET.SubElement(world,'geom',name='standing200_side%d'%i,type='box',
+                pos='%g %g .1'%((xmin+xmax)/2,(ymin+ymax)/2),
+                size='%g %g .1'%((xmax-xmin)/2,(ymax-ymin)/2),rgba='.25 .5 .75 1',contype='0',conaffinity='0')
+        return original_to_string(element, *args, **kwargs)
+    base.ET.tostring = course_to_string
+    sys.argv = [base.__file__, '--evaluation',str(view),'--usd',str(a.usd),'--output',str(a.output)] + (['--video'] if a.video else [])
+    try:
+        base.main()
+    finally:
+        base.ET.tostring = original_to_string
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from scipy.spatial.transform import Rotation
+    with np.load(a.evaluation/Path(result['all80_manifold']['path']).name,allow_pickle=False) as z:
+        actual = {k: z[k].copy() for k in z.files}
+    fig, axes = plt.subplots(4,2,figsize=(14,12),sharex=True)
+    for j,env in enumerate(result['recorded_envs']):
+        use=actual['active'][:,env].astype(bool); t=actual['tick'][use]*.0025
+        root=actual['root_pos'][use,env]-np.asarray(result['origins'][env])
+        quat=actual['root_quat'][use,env][...,[1,2,3,0]]
+        angles=Rotation.from_quat(quat).as_euler('xyz',degrees=True)
+        axes[j,0].plot(t,root[:,0],label='x');axes[j,0].plot(t,root[:,1],label='y');axes[j,0].plot(t,root[:,2],label='root z')
+        axes[j,0].plot(t,angles[:,1]/100,label='pitch /100 deg');axes[j,0].set_ylabel('env%d'%env);axes[j,0].legend()
+        for wi in range(2): axes[j,1].plot(t,actual['top_force'][use,env,wi],label='top%d N'%wi)
+        axes[j,1].plot(t,actual['support_force'][use,env,2],label='nonwheel support N');axes[j,1].legend()
+    axes[-1,0].set_xlabel('Actual physics seconds');axes[-1,1].set_xlabel('Actual physics seconds')
+    fig.tight_layout();path=a.output/'ACTUAL_400HZ_ROUTE_SUPPORT_CURVES.png';fig.savefig(path,dpi=150);plt.close(fig)
+    (a.output/'CURVE_SOURCE.json').write_text(json.dumps(dict(actual=result['all80_manifold'], zero_policy_reads=True,
+        zero_physics_steps=True,plot=dict(path=str(path),bytes=path.stat().st_size,SHA=hashlib.sha256(path.read_bytes()).hexdigest())),indent=2)+'\n',encoding='utf-8')
+
+
+if __name__ == '__main__':
+    main()

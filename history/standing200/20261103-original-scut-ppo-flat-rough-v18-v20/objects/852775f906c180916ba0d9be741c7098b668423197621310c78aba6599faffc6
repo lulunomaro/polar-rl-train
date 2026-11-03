@@ -1,0 +1,60 @@
+"""Independent400Hz supported standing ascent; permits chassis/guide support."""
+import torch
+from mod4v1_scut.acceptance import wheel_bounds
+from mod4v1_scut.math_ops import euler_xyz_from_quat, wrap_to_pi
+
+
+class FourSideSupported200:
+    def __init__(self, n, device):
+        self.n, self.device = n, device
+        self.initial_yaw = torch.full((n,), torch.nan, device=device)
+        self.success = torch.zeros(n, dtype=torch.bool, device=device)
+        self.ever_top = self.success.clone()
+        self.returned = self.success.clone()
+        self.started_lower = self.success.clone()
+        self.wholeclear = self.success.clone()
+        self.leading = self.success.clone()
+        self.stable = torch.zeros(n, dtype=torch.long, device=device)
+        self.stable_peak = self.stable.clone()
+        self.support_peak = self.stable.clone()
+        self.support_ticks = self.stable.clone()
+        self.unsupported = self.stable.clone()
+        self.unsupported_peak = self.stable.clone()
+        self.support_force = torch.zeros(n, 3, device=device)
+
+    def reset(self, ids):
+        for key, value in vars(self).items():
+            if torch.is_tensor(value):
+                value[ids] = torch.nan if key == 'initial_yaw' else 0
+
+    def update_world(self, positions, quaternions, contract, origins, top_force, ground_force,
+                     wheel_net, nonwheel_force, velocity, root_quat, active):
+        low, high = wheel_bounds(positions, quaternions, contract)
+        low, high = low - origins[:, None], high - origins[:, None]
+        roll, pitch, yaw = euler_xyz_from_quat(root_quat)
+        self.initial_yaw = torch.where(torch.isnan(self.initial_yaw), yaw, self.initial_yaw)
+        inside = torch.zeros(self.n, dtype=torch.bool, device=self.device)
+        for axis in (0, 1):
+            other = 1 - axis
+            width = (low[..., other] >= -3.5).all(-1) & (high[..., other] <= 3.5).all(-1)
+            inside |= ((low[..., axis] >= .5).all(-1) & (high[..., axis] <= 3.5).all(-1) & width)
+            inside |= ((high[..., axis] <= -.5).all(-1) & (low[..., axis] >= -3.5).all(-1) & width)
+        self.started_lower |= (ground_force > 1).any(-1) & active & ~self.ever_top
+        supported = (self.support_force > 1).any(-1)
+        self.unsupported = torch.where(active & self.started_lower & ~supported, self.unsupported + 1, 0)
+        self.unsupported_peak = torch.maximum(self.unsupported_peak, self.unsupported)
+        top = inside & (top_force > 1).all(-1) & active
+        self.returned |= self.ever_top & ((ground_force > 1).any(-1) | ~inside) & active
+        self.ever_top |= top
+        self.wholeclear |= inside & active
+        self.leading |= (low[..., 2] >= .2).any(-1) & active
+        calm = ((velocity[:, :2].norm(dim=-1) <= .03) & (velocity[:, 2].abs() <= .03)
+                & (roll.abs() <= torch.pi / 18) & (pitch.abs() <= torch.pi / 18)
+                & (wrap_to_pi(yaw - self.initial_yaw).abs() <= .2))
+        valid = top & calm & self.started_lower & ~self.returned & (self.unsupported_peak <= 40)
+        self.support_ticks = torch.where(top & ~self.returned, self.support_ticks + 1, 0)
+        self.stable = torch.where(valid, self.stable + 1, 0)
+        self.stable_peak = torch.maximum(self.stable_peak, self.stable)
+        self.support_peak = torch.maximum(self.support_peak, self.support_ticks)
+        self.success = (self.success | (self.stable >= 200)) & ~self.returned & (self.unsupported_peak <= 40)
+        return valid

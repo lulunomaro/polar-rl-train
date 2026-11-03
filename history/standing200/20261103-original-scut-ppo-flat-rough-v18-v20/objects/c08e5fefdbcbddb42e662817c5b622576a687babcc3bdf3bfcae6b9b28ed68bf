@@ -1,0 +1,64 @@
+"""Run the original saved SCUT PPO chain under an existing finite owner."""
+from pathlib import Path
+import argparse
+import hashlib
+import json
+import os
+import runpy
+import sys
+
+HERE = Path(__file__).resolve().parent
+
+
+def pinned_module(name, path, expected):
+    raw = Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected:
+        raise ValueError('Shared immutable module changed: ' + name)
+    ns = dict(__name__='mod4v1_scut.' + name, __package__='mod4v1_scut', __file__=str(path))
+    sys.modules['mod4v1_scut.' + name].__dict__.update(ns)
+    exec(compile(raw, str(path), 'exec'), sys.modules['mod4v1_scut.' + name].__dict__)
+
+
+def main():
+    q = argparse.ArgumentParser()
+    q.add_argument('mode', choices=['train', 'evaluate'])
+    args = q.parse_args()
+    task = json.loads((HERE / 'TASK.json').read_bytes())
+    sys.path.insert(0, task['package_root'])
+    os.environ['MOD4_SCUT_SOURCE_PATHS'] = str(HERE / 'SOURCE_PATHS.json')
+    import mod4v1_scut.sdk
+    import mod4v1_scut.train
+    import mod4v1_scut.checkpoint
+    # Only already-proven SDK integration overrides, no live source imports.
+    for name in ['sdk', 'checkpoint', 'train']:
+        row = task['shared_modules'][name]
+        pinned_module(name, row['path'], row['SHA'])
+    from recipe import install
+    stage = task['stage']
+    receipt = install(stage if args.mode == 'train' else 'eval200', source_stage=stage)
+    common = ['--assets', task['assets'], '--runtime', task['runtime'], '--runtime-manifest', task['runtime_manifest'],
+        '--guard', task['guard'], '--profile', 'trained_stair']
+    for path in task['support']:
+        common += ['--support', path]
+    if args.mode == 'evaluate':
+        from evaluate import evaluate
+        evaluate(task, common)
+        return
+    go = json.loads((HERE / 'GO_PRODUCTION.json').read_bytes())
+    module = sys.modules['mod4v1_scut.train']
+    original_save = sys.modules['mod4v1_scut.checkpoint'].save
+    def save(*args_, **kwargs):
+        result = original_save(*args_, **kwargs)
+        result.update(recipe_stage=stage, recipe=receipt, source_SCUT_commit=task['source_SCUT_commit'])
+        return result
+    sys.modules['mod4v1_scut.checkpoint'].save = save
+    argv = ['mod4v1_scut.train', *common, '--job-root', str(HERE / 'production'), '--num-envs', str(task['num_envs']),
+        '--seed', str(task['seed']), '--iterations', str(task['target_iterations']), '--save-deadline', str(go['save_deadline'])]
+    if task.get('resume_checkpoint'):
+        argv += ['--resume', task['resume_checkpoint']['path']]
+    sys.argv = argv
+    module.main()
+
+
+if __name__ == '__main__':
+    main()

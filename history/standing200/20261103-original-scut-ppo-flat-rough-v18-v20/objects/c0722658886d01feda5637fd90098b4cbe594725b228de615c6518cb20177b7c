@@ -1,0 +1,57 @@
+"""Archive this source-method switch and failures; shared text by SHA reference."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import time
+
+R=Path(__file__).resolve().parents[1]
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261103-original-scut-ppo-flat-rough-v18-v20'
+
+
+def main():
+    assert not DEST.exists()
+    spec=importlib.util.spec_from_file_location('standing_archive_redactor',REPO/'archive_tools/capture_history.py')
+    guard=importlib.util.module_from_spec(spec);spec.loader.exec_module(guard)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for r in json.loads(p.read_bytes()).get('rows',[]):
+            if r.get('archive_SHA') and r.get('archive_path'):known[r['archive_SHA']]=r['archive_path']
+    text={'.py','.json','.md','.yaml','.yml','.toml','.txt','.log','.csv'}
+    files=set()
+    for name in ['scut_recipe_v18','scut_recipe_v19','scut_recipe_v20','reports']:
+        files.update(p for p in (R/name).rglob('*') if p.is_file() and p.suffix.lower() in text
+            and 'localdeps' not in p.parts and '__pycache__' not in p.parts)
+    for name in ['scut_recipe_v18','scut_recipe_v19']:
+        run=json.loads((R/name/'FROZEN.json').read_bytes())['run_id']
+        files.update(p for p in (R/'actual_closed'/run).rglob('*') if p.is_file() and p.suffix.lower() in text)
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    DEST.mkdir(parents=True);(DEST/'objects').mkdir()
+    rows=[]
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))
+        content=raw if not count else safe.encode();sha=hashlib.sha256(content).hexdigest()
+        target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha;out.write_bytes(content);target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,
+            archive_SHA=sha,archive_bytes=len(content),redactions=count,mode='redacted_text' if count else 'complete_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    large=[]
+    for name in ['STATUS_SCUT18_FIRST.json','STATUS_SCUT19_FIRST_AFTER_LOCALBUSY.json','STATUS_SCUT20_FIRST.json']:
+        p=R/'reports'/name
+        if not p.exists():continue
+        d=json.loads(p.read_bytes())
+        for rel in ['production/FIRST_UPDATED.json','production/FINAL.json']:
+            r=d.get('files',{}).get(rel)
+            if r and r.get('checkpoint'):large.append(dict(r['checkpoint'],published_by=str(p)+':'+rel))
+    (DEST/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='HUMAN_ORIGINAL_SCUT_PPO_SWITCH_V18_V19_FAILURES_V20',
+        rows=rows,large_external_artifacts=large,source_model_or_media_reads_for_archive=0,shared_runtime_copies=0,
+        oldV17tagobject='e65f57b5b76b23ed67dfa88b96e2aa64dc72d89d',oldV17peel='c851da338ca9e5f55b367b6481ab137261823062',
+        status=w['status'],archive_pending_record=True),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DEST/'README.md').write_bytes((R/'scut_recipe_v20/README.md').read_bytes())
+    print(json.dumps(dict(destination=str(DEST),textrows=len(rows),newobjects=len(list((DEST/'objects').iterdir())),large=len(large))))
+
+
+if __name__=='__main__':main()

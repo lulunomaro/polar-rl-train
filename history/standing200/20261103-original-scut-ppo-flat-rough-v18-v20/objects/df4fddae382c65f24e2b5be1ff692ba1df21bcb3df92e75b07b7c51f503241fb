@@ -1,0 +1,160 @@
+"""Source recipe, actual RSL CPU update and standing acceptance regressions."""
+from pathlib import Path
+from copy import deepcopy
+from types import SimpleNamespace
+import argparse
+import io
+import json
+import sys
+import tempfile
+import time
+import unittest
+
+HERE = Path(__file__).resolve().parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+sys.path[:0] = [str(REPO / 'project/isaac'), str(HERE)]
+if (HERE / 'localdeps').is_dir():
+    sys.path.insert(0, str(HERE / 'localdeps'))
+
+
+class Tests(unittest.TestCase):
+    def test_saved_flat_and_rough_recipe_and_method(self):
+        from recipe import original_recipe, terrain_recipe
+        flat, flat_agent = original_recipe('flat')
+        rough, agent = original_recipe('rough')
+        self.assertFalse(rough['enable_state_machines'])
+        self.assertFalse(rough['wheel_forward_scan_cfg']['enabled'])
+        self.assertFalse(rough['stair_state_machine_cfg']['enabled'])
+        self.assertEqual(agent['algorithm']['class_name'], 'PPO')
+        self.assertEqual(agent['num_steps_per_env'], 24)
+        self.assertEqual(agent['algorithm']['num_learning_epochs'], 5)
+        self.assertEqual(agent['algorithm']['num_mini_batches'], 4)
+        self.assertEqual(agent['algorithm']['value_loss_coef'], 2.)
+        self.assertEqual(flat_agent['algorithm']['value_loss_coef'], 4.)
+        self.assertEqual(agent['policy']['actor_hidden_dims'], [256, 128, 64])
+        self.assertEqual(rough['commands']['ranges']['lin_vel_x'], (-2.7, 2.7))
+        self.assertEqual(flat['rewards']['wheel_power'], -.0001)
+        self.assertEqual(rough['rewards']['wheel_power'], -.00001)
+        self.assertEqual(terrain_recipe(), rough['terrain']['terrain_generator'])
+        self.assertEqual(len(terrain_recipe()['sub_terrains']), 9)
+        self.assertEqual(terrain_recipe()['sub_terrains']['inv_stair_slope_for_rm_mid']['step_height_range'], (.025, .04))
+
+    def test_original_terrain_manager_height_profiles(self):
+        import torch
+        from recipe import terrain_manager_class, original_recipe, terrain_recipe
+        raw, _ = original_recipe('rough')
+        gen = terrain_recipe()
+        keys = list(gen['sub_terrains'])
+        origins = torch.zeros(10, 14, 3)
+        origins[:, :, 0] = torch.arange(10)[:, None] * 9.
+        origins[:, :, 1] = torch.arange(14)[None] * 9.
+        cfg = SimpleNamespace(height_range=raw['height_range'], commands=SimpleNamespace(ranges=SimpleNamespace(**raw['commands']['ranges'])),
+            terrain_command_overrides={k: SimpleNamespace(**v) for k, v in raw['terrain_command_overrides'].items()},
+            terrain_command_switch_hold_steps=0, reset_heading_axis_aligned_only=False)
+        grid = SimpleNamespace(**{**gen, 'sub_terrains': {k: SimpleNamespace(**v) for k, v in gen['sub_terrains'].items()}})
+        terrain = SimpleNamespace(cfg=SimpleNamespace(terrain_type='generator', terrain_generator=grid), terrain_origins=origins,
+            env_origins=origins.reshape(-1, 3))
+        manager = terrain_manager_class()(terrain, cfg, 'cpu', 140)
+        self.assertTrue(manager.enabled)
+        manager.sync_envs(None, use_env_origins=True)
+        heights = manager.sample_height(None)
+        self.assertTrue(bool(((heights >= .2) & (heights <= .42)).all()))
+        for i, name in enumerate(keys):
+            mask = manager.current_terrain_key_indices == i
+            if mask.any():
+                override = raw['terrain_command_overrides'].get(name, {}).get('height_range')
+                lo, hi = override[0] if override is not None else raw['height_range']
+                self.assertTrue(bool(((heights[mask] >= lo) & (heights[mask] <= hi)).all()))
+
+    def test_supported_ascent_without_flight_and_false_cases(self):
+        import torch
+        from supported_meter import FourSideSupported200
+        from mod4v1_scut.config import model_contract
+        from mod4v1_scut.math_ops import quat_from_euler_xyz
+        contract = model_contract('F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets')
+        meter = FourSideSupported200(4, 'cpu')
+        quat = quat_from_euler_xyz(torch.zeros(4), torch.zeros(4), torch.zeros(4))
+        origin = torch.zeros(4, 3)
+        def tick(x, z, top, ground, support):
+            position = torch.zeros(4, 2, 3)
+            position[:, :, 0] = x
+            position[:, :, 1] = torch.tensor([-.15, .15])
+            position[:, :, 2] = z
+            meter.support_force[:] = support
+            forces = torch.zeros(4, 2, 3); forces[:, :, 2] = ground
+            meter.update_world(position, quat[:, None].expand(-1, 2, -1), contract, origin,
+                torch.full((4, 2), top), torch.full((4, 2), ground), forces, torch.zeros(4),
+                torch.zeros(4, 3), quat, torch.ones(4, dtype=torch.bool))
+        tick(0., .0625, 0., 20., 20.)
+        for _ in range(240):
+            tick(.7, .2625, 20., 0., 20.)
+        self.assertTrue(bool(meter.success.all()))
+        tick(.7, .2625, 20., 20., 20.)
+        self.assertFalse(bool(meter.success.any()))
+        meter.reset(torch.arange(4))
+        tick(0., .0625, 0., 20., 20.)
+        for _ in range(41):
+            tick(.3, .3, 0., 0., 0.)
+        for _ in range(240):
+            tick(.7, .2625, 20., 0., 20.)
+        self.assertFalse(bool(meter.success.any()))
+
+    def test_actual_RSL_saved_flat_24_rollout_update_full_learning_restore(self):
+        import torch
+        from tensordict import TensorDict
+        from recipe import install
+        receipt = install('flat')
+        from mod4v1_scut.config import reward_config, runner_config
+        from mod4v1_scut.train import build_runner
+        from mod4v1_scut.checkpoint import learning_state, FORMAT
+        rawcfg = reward_config('trained_stair')
+        self.assertTrue(rawcfg.use_absolute_height)
+        self.assertEqual(rawcfg.rewards['stand_still_lin_vel'], -2.)
+        self.assertEqual(runner_config()['algorithm']['value_loss_coef'], 4.)
+        self.assertFalse(receipt['learned_WM_BPTT'])
+        class Env:
+            num_envs = 32; num_actions = 6; device = 'cpu'; max_episode_length = 1000; cfg = {}
+            episode_length_buf = torch.zeros(32, dtype=torch.long)
+            def get_observations(self):
+                return TensorDict(dict(policy=torch.randn(32, 35) * .1, critic=torch.randn(32, 78) * .1), [32])
+        env = Env()
+        runner = build_runner(env, None)
+        runner.alg.train_mode()
+        with torch.inference_mode():
+            for _ in range(24):
+                obs = env.get_observations()
+                action = runner.alg.act(obs)
+                runner.alg.process_env_step(env.get_observations(), torch.exp(-action.square().sum(-1)), torch.zeros(32, dtype=torch.bool), dict(time_outs=torch.zeros(32, dtype=torch.bool)))
+            runner.alg.compute_returns(env.get_observations())
+        losses = runner.alg.update()
+        self.assertTrue(all(torch.isfinite(torch.as_tensor(v)).all() for v in losses.values()))
+        runner.current_learning_iteration = 1
+        data = learning_state(runner)
+        copy = build_runner(env, None)
+        copy.alg.load(data, load_cfg=None, strict=True)
+        for key, value in runner.alg.actor.state_dict().items():
+            torch.testing.assert_close(value, copy.alg.actor.state_dict()[key], atol=0, rtol=0)
+        for key, state in runner.alg.optimizer.state_dict()['state'].items():
+            for name, value in state.items():
+                torch.testing.assert_close(value, copy.alg.optimizer.state_dict()['state'][key][name], atol=0, rtol=0)
+        self.assertEqual(FORMAT, 'MOD4V1_SCUT_STANDING_RECIPE_V18')
+        self.assertTrue(len(copy.alg.optimizer.state) > 0)
+
+
+def main():
+    p = argparse.ArgumentParser(); p.add_argument('--report', required=True, type=Path); a = p.parse_args()
+    if a.report.exists():
+        raise FileExistsError(a.report)
+    import torch
+    torch.set_num_threads(4); torch.manual_seed(66)
+    stream = io.StringIO()
+    result = unittest.TextTestRunner(stream=stream, verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Tests))
+    report = dict(epoch=time.time(), passed=result.wasSuccessful(), tests=result.testsRun,
+        output=stream.getvalue(), source_model_reads=0, actual_native_physics=0, production_optimization=0,
+        kind='SCUT_ORIGINAL_PPO_RECIPE_AND_SUPPORTED200_CPU_SYNTHETIC')
+    a.report.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    print(stream.getvalue()); raise SystemExit(0 if result.wasSuccessful() else 1)
+
+
+if __name__ == '__main__':
+    main()

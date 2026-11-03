@@ -1,0 +1,285 @@
+"""Original SCUT saved flat -> rough PPO recipes, adapted only to MOD4 hardware.
+
+SCUTRobotLab MIT source is referenced by SHA rather than copied as a run tree.
+The independent200mm course/acceptance is explicitly outside training recipes.
+"""
+from copy import deepcopy
+from pathlib import Path
+from types import SimpleNamespace
+import ast
+import hashlib
+import json
+import os
+import sys
+
+HERE = Path(__file__).resolve().parent
+FLAT_ENV_SHA = '0cf26151bdfbc649674fe0467f636a532b59b15a253f68aba00ea31a96f5ca3a'
+FLAT_AGENT_SHA = '2a612b5acd7a0551d04f266770c73fd2b05a20d22cff8b9e25dffaf0b105c28f'
+HEIGHT_FIELD_SHA = '5f444236205f6ab4a56e0c76387b388d5d2d5a7a83ab63386f5cf15ae5b68d0e'
+
+
+def primary(name, sha):
+    path = HERE / 'primary' / name
+    if hashlib.sha256(path.read_bytes()).hexdigest() != sha:
+        raise ValueError('Pinned SCUT primary changed: ' + name)
+    return path
+
+
+def yaml_read(path):
+    import yaml
+    class Loader(yaml.SafeLoader):
+        pass
+    Loader.add_constructor('tag:yaml.org,2002:python/tuple', lambda loader, node: tuple(loader.construct_sequence(node)))
+    Loader.add_constructor('tag:yaml.org,2002:python/object/apply:builtins.slice', lambda loader, node: slice(*loader.construct_sequence(node)))
+    return yaml.load(path.read_text(encoding='utf-8-sig'), Loader=Loader)
+
+
+def original_recipe(stage):
+    from mod4v1_scut.upstream import source_path
+    if stage == 'flat':
+        return yaml_read(primary('flat_env.yaml', FLAT_ENV_SHA)), yaml_read(primary('flat_agent.yaml', FLAT_AGENT_SHA))
+    if stage in ('rough', 'eval200'):
+        return yaml_read(source_path('trained_env')), yaml_read(source_path('trained_agent'))
+    raise ValueError('Unknown SCUT recipe stage')
+
+
+def terrain_recipe():
+    # The effective saved terrain, not the unused rough_terrain_generator_cfg.
+    return deepcopy(original_recipe('rough')[0]['terrain']['terrain_generator'])
+
+
+def make_generator():
+    """Called after Isaac app boot; instantiate original generator classes."""
+    import importlib.util
+    from isaaclab.terrains import TerrainGeneratorCfg, HfPyramidSlopedTerrainCfg, HfPyramidStairsTerrainCfg, HfRandomUniformTerrainCfg, MeshPlaneTerrainCfg
+    name = 'standing200_pinned_scut_height_field'
+    spec = importlib.util.spec_from_file_location(name, primary('height_field.py', HEIGHT_FIELD_SHA))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    types = {'mesh_grid_bars_terrain': module.MeshCustomGridBarsTerrainCfg,
+        'pyramid_sloped_terrain': HfPyramidSlopedTerrainCfg, 'pyramid_stairs_terrain': HfPyramidStairsTerrainCfg,
+        'random_uniform_terrain': HfRandomUniformTerrainCfg, 'flat_terrain': MeshPlaneTerrainCfg}
+    raw = terrain_recipe()
+    children = {}
+    for key, values in raw.pop('sub_terrains').items():
+        values = deepcopy(values)
+        name = values.pop('function').split(':')[-1]
+        children[key] = types[name](**values)
+    raw.pop('class_type')
+    return TerrainGeneratorCfg(**raw, sub_terrains=children)
+
+
+def terrain_manager_class():
+    """Execute the original terrain profile resolver with unchanged method ASTs."""
+    import torch
+    from collections.abc import Sequence
+    from numbers import Real
+    from dataclasses import dataclass
+    from mod4v1_scut.upstream import source_path
+    path = source_path('terrain_commands')
+    tree = ast.parse(path.read_text(encoding='utf-8-sig'))
+    names = {'TerrainCommandOverrideCfg', 'ResolvedTerrainCommandProfile', 'TerrainCommandManager'}
+    nodes = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name in names]
+    unit = ast.Module(body=[ast.ImportFrom(module='__future__', names=[ast.alias(name='annotations')], level=0), *nodes], type_ignores=[])
+    ast.fix_missing_locations(unit)
+    ns = dict(torch=torch, Sequence=Sequence, Real=Real, dataclass=dataclass, configclass=lambda cls: cls)
+    exec(compile(unit, str(path), 'exec'), ns)
+    return ns['TerrainCommandManager']
+
+
+def boundary_functions():
+    import torch
+    from mod4v1_scut.upstream import source_path
+    path = source_path('current_env')
+    tree = ast.parse(path.read_text(encoding='utf-8-sig'))
+    names = {'get_rough_terrain_boundary_reset_cfg', '_get_rough_terrain_boundary_time_out'}
+    funcs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name in names]
+    if {n.name for n in funcs} != names:
+        raise ValueError('Missing original terrain boundary functions')
+    unit = ast.Module(body=funcs, type_ignores=[])
+    ns = dict(torch=torch)
+    exec(compile(unit, str(path), 'exec'), ns)
+    return ns
+
+
+class NoTrainingSkillMeter:
+    """Training task rewards remain source-owned; skill measured independently."""
+    def __init__(self, n, device):
+        import torch
+        self.success = torch.zeros(n, dtype=torch.bool, device=device)
+        self.wholeclear = self.success.clone()
+        self.leading = self.success.clone()
+        self.stable_peak = torch.zeros(n, dtype=torch.long, device=device)
+        self.support_peak = self.stable_peak.clone()
+
+    def reset(self, ids):
+        for value in vars(self).values():
+            value[ids] = 0
+
+    def update_world(self, *args):
+        pass
+
+
+def install(stage, source_stage=None):
+    """Install this new task's overrides before constructing scene or policy."""
+    import torch
+    import mod4v1_scut.config as config
+    import mod4v1_scut.course as course
+    import mod4v1_scut.sdk as sdk
+    import mod4v1_scut.rewards as rewards
+    import mod4v1_scut.checkpoint as checkpoint
+    from mod4v1_scut.upstream import source_path
+    from supported_meter import FourSideSupported200
+    raw, agent = original_recipe(stage)
+    old_read = config.read_yaml
+    config.read_yaml = lambda key: deepcopy(raw if key == 'trained_env' else agent if key == 'trained_agent' else old_read(key))
+    old_reward_config = config.reward_config
+    def reward_config(profile='trained_stair'):
+        if profile != 'trained_stair':
+            raise ValueError('Only the original saved stair recipe is allowed')
+        cfg = old_reward_config(profile)
+        cfg.use_absolute_height = raw['use_absolute_height']
+        cfg.use_leg_length_as_height = raw['use_leg_length_as_height']
+        cfg.commands = SimpleNamespace(**{**raw['commands'], 'ranges': SimpleNamespace(**raw['commands']['ranges'])})
+        cfg.terrain_command_overrides = {k: SimpleNamespace(**v) for k, v in raw.get('terrain_command_overrides', {}).items()}
+        cfg.terrain_command_switch_hold_steps = raw.get('terrain_command_switch_hold_steps', 0)
+        cfg.terrain = SimpleNamespace(terrain_generator=SimpleNamespace(**terrain_recipe())) if stage == 'rough' else None
+        cfg.rough_terrain_boundary_reset_cfg = raw.get('rough_terrain_boundary_reset_cfg', {})
+        cfg.play = False
+        return cfg
+    config.reward_config = sdk.reward_config = rewards.reward_config = reward_config
+    old_command = config.command_recipe
+    def command_recipe(profile):
+        recipe = old_command(profile)
+        if stage == 'eval200':
+            recipe.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0., special_modes=())
+            recipe['ranges'].update(lin_vel_x=(.35, .35), lin_vel_y=(0., 0.), ang_vel_z=(0., 0.))
+        return recipe
+    config.command_recipe = command_recipe
+    import mod4v1_scut.commands as commands
+    commands.command_recipe = command_recipe
+    sdk.HEIGHT = course.HEIGHT = .2 if stage == 'eval200' else 0.
+    sdk.MESH = '/World/ground/terrain' if stage == 'rough' else '/World/ground/scut_standing200'
+    sdk.FourSideStrict270 = FourSideSupported200 if stage == 'eval200' else NoTrainingSkillMeter
+    sdk.top_mask = lambda points: ((points[..., 2] - .2).abs() < .001) & (points[..., :2].abs().amax(-1) >= .5 - .001) & (points[..., :2].abs().amax(-1) <= 3.501)
+    old_metadata = course.metadata
+    def metadata():
+        return dict(stage=stage, source_commit='1a26356d6f591734d4f6f666f5cead1a6925da67',
+            training_recipe='saved original flat/rough PPO', source_state_machines=False, source_forward_scan=False,
+            step_height_m=.2 if stage == 'eval200' else None, rough_generator=terrain_recipe() if stage == 'rough' else None,
+            root_position_m=[0., 0., .38], root_joint_reset='MOD4 constraint-consistent bank',
+            validation_scope='200mm independent standing test' if stage == 'eval200' else 'training;no skill claim',
+            selected_evaluation_platform=old_metadata() if stage == 'eval200' else None)
+    course.metadata = metadata
+    old_spawn = sdk.spawn_course
+    def flat_spawn(prim_path, cfg, **kwargs):
+        from pxr import UsdGeom, UsdPhysics, Gf, Vt
+        from isaaclab.sim import get_current_stage, define_collision_properties, bind_physics_material
+        stage_usd = get_current_stage()
+        root = UsdGeom.Xform.Define(stage_usd, prim_path).GetPrim()
+        mesh = UsdGeom.Mesh.Define(stage_usd, sdk.MESH)
+        mesh.CreatePointsAttr().Set(Vt.Vec3fArray([Gf.Vec3f(-10000., -10000., 0.), Gf.Vec3f(10000., -10000., 0.), Gf.Vec3f(10000., 10000., 0.), Gf.Vec3f(-10000., 10000., 0.)]))
+        mesh.CreateFaceVertexCountsAttr().Set([3, 3]); mesh.CreateFaceVertexIndicesAttr().Set([0, 1, 2, 0, 2, 3])
+        mesh.CreateSubdivisionSchemeAttr().Set('none')
+        UsdPhysics.CollisionAPI.Apply(mesh.GetPrim())
+        UsdPhysics.MeshCollisionAPI.Apply(mesh.GetPrim()).CreateApproximationAttr().Set('none')
+        if cfg.collision_props is not None:
+            define_collision_properties(sdk.MESH, cfg.collision_props, stage=stage_usd)
+        if cfg.physics_material is not None:
+            material = prim_path + '/physicsMaterial'
+            cfg.physics_material.func(material, cfg.physics_material)
+            bind_physics_material(sdk.MESH, material, stage=stage_usd)
+        return root
+    old_configure = sdk.configure
+    def configure(cfg, n, profile='trained_stair'):
+        old_configure(cfg, n, profile)
+        if stage == 'flat':
+            cfg.scene.ground.spawn.func = flat_spawn
+        elif stage == 'rough':
+            from isaaclab.terrains import TerrainImporterCfg
+            old = cfg.scene.ground
+            cfg.scene.ground = TerrainImporterCfg(prim_path='/World/ground', terrain_type='generator',
+                terrain_generator=make_generator(), collision_group=-1, physics_material=old.spawn.physics_material,
+                max_init_terrain_level=None, debug_vis=False)
+        return cfg
+    sdk.configure = configure
+    old_init = sdk.ScutBridge.__init__
+    old_measure = sdk.ScutBridge.measure_acceptance
+    old_read_manifold = sdk.ScutBridge.read_manifold
+    def init(self, env, task, contract, tensor, profile='trained_stair'):
+        # The shared SDK has a fixed-course origins assignment. Preserve generator origins.
+        layout = sdk.layout
+        if stage == 'rough':
+            sdk.layout = lambda n: tensor(env.scene['ground'].env_origins).detach().cpu().numpy().copy()
+        try:
+            old_init(self, env, task, contract, tensor, profile)
+        finally:
+            sdk.layout = layout
+        self.recipe_stage = stage
+        self.recipe_support = torch.zeros(self.n, 3, device=self.device)
+        if stage == 'rough':
+            terrain = env.scene['ground']
+            self.terrain_profiles = terrain_manager_class()(terrain, self.reward.cfg, self.device, self.n)
+            if not self.terrain_profiles.enabled:
+                raise RuntimeError('Original terrain command manager failed to activate')
+            r = self.reward
+            def resample_height(ids):
+                self.terrain_profiles.sync_envs(ids, root_pos_w=r.robot.data.root_pos_w, use_env_origins=True)
+                r.height_cmd[ids] = self.terrain_profiles.sample_height(ids)
+                r.command_height_sink(ids, r.height_cmd[ids])
+            r.resample_height = resample_height
+            original_hook = r._on_command_updated
+            def command_hook():
+                changed = self.terrain_profiles.sync_envs(None, root_pos_w=r.robot.data.root_pos_w)
+                if len(changed):
+                    self.command_term.reset(changed)
+                    r.command_counter = self.command_term.command_counter.clone()
+                    r.command[changed] = self.command_term.command[changed]
+                    resample_height(changed)
+                    self.terrain_profiles.resample_command_overrides(changed)
+                self.terrain_profiles.apply_command_overrides(r.command, is_heading_env=self.command_term.is_heading_env)
+                original_hook()
+            r._on_command_updated = command_hook
+            def terrain_mask(names):
+                if isinstance(names, str): names = (names,)
+                keys = self.terrain_profiles.get_current_terrain_key_indices()
+                allowed = [i for i, key in enumerate(self.terrain_profiles.terrain_keys) if key in names]
+                return torch.ones_like(keys, dtype=torch.bool) if not names else torch.isin(keys, keys.new_tensor(allowed))
+            r.get_terrain_name_mask = terrain_mask
+    sdk.ScutBridge.__init__ = init
+    def read_manifold(self):
+        if stage == 'eval200':
+            old_read_manifold(self)
+    sdk.ScutBridge.read_manifold = read_manifold
+    def measure(self):
+        if stage == 'eval200':
+            contact = self.tensor(self.current_sensor.data.net_forces_w)[:, self.current_contact_order]
+            ids = self.reward._nonwheel_contact_link_idx
+            support = contact[:, ids, 2].clamp_min(0).sum(-1)
+            self.recipe_support[:, :2] = contact[:, self.reward._wheel_link_idx, 2].clamp_min(0)
+            self.recipe_support[:, 2] = support
+            self.acceptance.support_force = self.recipe_support
+            old_measure(self)
+    sdk.ScutBridge.measure_acceptance = measure
+    old_refresh = sdk.ScutBridge.refresh_observation_context
+    def refresh(self):
+        if stage == 'eval200':
+            inside = self.acceptance.ever_top
+            self.command_term.vel_command_b[:, 0] = torch.where(inside, 0., .35)
+            self.command_term.vel_command_b[:, 1:] = 0.
+        old_refresh(self)
+    sdk.ScutBridge.refresh_observation_context = refresh
+    if stage == 'rough':
+        ns = boundary_functions()
+        old_done = rewards.ScutRewards._get_dones
+        def get_dones(self):
+            terminated, timeout = old_done(self)
+            return terminated, timeout | ns['_get_rough_terrain_boundary_time_out'](self)
+        rewards.ScutRewards._get_dones = get_dones
+    checkpoint.FORMAT = 'MOD4V1_SCUT_STANDING_RECIPE_V18'
+    checkpoint.INTERFACE = 'actor35_critic78_originalPPO_mod4_hardware_' + (source_stage or stage)
+    return dict(stage=stage, source_reward_terms=raw['rewards'], source_PPO=agent['algorithm'], actor=35, critic=78,
+        deterministic_residual=False, learned_WM_BPTT=False, original_gaussian_STD=True,
+        model_substitutions=['MOD4v1USD', 'MOD4jointnames/geometry/no_gimbal', 'MOD4PD_DC_D0D7_queues', 'MOD4closure_consistentreset', '2.5msTGS32/4'],
+        training_reward_changes=[], source_predefined_robot_specific_resets='not transferred across different mechanism;explicit MOD4 valid reset bank')

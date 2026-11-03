@@ -1,0 +1,11 @@
+"""Same finite control protocol, independent V19 labels and frozen sources."""
+from pathlib import Path
+import hashlib
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v18/control.py'
+raw=P.read_bytes()
+f=__import__('json').loads((P.parent/'FROZEN.json').read_bytes())
+assert hashlib.sha256(raw).hexdigest()==next(r['SHA'] for r in f['files'] if r['relative']=='control.py')
+source=raw.decode().replace('SCUT18','SCUT19').replace('RECIPE_V18_','RECIPE_V19_')
+source=source.replace('FOUR4090_RESOURCE_ACTUAL_SCUT19B.json','FOUR4090_RESOURCE_ACTUAL_SCUT18B.json')
+source=source.replace("w['prior_V16_closed'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w['current_run_final'], evaluation=w['evaluation_result'])", "w['prior_V18_startup_false'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w.get('current_run_final'), evaluation=w.get('evaluation_result'))")
+exec(compile(source,str(P),'exec'),globals())

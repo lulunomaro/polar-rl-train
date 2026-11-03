@@ -1,0 +1,50 @@
+"""Exercise actual shared configure with fake SDK config classes, no simulator."""
+from pathlib import Path
+from types import SimpleNamespace,ModuleType
+import ast
+import json
+import sys
+import time
+import traceback
+HERE=Path(__file__).resolve().parent;B=HERE.parent/'scut_recipe_v18'
+sys.path[:0]=[str(HERE),str(B/'localdeps'),'C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train/project/isaac']
+
+
+def main():
+    report=HERE.parent/'reports/SCUT19_FLAT_NO_SCANNER_CPU.json';assert not report.exists()
+    value=dict(epoch=time.time(),passed=False,source_model_reads=0,SDK=0,physical_steps=0,production_updates=0)
+    try:
+        import torch
+        from recipe import install
+        install('flat')
+        import mod4v1_scut.sdk as sdk
+        import mod4v1_scut.config as config
+        class Cfg:
+            def __init__(self,**kwargs):vars(self).update(kwargs)
+        class Ray(Cfg):OffsetCfg=Cfg
+        sensors=ModuleType('isaaclab.sensors');sensors.ContactSensorCfg=Cfg;sensors.RayCasterCfg=Ray;sensors.patterns=SimpleNamespace(GridPatternCfg=Cfg)
+        managers=ModuleType('isaaclab.managers');managers.RewardTermCfg=Cfg
+        sys.modules['isaaclab']=ModuleType('isaaclab');sys.modules['isaaclab.sensors']=sensors;sys.modules['isaaclab.managers']=managers
+        sdk.build_command_cfg=lambda profile: config.command_recipe(profile)
+        cfg=SimpleNamespace(scene=SimpleNamespace(ground=SimpleNamespace(spawn=SimpleNamespace(),init_state=SimpleNamespace()),
+            robot=SimpleNamespace(init_state=SimpleNamespace(),spawn=SimpleNamespace(articulation_props=SimpleNamespace())),chassis_contact=SimpleNamespace()),
+            sim=SimpleNamespace(physics=SimpleNamespace()),commands=SimpleNamespace(),
+            terminations=SimpleNamespace(closure=SimpleNamespace(params={}),mimic=SimpleNamespace(params={})),
+            events=SimpleNamespace(reset_base=SimpleNamespace(params={})))
+        sdk.configure(cfg,4096)
+        assert cfg.scene.scut_ground is None and cfg.episode_length_s==20.
+        assert cfg.terminations.closure.params['threshold']==.01
+        assert config.reward_config().use_absolute_height
+        fake=SimpleNamespace(reward=SimpleNamespace(robot=SimpleNamespace(data=SimpleNamespace(body_pos_w=torch.ones(4,31,3))),
+            _wheel_link_idx=[1,2]),device='cpu')
+        scans=sdk.ScutBridge.read_reward_scans(fake,torch.tensor([1,3]))
+        assert scans[0].shape==(2,) and not scans[0].any() and not scans[1].any()
+        for p in HERE.glob('*.py'):ast.parse(p.read_text(encoding='utf-8'))
+        value.update(passed=True,actual_shared_configure_exercised=True,flat_scene_sensor=None,original_episode_s=20,
+            mandatory_closure_m=.01,original_PPO=config.runner_config()['algorithm'],ray_sensor_or_queries=0)
+    except BaseException:value['error']=traceback.format_exc()
+    report.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8');print(json.dumps(value,indent=2))
+    raise SystemExit(0 if value['passed'] else 1)
+
+
+if __name__=='__main__':main()

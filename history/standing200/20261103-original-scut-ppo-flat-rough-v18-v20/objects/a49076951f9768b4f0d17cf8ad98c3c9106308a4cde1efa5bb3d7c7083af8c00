@@ -1,0 +1,225 @@
+"""Single serial task controller; never runs a superseded BPTT entry."""
+from pathlib import Path
+import argparse
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+import traceback
+
+HERE = Path(__file__).resolve().parent
+R = HERE.parent
+sys.path.insert(0, str(R))
+from stage_start_standing200_v6 import run
+
+
+def put(name, value):
+    with (R / 'reports' / name).open('x', encoding='utf-8') as f:
+        json.dump(value, f, ensure_ascii=False, indent=2)
+
+
+def admission():
+    spec = importlib.util.spec_from_file_location('standing_original_local_gate', R / 'repair_v11/control.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.admission()
+
+
+def gpu():
+    _, blocked = admission()
+    if blocked:
+        print(json.dumps(dict(blocked=blocked, network=0, once_consumed=False)))
+        return
+    import check_four4090_once as inventory
+    source = Path(inventory.__file__).read_text(encoding='utf-8')
+    for name in ['FOUR4090_READ_V1_ONCE.json', 'FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json', 'FOUR4090_RESOURCE_ACTUAL_V1.json']:
+        assert source.count(name) == 1
+        source = source.replace(name, name.replace('_V1', '_SCUT18B'))
+    ns = dict(__name__='standing_scut18_inventory', __file__=inventory.__file__)
+    exec(compile(source, inventory.__file__, 'exec'), ns)
+    ns['local_rows'] = admission
+    ns['main']()
+
+
+ADMIT = r'''
+from pathlib import Path
+import json,time,fcntl,subprocess,shutil,psutil,hashlib
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes());assert c['active_segment'] is None
+assert c['remaining_training_seconds']>86412.86069250107+3900
+for path in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+ with path.open('rb+') as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert v['uuid'] not in apps
+assert not Path(v['job']).exists()
+assert psutil.virtual_memory().available>64*1024**3 and shutil.disk_usage(C).free>50*1024**3
+for row in v['shared']:
+ p=Path(row['path']);raw=p.read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+print(json.dumps(dict(epoch=time.time(),passed=True,canonical_active=None,remaining=c['remaining_training_seconds'],original_locks_free=True,private_GPU_free=True,PT_reads=0,physics=0)))
+'''
+
+
+def launch():
+    marker = R / 'reports/SCUT18_LAUNCH_ONCE.json'
+    assert not marker.exists()
+    frozen = json.loads((HERE / 'FROZEN.json').read_bytes())
+    plan = json.loads((HERE / 'PLAN.json').read_bytes())
+    for row in frozen['files']:
+        raw = Path(row['path']).read_bytes()
+        assert len(raw) == row['bytes'] and hashlib.sha256(raw).hexdigest() == row['SHA']
+    inventory = json.loads((R / 'reports/FOUR4090_RESOURCE_ACTUAL_SCUT18B.json').read_bytes())
+    assert inventory['all_clients_closed'] and inventory['SESSION_restored'] and inventory['serial'] == 'FREE'
+    assert set(inventory['hosts']) == {'72', '210', '86'}, 'All four4090 inventory required'
+    assert inventory['hosts']['72']['passed'], 'Selected host has no actual resource read'
+    from datetime import datetime
+    assert time.time() - datetime.fromisoformat(inventory['captured']).timestamp() < 600, 'Refresh unused operation version if resource snapshot stale'
+    rows, blocked = admission()
+    if blocked:
+        print(json.dumps(dict(blocked=blocked, network=0, once_consumed=False)))
+        return
+    put('SCUT18_LAUNCH_LOCAL_ADMISSION.json', dict(epoch=time.time(), rows=rows, blocked=[], serial='FREE'))
+    client = sf = None
+    try:
+        sys.path.insert(0, str(R.parent / 'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client = connect72()
+        check = run(client, ADMIT, dict(job=frozen['job'], uuid=plan['GPU_UUID'], shared=frozen['shared_text']), 90)
+        put('SCUT18_PARENT_ADMISSION.json', check)
+        put('SCUT18_LAUNCH_ONCE.json', dict(epoch=time.time(), run_id=frozen['run_id'], frozen_SHA=hashlib.sha256((HERE / 'FROZEN.json').read_bytes()).hexdigest()))
+        sf = client.open_sftp()
+        sf.mkdir(frozen['job'])
+        def upload(relative, raw):
+            path = frozen['job']
+            for part in relative.split('/')[:-1]:
+                path += '/' + part
+                try:
+                    sf.mkdir(path)
+                except OSError:
+                    sf.stat(path)
+            with sf.open(frozen['job'] + '/' + relative, 'wx') as f:
+                f.write(raw)
+        for row in frozen['files']:
+            upload(row['relative'], Path(row['path']).read_bytes())
+        manifest = dict(files=[{k: row[k] for k in ['relative', 'bytes', 'SHA']} for row in frozen['files']], shared_text=frozen['shared_text'])
+        upload('INSTALL_MANIFEST.json', json.dumps(manifest, indent=2).encode())
+        sf.close(); sf = None
+        code = r'''
+from pathlib import Path
+import json,psutil,subprocess,time
+J=Path(v['job'])
+with (J/'OWNER.log').open('xb') as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'owner.py')],cwd=J,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ q=psutil.Process(p.pid)
+ print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd())))
+'''
+        actual = run(client, code, dict(job=frozen['job']), 45)
+        put('SCUT18_OWNER_LAUNCH_ACTUAL.json', actual)
+        p = R / 'CURRENT_WORK_ORDER.json'
+        w = json.loads(p.read_bytes())
+        w['prior_V16_closed'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w['current_run_final'], evaluation=w['evaluation_result'])
+        w.update(status='SCUT18_FLAT_ORIGINAL_OWNER_DISPATCHED_AWAIT_FIRST', run_id=frozen['run_id'], remote_job=frozen['job'],
+            current_run_final=None, evaluation_result=None, original_owner=actual, training_started='AWAIT_GO_FIRST',
+            training_completed=False, current_model_native_reviewed=False, evaluation_closed_and_transferred=False,
+            latest_status='reports/SCUT18_OWNER_LAUNCH_ACTUAL.json', current_resource_blocker=None,
+            next='Only SCUT18first metadata. Sameoriginalowner fullsave/safeclose/immediateindependent200mm80. Healthydo notrelaunch orrerunresourcecheck. MethodoriginalPPO;V17supersededunused.')
+        w['pending_repair']['launch_once_consumed'] = True
+        p.write_text(json.dumps(w, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        print(json.dumps(dict(owner=actual, job=frozen['job'])))
+    except BaseException:
+        put('SCUT18_LAUNCH_ERROR.json', dict(epoch=time.time(), error=traceback.format_exc(), consumed=marker.exists(), never_replay=marker.exists()))
+        raise
+    finally:
+        if sf is not None:
+            sf.close()
+        if client is not None:
+            client.close()
+        put('SCUT18_LAUNCH_CLOSED.json', dict(epoch=time.time(), SSHclosed=True, SESSION_restored=True, serial='FREE'))
+
+
+def first():
+    import collect_standing_status_v1 as reader
+    s = Path(reader.__file__).read_text(encoding='utf-8')
+    s = s.replace("assert '/MOD4_STANDING200_RLBPTT_' in job", "assert '/MOD4_STANDING200_SCUT_RECIPE_V18_' in job")
+    s = s.replace("'production/NATIVE_STARTUP.json'", "'production/STARTUP.json'").replace("'production/PROGRESS.json'", "'production/LATEST_PROGRESS.json'")
+    s = s.replace("'production/WORKER_ERROR.json'", "'production/ERROR.json'").replace("'evaluation/EVAL_ERROR.json'", "'evaluation/ERROR.json'")
+    ns = dict(__name__='standing_scut18_first', __file__=reader.__file__)
+    exec(compile(s, reader.__file__, 'exec'), ns)
+    ns['local_rows'] = admission
+    sys.argv = [reader.__file__, '--label', 'SCUT18_FIRST', '--wait-seconds', '300']
+    ns['main']()
+
+
+def closed():
+    """One closed evidence transfer; requires original owner terminal receipt."""
+    _, blocked = admission()
+    if blocked:
+        print(json.dumps(dict(blocked=blocked, network=0, once_consumed=False)))
+        return
+    plan = json.loads((HERE / 'PLAN.json').read_bytes())
+    runid, job = plan['run_id'], plan['remote_root']
+    marker = R / 'reports/SCUT18_CLOSED_TRANSFER_ONCE.json'
+    assert not marker.exists()
+    client = sf = None
+    try:
+        sys.path.insert(0, str(R.parent / 'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client = connect72(); sf = client.open_sftp(); sf.get_channel().settimeout(60)
+        def read(relative, limit=32*1024**2):
+            with sf.open(job + '/' + relative, 'rb') as stream:
+                raw = stream.read(limit + 1)
+            assert len(raw) <= limit
+            return raw
+        own = json.loads(read('OWNER_EXIT.json'))
+        assert own['run_id'] == runid and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+        put(marker.name, dict(epoch=time.time(), run_id=runid, original_exit=own))
+        dest = R / 'actual_closed' / runid
+        dest.mkdir(parents=True, exist_ok=False)
+        rows = []
+        def store(relative, raw):
+            path = dest / relative; path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open('xb') as stream:
+                stream.write(raw)
+            rows.append(dict(remote_path=job+'/'+relative, local_path=str(path), bytes=len(raw), SHA=hashlib.sha256(raw).hexdigest()))
+        names = ['OWNER_EXIT.json', 'OWNER_STARTED.json', 'OWNER_ERROR.json', 'INSTALL_MANIFEST.json', 'TASK.json', 'PLAN.json',
+            'ROOT_ADMISSION_ACTUAL.json', 'GO_PRODUCTION.json', 'WORKER_IDENTITY.json', 'TRAIN_CLOSED.json', 'EVAL_WAITED.json',
+            'production/STARTUP.json', 'production/FIRST_UPDATED.json', 'production/LATEST_PROGRESS.json', 'production/FINAL.json',
+            'production/ERROR.json', 'production/ENV_CLOSED.json', 'production/APP_CLOSE_INTENT.json', 'production/POSE_CACHE_EVENTS.json',
+            'evaluation/RESULT.json', 'evaluation/ERROR.json', 'evaluation/NATIVE_STARTUP.json', 'evaluation/ALL80.json',
+            'evaluation/CONTROL_CURVES.json', 'evaluation/ENV_CLOSED.json', 'evaluation/APP_CLOSE_INTENT.json']
+        for relative in names:
+            try:
+                raw = read(relative)
+            except FileNotFoundError:
+                continue
+            store(relative, raw)
+        result_path = dest / 'evaluation/RESULT.json'
+        if result_path.exists():
+            result = json.loads(result_path.read_bytes())
+            for key in ('all80_manifold', 'actual_poses'):
+                row = result[key]; relative = 'evaluation/' + Path(row['path']).name
+                assert row['path'] == job + '/' + relative
+                raw = read(relative, 128*1024**2)
+                assert len(raw) == row['bytes'] and hashlib.sha256(raw).hexdigest() == row['SHA']
+                store(relative, raw)
+        put('SCUT18_CLOSED_TRANSFER_ACTUAL.json', dict(epoch=time.time(), run_id=runid, original_exit=own, files=rows,
+            evaluation=str(dest/'evaluation'), source_PT_reads=0, physics_operations=0, native_review_pending=True))
+        print(json.dumps(dict(evaluation=str(dest/'evaluation'), files=len(rows))))
+    except FileNotFoundError:
+        print(json.dumps(dict(owner_not_closed=True, once_consumed=marker.exists(), no_relaunch=True)))
+        if marker.exists():
+            put('SCUT18_CLOSED_TRANSFER_ERROR.json', dict(epoch=time.time(), error=traceback.format_exc(), never_replay=True))
+            raise
+    except BaseException:
+        put('SCUT18_CLOSED_TRANSFER_ERROR.json', dict(epoch=time.time(), error=traceback.format_exc(), once_consumed=marker.exists()))
+        raise
+    finally:
+        if sf is not None: sf.close()
+        if client is not None: client.close()
+        if marker.exists():
+            put('SCUT18_CLOSED_TRANSFER_SSH_CLOSED.json', dict(epoch=time.time(), SSHclosed=True, SESSION_restored=True, serial='FREE'))
+
+
+if __name__ == '__main__':
+    p = argparse.ArgumentParser(); p.add_argument('mode', choices=['gpu', 'launch', 'first', 'closed']); args = p.parse_args()
+    globals()[args.mode]()

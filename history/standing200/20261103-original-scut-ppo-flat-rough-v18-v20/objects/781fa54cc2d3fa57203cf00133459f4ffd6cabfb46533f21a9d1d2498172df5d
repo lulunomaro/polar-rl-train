@@ -1,0 +1,9 @@
+"""Reuse frozen stage entry; V19 overrides only flat no-scanner integration."""
+from pathlib import Path
+import hashlib
+HERE=Path(__file__).resolve().parent
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/entry.py')
+raw=P.read_bytes()
+expected=__import__('json').loads((HERE/'TASK.json').read_bytes())['entry_base_SHA']
+assert hashlib.sha256(raw).hexdigest()==expected
+exec(compile(raw,str(P),'exec'),globals())

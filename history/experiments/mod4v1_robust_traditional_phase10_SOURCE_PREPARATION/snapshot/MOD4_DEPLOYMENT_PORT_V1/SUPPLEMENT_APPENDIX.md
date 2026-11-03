@@ -1,0 +1,5 @@
+# 父批准追加来源 build_supplement001
+
+父消息批准一次按MANIFEST原bytes追加32files/13,506,260B：17个原target缺选成员及同music目录必要header。MANIFEST SHA524b8dd11524fece9ac7faf5f9bd842e4d06e9f020d76f64ea47378e26bdcc7c。只校验CRC/rawSHA并复制到本独立derived，不回写SOURCE原391锁、不打开ZIP/其他微信目录，不执行/反汇编/ABI推断opaque AHRS/DSP库。
+
+原始SOURCE/BUILD_CLOSURE/NEEDED_MEMBERS保留初次148/165与17请求事实；追加来源单列SUPPLEMENT_RECEIPT，最终169-member与Windows大小写include-resolution单列BUILD_CLOSURE_FINAL。条件预处理/编译器内置头/DevicePack/库ABI/完整target link仍待独立审批。new host40/0已完成，追加后不重跑该smoke或其他旧QA。

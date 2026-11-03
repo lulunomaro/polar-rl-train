@@ -1,0 +1,56 @@
+{
+  "status": "V3_NEW_ENTRY_AST_ONLY_NOT_IMPORTED_OR_EXECUTED",
+  "old_entry": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\run_startup_stand_case_v4.py",
+  "old_SHA": "fcb8a10b6dfb1795a39870592e376af0c93dddda3ec2c3db5414d675d0d36c9d",
+  "new_entry": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\run_startup_stand_case_v5.py",
+  "new_SHA": "dc542b53ebe0c549aa0308886e635b1176ac0718ddc2bc6f5938aeb1d43b0275",
+  "changes": [
+    {
+      "old": "from STARTUP_STAND_V2.controller import StartupStand",
+      "new": "from STARTUP_STAND_V3.controller import StartupStand",
+      "occurrences": 1
+    },
+    {
+      "old": "set(cfg['controller'])=={'operator_enable','recovery_actuation_enable'}",
+      "new": "set(cfg['controller'])=={'operator_enable','recovery_tracking_enable','alignment_wheel_enable'}",
+      "occurrences": 1
+    },
+    {
+      "old": "assert cfg['case_id']!='startup_front065_nominal_v1', 'New strategy requires a new case ID; old case must not replay'",
+      "new": "assert cfg['case_id'] not in ('startup_front065_nominal_v1','startup_front065_coupled_v2_nominal1'), 'V1/V2 case IDs are consumed; new strategy requires new ID'",
+      "occurrences": 1
+    },
+    {
+      "old": "NEW_LYING_STARTUP_COUPLED_LEG_WHEEL_DAMPING_V2_TRAIN",
+      "new": "NEW_LYING_STARTUP_TRACKING_ELIGIBLE_ALIGNMENT_V3_TRAIN",
+      "occurrences": 2
+    },
+    {
+      "old": "recovery_actuation_enable_requested=cfg['controller']['recovery_actuation_enable']",
+      "new": "recovery_tracking_enable_requested=cfg['controller']['recovery_tracking_enable'],\n            alignment_wheel_enable_requested=cfg['controller']['alignment_wheel_enable']",
+      "occurrences": 2
+    },
+    {
+      "old": "only_shape_verify_leg_K_and_packet_wheel_damping_changed=True",
+      "new": "recovery_tracking_and_optional_eligible_pose_alignment_only=True",
+      "occurrences": 1
+    },
+    {
+      "old": "file_record(ROOT/'STARTUP_STAND_V2/controller.py'),file_record(ROOT/'STARTUP_STAND_V2/PREFLIGHT_RESULT.json')",
+      "new": "file_record(ROOT/'STARTUP_STAND_V3/controller.py'),file_record(ROOT/'STARTUP_STAND_V3/PREFLIGHT_RESULT.json')",
+      "occurrences": 1
+    },
+    {
+      "old": "recovery_actuation_active=bool(controller.recovery_actuation_active)",
+      "new": "recovery_tracking_active=bool(controller.recovery_tracking_active),\n            alignment_wheel_active=bool(controller.alignment_wheel_active)",
+      "occurrences": 1
+    }
+  ],
+  "original_loop_and_healthy_good_complete_passed_equal": true,
+  "original_2k_driver_and_private_gate_unchanged": true,
+  "report_uses_existing_queue_receipt": true,
+  "old_two_case_IDs_rejected": true,
+  "no_project_import_model_FK_PHY_QA_Git_agent_execution": true,
+  "profile_B_requires_later_parent_A_eligibility_admission_not_permission_from_entry": true,
+  "PH10pending": true
+}

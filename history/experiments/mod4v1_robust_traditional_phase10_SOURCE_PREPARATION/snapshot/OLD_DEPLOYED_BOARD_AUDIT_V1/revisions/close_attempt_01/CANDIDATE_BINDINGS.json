@@ -1,0 +1,338 @@
+{
+  "kind": "OLD_DEPLOYED_SOURCE_BINDING_CANDIDATES_NOT_MOD4_CALIBRATION",
+  "physical_MOD4_binding": false,
+  "flash_or_send_permission": false,
+  "rows": [
+    {
+      "name": "MCU_clock_memory",
+      "observed_old_source": {
+        "MCU": "STM32F407IGHx",
+        "IOC_CPN": "STM32F407IGH6",
+        "package": "UFBGA176",
+        "HSE_Hz": 12000000,
+        "SYSCLK_Hz": 168000000,
+        "APB1_Hz": 42000000,
+        "APB2_Hz": 84000000,
+        "flash_bytes": 1048576,
+        "scatter_RW_bytes": 131072
+      },
+      "reusable_candidate": "original startup/HAL pin-clock initialization and Keil project layout",
+      "MOD4_binding_required": "actual PCB/crystal/carrier, linker/ABI/helper libs/RAM/stack/WCET and flashed image SHA",
+      "source_locations": [
+        "MDK-ARM/standard_robot.uvprojx:10-21,337-370",
+        "standard_robot.ioc:140-172,543-576",
+        "Src/main.c:172-215",
+        "Inc/stm32f4xx_hal_conf.h:95-97"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "RTOS_chassis",
+      "observed_old_source": {
+        "API": "CMSIS-RTOS v1 over FreeRTOS ARM_CM4F",
+        "tick_Hz": 1000,
+        "startup_delay_ticks": 357,
+        "relative_delay_ticks": 2,
+        "priority": "AboveNormal"
+      },
+      "reusable_candidate": "existing main→MX_FREERTOS_Init→chassis_task and priority/IRQ setup",
+      "MOD4_binding_required": "separate math and actual driver cadence, absolute release/deadline and admission gates; vTaskDelay(2) is not 2ms hard period",
+      "source_locations": [
+        "Src/freertos.c:198-239",
+        "application/chassis/chassis_task.c:56-83",
+        "Inc/FreeRTOSConfig.h:55-66"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "CAN1",
+      "observed_old_source": {
+        "RX": "PD0",
+        "TX": "PD1",
+        "AF": 9,
+        "bitrate_Hz": 1000000,
+        "prescaler": 3,
+        "BS1": 10,
+        "BS2": 3,
+        "SJW": 1,
+        "IRQ_priority": 6
+      },
+      "reusable_candidate": "hcan1/MSP/filter/RX0 interrupt pipeline",
+      "MOD4_binding_required": "physical transceiver/termination/wiring/ID collision and bitrate measurement; error/busoff recovery",
+      "source_locations": [
+        "Src/can.c:31-49,77-107",
+        "bsp/boards/bsp_can.c:3-23"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "CAN2",
+      "observed_old_source": {
+        "RX": "PB5",
+        "TX": "PB6",
+        "AF": 9,
+        "bitrate_Hz": 1000000,
+        "prescaler": 3,
+        "BS1": 10,
+        "BS2": 3,
+        "SJW": 1,
+        "IRQ_priority": 6
+      },
+      "reusable_candidate": "hcan2/MSP/filter/RX0 interrupt pipeline",
+      "MOD4_binding_required": "same physical verification; this old wheel protocol is not a DM3519 implementation",
+      "source_locations": [
+        "Src/can.c:53-71,111-137"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "joint_DM8009_MIT_TX",
+      "observed_old_source": {
+        "joint_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "CAN": 1,
+        "TX_STD_ID": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "mode": 0,
+        "enable_lastbyte": "FC",
+        "disable_lastbyte": "FD",
+        "clear_error_lastbyte": "FB",
+        "save_zero_lastbyte": "FE",
+        "prefix": "FF*7",
+        "normal": "P=V=Kp=Kd=0,T=set.tor",
+        "standup": "MIT position, Kp20/Kd1"
+      },
+      "reusable_candidate": "existing DM command packer and caller dispatch pattern",
+      "MOD4_binding_required": "actual motor model including DM8009P distinctions, firmware mode/ranges, torque coordinate and zero persistence; no active disable/clearErr caller established",
+      "source_locations": [
+        "application/chassis/chassis_balance.c:157-160,1504-1619",
+        "application/robot_cmd/CAN_cmd_damiao.c:45-185,291-389"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "DM_codec_RX",
+      "observed_old_source": {
+        "P_rad": [
+          -12.5,
+          12.5
+        ],
+        "V_rad_s": [
+          -30,
+          30
+        ],
+        "T_nominal_Nm": [
+          -10,
+          10
+        ],
+        "Kp": [
+          0,
+          500
+        ],
+        "Kd": [
+          0,
+          5
+        ],
+        "bits": [
+          16,
+          12,
+          12,
+          12,
+          12
+        ],
+        "RX_STD_ID": [
+          81,
+          82,
+          83,
+          84
+        ],
+        "generic_RX_IDs": [
+          81,
+          82,
+          83,
+          84,
+          85,
+          86
+        ],
+        "state": "data[0] high nibble",
+        "payload_id": "data[0] low nibble",
+        "arrival_clock": "HAL_GetTick uint32 ms",
+        "offline_after_ms": 10
+      },
+      "reusable_candidate": "existing bitfield decode and tagged motor storage",
+      "MOD4_binding_required": "DLC/RTR/id agreement/finite/domain validation, sensor sample epoch vs arrival and same-packet aggregation; actual physical feedback torque calibration",
+      "source_locations": [
+        "application/robot_cmd/motor.h:130-181",
+        "application/robot_cmd/CAN_receive.h:55-62",
+        "application/robot_cmd/CAN_receive.c:73-87,170-185,426-440"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "joint_model_coordinates",
+      "observed_old_source": {
+        "directions": [
+          -1,
+          -1,
+          1,
+          1
+        ],
+        "offsets_rad": [
+          "pi-.177",
+          ".177",
+          "pi+.177",
+          "-.177"
+        ],
+        "reduction_declared": 1,
+        "map": [
+          "leg0.Phi1",
+          "leg0.Phi4",
+          "leg1.Phi1",
+          "leg1.Phi4"
+        ],
+        "position": "wrap((raw_pos+offset)*direction, -pi,pi)",
+        "normal_T_limit_Nm": 7
+      },
+      "reusable_candidate": "explicit per-axis direction/zero separation from raw codec",
+      "MOD4_binding_required": "not automatically MOD4 LH/LC/RH/RC or state14 delta; independently verify mechanics, zeros, output-shaft ratio and sign",
+      "source_locations": [
+        "application/robot_param_balanced_infantry.h:44-83,119-120",
+        "application/chassis/chassis_balance.c:517-538,1269-1294",
+        "components/algorithm/user_lib.c:178-180"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "wheel_LK_MF9025",
+      "observed_old_source": {
+        "CAN": 2,
+        "motor_ID": [
+          1,
+          2
+        ],
+        "RX_STD_ID": [
+          321,
+          322
+        ],
+        "TX_group_STD_ID": 640,
+        "directions": [
+          1,
+          -1
+        ],
+        "normal_command_extra_sign": -1,
+        "command_formula": "clamp_int16(tau/0.32*62.5,-2000,2000)",
+        "payload": "four LE int16 currents",
+        "feedback_speed": "signed degree/s * pi/180",
+        "feedback_current": "iq*(16.5/2048) A"
+      },
+      "reusable_candidate": "original LK protocol as reference only for the actual old wheels",
+      "MOD4_binding_required": "MOD4 DM3519 requires its actual firmware protocol/range/current/gear proof; do not relabel LK frames as DM",
+      "source_locations": [
+        "application/chassis/chassis_balance.c:162-163,1291-1294,1625-1656",
+        "application/robot_cmd/CAN_cmd_lingkong.c:22-26,161-178,246-292",
+        "application/robot_cmd/CAN_receive.c:111-119,448-460"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "IMU_SPI_DMA",
+      "observed_old_source": {
+        "sensor": "BMI088 plus IST8310 init",
+        "SPI": 1,
+        "SCK": "PB3",
+        "MISO": "PB4",
+        "MOSI": "PA7",
+        "gyro_CS": "PB0",
+        "accel_CS": "PA4",
+        "gyro_DRDY": "PC5/EXTI9_5",
+        "accel_DRDY": "PC4/EXTI4",
+        "RX_DMA": "DMA2_Stream2/channel3",
+        "TX_DMA": "DMA2_Stream3/channel3",
+        "gyro_ODR_Hz": 1000,
+        "accel_ODR_Hz": 800,
+        "task_priority": "Realtime",
+        "AHRS_dt_s": 0.001
+      },
+      "reusable_candidate": "existing hardware drivers, DRDY→DMA→software EXTI0→task notification sequence",
+      "MOD4_binding_required": "verify data-ready timing, loss/coalescing counters, per-sensor sample epochs and coherent queues; no 2kHz hardware proof",
+      "source_locations": [
+        "application/IMU/IMU_task.c:224-333,627-774",
+        "components/devices/BMI088driver.c:66-115",
+        "Src/spi.c:91-145",
+        "Inc/main.h:87-98"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "IMU_frame_units",
+      "observed_old_source": {
+        "gyro_sensor_range_deg_s": 2000,
+        "accel_sensor_range_g": 3,
+        "gyro_scale_rad_s_per_count": 0.0010652644360316954,
+        "accel_scale_m_s2_per_count": 0.0008974358974,
+        "raw_to_board": [
+          "raw_y",
+          "-raw_x",
+          "raw_z"
+        ],
+        "Euler": "yaw,pitch,roll rad",
+        "rates": "body gyro XYZ rad/s, not general Euler derivatives"
+      },
+      "reusable_candidate": "existing converted gyro/proper accel and quaternion pointer access as raw material",
+      "MOD4_binding_required": "MOD4 board mounting/frame/quaternion convention/IMU lever/temperature+bias calibration and C3 canonical packet metadata",
+      "source_locations": [
+        "components/devices/BMI088driver.h:24-46",
+        "application/IMU/IMU_task.c:45-49,388-437,564-609"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "liveness_and_stop",
+      "observed_old_source": {
+        "RC": "direct DT7 receive_count>5 and age<100ms",
+        "motor_offline": "10ms receive-age flag, no ScanOfflineMotor caller in selected application",
+        "IMU_exception": "pointer NULL, not fresh-age",
+        "SAFE": "joint zero-speed kd4 plus wheel-stop-PID torque",
+        "OFF": "joint zero MIT plus wheel torque0"
+      },
+      "reusable_candidate": "the explicit RC→error→SAFE caller chain and diagnostic states",
+      "MOD4_binding_required": "new independent stale/motor-fault/clock/transport/expiry/latch/watchdog gates and validated brake/disable semantics; invalid zero is not a universal overspeed-safe command",
+      "source_locations": [
+        "application/other/remote_control.c:573-588",
+        "application/chassis/chassis_balance.c:282-335,1195-1218,1504-1656",
+        "application/assist/detect_task.c:265-312"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    },
+    {
+      "name": "transport_and_runtime_gates",
+      "observed_old_source": {
+        "tx": "20 mailbox polls then unconditional HAL_CAN_AddTxMessage; return ignored",
+        "AutoBusOff": false,
+        "AutoRetransmission": false,
+        "pacing": "DM_DELAY250us and uninitialized local cnt modulo2",
+        "hardware_watchdog": "no IWDG/WWDG in selected IOC/main initialization"
+      },
+      "reusable_candidate": "low-level HAL access only, not end-to-end send qualification",
+      "MOD4_binding_required": "single queue owner, bounded atomic frame capture, TTL/cancel/ACK/bus-fault recovery, validated 64-bit monotonic clock and last poll; no send permission from this audit",
+      "source_locations": [
+        "bsp/boards/bsp_can.c:33-45",
+        "Src/can.c:34-45,56-67",
+        "application/chassis/chassis_balance.c:1481-1526",
+        "Src/main.c:225-231"
+      ],
+      "status": "CANDIDATE_ONLY_NOT_MOD4_MEASUREMENT_OR_SEND_PERMISSION"
+    }
+  ],
+  "missing_selected_source_files": [],
+  "unresolved_actual_flashed_image_SHA": true,
+  "unresolved_physical_PCB_revision_serial_wiring_motor_firmware": true
+}

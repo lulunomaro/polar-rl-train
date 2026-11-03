@@ -1,0 +1,118 @@
+{
+  "kind": "PREDECLARED_FIRST_LIMITED_POSE_SENSOR_ONLY_STARTUP_TRAIN_HYPOTHESIS_NOT_STABILITY_CERTIFICATE",
+  "controller_new_file": "STARTUP_STAND_V1/controller.py",
+  "API": "StartupStand(gain_nominal,geometry,config).prepare_estimator(est,now); command(e,packet,now,attitude_q)->finite6 output_joint_Nm; .log.phase",
+  "config_v1": {
+    "operator_enable": false
+  },
+  "gain": "caller supplies loaded TALL_ROUGH_BANK_V1/gain_delta0.json dict or gain wrapper; controller has no file/model/DR/GT input",
+  "sensors": "sensor_core_jump_v1.StateEstimator upright_prior=False mandatory; original proper/gyro/encoder packets only; actual raw q4=Lhip,Lcrank,Rhip,Rcrank; state14 entries4/6 are crank-minus-hip",
+  "initialization_boundary": "upright_prior=False still falls back to zero roll/pitch if first proper norm differs from g by >.3g. Never overwrite estimator quaternion: runner must start estimation on a valid settled IMU sample; OBSERVE requires proper-tilt agreement. No gravity or root truth shortcut.",
+  "physical_initialization": "parent already ran passive_settle001; do not replay it. Startup must begin from that saved lying state through the unchanged full driver, no root assistance/qpos overwrite, not upright reset. No physical run authorized for this child.",
+  "fixed_parameters": {
+    "observe_static_s": 0.25,
+    "extend_s": 2.0,
+    "stable_hold_s": 0.5,
+    "blend_s": 0.5,
+    "startup_timeout_s": 6.0,
+    "pitch_abs_max_rad": 1.0,
+    "roll_abs_max_rad": 0.25,
+    "leg_kp_Nm_per_rad": 60.0,
+    "leg_kd_Nm_per_rad_s": 3.0,
+    "ready_pitch_abs_lt_rad": 0.15,
+    "ready_roll_abs_lt_rad": 0.15,
+    "ready_q_error_max_rad": 0.04,
+    "ready_qd_max_rad_s": 0.2,
+    "ready_gyro_max_rad_s": 0.5,
+    "static_qd_max_rad_s": 0.15,
+    "static_gyro_max_rad_s": 0.15,
+    "static_q_drift_max_rad": 0.02,
+    "static_proper_norm_g_min": 0.8,
+    "static_proper_norm_g_max": 1.2,
+    "static_proper_tilt_agreement_rad": 0.1,
+    "sensor_age_max_s": 0.05,
+    "maximum_command_gap_s": 0.05,
+    "control_grid_s": 0.01,
+    "future_tolerance_s": 0.002,
+    "reference_qd_max_rad_s": 1.0
+  },
+  "reference_bounds": {
+    "q_min_rad": [
+      -0.5000000058364024,
+      -1.2000000140073657,
+      -0.5000000058364024,
+      -1.2000000140073657
+    ],
+    "q_max_rad": [
+      0.5000000058364024,
+      0.8999999772160105,
+      0.5000000058364024,
+      0.8999999772160105
+    ],
+    "crank_minus_hip_min_rad": -1.0843,
+    "crank_minus_hip_max_rad": 0.85,
+    "source": "public active joint ranges and unchanged driver relative-target box, no widening; not a passive-closure/contact-path certificate"
+  },
+  "phases": [
+    "DISARMED(default zero; no estimator/controller mutation)",
+    "OBSERVE(zero torque; static fresh data .25s; lock measured packetq0 plus explicitly bounded projected qref0, never alter sensor values)",
+    "SHAPE_TO_STAND(quintic q0->nominal2s; analytical qdref initialized per axis; PD60/3 plus quintic-warmed nominal FF; wheel-only GroundController rows warmed by same scalar)",
+    "VERIFY(hold nominal; sensor-only ready conditions .5s)",
+    "BLEND(lock estimated distance/yaw reference; .5s quintic blend from last startup command to original GroundController)",
+    "BALANCE(original fixed-leg GroundController, original finite40/5.775909774436091 bounds)",
+    "INHIBIT(sticky zero with explicit reason)"
+  ],
+  "observer_policy": "prepare is called before packet/estimate each same epoch; wheel_measurement_enabled and ground_kinematic_constraint False until first prepare after completed BLEND/BALANCE. accel_correction=1.5; no q/distance/P/velocity reset. Log actual prior phase, prepared flags and next-epoch switch. Sensor completion does not certify wheel support or enable current FSM.",
+  "no_leg_feedback_double_sum": "GroundController evaluated for wheel rows in startup; leg rows discarded and replaced with standalone PD+FF, never added to full leg LQR. During handoff all6 blend explicitly. K/driver/oldFSM remain unchanged.",
+  "failure": "bad finite/shape/clock/grid/age/reference/large measured-vs-projected offset/envelope/prepare/estimator binding or6s startup timeout -> sticky INHIBIT. Handoff readiness lost during blend ->INHIBIT. No retry/root reset/zero-filled unknowns. Default disabled emits zero without requiring valid action inputs.",
+  "preflight_budget": {
+    "one_new_execution_only": true,
+    "total_command_frame_invocations_max": 500,
+    "typed_cases_max": 20,
+    "normal_enabled_10ms_frames_max": 355,
+    "timeout_observation_only_50ms_frames_max": 121,
+    "default_disabled_frames_max": 4,
+    "typed_command_calls_max": 20,
+    "model_boot_FK_MuJoCo_integrator_PHY_old_QA_Git_agent_calls": 0,
+    "geometry_object_methods_called": 0,
+    "actual_GroundController_math_allowed": true,
+    "counter_guards_before_calls": true,
+    "front_full_handoff_frames_max": 328,
+    "back_real_pose_observe_shape_frames_max": 27
+  },
+  "synthetic_checks": [
+    "defaultoff no action/no estimator mutation",
+    "IMU tilted startup retained; no upright substitution",
+    "fresh .25s static history only and measured q0",
+    "legal finite quintic q/qd, analytical endpoints and FF/wheel scale continuity",
+    "same-reference wheel-only path, no legLQR sum",
+    "explicit .5s ready hold/handoff and initial/final blend command continuity",
+    "observer switches only following completed BALANCE epoch",
+    "6s no-progress timeout at valid50ms OBSERVE epochs (not a physical100Hz rollout)",
+    "<=20typed invalid/stale/nonfinite/clock/quaternion/reference/envelope/prepare/estimator cases",
+    "no truth/model/DR imports or inputs; source SHA pre/post identical"
+  ],
+  "outputs": "SOURCE_PREEXEC/script snapshots, bounded RESULT.json/REPORT.md/RECEIPT.json; preserve first failure/source/counters and stop without automatic re-execution",
+  "no_auto_physics_or_board": true,
+  "PH10pending": true,
+  "parent_preexecution_amendment": {
+    "at_local": "2026-11-03T22:20:10+08:00",
+    "initial_method_SHA": "fb8cf96bb76f8243ae80da7b337f78f58a7c7f29d301d0e63f51e8040c13e98a",
+    "front_measured_q4": [
+      0.40797836065,
+      0.90000028595,
+      0.40798298142,
+      0.90000031384
+    ],
+    "back_measured_q4": [
+      -0.50000016229,
+      -0.00799805807,
+      -0.5000001109,
+      -0.00794762327
+    ],
+    "measured_values_never_clipped_or_modified": true,
+    "reference_only_projection": "Project only locked qref0 to published active joint box. Log measuredq0, projectedref0, signed delta and clamp. Soft-stop micro-excess is not measured-value failure. Projection displacement uses existing ready_q_error_max_rad=.04 as bound; no new numeric threshold.",
+    "phase_rename": "SHAPE_TO_STAND: natural gas extension may require initial leg shortening, not monotonic height extension.",
+    "no_new_parameters_or_model_queries": true
+  }
+}

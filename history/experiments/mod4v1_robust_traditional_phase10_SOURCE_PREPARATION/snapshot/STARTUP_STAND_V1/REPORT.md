@@ -1,0 +1,14 @@
+# StartupStand V1 — new synthetic result, not physical stand-up
+- API: StartupStand(gain_nominal,geometry,{operator_enable:bool}); prepare_estimator(est,now) BEFORE sensor/update; command(e,packet,now,attitude_q)->6Nm + log.phase.
+- gain is caller-loaded gain_delta0 or its gain wrapper; no file/model/DR/GT constructor inputs. geometry is stored, never evaluated.
+- Default False: DISARMED/zero and no estimator state/flag mutation. Enabled explicitly requires upright_prior=False and declared wheel/ground switches.
+- Source inspection: current false-prior initialization still falls back to upright if first proper norm differs>.3g. Use valid settled IMU first; controller never overwrites quaternion and static-tilt disagreement cannot lock.
+- OBSERVE .25s fresh static -> lock measuredq0 -> SHAPE_TO_STAND quintic2s -> nominal qerr<=.04rad/qd<=.20rad/s/pitch-roll<.15/gyro<=.5 held .5s -> .5s BLEND -> BALANCE. Startup timeout6s or invalid data => latched INHIBIT.
+- Real settled front/back supplied q values are both tested. Only reference is projected to published bounds; measured data untouched. Front maximum clamp 3.3662398946088246e-07rad; back 1.5645359763283295e-07rad. No soft-limit widening.
+- SHAPE uses legPD60/3+warm nominalFF, retains only GroundController wheel rows at same reference; never adds full legLQR to PD. Handoff first blend sample equals previous6tau; legacy GroundController takes over at blend end.
+- First BLEND 2.75s; following-BALANCE prepare first restores wheel/ground flags 3.2600000000000002s. Prior command epoch still reports its actual false flags. No estimator q/v/distance/P resets.
+- Raw/estimate clock/age/finite/unit-quaternion, pitch<=1/roll<=.25 and active-reference/rate guards checked; no claim for side-lying/inverted robot.
+- Counts: {"command_frames": 499, "typed_cases": 20, "geometry_methods": 0, "model_FK_MuJoCo_PHY_oldQA_Git_agents": 0};20typed cases; timeout sequence is observation-only50ms timestamps, not a new100Hz dynamics rollout.
+- Synthetic front motion tracks the analytic reference by construction; back checks initial measured/ref split only. These do NOT establish gravity/spring/contact/actuation tracking or a real startup success.
+- All locked source SHAs unchanged. 0 model/FK/PHY/oldQA/Git/agents; geometry methods0. Parent owns new runner/full2k driver and separate private success grades; no automatic physical/C-board run.
+- Evidence: [METHOD](<METHOD.json>), [preexec](<SOURCE_PREEXEC.json>), [result](<PREFLIGHT_RESULT.json>), [controller](<controller.py>). PH10pending.

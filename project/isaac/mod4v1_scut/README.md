@@ -2,11 +2,11 @@
 
 本目录是独立的增强 MOD4v1 USD 适配。2026-11-03 的 **20,000环境、一小时**运行已完整保存关闭：46次新PPO更新、22,080,000样本，final为iteration72、SHA `305f5a9e57086fd7e1b75ef3536e7c375081278479a91f33a9bb18c760b4cfcf`。独立80首局0整轮越沿、0触台、0严格成功，10–17controls终止，保存姿态已原生审图。该运行不是live或待评。
 
-随后全面检查修复了动作执行裁剪遗漏、原debug终止时钟推进错误、评测首局接触统计与出生yaw基准，并补齐全局计数器保存恢复和pre-reset诊断。修复后的六组56项CPU检查通过；修复版目标SDK实际复测仍待资源释放。当前入口是 `history/reviews/20261103-mod4v1-scut-native-training/COMPREHENSIVE_REPAIR.md` 和该目录 `WORK_ORDER.json`。历史18,540行索引提供追溯，不是全程序等价保证。
+随后全面检查修复了动作执行裁剪遗漏、原debug终止时钟推进错误、评测首局接触统计与出生yaw基准，并补齐全局计数器保存恢复和pre-reset诊断。修复后的六组56项CPU检查通过。2026-11-04已在72第二张4090实际完成同final独立80复测：42–399controls、平均182.55，58个原连续终止、22个timeout；raw异常/closure/mimic/数值重置均0，应用动作最大6，但0触台/0strict且第一轴100%裁剪。早/晚4幅实际姿态已原生审看。后续从原成熟增强E0重新开始修复版20000环境一小时窗，实际运行以 `history/reviews/20261103-mod4v1-scut-native-training/WORK_ORDER.json` 为准。历史18,540行索引提供追溯，不是全程序等价保证。
 
 本轮按最终生效的 **V14 → V13 → wheelbipe25_v3** 继承链补齐了逐行适配，修正了 critic 字段顺序、原始终止计数、命令采样与同步、观测时序和导轮接触分组。当前代码的行号、处理理由和检查依据见 `history/reviews/20261103-mod4v1-scut-adaptation/LINE_ADAPTATION.md`、`LINE_ALIGNMENT.jsonl`、`LINE_ALIGNMENT_RULES.json`；每条来源行都有处理记录。原 `LINE_MAP.jsonl` 的14,492行和 `REAUDIT_FINDINGS.md` 保留为历史记录，不能拿旧行号或旧结论描述当前代码。
 
-**这是一份逐行追溯的模型适配，不是整条程序逐字等价或所有行已原生执行的证明。** 原奖励函数体保持固定来源；MOD4几何、PD、随机化、场地与缺失机构均有明确替换。USD后端旧版本已实际运行；修复版原生验证待执行，270mm技能尚未通过。
+**这是一份逐行追溯的模型适配，不是整条程序逐字等价或所有行已原生执行的证明。** 原奖励函数体保持固定来源；MOD4几何、PD、随机化、场地与缺失机构均有明确替换。修复版已完成有限原生评测，270mm技能尚未通过。
 
 原始来源固定为 `scutrobotlab/wheeled-legged_RL@1a26356d6f591734d4f6f666f5cead1a6925da67`。SOURCES.json 保存每个来源的原路径、SHA256、Git blob 和既有归档位置。原始 MIT 版权与许可位于仓库 `history/reviews/20261103-scut-jump-reward-linebyline/LICENSE_SCUT.txt`，原作者为 SCUTRobotLab。数学函数由 upstream.py 从原文件 AST 加载，保留函数体和原行号，不复制整个上游工程。
 
@@ -64,7 +64,7 @@ PPO：actor/critic各 `[256,128,64]` ELU，Gaussian std初值1，rollout24、5 e
 
 阶段提交后的普通补充修复：原 manager 的 `_reset_idx` 会重新创建 `extras['log']`，现在先保存终态奖励/状态日志，原 reset 完成后再合并，避免分项曲线丢失。`CPU_RESET_LOG_SUPPLEMENT.json` 单项检查通过，已有12项结果保留，未重跑 physics/PPO。
 
-本机 stock IsaacLab 与目标运行时不同：本地没有原任务要求的 `isaaclab_physx.physics.PhysxCfg` 定制后端；不能改用其它 SDK 字段/solver 冒充验证。目标原生检查使用 `DEPENDENCIES.json` 中的共享 runtime和原资源锁；train.py 不申请或复制预算。旧运行已完成原生startup与独立评测；当前修复源码状态为 `REPAIR_CPU56_PASS_NATIVE_PENDING`，待同final有限诊断后决定训练来源与接续。
+本机 stock IsaacLab 与目标运行时不同：本地没有原任务要求的 `isaaclab_physx.physics.PhysxCfg` 定制后端；不能改用其它 SDK 字段/solver 冒充验证。目标原生检查使用 `DEPENDENCIES.json` 中的共享 runtime和原资源锁；train.py 不申请或复制预算。修复源码已完成same-final有限原生复测，旧退化策略不再直接续训；新E0来源训练及其独立验收状态见当前工作单。
 
 2026-11-03 17:15 +08 的一次有限只读检查读到远端 RSL5.0.1、IsaacLab6.1.14；原 canonical 正被 owner1535837 占用。`find_spec(isaaclab_physx)=false` 仅表示应用启动前默认路径不可见，历史原生任务会在 app 启动后启用扩展，不能据此断言远端扩展缺失。检查未导入 SDK、未扫描 GPU、未启动 worker、未读取 PT、未写 canonical；SSH 最终关闭并恢复 FREE。本机的依赖差异与远端当前资源占用分别记录。
 

@@ -1,0 +1,483 @@
+{
+  "epoch": 1793736936.4256778,
+  "kind": "EVIDENCE_BASED_PUBLISHED_RECIPE_VS_ACTIVE_TASK_RECONCILIATION",
+  "user_question": "为何仍跳不了：逐行适配问题还是没有按华南虎训练",
+  "conclusion": "Both implementation defects and explicit recipe differences exist; unique cause of current0top is not yet isolated. Line coverage is traceability, not program equivalence.",
+  "source_commit": "1a26356d6f591734d4f6f666f5cead1a6925da67",
+  "baseline_git": "8654c630b403d717cc1cae707a7b7150946f9d9f",
+  "recipe_checks": {
+    "enable_state_machines": {
+      "published": false,
+      "current": true
+    },
+    "height_range": {
+      "published": [
+        0.2,
+        0.42
+      ],
+      "current": [
+        0.25,
+        0.25
+      ]
+    },
+    "episode_length_s": {
+      "published": 20.0,
+      "current": 8.0
+    },
+    "airborne_state_machine_cfg": {
+      "published_enabled": false,
+      "current_enabled": true
+    },
+    "wheel_forward_scan_cfg": {
+      "published_enabled": false,
+      "current_enabled": true
+    },
+    "stair_state_machine_cfg": {
+      "published_enabled": false,
+      "current_enabled": true
+    },
+    "jump_takeoff_state_machine_cfg": {
+      "published_enabled": false,
+      "current_enabled": false
+    },
+    "commands": {
+      "published": {
+        "resampling_time_range": [
+          5.0,
+          15.0
+        ],
+        "heading_command": true,
+        "rel_standing_envs": 0.1,
+        "rel_heading_envs": 0.5,
+        "ranges": {
+          "lin_vel_x": [
+            -2.7,
+            2.7
+          ],
+          "lin_vel_y": [
+            0.0,
+            0.0
+          ],
+          "ang_vel_z": [
+            -6.283185307179586,
+            6.283185307179586
+          ],
+          "heading": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        }
+      },
+      "current": {
+        "class_type": "agent_tasks.manager.mdp.isaaclab.commands:SpecialModeUniformVelocityCommand",
+        "resampling_time_range": [
+          5.0,
+          15.0
+        ],
+        "debug_vis": false,
+        "asset_name": "robot",
+        "heading_command": false,
+        "heading_control_stiffness": 5.0,
+        "rel_standing_envs": 0.0,
+        "rel_heading_envs": 0.0,
+        "ranges": {
+          "lin_vel_x": [
+            0.6,
+            0.6
+          ],
+          "lin_vel_y": [
+            0.0,
+            0.0
+          ],
+          "ang_vel_z": [
+            0.0,
+            0.0
+          ],
+          "heading": [
+            -3.141592653589793,
+            3.141592653589793
+          ]
+        },
+        "goal_vel_visualizer_cfg": {
+          "prim_path": "/Visuals/Command/velocity_goal",
+          "markers": {
+            "arrow": {
+              "func": "isaaclab.sim.spawners.from_files.from_files:spawn_from_usd",
+              "visible": true,
+              "semantic_tags": null,
+              "copy_from_source": true,
+              "mass_props": null,
+              "deformable_props": null,
+              "rigid_props": null,
+              "collision_props": null,
+              "activate_contact_sensors": false,
+              "scale": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "articulation_props": null,
+              "fixed_tendons_props": null,
+              "spatial_tendons_props": null,
+              "joint_drive_props": null,
+              "visual_material_path": "material",
+              "visual_material": {
+                "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+                "diffuse_color": [
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "emissive_color": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "opacity": 1.0
+              },
+              "usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+              "variants": null
+            }
+          }
+        },
+        "current_vel_visualizer_cfg": {
+          "prim_path": "/Visuals/Command/velocity_current",
+          "markers": {
+            "arrow": {
+              "func": "isaaclab.sim.spawners.from_files.from_files:spawn_from_usd",
+              "visible": true,
+              "semantic_tags": null,
+              "copy_from_source": true,
+              "mass_props": null,
+              "deformable_props": null,
+              "rigid_props": null,
+              "collision_props": null,
+              "activate_contact_sensors": false,
+              "scale": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "articulation_props": null,
+              "fixed_tendons_props": null,
+              "spatial_tendons_props": null,
+              "joint_drive_props": null,
+              "visual_material_path": "material",
+              "visual_material": {
+                "func": "isaaclab.sim.spawners.materials.visual_materials:spawn_preview_surface",
+                "diffuse_color": [
+                  0.0,
+                  0.0,
+                  1.0
+                ],
+                "emissive_color": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "roughness": 0.5,
+                "metallic": 0.0,
+                "opacity": 1.0
+              },
+              "usd_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/UIElements/arrow_x.usd",
+              "variants": null
+            }
+          }
+        },
+        "special_modes": [],
+        "special_mode_min_episode_time": 5.0,
+        "special_mode_require_stable": false,
+        "special_mode_stable_projected_gravity_xy_norm_max": 0.5,
+        "special_mode_stable_root_lin_vel_b_abs_max": 3.0,
+        "special_mode_stable_root_ang_vel_b_abs_max": 10.0
+      }
+    }
+  },
+  "reward_weights": {
+    "published_nonzero": {
+      "termination": -200.0,
+      "leg_joint_acc": -5e-07,
+      "leg_joint_vel": -0.005,
+      "joint_torque": -1e-05,
+      "wheel_acc": -1e-08,
+      "wheel_vel": -1e-05,
+      "wheel_power": -1e-05,
+      "lin_vel_z": -0.5,
+      "ang_vel_xy": -0.05,
+      "action_smoothness_leg": -0.05,
+      "action_rate": -0.01,
+      "action_smoothness_wheel": -0.01,
+      "flat_orientation_y_v": -2.0,
+      "flat_orientation_y_exp": 1.0,
+      "flat_orientation_x_v": -2.0,
+      "flat_orientation_x_exp": 1.0,
+      "track_lin_vel_xy": 1.0,
+      "track_lin_vel_xy_square": -0.1,
+      "track_ang_vel_z": 1.0,
+      "track_ang_vel_z_square": -0.1,
+      "stand_still_lin_vel": -1.0,
+      "track_height_exp_tight": 1.0,
+      "track_height_square": -1.0,
+      "no_fork": -1.0,
+      "no_fork_square": -1.0,
+      "undesired_contact": -2.0
+    },
+    "current_nonzero": {
+      "termination": -200.0,
+      "leg_joint_acc": -5e-07,
+      "leg_joint_vel": -0.005,
+      "joint_torque": -1e-05,
+      "wheel_acc": -1e-08,
+      "wheel_vel": -1e-05,
+      "wheel_power": -1e-05,
+      "lin_vel_z": -0.5,
+      "ang_vel_xy": -0.05,
+      "action_smoothness_leg": -0.05,
+      "action_rate": -0.01,
+      "action_smoothness_wheel": -0.01,
+      "flat_orientation_y_v": -2.0,
+      "flat_orientation_y_exp": 1.0,
+      "flat_orientation_x_v": -2.0,
+      "flat_orientation_x_exp": 1.0,
+      "track_lin_vel_xy": 1.0,
+      "track_lin_vel_xy_square": -0.1,
+      "track_ang_vel_z": 1.0,
+      "track_ang_vel_z_square": -0.1,
+      "stand_still_lin_vel": -1.0,
+      "track_height_exp_tight": 1.0,
+      "track_height_square": -1.0,
+      "no_fork": -1.0,
+      "no_fork_square": -1.0,
+      "undesired_contact": -2.0,
+      "mod4_stair_wheel_clearance": 1.0,
+      "mod4_stair_height": 1.0
+    },
+    "added": {
+      "mod4_stair_wheel_clearance": 1.0,
+      "mod4_stair_height": 1.0
+    }
+  },
+  "published_launch_checkpoint": {
+    "path": "/home/zzr/Git_Project/gitea/wheelbipe_rl/logs/rsl_rl/wheelbipe_v14_2_flat_direct/2026-07-19_09-14-50/model_8000.pt",
+    "dir": "/home/zzr/Git_Project/gitea/wheelbipe_rl/logs/rsl_rl/wheelbipe_v14_2_flat_direct/2026-07-19_09-14-50",
+    "file": "model_8000.pt",
+    "resume_training": false
+  },
+  "current_source": {
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_POSTTRAIN_EIGHT_NOH1_PAIR1_V4_20261102_120158_1793592118216803700/roles/E0/production/model_final_complete.pt",
+    "bytes": 14035411,
+    "SHA": "6cdac1e4b84df407d41a38444b87eaa91309ed898af05fe95a6c80f6ac3fd693"
+  },
+  "PPO_recipe": {
+    "num_steps_per_env": 24,
+    "max_iterations": 20000,
+    "policy": {
+      "class_name": "ActorCritic",
+      "init_noise_std": 1.0,
+      "noise_std_type": "scalar",
+      "state_dependent_std": false,
+      "actor_obs_normalization": {},
+      "critic_obs_normalization": {},
+      "actor_hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "critic_hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "activation": "elu"
+    },
+    "algorithm": {
+      "class_name": "PPO",
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "learning_rate": 0.0001,
+      "schedule": "adaptive",
+      "gamma": 0.99,
+      "lam": 0.95,
+      "entropy_coef": 0.005,
+      "desired_kl": 0.01,
+      "max_grad_norm": 1.0,
+      "value_loss_coef": 2.0,
+      "use_clipped_value_loss": true,
+      "clip_param": 0.2,
+      "normalize_advantage_per_mini_batch": false,
+      "rnd_cfg": null,
+      "symmetry_cfg": null
+    }
+  },
+  "actual_training": {
+    "PPO_updates": 60,
+    "samples": 28800000,
+    "Adam_steps": 1200,
+    "iterations_caveat": "Published max_iterations20000 is a configured upper limit, not a verified actual update count for its released model."
+  },
+  "actual_eval": {
+    "epoch": 1793726768.296384,
+    "passed_execution": true,
+    "independent_first_episodes": 80,
+    "seed": 9137,
+    "actual_physics_hz": 400,
+    "controls_max": 400,
+    "source_SHA": "d86732f97d0020c15036281bac2e23d300eb777db6643bb09b8cdc1740a7ae9a",
+    "compatibility": {
+      "source_format": "MOD4V1_SCUT_FULL_V3",
+      "target_format": "MOD4V1_SCUT_FULL_V3",
+      "action_interface_repair": false,
+      "action_clip": 6.0,
+      "action_interface": "mod4_e0_clip6_before_PD_reward_and_action_history"
+    },
+    "optimizer_operations": 0,
+    "strict": 0,
+    "wholeclear": 0,
+    "leading": 0,
+    "anytop_envs": 0,
+    "bothtop_envs": 0,
+    "anytop_environment_ticks": 0,
+    "bothtop_environment_ticks": 0,
+    "max_top_force": 0.0,
+    "all80_manifold": {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_repair_e0_1h_20261104/evaluation/actual400hz.npz",
+      "bytes": 15777288,
+      "SHA": "65e18a212196b0570e7f6b2038c4bb08b93c41104657bdde8e6130605b732e0e"
+    },
+    "actual_poses": {
+      "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_repair_e0_1h_20261104/evaluation/selected_actual_poses.npz",
+      "bytes": 1093874,
+      "SHA": "6b711cbb4c9a3a00e1074e505a370a99bf2cad074f5856e29c3345fa70f3d0cf"
+    },
+    "recorded_envs": [
+      0,
+      1,
+      40,
+      41
+    ],
+    "body_names": [
+      "chassis",
+      "left_thigh",
+      "left_input",
+      "left_drive_hip",
+      "left_drive_input",
+      "right_thigh",
+      "right_input",
+      "right_drive_hip",
+      "right_drive_input",
+      "guide_roller_00",
+      "guide_roller_01",
+      "guide_roller_02",
+      "guide_roller_03",
+      "guide_roller_04",
+      "guide_roller_05",
+      "guide_roller_06",
+      "guide_roller_07",
+      "left_rocker",
+      "left_shin",
+      "left_gas_inner",
+      "left_coupler",
+      "right_rocker",
+      "right_shin",
+      "right_gas_inner",
+      "right_coupler",
+      "left_distal",
+      "left_wheel",
+      "left_gas_barrel",
+      "right_distal",
+      "right_wheel",
+      "right_gas_barrel"
+    ],
+    "course": {
+      "source_branch": "inv_stair_slope_for_rm_mid platform_width=1m",
+      "centre_width_m": 1.0,
+      "nearest_edge_from_centre_m": 0.5,
+      "root_position_m": [
+        0.0,
+        0.0,
+        0.38
+      ],
+      "pose_range": {
+        "roll": [
+          -0.15,
+          0.15
+        ],
+        "pitch": [
+          -0.15,
+          0.15
+        ],
+        "yaw": [
+          -3.14,
+          3.14
+        ]
+      },
+      "root_velocity_zero": true,
+      "step_height_m": 0.27,
+      "raised_boxes_xy": [
+        [
+          0.5,
+          3.5,
+          -3.5,
+          3.5
+        ],
+        [
+          -3.5,
+          -0.5,
+          -3.5,
+          3.5
+        ],
+        [
+          -0.5,
+          0.5,
+          0.5,
+          3.5
+        ],
+        [
+          -0.5,
+          0.5,
+          -3.5,
+          -0.5
+        ]
+      ],
+      "explicit_specialization": "One270mm step, four sides; no rough terrain curriculum",
+      "original_model_joint_pose_not_copied": true
+    },
+    "native_pose_visual_review_pending": true
+  },
+  "latest_training_displayed_metrics": [
+    "Total steps: 28800000",
+    "Mean reward: -10.87",
+    "Mean episode length: 291.08",
+    "Mean action std: 3.97",
+    "Episode_Reward/scut_track_height_square: -2.3242",
+    "Episode_Reward/scut_mod4_stair_wheel_clearance: 0.0000",
+    "Episode_Reward/scut_mod4_stair_height: 0.0000",
+    "Episode/WheelForwardStair/StateRatio: 0.0199"
+  ],
+  "interpretation_limits": [
+    "Rounded0 logs for added rewards do not prove functions never executed.",
+    "100% first-axis clipping and hip targets>.5rad are actual observations, not isolated causal evidence.",
+    "OriginalE0 already had first-axisSTD23.35; do not call it degeneration caused by new training.",
+    "No evidence yet that MOD4v1 is physically incapable of270mm.",
+    "User explicitly chose specialized course without rough curriculum; do not use that as sole excuse or silently restore full rough."
+  ],
+  "current_diagnostic": {
+    "old_failed_before_model_and_physics": true,
+    "source_registry_repaired": true,
+    "current_plan": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v1_scut_step270_2h_20261103\\env20000_repair_e0_1h_20261104\\e0_source_diagnostic\\PLAN_NATIVE_REV3.json",
+    "original_vs_adapted_native_inputs_pending": true,
+    "sole_timer": {
+      "ProcessId": 7512,
+      "ParentProcessId": 30048,
+      "CreationDate": "2026-11-04T04:06:06.094549+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "CommandLine": "C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe -B -X utf8 F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v1_scut_step270_2h_20261103\\e0_source_diagnostic.py repair_timer"
+    }
+  },
+  "next": "Complete repaired finite originalE0 samephysicalendpoint input comparison, inspectall80 and poses. Resolve interface differences first; treat changes to the published training profile as explicit recipe changes rather than one-to-one fixes.",
+  "PT_reads": 0,
+  "new_physics": 0,
+  "optimizer_operations": 0
+}

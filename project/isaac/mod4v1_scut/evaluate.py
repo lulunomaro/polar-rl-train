@@ -10,6 +10,16 @@ import traceback
 from .train import boot,load_guard,put,ScutVecEnv
 
 
+def close_application(app, error):
+    """Some SDK closers exit0; retain an already recorded evaluation failure."""
+    try:
+        app.close()
+    except SystemExit:
+        if error is not None:
+            raise SystemExit(1)
+        raise
+
+
 def first_episode_contact_summary(top, active):
     """Exclude subsequent reset episodes from every contact statistic."""
     import numpy as np
@@ -155,7 +165,7 @@ def main():
         if bridge is not None:bridge.close()
         if env is not None:env.close();put(out/'ENV_CLOSED.json',dict(epoch=time.time(),returned=True))
         put(out/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,env_closed=(out/'ENV_CLOSED.json').exists()))
-        ns['app'].close()
+        close_application(ns['app'], error)
 
 
 if __name__=='__main__':main()

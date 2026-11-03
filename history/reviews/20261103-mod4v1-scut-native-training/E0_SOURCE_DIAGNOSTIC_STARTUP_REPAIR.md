@@ -1,0 +1,9 @@
+# 原E0对照诊断的启动失败与修复
+
+2026-11-04 03:15原timer27216按时启动有限诊断，03:16返回：未能导入SCUT奖励，因为wrapper错误把共享SOURCE_PATHS.json推断到repaired-run目录。该目录没有复制清单；成功训练入口明确引用env20000_1h/SOURCE_PATHS.json。失败发生在模型读取、场景构建和physics之前，未产生80局结果。原LAUNCH/回执/日志保留，owner与worker均ownwaited、locksreleased，0optimizer/0ledgerwrite。旧timer已完成，不能继续称排队或活进程。
+
+SDK app.close在pending exception中退出0，使原WORKER_WAITED rc0且外层release.error=null；结果缺失和evaluation/ERROR才是真实失败。新evaluate.close_application保留失败exit1，新owner同时要求RESULT存在且ERROR不存在；释放锁回执不再被当作评测成功。
+
+修复保存在同一diagnostic根的REV3/owner_eval03/overlay03/evaluation03与reports/attempt03中；不复制树、模型或资产，不重放原LAUNCH。明确引用共享注册表SHA026530b40fdff978609e2bc26306924a3778b7fb1634da139319409fb281e74a；04:05远端只读验证1982B与SHA一致、11个引用文件均存在。五项CPU检查通过，不是native通过。
+
+04:04准入被standingV23 canonical挡住，0GPUscan/0PT/0physics。确切owner1559862/create1793735400.63，原SAVE04:50:01.311627+08、NOMINAL04:55:01.311627；唯一本地timer7512已绑定，等05:10:01.311627后freshLOCAL与exactownrelease/canonical/private/finite准入再首次运行REV3。当前没有新的小时训练。

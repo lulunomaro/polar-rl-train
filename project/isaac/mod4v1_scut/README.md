@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+当前生产 `jump270` **不等同于公开台阶保存配方仅替换机器人**：它开启了原保存配方关闭的状态机，改用固定前进命令、8秒episode和高度目标，并增加两项Stair奖励。逐行追溯记录不能替代这些任务改动的效果验证；具体原值、当前值与失败证据见 `history/reviews/20261103-mod4v1-scut-native-training/SCUT_RECIPE_PARITY_AND_FAILURE_CAUSE.md`。目前0触台的唯一主因尚未隔离，原E0同端点观测/动作对照诊断正在按独立工作单推进。
+
 2026-11-04修复版E0来源20,000环境一小时窗已完整关闭、正式传回并审看早晚4图：60次PPO、28,800,000实际样本、FULL_V3 final SHA `d86732f97d0020c15036281bac2e23d300eb777db6643bb09b8cdc1740a7ae9a`。独立80首局0strict/0wholeclear/0leading/0top；54个原20连续终止、26timeout，平均4.1415s；闭链/mimic/数值和raw异常重置均0。具体证据见 `history/reviews/20261103-mod4v1-scut-native-training/REPAIRED_E0_FINAL_REVIEW.md`。
 
 原E0历史retention已经有第一轴STD23.351587和maxraw140.443，所以此前把相同大输出直接称为SCUT新训练造成的退化，证据不充分，现追加纠正。下一步是显式 `--e0-source-diagnostic`：仅固定SHA的原E0推理，0优化器；在同一实际端点记录原MOD4/适配后观测和各自动作，两者中仅适配后动作进入物理。它仍需原canonical和资源锁释放；不是已执行结果或新一小时训练。普通SCUT检查点检查与生产入口保持显式兼容要求。

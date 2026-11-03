@@ -1,0 +1,55 @@
+{
+  "kind": "NEW_RELEASE_SYNTHETIC_AND_CONTROLLED_ENTRY_PREEXEC_NOT_PHY",
+  "core_SHA": "8d59143b961e1ff93e284cd81be8070508d580509985aa41e3d26db7ab4e8765",
+  "main_instances": [
+    "BasePosition",
+    "NewDefaultDisabled",
+    "NewEnabled"
+  ],
+  "frames_each": 500,
+  "dt_s": 0.01,
+  "frames": "Identical sensor-only tuples to all 3. Absolute start q4 plus .0008*((k%3)-1)*[1,-1,-1,1], finite joint velocities, small pitch/roll/yaw/rates, x=.1*now/vx=.1, packet and state delta mapping agree. No state estimator update/GT/contact.",
+  "config": {
+    "operator_enable": true,
+    "position_trigger_enable": true,
+    "position_trigger_distance_m": 0.1,
+    "position_trigger_min_time_s": 1.0,
+    "position_trigger_deadline_s": 2.6,
+    "trigger_time_s": 1.5,
+    "push_for_s": 0.14,
+    "predicted_air_after_push_s": 0.25,
+    "observer_quarantine_after_push_s": 0.5,
+    "capture_blend_s": 0.1,
+    "landing_transition_enable": true,
+    "landing_transition_s": 0.2
+  },
+  "geometry": "Actual old sensor_core.LinkageGeometry with public pins/radius. No memoized fake geometry. Count every wheel_kinematics call including oracle/constructor/admission; maximum128 before delegation. Oracle reuses already obtained Jacobian result, no extra geometry calls. Internal pose count diagnostic5/call, NOT NominalModel FK.",
+  "geometry_wheel_kinematics_max": 128,
+  "NominalModel_FK_max": 0,
+  "MuJoCo_model_boot_forward_RNE_integrator_max": 0,
+  "oldQA_replay_max": 0,
+  "main_checks": [
+    "500 default-disabled tau/legacylog/ref/ctrl state/prepare flags bit-exact",
+    "enabled all legacy target/phase/observer guards unchanged; only push static FF changes",
+    "first push overlay with launched previously false",
+    "independent original push FF+PD/32clip/roll/yaw/wheel/final40 formula, absolute gate1e-12Nm; wheel bit-exact same input",
+    "all nonpush enabled torque/legacylog/ground ref same fixed inputs",
+    "all gain array bytes and g/end identity preserved; ctrl.tau_eq original alias during push and no overlay poisoning",
+    "exception injection restores identities finally",
+    "position decision schedules next tick; phase counts measured not hardcoded"
+  ],
+  "typed_cases_max": 20,
+  "typed_cases": "Up to9 constructor bad gas/flag cases, <=5 source/data/air-mix binding cases, one trigger guard and one injected-exception case; no extra500 replay. No further test after first failure without parent instruction.",
+  "wall_time": "Set nondiagnostic GroundController.time.perf_counter_ns to0 only while comparing math, restore after. No hardware/deadline claim.",
+  "entry": "Derive real main from frozen run_manual_position_v4. Only class/import/bootstrap, validated ctor kwargs, metadata/source records. For loop/good/main/local/DR driver expressions AST identical. Help once; actual new constructor/preloop once per off/on, fake plant/DR/Bounds and base large-asset manifest explicitly substituted; real geometry/controller/estimate constructor/loaders/StreamedRows. Trace stop before first for-loop body. No full-model admission claim.",
+  "entry_metadata": {
+    "kind": "NEW_NOMINAL_SPRING_RELEASE_PUSH_ONLY_TRAIN",
+    "requested": "cfg.hop.release_spring_compensation_during_push",
+    "enabled": "actual hop.spring_release_active",
+    "data_SHA": "actual enabled endpoint file bytes SHA; None off without loading table",
+    "relative_V3_push_flight_capture_equations_unchanged": false,
+    "only_push_nominal_spring_ff_changed": true,
+    "flight_and_capture_equations_unchanged": true
+  },
+  "failure": "Preserve actual first result/prefix/source snapshot and ask parent; do not rerun/relax gain/gate/budget. No automatic PHY."
+}

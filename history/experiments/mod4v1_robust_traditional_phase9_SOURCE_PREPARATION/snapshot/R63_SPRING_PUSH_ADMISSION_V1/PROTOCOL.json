@@ -1,0 +1,98 @@
+{
+  "kind": "R63_NOMINAL_SPRING_PUSH_ONLY_FLAT_THEN_RM",
+  "configs": [
+    [
+      "r63_spring_release_nominal_flat",
+      {
+        "scene": "flat",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "TALL_ROUGH_BANK_V1/gain_delta0.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6,
+          "release_spring_compensation_during_push": true
+        },
+        "cohort": "R63_SPRING_FF_ONLY_NOMINAL_ADMISSION_NOT_HOLDOUT",
+        "case_id": "r63_spring_release_nominal_flat"
+      }
+    ],
+    [
+      "r63_spring_release_nominal_rm",
+      {
+        "scene": "rm",
+        "seed": 0,
+        "nominal": true,
+        "duration_s": 8.0,
+        "start_x_m": 0.2,
+        "forward_m_s": 0.9,
+        "brake_at_s": 2.5,
+        "end_gain_file": "TALL_ROUGH_BANK_V1/gain_delta20.json",
+        "landing_gain": {
+          "file": "TALL_ROUGH_BANK_V1/gain_delta0.json"
+        },
+        "hop": {
+          "operator_enable": true,
+          "trigger_time_s": 1.95,
+          "push_for_s": 0.14,
+          "predicted_air_after_push_s": 0.25,
+          "capture_blend_s": 0.1,
+          "push_kp": 300.0,
+          "push_kd": 3.0,
+          "wheel_push_Nm": 0.0,
+          "max_trigger_speed_m_s": 1.2,
+          "observer_quarantine_after_push_s": 0.5,
+          "landing_transition_enable": true,
+          "landing_transition_s": 0.2,
+          "position_trigger_enable": true,
+          "position_trigger_distance_m": 1.18,
+          "position_trigger_min_time_s": 1.0,
+          "position_trigger_deadline_s": 2.6,
+          "release_spring_compensation_during_push": true
+        },
+        "cohort": "R63_SPRING_FF_ONLY_NOMINAL_ADMISSION_NOT_HOLDOUT",
+        "case_id": "r63_spring_release_nominal_rm",
+        "terrain_seed": 9001,
+        "terrain_difficulty": 1.0
+      }
+    ]
+  ],
+  "max_workers": 1,
+  "candidate_binding": {
+    "kind": "NEW_NOMINAL_SPRING_RELEASE_PUSH_ONLY_TRAIN",
+    "config_feature_key": "release_spring_compensation_during_push",
+    "result_feature_field": "spring_release_enabled",
+    "manifest_feature_field": "spring_release_requested",
+    "data_hash_field": "nominal_gas_endpoint_data_SHA",
+    "core_path": "SPRING_PUSH_RELEASE_V1/controller.py",
+    "entry_path": "SPRING_PUSH_RELEASE_V1/run_manual_spring_push_v1.py",
+    "data_path": "SPRING_PUSH_DECOMPOSITION_V1/ENDPOINTS.json"
+  },
+  "single_delta": "Nominal elastic endpoint gas add-back to timed-push static FF only; physical spring and original guards/PD/driver/air/capture unchanged.",
+  "original_success_gates_unchanged": true,
+  "no_H5_or_old_PHY_replay": true,
+  "post_PH7_cutoff_PH8_pending": true,
+  "separate_paired_approval_required": true,
+  "actual_model_admission_not_claimed_from_fake_preloop": true
+}

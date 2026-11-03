@@ -1,0 +1,11 @@
+# PH9 SOURCE_PREPARATION ONLY — closed R63
+
+Written authority PH9_ARCHIVE_CUTOFF_R63.json, CLOSED_R63_SOURCE_SNAPSHOT_ONLY_NOT_GIT_APPROVAL. Own repo F:/RMPOLAR-RL/repo-lqr-robust, branch mod4v1-lqr-mpc-robust, observed HEAD662204600bf79ace36815db569a5d02f3b327981. Office/ACL catalog has no source-archive/robotics matching workflow; bounded file/read/stdlib CLI used. Ownrepo AGENTS and both Git policies read. No new agent/Goal action.
+
+Only seven closed dirs named by authority, existing named root/report files and actual executed-source/import/gain/schema/provenance closure. Actual four listed R63batch PROTOCOL.case_names admit results, not names or mtime. Independently reconcile actual6/4800/96000 and original nominal2/2/selected1/4 vs saved oldsame4=2/4. Main-firstflight4/4 is not whole-robot crossing. New unit500x3, mocked1control20step/callbacks, fakepreloop ERROR and harness SyntaxError/correction are evidence, never extra robot trials.
+
+Prefer exact prior PH1–8 archived-byte refs. PH8 postcommitreceipt eligible as its own frozen @repo snapshot, original pending dirs not stage/delete. Existing spring G mathematical27FK/168 and public data/helper SHA reused, not rerun. Mechanical-work fourraw and new4610 guide two raw consumed previously once; archive reads only small summaries/producer metadata. JSONL/PDF/ZIP/USD/STL/exe/object/large/unrecognized files metadata only, existing SHA or unknown, never content read for archive. No Downloads/assets/API reads.
+
+No sourceRoot/model/controller/data/score/seal/expertindex/main/helper edits. No PHY/FK/QA/unit/compile/once/GPU/newagent/Git helper/stage/record/commit/tag/push or old trial replay. Historical gaps/two savedtext versions/conflicting binary currentSHA stay explicit, not recreated or pooled. Current snapshot phase references/counters remain chronology, not rewritten as success or current authority.
+
+TAKEOFF_MOMENTUM_CAPTURE_METHOD_V1 and all future momentum telemetry/controller work, R64+ scripts/cases/batches/reports/handoffs, otherexpert/RLcanonical are excluded without traversal. CONTINUATION_R63 is parent-declared closed; any later version is recorded as future metadata, not substituted. Postcut PH10pending. Stop at REVIEW_HANDOFF/INDEX/manifest/cases/qualification/gaps/consistency for parent review; later Git needs separate explicit approval.

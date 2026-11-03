@@ -1,0 +1,68 @@
+{
+  "kind": "TWO_EXISTING_NOMINAL_FLAT_SINGLE_PASS_SIGNED_PRE_MECHANICAL_WORK_NOT_BUS_ENERGY",
+  "cases": [
+    "r58_tall0_position_flat",
+    "r63_spring_release_nominal_flat"
+  ],
+  "allowed_raw_paths": [
+    "results/r58_tall0_position_flat/trace.jsonl",
+    "results/r58_tall0_position_flat/physics.jsonl",
+    "results/r63_spring_release_nominal_flat/trace.jsonl",
+    "results/r63_spring_release_nominal_flat/physics.jsonl"
+  ],
+  "max_total_rows": 33600,
+  "each_raw_open_max": 1,
+  "control_rows_each": 800,
+  "physical_rows_each": 16000,
+  "physical_dt_s": 0.0005,
+  "control_dt_s": 0.01,
+  "substeps": 20,
+  "clock_tolerance_s": 1e-08,
+  "row6_order": [
+    "Lhip",
+    "Lcrank",
+    "Lwheel",
+    "Rhip",
+    "Rcrank",
+    "Rwheel"
+  ],
+  "legs": [
+    0,
+    1,
+    3,
+    4
+  ],
+  "wheels": [
+    2,
+    5
+  ],
+  "integrand": "drivepoint.actual_tau6_Nm * drivepoint.velocity6_rad_s at SAME captured PRE stage. P_i W; W_i=left-Riemann sum(P_i*.0005) J.",
+  "sign_split": "Per axis before grouping: positive=max(P_i,0), negative=min(P_i,0) signed. Group net=positive+negative; no regeneration credit.",
+  "phase": "actual control row.phase.phase at index physical.sample_index//20, not hardcoded1.95 or Npush; verify physical_sample_rows and command/post stamp. Keep all observed phases, whole episode includes approach.",
+  "time_check": "sample_index and drivepoint.physics_tick both equal physical index; stage matches drive time/cache_stages.drive_s and control command+subindex*.0005, rootPOST=stage+.0005; final sample included as [lastPRE,lastPOST). No q/dqPOST reconstruction.",
+  "prefix_fields": [
+    "time_s",
+    "command_time_s",
+    "forward_command_m_s",
+    "sensor_time_s",
+    "sensor_age_s",
+    "estimated14",
+    "estimated_roll",
+    "raw_gyro",
+    "raw_proper",
+    "encoder_q4",
+    "encoder_qd4",
+    "wheel_rate_mean2",
+    "requested_tau6"
+  ],
+  "prefix": "compare shared100Hz fields at same index strictly BEFORE min(actual first timed_push index), report value count/maxdiff/JSON float bits, not2k bitidentity or a qualification gate.",
+  "events": "reported old grades preserved; from physical existing air_qualified/air_run_s extract first confirmation, first subsequent total>1N landing, main mesh peak; no newgrade or score mutation.",
+  "missing": "missing fields/time/schema/nonfinite -> explicit unknown/instrumentation error and saved prefix only, never manufacture0. No retry/raw reread.",
+  "no_actions": [
+    "model/FK/driver/unit/QA/PHY rerun",
+    "otherDR/H5/raw/zip/large hash",
+    "gain/score/source edits",
+    "q reconstruction",
+    "newhypothesis/Git/agent/goal"
+  ]
+}

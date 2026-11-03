@@ -47,6 +47,8 @@ def parse_args():
     parser.add_argument('--init-checkpoint')
     parser.add_argument('--init-SHA')
     parser.add_argument('--init-bytes', type=int)
+    parser.add_argument('--repair-unclipped-v2', action='store_true',
+                        help='Explicitly migrate the failed V2 execution interface to MOD4 clip6')
     parser.add_argument('--device', default='cuda:0')
     return parser.parse_args()
 
@@ -113,8 +115,12 @@ class ScutVecEnv:
         return self._adapted_observations
 
     def step(self, action):
-        self.bridge.pending_actions.copy_(action)
-        raw, reward, terminated, timeout, extras = self.env.step(action)
+        from .config import ACTION_CLIP
+        # Do not mutate the sampled tensor retained by RSL for its Gaussian
+        # log-probability. The original MOD4 wrapper clips only the env input.
+        applied = action.clamp(-ACTION_CLIP, ACTION_CLIP)
+        self.bridge.pending_actions.copy_(applied)
+        raw, reward, terminated, timeout, extras = self.env.step(applied)
         self.current = raw
         info = dict(extras)
         info['time_outs'] = timeout  # vecenv_wrapper.py:186; hard resets resolved upstream
@@ -230,11 +236,13 @@ def main():
             put(job/'FINETUNE_INITIALIZATION.json',receipt)
         if args.resize_resume:
             from .checkpoint import restore_resized_learning
-            receipt=restore_resized_learning(runner,args.resize_resume,args.init_SHA,args.init_bytes,args.profile,env.num_envs)
+            receipt=restore_resized_learning(runner,args.resize_resume,args.init_SHA,args.init_bytes,args.profile,env.num_envs,bridge.reward,
+                repair_unclipped_v2=args.repair_unclipped_v2)
             put(job/'RESIZED_LEARNING_RESTORE.json',receipt)
         env._get_training_iteration = lambda: runner.current_learning_iteration
         with guard.around_original_fullstate_restore():
-            reset = restore(runner, env, bridge, args.resume, args.profile) if args.resume else env.reset()
+            reset = restore(runner, env, bridge, args.resume, args.profile,
+                repair_unclipped_v2=args.repair_unclipped_v2) if args.resume else env.reset()
         vec.current = reset[0] if isinstance(reset, tuple) else reset
         initialize_episode_lengths(vec, args.profile)
         guard.check_observations(vec.current)
@@ -248,12 +256,15 @@ def main():
             raise RuntimeError('Original full D0-D7 profiles must all be active')
         bridge.ready = True
         from .course import metadata
+        from .config import ACTION_CLIP, ACTION_INTERFACE
         put(job/'STARTUP.json',dict(epoch=time.time(),
             actual_native=True, profile=args.profile, usd_SHA=identity.usd_sha256,
             contract_SHA=identity.contract_sha256, D0_D7=startup, actor=35, critic=78,
             quaternion_order=bridge.quaternion_order,
             quaternion_readback=bridge.quaternion_readback,
-            actions=6, physics_dt=.0025, policy_hz=50, feedback_hz=100,
+            actions=6, action_clip=ACTION_CLIP, action_interface=ACTION_INTERFACE,
+            repair_unclipped_v2=args.repair_unclipped_v2,
+            physics_dt=.0025, policy_hz=50, feedback_hz=100,
             closure_m=.01, mimic_rad=.01, course=metadata(),trained_skill=False))
         stop = False
         def stop_after_update(*unused):

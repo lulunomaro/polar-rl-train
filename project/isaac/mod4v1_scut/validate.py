@@ -335,6 +335,8 @@ class Tests(unittest.TestCase):
         self.assertGreaterEqual(self.branch_count,45)
 
     def test_real_rsl_rollout_gae_update_save_restore(self):
+        from copy import deepcopy
+        import random
         from .train import build_runner
         from .checkpoint import save,restore,COMPONENTS
         n=8
@@ -393,15 +395,39 @@ class Tests(unittest.TestCase):
         r,_,_=fixture(n)
         bridge=SimpleNamespace(reward=r,physics_ticks=192)
         runner.current_learning_iteration=1
+        r._value_debug_step=37;r.common_step_counter=192
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'fixture.pt'
             save(runner,env,bridge,path,'trained_stair')
-            saved={k:v.clone() for k,v in runner.alg.actor.state_dict().items()}
+            saved=deepcopy(runner.alg.save())
+            saved_lr=runner.alg.learning_rate
+            expected_torch=torch.rand(5);expected_numpy=np.random.rand(5);expected_python=random.random()
+            expected_command=torch.rand(5,generator=command.rng)
             with torch.no_grad():
                 for p in runner.alg.actor.parameters():p.add_(1)
+                for p in runner.alg.critic.parameters():p.add_(2)
+                for state in runner.alg.optimizer.state.values():
+                    for value in state.values():
+                        if torch.is_tensor(value):value.zero_()
+            runner.alg.learning_rate=.007;runner.current_learning_iteration=0
+            for group in runner.alg.optimizer.param_groups:group['lr']=.007
+            r._value_debug_step=0;r.common_step_counter=0
             command.time_left.zero_()
+            torch.rand(11);np.random.rand(11);random.random();torch.rand(11,generator=command.rng)
             restore(runner,env,bridge,path,'trained_stair')
-            self.assertTrue(all(torch.equal(v,saved[k]) for k,v in runner.alg.actor.state_dict().items()))
+            actual=runner.alg.save()
+            for key in ('actor_state_dict','critic_state_dict'):
+                for name,value in saved[key].items():torch.testing.assert_close(actual[key][name],value,atol=0,rtol=0)
+            for key,value in saved['optimizer_state_dict']['state'].items():
+                for name,tensor in value.items():torch.testing.assert_close(actual['optimizer_state_dict']['state'][key][name],tensor,atol=0,rtol=0)
+            self.assertEqual(runner.current_learning_iteration,1)
+            self.assertEqual(runner.alg.learning_rate,saved_lr)
+            self.assertTrue(all(g['lr']==saved_lr for g in runner.alg.optimizer.param_groups))
+            self.assertEqual((r._value_debug_step,r.common_step_counter),(37,192))
+            torch.testing.assert_close(torch.rand(5),expected_torch,atol=0,rtol=0)
+            np.testing.assert_array_equal(np.random.rand(5),expected_numpy)
+            self.assertEqual(random.random(),expected_python)
+            torch.testing.assert_close(torch.rand(5,generator=command.rng),expected_command,atol=0,rtol=0)
             self.assertEqual(reset_calls,[1])
             self.assertTrue(torch.equal(command.time_left,torch.full((n,),2.)))
             self.assertTrue(all(group['last_apply_tick'].item()==-1 for group in component['_physics_action_delay'].queue.groups.values()))

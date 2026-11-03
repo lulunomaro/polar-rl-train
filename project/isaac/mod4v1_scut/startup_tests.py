@@ -19,7 +19,7 @@ from .math_ops import quat_from_euler_xyz
 class Tests(unittest.TestCase):
     def test_resized_population_keeps_complete_ppo_and_rejects_bad_identity(self):
         from .checkpoint import restore_resized_learning,learning_state,FORMAT,INTERFACE
-        from .config import USD_SHA,CONTRACT_SHA
+        from .config import USD_SHA,CONTRACT_SHA,ACTION_CLIP,ACTION_INTERFACE
         class Env:
             num_envs=8;num_actions=6;device='cpu';max_episode_length=400;cfg={}
             episode_length_buf=torch.zeros(8,dtype=torch.long)
@@ -31,18 +31,22 @@ class Tests(unittest.TestCase):
         loss.backward();old.alg.optimizer.step();old.current_learning_iteration=26
         import numpy as np,random
         saved=dict(learning_state(old),format=FORMAT,interface=INTERFACE,profile='jump270',
-            usd_SHA=USD_SHA,contract_SHA=CONTRACT_SHA,num_envs=80,cpu_rng=torch.get_rng_state(),
-            cuda_rng=[],python_rng=random.getstate(),numpy_rng=np.random.get_state())
+            usd_SHA=USD_SHA,contract_SHA=CONTRACT_SHA,actor_dim=35,critic_dim=78,
+            action_clip=ACTION_CLIP,action_interface=ACTION_INTERFACE,num_envs=80,cpu_rng=torch.get_rng_state(),
+            cuda_rng=[],python_rng=random.getstate(),numpy_rng=np.random.get_state(),
+            source_global_counters=dict(_value_debug_step=17,common_step_counter=624))
+        reward=SimpleNamespace(_value_debug_step=0,common_step_counter=0)
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)/'synthetic.pt';torch.save(saved,path);raw=path.read_bytes()
-            receipt=restore_resized_learning(new,path,hashlib.sha256(raw).hexdigest(),len(raw),'jump270',20000)
+            receipt=restore_resized_learning(new,path,hashlib.sha256(raw).hexdigest(),len(raw),'jump270',20000,reward)
             self.assertEqual(new.current_learning_iteration,26)
             self.assertEqual(receipt['new_envs'],20000)
             self.assertTrue(receipt['actor_critic_STD_Adam_LR_iteration_restored'])
+            self.assertEqual((reward._value_debug_step,reward.common_step_counter),(17,624))
             for key,value in old.alg.actor.state_dict().items():torch.testing.assert_close(value,new.alg.actor.state_dict()[key],atol=0,rtol=0)
             for key,value in old.alg.optimizer.state_dict()['state'].items():
                 for name,tensor in value.items():torch.testing.assert_close(tensor,new.alg.optimizer.state_dict()['state'][key][name],atol=0,rtol=0)
-            with self.assertRaises(ValueError):restore_resized_learning(new,path,'0'*64,len(raw),'jump270',20000)
+            with self.assertRaises(ValueError):restore_resized_learning(new,path,'0'*64,len(raw),'jump270',20000,reward)
 
     def test_weights_and_semantic_critic_columns(self):
         from rsl_rl.runners import OnPolicyRunner

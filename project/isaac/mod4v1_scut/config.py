@@ -12,6 +12,11 @@ LEGS = ('left_crank', 'left_hip', 'right_crank', 'right_hip')
 WHEELS = ('left_wheel_spin', 'right_wheel_spin')
 WHEEL_BODIES = ('left_wheel', 'right_wheel')
 GUIDE_BODIES = tuple(f'guide_roller_{i:02d}' for i in range(8))
+# The selected MOD4 E0 policy was trained and evaluated through the original
+# RslRlVecEnvWrapper clip_actions=6.0. This is its execution interface, separate
+# from SCUT's published agent.yaml (clip_actions=None). Keep PPO samples raw.
+ACTION_CLIP = 6.0
+ACTION_INTERFACE = 'mod4_e0_clip6_before_PD_reward_and_action_history'
 # The V14 subclass (env.py:117-130) adds guides back to base harmful contacts.
 # MOD4's additional drive/gas bodies belong to the non-rolling leg structure.
 STRUCTURAL_BODIES = ('chassis',) + tuple(

@@ -215,6 +215,11 @@ class ScutBridge:
             root[:,2]=self.env.scene.env_origins[ids,2]+SPAWN_HEIGHT
             root[:,7:]=0.
             self.robot.write_root_state_to_sim(root,env_ids=ids)
+            if isinstance(self.acceptance, FourSideStrict270):
+                q = root[:,3:7]
+                if self.quaternion_order == 'xyzw':
+                    q = q[:,[3,0,1,2]]
+                self.acceptance.set_spawn_orientation(ids, q)
             # Read sensors after the manager has flushed reset poses to PhysX,
             # when it constructs the returned observation (no extra sim step).
             self.reset_scan_pending[ids] = True
@@ -400,6 +405,15 @@ class ScutBridge:
 
     def snapshot(self, terminated, timeout):
         r = self.reward
+        threshold = r._terminate_obs_abs if r._terminate_obs_abs > 0 else float(getattr(r.cfg, 'debug_obs_alert_threshold', 0.))
+        raw_bad = r._obs_raw_policy_has_nonfinite.clone()
+        if threshold > 0:
+            raw_bad |= r._obs_raw_policy_max_abs > threshold
+        if r.cfg.state_space is not None:
+            raw_bad |= r._obs_raw_critic_has_nonfinite
+            if threshold > 0:
+                raw_bad |= r._obs_raw_critic_max_abs > threshold
+        raw_bad &= bool(r._terminate_on_obs_outlier and r._value_debug_step > 10)
         return dict(root_pos=r.robot.data.root_pos_w.clone(),
                     root_quat=r.robot.data.root_quat_w.clone(),
                     wheels=r.robot.data.body_pos_w[:, r._wheel_link_idx].clone(),
@@ -410,7 +424,18 @@ class ScutBridge:
                     first_flight_leading=self.acceptance.leading.clone(),
                     longest_stable_seconds=self.acceptance.stable_peak.clone()*.0025,
                     longest_valid_top_seconds=self.acceptance.support_peak.clone()*.0025,
-                    physics_ticks=self.physics_ticks)
+                    physics_ticks=self.physics_ticks,
+                    applied_action=self.pending_actions.clone(),
+                    joint_target=r.robot.data.joint_pos_target[:,r._legs_act_idx].clone(),
+                    raw_policy_max_abs=r._obs_raw_policy_max_abs.clone(),
+                    raw_critic_max_abs=r._obs_raw_critic_max_abs.clone(),
+                    observation_outlier=raw_bad,
+                    closure_reset=self.env.termination_manager.get_term('closure').clone(),
+                    mimic_reset=self.env.termination_manager.get_term('mimic').clone(),
+                    numerical_reset=r._numerical_safety_reset_buf.clone(),
+                    termination_duration_counter=r._termination_duration_counter.clone(),
+                    observation_debug_step=r._value_debug_step,
+                    observation_debug_enabled=r._value_debug_enabled)
 
     def observations(self, raw):
         """35 actor; 78 critic with actual MOD4 equivalents of SCUT privileged fields."""

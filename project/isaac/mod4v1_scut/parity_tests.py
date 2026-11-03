@@ -81,7 +81,9 @@ class ParityTests(unittest.TestCase):
 
     def test_raw_observation_outliers_before_clip_reset_after_warmup(self):
         b, r, _, _ = bridge_fixture(3)
+        r._value_debug_enabled = True
         for _ in range(11):
+            r._debug_print_reward_and_state_stats()
             r.cache_raw_observations({'actions':torch.tensor([[121.],[0.],[0.]])},
                                      {'root_lin_vel_b':torch.tensor([[0.],[float('nan')],[120.]])})
         self.assertEqual(b.resolve_done()[0].tolist(), [True,True,False])

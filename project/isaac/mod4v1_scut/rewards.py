@@ -73,6 +73,7 @@ class ScutRewards:
         self._terminate_obs_abs = float(getattr(self.cfg, 'terminate_obs_abs', 0.))
         self._terminate_obs_print_interval = int(getattr(self.cfg, 'terminate_obs_print_interval', 50))
         self._terminate_obs_print_counter = 0
+        self._value_debug_enabled = bool(getattr(self.cfg, 'debug_value_diagnosis', False))
         self._value_debug_step = 0
         for stream in ('policy', 'critic'):
             setattr(self, '_obs_raw_'+stream+'_max_abs', torch.zeros(num_envs, device=device))
@@ -227,7 +228,11 @@ class ScutRewards:
         pass
 
     def _debug_print_reward_and_state_stats(self, *args):
-        pass
+        # Source env.py:4091-4095 advances this clock at reward tail only when
+        # diagnostics are enabled. _get_dones also consumes this exact clock.
+        # Keep that behavior even though this adapter omits console printing.
+        if self._value_debug_enabled:
+            self._value_debug_step += 1
 
     def _resample_custom_cmd(self, command_counter):
         # env.py:5592-5601. Optional airborne resets/height waves are disabled
@@ -249,7 +254,6 @@ class ScutRewards:
             maximum, invalid = self._per_env_max_abs_from_blocks(blocks, self.num_envs, self.device)
             setattr(self, '_obs_raw_'+stream+'_max_abs', maximum)
             setattr(self, '_obs_raw_'+stream+'_has_nonfinite', invalid)
-        self._value_debug_step += 1
 
     def _on_command_updated(self):
         # Upstream invokes this at reward tail, then again at observations.

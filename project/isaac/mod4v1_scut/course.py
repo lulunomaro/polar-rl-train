@@ -49,6 +49,10 @@ class FourSideStrict270:
         for meter in self.meters:
             meter.reset(ids)
 
+    def set_spawn_orientation(self, ids, quaternion):
+        """Yaw acceptance is relative to the reset pose, before physics moves it."""
+        self.initial_yaw[ids] = euler_xyz_from_quat(quaternion)[2]
+
     def update_world(self, positions, quaternions, contract, origins, top_force,
                      ground_force, wheel_net, nonwheel_force, velocity, root_quat, active):
         low,high = wheel_bounds(positions,quaternions,contract)

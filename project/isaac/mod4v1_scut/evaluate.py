@@ -10,12 +10,25 @@ import traceback
 from .train import boot,load_guard,put,ScutVecEnv
 
 
+def first_episode_contact_summary(top, active):
+    """Exclude subsequent reset episodes from every contact statistic."""
+    import numpy as np
+    both=(top>1).all(-1)&active
+    anytop=(top>1).any(-1)&active
+    return dict(anytop_envs=int(anytop.any(0).sum()),
+        bothtop_envs=int(both.any(0).sum()),
+        anytop_environment_ticks=int(anytop.sum()),
+        bothtop_environment_ticks=int(both.sum()),
+        max_top_force=float(np.where(active[...,None],top,0.).max()))
+
+
 def main():
     p=argparse.ArgumentParser()
     for name in ('assets','runtime','runtime-manifest','guard','job-root','checkpoint','checkpoint-SHA'):
         p.add_argument('--'+name,required=True)
     p.add_argument('--support',action='append',default=[])
     p.add_argument('--profile',choices=['trained_stair','jump270'],default='jump270')
+    p.add_argument('--repair-unclipped-v2',action='store_true')
     a=p.parse_args();a.num_envs=80;a.seed=9137;a.device='cuda:0'
     out=Path(a.job_root);out.mkdir(parents=True,exist_ok=False)
     ns=boot(a,out);env=bridge=None;error=None
@@ -30,7 +43,7 @@ def main():
         from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
         from .sdk import configure,ScutBridge
         from .config import model_contract,runner_config
-        from .checkpoint import FORMAT,INTERFACE
+        from .checkpoint import check_interface
         from .course import metadata
         random.seed(a.seed);np.random.seed(a.seed);torch.manual_seed(a.seed);torch.cuda.manual_seed_all(a.seed)
         guard_module=load_guard(a.guard);identity=ns['E0_IDENTITY']
@@ -51,15 +64,15 @@ def main():
         raw=Path(a.checkpoint).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=a.checkpoint_SHA:raise ValueError('Final checkpoint identity mismatch')
         saved=torch.load(io.BytesIO(raw),map_location=a.device,weights_only=False);del raw
-        if saved.get('format')!=FORMAT or saved.get('interface')!=INTERFACE or saved['profile']!=a.profile:
-            raise ValueError('Independent evaluation input schema mismatch')
+        compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2)
         actor.load_state_dict(saved['actor_state_dict'],strict=True);actor.eval().requires_grad_(False)
         with guard.around_original_fullstate_restore():
             obs=env.reset();vec.current=obs[0] if isinstance(obs,tuple) else obs
         guard.check_observations(vec.current)
         bridge.ready=True
         put(out/'NATIVE_STARTUP.json',dict(epoch=time.time(),native=True,D0_D7=guard.receipt(),
-            source_SHA=a.checkpoint_SHA,model_reads=1,optimizer_operations=0,seed=9137,course=metadata()))
+            source_SHA=a.checkpoint_SHA,model_reads=1,optimizer_operations=0,seed=9137,
+            compatibility=compatibility,course=metadata()))
         active=torch.ones(80,dtype=torch.bool,device=a.device)
         allticks=[];poses=[];curves=[];result=[None]*80;record_ids=[0,1,40,41]
         # Use a bounded callback; physical stepping remains solely env.step.
@@ -89,7 +102,11 @@ def main():
                 result[i]={k:(v[i].detach().cpu().tolist() if torch.is_tensor(v) else v) for k,v in snap.items()}
                 result[i].update(env=i,controls=control+1)
             curves.append(dict(control=control+1,active=active.cpu().tolist(),reward=rewards.detach().cpu().tolist(),
-                action=action.detach().cpu().tolist(),joint_target=tensor(env.scene['robot'].data.joint_pos_target)[:,bridge.reward._legs_act_idx].detach().cpu().tolist()))
+                action=action.detach().cpu().tolist(),
+                **{key:snap[key].detach().cpu().tolist() for key in (
+                    'applied_action','joint_target','raw_policy_max_abs','raw_critic_max_abs',
+                    'observation_outlier','closure_reset','mimic_reset','numerical_reset',
+                    'termination_duration_counter')}))
             active &= ~done
             if not bool(active.any()):break
         def npz(name,rows):
@@ -101,14 +118,11 @@ def main():
         put(out/'CONTROL_CURVES.json',dict(curves=curves))
         put(out/'ALL80.json',dict(seed=9137,first_episodes=result))
         top=np.stack([r['top_force'] for r in allticks]);mask=np.stack([r['active'] for r in allticks])
-        both=(top>1).all(-1)&mask;anytop=(top>1).any(-1)&mask
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in result),
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
-            source_SHA=a.checkpoint_SHA,optimizer_operations=0,strict=sum(r['strict270'] for r in result),
+            source_SHA=a.checkpoint_SHA,compatibility=compatibility,optimizer_operations=0,strict=sum(r['strict270'] for r in result),
             wholeclear=sum(r['first_flight_wholeclear'] for r in result),leading=sum(r['first_flight_leading'] for r in result),
-            anytop_envs=int(anytop.any(0).sum()),bothtop_envs=int(both.any(0).sum()),
-            anytop_environment_ticks=int(anytop.sum()),bothtop_environment_ticks=int(both.sum()),
-            max_top_force=float(top.max()),all80_manifold=ticks,actual_poses=posefile,
+            **first_episode_contact_summary(top,mask),all80_manifold=ticks,actual_poses=posefile,
             recorded_envs=record_ids,body_names=list(bridge.robot.body_names),course=metadata(),
             native_pose_visual_review_pending=True))
     except BaseException:

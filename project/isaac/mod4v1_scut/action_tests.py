@@ -9,7 +9,7 @@ import torch
 from tensordict import TensorDict
 
 from .checkpoint import check_interface, FORMAT, INTERFACE, LEGACY_FORMAT, LEGACY_INTERFACE
-from .config import ACTION_CLIP, ACTION_INTERFACE, USD_SHA, CONTRACT_SHA
+from .config import ACTION_CLIP, ACTION_INTERFACE, TARGET_INTERFACE, USD_SHA, CONTRACT_SHA
 from .train import ScutVecEnv, build_runner
 from .parity_tests import bridge_fixture
 
@@ -87,8 +87,9 @@ class Tests(unittest.TestCase):
         data=dict(format=LEGACY_FORMAT,interface=LEGACY_INTERFACE,profile='jump270',
                   usd_SHA=USD_SHA,contract_SHA=CONTRACT_SHA,actor_dim=35,critic_dim=78)
         with self.assertRaises(ValueError):check_interface(data,'jump270')
-        self.assertTrue(check_interface(data,'jump270',True)['action_interface_repair'])
-        data.update(format=FORMAT,interface=INTERFACE,action_clip=ACTION_CLIP,action_interface=ACTION_INTERFACE)
+        self.assertTrue(check_interface(data,'jump270',True,True)['action_interface_repair'])
+        data.update(format=FORMAT,interface=INTERFACE,action_clip=ACTION_CLIP,action_interface=ACTION_INTERFACE,
+                    target_interface=TARGET_INTERFACE)
         self.assertFalse(check_interface(data,'jump270')['action_interface_repair'])
         data['critic_dim']=38
         with self.assertRaises(ValueError):check_interface(data,'jump270',True)

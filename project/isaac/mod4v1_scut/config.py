@@ -17,6 +17,7 @@ GUIDE_BODIES = tuple(f'guide_roller_{i:02d}' for i in range(8))
 # from SCUT's published agent.yaml (clip_actions=None). Keep PPO samples raw.
 ACTION_CLIP = 6.0
 ACTION_INTERFACE = 'mod4_e0_clip6_before_PD_reward_and_action_history'
+TARGET_INTERFACE = 'mod4_contract_position_limits_then_existing_CAD_difference_before_D4_v1'
 # The V14 subclass (env.py:117-130) adds guides back to base harmful contacts.
 # MOD4's additional drive/gas bodies belong to the non-rolling leg structure.
 STRUCTURAL_BODIES = ('chassis',) + tuple(

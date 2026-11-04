@@ -13,6 +13,7 @@ from .config import WHEEL_BODIES, observation_component, ground_scan_config, rew
 from .commands import build_command_cfg, RewardTailCommand
 from .math_ops import euler_xyz_from_quat, quat_apply, detect_sdk_quaternion_order
 from .rewards import ScutRewards, indices
+from .target_limits import limited_action_type
 from .acceptance import Strict270, wheel_bounds
 from .course import BOXES, HEIGHT, POSE_RANGE, SPAWN_HEIGHT, FourSideStrict270, top_mask
 
@@ -62,11 +63,14 @@ def placeholder_reward(env):
     return torch.zeros(env.num_envs, device=env.device)
 
 
-def configure(cfg, n, profile='trained_stair'):
+def configure(cfg, n, profile='trained_stair', contract=None):
     global COURSE_N
     from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
     from isaaclab.managers import RewardTermCfg
     COURSE_N = n
+    if contract is None:
+        raise ValueError('Bind enhanced MOD4 contract before constructing action targets')
+    cfg.actions.legs.class_type = limited_action_type(cfg.actions.legs.class_type, contract)
     cfg.scene.num_envs, cfg.scene.env_spacing = n, 8.
     cfg.scene.ground.spawn.func = spawn_course
     cfg.scene.ground.init_state.pos = (0., 0., 0.)

@@ -19,7 +19,7 @@ from .math_ops import quat_from_euler_xyz
 class Tests(unittest.TestCase):
     def test_resized_population_keeps_complete_ppo_and_rejects_bad_identity(self):
         from .checkpoint import restore_resized_learning,learning_state,FORMAT,INTERFACE
-        from .config import USD_SHA,CONTRACT_SHA,ACTION_CLIP,ACTION_INTERFACE
+        from .config import USD_SHA,CONTRACT_SHA,ACTION_CLIP,ACTION_INTERFACE,TARGET_INTERFACE
         class Env:
             num_envs=8;num_actions=6;device='cpu';max_episode_length=400;cfg={}
             episode_length_buf=torch.zeros(8,dtype=torch.long)
@@ -32,7 +32,8 @@ class Tests(unittest.TestCase):
         import numpy as np,random
         saved=dict(learning_state(old),format=FORMAT,interface=INTERFACE,profile='jump270',
             usd_SHA=USD_SHA,contract_SHA=CONTRACT_SHA,actor_dim=35,critic_dim=78,
-            action_clip=ACTION_CLIP,action_interface=ACTION_INTERFACE,num_envs=80,cpu_rng=torch.get_rng_state(),
+            action_clip=ACTION_CLIP,action_interface=ACTION_INTERFACE,target_interface=TARGET_INTERFACE,
+            num_envs=80,cpu_rng=torch.get_rng_state(),
             cuda_rng=[],python_rng=random.getstate(),numpy_rng=np.random.get_state(),
             source_global_counters=dict(_value_debug_step=17,common_step_counter=624))
         reward=SimpleNamespace(_value_debug_step=0,common_step_counter=0)

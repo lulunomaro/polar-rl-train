@@ -59,12 +59,44 @@ def migrate_weights(runner, saved):
         source_checkpoint_unchanged=True)
 
 
-def initialize(runner, path, expected_sha, expected_bytes):
+def repair_saturated_first_axis(actor):
+    """Explicit task initialization repair after actual100% left-crank clipping."""
+    layer = [module for module in actor.mlp.modules() if isinstance(module, torch.nn.Linear)][-1]
+    if layer.out_features != 6 or actor.distribution.std_type != 'scalar':
+        raise ValueError('Expected named MOD4 six-output scalar-STD policy')
+    with torch.no_grad():
+        old_std = float(actor.distribution.std_param[0])
+        layer.weight[0].zero_()
+        layer.bias[0].zero_()
+        actor.distribution.std_param[0] = 1.
+    return dict(kind='EXPLICIT_SATURATED_LEFT_CRANK_INITIALIZATION_REPAIR',
+        action_slot=0, joint_name='left_crank', first_output_row_and_bias_zero=True,
+        first_axis_std_before=old_std, first_axis_std_after=1.,
+        other_output_rows_hidden_weights_and_STD_preserved=True,
+        original_checkpoint_unchanged=True,
+        exact_SCUT_weights_only_transfer=False)
+
+
+def initialize(runner, path, expected_sha, expected_bytes, repair_first_axis=False, profile=None):
     raw = Path(path).read_bytes()
     if len(raw) != expected_bytes or hashlib.sha256(raw).hexdigest() != expected_sha:
         raise ValueError('Pinned enhanced MOD4v1 E0 checkpoint identity mismatch')
     saved = torch.load(io.BytesIO(raw), map_location=runner.device, weights_only=False)
-    result = migrate_weights(runner,saved)
+    if repair_first_axis and saved.get('critic_dim') == 78:
+        from .checkpoint import check_interface
+        compatibility = check_interface(saved, profile, repair_target_limits=True)
+        runner.alg.actor.load_state_dict(saved['actor_state_dict'], strict=True)
+        runner.alg.critic.load_state_dict(saved['critic_state_dict'], strict=True)
+        if runner.alg.optimizer.state:
+            raise ValueError('Initialization repair requires fresh Adam')
+        runner.current_learning_iteration = 0
+        result = dict(kind='SCUT_SHAPE_WEIGHTS_ONLY_WITH_EXPLICIT_FIRST_AXIS_REPAIR',
+            compatibility=compatibility, actor35_critic78_strict=True,
+            new_Adam_states=0, new_iteration=0, source_optimizer_loaded=False)
+    else:
+        result = migrate_weights(runner,saved)
+    if repair_first_axis:
+        result['first_axis_repair'] = repair_saturated_first_axis(runner.alg.actor)
     result.update(source_path=str(path),source_SHA=expected_sha,source_bytes=len(raw),
                   source_file_opens=1,source_model_decodes=1)
     return result

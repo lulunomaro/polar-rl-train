@@ -57,8 +57,12 @@ def parse_args():
     parser.add_argument('--init-checkpoint')
     parser.add_argument('--init-SHA')
     parser.add_argument('--init-bytes', type=int)
+    parser.add_argument('--repair-first-axis', action='store_true',
+                        help='Explicitly reset the saturated left-crank output/STD for fresh-Adam finetuning')
     parser.add_argument('--repair-unclipped-v2', action='store_true',
                         help='Explicitly migrate the failed V2 execution interface to MOD4 clip6')
+    parser.add_argument('--repair-target-limits', action='store_true',
+                        help='Explicitly migrate V3 processed targets to contract motor limits')
     parser.add_argument('--device', default='cuda:0')
     return parser.parse_args()
 
@@ -241,7 +245,7 @@ def main():
         cfg = task.Mod4EnvCfg()
         cfg.seed = args.seed
         cfg.sim.device = args.device
-        configure(cfg, args.num_envs, args.profile)
+        configure(cfg, args.num_envs, args.profile, contract)
         guard_module.configure_new_task(cfg, identity)
         env = ChassisPDMod4Env(cfg=cfg)
         if env.physics_dt != .0025 or env.step_dt != .02:
@@ -260,17 +264,20 @@ def main():
         runner = build_runner(vec, job)
         if args.init_checkpoint:
             from .finetune import initialize
-            receipt = initialize(runner,args.init_checkpoint,args.init_SHA,args.init_bytes)
+            receipt = initialize(runner,args.init_checkpoint,args.init_SHA,args.init_bytes,
+                repair_first_axis=args.repair_first_axis,profile=args.profile)
             put(job/'FINETUNE_INITIALIZATION.json',receipt)
         if args.resize_resume:
             from .checkpoint import restore_resized_learning
             receipt=restore_resized_learning(runner,args.resize_resume,args.init_SHA,args.init_bytes,args.profile,env.num_envs,bridge.reward,
-                repair_unclipped_v2=args.repair_unclipped_v2)
+                repair_unclipped_v2=args.repair_unclipped_v2,
+                repair_target_limits=args.repair_target_limits)
             put(job/'RESIZED_LEARNING_RESTORE.json',receipt)
         env._get_training_iteration = lambda: runner.current_learning_iteration
         with guard.around_original_fullstate_restore():
             reset = restore(runner, env, bridge, args.resume, args.profile,
-                repair_unclipped_v2=args.repair_unclipped_v2) if args.resume else env.reset()
+                repair_unclipped_v2=args.repair_unclipped_v2,
+                repair_target_limits=args.repair_target_limits) if args.resume else env.reset()
         vec.current = reset[0] if isinstance(reset, tuple) else reset
         initialize_episode_lengths(vec, args.profile)
         guard.check_observations(vec.current)
@@ -284,13 +291,14 @@ def main():
             raise RuntimeError('Original full D0-D7 profiles must all be active')
         bridge.ready = True
         from .course import metadata
-        from .config import ACTION_CLIP, ACTION_INTERFACE
+        from .config import ACTION_CLIP, ACTION_INTERFACE, TARGET_INTERFACE
         put(job/'STARTUP.json',dict(epoch=time.time(),
             actual_native=True, profile=args.profile, usd_SHA=identity.usd_sha256,
             contract_SHA=identity.contract_sha256, D0_D7=startup, actor=35, critic=78,
             quaternion_order=bridge.quaternion_order,
             quaternion_readback=bridge.quaternion_readback,
             actions=6, action_clip=ACTION_CLIP, action_interface=ACTION_INTERFACE,
+            target_interface=TARGET_INTERFACE,
             repair_unclipped_v2=args.repair_unclipped_v2,
             physics_dt=.0025, policy_hz=50, feedback_hz=100,
             closure_m=.01, mimic_rad=.01, course=metadata(),trained_skill=False))

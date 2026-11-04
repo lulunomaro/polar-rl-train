@@ -29,6 +29,8 @@ def main():
     p.add_argument('--support',action='append',default=[])
     p.add_argument('--profile',choices=['trained_stair','jump270'],default='jump270')
     p.add_argument('--repair-unclipped-v2',action='store_true')
+    p.add_argument('--repair-target-limits',action='store_true')
+    p.add_argument('--repair-first-axis',action='store_true')
     p.add_argument('--e0-source-diagnostic',action='store_true',
                    help='Explicit weights-only E0 inference, no optimizer; compare source/adapted inputs')
     a=p.parse_args();a.num_envs=80;a.seed=9137;a.device='cuda:0'
@@ -51,7 +53,8 @@ def main():
         guard_module=load_guard(a.guard);identity=ns['E0_IDENTITY']
         guard_module.verify_task_module(task,identity)
         cfg=task.Mod4EnvCfg();cfg.seed=a.seed;cfg.sim.device=a.device
-        configure(cfg,80,a.profile);guard_module.configure_new_task(cfg,identity)
+        contract=model_contract(a.assets)
+        configure(cfg,80,a.profile,contract);guard_module.configure_new_task(cfg,identity)
         env=ChassisPDMod4Env(cfg=cfg)
         guard=guard_module.FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor)
         events=[]
@@ -59,7 +62,7 @@ def main():
             if len(events)<40:events.append(v)
             put(out/'POSE_CACHE_EVENTS.json',dict(events=events))
         install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=receipt)
-        bridge=ScutBridge(env,task,model_contract(a.assets),tensor,a.profile)
+        bridge=ScutBridge(env,task,contract,tensor,a.profile)
         vec=ScutVecEnv(env,bridge,env.observation_manager.compute())
         rc=runner_config();actor_cfg=rc['actor'].copy();actor_cfg.pop('class_name')
         actor=MLPModel(vec.get_observations(),rc['obs_groups'],'actor',6,**actor_cfg).to(a.device)
@@ -73,8 +76,11 @@ def main():
                 raise ValueError('E0 diagnostic requires the explicitly selected source')
             compatibility=dict(kind='E0_SOURCE_WEIGHTS_ONLY_DIAGNOSTIC',optimizer_operations=0)
         else:
-            compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2)
+            compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2,a.repair_target_limits)
         actor.load_state_dict(saved['actor_state_dict'],strict=True);actor.eval().requires_grad_(False)
+        if a.repair_first_axis:
+            from .finetune import repair_saturated_first_axis
+            compatibility['first_axis_repair'] = repair_saturated_first_axis(actor)
         with guard.around_original_fullstate_restore():
             obs=env.reset();vec.current=obs[0] if isinstance(obs,tuple) else obs
         guard.check_observations(vec.current)

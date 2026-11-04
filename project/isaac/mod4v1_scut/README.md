@@ -1,5 +1,9 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04公开trained_stair的20,000环境窗已完成46次PPO/22,080,000样本；final SHA `a8b954f378940421a5e9860faddf80c4575ae98ee062dddd1d60513de5a31aab`，独立80首局仍0触台/0strict。32局已用逐body接触与最后20步计数确认接触终止，48局达到8秒评测cap，非20秒任务timeout；早晚4幅actualpose已原生审看。新追到原SCUT执行路径中的processed leg target clamp在MOD4映射中遗漏，造成hip目标越过实际±.5rad。现补齐四motor contract限位，并保持原CAD差值/PD/DC/D4；FULL_V4显式区分此接口，旧V3仅 `--repair-target-limits` 可迁移。同final有限80对照正在进行，不能把CPU检查或修复源码称为原生成功。详见 `history/reviews/20261103-mod4v1-scut-native-training/PUBLISHED_RECIPE_FINAL_AND_TARGET_LIMITS.md`。
+
+上述限位对照现已完成：实际全部关节目标/CAD差值合规，但仍0top。随后同final显式 `--repair-first-axis` 对照只把饱和left_crank输出行/偏置置0、该轴STD置1，其余权重保持；原生80首局验证第一轴raw全0、目标合规、0数值异常，仍0top/strict；两次各4幅actualpose均已原生审看。新20,000环境一小时候选从该final做weights-only/freshAdam并显式带入单轴修复，保留原SCUT奖励/PPO。不是完整原SCUT复现或已达270mm技能；当前状态见工作单。
+
 2026-11-04原E0同端点原生诊断已完成：80首局0触台/0strict，61个原连续接触/姿态类终止、19timeout。前24步除高度外的35维输入最大差4.77e-7；第一步输入/动作几乎一致，原输入下第一轴仍100%超过执行裁剪范围，因此不能只归因于适配后actor字段错位。结果与有效早晚4图见 `history/reviews/20261103-mod4v1-scut-native-training/E0_SOURCE_INPUT_NATIVE_REVIEW.md`。保存姿态已由DataView转换为wxyz；一次误按原始SDKxyzw换序的中间图已明确作废，原回放顺序有效。
 
 接续候选改用既有 `trained_stair`：恢复公开保存基础奖励、关闭额外状态机和两项奖励、恢复原命令/高度/20秒训练episode；首次task导入前constructor环境参数也与profile同步。人类指定固定270mm场地/出生关系、增强资产/原物理与20,000环境一小时保持。该候选已实际launch，完整首个PPO保存与技能结果以当前工作单为准，不能称已学会上台阶。新增pre-reset各reset-body接触力、姿态与命令/高度记录，不修改终止阈值。见 `history/reviews/20261103-mod4v1-scut-native-training/PUBLISHED_RECIPE_RESTORATION.md`。

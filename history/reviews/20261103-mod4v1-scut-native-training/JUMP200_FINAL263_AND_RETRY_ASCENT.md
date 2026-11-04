@@ -1,5 +1,7 @@
 # 单200mm跳跃：final263结果与重试/上升修复
 
+2026-11-05 03:26实际覆盖：重试/上升修复版已返回有效FIRST264/480,000样本/20新Adam、actorcritic梯度均1.0、FULL_V4首存40,717,335B/SHA `fc8eeb0d344d3f33c16c9f0b21c73b63cdb86d37b39707f66b1293a247555e72`；完整恢复source263/17Adam5260，首轮完整日志0实际错误。旧4416已结束，唯一collector70820/create02:21:49.885529负责回传。actualGO02:14:24.739725、SAVE03:14:24.739725/NOMINAL03:19:24.739725不延长；当前在网络前等待另一聊天真实SSH读者68888/create02:46:51.916175退出，stderr0、尚无FINAL/80/ownexit正式回执，不能凭另一任务已GO判本聊天成功关闭或跳跃技能。原sole70820自行接续，不第二SSH/重bind/新训练。下文FIRSTpending/4416均为历史。
+
 2026-11-05 02:15。接近/上推奖励修复一小时已完整结束：113新PPO、54,240,000样本、21,696physics callbacks、2,260新Adam，source150→final263，17项Adamstep5260；FULL_V4 final40,717,335B，SHA `c6aefd9727884461f3b5f19ba5a220fece62ac01f41e35fb7c3a461d03c1d183`。actor/critic/STD/Adam/LR、7组件、RNG/动作队列/全局计数器已一次必要完整CPU诊断，只有此前已核的3个permission NaN未设置哨兵，其它学习张量有限；不重置STD、单轴或Adam。
 
 实际GO00:40:50.069379，SAVE01:40:50.069379/NOMINAL01:45:50.069379。完整final01:40:02.865784、训练关闭01:40:28.391130，原owner立即独立80局，01:42:53.548382完成、01:42:54.380771 ownwait/settled/released，正式本地回传01:43:12.797826；没有延长原窗。旧collector20700已结束。

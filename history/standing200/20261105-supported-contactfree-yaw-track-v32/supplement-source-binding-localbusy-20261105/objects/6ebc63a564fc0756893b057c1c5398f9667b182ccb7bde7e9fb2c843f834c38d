@@ -1,0 +1,178 @@
+"""Independent80 supported200 ascent; sourcePPO actor, no optimizer calls."""
+from pathlib import Path
+import argparse
+import hashlib
+import io
+import json
+import random
+import sys
+import time
+import traceback
+
+
+def evaluate(task, common):
+    from mod4v1_scut.train import boot, load_guard, put, ScutVecEnv
+    out = Path(__file__).resolve().parent / 'evaluation'
+    out.mkdir(exist_ok=False)
+    parser = argparse.ArgumentParser()
+    for key in ('assets', 'runtime', 'runtime-manifest', 'guard', 'profile'):
+        parser.add_argument('--' + key)
+    parser.add_argument('--support', action='append', default=[])
+    args = parser.parse_args(common)
+    args.num_envs, args.seed, args.device = 80, 9137, 'cuda:0'
+    ns = boot(args, out)
+    env = bridge = None
+    error = None
+    try:
+        import numpy as np
+        import torch
+        from rsl_rl.models import MLPModel
+        from chassis_pd_training_env import ChassisPDMod4Env
+        import mod4_task as mod4
+        from mild_dr import tensor
+        from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
+        from mod4v1_scut.sdk import configure, ScutBridge
+        from mod4v1_scut.config import model_contract, runner_config
+        from mod4v1_scut.checkpoint import FORMAT, INTERFACE
+        from mod4v1_scut.course import metadata
+        random.seed(9137); np.random.seed(9137); torch.manual_seed(9137); torch.cuda.manual_seed_all(9137)
+        guardmod = load_guard(args.guard)
+        identity = ns['E0_IDENTITY']
+        guardmod.verify_task_module(mod4, identity)
+        cfg = mod4.Mod4EnvCfg(); cfg.seed = 9137; cfg.sim.device = 'cuda:0'
+        configure(cfg, 80, 'trained_stair')
+        guardmod.configure_new_task(cfg, identity)
+        env = ChassisPDMod4Env(cfg=cfg)
+        guard = guardmod.FreshDRNominalGuard(env, identity, torch_module=torch, tensor_converter=tensor)
+        install_pose_cache_runtime_adapter_v4(env.scene['robot'], receipt_callback=lambda value: put(out/'POSE_CACHE_EVENTS.json', dict(actual_latest=value)))
+        bridge = ScutBridge(env, mod4, model_contract(args.assets), tensor, 'trained_stair')
+        vec = ScutVecEnv(env, bridge, env.observation_manager.compute())
+        rc = runner_config(); actorcfg = rc['actor'].copy(); actorcfg.pop('class_name')
+        actor = MLPModel(vec.get_observations(), rc['obs_groups'], 'actor', 6, **actorcfg).to(args.device)
+        final = json.loads((out.parent / 'production/FINAL.json').read_bytes())['checkpoint']
+        raw = Path(final['path']).read_bytes()
+        assert len(raw) == final['bytes'] and hashlib.sha256(raw).hexdigest() == final['SHA']
+        data = torch.load(io.BytesIO(raw), map_location=args.device, weights_only=False)
+        del raw
+        assert data['format'] == FORMAT and data['interface'] == INTERFACE and data['profile'] == 'trained_stair'
+        actor.load_state_dict(data['actor_state_dict'], strict=True)
+        actor.eval().requires_grad_(False)
+        with guard.around_original_fullstate_restore():
+            obs = env.reset(); vec.current = obs[0] if isinstance(obs, tuple) else obs
+        guard.check_observations(vec.current)
+        bridge.ready = True
+        put(out / 'NATIVE_STARTUP.json', dict(epoch=time.time(), actual_native=True, source=final,
+            one_model_decode=True, optimizer_operations=0, seed=9137, D0_D7=guard.receipt(), course=metadata(),
+            simulator_quaternion_order=bridge.quaternion_order, saved_pose_quaternion_order='wxyz'))
+        active = torch.ones(80, dtype=torch.bool, device=args.device)
+        ticks, poses, curves, results = [], [], [], [None] * 80
+        selected = [0, 1, 40, 41]
+        def observe(b):
+            d = b.reward.robot.data
+            row = dict(tick=np.int32(b.physics_ticks), active=active.cpu().numpy().copy())
+            for key, value in dict(top_force=b.top_force, ground_force=b.ground_force,
+                support_force=b.recipe_support, root_pos=d.root_pos_w, root_quat=d.root_quat_w,
+                velocity=d.root_lin_vel_w, wholeclear=b.acceptance.wholeclear, strict=b.acceptance.success,
+                unsupported_peak=b.acceptance.unsupported_peak).items():
+                row[key] = value.detach().cpu().numpy().copy()
+            from reward_model import wheel_geometry
+            from mod4v1_scut.math_ops import euler_xyz_from_quat
+            yaw = euler_xyz_from_quat(d.root_quat_w)[2]
+            span, stagger = wheel_geometry(torch,d.body_pos_w[:,b.reward._wheel_link_idx],yaw)
+            for key,value in dict(chassis_top_force=b.stand32_body_top[:,b.stand32_chassis_id],
+                chassis_edge_force=b.stand32_body_edge[:,b.stand32_chassis_id],
+                support_body_top=b.stand32_body_top,wheel_span=span,wheel_stagger=stagger,
+                target_height=b.reward.stand32_target).items():
+                row[key]=value.detach().cpu().numpy().copy()
+            ticks.append(row)
+            if b.physics_ticks % 8 == 0:
+                poses.append(dict(tick=np.int32(b.physics_ticks), active=active[selected].cpu().numpy().copy(),
+                    body_pos=d.body_pos_w[selected].detach().cpu().numpy().copy(), body_quat=d.body_quat_w[selected].detach().cpu().numpy().copy()))
+        bridge.physics_observer = observe
+        pre_reset_targets = torch.zeros(80, 4, device=args.device)
+        original_snapshot = bridge.snapshot
+        def snapshot(terminated, timeout):
+            pre_reset_targets.copy_(tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx])
+            value = original_snapshot(terminated, timeout)
+            r = bridge.reward
+            from mod4v1_scut.math_ops import euler_xyz_from_quat, wrap_to_pi
+            from reward_model import wheel_geometry
+            roll, pitch, yaw = euler_xyz_from_quat(r.robot.data.root_quat_w)
+            span, stagger = wheel_geometry(torch, r.robot.data.body_pos_w[:,r._wheel_link_idx], yaw)
+            original_contact = r.contact_sensor.data.net_forces_w[:,r._reset_contact_link_idx].norm(dim=-1)
+            value.update(closure_reset=env.termination_manager.get_term('closure').clone(),
+                mimic_reset=env.termination_manager.get_term('mimic').clone(),
+                numerical_safety=r._numerical_safety_reset_buf.clone(), source_clock=int(r._value_debug_step),
+                source_contact_force_max_N=original_contact.amax(-1),
+                contact_reset_disabled=torch.ones(80,dtype=torch.bool,device=args.device),
+                source_roll_excess=wrap_to_pi(roll).abs()>float(getattr(r.cfg,'termination_roll_deg',40.))*torch.pi/180,
+                source_pitch_excess=wrap_to_pi(pitch).abs()>float(getattr(r.cfg,'termination_pitch_deg',40.))*torch.pi/180,
+                source_duration_raw=r._termination_duration_raw_buf.clone(),
+                source_duration_counter=r._termination_duration_counter.clone(),
+                measured_wheel_joint_vel=r.joint_vel[:,r._wheel_idx].clone(),
+                measured_actuated_joint_pos=r.joint_pos[:,r._actuate_idx].clone(),
+                measured_actuated_joint_vel=r.joint_vel[:,r._actuate_idx].clone(),
+                measured_applied_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone(),
+                chassis_top_force=bridge.stand32_body_top[:,bridge.stand32_chassis_id].clone(),
+                chassis_edge_force=bridge.stand32_body_edge[:,bridge.stand32_chassis_id].clone(),
+                wheel_span=span.clone(),wheel_stagger=stagger.clone(),
+                reset_contact_names=[bridge.robot.body_names[i] for i in r._reset_contact_link_idx])
+            return value
+        bridge.snapshot = snapshot
+        # The manager computes rewards after the terminal snapshot and before
+        # physical reset. Cache weighted terms at that endpoint for each row.
+        original_reward_compute = bridge.reward.compute
+        pre_reset_rewards = {}
+        def compute_reward():
+            value = original_reward_compute()
+            pre_reset_rewards.clear()
+            pre_reset_rewards.update({key:term.detach().clone() for key,term in bridge.reward._last_reward_terms.items()})
+            return value
+        bridge.reward.compute = compute_reward
+        for control in range(500):
+            with torch.inference_mode():
+                action = actor(vec.get_observations())
+                obs, reward, dones, info = vec.step(action)
+            snap = bridge.terminal_snapshot
+            done = (snap['terminated'] | snap['time_out'] | ((control + 1) == 500)) & active
+            for i in done.nonzero().flatten().tolist():
+                results[i] = {k: v[i].detach().cpu().tolist() if torch.is_tensor(v) else v for k, v in snap.items()}
+                results[i].update(env=i, controls=control + 1, seconds=(control + 1) * .02,
+                    strict200_standing=results[i].pop('strict270'),
+                    whole_footprint=results[i].pop('first_flight_wholeclear'))
+            curves.append(dict(control=control + 1, active=active.cpu().tolist(), reward=reward.cpu().tolist(), action=action.cpu().tolist(),
+                joint_vel=snap['measured_wheel_joint_vel'].cpu().tolist(),
+                joint_pos_target=pre_reset_targets.cpu().tolist(), joint_pos_measured=snap['measured_actuated_joint_pos'].cpu().tolist(), joint_vel_measured=snap['measured_actuated_joint_vel'].cpu().tolist(), applied_torque=snap['measured_applied_torque'].cpu().tolist(), reward_terms={key:value.cpu().tolist() for key,value in pre_reset_rewards.items()}))
+            active &= ~done
+            if not active.any():
+                break
+        def npz(name, rows):
+            p = out / name
+            np.savez_compressed(p, **{k: np.stack([row[k] for row in rows]) for k in rows[0]})
+            with p.open('rb') as f:
+                sha = hashlib.file_digest(f, 'sha256').hexdigest()
+            return dict(path=str(p), bytes=p.stat().st_size, SHA=sha)
+        all400 = npz('actual400hz.npz', ticks)
+        actualposes = npz('selected_actual_poses.npz', poses)
+        put(out / 'CONTROL_CURVES.json', dict(curves=curves))
+        put(out / 'ALL80.json', dict(first_episodes=results))
+        force = np.stack([row['top_force'] for row in ticks]); mask = np.stack([row['active'] for row in ticks])
+        both = (force > 1).all(-1) & mask
+        put(out / 'RESULT.json', dict(epoch=time.time(), passed_execution=all(r is not None for r in results),
+            source=final, source_recipe_stage=task['stage'], strict=sum(r['strict200_standing'] for r in results),
+            independent_first_episodes=80, controls_max=500, policy_hz=50, physics_hz=400,
+            bothtop_envs=int(both.any(0).sum()), max_top_force=float(force.max()), mean_seconds=sum(r['seconds'] for r in results) / 80,
+            all80_manifold=all400, actual_poses=actualposes, recorded_envs=selected, body_names=list(bridge.robot.body_names),
+            origins=env.scene.env_origins.detach().cpu().tolist(), saved_pose_quaternion_order='wxyz',
+            course=metadata(), optimizer_operations=0, native_review_pending=True))
+    except BaseException:
+        error = traceback.format_exc()
+        put(out / 'ERROR.json', dict(epoch=time.time(), error=error))
+        raise
+    finally:
+        if bridge is not None:
+            bridge.close()
+        if env is not None:
+            env.close(); put(out / 'ENV_CLOSED.json', dict(epoch=time.time(), returned=True))
+        put(out / 'APP_CLOSE_INTENT.json', dict(epoch=time.time(), error=error))
+        ns['app'].close()

@@ -1,0 +1,188 @@
+"""Test exact restore/config source transformations; no Torch, SDK, or model."""
+from pathlib import Path
+from types import SimpleNamespace
+import ast
+import hashlib
+import json
+import subprocess
+import sys
+import time
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+COMMIT = 'bf5a683e3009ab7f73fdce3faeab3bc71189f890'
+
+
+def original(name):
+    return subprocess.check_output(['git', '-C', str(REPO), 'show',
+        COMMIT+':project/isaac/mod4v1_scut/'+name]).decode('utf-8')
+
+
+def unit(nodes, values):
+    tree = ast.Module(body=nodes, type_ignores=[])
+    ast.fix_missing_locations(tree)
+    exec(compile(tree, '<exact-local-source-test>', 'exec'), values)
+    return values
+
+
+def main():
+    checks = {}
+    paths = list(HERE.glob('*.py'))
+    for p in paths:
+        ast.parse(p.read_text(encoding='utf-8'))
+    checks['all_small_overlay_sources_parse'] = True
+
+    # Execute only the immutable wrapper's source transformation. The original
+    # restore function is defined but never called against a PT or simulator.
+    wrapper = (HERE/'full_resume.py').read_text(encoding='utf-8')
+    remote = '/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py'
+    assert wrapper.count(remote) == 1
+    wrapper = wrapper.replace(remote, (ROOT/'scut_recipe_v21/full_resume.py').as_posix())
+    restore_namespace = {'__name__': 'local_source_only'}
+    exec(compile(wrapper, '<restore-wrapper-source-only>', 'exec'), restore_namespace)
+    restored_text = restore_namespace['source']
+    function = next(n for n in ast.parse(restored_text).body
+        if isinstance(n, ast.FunctionDef) and n.name == 'install')
+    prefix = []
+    for node in function.body:
+        if isinstance(node, ast.FunctionDef):
+            break
+        if isinstance(node, ast.Import):
+            continue
+        prefix.append(node)
+
+    checkpoint_text = original('checkpoint.py')
+    class GitText:
+        def read_text(self, **unused):
+            return checkpoint_text
+    source_ns = dict(Path=lambda value: GitText(), ast=ast,
+        checkpoint=SimpleNamespace(__file__='immutable_git_checkpoint.py'), FORMAT=restore_namespace['FORMAT'])
+    unit(prefix, source_ns)
+    # Injection appears after declared_source in the complete restore installer.
+    migration = []
+    for node in function.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'old_command' for t in node.targets):
+            migration = [node]
+        elif migration:
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'verified' for t in node.targets):
+                break
+            migration.append(node)
+    assert migration
+    unit(migration, source_ns)
+    modified = source_ns['source']
+    tree = ast.parse(modified)
+    field_loop = next(n for n in ast.walk(tree) if isinstance(n, ast.For)
+        and ast.unparse(n.iter) == "data['command_fields'].items()")
+    class Tensor:
+        def __init__(self, value):
+            self.value = np.array(value)
+        @property
+        def shape(self): return self.value.shape
+        @property
+        def ndim(self): return self.value.ndim
+        def copy_(self, value): self.value[:] = value.value
+        def zero_(self): self.value[:] = 0
+
+    def migrate(source_fields, target_fields, modes=()):
+        command = SimpleNamespace(cfg=SimpleNamespace(special_modes=modes), **target_fields)
+        unit([field_loop], dict(command=command, data={'command_fields': source_fields}))
+        return command
+    source_fields = dict(_mode_enabled=Tensor([True, True, False]), vel_command_b=Tensor([[.1, .2, .3], [.4, .5, .6]]), command_counter=Tensor([3, 8]))
+    original_fields = {k: v.value.copy() for k, v in source_fields.items()}
+    current = migrate(source_fields, dict(_mode_enabled=Tensor([True]), vel_command_b=Tensor(np.zeros((2,3))), command_counter=Tensor([0,0])))
+    assert not current._mode_enabled.value.any()
+    assert all(np.array_equal(getattr(current, k).value, v.value) for k,v in source_fields.items() if k != '_mode_enabled')
+    assert all(np.array_equal(v.value, original_fields[k]) for k,v in source_fields.items())
+    checks['only_static_mode_schema_migrates_all_other_command_values_equal'] = True
+    checks['source_command_tensors_unchanged'] = True
+    for key, replacement in [('_mode_enabled', Tensor([False,False])), ('vel_command_b', Tensor(np.zeros((3,3))))]:
+        targets = dict(_mode_enabled=Tensor([True]), vel_command_b=Tensor(np.zeros((2,3))), command_counter=Tensor([0,0]))
+        targets[key] = replacement
+        try:
+            migrate(source_fields, targets)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('Unexpected schema accepted: '+key)
+    checks['unexpected_command_schema_still_rejected'] = True
+    # Compare the whole changed restore body to the exact expected small delta.
+    base = next(n for n in ast.parse(checkpoint_text).body if isinstance(n, ast.FunctionDef) and n.name == 'restore')
+    expected = ast.get_source_segment(checkpoint_text, base)
+    expected = expected.replace("data = torch.load(path, map_location='cpu', weights_only=False)", 'data = declared_source(path, env, bridge, profile)')
+    expected = expected.replace("data.get('format') != FORMAT", "data.get('format') not in (FORMAT, LEGACY)")
+    expected = expected.replace('runner.alg.load(data, load_cfg=None, strict=True)', 'runner.alg.load(data, load_cfg=None, strict=True)\n    verify_learning(runner, data)')
+    expected = expected.replace('return env.reset()', 'restore_globals(bridge.reward, data)\n    result = env.reset()\n    publish(runner, bridge, data)\n    return result')
+    expected = expected.replace(source_ns['old_command'], source_ns['new_command'])
+    assert ast.dump(ast.parse(expected)) == ast.dump(ast.parse(modified))
+    checks['complete_learning_RNG_components_and_one_reset_original_body_retained'] = True
+    assert restore_namespace['LEGACY'] == 'MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'
+    assert restore_namespace['FORMAT'] == 'MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK'
+    checks['explicit_source_and_target_formats_bound'] = True
+
+    recipe_text = (HERE/'recipe.py').read_text(encoding='utf-8')
+    recipe_tree = ast.parse(recipe_text)
+    reward_config = next(n for n in ast.walk(recipe_tree) if isinstance(n, ast.FunctionDef) and n.name == 'reward_config')
+    scalar_fields = ('airborne_state_machine_cfg','jump_takeoff_state_machine_cfg','stair_state_machine_cfg','wheel_forward_scan_cfg')
+    def old_reward(profile):
+        return SimpleNamespace(rewards=dict(track_lin_vel_xy=1., termination=-200., no_fork=-1., no_fork_square=-1., joint_torque=-.0001), **{key:{'enabled':True} for key in scalar_fields})
+    flat = dict(use_absolute_height=False,use_leg_length_as_height=False,commands={'special_modes':('old1','old2','old3')})
+    names = ('progress','raise','height','approach','chassis_edge','support','retract','top','top_quiet','idle','hang','heading','wheel_distance','wheel_stagger','lane')
+    cfg_ns = unit([reward_config],dict(old_reward_config=old_reward,flat=flat,custom_names=names))
+    cfg = cfg_ns['reward_config']()
+    assert cfg.height_range == (.39,.39) and cfg.episode_length_s == 10.
+    assert not cfg.commands.special_modes and cfg.commands.ranges.lin_vel_x == (.35,.35)
+    assert not cfg.enable_state_machines and all(not getattr(cfg,key)['enabled'] for key in scalar_fields)
+    assert cfg.rewards['termination'] == -200. and cfg.rewards['joint_torque'] == -.0001
+    assert cfg.rewards['track_lin_vel_xy'] == cfg.rewards['no_fork'] == cfg.rewards['no_fork_square'] == 0.
+    assert all(cfg.rewards['stand32_'+name] == 1. for name in names)
+    checks['effective_config_fixed_forward_height_contact_yaw_track_terms'] = True
+    # The exact predecessor already supplies fixed-forward command construction;
+    # explicit new reward metadata now matches that constructor.
+    predecessor = (ROOT/'scut_recipe_v18/recipe.py').read_text(encoding='utf-8')
+    assert "namespace['install']('eval200', source_stage='flat')" in recipe_text
+    assert "recipe.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0., special_modes=())" in predecessor
+    assert "sdk.ground_scan_config = lambda: scan_descriptor" in recipe_text
+    checks['step_scanner_preserved_separately_from_source_flat_yaml'] = True
+
+    sensor_config = next(n for n in ast.walk(recipe_tree) if isinstance(n, ast.FunctionDef) and n.name == 'configure')
+    fake_sensors = SimpleNamespace(ContactSensorCfg=lambda **kw:SimpleNamespace(**kw))
+    saved_sensor = sys.modules.get('isaaclab.sensors')
+    sys.modules['isaaclab.sensors'] = fake_sensors
+    try:
+        values = unit([sensor_config], dict(previous_configure=lambda cfg,n,p:cfg,sdk=SimpleNamespace(MESH='/World/ground/scut_standing200')))
+        scene_cfg = SimpleNamespace(scene=SimpleNamespace())
+        values['configure'](scene_cfg,4096)
+        actual = list(vars(scene_cfg.scene).values())
+        assert len(actual)==9 and len({s.prim_path for s in actual})==9
+        assert all(len(s.filter_prim_paths_expr)==1 and s.update_period==0. and s.max_contact_data_count_per_prim==64 for s in actual)
+    finally:
+        if saved_sensor is None: del sys.modules['isaaclab.sensors']
+        else: sys.modules['isaaclab.sensors'] = saved_sensor
+    checks['nine_single_body_contact_descriptors_match_exact_SDK_pattern'] = True
+
+    owner = (HERE/'owner.py').read_text(encoding='utf-8')
+    entry = (HERE/'entry.py').read_text(encoding='utf-8')
+    assert "replace('scut_step270','scut_standing200_supported32')" in owner
+    assert 'MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/entry.py' in entry
+    assert 'entry_base_SHA' not in entry
+    checks['finite_owner_identity_and_direct_entry_use_current_task_directory'] = True
+    evaluate = (HERE/'evaluate.py').read_text(encoding='utf-8')
+    assert 'pre_reset_rewards.update' in evaluate and 'measured_wheel_joint_vel' in evaluate
+    assert 'joint_pos_target=pre_reset_targets' in evaluate
+    assert 'body_quat=d.body_quat_w' in evaluate
+    checks['evaluator_records_pre_reset_targets_rewards_and_reasons'] = True
+
+    report = dict(epoch=time.time(),kind='SCUT32_EXACT_FROZEN_SOURCE_BINDING_CPU_ONLY',passed=True,
+        checks=checks,check_count=len(checks),scope='AST/source transformation and lightweight local arrays/descriptors; no claim of actual torch/SDK/sensor integration',
+        actual_PT_reads=0,SSH=0,SDK=0,physics=0,native_validated=False,
+        candidate_files=[dict(path=str(p),bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted(paths)],
+        next='V30 closed transfer and native review, then bounded actual sensor/reward/restore integration before production')
+    path = ROOT/'reports/SCUT32_EXACT_FROZEN_BINDING_CPU_20261105.json'
+    with path.open('x',encoding='utf-8') as stream: json.dump(report,stream,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(passed=True,checks=len(checks),report=str(path),PT=0,SSH=0,SDK=0,physics=0)))
+
+
+if __name__ == '__main__':
+    main()

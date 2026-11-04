@@ -1,0 +1,217 @@
+"""Initial local binding draft; subsequent corrections are independently indexed.
+
+Never rerun after LOCAL_BINDING_REVIEW exists: it preserves the initial draft,
+while LOCAL_BINDING_FINAL indexes the reviewed candidate.
+"""
+from pathlib import Path
+import ast
+import hashlib
+import importlib.util
+import json
+import subprocess
+import sys
+import time
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+COMMIT = 'bf5a683e3009ab7f73fdce3faeab3bc71189f890'
+
+
+def row(path, relative=None):
+    data = path.read_bytes()
+    return dict(path=str(path), relative=relative or path.name,
+                bytes=len(data), SHA=hashlib.sha256(data).hexdigest())
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    assert not (HERE/'LOCAL_BINDING_REVIEW.json').exists(), 'Initial draft already prepared; use final indexed sources'
+    sys.path.insert(0, str(ROOT/'scut_recipe_v32_supported'))
+    spec = importlib.util.spec_from_file_location('standing32_local_candidate', ROOT/'scut_recipe_v32_supported/recipe.py')
+    candidate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(candidate)
+    source = candidate.candidate_source()
+    changes = []
+    def replace(old, new, why):
+        nonlocal source
+        assert source.count(old) == 1, why
+        source = source.replace(old, new)
+        changes.append(why)
+
+    # V31 used eval200 as the scene base. Its reward closure captures the
+    # saved rough YAML, so changing only the agent YAML leaves a different
+    # command/reward configuration than the claimed flat learner source.
+    replace('    from recipe31_base_access import flat_agent\n    agent = flat_agent()\n    old_yaml = config.read_yaml\n    config.read_yaml = lambda key: agent if key == \'trained_agent\' else old_yaml(key)',
+        """    base_recipe = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/recipe.py')
+    base_raw = base_recipe.read_bytes()
+    assert hashlib.sha256(base_raw).hexdigest() == '720b859e4f9d071084c654bf0c4f4db3942441754f979777a03286d0e2f2b91f'
+    base_spec = importlib.util.spec_from_file_location('supported32_original_flat', base_recipe)
+    base_module = importlib.util.module_from_spec(base_spec)
+    base_spec.loader.exec_module(base_module)
+    flat, agent = base_module.original_recipe('flat')
+    # Capture the real scene-ray descriptor before selecting flat's scanner=None.
+    # Rays are SDK measurements; actor35/critic78 and reward inputs stay explicit.
+    scan_descriptor = config.ground_scan_config()
+    sdk.ground_scan_config = lambda: scan_descriptor
+    old_yaml = config.read_yaml
+    config.read_yaml = lambda key: flat if key == 'trained_env' else agent if key == 'trained_agent' else old_yaml(key)""",
+        'Use source flat YAML plus explicit real-step measurement sensor descriptor')
+    replace('        cfg = old_reward_config(profile)\n        cfg.height_range = (.39, .39)',
+        """        cfg = old_reward_config(profile)
+        cfg.use_absolute_height = flat['use_absolute_height']
+        cfg.use_leg_length_as_height = flat['use_leg_length_as_height']
+        # The eval200 closure retained rough command metadata. The actual task
+        # uses the fixed forward command, no special modes, and no state assists.
+        from types import SimpleNamespace
+        command = dict(flat['commands'])
+        command.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0., special_modes=())
+        command['ranges'] = SimpleNamespace(lin_vel_x=(.35, .35), lin_vel_y=(0., 0.), ang_vel_z=(0., 0.))
+        cfg.commands = SimpleNamespace(**command)
+        cfg.enable_state_machines = False
+        for key in ('airborne_state_machine_cfg', 'jump_takeoff_state_machine_cfg', 'stair_state_machine_cfg', 'wheel_forward_scan_cfg'):
+            getattr(cfg, key)['enabled'] = False
+        cfg.height_range = (.39, .39)""",
+        'Eliminate captured rough command metadata/state machines from supported task')
+    replace("        reset_names = [r.robot.raw.body_names[i] for i in r._reset_contact_link_idx]",
+        "        reset_names = [self.robot.body_names[i] for i in r._reset_contact_link_idx]",
+        'Use exact bridge robot body list rather than wrapper-specific attributes')
+    replace("    namespace_done = dict(rewards.ScutRewards._get_dones.__globals__)",
+        "    namespace_done = dict(rewards.ScutRewards._get_dones.__globals__)",
+        'Source done body preserves numerical/orientation/duration branches')
+    start = source.index("        p = V25 / 'full_resume.py'")
+    end = source.index('    checkpoint.FORMAT = FORMAT\n    receipt.update', start)
+    source = source[:start] + """        from full_resume import install as full_restore
+        task = json.loads((HERE/'TASK.json').read_bytes())
+        receipt['full_resume'] = full_restore(checkpoint, task['resume_checkpoint'], HERE/'production/FULL_RESTORE.json')
+""" + source[end:]
+    changes.append('Explicit one-field static command-mode migration in complete source restore')
+    replace("    receipt.update(stage='supported200', training_reward_changes=list(custom_names),",
+        "    receipt.update(stage='supported200', training_reward_changes=list(custom_names),\n        source_reward_terms=dict(flat['rewards']), source_recipe_base='flat YAML; explicit V32 reward/contact/geometry override',",
+        'Receipt describes the actual final reward base')
+    ast.parse(source)
+    (HERE/'recipe.py').write_text(source, encoding='utf-8', newline='\n')
+
+    # Preserve exact source restore semantics; only _mode_enabled is static
+    # task configuration (three source entries -> one disabled destination).
+    resume = ROOT/'scut_recipe_v21/full_resume.py'
+    raw = resume.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+    resume_source = '''"""Original complete learning/streams restore; supported-task static mode delta."""
+from pathlib import Path
+import hashlib
+
+P = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == 'e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+source = raw.decode().replace("LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'", "LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'")
+source = source.replace("FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'", "FORMAT='MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK'")
+source = source.replace('import torch\\n    # Reuse', 'import torch\\n    checkpoint.FORMAT=FORMAT\\n    # Reuse')
+needle = "    verified={}"
+injection = """    old_command = \'\'\'        if current.shape != value.shape:
+            raise ValueError('Command tensor schema mismatch: '+key)
+        current.copy_(value)\'\'\'
+    new_command = \'\'\'        if key == '_mode_enabled' and not command.cfg.special_modes:
+            if tuple(current.shape) != (1,) or value.ndim != 1:
+                raise ValueError('Unexpected static disabled mode configuration')
+            current.zero_()
+        else:
+            if current.shape != value.shape:
+                raise ValueError('Command tensor schema mismatch: '+key)
+            current.copy_(value)\'\'\'
+    assert source.count(old_command) == 1
+    source = source.replace(old_command, new_command)
+    verified={}"""
+assert source.count(needle) == 1
+source = source.replace(needle, injection)
+source = source.replace('source_preserved=True,weights_or_Adam_reset=False)', "source_preserved=True,weights_or_Adam_reset=False,command_static_migration='source modes -> one disabled supported-task config only; all other tensor fields strict')")
+exec(compile(source, str(P), 'exec'), globals())
+'''
+    ast.parse(resume_source)
+    (HERE/'full_resume.py').write_text(resume_source, encoding='utf-8', newline='\n')
+
+    for name in ['entry.py', 'owner.py']:
+        p = ROOT/'scut_recipe_v25'/name
+        data = p.read_bytes()
+        text = '"""Current task binding to the immutable original finite %s."""\n' % name
+        text += 'from pathlib import Path\nimport hashlib\n'
+        text += "P=Path(%r)\n" % ('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_1793750781803008100/'+name)
+        text += 'raw=P.read_bytes()\nassert hashlib.sha256(raw).hexdigest()==%r\n' % hashlib.sha256(data).hexdigest()
+        text += "exec(compile(raw.decode().replace('scut_standing200_recipe25','scut_standing200_supported32'),str(P),'exec'),globals())\n"
+        ast.parse(text)
+        (HERE/name).write_text(text, encoding='utf-8', newline='\n')
+
+    # Materialize only the small evaluator overlay. All original runtime and
+    # complete actor load remain shared. Existing pre-reset fixes are retained.
+    evaluation = (ROOT/'scut_recipe_v18/evaluate.py').read_text(encoding='utf-8')
+    evaluation = evaluation.replace("install_pose_cache_runtime_adapter_v4(env.scene['robot'])",
+        "install_pose_cache_runtime_adapter_v4(env.scene['robot'], receipt_callback=lambda value: put(out/'POSE_CACHE_EVENTS.json', dict(actual_latest=value)))")
+    needle = "        bridge.physics_observer = observe"
+    assert evaluation.count(needle) == 1
+    evaluation = evaluation.replace(needle, '''        bridge.physics_observer = observe
+        pre_reset_targets = torch.zeros(80, 4, device=args.device)
+        original_snapshot = bridge.snapshot
+        def snapshot(terminated, timeout):
+            pre_reset_targets.copy_(tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx])
+            value = original_snapshot(terminated, timeout)
+            r = bridge.reward
+            from mod4v1_scut.math_ops import euler_xyz_from_quat, wrap_to_pi
+            from reward_model import wheel_geometry
+            roll, pitch, yaw = euler_xyz_from_quat(r.robot.data.root_quat_w)
+            span, stagger = wheel_geometry(torch, r.robot.data.body_pos_w[:,r._wheel_link_idx], yaw)
+            original_contact = r.contact_sensor.data.net_forces_w[:,r._reset_contact_link_idx].norm(dim=-1)
+            value.update(closure_reset=env.termination_manager.get_term('closure').clone(),
+                mimic_reset=env.termination_manager.get_term('mimic').clone(),
+                numerical_safety=r._numerical_safety_reset_buf.clone(), source_clock=int(r._value_debug_step),
+                source_contact_force_max_N=original_contact.amax(-1),
+                contact_reset_disabled=torch.ones(80,dtype=torch.bool,device=args.device),
+                source_roll_excess=wrap_to_pi(roll).abs()>float(getattr(r.cfg,'termination_roll_deg',40.))*torch.pi/180,
+                source_pitch_excess=wrap_to_pi(pitch).abs()>float(getattr(r.cfg,'termination_pitch_deg',40.))*torch.pi/180,
+                source_duration_raw=r._termination_duration_raw_buf.clone(),
+                source_duration_counter=r._termination_duration_counter.clone(),
+                measured_actuated_joint_pos=r.joint_pos[:,r._actuate_idx].clone(),
+                measured_actuated_joint_vel=r.joint_vel[:,r._actuate_idx].clone(),
+                measured_applied_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone(),
+                chassis_top_force=bridge.stand32_body_top[:,bridge.stand32_chassis_id].clone(),
+                chassis_edge_force=bridge.stand32_body_edge[:,bridge.stand32_chassis_id].clone(),
+                wheel_span=span.clone(),wheel_stagger=stagger.clone())
+            return value
+        bridge.snapshot = snapshot''')
+    needle = "joint_pos_target=tensor(env.scene['robot'].data.joint_pos_target)[:, bridge.reward._legs_act_idx].cpu().tolist()"
+    assert evaluation.count(needle) == 1
+    evaluation = evaluation.replace(needle, "joint_pos_target=pre_reset_targets.cpu().tolist(), joint_pos_measured=snap['measured_actuated_joint_pos'].cpu().tolist(), joint_vel_measured=snap['measured_actuated_joint_vel'].cpu().tolist(), applied_torque=snap['measured_applied_torque'].cpu().tolist(), reward_terms={key:value.detach().cpu().tolist() for key,value in bridge.reward._last_reward_terms.items()}")
+    needle = '            ticks.append(row)'
+    assert evaluation.count(needle) == 1
+    evaluation = evaluation.replace(needle, '''            from reward_model import wheel_geometry
+            from mod4v1_scut.math_ops import euler_xyz_from_quat
+            yaw = euler_xyz_from_quat(d.root_quat_w)[2]
+            span, stagger = wheel_geometry(torch,d.body_pos_w[:,b.reward._wheel_link_idx],yaw)
+            for key,value in dict(chassis_top_force=b.stand32_body_top[:,b.stand32_chassis_id],
+                chassis_edge_force=b.stand32_body_edge[:,b.stand32_chassis_id],
+                support_body_top=b.stand32_body_top,wheel_span=span,wheel_stagger=stagger,
+                target_height=b.reward.stand32_target).items():
+                row[key]=value.detach().cpu().numpy().copy()
+            ticks.append(row)''')
+    ast.parse(evaluation)
+    (HERE/'evaluate.py').write_text(evaluation, encoding='utf-8', newline='\n')
+
+    evidence = []
+    for name, expected in [('sdk.py','bb1fad65eb0792fd5f641dfba8f7b529acf30b64d14de37dc10b2067146049df'),
+            ('checkpoint.py','686f5a600cd640b54d37e8f40b1490996fbd8faf4fba7264d896453759a99413'),
+            ('train.py','1cad73fcd3033f9c2839bfc61930d1776168778087404273f9087731ac24c79c')]:
+        rel = 'project/isaac/mod4v1_scut/'+name
+        raw = subprocess.check_output(['git','-C',str(REPO),'show',COMMIT+':'+rel])
+        assert hashlib.sha256(raw).hexdigest() == expected
+        evidence.append(dict(commit=COMMIT,git_path=rel,bytes=len(raw),SHA=expected))
+    with (HERE/'LOCAL_BINDING_REVIEW.json').open('x',encoding='utf-8') as f:
+        json.dump(dict(epoch=time.time(),kind='EXACT_FROZEN_SDK_SOURCE_LOCAL_BINDING_REPAIR',
+            inherited_formula='V32 unchanged',changes=changes,exact_Git_sources=evidence,
+            source_files=[row(HERE/name) for name in ['recipe.py','full_resume.py','entry.py','owner.py','evaluate.py']],
+            production_model_reads=0,SSH=0,SDK=0,new_physics=0,native_validated=False,
+            remaining='V30 closed transfer/native review then actual source binding and bounded native validation'),f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(prepared=True,changes=changes,exact_source_versions=len(evidence),
+        production_PT_reads=0,SSH=0,SDK=0,physics=0)))
+
+
+if __name__ == '__main__':
+    main()

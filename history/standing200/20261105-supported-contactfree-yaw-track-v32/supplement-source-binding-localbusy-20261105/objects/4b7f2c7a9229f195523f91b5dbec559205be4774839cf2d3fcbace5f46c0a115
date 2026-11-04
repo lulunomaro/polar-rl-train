@@ -1,0 +1,29 @@
+"""Original complete learning/streams restore; supported-task static mode delta."""
+from pathlib import Path
+import hashlib
+
+P = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == 'e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+source = raw.decode().replace("LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'", "LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'")
+source = source.replace("FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'", "FORMAT='MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK'")
+source = source.replace('import torch\n    # Reuse', 'import torch\n    checkpoint.FORMAT=FORMAT\n    # Reuse')
+needle = "    verified={}"
+injection = """    old_command = '''        if current.shape != value.shape:
+            raise ValueError('Command tensor schema mismatch: '+key)
+        current.copy_(value)'''
+    new_command = '''        if key == '_mode_enabled' and not command.cfg.special_modes:
+            if tuple(current.shape) != (1,) or value.ndim != 1:
+                raise ValueError('Unexpected static disabled mode configuration')
+            current.zero_()
+        else:
+            if current.shape != value.shape:
+                raise ValueError('Command tensor schema mismatch: '+key)
+            current.copy_(value)'''
+    assert source.count(old_command) == 1
+    source = source.replace(old_command, new_command)
+    verified={}"""
+assert source.count(needle) == 1
+source = source.replace(needle, injection)
+source = source.replace('source_preserved=True,weights_or_Adam_reset=False)', "source_preserved=True,weights_or_Adam_reset=False,command_static_migration='source modes -> one disabled supported-task config only; all other tensor fields strict')")
+exec(compile(source, str(P), 'exec'), globals())

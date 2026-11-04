@@ -20,4 +20,12 @@
 
 写早停时另一新本地NPZ/MuJoCo回放49288/25156被宽泛RMPOLAR匹配误拦的false也保留。检查完整源码确认其只读已有NPZ并本地显示，无网络、权重解码或canonical操作；只按确切PID/creation/pythonw/argv/scriptSHA分类，未停止或修改其它聊天。
 
+## 容量扩大实际OOM与布局修复
+
+attempt02在首次PPO更新前OOM：只剩63.06MiB，ELU还需118MiB，当前进程共占23.56GiB，随后PhysX状态损坏并报CUDAcode2。没有FIRST、没有有效FINAL，不将worker返回码0或owner errornull当成功。原owner1589912已ownwait/settled/released，production/ERROR与TRAIN_CLOSED.passed_execution=false完整保留，0有效PPO。
+
+将280M缓冲回退后，attempt03保留10行原difficulty、将相同inverse-mid地形从14列复制为140列，约将每个origin同址actor密度降至原1/10。每级阶高、踏面、中央平台、边框、原generatororigin与奖励/PPO不变，未添加其它rough任务。相比原保存14列这是明确的空间布局适配，不称原字节复现；mesh总体y边界随列数扩展为634.5m，x仍49.5m。新增针对性CPU检查验证列数/边界及几何配置保持，0生产PT/physics。
+
+11:46:30启动attempt03 exactowner1591175/create1793763990.63，solelocal29304/create2026-11-04T11:46:24.443816+08有限FIRST。仍用原有效0fdd权重，不用两次失败的部分权重，仍20,000环境，原SAVE12:14:28.462118/NOMINAL12:19:28.462118，不开新小时或退款。原生是否消除pair/OOM须看本次真实日志与更新，不以CPU检查作成功。
+
 本阶段沿用既有annotated trial，全部false/reader错误与结果只追加普通Git提交；新训练不增加或复制canonical、不退款、不覆盖既有模型与冻结once。

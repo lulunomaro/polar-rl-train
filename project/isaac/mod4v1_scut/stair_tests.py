@@ -110,6 +110,16 @@ class Tests(unittest.TestCase):
                              [0.,67.5001,0.], [0.,-67.5001,0.]])
         self.assertEqual(boundary_timeout(root).tolist(), [False, False, True, True, True, True])
 
+    def test_twenty_thousand_layout_repeats_only_same_stair_distribution(self):
+        from .stairs import terrain_columns, boundary_limits
+        self.assertEqual(terrain_columns(80), 14)
+        self.assertEqual(terrain_columns(20000), 140)
+        self.assertEqual(boundary_limits(20000), (49.5, 634.5))
+        a, b = metadata(80), metadata(20000)
+        for key in ('step_height_range_m', 'step_width_m', 'centre_width_m',
+                    'horizontal_scale', 'vertical_scale', 'height_command_range_m'):
+            self.assertEqual(a[key], b[key])
+
 
 if __name__ == '__main__':
     import argparse

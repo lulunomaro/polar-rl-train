@@ -5,6 +5,7 @@ and DR remain MOD4; the generator parameters come from the pinned saved YAML.
 """
 from copy import deepcopy
 from functools import lru_cache
+import math
 import torch
 from .config import read_yaml
 from .math_ops import euler_xyz_from_quat
@@ -19,7 +20,13 @@ def recipe():
         raw['terrain']['terrain_generator']['sub_terrains'][BRANCH])
 
 
-def metadata():
+def terrain_columns(num_envs):
+    """Repeat only the selected course to keep20k actors spatially separated."""
+    generator, _ = recipe()
+    return generator['num_cols']*max(1, math.ceil(num_envs/2000))
+
+
+def metadata(num_envs=80):
     generator, stair = recipe()
     return dict(kind='SCUT_SAVED_INVERSE_STAIR_BRANCH', branch=BRANCH,
         generator_function=stair['function'], step_height_range_m=stair['step_height_range'],
@@ -27,7 +34,9 @@ def metadata():
         size_m=stair['size'], border_width_m=stair['border_width'],
         horizontal_scale=stair['horizontal_scale'], vertical_scale=stair['vertical_scale'],
         difficulty_range=generator['difficulty_range'], rows=generator['num_rows'],
-        columns=generator['num_cols'], curriculum_mesh=generator['curriculum'],
+        columns=terrain_columns(num_envs), source_columns=generator['num_cols'],
+        layout_replication='Same selected stair distribution; more columns for20000, not other rough tasks',
+        curriculum_mesh=generator['curriculum'],
         origin='Original generator origin, including its height; not centre-bottom shifted',
         scope='Only the saved inverse-stair branch; other rough tasks omitted',
         height_command_range_m=list(read_yaml('trained_env')['height_range']), root_height_above_origin_m=.38,
@@ -35,15 +44,15 @@ def metadata():
         physical_MOD4_model_and_DR_preserved=True)
 
 
-@lru_cache(maxsize=1)
-def boundary_limits():
+@lru_cache(maxsize=4)
+def boundary_limits(num_envs=80):
     raw = read_yaml('trained_env')
     cfg = raw['rough_terrain_boundary_reset_cfg']
     if not cfg['enabled']:
         return None
     generator = raw['terrain']['terrain_generator']
     half_x = .5*generator['num_rows']*generator['size'][0]
-    half_y = .5*generator['num_cols']*generator['size'][1]
+    half_y = .5*terrain_columns(num_envs)*generator['size'][1]
     if not cfg['use_inner_terrain_area']:
         half_x += generator['border_width']
         half_y += generator['border_width']
@@ -53,14 +62,14 @@ def boundary_limits():
 
 def boundary_timeout(root_pos_w):
     """V14 env.py541-566, using the saved enabled boundary-reset settings."""
-    limits = boundary_limits()
+    limits = boundary_limits(len(root_pos_w))
     if limits is None:
         return torch.zeros(len(root_pos_w), dtype=torch.bool, device=root_pos_w.device)
     return ((root_pos_w[:, 0].abs() > limits[0]) |
             (root_pos_w[:, 1].abs() > limits[1]))
 
 
-def terrain_cfg(seed):
+def terrain_cfg(seed, num_envs=80):
     from isaaclab.terrains import TerrainImporter, TerrainImporterCfg, TerrainGeneratorCfg
     from isaaclab.terrains.height_field.hf_terrains_cfg import HfPyramidStairsTerrainCfg
     from isaaclab.sim import RigidBodyMaterialCfg
@@ -70,6 +79,7 @@ def terrain_cfg(seed):
     selected = {k: generator[k] for k in ('curriculum', 'size', 'border_width', 'border_height',
         'num_rows', 'num_cols', 'color_scheme', 'horizontal_scale', 'vertical_scale',
         'slope_threshold', 'difficulty_range', 'use_cache')}
+    selected['num_cols'] = terrain_columns(num_envs)
     gen = TerrainGeneratorCfg(seed=seed, sub_terrains={BRANCH: sub}, **selected)
     class RecordedTerrain(TerrainImporter):
         def import_mesh(self, name, mesh):

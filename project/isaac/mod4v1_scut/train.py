@@ -303,7 +303,9 @@ def main():
             target_interface=TARGET_INTERFACE,
             repair_unclipped_v2=args.repair_unclipped_v2,
             physics_dt=.0025, policy_hz=50, feedback_hz=100,
-            closure_m=.01, mimic_rad=.01, course=metadata(),trained_skill=False))
+            closure_m=.01, mimic_rad=.01,
+            course=metadata(args.num_envs) if args.profile == 'scut_stairs' else metadata(),
+            trained_skill=False))
         stop = False
         def stop_after_update(*unused):
             nonlocal stop

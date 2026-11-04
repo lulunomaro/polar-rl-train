@@ -76,7 +76,7 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.scene.ground.init_state.pos = (0., 0., 0.)
     if profile == 'scut_stairs':
         from .stairs import terrain_cfg, MESH as stair_mesh
-        cfg.scene.ground = terrain_cfg(cfg.seed)
+        cfg.scene.ground = terrain_cfg(cfg.seed, n)
         MESH = stair_mesh
     cfg.scene.robot.init_state.pos = (0.,0.,SPAWN_HEIGHT)
     cfg.scene.scut_contacts = ContactSensorCfg(
@@ -102,11 +102,6 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.episode_length_s = reward_config(profile).episode_length_s
     cfg.decimation, cfg.sim.dt, cfg.sim.render_interval = 8, .0025, 8
     cfg.sim.physics.solver_type = 1  # target SDK uses physics, never physx
-    if profile == 'scut_stairs' and n == 20000:
-        # The first actual20k stair rollout requested269,692,772 and reported
-        # dropped interactions with the inherited32M aggregate-pair buffer.
-        # This is storage for collision pairs, not a timestep/solver change.
-        cfg.sim.physics.gpu_found_lost_aggregate_pairs_capacity = 280000000
     cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count = 32
     cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count = 4
     cfg.terminations.closure.params['threshold'] = .01

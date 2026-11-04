@@ -69,6 +69,39 @@ class Tests(unittest.TestCase):
             meter.update(wheel, height, force, torch.ones(1)*30, velocity, q, root, zero)
         self.assertFalse(bool(meter.success[0]))
 
+    def test_stair_weights_only_transfer_preserves_all_outputs_and_std(self):
+        import hashlib
+        import tempfile
+        from .action_tests import spy_vec
+        from .train import build_runner
+        from .finetune import initialize
+        from .checkpoint import FORMAT, INTERFACE
+        from .config import ACTION_CLIP, ACTION_INTERFACE, TARGET_INTERFACE, USD_SHA, CONTRACT_SHA
+        vec, _, _ = spy_vec(8)
+        source, target = build_runner(vec, None), build_runner(vec, None)
+        with torch.no_grad():
+            source.alg.actor.distribution.std_param.copy_(torch.tensor([.85,.08,.07,.13,.11,.10]))
+        saved = dict(source.alg.save(), format=FORMAT, interface=INTERFACE,
+            action_clip=ACTION_CLIP, action_interface=ACTION_INTERFACE, target_interface=TARGET_INTERFACE,
+            usd_SHA=USD_SHA, contract_SHA=CONTRACT_SHA, profile='trained_stair', actor_dim=35, critic_dim=78)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/'synthetic.pt'; torch.save(saved, path)
+            raw = path.read_bytes(); digest = hashlib.sha256(raw).hexdigest()
+            receipt = initialize(target, path, digest, len(raw), False, 'scut_stairs')
+            self.assertEqual(path.read_bytes(), raw)
+            self.assertNotIn('first_axis_repair', receipt)
+            self.assertEqual(receipt['source_profile'], 'trained_stair')
+            self.assertEqual(receipt['target_profile'], 'scut_stairs')
+            self.assertFalse(receipt['source_optimizer_loaded'])
+            self.assertEqual(len(target.alg.optimizer.state), 0)
+            self.assertEqual(target.current_learning_iteration, 0)
+            for name in ('actor', 'critic'):
+                original = getattr(source.alg, name).state_dict()
+                actual = getattr(target.alg, name).state_dict()
+                self.assertEqual(set(original), set(actual))
+                for key, value in original.items():
+                    torch.testing.assert_close(value, actual[key], atol=0, rtol=0)
+
 
 if __name__ == '__main__':
     import argparse

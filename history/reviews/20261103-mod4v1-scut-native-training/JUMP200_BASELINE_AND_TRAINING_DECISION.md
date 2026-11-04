@@ -19,3 +19,5 @@
 22:23原生训练纠错：首次生产已经actualGO但在checkpoint恢复时_mode_enabled命令模式schema不同而结束，0有效PPO/FIRST/FINAL/eval，owner已完整关闭释放。合成跨任务测试此前未覆盖真实specialmode全局向量，不能把其通过当原生恢复通过。现在仅显式跨profile迁移该配置向量为新constructor全关，保留actorcriticSTDAdamLR和兼容命令/命名RNG/组件队列/计数器；新增真实差异反例CPU检查已通过。attempt02保留原SAVE23:11:34.580026/NOMINAL23:16:34.580026，22:22于同GPU1启动，FIRST仍待原sole73240读者。
 
 22:32实际训练通过：修复版attempt02已经完成首个真实PPO，iteration81/480,000样本/20新Adam，actor/critic梯度非零，FULL_V4完整首存SHA `96b9ff560d0e158ca9495e0907cf1eec254adc1c8b76d1b3bb0be8125612a531`（40,556,699B）。FULL_STATE_RESTORE回执确认source80/17optimizerentries/Adam1600/LR及组件RNG队列计数器恢复，明确记录_mode_enabled从3项到新任务1项false配置；STARTUP为真实0.2m单台阶。完整首轮WORKER日志0实际错误，原训练进程继续，唯一collector61924已绑定。批准原小时的保存/退出截止保持23:11:34.580026/23:16:34.580026。决定继续本轮剩余窗口，原owner完整保存退出后立即独立80和实际回放；首轮执行通过不代表已经跳上200mm。
+
+23:15正式回传受阻：本地61924按原计划到SAVE+45后等待串行通道，原finite-read尚未开始，stderr为空。实际阻塞是另一聊天23:11:52启动的远程元数据collector36120及parent62684；源码确实持有72 SSH/SFTP，不能按GUI排除。已保存本地exact身份、源码path/bytes/SHA和该聊天本地FIRST证据，0新网络/模型/physics/账本写入。本轮原SAVE已过且不延长；FINAL、完整退出、独立80结果仍未知，不以另一owner已GO推断成功。保持唯一61924等待真实释放，结果到达后立即完整保存核验、实际回放/all80分析；当前不决定原样重训。

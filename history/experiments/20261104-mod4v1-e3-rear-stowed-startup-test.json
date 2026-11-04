@@ -1,0 +1,25 @@
+{
+  "id": "20261104-mod4v1-e3-rear-stowed-startup-test",
+  "tag": "trial-20261104-mod4v1-e3-rear-stowed-startup-test",
+  "title": "Test current E3 rear-folded power-on standing and movement",
+  "kind": "evaluation",
+  "recorded_at": "2026-11-04T03:22:25.596305+00:00",
+  "repair_or_experiment_note": "# E3：腿后收平放，上电起身并移动\n\n## 结论\n在本次本地MuJoCo后收初态中，**同一份当前E3权重能起身，再按低速指令移动**。不过恢复阶段发生明显后退，**不是原地起身**。这是一次指定初态的仿真验证，不是实机上电资格或Isaac fullDR毕业成绩。\n\n## 初态与执行\n- 底盘水平，左右腿对称向后收；全闭链坐标取现有CAD折叠姿态，初始速度为零。\n- 初始根部高度 **0.184950m**，轮轴相对根部后移约 **0.106901m**；hip=-0.324209rad，crank=-1.024209rad。该姿态是本次对“腿后收平放”的具体实现，实机收纳角度是否完全一致仍待实物对照。\n- 初始闭环误差约7.05e-13m，无附加地面穿透抬高修正。\n- 当前E3 SHA：`1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8`，iter43090；没有切换E0，没有更改权重。\n- 0–8s：恢复模式3，vx=0；8–13s：普通模式0，vx=0.2m/s。始终使用E3。\n- 原本地MuJoCo适配器，干净观测、名义参数；气弹簧400N/k2000/d3，50Hz策略、2.5ms物理。没有人工起身轨迹或外力托举。\n\n## 实测数据\n| 项目 | 数值 |\n|---|---:|\n| 初始高度 | 18.50cm |\n| 首次同时达到高度≥23cm、倾角<10° | 0.36s；这是描述性跨线时刻，不是稳定成功判定 |\n| 8s恢复阶段结束高度 | 24.19cm |\n| 8s机身倾角 | 0.62° |\n| 0–8s根部X位移 | **-0.8565m**，明显后退 |\n| 后5s指令 | vx=0.2m/s |\n| 后5s世界X位移 | **+1.2020m** |\n| 后5s世界Y位移 | -0.0793m |\n| 后5s平均世界X速度（位移/时间） | 0.2404m/s；不是精确0.2跟踪 |\n| 13s高度 / 倾角 | 23.90cm / 1.85° |\n| 全程最大闭环误差 | 约3.21e-5m |\n\n机身局部轴速度还受CAD坐标定义影响；这里的前后移动结论用记录中的世界坐标位移，不将局部vx字段直接当作策略前向速度。\n\n## 零电机力矩对照\n同初态、同气弹簧，全部电机力矩置零：到8s机身倾斜约 **36.90°**，之后保持倾斜静止；行驶阶段世界X位移为0。被动弹簧本身会抬高机身，所以不把“高度增加”单独当作E3成功，姿态与后续运动一起看。\n\n## 窗口\n窗口播放这次**真实E3闭环MuJoCo实测轨迹**，不是手工编制起身动作；回放进程不再打开模型权重，也不声称继续实时推理。\n- R：重播；G/空格：暂停。\n- S：停在平放后收初态。\n- B：零电机力矩对照；E：切回E3。\n- 黄色地面线为初始位置，灰色刻度间距0.25m，用于看清后退。\n\n## 文件\n- [初始姿态](<F:/RMPOLAR-RL/mod4v1_e3_stowed_startup_20261104/01_REAR_FOLDED_INITIAL.png>)\n- [8秒恢复结束](<F:/RMPOLAR-RL/mod4v1_e3_stowed_startup_20261104/02_AFTER_E3_RECOVERY_8S.png>)\n- [13秒运动结束](<F:/RMPOLAR-RL/mod4v1_e3_stowed_startup_20261104/03_AFTER_DRIVE_COMMAND_13S.png>)\n- [完整测量结果](<F:/RMPOLAR-RL/mod4v1_e3_stowed_startup_20261104/RESULT.json>)\n\n**本次只回答该后收初态中能否起身并动；没有追加训练、修改专家选择、改写原技能分母或重复九专家评测。**\n\nOne actual zero-torque control and one E3 physics rollout; current viewer replays the actual recorded test and opens no weights. Old side-fall viewer was identity-checked and closed via its WM_CLOSE after startup viewer was verified. No foreign process signals, training, native SDK, ledger or registry changes. Future live replay closure/log changes are pending ordinary follow-up, not grounds for another test.\n",
+  "validation": "same1cd43090-E3;two13s-local-MuJoCo-rollouts;rear-stowed-flat-closed-linkage-zero-velocity;rise-and-drive-observed;rollback0.8565m-explicit;zero-torque-control-tips36.9deg;actual-replay-not-live-policy;no-weights-or-trajectories-read-forGit;not-native-fullDR-or-hardware-graduation",
+  "source_and_evidence_sha256": {
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/DISPLAY_VERIFIED_SNAPSHOT.json": "d71dac1c1a5d68331ad95024cc957c11cb60cbd67801d09865c1a5486d63f2cd",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/record_startup_test.py": "d2cb024ae2066914d9c382fc8c3270dd387c3bc36bd78494d05087b587ff4940",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/REPLAY_STDERR.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/REPLAY_STDOUT.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/STARTUP_TEST_RESULTS.md": "cc00ab1089f0cf69599a0ffd2e1f76bfceae797a1e4ae7043a43c08a9e1d4384",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/SUMMARY.json": "a96e99311db242f9d79dcd65554df7b9f20c8c4e994656a329d1f4bcdf0eae79",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/test_stowed_startup.py": "e5570e4aa2fd179286e7294f0968bb453ebcea8ce3eb0686739aaf29941814de",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/view_startup_replay.py": "5db111a4b8efd17f44e0bc4a48e1507045926f967c2e088fdc3fe38c14787def",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/VIEWER_STARTED.json": "77add01b8199b9d180905e8d563dac56e1ea1b69f93e7f2fc8bb28059e368fd4",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/files/PREVIOUS_OWNED_VIEWER_CLOSED_V2.json": "975b8bab00de193bf4ad0c65a950c9aca4ddf2e3f0343182b8eb53839736f2d8",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/INDEX.json": "960f8b6205473534453682517fb2e6907ecde790c4648582a7a5d7a3bcc50649",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/.gitattributes": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
+    "history/experiments/mod4v1_e3_rear_stowed_startup_20261104/NOTE.md": "2464cac442bac85f555e67b5d9247fafd0d12a9a418806bc2ef1172a436acdc1"
+  },
+  "real_robot_certified": false
+}

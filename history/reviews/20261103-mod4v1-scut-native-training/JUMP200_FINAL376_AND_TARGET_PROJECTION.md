@@ -1,5 +1,7 @@
 # 单200mm跳跃：final376与动作请求投影修复
 
+2026-11-05 05:34实际覆盖：旧16444于05:14:51结束，已补齐final376完整WORKER/EVAL并核实际errors0、原owner关闭；SCUT32已05:14:48.545450释放。随后四卡准入在网络/once/INDEX/LAUNCH/GO之前被新真SSH读者17256拒绝，原false与stderr完整保留，当前修复版仍0GO/0新小时。另一E3W11实际GO05:15:08.385595、parent1635510/worker1635668，SAVE06:15:08.385595/NOMINAL06:20:08.385595；旧W10/SCUT32不再当前owner。唯一local72460/parent37064/create05:31:34.958986运行`jump200_training_control.py recover_admission --root A`，日志0，先只本地等待17256/create05:11:51.401918，后finite核exactE3W11退出/outerreaped/canonicalNone/原锁/fresh四卡/余额并执行同一未消费launch。无需重做模型/CPU/评测，不第二SSH/rebind/热改。100h授权持续，下文16444等待和日志pending均为历史。
+
 2026-11-05 04:44。本轮原生训练与独立80已关闭、回传并审完4幅实际保存姿态图，跳跃尚未成功。当前仅有一个本地接续程序16444，尚未新GO。
 
 - 原窗GO02:14:24.739725、SAVE03:14:24.739725/NOMINAL03:19:24.739725。final03:13:22.567798、TRAIN_CLOSED03:13:48.348311；独立80完成03:16:14.138422、owner03:16:14.949629完整等待/结算/释放。03:48:39正式回传延迟不延长原窗。

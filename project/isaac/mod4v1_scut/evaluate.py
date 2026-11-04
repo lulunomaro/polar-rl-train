@@ -157,7 +157,7 @@ def main():
             if a.profile == 'scut_stairs':
                 curves[-1].update({key:snap[key].detach().cpu().tolist() for key in (
                     'actual_motor_position','actual_motor_velocity','actual_motor_torque',
-                    'ground_height','observed_height','scut_stair_max_rise')})
+                    'ground_height','observed_height','scut_stair_max_rise','terrain_boundary_timeout')})
                 curves[-1]['weighted_reward_active_mean']={key:float(value[active].mean())
                     for key,value in bridge.reward._last_reward_terms.items()}
             active &= ~done

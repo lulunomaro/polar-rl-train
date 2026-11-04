@@ -102,6 +102,14 @@ class Tests(unittest.TestCase):
                 for key, value in original.items():
                     torch.testing.assert_close(value, actual[key], atol=0, rtol=0)
 
+    def test_saved_rough_boundary_timeout_includes_border_and_margin(self):
+        from .stairs import boundary_limits, boundary_timeout
+        self.assertEqual(boundary_limits(), (49.5, 67.5))
+        root = torch.tensor([[0.,0.,-.8], [49.5,67.5,.2],
+                             [49.5001,0.,0.], [-49.5001,0.,0.],
+                             [0.,67.5001,0.], [0.,-67.5001,0.]])
+        self.assertEqual(boundary_timeout(root).tolist(), [False, False, True, True, True, True])
+
 
 if __name__ == '__main__':
     import argparse

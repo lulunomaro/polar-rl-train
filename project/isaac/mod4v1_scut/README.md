@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04最新实际：原SCUT阶梯有限80对照已在72 GPU0完成并审看4幅实际pose图，79局8秒cap/1接触终止，0closure/mimic/nonfinite，目标/CAD合规；有56局双轮升阶支持、2局达到本项目恢复观测指标，不能冒充原作者毕业标准。回传还暴露部分跑出mesh后继续下坠；已补回保存YAML开启的V14 rough boundary timeout，原globalmesh加border/margin后abs(x)>49.5或abs(y)>67.5，硬重置仍清timeout。20,000环境一小时新训练已在空闲GPU0实际GO，FIRST与最终状态见WORK_ORDER。详见`history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIR_NATIVE_AND_IDLE_GPU_LAUNCH.md`。
+
 2026-11-04人类更新：“跳台阶不再强求270mm 按照华南虎的来就行”。新`scut_stairs`只选择公开保存YAML的inverse-mid多级台阶分支，复用原SDK生成器与25–40mm配置阶高/100mm踏面、原difficulty和出生origin；不恢复其它rough科目。该分支无单独高度覆盖，按V13回退全局.2–.42m。原reward/PPO/commands与增强MOD4v1物理/DR保持。旧270mm/首次飞行验收只描述历史，不再阻断新上阶任务。当前target-axis窗已完整关闭59PPO/28.32M样本，独立80仍0top，4图已原生审看；新有限同final原生对照已准备并等待资源，CPU通过不能当技能。详见`history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIR_BRANCH_AND_RL_DIAGNOSIS.md`。
 
 2026-11-04公开trained_stair的20,000环境窗已完成46次PPO/22,080,000样本；final SHA `a8b954f378940421a5e9860faddf80c4575ae98ee062dddd1d60513de5a31aab`，独立80首局仍0触台/0strict。32局已用逐body接触与最后20步计数确认接触终止，48局达到8秒评测cap，非20秒任务timeout；早晚4幅actualpose已原生审看。新追到原SCUT执行路径中的processed leg target clamp在MOD4映射中遗漏，造成hip目标越过实际±.5rad。现补齐四motor contract限位，并保持原CAD差值/PD/DC/D4；FULL_V4显式区分此接口，旧V3仅 `--repair-target-limits` 可迁移。同final有限80对照正在进行，不能把CPU检查或修复源码称为原生成功。详见 `history/reviews/20261103-mod4v1-scut-native-training/PUBLISHED_RECIPE_FINAL_AND_TARGET_LIMITS.md`。

@@ -1,0 +1,23 @@
+# 2026-11-04 原华南虎阶梯回放与空卡开训
+
+11:13的四卡实测选择72 GPU0 `GPU-16828f91-2b45-b646-8dc0-9481138e2842`：free24,203MiB/used13MiB/util0、无计算进程。GPU1为used6,650MiB，210机器HOME可用磁盘0且RAM43GB，86机器used21,620MiB。原peerV25已于10:44:29.094021完整ownwait/settled/released；原canonicalNone、两authority锁与finite锁均可用。选择另一张卡没有绕共享锁或更改预算。
+
+原58540等待器11:02在网络前拒绝：宽泛RMPOLAR匹配误把其它聊天的本地MuJoCo CPU回放进程48084/4760当成远端控制器。检查其完整源码/argv/creation/exe/SHA后，只对这两个确切本地viewer身份分类；不停止回放、不放宽锁。一轮路径分隔符匹配false保留，之后未执行准入恢复成功。首次原GPU1资源拒绝发生在读模型/构建scene前，0PT/0physics/0optimizer，原RELEASE/ERROR/FULL_RETURNED保留。切空闲GPU0仅新增owner与plan两文件，在同一诊断目录保留独立once与结果；共用源码不复制。
+
+`scut_stairs_eval1/reports_gpu0/FULL_RETURNED.json`为实际80首局结果，actual400Hz 3,200callbacks：79局达到8秒cap、1局原接触终止，mean7.98725s，closure/mimic/nonfinite/rawreset全0。关节目标和CAD差值全部合规，实际电机位置/速度/扭矩均已回传；四腿平均target tracking MAE约.111/.080/.100/.084rad，不支持“关节完全不动”的假设。左右hip目标+.5命中91.925%/61.598%，仍是可量化后续问题。
+
+新场地56局出现双轮更高表面接触，60局有至少一轮越中心后升阶，2局满足本项目的连续.5秒恢复指标。这不是华南虎原作者的毕业标准，也不是270mm首次飞行成功。4幅早晚侧顶图已由当前模型原生视觉审看，使用原保存wxyz与实际地形mesh；env0在中心附近，env1逐步移动出中心，40/41至2秒超出窄画面视野而非terminalclamp。具体升阶结果仍以all80实际接触及轨迹为证，不能因离开画框就说完成。
+
+本次实际暴露场地边界适配漏项：部分机器人跑出整个mesh后继续下坠，observedheight到-10.836m、height square代价受到污染。固定SCUT V14源码env.py541–571与保存YAML本来就启用了rough boundary timeout，margin.5/use_inner_terrain_area=false。本次只在scut_stairs补回原公式：整个mesh加原border后，abs(x)>49.5或abs(y)>67.5视为timeout；与closure/mimic/非有限同现时原hardreset仍清timeout。奖励、PD、solver及其它终止门槛不改。保存配置的边界CPU检查通过；不拿CPU当原生技能或无边界诊断当修复后结果。
+
+新训练`env20000_scut_stairs_1h_20261104`已在11:14启动原owner1586264/create1793762067.77，GO与2万scene初始化在原FIRST有限reader内返回。9个source/control文件和28个sharedSHA引用，来源仍37,849,545B SHA`0fdd9463205f739daff8713ade26d937846c832fba25392af4e515edc8904f86`，weights-only/freshAdam，无输出/STD重置。训练完成首个PPO与完整首存后才确认FIRST，并绑定唯一postround；最终全部学习状态保存、原owner安全退出与独立80评测保持。actualGO/FIRST/save时间以原回执和WORK_ORDER为准。
+
+## 后续实际容量失败及同窗修复
+
+原20k首步PhysX实际报`foundLostAggregatePairsCapacity`至少269,692,772，否则会漏交互。虽然PPO已执行并保存首存，不能将该训练称为有效。给exact owner写入既有`STOP_AFTER_SAVE.json`后，原owner完整保存退出、计费结清、原生独立80评测并释放锁；没有signal/kill或修改canonical。关闭final为37,849,545B SHA`16eceb16104be358d35ab63c4c6396e9b922e3dbfed3a04dac313376d4d06b11`，3PPO/576physics/1.44M实际样本/60Adam；它与首存8a75都保留为失败来源，不用于修复后初始化。独立80、全部新4图也已审完，评测本身不能消除20k训练的容量错误。原生发生缓存不足的唯一深层原因尚未证明，早先把它直接称为出生重叠问题属于工作假设。
+
+源码只对scut_stairs/20000设置`cfg.sim.physics.gpu_found_lost_aggregate_pairs_capacity=280000000`，超过实际所需值；此字段为GPU碰撞对存储，不是dt/solver/contact规则。其它容量无实际报错不预先追加。关闭完成后在同阶段`attempt02`新增sdk+owner/entry/plan四个小文件，其余共用SHA引用；按原有效0fdd权重重新微调。原绝对SAVE12:14:28.462118、NOMINAL12:19:28.462118不延长、不退款，剩余窗口含native初始化。11:32:58实际启动新owner1589912/create1793763178.46，唯一本地launcher50100/create2026-11-04T11:32:52.550226+08负责有限FIRST观察；实际FIRST及容量错误是否消失以新回执为准。
+
+写早停时另一新本地NPZ/MuJoCo回放49288/25156被宽泛RMPOLAR匹配误拦的false也保留。检查完整源码确认其只读已有NPZ并本地显示，无网络、权重解码或canonical操作；只按确切PID/creation/pythonw/argv/scriptSHA分类，未停止或修改其它聊天。
+
+本阶段沿用既有annotated trial，全部false/reader错误与结果只追加普通Git提交；新训练不增加或复制canonical、不退款、不覆盖既有模型与冻结once。

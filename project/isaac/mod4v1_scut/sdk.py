@@ -102,6 +102,11 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.episode_length_s = reward_config(profile).episode_length_s
     cfg.decimation, cfg.sim.dt, cfg.sim.render_interval = 8, .0025, 8
     cfg.sim.physics.solver_type = 1  # target SDK uses physics, never physx
+    if profile == 'scut_stairs' and n == 20000:
+        # The first actual20k stair rollout requested269,692,772 and reported
+        # dropped interactions with the inherited32M aggregate-pair buffer.
+        # This is storage for collision pairs, not a timestep/solver change.
+        cfg.sim.physics.gpu_found_lost_aggregate_pairs_capacity = 280000000
     cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count = 32
     cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count = 4
     cfg.terminations.closure.params['threshold'] = .01
@@ -147,6 +152,7 @@ class ScutBridge:
         self.pending_actions = torch.zeros(self.n, 6, device=self.device)
         self.last_reward = torch.zeros(self.n, device=self.device)
         self.reset_scan_pending = torch.ones(self.n, dtype=torch.bool, device=self.device)
+        self.terrain_boundary_timeout = torch.zeros(self.n, dtype=torch.bool, device=self.device)
         self.scan_max_distance = ground_scan_config()['max_distance']
         if profile == 'scut_stairs':
             from .stairs import StairTraversal
@@ -254,6 +260,10 @@ class ScutBridge:
         r = self.reward
         body = r.robot.data
         terminated, timeout = r._get_dones()
+        if self.profile == 'scut_stairs':
+            from .stairs import boundary_timeout
+            self.terrain_boundary_timeout.copy_(boundary_timeout(body.root_pos_w))
+            timeout |= self.terrain_boundary_timeout
         bad = r._numerical_safety_reset_buf.clone()
         for key in ('joint_pos', 'joint_vel', 'root_pos_w', 'root_quat_w',
                     'root_lin_vel_b', 'root_ang_vel_b'):
@@ -497,6 +507,7 @@ class ScutBridge:
                 actual_motor_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone(),
                 ground_height=r.ground_z_est.clone(),
                 observed_height=r._get_observed_height().clone())
+            snapshot['terrain_boundary_timeout'] = self.terrain_boundary_timeout.clone()
         return snapshot
 
     def observations(self, raw):

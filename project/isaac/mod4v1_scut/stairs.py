@@ -4,6 +4,7 @@ No jump state machine or extra reward is introduced. The robot, its physics,
 and DR remain MOD4; the generator parameters come from the pinned saved YAML.
 """
 from copy import deepcopy
+from functools import lru_cache
 import torch
 from .config import read_yaml
 from .math_ops import euler_xyz_from_quat
@@ -32,6 +33,31 @@ def metadata():
         height_command_range_m=list(read_yaml('trained_env')['height_range']), root_height_above_origin_m=.38,
         requires_270mm=False, requires_first_flight=False,
         physical_MOD4_model_and_DR_preserved=True)
+
+
+@lru_cache(maxsize=1)
+def boundary_limits():
+    raw = read_yaml('trained_env')
+    cfg = raw['rough_terrain_boundary_reset_cfg']
+    if not cfg['enabled']:
+        return None
+    generator = raw['terrain']['terrain_generator']
+    half_x = .5*generator['num_rows']*generator['size'][0]
+    half_y = .5*generator['num_cols']*generator['size'][1]
+    if not cfg['use_inner_terrain_area']:
+        half_x += generator['border_width']
+        half_y += generator['border_width']
+    margin = max(float(cfg['margin']), 0.)
+    return max(half_x-margin, 0.), max(half_y-margin, 0.)
+
+
+def boundary_timeout(root_pos_w):
+    """V14 env.py541-566, using the saved enabled boundary-reset settings."""
+    limits = boundary_limits()
+    if limits is None:
+        return torch.zeros(len(root_pos_w), dtype=torch.bool, device=root_pos_w.device)
+    return ((root_pos_w[:, 0].abs() > limits[0]) |
+            (root_pos_w[:, 1].abs() > limits[1]))
 
 
 def terrain_cfg(seed):

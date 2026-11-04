@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-05 00:54实际覆盖：人类“允许100小时”已生效，按每小时完整保存/安全退出/独立80/实际回放/定向修复接续，原canonical余额与严格reserve保持，不再逐小时询问。当前接近/上推修复版已在空闲4090 GPU1通过真实FIRST151：480,000样本、20新Adam、非零actor/critic梯度、FULL_V4首存40,717,335B/SHA `eabb072a02761af1e75d1864a3acf236f91ab9a0335feba67162a432685a6c12`，完整首轮日志0实际错误。完整恢复source150/17项Adam/step3000/LR及RNG/队列/计数器，一次fresh物理reset。唯一collector20700/create00:48:15.353768；旧61200/session54368已完成。actualGO00:40:50.069379、SAVE01:40:50.069379、NOMINAL01:45:50.069379，正式回传于SAVE+45后进行；FIRST不等于技能。当前owner保存安全退出后立即独立80并审全部实际图，再按结果修复/接续。下文待批/FIRSTpending均为历史。
+
 2026-11-05 00:32最新：jump200原hour已完整保存/退出/独立80/审完4图，70新PPO、33.6M样本、final150/Adam3000，全日志无实际错误，但0真实起跳/0越沿/0台顶落地。41/80请求、idle每步仍有.0825奖励，实测策略停滞。新候选只修接近阶段五项正tracking奖励按`clamp(vx_body/command_vx,0,1)`门控、push增加原源码takeoff_vel_z（cap3/weight2），保持几何/验收/物理/PPO；12项jump200和8项旧阶梯CPU回归通过。修复尚未原生训练，新hour需独立授权，不能延长已结束原窗口。详见history/reviews/20261103-mod4v1-scut-native-training/JUMP200_FINAL150_AND_APPROACH_REPAIR.md。
 
 2026-11-04 22:32当前：`jump200/attempt02`已通过真实20,000环境FIRST，iteration80→81、480,000样本、20新Adam、非零actor/critic梯度及完整FULL_V4首存，完整首轮日志0实际错误。首次生产在跨任务恢复`_mode_enabled`配置向量时失败，原0PPO/关闭结果保留；修复仅在显式scut_stairs→jump200迁移时保留新constructor的禁specialmode配置，完整actor/critic/STD/Adam/LR/RNG/队列与计数器继续恢复，9项CPU检查和本次原生FIRST均通过。只用原授权窗剩余，SAVE23:11:34.580026/NOMINAL23:16:34.580026不延长。唯一collector61924负责正式回传，最终200mm跳跃技能仍待保存后的独立80与实际回放。

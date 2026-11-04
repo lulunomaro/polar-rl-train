@@ -1,0 +1,43 @@
+{
+  "id": "C2_TORQUE_NATIVE_MATH_001",
+  "scope": "Selected nominal C2 requested torque only, not estimator/driver/robot qualification",
+  "physics_steps": 0,
+  "old_cases_read": 0,
+  "sequences": [
+    [
+      "slow_commands",
+      1,
+      200
+    ],
+    [
+      "park_hold",
+      1,
+      500
+    ],
+    [
+      "drive_brake_reverse",
+      1,
+      900
+    ],
+    [
+      "rate_only_math_stress",
+      0,
+      700
+    ]
+  ],
+  "thresholds": {
+    "torque_Nm": 0.002,
+    "wheel_first_Nm": 0.002,
+    "reference_state14": 5e-05,
+    "projected_shaped": 5e-05,
+    "yaw_integral": 0.0002,
+    "park_m": 3e-06
+  },
+  "native_fault_assertions": 33,
+  "required_status_valid": true,
+  "require_torque_bounds": true,
+  "require_stress_exercises_saturation_and_envelope": true,
+  "projected_shaped": "ref7/ref8 and raw shaper acceleration; not unprojected internal v/w",
+  "stress_note": "Mode0 high command/rate/encoder-speed synthetic stress is NOT actual FPS motion or a dynamics trajectory",
+  "unchanged": "Original K/geometry/C1/reference/base equations, twice clipping order, actuator limits and original inner actuation path"
+}

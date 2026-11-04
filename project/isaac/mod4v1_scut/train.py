@@ -278,6 +278,19 @@ def main():
             reset = restore(runner, env, bridge, args.resume, args.profile,
                 repair_unclipped_v2=args.repair_unclipped_v2,
                 repair_target_limits=args.repair_target_limits) if args.resume else env.reset()
+        if args.resume:
+            optimizer_steps = [float(value['step']) for value in runner.alg.optimizer.state.values()
+                               if 'step' in value]
+            put(job/'FULL_STATE_RESTORE.json',dict(epoch=time.time(),
+                source_path=args.resume,source_SHA=args.init_SHA,source_bytes=args.init_bytes,
+                actor_critic_STD_Adam_LR_iteration_restored=True,
+                source_iteration=runner.current_learning_iteration,
+                optimizer_state_entries=len(runner.alg.optimizer.state),
+                optimizer_step_min=min(optimizer_steps) if optimizer_steps else None,
+                optimizer_step_max=max(optimizer_steps) if optimizer_steps else None,
+                learning_rate=runner.alg.learning_rate,
+                components_global_RNG_queues_and_counters_restored=True,
+                fresh_physical_reset=True,PhysX_state_restored=False))
         vec.current = reset[0] if isinstance(reset, tuple) else reset
         initialize_episode_lengths(vec, args.profile)
         guard.check_observations(vec.current)

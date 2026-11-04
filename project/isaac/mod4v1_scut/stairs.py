@@ -1,4 +1,4 @@
-"""Use the published SCUT inverse-stair generator and report actual traversal.
+"""Use the SCUT inverse-stair dimensions with explicit right-angle mesh steps.
 
 No jump state machine or extra reward is introduced. The robot, its physics,
 and DR remain MOD4; the generator parameters come from the pinned saved YAML.
@@ -39,7 +39,10 @@ def contact_mesh_paths(num_envs):
 def metadata(num_envs=80):
     generator, stair = recipe()
     return dict(kind='SCUT_SAVED_INVERSE_STAIR_BRANCH', branch=BRANCH,
-        generator_function=stair['function'], step_height_range_m=stair['step_height_range'],
+        generator_function='isaaclab.terrains.trimesh.mesh_terrains:inverted_pyramid_stairs_terrain',
+        source_generator_function=stair['function'],
+        geometry_adaptation='Explicit horizontal treads and vertical risers; saved0.1m heightfield samples previously interpolated as slopes',
+        step_height_range_m=stair['step_height_range'],
         step_width_m=stair['step_width'], centre_width_m=stair['platform_width'],
         size_m=stair['size'], border_width_m=stair['border_width'],
         horizontal_scale=stair['horizontal_scale'], vertical_scale=stair['vertical_scale'],
@@ -48,7 +51,7 @@ def metadata(num_envs=80):
         layout_replication='Same selected stair distribution; more columns for20000, not other rough tasks',
         curriculum_mesh=generator['curriculum'],
         origin='Original generator origin, including its height; not centre-bottom shifted',
-        scope='Only the saved inverse-stair branch; other rough tasks omitted',
+        scope='Only the inverse-stair branch dimensions; explicit mesh geometry adaptation, other rough tasks omitted',
         height_command_range_m=list(read_yaml('trained_env')['height_range']), root_height_above_origin_m=.38,
         requires_270mm=False, requires_first_flight=False,
         physical_MOD4_model_and_DR_preserved=True)
@@ -81,10 +84,14 @@ def boundary_timeout(root_pos_w):
 
 def terrain_cfg(seed, num_envs=80):
     from isaaclab.terrains import TerrainImporter, TerrainImporterCfg, TerrainGeneratorCfg
-    from isaaclab.terrains.height_field.hf_terrains_cfg import HfPyramidStairsTerrainCfg
+    from isaaclab.terrains.trimesh.mesh_terrains_cfg import MeshInvertedPyramidStairsTerrainCfg
     from isaaclab.sim import RigidBodyMaterialCfg
     generator, stair = recipe()
-    sub = HfPyramidStairsTerrainCfg(**{k: v for k, v in stair.items() if k != 'function'})
+    # The saved0.1m samples equal the0.1m tread width. Adjacent25-40mm
+    # heights therefore become a ramp at slope_threshold=.5. Use the SDK's
+    # explicit box-mesh steps while preserving the selected branch dimensions.
+    sub = MeshInvertedPyramidStairsTerrainCfg(**{key: stair[key] for key in
+        ('size', 'border_width', 'step_height_range', 'step_width', 'platform_width')}, holes=False)
     sub.proportion = 1.
     selected = {k: generator[k] for k in ('curriculum', 'size', 'border_width', 'border_height',
         'num_rows', 'num_cols', 'color_scheme', 'horizontal_scale', 'vertical_scale',

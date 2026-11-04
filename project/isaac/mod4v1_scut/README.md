@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04 17:52人类审看MuJoCo指出旧场地实际是坡。原NPZ确认4个tile均9,060斜面/0竖直面，旧53双轮更高支持/2稳定只代表坡上运动，不是台阶或跳跃技能。人类明确“按华南虎方式上真实直角台阶，允许轮子保持接触”，并授权4090再训一小时20,000环境。attempt08已在fresh空闲72 GPU1启动，改用SDK显式MeshInvertedPyramidStairsTerrainCfg水平踏面/竖直阶面，保留25–40mm/0.1m/1m等配置尺寸；这是明确几何适配，原点高度与heightfield量化不同，不称原配方逐字复现。来自ffce完整状态续训，保留Adam/STD/RNG/队列，一次fresh物理reset。actualFIRST/恢复和原save/nominal以WORK_ORDER为准。见history/reviews/20261103-mod4v1-scut-native-training/RIGHT_ANGLE_STAIR_CORRECTION_AND_CONTINUATION.md。以下升阶文字为原始历史，技能解释已由本段纠正。
+
 2026-11-04 17:03最新实际：attempt07已完整保存安全退出并正式传回，31PPO/14.88M样本/620Adam，FULL_V4 final SHAffce8d5ad2662a8981d971906e4b30bba13da38debbf42b6bc68284345f66d8c。完整训练/评测日志actualerrorlines0，原owner与collector均结束。独立80为53bothup/63anyup/2连续稳定指标，78评测cap/2boundarytimeout、0闭链/mimic/数值异常；早晚4图已由当前模型原生审看。对比原来源同为2恢复，没有明确技能提升；左/右hip目标上限命中94.69%/59.47%仍待按曲线定向分析。原授权小时已结束，不自动再开窗。详见history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIRS_ATTEMPT07_FINAL_REVIEW.md。以下各时间段为历史。
 
 2026-11-04 16:31 attempt07已通过首个真实PPO与完整首存：480,000样本/192physics/20Adam，actorcritic梯度均非零，FULLV4首存SHA3a475d2b0909e6e07decceb77063c0fcff5c4a1008bb69ad9584a5e5bc5acfd0。对完整首轮WORKER.log有限读回确认actualerrorlines0，原patch溢出已消失；这是首轮执行证据，技能仍待最终独立评测。网络读者恢复完成且未重复启动训练，唯一collector59804已绑定；原SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，原owner保存退出后立即独立80与actualpose审看。

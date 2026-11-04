@@ -1,0 +1,9 @@
+"""Push exact feature + one existing annotated trial; retain verification only as tool output."""
+from pathlib import Path
+import argparse,json,re,subprocess,time
+repo=Path(r'F:\RMPOLAR-RL\repo-lqr');p=argparse.ArgumentParser();p.add_argument('--expected-head',required=True);a=p.parse_args();assert re.fullmatch('[0-9a-f]{40}',a.expected_head);branch='mod4v1-experts-fulldr-rm70';tag='trial-20261104-mod4v1-current-nine-original-subject-assessment-phase43'
+def g(*x):return subprocess.run(['git','-C',str(repo),*x],check=True,capture_output=True,text=True,encoding='utf8').stdout.strip()
+assert g('branch','--show-current')==branch and g('rev-parse','HEAD')==a.expected_head and not g('status','--porcelain');assert g('cat-file','-t','refs/tags/'+tag)=='tag'and g('rev-parse','refs/tags/'+tag+'^{}')==a.expected_head;obj=g('rev-parse','refs/tags/'+tag)
+push=subprocess.run(['git','-C',str(repo),'push','--atomic','origin','HEAD:refs/heads/'+branch,'refs/tags/'+tag+':refs/tags/'+tag],capture_output=True,text=True,encoding='utf8');assert push.returncode==0,push.stderr
+remote={ref:sha for sha,ref in(x.split()for x in g('ls-remote','origin','refs/heads/'+branch,'refs/tags/'+tag,'refs/tags/'+tag+'^{}','refs/heads/main').splitlines())};assert remote['refs/heads/'+branch]==a.expected_head and remote['refs/tags/'+tag]==obj and remote['refs/tags/'+tag+'^{}']==a.expected_head and not g('status','--porcelain')
+print(json.dumps(dict(kind='CURRENT_NINE_PHASE43_EXACT_FEATURE_TRIAL_REMOTE_VERIFIED',epoch=time.time(),feature=branch,commit=a.expected_head,tag=tag,tag_object=obj,remote=remote,main_readonly_independently_advancing=True,main_push_or_reset=False,working_tree_clean=True,push_stdout=push.stdout,push_stderr=push.stderr,model_raw_native_CPU_C_or_resource_operations=0,no_new_formal_receipt_file=True),indent=2))

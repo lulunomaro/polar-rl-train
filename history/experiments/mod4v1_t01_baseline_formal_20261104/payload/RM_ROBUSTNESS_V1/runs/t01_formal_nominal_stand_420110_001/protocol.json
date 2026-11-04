@@ -1,0 +1,110 @@
+{
+  "id": "T01_ENGINEERING_SCREEN_V1",
+  "status": "frozen_before_formal_runs",
+  "scope": "task_function_screen_not_overall_reliability_or_hardware_qualification",
+  "scene": "latest_rm",
+  "zone_key": "flat_run",
+  "controller": "coord_soft",
+  "pilot": {
+    "seed": 420101,
+    "nominal": true,
+    "duration_s": 8.0,
+    "profile": "stand",
+    "counts_as_acceptance": false
+  },
+  "formal_cases": [
+    {
+      "id": "nominal_stand",
+      "seed": 420110,
+      "nominal": true,
+      "profile": "stand"
+    },
+    {
+      "id": "nominal_slow",
+      "seed": 420111,
+      "nominal": true,
+      "profile": "slow"
+    },
+    {
+      "id": "dr_stand_1",
+      "seed": 420112,
+      "nominal": false,
+      "profile": "stand"
+    },
+    {
+      "id": "dr_slow_1",
+      "seed": 420113,
+      "nominal": false,
+      "profile": "slow"
+    },
+    {
+      "id": "dr_stand_2",
+      "seed": 420114,
+      "nominal": false,
+      "profile": "stand"
+    },
+    {
+      "id": "dr_slow_2",
+      "seed": 420115,
+      "nominal": false,
+      "profile": "slow"
+    }
+  ],
+  "formal_duration_s": 12.0,
+  "slow_command": {
+    "start_s": 2.0,
+    "stop_s": 8.0,
+    "forward_m_s": 0.3,
+    "yaw_rate_rad_s": 0.0
+  },
+  "windows": {
+    "attitude_contact_s": [
+      2.0,
+      12.0
+    ],
+    "steady_slow_s": [
+      3.0,
+      7.0
+    ],
+    "final_stop_s": [
+      9.0,
+      12.0
+    ]
+  },
+  "gates": {
+    "complete_finite_no_auto_reset": true,
+    "max_closure_m": 0.01,
+    "max_mimic_rad": 0.01,
+    "pitch_abs_peak_rad": 0.1,
+    "roll_abs_peak_rad": 0.1,
+    "pitch_rms_rad": 0.035,
+    "roll_rms_rad": 0.035,
+    "stand_xy_drift_m": 0.2,
+    "stand_body_vx_rms_m_s": 0.05,
+    "slow_vx_rmse_m_s": 0.1,
+    "slow_min_progress_m": 1.2,
+    "slow_max_lateral_m": 0.2,
+    "final_stop_body_vx_rms_m_s": 0.05,
+    "contact_normal_threshold_N": 1.0,
+    "each_mainwheel_support_duty_min": 0.95,
+    "guide_support_duty_max": 0.01,
+    "guide_support_longest_s_max": 0.02,
+    "hard_contact_ticks_max": 0,
+    "whole_body_unsupported_ticks_max": 0,
+    "contact_audit_rate_Hz": 2000
+  },
+  "invariants": [
+    "fresh_model_each_case",
+    "DR_once_per_case",
+    "all_world_collision_geoms_not_ground_alias_only",
+    "root_contact_truth_grading_only",
+    "original_robot_PD_D4_DC_and_limits",
+    "no_root_assist_or_teleport"
+  ],
+  "notes": [
+    "Missing contact audit is unavailable, never zero.",
+    "Four DR TRAIN cases are screening only, not a reliability estimate.",
+    "No holdout or old once is rerun or tuned.",
+    "Failed candidates and software prefixes stay preserved; protocol is not relaxed retrospectively."
+  ]
+}

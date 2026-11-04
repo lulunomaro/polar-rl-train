@@ -1,0 +1,61 @@
+"""Supported 200 mm ascent terms. NumPy CPU checks and Torch share this code."""
+
+EDGE = .8
+HEIGHT = .2
+NORMAL_ROOT = .30
+EXTENDED_ROOT = .39
+
+
+def height_command(xp, x, both_top, supported):
+    near = xp.clip((x - (EDGE - .65)) / .4, 0., 1.)
+    target = NORMAL_ROOT + (EXTENDED_ROOT - NORMAL_ROOT) * near
+    # Once carried by the platform, lower legs toward its top, rather than
+    # continuing to maximize extension against the edge.
+    return xp.where(both_top, HEIGHT + NORMAL_ROOT,
+                    xp.where(supported, HEIGHT + .22, target))
+
+
+def terms(xp, *, root, velocity, roll, pitch, yaw_error, wheel_low,
+          wheel_top_force, wheel_ground_force, support_top_force,
+          previous_potential, supported_ticks):
+    x, y, z = root[:, 0], root[:, 1], root[:, 2]
+    upright = xp.exp(-4. * (roll * roll + pitch * pitch))
+    heading = xp.exp(-(yaw_error / .35) ** 2)
+    lane = xp.exp(-(y / .45) ** 2)
+    top = xp.all(wheel_top_force > 1., axis=-1)
+    grounded = xp.any(wheel_ground_force > 1., axis=-1)
+    supported = (support_top_force > 1.) & (z > .31) & (xp.abs(roll) < .5) & (xp.abs(pitch) < .5)
+    near = xp.clip((x - (EDGE - .60)) / .4, 0., 1.)
+    target = height_command(xp, x, top, supported)
+    raised = xp.clip((z - NORMAL_ROOT) / (EXTENDED_ROOT - NORMAL_ROOT), 0., 1.)
+    advance = xp.clip(velocity[:, 0] / .25, 0., 1.)
+    potential = xp.clip(x / (EDGE + .55), 0., 1.)
+    # A positive displacement term pays for new progress, not elapsed time
+    # standing beside the same edge. Reversals retain their negative return.
+    delta = xp.clip((potential - previous_potential) / .02, -1., 1.)
+    lift = xp.clip(wheel_low[:, :, 2] / HEIGHT, 0., 1.).mean(axis=-1)
+    align = upright * heading * lane
+    stage_gate = xp.where(top, 1., xp.where(supported, .25, advance))
+    approach = ~top & ~supported
+    calm = xp.exp(-xp.sum(velocity * velocity, axis=-1) / .01)
+    values = dict(
+        stand31_progress=3. * delta * align,
+        stand31_raise=2. * near * raised * advance * grounded * approach * align,
+        stand31_height=1.5 * xp.exp(-((z - target) / .055) ** 2) * stage_gate * align,
+        stand31_approach=1.5 * advance * approach * align,
+        stand31_support=.5 * supported * (supported_ticks <= 50) * align,
+        stand31_retract=4. * supported * lift * align,
+        stand31_top=7. * top * align,
+        stand31_top_quiet=4. * top * calm * align,
+        stand31_idle=-.5 * (xp.abs(velocity[:, 0]) < .03) * approach,
+        stand31_hang=-1. * supported * (supported_ticks > 100),
+        stand31_heading=-.5 * xp.clip((yaw_error / .5) ** 2, 0., 4.),
+        stand31_lane=-.5 * xp.clip((y / .5) ** 2, 0., 4.),
+    )
+    return values, potential, target, supported, top
+
+
+def harmful_contact(xp, reset_force_norm, verified_top_per_body, root_z, roll, pitch):
+    upright = (xp.abs(roll) < .5) & (xp.abs(pitch) < .5) & (root_z > .31)
+    permitted = (verified_top_per_body > 1.) & upright[:, None]
+    return xp.any((reset_force_norm > 1.) & ~permitted, axis=-1)

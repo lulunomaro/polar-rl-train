@@ -1,0 +1,14 @@
+"""Read the same immutable flat PPO recipe without importing live shared code."""
+from pathlib import Path
+import hashlib
+import importlib.util
+
+
+def flat_agent():
+    p = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V18_FLAT_1793718201739612500/recipe.py')
+    raw = p.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '720b859e4f9d071084c654bf0c4f4db3942441754f979777a03286d0e2f2b91f'
+    spec = importlib.util.spec_from_file_location('stand31_original_flat_recipe', p)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.original_recipe('flat')[1]

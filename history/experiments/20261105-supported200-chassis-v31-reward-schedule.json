@@ -1,0 +1,26 @@
+{
+  "id": "20261105-supported200-chassis-v31-reward-schedule",
+  "tag": "trial-20261105-supported200-chassis-v31-reward-schedule",
+  "title": "Prepare supported200 chassis raise support retract rewards and recurring continuation",
+  "kind": "repair",
+  "recorded_at": "2026-11-04T18:24:53.404493+00:00",
+  "repair_or_experiment_note": "# 200mm 底盘支撑站爬：2026-11-05最新人类指令\n\n本聊天人类明确要求：“站着上台阶……抬高底盘给奖励让机器人站起来，然后底盘卡上台阶，然后收腿上……设置定时任务，反思经验继续推进”。这覆盖本聊天此前必须飞行越沿的选择；本分支允许底盘/导轮形成真实支撑。其它聊天jump200分支和100小时授权不被本分支挪用或停止。\n\n目标为单个200mm直角台阶，抬高底盘、接近并搭上水平台沿、有支撑后收腿抬轮、双轮整轮在台顶稳定至少0.5s。原2.5ms/TGS32/4、增强USD/完整D0–D7、PD/DC/队列、0.01m闭链/0.01rad mimic、硬件目标限位和原canonical严格reserve保留。动作仍由PPO策略输出，无预写运动和外力辅助。\n\n旧站爬V30已远端完整结束：final1709、新237PPO、45504physics，checkpoint8924208B/SHA56459cb4ae1e052d6061ae42218477acd3fd8760a0a804e4e5cdf618f1c55f5b；OWNER_EXIT1793796843.4999783、errornull、wait/cost/release完成。独立80 strict0、both-top0，15提前终止/65满10s、mean9.1995。其原closed transfer仍unused，先freshLOCAL释放后取原结果并原生审图，不重评。\n\n失败经验：旧训练还在平地准备阶段，既无真实200mm台沿训练，也没有台沿支撑后的收腿奖励；旧底盘/导轮接触>1N持续20控制会终止。已有髋target限位合规，但受载实际角低于target，不能只根据target当作站起。初始0.38m无支撑的下落不算主动蹲下或站起效果。单纯加高度常量奖励会留下原地站高的捷径。\n\n新候选改动：真实单台阶训练场、前进门控站高、位移增量、实际台顶支撑、支撑后实际轮缘高度、双轮台顶稳定奖励；停滞与长时间挂台扣分。保留成本项，关掉与新目标相冲突的旧静止正奖励。只有upright且root高、对应body有真实台顶向上法向力和接触点的底盘/导轮接触免除contact termination；侧撞、落地、倾倒和所有数值/闭链/mimic保护保持。\n\n当前仅本地候选。NumPy检查不代表真实SDK/恢复通过。外部E3 collector39092/parent51972正在使用串行连接，当前network0/launch0；不抢连接或canonical。\n\n下一次定时执行先读CURRENT_WORK_ORDER和该目录：完成unused V30 closed transfer、已有轨迹渲染和全80审查；针对本候选核实际冻结SDK的contact sensor/body ordering和完整恢复命令字段；必要时修正独立候选，冻结小文件及shared SHA引用。新生产只在freshLOCAL FREE、四卡新读取、原canonicalNone/privateGPU/finite准入后进行原3600save+300exit有限窗；不复制runtime、不重复old once、不逐小时原样续训。每窗立即独立80、400Hzmanifold/bodyposes、原生侧俯及曲线检查，再决定修复或接续。所有失败与报告进入Git。\n\n技能未完成时定时任务持续推进；成功、失败、预算/资源/网络问题或需要人类行动才通知。普通健康等待保持静默。\n",
+  "validation": "11 NumPy behavioral checks and 3000 vectorized samples finite; final source AST passed. No model/SDK/physics/production; blocked by active foreign E3 collector. Existing heartbeat updated to30min. Native integration pending.",
+  "source_and_evidence_sha256": {
+    "history/standing200/20261105-supported-chassis-v31-candidate/INDEX.json": "3f0cb640f0621ee62a38d597f3667d7c6e58df2146d1ef5857a958e32fefb081",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/393a9ac5c92c545c4ad661fcaf0ac1f42cdda1c561e8e1e5a1584abeb0695ac9": "393a9ac5c92c545c4ad661fcaf0ac1f42cdda1c561e8e1e5a1584abeb0695ac9",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/490131f496afe2c5ec099a3a5e3725120fb322128dced4e52e259abb39ee91d8": "490131f496afe2c5ec099a3a5e3725120fb322128dced4e52e259abb39ee91d8",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/535ca8473e32385f1d59ad2be81961eaa511529c958271be67fdf68463685c27": "535ca8473e32385f1d59ad2be81961eaa511529c958271be67fdf68463685c27",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/580d077e4ae7ffe3ef4f9dee57da4f2c8a03b24d6c98d31ce59f33b6ae098afd": "580d077e4ae7ffe3ef4f9dee57da4f2c8a03b24d6c98d31ce59f33b6ae098afd",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/5c9b1b9453727f50ff29e723e7adc4f7a257bf5712ab35142ca3b7e6b6f4c785": "5c9b1b9453727f50ff29e723e7adc4f7a257bf5712ab35142ca3b7e6b6f4c785",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/89e6b8ba0aa7f57a88d99fdb2fde8a582829c334ff2272f3cf059f14d90e2302": "89e6b8ba0aa7f57a88d99fdb2fde8a582829c334ff2272f3cf059f14d90e2302",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/9f429db3d52e392d5d93117e15e20d551cb5e6356031e6943470bcfdac54378b": "9f429db3d52e392d5d93117e15e20d551cb5e6356031e6943470bcfdac54378b",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/a0cf6ed4d983aba0f5aabe78826d4fa664bcdda4fa55f3b8d9d62f6082ac5b35": "a0cf6ed4d983aba0f5aabe78826d4fa664bcdda4fa55f3b8d9d62f6082ac5b35",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/a94cd70462b95e21f5b79fff18ce37f623c955139f83744684edd8910f4c266e": "a94cd70462b95e21f5b79fff18ce37f623c955139f83744684edd8910f4c266e",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/c2cb959db060890aedd1a5e7f1e625b8d78a407f2fcb2030aa0ec9b4f1d5ab8e": "c2cb959db060890aedd1a5e7f1e625b8d78a407f2fcb2030aa0ec9b4f1d5ab8e",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/e249dcc041e244dc098c459d2a5a335e9221fa2eabbc77875bd0fcff331a9a11": "e249dcc041e244dc098c459d2a5a335e9221fa2eabbc77875bd0fcff331a9a11",
+    "history/standing200/20261105-supported-chassis-v31-candidate/objects/feb31671e3a0786a0676f09de45b5516ae605b1a670d9f4ff8d97d9403e7cef2": "feb31671e3a0786a0676f09de45b5516ae605b1a670d9f4ff8d97d9403e7cef2",
+    "history/standing200/20261105-supported-chassis-v31-candidate/README.md": "a94cd70462b95e21f5b79fff18ce37f623c955139f83744684edd8910f4c266e"
+  },
+  "real_robot_certified": false
+}

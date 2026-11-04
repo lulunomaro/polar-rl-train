@@ -1,0 +1,238 @@
+"""SCUT PPO + MOD4 targets; new task is chassis-supported single-step ascent."""
+from pathlib import Path
+import ast
+import hashlib
+import importlib.util
+import json
+import sys
+import types
+
+HERE = Path(__file__).resolve().parent
+V25 = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_1793750781803008100')
+FORMAT = 'MOD4V1_SCUT_STANDING200_V31_CHASSIS_SUPPORT'
+
+
+def install(stage, source_stage=None):
+    import torch
+    raw = (V25 / 'recipe.py').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '935084b6319c7b9cde135e762969d111d7ba895cad3ab7327e519c224cd665cb'
+    sys.path.append(str(V25))
+    namespace = dict(__file__=str(HERE / 'recipe.py'), __name__='standing31_v25_base')
+    exec(compile(raw, str(V25 / 'recipe.py'), 'exec'), namespace)
+    # Use the already-proven real step scene and manifold path in both modes.
+    receipt = namespace['install']('eval200', source_stage='flat')
+    import mod4v1_scut.sdk as sdk
+    import mod4v1_scut.course as course
+    import mod4v1_scut.config as config
+    import mod4v1_scut.rewards as rewards
+    import mod4v1_scut.checkpoint as checkpoint
+    from mod4v1_scut.upstream import source_path
+    from mod4v1_scut.math_ops import euler_xyz_from_quat, wrap_to_pi
+    from mod4v1_scut.acceptance import wheel_bounds
+    from supported_meter import FourSideSupported200
+    from reward_model import terms, harmful_contact
+
+    # Preserve the source flat actor/critic architecture and PPO configuration.
+    from recipe31_base_access import flat_agent
+    agent = flat_agent()
+    old_yaml = config.read_yaml
+    config.read_yaml = lambda key: agent if key == 'trained_agent' else old_yaml(key)
+    course.HEIGHT = sdk.HEIGHT = .2
+    course.BOXES = sdk.BOXES = ((.8, 3.5, -3.5, 3.5),)
+    course.POSE_RANGE = sdk.POSE_RANGE = dict(roll=(-.03, .03), pitch=(-.03, .03), yaw=(-.05, .05))
+    sdk.top_mask = lambda p: ((p[..., 2] - .2).abs() < .002) & (p[..., 0] >= .8 - .001) & (p[..., 0] <= 3.501) & (p[..., 1].abs() <= 3.501)
+    course.top_mask = sdk.top_mask
+    course.metadata = lambda: dict(stage='supported200', source_commit='1a26356d6f591734d4f6f666f5cead1a6925da67',
+        step_height_m=.2, source_recipe_changed=True, flight_required=False,
+        sequence='raise chassis; establish actual top support; retract legs; both wheels top stable',
+        selected_evaluation_platform=dict(raised_boxes_xy=course.BOXES, step_height_m=.2),
+        root_position_m=[0., 0., .38], quaternion_order='wxyz')
+
+    old_reward_config = config.reward_config
+    custom_names = ('progress','raise','height','approach','support','retract','top','top_quiet','idle','hang','heading','lane')
+    def reward_config(profile='trained_stair'):
+        cfg = old_reward_config(profile)
+        cfg.height_range = (.30, .30)
+        cfg.episode_length_s = 10.
+        # Keep costs and safety; remove positive stationary task alternatives.
+        for key, value in list(cfg.rewards.items()):
+            if value > 0. or key in ('track_height_square', 'stand_still_lin_vel', 'lin_vel_z'):
+                cfg.rewards[key] = 0.
+        cfg.rewards.update({'stand31_' + key: 1. for key in custom_names})
+        return cfg
+    config.reward_config = sdk.reward_config = rewards.reward_config = reward_config
+
+    class SingleSupported200(FourSideSupported200):
+        def set_spawn_orientation(self, ids, q):
+            self.initial_yaw[ids] = euler_xyz_from_quat(q)[2]
+
+        def update_world(self, positions, quaternions, contract, origins, top_force,
+                         ground_force, wheel_net, nonwheel_force, velocity, root_quat, active):
+            low, high = wheel_bounds(positions, quaternions, contract)
+            low, high = low - origins[:, None], high - origins[:, None]
+            roll, pitch, yaw = euler_xyz_from_quat(root_quat)
+            self.initial_yaw = torch.where(torch.isnan(self.initial_yaw), yaw, self.initial_yaw)
+            inside = (low[..., 0] >= .8).all(-1) & (high[..., 0] <= 3.5).all(-1) & (low[..., 1] >= -3.5).all(-1) & (high[..., 1] <= 3.5).all(-1)
+            self.started_lower |= (ground_force > 1.).any(-1) & active & ~self.ever_top
+            supported = (self.support_force > 1.).any(-1)
+            self.unsupported = torch.where(active & self.started_lower & ~supported, self.unsupported + 1, 0)
+            self.unsupported_peak = torch.maximum(self.unsupported_peak, self.unsupported)
+            top = inside & (top_force > 1.).all(-1) & active
+            self.returned |= self.ever_top & ((ground_force > 1.).any(-1) | ~inside) & active
+            self.ever_top |= top
+            self.wholeclear |= inside & active
+            self.leading |= (low[..., 2] >= .2).any(-1) & active
+            calm = (velocity[:, :2].norm(dim=-1) <= .03) & (velocity[:, 2].abs() <= .03) & (roll.abs() <= torch.pi/18) & (pitch.abs() <= torch.pi/18) & (wrap_to_pi(yaw-self.initial_yaw).abs() <= .2)
+            valid = top & calm & self.started_lower & ~self.returned & (self.unsupported_peak <= 40)
+            self.support_ticks = torch.where(top & ~self.returned, self.support_ticks+1, 0)
+            self.stable = torch.where(valid, self.stable+1, 0)
+            self.stable_peak = torch.maximum(self.stable_peak, self.stable)
+            self.support_peak = torch.maximum(self.support_peak, self.support_ticks)
+            self.success = (self.success | (self.stable >= 200)) & ~self.returned & (self.unsupported_peak <= 40)
+            return valid
+    sdk.FourSideStrict270 = SingleSupported200
+
+    previous_configure = sdk.configure
+    def configure(cfg, n, profile='trained_stair'):
+        result = previous_configure(cfg, n, profile)
+        from isaaclab.sensors import ContactSensorCfg
+        # Current top normal force and point for chassis + guides, not a blanket
+        # exemption of all nonwheel contact. Wheel manifold remains unchanged.
+        # Isaac contact filtering supports one body per sensor. Keep each
+        # chassis/guide mapping explicit, as already done for the two wheels.
+        for index, name in enumerate(('chassis',) + tuple('guide_roller_%02d' % i for i in range(8))):
+            setattr(cfg.scene, 'stand31_support_%d' % index, ContactSensorCfg(
+                prim_path='{ENV_REGEX_NS}/Robot/links/' + name,
+                update_period=0., history_length=1, track_air_time=False,
+                filter_prim_paths_expr=[sdk.MESH], max_contact_data_count_per_prim=64))
+        return result
+    sdk.configure = configure
+
+    old_init, old_manifold = sdk.ScutBridge.__init__, sdk.ScutBridge.read_manifold
+    old_refresh = sdk.ScutBridge.refresh_observation_context
+    def init(self, *args, **kwargs):
+        old_init(self, *args, **kwargs)
+        self.stand31_sensors = [self.env.scene['stand31_support_%d' % i] for i in range(9)]
+        self.stand31_names = [sensor.body_names[0] for sensor in self.stand31_sensors]
+        if any(len(sensor.body_names) != 1 for sensor in self.stand31_sensors):
+            raise ValueError('Each supported-contact filter must bind exactly one body')
+        r = self.reward
+        reset_names = [r.robot.raw.body_names[i] for i in r._reset_contact_link_idx]
+        if set(reset_names) != set(self.stand31_names):
+            raise ValueError('Supported-contact body mapping differs from the actual reset group')
+        self.stand31_reset_order = [self.stand31_names.index(name) for name in reset_names]
+        self.stand31_body_top = torch.zeros(self.n, len(reset_names), device=self.device)
+        self.stand31 = dict(previous_potential=torch.zeros(self.n, device=self.device),
+            supported_ticks=torch.zeros(self.n, dtype=torch.long, device=self.device),
+            target=torch.full((self.n,), .30, device=self.device))
+        r.stand31_bridge = self
+        r.stand31_previous_potential = self.stand31['previous_potential']
+        r.stand31_supported_ticks = self.stand31['supported_ticks']
+        r.stand31_target = self.stand31['target']
+    sdk.ScutBridge.__init__ = init
+
+    def manifold(self):
+        old_manifold(self)
+        import warp as wp
+        self.stand31_body_top.zero_()
+        for reset_id, sensor_id in enumerate(self.stand31_reset_order):
+            sensor = self.stand31_sensors[sensor_id]
+            force, point, normal, separation, counts, starts = sensor.contact_view.get_contact_data(dt=.0025)
+            f = wp.to_torch(force).flatten().abs()
+            if not len(f):
+                continue
+            p = wp.to_torch(point.view(wp.vec3))
+            normals = wp.to_torch(normal.view(wp.vec3))
+            count = wp.to_torch(counts.view(wp.int32)).reshape(self.n, -1).long()
+            start = wp.to_torch(starts.view(wp.int32)).reshape(self.n, -1).long()
+            if not bool(((count >= 0) & (count <= 64) & (start >= 0) & (start+count <= len(f))).all()):
+                raise RuntimeError('Supported-contact manifold capacity mismatch')
+            offset = torch.arange(64, device=self.device)[None, None]
+            ids = (start[..., None] + offset).clamp(0, len(f)-1)
+            pts = p[ids] - self.env.scene.env_origins[:, None, None]
+            valid = (offset < count[..., None]) & (normals[ids, 2].abs() > .8) & ((pts[..., 2]-.2).abs() <= .002) & (pts[..., 0] >= .799) & (pts[..., 0] <= 3.501) & (pts[..., 1].abs() <= 3.501)
+            self.stand31_body_top[:, reset_id].copy_(torch.where(valid, f[ids], 0.).sum((-1, -2)))
+    sdk.ScutBridge.read_manifold = manifold
+
+    original_post = rewards.ScutRewards._postprocess_reward_terms
+    def post(self, values):
+        values = original_post(self, values)
+        b = self.stand31_bridge
+        body = self.robot.data
+        root = body.root_pos_w - b.env.scene.env_origins
+        roll, pitch, yaw = euler_xyz_from_quat(body.root_quat_w)
+        low, _ = wheel_bounds(body.body_pos_w[:, self._wheel_link_idx], body.body_quat_w[:, self._wheel_link_idx], self.contract)
+        low = low - b.env.scene.env_origins[:, None]
+        support = b.stand31_body_top.sum(-1)
+        shaped, potential, target, supported, top = terms(torch, root=root,
+            velocity=body.root_lin_vel_w, roll=roll, pitch=pitch,
+            yaw_error=wrap_to_pi(yaw), wheel_low=low, wheel_top_force=b.top_force,
+            wheel_ground_force=b.ground_force, support_top_force=support,
+            previous_potential=self.stand31_previous_potential,
+            supported_ticks=self.stand31_supported_ticks)
+        self.stand31_previous_potential.copy_(potential)
+        self.stand31_supported_ticks.copy_(torch.where(supported, self.stand31_supported_ticks+1, 0))
+        self.stand31_target.copy_(target)
+        # Harmful links still incur contact cost; verified supporting chassis
+        # and guides alone do not receive the old undesired-contact penalty.
+        contact = self.contact_sensor.data.net_forces_w
+        bad = harmful_contact(torch, contact[:, self._reset_contact_link_idx].norm(dim=-1),
+            b.stand31_body_top, root[:, 2], roll, pitch)
+        structural = [i for i in self._undesired_contact_link_idx if i not in self._reset_contact_link_idx]
+        if structural:
+            bad |= (contact[:, structural].norm(dim=-1) > 1.).any(-1)
+        values['undesired_contact'] = bad.float()
+        values.update(shaped)
+        return values
+    rewards.ScutRewards._postprocess_reward_terms = post
+
+    # Change the source contact predicate only, retaining its observation,
+    # numerical, orientation, duration and timeout behavior verbatim.
+    tree = ast.parse(source_path('base_env').read_text(encoding='utf-8-sig'))
+    node = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == '_get_dones')
+    source = ast.get_source_segment(source_path('base_env').read_text(encoding='utf-8-sig'), node)
+    old = 'terminate = torch.any(reset_contact_force > 1.0, dim=-1)'
+    assert source.count(old) == 1
+    source = source.replace(old, 'terminate = self._stand31_harmful_contact(reset_contact_force)')
+    namespace_done = dict(rewards.ScutRewards._get_dones.__globals__)
+    exec(compile(source, str(source_path('base_env')), 'exec'), namespace_done)
+    rewards.ScutRewards._get_dones = namespace_done['_get_dones']
+    def bad_contact(self, contact):
+        roll, pitch, _ = euler_xyz_from_quat(self.robot.data.root_quat_w)
+        b = self.stand31_bridge
+        return harmful_contact(torch, contact, b.stand31_body_top,
+            self.robot.data.root_pos_w[:, 2]-b.env.scene.env_origins[:, 2], roll, pitch)
+    rewards.ScutRewards._stand31_harmful_contact = bad_contact
+    original_reset = rewards.ScutRewards.reset
+    def reset(self, ids):
+        original_reset(self, ids)
+        if hasattr(self, 'stand31_previous_potential'):
+            self.stand31_previous_potential[ids] = 0.
+            self.stand31_supported_ticks[ids] = 0
+            self.stand31_target[ids] = .30
+            self.stand31_bridge.stand31_body_top[ids] = 0.
+    rewards.ScutRewards.reset = reset
+
+    def refresh(self):
+        old_refresh(self)
+        target = self.reward.stand31_target
+        self.reward.height_cmd.copy_(target)
+        self.write_height_command(torch.arange(self.n, device=self.device), target)
+    sdk.ScutBridge.refresh_observation_context = refresh
+    checkpoint.FORMAT = FORMAT
+    if stage != 'eval200':
+        p = V25 / 'full_resume.py'
+        raw = p.read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '569422b125250d00971457ff88f881849ba52d680bda9f3b1f2f30b0caee5844'
+        ns = dict(__file__=str(p), __name__='stand31_resume')
+        exec(compile(raw, str(p), 'exec'), ns)
+        ns['FORMAT'] = FORMAT
+        ns['LEGACY'] = 'MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'
+        task = json.loads((HERE / 'TASK.json').read_bytes())
+        receipt['full_resume'] = ns['install'](checkpoint, task['resume_checkpoint'], HERE/'production/FULL_RESTORE.json')
+    checkpoint.FORMAT = FORMAT
+    receipt.update(stage='supported200', training_reward_changes=list(custom_names),
+        source_PPO=agent['algorithm'], source_recipe_changed=True,
+        contact_reset_change='Only actual upward platform-top chassis/guide support is exempt; original numerical/orientation/closure/mimic kept',
+        flight_required=False, actor=35, critic=78, clip_actions=None)
+    return receipt

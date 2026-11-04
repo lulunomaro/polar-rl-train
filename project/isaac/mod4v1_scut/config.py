@@ -130,7 +130,9 @@ def reward_config(profile='trained_stair'):
         # Final376 repeatedly pushed without flight while both hip targets
         # stayed clamped. Charge requests outside the existing feasible target
         # set; retain the processor, motor limits and CAD/D4 execution path.
-        values['rewards']['jump200_target_projection'] = -2.
+        # Final488 still clamps both hips >99.5% of endpoints; the -2 cost
+        # averages only -.00834/control while supported push earns +.05279.
+        values['rewards']['jump200_target_projection'] = -10.
     return SimpleNamespace(**values)
 
 

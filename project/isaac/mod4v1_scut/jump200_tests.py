@@ -33,7 +33,8 @@ class JumpTests(unittest.TestCase):
         r.compute()
         # .5*2 requests1rad at each hip, exceeding the .5rad limit.
         torch.testing.assert_close(r.state_terms['jump200_target_projection'], torch.full((2,), .5))
-        torch.testing.assert_close(r._last_reward_terms['jump200_target_projection'], torch.full((2,), -.02))
+        self.assertEqual(r.cfg.rewards['jump200_target_projection'], -10.)
+        torch.testing.assert_close(r._last_reward_terms['jump200_target_projection'], torch.full((2,), -.1))
         r._actions[:] = torch.tensor([0., 1., 0., 1., 0., 0.])
         r.compute()
         self.assertEqual(float(r._last_reward_terms['jump200_target_projection'].abs().max()), 0.)

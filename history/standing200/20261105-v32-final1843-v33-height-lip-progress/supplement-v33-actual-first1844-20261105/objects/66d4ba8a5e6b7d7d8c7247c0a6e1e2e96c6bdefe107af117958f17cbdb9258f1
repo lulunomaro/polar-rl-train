@@ -1,0 +1,22 @@
+"""Ordinary FIRST1844 supplement; reuse the existing text/artifact policy."""
+from pathlib import Path
+import hashlib
+
+R=Path(__file__).resolve().parent.parent
+P=R/'scut_native_v32/archive_actual.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='366d92ae9a90b767cfede1371a5ab21d0a6f88cf3ef2b2e78999b4f1c376c922'
+source=raw.decode()
+source=source.replace('20261105-supported-contactfree-yaw-track-v32/supplement-v30-closed-native32-actual-20261105',
+    '20261105-v32-final1843-v33-height-lip-progress/supplement-v33-actual-first1844-20261105')
+source=source.replace("R/'scut_native_v32',R/'scut_recipe_v30',\n        R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900'",
+    "R/'scut_native_v33'")
+source=source.replace('V30_CLOSED_FINAL1709_NATIVE_REVIEW_V32_ACTUAL_STAGED_NATIVE_AND_PRODUCTION',
+    'V33_ACTUAL_FULLRESTORE_FIRST1844_FULLSAVE_WITH_PRENETWORK_FALSES')
+source=source.replace('trial-20261105-supported200-v32-contactfree-yaw-track',
+    'trial-20261105-supported200-v33-height-lip-progress')
+source=source.replace('22aee7b27113f86259446633849d53e9752a3a45','72ead2ecc3e7670bf94a6383f879e14e0c2fe4d3')
+source=source.replace('f9837af03f8e704b05c28c16ca13c21bc3aa958a','3ed79a5389f399cfe332f95e40f90ed88b1a8f3a')
+source=source.replace("R/'scut_native_v32/ACTUAL_HANDOFF.md'","R/'scut_native_v33/ACTUAL_HANDOFF.md'")
+assert "R/'actual_closed/" not in source
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

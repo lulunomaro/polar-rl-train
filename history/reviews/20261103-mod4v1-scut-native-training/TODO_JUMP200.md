@@ -8,8 +8,9 @@
 - [x] 新增独立jump200任务：200mm单台阶、接近/起跳/落台后的命令与奖励、400Hz真实离地/越沿/台顶支持评测，旧冻结包不改。
 - [x] 完成针对200mm真实几何、起跳与爬台反例、落台稳定的必要CPU检查（8项通过，原false保留）。
 - [x] 在原资源/预算/保存边界内做有限实际模型评测；立即原生审图与回放，按结果决定定向修复或训练（80局基线已回传并审完4图，0起跳越沿/0触台/0成功）。
-- [x] 四卡/原canonical/authority/finite实际准入已通过；22:11选择72GPU1并消费唯一生产launch，20,000环境一小时初始化中，实际GO和FIRST待原sole读者回传。
-- [ ] FIRST核真实PPO/梯度/完整保存/日志，绑定唯一postround；训练完整退出后立即独立评测与实际回放。
+- [x] 四卡/原canonical/authority/finite实际准入通过；22:11选择72GPU1启动原授权窗，首attempt恢复失败已关闭，attempt02在同一原绝对窗口内修复接续。
+- [x] attempt02真实FIRST通过：iteration81、480,000样本、20新Adam、非零actor/critic梯度、FULL_V4首存；完整日志0实际错误。完整恢复source80/17Adam状态条目/step1600，并绑定唯一postround61924。
+- [ ] 训练完整保存退出后立即独立80局评测与实际回放，核真正起跳、整轮越沿、台顶落地和.5s稳定。
 - [x] 截至200mm基线与授权自动接续的全部试错、失败、源码、回放与决定纳入本阶段Git补充；CURRENT_STATE/WORK_ORDER/现有mod4-10已更新。
 - [ ] 新训练FIRST及最终80结果产生后继续追加Git，并按真实动作决定下一步。
 
@@ -28,3 +29,7 @@
 21:11实际覆盖：35308在20:52完成四卡读回后，进入原releaseSSH前因新CPU/MuJoCo播放器51820/create20:52:04.522469被broadgate误判而退出，原错误/false完整保留，0INDEX/0LAUNCH/0GO/0PPO。已读player/runtime并按exactPID/parent/creation/exe/argv/sourceSHA仅排除该CPU播放器，真实66124远程collector仍被gate拦住，不kill/宽泛忽略。另聊天E3W5已20:54:24取得原canonical，owner1616384、worker1616433/create1793796864.67，SAVE21:54:24/NOMINAL21:59:24；这是新actualowner，不能再称V30当前占锁。唯一恢复63556/create见PENDING_ADMISSION_RECOVERY_EXACT_CIM，只恢复未执行准入；等其原localcollector退出，核exactE3W5ownwaitsettledrelease与outerreaped/canonicalNone/原锁后同一原launch。不重baseline或任何生产once，新人类一小时尚未开始。
 
 22:12实际覆盖：63556仍在本地等待，新54056/create21:28:37.339365的savedpose播放器被误列控制器导致已释放后仍等待；已读完整play.py确认只mj_forward回放，按exactPID/parent/exe/creation/argv/SHA7620b17b…仅分类此播放器。63556在任何网络和生产前exact停止、旧once保留，恢复未消费finish_pending。原finite22:11核E3W5exit/outerreaped真实释放、canonicalNone和原两authority/finite锁全free；原fresh四卡72两4090均24203MiB/empty，RAM532GB/disk252GB；选GPU1。INDEX10smallfiles/46sharedrefs与LAUNCH/FIRSTonce已消费，owner1619104/create1793801493.89 launch，唯一68796/create22:10:55.334107原FIRST读者/toolsession35418。FIRSTpending，不能称有效PPO或技能；不第二SSH、launch或hotpatch。
+
+22:23实际覆盖：原200mm窗口GO22:11:34.580026，SAVE23:11:34.580026/NOMINAL23:16:34.580026。首attempt在完整actorcritic/Adam恢复后命令字段_mode_enabled形状与新任务不兼容，0FIRST/0PPO/无FINAL/无独立80，原owner1619104已22:18:40.004524 ownwaitsettledreleased，worker1619120结束；rc0/errornull不是成功。已定向修复仅显式scut_stairs→jump200时_mode_enabled使用新constructor禁specialmode向量，其它命令形状仍strict，学习/AdamLR/RNG/队列及freshreset保持；9CPU检查通过。attempt02仅checkpoint/train两module+owner/entry/plan共5smallfiles/53sharedrefs，新原owner1619885/create1793802140.07于22:22启动，唯一local73240/create22:21:59.398676/toolsession31861观察FIRST。只用本小时剩余，不延期退款/新一小时；同原f6b6来源，不采用失败权重。
+
+22:32最新覆盖：attempt02已返回有效FIRST，iteration80→81，1新PPO/24controls/480,000样本/192physics/20新Adam，actor梯度1.0、critic1.000000119。完整首存40,556,699B，SHA `96b9ff560d0e158ca9495e0907cf1eec254adc1c8b76d1b3bb0be8125612a531`。FULL_STATE_RESTORE确认source80/17optimizerentries/Adam1600/LR0.000170859375，_mode_enabled从原3项显式保留新任务单false配置，其它兼容状态恢复及一次freshreset。完整首轮日志0实际错误。73240/session31861已结束；唯一collector61924/create22:29:46.362550运行`repaired_training_control.py collect --root attempt02`，stderr空。原SAVE23:11:34.580026/NOMINAL23:16:34.580026不延长，SAVE+45=23:12:19.580026正式回传。FIRST是有效训练证据，最终跳跃技能仍待独立80与actualpose审看。

@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04 22:32当前：`jump200/attempt02`已通过真实20,000环境FIRST，iteration80→81、480,000样本、20新Adam、非零actor/critic梯度及完整FULL_V4首存，完整首轮日志0实际错误。首次生产在跨任务恢复`_mode_enabled`配置向量时失败，原0PPO/关闭结果保留；修复仅在显式scut_stairs→jump200迁移时保留新constructor的禁specialmode配置，完整actor/critic/STD/Adam/LR/RNG/队列与计数器继续恢复，9项CPU检查和本次原生FIRST均通过。只用原授权窗剩余，SAVE23:11:34.580026/NOMINAL23:16:34.580026不延长。唯一collector61924负责正式回传，最终200mm跳跃技能仍待保存后的独立80与实际回放。
+
 2026-11-04 19时人类纠正：“机器人跳上去200mm的台阶，不是碎台阶”。当前任务已改为独立`jump200`，单个200mm竖直台沿/水平台顶，从低地自主起跳并双轮落台稳定；覆盖下文inverse-mid小阶梯和允许贴轮爬台的选择。固定华南虎源码有200–220mm/1.5m踏面的STAIR_FOR_RM，原本选到25–40mm/0.1m的inverse-mid分支是任务错误。新任务复用原弹道起跳reward types并显式配置，无物理助推；8项起跳/爬台反例检查及完整学习状态跨任务恢复合成检查通过。实际80基线已在空闲4090完成，80起跳请求但0真正起跳越沿/0触台/0成功，证明旧策略没有200mm跳跃技能。原attempt08已完整保存49PPO/23.52M、fullfinalf6b6…并审完全部4图，保留为小阶梯试验。后续按`TODO_JUMP200.md`执行，来源、几何/奖励适配及待训状态见`SCUT_JUMP200_SOURCE_AND_SCOPE.md`与WORK_ORDER。下文均为历史，不能当当前目标或已成功。
 
 2026-11-04 17:52人类审看MuJoCo指出旧场地实际是坡。原NPZ确认4个tile均9,060斜面/0竖直面，旧53双轮更高支持/2稳定只代表坡上运动，不是台阶或跳跃技能。人类明确“按华南虎方式上真实直角台阶，允许轮子保持接触”，并授权4090再训一小时20,000环境。attempt08已在fresh空闲72 GPU1启动，改用SDK显式MeshInvertedPyramidStairsTerrainCfg水平踏面/竖直阶面，保留25–40mm/0.1m/1m等配置尺寸；这是明确几何适配，原点高度与heightfield量化不同，不称原配方逐字复现。来自ffce完整状态续训，保留Adam/STD/RNG/队列，一次fresh物理reset。actualFIRST/恢复和原save/nominal以WORK_ORDER为准。见history/reviews/20261103-mod4v1-scut-native-training/RIGHT_ANGLE_STAIR_CORRECTION_AND_CONTINUATION.md。以下升阶文字为原始历史，技能解释已由本段纠正。

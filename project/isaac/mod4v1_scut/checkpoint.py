@@ -65,6 +65,26 @@ def tensor_fields(obj):
     return {key: value.clone() for key, value in vars(obj).items() if torch.is_tensor(value)}
 
 
+def restore_command_fields(command, fields, source_profile, target_profile):
+    transfer = (source_profile, target_profile) == ('scut_stairs', 'jump200')
+    adapted = []
+    for key, value in fields.items():
+        current = getattr(command, key)
+        if transfer and key == '_mode_enabled':
+            if current.dtype != torch.bool or current.ndim != 1 or current.numel() != 1:
+                raise ValueError('jump200 constructor must disable special modes')
+            if value.dtype != torch.bool or value.ndim != 1 or not value.numel():
+                raise ValueError('Source special-mode flags are invalid')
+            current.zero_()
+            adapted.append(dict(field=key, source_shape=list(value.shape),
+                target_shape=list(current.shape), action='Target constructor no-special-mode flags retained'))
+            continue
+        if current.shape != value.shape:
+            raise ValueError('Command tensor schema mismatch: '+key)
+        current.copy_(value)
+    return adapted
+
+
 def save(runner, env, bridge, path, profile):
     data = learning_state(runner)
     data.update(format=FORMAT, interface=INTERFACE, action_clip=ACTION_CLIP, action_interface=ACTION_INTERFACE,
@@ -119,11 +139,8 @@ def restore(runner, env, bridge, path, profile, repair_unclipped_v2=False, repai
         getattr(env, key).load_state_dict(data['components'][key])
     restore_named(env.command_manager.get_term('twist'), data['command_rng'])
     command = env.command_manager.get_term('twist')
-    for key, value in data['command_fields'].items():
-        current = getattr(command, key)
-        if current.shape != value.shape:
-            raise ValueError('Command tensor schema mismatch: '+key)
-        current.copy_(value)
+    bridge.command_restore_adaptation = restore_command_fields(
+        command, data['command_fields'], source_profile or profile, profile)
     if hasattr(command, 'set_training_iteration'):
         command.set_training_iteration(runner.current_learning_iteration)
     restore_named(env._mild_dr, data['physical_rng'])

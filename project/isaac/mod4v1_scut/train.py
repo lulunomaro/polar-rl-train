@@ -294,6 +294,7 @@ def main():
                 learning_rate=runner.alg.learning_rate,
                 source_profile=args.resume_source_profile or args.profile,target_profile=args.profile,
                 task_changed=bool(args.resume_source_profile),
+                command_profile_adaptation=getattr(bridge,'command_restore_adaptation',[]),
                 components_global_RNG_queues_and_counters_restored=True,
                 fresh_physical_reset=True,PhysX_state_restored=False))
         vec.current = reset[0] if isinstance(reset, tuple) else reset

@@ -12,6 +12,24 @@ from .config import model_contract
 
 
 class JumpTests(unittest.TestCase):
+    def test_source_special_mode_flags_follow_new_task_constructor(self):
+        from types import SimpleNamespace
+        from .checkpoint import restore_command_fields
+        source = dict(_mode_enabled=torch.tensor([True, True, False]),
+                      special_mode_id=torch.tensor([0, 2]), command=torch.ones(2, 3))
+        command = SimpleNamespace(_mode_enabled=torch.zeros(1, dtype=torch.bool),
+            special_mode_id=torch.full((2,), -1), command=torch.zeros(2, 3))
+        receipt = restore_command_fields(command, source, 'scut_stairs', 'jump200')
+        self.assertEqual(command._mode_enabled.tolist(), [False])
+        torch.testing.assert_close(command.special_mode_id, source['special_mode_id'])
+        torch.testing.assert_close(command.command, source['command'])
+        self.assertEqual(receipt[0]['field'], '_mode_enabled')
+        with self.assertRaisesRegex(ValueError, '_mode_enabled'):
+            restore_command_fields(command, source, 'scut_stairs', 'scut_stairs')
+        source['command'] = torch.zeros(3, 3)
+        with self.assertRaisesRegex(ValueError, 'command'):
+            restore_command_fields(command, source, 'scut_stairs', 'jump200')
+
     def setUp(self):
         self.contract = model_contract(ASSETS)
         self.meter = Jump200Acceptance(1, 'cpu')

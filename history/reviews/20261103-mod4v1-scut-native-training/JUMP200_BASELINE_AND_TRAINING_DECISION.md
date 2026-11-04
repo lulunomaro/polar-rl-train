@@ -15,3 +15,7 @@
 19:59实际接续：launch首次被standingV30本地FIRST读者在网络前拒绝，生产once与namespace均未消费。当前从V30真实FIRST回执确认其共享锁窗口至20:56:35；准备唯一localtimer于20:57:35后核原owner释放和原锁，再刷新四卡与launch。原20,000环境新小时尚未开始，所有等待不计训练；不能以空卡绕canonical共享锁。
 
 21:11当前覆盖：批准的新jump200hour仍未GO。20:52准入未能继续的实际原因是原本地gate将新开的FPS/MuJoCo51820误判；已按确切身份与源码SHA修复分类、保留原false，其它真控制器仍阻止第二SSH。当前共享owner已变为20:54:24启动的E3W5，保存21:54:24/nominal21:59:24，独立collector66124在读。唯一local63556恢复尚未消费的准入，释放后完整原检查与launch/FIRST/postround自动接续；不是新建授权或重复生产。
+
+22:23原生训练纠错：首次生产已经actualGO但在checkpoint恢复时_mode_enabled命令模式schema不同而结束，0有效PPO/FIRST/FINAL/eval，owner已完整关闭释放。合成跨任务测试此前未覆盖真实specialmode全局向量，不能把其通过当原生恢复通过。现在仅显式跨profile迁移该配置向量为新constructor全关，保留actorcriticSTDAdamLR和兼容命令/命名RNG/组件队列/计数器；新增真实差异反例CPU检查已通过。attempt02保留原SAVE23:11:34.580026/NOMINAL23:16:34.580026，22:22于同GPU1启动，FIRST仍待原sole73240读者。
+
+22:32实际训练通过：修复版attempt02已经完成首个真实PPO，iteration81/480,000样本/20新Adam，actor/critic梯度非零，FULL_V4完整首存SHA `96b9ff560d0e158ca9495e0907cf1eec254adc1c8b76d1b3bb0be8125612a531`（40,556,699B）。FULL_STATE_RESTORE回执确认source80/17optimizerentries/Adam1600/LR及组件RNG队列计数器恢复，明确记录_mode_enabled从3项到新任务1项false配置；STARTUP为真实0.2m单台阶。完整首轮WORKER日志0实际错误，原训练进程继续，唯一collector61924已绑定。批准原小时的保存/退出截止保持23:11:34.580026/23:16:34.580026。决定继续本轮剩余窗口，原owner完整保存退出后立即独立80和实际回放；首轮执行通过不代表已经跳上200mm。

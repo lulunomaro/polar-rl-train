@@ -1,0 +1,14 @@
+"""One NEW functional candidate transfer and same rear-stowed startup trial preparation."""
+from pathlib import Path
+import json,sys,hashlib,ast,time
+D=Path(__file__).resolve().parent;T=D.parent/'mod4v1_experts_fulldr_rm70_20261101';v=json.loads((D/'TRAIN_CLOSED_RESULT.json').read_bytes());assert v['training_execution_qualified'];f=v['metadata']['roles/E3/production/FINAL.json']['final'];U=D/'mujoco_startup';assert not U.exists();U.mkdir();sys.path.insert(0,str(T));from project_connector import connect72
+c=connect72();s=c.open_sftp()
+try:
+ with s.open(f['path'],'rb')as z:raw=z.read()
+ assert len(raw)==f['bytes']and hashlib.sha256(raw).hexdigest()==f['SHA']
+ with (U/'current_E3.pt').open('xb')as z:z.write(raw)
+finally:s.close();c.close()
+(U/'SOURCE_MODEL.json').write_text(json.dumps(dict(epoch=time.time(),functional_purpose='NEW_TRAINED_E3_REAR_STOWED_MUJOCO_EVALUATION',source=f,source_physical_read=1,source_hashes=1,local_whole_CPU_decode_reserved_for_trial=True,not_Git_or_status_model_open=True),indent=2),encoding='utf8')
+base=D.parent/'mod4v1_e3_mujoco_view_20261104/view_current_e3_v2.py';prefix=base.read_text(encoding='utf8').split("state={'paused'")[0];oldSHA='1cd99995d6b88d373df4c8fe869bb16321db561c7d23b00722de22ddba7c84b8';assert prefix.count(oldSHA)==1;prefix=prefix.replace(oldSHA,f['SHA']);ast.parse(prefix);(U/'mujoco_core.py').write_text(prefix,encoding='utf8')
+src=D.parent/'mod4v1_e3_stowed_startup_20261104/test_stowed_startup.py';text=src.read_text(encoding='utf8');old="OLD=D.parent/'mod4v1_e3_mujoco_view_20261104';SRC=OLD/'view_current_e3_v2.py'";assert text.count(old)==1;text=text.replace(old,"SRC=D/'mujoco_core.py'");old="for kind in('zero_motor_torque_control','E3_recover_then_drive_same_weights'):";assert text.count(old)==1;text=text.replace(old,"for kind in('E3_recover_then_drive_same_weights',):");text=text.replace('CURRENT_E3_REQUESTED_LEVEL_REAR_FOLDED_POWERON_STARTUP_LOCAL_MUJOCO','NEW_TRAINED_E3_SAME_REAR_FOLDED_STARTUP_LOCAL_MUJOCO');text+="\ncompact=dict(model_SHA=sim.policy.SHA,iteration=sim.policy.iteration,cases={k:{a:b for a,b in r.items()if a!='trajectory_rows'}for k,r in records.items()},backend='local nominal MuJoCo, not native fullDR/hardware');(D/'SUMMARY.json').write_text(json.dumps(compact,indent=2,allow_nan=False),encoding='utf8')\n";ast.parse(text);(U/'test_candidate_startup.py').write_text(text,encoding='utf8')
+(U/'PREPARATION.json').write_text(json.dumps(dict(epoch=time.time(),new_model_SHA=f['SHA'],baseline_selected_model_SHA=oldSHA,baseline_compact_summary=str(D.parent/'mod4v1_e3_stowed_startup_20261104/SUMMARY.json'),zero_torque_baseline_not_rerun=True,trial_operations_unchanged_except_source_binding_and_one_active_case=True,new_policy_updates=0,physical_trial_not_yet_run=True),indent=2),encoding='utf8');print(U/'test_candidate_startup.py')

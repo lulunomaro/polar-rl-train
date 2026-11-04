@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04 17:03最新实际：attempt07已完整保存安全退出并正式传回，31PPO/14.88M样本/620Adam，FULL_V4 final SHAffce8d5ad2662a8981d971906e4b30bba13da38debbf42b6bc68284345f66d8c。完整训练/评测日志actualerrorlines0，原owner与collector均结束。独立80为53bothup/63anyup/2连续稳定指标，78评测cap/2boundarytimeout、0闭链/mimic/数值异常；早晚4图已由当前模型原生审看。对比原来源同为2恢复，没有明确技能提升；左/右hip目标上限命中94.69%/59.47%仍待按曲线定向分析。原授权小时已结束，不自动再开窗。详见history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIRS_ATTEMPT07_FINAL_REVIEW.md。以下各时间段为历史。
+
 2026-11-04 16:31 attempt07已通过首个真实PPO与完整首存：480,000样本/192physics/20Adam，actorcritic梯度均非零，FULLV4首存SHA3a475d2b0909e6e07decceb77063c0fcff5c4a1008bb69ad9584a5e5bc5acfd0。对完整首轮WORKER.log有限读回确认actualerrorlines0，原patch溢出已消失；这是首轮执行证据，技能仍待最终独立评测。网络读者恢复完成且未重复启动训练，唯一collector59804已绑定；原SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，原owner保存退出后立即独立80与actualpose审看。
 
 2026-11-04 16:21最新：attempt06已按计划16:02自动启动并完成FIRST，但20k首轮实际触发contact patch buffer overflow，不能算有效训练。已完整保存退出/独立80/审完4图并释放原锁；final49e8仅作失败来源。新attempt07仅扩大实际溢出的`cfg.sim.physics.gpu_max_rigid_patch_count`至524,288，原pair容量与物理/reward/PPO保持，继续有效0fdd来源。16:20:17已实际启动owner1605308，solelocal24732有限FIRST观察；原授权窗SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，当前修复原生待FIRST完整日志与首存确认。

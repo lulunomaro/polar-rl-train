@@ -1,0 +1,151 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_phase1_passive_sensor_capture_v3\dependency_contract.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_phase1_passive_sensor_capture_v4\dependency_contract.py
+@@ -1,9 +1,12 @@
+-"""V3 fail-closed typed-source checks. Pre-install only, not a callback.
++"""V4 fixed-complete typed-source checks. Pre-install only, not a callback.
+ 
+-Reads fixed NEW SOURCE pins; never discovers a replacement expected SHA from
+-whatever happens to be imported. No SDK/MDP call, tensor readback or device index
+-construction. B2 source_api and its exact four-reset-layer contract are retained.
++Expected pins are the unchanged frozen B3 publication, never imported-module
++inference. Optional overrides must equal that complete JSON literal tree with
++exact types. Only positional-default and the two named module-constant OUTER
++containers use the explicitly documented tuple-to-JSON-list representation.
++B3 capture layout/hooks and B2 four-reset/MRO source checks remain unchanged.
+ """
++import hashlib
+ import inspect
+ import json
+ from pathlib import Path
+@@ -13,6 +16,68 @@
+ from field_snapshot import FieldSnapshot
+ 
+ HERE = Path(__file__).resolve().parent
++FIXED_PINS_BYTES = 19153
++FIXED_PINS_SHA256 = '5cd6c770c7f3541308201389f721b43f9e7c681199443c9a2f80d2f80347e452'
++FIXED_KEYSETS = {
++    'codec_constants': frozenset(('ROLES', 'CHANNEL_WIDTHS', 'INTEGER_DTYPES')),
++    'codec_classes': frozenset(('CaptureError', 'CaptureCodec', 'ControlLedger')),
++    'codec_functions': frozenset((
++        '_need', '_metadata', '_clock', '_clock_key',
++        'CaptureCodec.__init__', 'CaptureCodec.capture', 'CaptureCodec.validate_owned',
++        'CaptureCodec._validate_tree', 'CaptureCodec.materialize',
++        'ControlLedger.__init__', 'ControlLedger._active', 'ControlLedger.begin',
++        'ControlLedger.normal_sample', 'ControlLedger.pre_reset', 'ControlLedger.reset',
++        'ControlLedger.end', 'ControlLedger.finish',
++    )),
++    'field_functions': frozenset(('__init__', 'rows', 'ids', 'mask', 'state')),
++}
++
++
++def _same_literal_tree(actual, expected):
++    """Compare only exact JSON builtins; never arbitrary __eq__/repr/coercion.
++
++    The caller performs any documented OUTER tuple/list normalization first.
++    Nested tuples, subclasses and arbitrary objects are deliberately unmatched.
++    """
++    kind = type(expected)
++    if type(actual) is not kind:
++        return False
++    if kind is dict:
++        if any(type(key) is not str for key in actual) or any(type(key) is not str for key in expected):
++            return False
++        if set(actual) != set(expected):
++            return False
++        return all(_same_literal_tree(actual[key], expected[key]) for key in expected)
++    if kind is list:
++        return len(actual) == len(expected) and all(
++            _same_literal_tree(left, right) for left, right in zip(actual, expected))
++    if kind in (type(None), str, bool, int, float):
++        return actual == expected
++    return False
++
++
++def _check_pin_keysets(pins):
++    if type(pins) is not dict or any(type(key) is not str for key in pins):
++        raise ValueError('Exact published pins dictionary required')
++    for name, keys in FIXED_KEYSETS.items():
++        collection = pins.get(name)
++        if (type(collection) is not dict or any(type(key) is not str for key in collection)
++                or set(collection) != keys):
++            raise ValueError('Complete fixed published keyset required: ' + name)
++
++
++def _published_pins(override):
++    raw = (HERE / 'CODEC_SOURCE_PINS.json').read_bytes()
++    if len(raw) != FIXED_PINS_BYTES or hashlib.sha256(raw).hexdigest() != FIXED_PINS_SHA256:
++        raise ValueError('Frozen published expected pins bytes/SHA changed')
++    expected = json.loads(raw)
++    _check_pin_keysets(expected)
++    if override is not None:
++        _check_pin_keysets(override)
++        if not _same_literal_tree(override, expected):
++            raise ValueError('Override must exactly match the complete published pins and types')
++    # Always use this fresh fixed-file tree, never caller-owned override values.
++    return expected
+ 
+ 
+ def _function(value, expected, module, owner=None):
+@@ -26,22 +91,24 @@
+         raise ValueError('Exact published typed function required, no unwrap skip')
+     if fn.__globals__ is not module.__dict__ or fn.__closure__:
+         raise ValueError('Typed function globals/closure changed')
+-    if list(fn.__defaults__ or ()) != expected['literal_defaults']:
++    # Only None is normalized. The __defaults__ OUTER tuple is JSON's list.
++    defaults = () if fn.__defaults__ is None else fn.__defaults__
++    if type(defaults) is not tuple or not _same_literal_tree(list(defaults), expected['literal_defaults']):
+         raise ValueError('Typed positional defaults changed')
+-    if (fn.__kwdefaults__ or {}) != expected['literal_kwdefaults']:
++    kwdefaults = {} if fn.__kwdefaults__ is None else fn.__kwdefaults__
++    if not _same_literal_tree(kwdefaults, expected['literal_kwdefaults']):
+         raise ValueError('Typed keyword defaults changed')
+     return verify_callable(fn, expected)
+ 
+ 
+ def verify_typed_dependency(snapshot, ledger, *, dependency_pins=None):
+-    """Reject a stale/unknown codec BEFORE assignment of the first MDP wrapper.
++    """Fixed, complete, type-strict dependency binding before any MDP assignment.
+ 
+-    Source pins are made only after the independent publisher's final seal.
+-    The installed module may have a deployment path different from source pins;
+-    source bytes, line/signature/live compiled code and actual owner/module bind.
++    None loads only the fixed publication. An override is compatibility input,
++    not authority: every key/value/type must match the complete fixed tree.
++    Deployment paths may differ; pinned source/code/module/owner checks remain.
+     """
+-    pins = (json.loads((HERE / 'CODEC_SOURCE_PINS.json').read_text(encoding='utf-8'))
+-            if dependency_pins is None else dependency_pins)
++    pins = _published_pins(dependency_pins)
+     if pins.get('kind') != 'B3_TYPED_SOURCE_DEPENDENCY_PINS_V1' or pins.get('publisher_final') is not True:
+         raise ValueError('Final published typed source pins required')
+     module = sys.modules.get(pins['codec_module'])
+@@ -71,11 +138,14 @@
+     if type(ledger._packs) is not list or ledger._packs or ledger._open is not None or ledger._finished is not False:
+         raise ValueError('Install requires an unused existing control ledger')
+     for name, expected in pins['codec_constants'].items():
+-        if vars(module).get(name) != expected:
+-            # JSON turns tuple constants into lists; only the declared tuple
+-            # constants may use this one explicit metadata representation.
+-            if name not in ('ROLES', 'INTEGER_DTYPES') or tuple(vars(module).get(name, ())) != tuple(expected):
++        actual = vars(module).get(name)
++        # Only these published OUTER tuple constants have JSON-list form.
++        if name in ('ROLES', 'INTEGER_DTYPES'):
++            if type(actual) is not tuple:
+                 raise ValueError('Published typed module constant changed: ' + name)
++            actual = list(actual)
++        if not _same_literal_tree(actual, expected):
++            raise ValueError('Published typed module constant changed: ' + name)
+     class_receipts = {name: verify_class(vars(module)[name], expected)
+                       for name, expected in pins['codec_classes'].items()}
+     receipts = {}
+@@ -101,7 +171,9 @@
+         if not inspect.ismethod(value) or value.__func__ is not vars(FieldSnapshot)[name]:
+             raise ValueError('Explicit field method changed: ' + name)
+         receipts['FieldSnapshot.' + name] = _function(value, expected, field_module, snapshot)
+-    return dict(kind='V3_TYPED_SOURCE_BINDING_INSPECTION_V1', source_only=True,
++    return dict(kind='V4_TYPED_SOURCE_BINDING_INSPECTION_V1', source_revision=4, source_only=True,
++                capture_schema_compatibility='PASSIVE_SENSOR_CAPTURE_V3_UNCHANGED',
++                expected_pins_sha256=FIXED_PINS_SHA256,
+                 native_enabled=False, exact=False, publisher_final=True,
+                 codec_source_sha256=pins['codec_source_sha256'], classes=class_receipts,
+                 checked_functions=receipts,

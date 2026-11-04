@@ -1,0 +1,39 @@
+--- F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_phase1_typed_capture_materializer_v1\stage_phase1_typed_capture_v1.py
++++ F:\RMPOLAR-RL\mod4v1_supermimic_bptt_20261102\source_phase1_typed_capture_materializer_v2\stage_phase1_typed_capture_v2.py
+@@ -9,6 +9,7 @@
+ from typed_source_support_v1 import (SCHEMA, PLAN_KIND, INDEX_KIND, verify_source_mirror,
+     patch_proof_allowed, typed_publication, verify_active_aliases, require_import_root,
+     validate_task_metadata)
++from historical_b2_binding_v2 import verify_published_B2_handoff
+ import tempfile
+ 
+ HERE=Path(__file__).resolve().parent
+@@ -39,6 +40,7 @@
+ COMPLETE_NAME='STAGE_COMPLETE_PHASE1_CAPTURE_V1.json'
+ SOURCE_DERIVATION_VERSION=1
+ SOURCE_DERIVATION_LINEAGE='COMPLETE_FROZEN_V4_TO_TYPED_V1'
++MATERIALIZER_SOURCE_PUBLICATION=2
+ V3_ENTRY_SHA256='2a4213d95939216f3a91db6c1739a443907aadf33c4f615aa897eace5a915425'
+ V2_ENTRY_SHA256='e39fc8936136f89e708df6a9a26911135d0c1616c641564cf155235ff0d06f6d'
+ B2_ENTRY_ROUTING_PINS={'CURB_PROTECTED878': (4814, '671f77ddef5fbd79de8dafc54213ff754cfc70ac5a9d9611680e9c76c021cfc5'), 'CURB_INDEPENDENT113': (4873, 'b906aaacefe79f29e001bee015de1d4c8ee930bf936a9996f79f0a72ee103fd3'), 'SLOPE135': (5390, 'f9a0a42c6b1390e38013a410e454da4a9d63569d47f014c3b6f6ea4ca7615b41'), 'SLOPE_INDEPENDENT50': (4834, '8ccc2f890c90eeeea652b8b10cd8a96518ba996b52294b20d2f525ea72f716e7')}
+@@ -276,13 +278,19 @@
+         if path.suffix=='.py':ast.parse(path.read_bytes())
+         inputs[rel]=(path,info)
+         if row is diagnostics['final_handoff']:handoff=json.loads(path.read_bytes())
+-    need(handoff['status']=='PASS' and handoff['B2_source_seal']['sha256']==DEPENDENCY_SEALS['sensor'][1],'diagnostic B2 final handoff differs')
++    historical_record=index['original_B2_reference_seal']
++    historical_path=reference_path(source_root,historical_record['path'])
++    historical_members,_=verify_package(historical_path.parent,'be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a',13)
++    _,historical_raw=metadata(historical_path)
++    historical_binding=verify_published_B2_handoff(index,handoff,historical_raw,
++        [dict(relative=rel,bytes=info['bytes'],SHA256=info['SHA']) for rel,(_,info) in historical_members.items() if rel!='SOURCE_SEAL.json'])
+     references_by_rel={reference_path(source_root,r['path']).relative_to(source_root).as_posix():(r['bytes'],r['sha256']) for r in handoff['source_diagnosis_files']}
+     expected_by_rel={reference_path(source_root,r['path']).relative_to(source_root).as_posix():(r['bytes'],r['SHA256']) for r in diagnostics['source_references']}
+     need(references_by_rel==expected_by_rel,'diagnostic referenced file set differs')
+     return inputs,dict(manifest_bytes=record['bytes'],manifest_SHA256=record['SHA256'],
+         original_source_pin_references=references,actual_original_Python_files=len(found),extra_entry_routing_JSON_files=4,
+         diagnostic_source_references=4,diagnostic_final_handoff=1,source_dependency_files=len(inputs),
++        historical_B2_reference_binding=historical_binding,
+         full_manifest_regenerated_equal_after_explicit_R_source_path_normalization=True,
+         actual_original_B2_API_called='build_manifest(root=actual_source_mirror_root)',
+         other_fields_hashes_numbers_qualnames_statuses_unchanged=True,plant_modules_imported=False,

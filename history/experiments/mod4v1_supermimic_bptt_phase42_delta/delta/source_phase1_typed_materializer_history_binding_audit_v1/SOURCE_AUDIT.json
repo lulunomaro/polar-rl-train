@@ -1,0 +1,114 @@
+{
+  "kind": "PHASE1_TYPED_MATERIALIZER_HISTORY_BINDING_SOURCE_AUDIT_V1",
+  "source_only": true,
+  "catalog_selection": "Office/ACL catalog has no RL task match; use FS/read/glob/grep and approved Python314 -B stdlib",
+  "parent_reported_failure": {
+    "evidence_class": "PARENT_REPORTED; actual report not opened",
+    "message_ref": "m01723",
+    "trace": "entry578 -> prepare380 -> load_sources188 -> verify_B2_source_closure279",
+    "new_group_not_staged_SDK0_parent0_C0": "PARENT_REPORTED",
+    "consumed_SOURCE_INPUT_not_replayed": true
+  },
+  "finding": {
+    "confirmed_history_successor_misbindings": 1,
+    "other_same_class_misbindings_found": 0,
+    "file": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_typed_capture_materializer_v1/stage_phase1_typed_capture_v1.py",
+    "function": "verify_B2_source_closure(source_root, index)",
+    "line": 279,
+    "exact_condition": "handoff['status']=='PASS' and handoff['B2_source_seal']['sha256']==DEPENDENCY_SEALS['sensor'][1]",
+    "reason": "Frozen V4 sensor was historical B2. Typed V1 correctly switched active sensor package to B4 but preserved this entire historical function AST, including its inappropriate active-selector comparison.",
+    "scope_of_uniqueness": "Complete V1 stage/support modules and all DEPENDENCY_SEALS AST uses reviewed. This is a source-selector finding, not proof every subsequent actual preflight condition passes."
+  },
+  "reference_pins": {
+    "historical_B2": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v2/SOURCE_SEAL.json",
+      "bytes": 2909,
+      "SHA256": "be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a",
+      "members": 13,
+      "declared_content_root_sha256": null,
+      "index_reference": "source_phase1_typed_native_capture_v1/CAPTURE_SOURCE_INDEX.json:2915-2986 original_B2_reference_seal",
+      "existing_hardpin": "stage_phase1_typed_capture_v1.py:123-129 raw bytes/SHA literal plus actual package and exact complete13 listing",
+      "SourceProof_prefix": "phase1_source_proof/original_B2_reference/"
+    },
+    "active_B4": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_passive_sensor_capture_v4/SOURCE_SEAL.json",
+      "bytes": 3824,
+      "SHA256": "81fe69c8c2f2ffde98b2a5e4b03d6921207d60156dcb180ab0097aa7397813b3",
+      "members": 21,
+      "index_reference": "source_phase1_typed_native_capture_v1/CAPTURE_SOURCE_INDEX.json:841-953 dependency_seals.sensor",
+      "existing_hardpin": "stage_phase1_typed_capture_v1.py:21-27,111-122 active package literal, raw seal, complete21 and actual source bytes",
+      "SourceProof_prefix": "phase1_source_proof/sensor/",
+      "must_remain_strict_active_dependency": true
+    },
+    "historical_diagnostic_handoff": {
+      "path": "F:/RMPOLAR-RL/mod4v1_supermimic_bptt_20261102/source_phase1_sensor_reset_identity_diagnosis_v1/FINAL_SOURCE_HANDOFF_RECEIPT.json",
+      "bytes": 3991,
+      "SHA256": "238ef8f8ecd99383f91d3d474cbae3a409a16f9ec56e8e49f2c56e5b9b523c99",
+      "status": "PASS",
+      "declared_seal_bytes": 2909,
+      "declared_seal_SHA256": "be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a",
+      "all_13_member_rows_equal_independent_published_B2": true,
+      "all_four_diagnosis_reference_source_bytes_verified": true,
+      "SourceProof_prefix": "phase1_source_proof/B2_original_dependencies/"
+    }
+  },
+  "DEPENDENCY_SEALS_all_AST_uses": [
+    {"module": "stage_phase1_typed_capture_v1.py", "line": 21, "context": "Store", "meaning": "six active sealed packages"},
+    {"module": "stage_phase1_typed_capture_v1.py", "line": 111, "context": "Load", "meaning": "active index keyset equality; correct"},
+    {"module": "stage_phase1_typed_capture_v1.py", "line": 112, "context": "Load", "meaning": "active complete package verification; correct"},
+    {"module": "stage_phase1_typed_capture_v1.py", "line": 279, "context": "Load", "meaning": "historical B2 handoff incorrectly compared to active B4; unique confirmed defect"}
+  ],
+  "independent_actual_source_verification": {
+    "materializer_functions_invoked": 0,
+    "mirror_manifest_bytes": 93889,
+    "mirror_manifest_SHA256": "c47b837bce45d3fa3c917db437181ee83814feef0ca0c2b67df4f0c6f49d9d90",
+    "declared_actual_files_verified": 396,
+    "R_files": 395,
+    "T_files": 1,
+    "all_declared_Python_AST_parsed": true,
+    "mirror_rows_canonical_SHA256": "2561a818b0040f591ce9e954268f69d91532a376975b1d78ce7fca2f756eab0d",
+    "old_V1_members_verified_unchanged": 28,
+    "old_V1_seal_SHA256": "e9edbf414c5c386236a1eccb0b35d2e525a9339a4dd93d6365e6d645b5c9ebda",
+    "all_original_C_source_files_verified": 182,
+    "B2_manifest_actual_pin_references": 435,
+    "B2_manifest_unique_whole_Python": 155,
+    "B2_manifest_hash_rows_equal_index_and_actual_sources": true,
+    "B2_extra_routing_JSON": 4,
+    "B2_diagnostic_inputs": 5,
+    "B2_dependency_source_inputs": 164,
+    "B2_and_active_B4_source_API_whole_bytes_equal": true,
+    "source_API_bytes": 31456,
+    "source_API_SHA256": "a334766d6a9ca88d02d682e73d70a15e9098f1e77d1aa7a45e6d0154a4b73b62",
+    "SourceProof_aliases": 272,
+    "SourceProof_logical_SHA256": "f74f7e5fa02931f155bb55930f35f835f61a28cc7941cb94058c46968a8c6324",
+    "all_source_mapping_aliases_including_32_overlay_and_index": 305,
+    "all_source_mapping_logical_SHA256": "cb8bc8d40e69ef5d8d3c5ed4cab6b24aff2cd1c945cac24fff93178c7678d21b",
+    "SourceProof_package_members": {"worker":15,"sensor":21,"actuation":8,"adapter":10,"partition":9,"codec":7,"actuation_clock_scope_v2":5,"original_B2_reference":13,"boundary_device_source_contract":8},
+    "interpretation": "Independent data-only alias enumeration and actual source-byte verification; no load_sources/B2 builder/prepare/metadata/stage execution; not full original runtime or native vendor proof."
+  },
+  "complete_remaining_fixed_assumptions": [
+    {"lines":"198-219","scope":"B2 normalization","fixed":"Only explicit R or fixed canonical R provenance; no suffix/path repair","evidence":"whole source reviewed; generation-independent"},
+    {"lines":"224-250","scope":"B2 manifest","fixed":"336133/2801135d1ff028f09a5eb7cd571cc3ca90694b60340d17e62374a42cbe60eaca,435 refs,155 complete sources","evidence":"raw and all source pins verified"},
+    {"lines":"253-260","scope":"B2 routing/API","fixed":"4 separate routing raw pins;31456/a334766d6a9ca88d02d682e73d70a15e9098f1e77d1aa7a45e6d0154a4b73b62 API","evidence":"verified; B4 copy is byte-identical B2 API, so this reuse is not another semantic mismatch"},
+    {"lines":"261-269","scope":"B2 builder","fixed":"Actual original build_manifest with explicit source root, full normalized equality, namespace restoration","evidence":"whole function AST matches V4; builder not executed here"},
+    {"lines":"270-282","scope":"B2 diagnosis","fixed":"3991/238ef8f8ecd99383f91d3d474cbae3a409a16f9ec56e8e49f2c56e5b9b523c99 handoff + four refs; historical2909/be538a07 seal","evidence":"only line279 generation selector wrong; source refs and 13 historical member rows verified"},
+    {"lines":"283-289,188-195","scope":"closure return/source aliases","fixed":"164 source inputs;34active/32overlay/2baseline;6 active package references plus independently pinned historical B2","evidence":"272 SourceProof and all305 mapping bytes independently verified"},
+    {"lines":"292-315","scope":"Admission2 closed provenance","fixed":"Exact original runID/8 roles/ownwait/cost/leases/errors/H1 exclusion/E3 runtime","evidence":"AST reviewed; actual provenance metadata intentionally not read"},
+    {"lines":"318-369","scope":"independent original preservation","fixed":"Full sorted origin/input bytes, dynamic retained old conflicts, observed SHA,8 trees/assets/workers/vendor7","evidence":"whole function AST preserved; actual three conflicts/origin/observed remain parent-owned future evidence"},
+    {"lines":"372-407","scope":"original and new plan","fixed":"Absent root/old prefix/GPU/nonoverlap/new64|128; original9-to8 catalog and original E3 controls160 are distinct from capture64|128","evidence":"whole source reviewed; no actual prepare or root access"},
+    {"lines":"408-433","scope":"full vendor/baseline","fixed":"Native7/ddf9d6e1744c050fd5298805d125a611673ff22ade52c5177fb02c488ff8f0c0/flat original init; baseline capacity/bootstrap;34 aliases;64MiB plan","evidence":"source pins verified, complete actual native vendor/baseline not tested"},
+    {"lines":"436-478","scope":"metadata guards","fixed":"Model/C/lock filesystem rules; full-module imports; independent baseline bootstrap2; sys.modules and filesystem restoration","evidence":"whole AST reviewed;17 helper bytes preserved; no metadata call"},
+    {"lines":"479-504","scope":"full metadata binding","fixed":"All34 aliases;whole AppV6/Base/core;ROOT==HERE;6 typed deps;original bootstrap and make_task","evidence":"source bytes verified; actual-root import and preexisting blocked-module state remain actual environment constraints"},
+    {"lines":"505-530","scope":"Source receipts","fixed":"Actual imported module list separated from cleanup watchlist; nativefalse/Gate1UNKNOWN/stage2false","evidence":"no history-vs-successor selector"},
+    {"lines":"533-565","scope":"stage/completion","fixed":"Absent root;complete stream SHA/fsync;observed preservation;GROUP_PLAN;actual-root metadata;original completion;failure consumes root","evidence":"whole AST reviewed; no stage or observed native byte claim"},
+    {"lines":"568-578","scope":"CLI","fixed":"Same7 required arguments/explicit R+T/64|128/exactly one preflight or stage","evidence":"source reviewed; CLI not executed"},
+    {"lines":"typed_source_support_v1.py:34-229","scope":"typed supplements","fixed":"Fixed396 mirror;finite34 and wire;active B4 exact patch triple;independent bootstrap2;control bounds owned by real make_task,not validate_plan alone","evidence":"whole module reviewed; no other historical-successor selector"}
+  ],
+  "audit_execution_notes": [
+    {"attempt":"initial long inline shell","result":"NOT EXECUTED","detail":"Host source-verification parser blocked dynamic shell source; restructured as literal short Python CLI, no escalation or equivalent bypass"},
+    {"attempt":"first independent proof script","result":"OWN SCRIPT ASSERTION; no production code called","detail":"all_actuation_original_sources uses legitimate relative keys; own ref helper initially required absolute provenance marker. Corrected own data helper to original accepted absolute-or-relative lexical model; final complete proof PASS."}
+  ],
+  "minimal_conditional_V2_scope": "Historical handoff must bind only to independently hard-pinned published B2 raw seal and complete13 SourceProof; active B4 strict21 verification stays unchanged. No old source or publication edit. New publication2 metadata only where necessary; exact whole-function diff required; 4-6 new own selector/AST/memory cases only; parent review precedes final sealing.",
+  "actual_load_sources_calls":0,"actual_B2_builder_calls":0,"actual_prepare_calls":0,"actual_preflight_calls":0,"actual_metadata_calls":0,"actual_stage_calls":0,"parent_launches":0,"actual_report_reads":0,"SDK_Torch_model_raw_C_lock_Git_operations":0,
+  "native_enabled":false,"exact":false,"gate1":"UNKNOWN","stage2_GO":false
+}

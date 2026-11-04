@@ -1,0 +1,84 @@
+{
+  "kind": "TYPED_CAPTURE_CODEC_SOURCE_RECEIPT_V1",
+  "status": "FROZEN_SOURCE_ONLY",
+  "python": "3.14.3",
+  "tests": {
+    "run": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 0.02472979999947711,
+    "scope": "own FakeTensor API + stdlib metadata/AST only"
+  },
+  "api": {
+    "CaptureCodec.__init__": "(self, tensor_type, *, witness_index, witness_env_ids, n=80)",
+    "CaptureCodec.capture": "(self, tensor, *, role, source_ref, source_field, clock, env_axis, group=None)",
+    "CaptureCodec.validate_owned": "(self, envelope, *, allowed_roles=None)",
+    "CaptureCodec.materialize": "(self, value)",
+    "ControlLedger.__init__": "(self, codec, *, controls, run_id)",
+    "ControlLedger.begin": "(self, control_index, *, clock)",
+    "ControlLedger.normal_sample": "(self, channel, slot, clean, *, clock, payload=None)",
+    "ControlLedger.pre_reset": "(self, term, trunc, *, clock, event_id, payload=None)",
+    "ControlLedger.reset": "(self, ids, *, clock, event_id, before=None, after=None, outcome='RETURNED')",
+    "ControlLedger.end": "(self, *, post_term, post_trunc, clock, actor=None)",
+    "ControlLedger.finish": "(self)"
+  },
+  "roles": [
+    "ENV_ROWS_WITNESS",
+    "ENV_IDS_FULL",
+    "TERMINAL_BOOL_FULL",
+    "QUEUE_GROUP_FULL"
+  ],
+  "N": 80,
+  "queue_group_full_rows": 80,
+  "witness_rows_max": 8,
+  "controls": [
+    64,
+    128
+  ],
+  "max_control_packs": 128,
+  "max_normal_channel_records": 1280,
+  "upstream_design_files_unchanged": 7,
+  "unchanged_B2_V4_C1_references": 7,
+  "actual_target_modules_imported": [],
+  "actual_Torch_instances": 0,
+  "actual_SDK_native_GPU_calls": 0,
+  "actual_SSH_network_process_calls": 0,
+  "actual_whole_FINAL_trace_reports_PT_raw_opened": false,
+  "actual_resource_canonical_EX_C_accounting_lock_operations": 0,
+  "actual_stage_dispatch_training": 0,
+  "old_source_edits": 0,
+  "C2_directory_or_pins_accessed": false,
+  "audit_violation_counts": {
+    "native_import": 0,
+    "process_network": 0,
+    "escaped_read": 0,
+    "escaped_write": 0,
+    "delete_move_lock": 0,
+    "model_raw_open": 0
+  },
+  "ownership": {
+    "witness": "existing same-device detach.index_select, owned output, no extra clone",
+    "full_roles": "detach.clone once",
+    "ledger": "retains exact already-owned envelope/payload references; zero tensor copies",
+    "materialize": "explicit outside-loop detach.cpu.tolist; no float/dtype cast; metadata preserved",
+    "caller_handoff": "buffers and metadata must be treated read-only",
+    "witness_index_value_binding": "CALLER_DECLARED_NOT_READBACK"
+  },
+  "natural_edge_contract": {
+    "missing_callback": "NOT_OBSERVED and ids=None, not fabricated empty IDs",
+    "actual_callback": "complete original IDs, including K0/K80 and original integer dtype",
+    "reset_link": "prior termination event stored at reset time, late pre never retroactively joins",
+    "missing_evidence": "INCOMPLETE with missing fields, no replay/getter/sampling"
+  },
+  "scope": "CODEC_METADATA_RETENTION_NOT_INTERFACE_OR_PHYSICAL_QUALIFICATION",
+  "Gate1": "UNKNOWN",
+  "interface_qualified": false,
+  "stage2_GO": false,
+  "pending": [
+    "parent real Torch CPU test and review; no real Torch run here",
+    "B3 thin integration owned by 0ad; no B3 edits by this child",
+    "actual native timing/ownership/indices/source binding and original resource gates remain unknown",
+    "C2 unchanged and not inspected; no controller/worker/stager implementation"
+  ]
+}

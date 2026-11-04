@@ -1,0 +1,7 @@
+from pathlib import Path
+import ast,hashlib,json,time
+R=Path(__file__).resolve().parent;out=R/'reports/GOOD_HOLDOUT_D7_LIFECYCLE_CALLER_PREEXEC_IDENTITY_DELTA_V1.json';assert not out.exists()and not(R/'PAPER_ALIGNED_REBUILD_20261103/GOOD_HOLDOUT_D7_SEED20260930_PARENT_DISPATCH_STARTED_ONCE.json').exists();draft=json.loads((R/'reports/GOOD_HOLDOUT_D7_SEED20260930_LIFECYCLE_CALLER_SOURCE_V1.json').read_bytes());p=R/'dispatch_good_holdout_d7_seed30_original_parent_once.py';b=p.read_bytes();s=b.decode();old=(R/'dispatch_good_holdout_d6_seed29_original_parent_once.py').read_bytes();assert "len(seal['files'])==13"in s and'4ec4589ea395eed235c2690a05b250cdecd9b61a37dcd9ccf49ce0b42a9e3f89'in s and'GOOD_HOLDOUT_D7_SEED30_ONE_ORIGINAL_PARENT_POPEN_NOT_ADMISSION'in s
+code=lambda raw:[x.value for x in ast.walk(ast.parse(raw))if isinstance(x,ast.Constant)and type(x.value)is str and'subprocess.Popen'in x.value];assert code(old)==code(b)and len(code(b))==1
+v=dict(kind='PRE_FIRST_EXECUTION_D7_CALLER_FIXED_FINAL_SOURCE_IDENTITY_NOT_RUNTIME_PATCH',epoch=time.time(),prepared_source_SHA256=draft['files'][0]['SHA256'],actual_source_SHA256=hashlib.sha256(b).hexdigest(),source=str(p),changes='FINAL_CFF_V5_13MEMBER_ROOT_BINDING_PLUS_LOCAL_MODULE_KIND_LABELS',old_D6_source_unchanged=True,whole_remote_Popen_body_equal=True,actual_parent_or_SDK_or_model_C_or_resource_operations=0)
+with out.open('x',encoding='utf8')as f:json.dump(v,f,indent=2)
+print(json.dumps(v,indent=2))

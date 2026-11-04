@@ -1,0 +1,259 @@
+--- frozen_V4/stage_phase1_capture_v4.py
++++ NEW/stage_phase1_typed_capture_v1.py
+@@ -1,25 +1,30 @@
+ """SOURCE-only passive E3 capture materializer; explicit file operations, never launch.
+ 
+ Inputs: complete original V8 static root, actual Admission2 vendor root, and a
+-source-only mirror of the local R directory. No model/producer fallback exists.
++explicit source-only R/T mirrors (T is one pinned source file). No model/producer fallback exists.
+ This module defines prepare/stage; SOURCE tests never call either function.
+ """
+ from __future__ import annotations
+ from static_source_helpers_v1 import *
++from typed_source_support_v1 import (SCHEMA, PLAN_KIND, INDEX_KIND, verify_source_mirror,
++    patch_proof_allowed, typed_publication, verify_active_aliases, require_import_root,
++    validate_task_metadata)
+ import tempfile
+ 
+ HERE=Path(__file__).resolve().parent
+ R_NAME='mod4v1_supermimic_bptt_20261102'
+-WORKER_FOLDER='source_phase1_capture_worker_v4'
+-WORKER_SEAL_PIN=(2919, 'ba3409a5450e378ea97eac64f0fec4c3409ac974a4c3378d0c6e6a6cfc405180')
+-WORKER_ROOT_SHA='758dc867cc4040a6f1eb9f587cc88f69a3866e03a9553290128a1681cda039e8'
+-WORKER_INDEX_PIN=(134423, '75e36c0255a3b354dd0efeec33600f9b38d51ca28484de2dbed55db865fc7b2d')
++WORKER_FOLDER='source_phase1_typed_native_capture_v1'
++WORKER_SEAL_PIN=(3503, 'f92384f7943d27a4d588316cfba129011ca47851571ff252040df4c740424966')
++WORKER_ROOT_SHA='e7ff849c171f2eddc1053c5d1fc0779c31d6f8df73937616a7482abb85e8b897'
++WORKER_INDEX_PIN=(148229, '92da4a44ca9b7b6246c82d4dd281b73fa176bc1bdfbac981aa3403e43d7873d8')
+ ORIGINAL_INDEX_PIN=(6085,'d0519c7a351513a61f4c0c5c055b74bc7df41ac0300ce964207dd9508254f19a')
+ DEPENDENCY_SEALS={
+- 'sensor':(13,'be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a'),
++ 'sensor':(21,'81fe69c8c2f2ffde98b2a5e4b03d6921207d60156dcb180ab0097aa7397813b3'),
+  'actuation':(8,'ed77f3a3b0ce7aea6f904a09be8d038097bfb00729d57bec94feae5ab67bd081'),
+  'adapter':(10,'a1290c56bb849647e126457ac71b3ec13ac0d066b3b63b0337bd9f587eac0855'),
+- 'partition':(9,'e7f3d29bc0319fbd9f0d4e1d5a4981edd551b6c47f16431c8545bb86b7756630')}
++ 'partition':(9,'e7f3d29bc0319fbd9f0d4e1d5a4981edd551b6c47f16431c8545bb86b7756630'),
++ 'codec':(7,'2cc26eaee058d30c9ac5b17ca8fb37541beb7c1e5ddbb738963ddef08c199219'),
++ 'actuation_clock_scope_v2':(5,'105df1f6e47b82061aae729878a12874f731dd34b7cb0feeb75724028298469b')}
+ ROLES=('E3','W35','CURB_INDEPENDENT113','CURB_PROTECTED878','SLOPE135','SLOPE_INDEPENDENT50','E0','E2')
+ REQUESTED=('E3',)
+ CONTROLS=dict(E0=1000,E2=1200,E3=160,W35=1600,CURB_PROTECTED878=750,CURB_INDEPENDENT113=750,SLOPE135=750,SLOPE_INDEPENDENT50=1000)
+@@ -32,7 +37,8 @@
+ VENDOR_PIN=(7,'ddf9d6e1744c050fd5298805d125a611673ff22ade52c5177fb02c488ff8f0c0')
+ RETAIN_PREFIX='worker_sources/phase1_retained_original/'
+ COMPLETE_NAME='STAGE_COMPLETE_PHASE1_CAPTURE_V1.json'
+-SOURCE_DERIVATION_VERSION=4
++SOURCE_DERIVATION_VERSION=1
++SOURCE_DERIVATION_LINEAGE='COMPLETE_FROZEN_V4_TO_TYPED_V1'
+ V3_ENTRY_SHA256='2a4213d95939216f3a91db6c1739a443907aadf33c4f615aa897eace5a915425'
+ V2_ENTRY_SHA256='e39fc8936136f89e708df6a9a26911135d0c1616c641564cf155235ff0d06f6d'
+ B2_ENTRY_ROUTING_PINS={'CURB_PROTECTED878': (4814, '671f77ddef5fbd79de8dafc54213ff754cfc70ac5a9d9611680e9c76c021cfc5'), 'CURB_INDEPENDENT113': (4873, 'b906aaacefe79f29e001bee015de1d4c8ee930bf936a9996f79f0a72ee103fd3'), 'SLOPE135': (5390, 'f9a0a42c6b1390e38013a410e454da4a9d63569d47f014c3b6f6ea4ca7615b41'), 'SLOPE_INDEPENDENT50': (4834, '8ccc2f890c90eeeea652b8b10cd8a96518ba996b52294b20d2f525ea72f716e7')}
+@@ -60,36 +66,41 @@
+         need(len(raw)==WORKER_SEAL_PIN[0] and seal.get('frozen') is True and seal.get('source_only') is True,
+              'final worker seal required, not a floating index')
+         need(seal.get('content_root_sha256')==WORKER_ROOT_SHA and canonical(seal['files'])==WORKER_ROOT_SHA,
+-             'worker complete13 canonical root differs')
+-    rows=seal['files']
++             'worker complete15 canonical root differs')
++    rows=seal.get('files',seal.get('members'))
+     if type(rows) is dict:rows=[dict(relative=k,**v) for k,v in rows.items()]
+     need(type(rows) is list and len(rows)==count,'complete sealed package member count differs')
+     result={};result['SOURCE_SEAL.json']=(seal_path,dict(bytes=len(raw),SHA=H(raw)))
+     for row in rows:
+-        rel=safe_relative(row['relative']);need(rel not in result,'duplicate sealed package member')
+-        need(Path(rel).suffix.lower() in ('.py','.json','.md','.txt'),'non-source sealed package member')
++        rel=safe_relative(row.get('relative',row.get('name')));need(rel not in result,'duplicate sealed package member')
++        need(not any(denied(p) for p in rel.split('/')),'non-source sealed member denied before filesystem access')
++        pin=(row['bytes'],row.get('sha256',row.get('SHA256')))
++        ordinary=Path(rel).suffix.lower() in ('.py','.json','.md','.txt')
++        need(ordinary or patch_proof_allowed(folder.name,rel,expected_SHA,pin),'non-source or unqualified patch proof member')
+         path=no_links(folder,rel);info=identity(path)
+         need((info['bytes'],info['SHA'])==(row['bytes'],row.get('sha256',row.get('SHA256'))),'sealed member differs: '+rel)
+         if path.suffix=='.py':ast.parse(path.read_bytes())
+         result[rel]=(path,info)
+     return result,dict(path=str(seal_path),bytes=len(raw),SHA256=H(raw),members=count,
+-                      content_root_sha256=seal.get('content_root_sha256'),all_actual_source_bytes_verified=True)
+-
+-
+-def load_sources(source_root):
++                      content_root_sha256=seal.get('content_root_sha256',seal.get('content_root_SHA256')),all_actual_source_bytes_verified=True)
++
++
++def load_sources(source_root, *, t_source_root):
+     """Only fixed textual source packages; no prepare, static bank or model access."""
+-    source_root=lexical(source_root);folder=source_root/WORKER_FOLDER
+-    worker,worker_receipt=verify_package(folder,WORKER_SEAL_PIN[1],13,worker=True)
++    source_root=lexical(source_root);t_source_root=lexical(t_source_root);folder=source_root/WORKER_FOLDER
++    mirror_receipt=verify_source_mirror(source_root,t_source_root)
++    worker,worker_receipt=verify_package(folder,WORKER_SEAL_PIN[1],15,worker=True)
+     index,index_raw=metadata(folder/'CAPTURE_SOURCE_INDEX.json',2*1024*1024)
+     need((len(index_raw),H(index_raw))==WORKER_INDEX_PIN,'final capture SOURCE index differs')
+-    need(index.get('kind')=='PHASE1_CAPTURE_WORKER_SOURCE_INDEX_V1' and index.get('source_version')==4,'final SOURCE V4 with preserved typed index required')
++    need(index.get('kind')==INDEX_KIND and index.get('source_version')==1 and index.get('typed_producer_schema')==SCHEMA,'final frozen typed SOURCE index required')
++    active_bindings,producer_abi=typed_publication(source_root,t_source_root,index,folder)
+     original,old_raw=metadata(reference_path(source_root,index['original_index']['path']))
+     need((len(old_raw),H(old_raw))==ORIGINAL_INDEX_PIN,'complete original17 index differs')
+     old_rows=[dict(path=r['path'],install_relative=r['relative'],bytes=r['bytes'],SHA256=r['SHA256']) for r in original['entries']]
+-    need(index['original17']==old_rows and len(old_rows)==17 and len(index['new_sources'])==5 and len(index['dependency_sources'])==5,
+-         'exact original17/new5/dependency5 closure required')
++    need(index['original17']==old_rows and len(old_rows)==17 and len(index['new_sources'])==5 and len(index['dependency_sources'])==9,
++         'exact original17/new5/dependency9 closure required')
+     sources={};receipts={'worker':worker_receipt}
+-    for row in old_rows+index['new_sources']+index['dependency_sources']:
++    for row in old_rows+index['new_sources']+index['dependency_sources']+[index['producer_abi']]:
+         alias=safe_relative(row['install_relative']);need(alias not in sources and not any(denied(p) for p in alias.split('/')),'duplicate/non-static source alias')
+         path=reference_path(source_root,row['path']);info=identity(path)
+         need((info['bytes'],info['SHA'])==(row['bytes'],row['SHA256']),'complete source mapping differs: '+alias)
+@@ -109,6 +120,13 @@
+         need(actual_rows==expected_rows,'dependency complete member listing differs')
+         receipts[name]=receipt
+         for rel,value in members.items():sources['phase1_source_proof/'+name+'/'+rel]=value
++    original_B2=index['original_B2_reference_seal']
++    need((original_B2['bytes'],original_B2['SHA256'])==(2909,'be538a07c8ccfb785023422ace6985e1fde0bd5b885266124e430527c1ec558a'),'original B2 reference seal differs')
++    original_B2_path=reference_path(source_root,original_B2['path'])
++    members,receipt=verify_package(original_B2_path.parent,original_B2['SHA256'],13)
++    need(len(original_B2['members'])==13 and {r['relative']:(r['bytes'],r['SHA256']) for r in original_B2['members']}=={r:(i['bytes'],i['SHA']) for r,(_,i) in members.items() if r!='SOURCE_SEAL.json'},'complete original B2 reference listing differs')
++    receipts['original_B2_reference']=receipt
++    for rel,value in members.items():sources['phase1_source_proof/original_B2_reference/'+rel]=value
+     pinned=index['all_actuation_original_sources']
+     need(type(pinned) is dict and len(pinned)==index['actuation_original_source_count']==182,'complete original C source pins required')
+     for rel,row in pinned.items():
+@@ -171,9 +189,9 @@
+     for rel,value in B2_inputs.items():
+         alias='phase1_source_proof/B2_original_dependencies/'+safe_relative(rel)
+         need(alias not in sources,'B2 source proof alias collision');sources[alias]=value
+-    return dict(sources=sources,index=index,source_root=source_root,B2_source_inputs=B2_inputs,
+-        receipt=dict(kind='ACTUAL_COMPLETE_TEXT_SOURCE_PIN_VERIFICATION_PHASE1_V4',source_derivation_version=4,v1_entry_SHA256=V1_ENTRY_SHA256,v2_entry_SHA256=V2_ENTRY_SHA256,v3_entry_SHA256=V3_ENTRY_SHA256,boundary_device_source_contract=boundary_receipt,B2_source_closure=B2_receipt,worker=worker_receipt,
+-            index_bytes=len(index_raw),index_SHA256=H(index_raw),source_mappings=27,dependency_seals=receipts,
++    return dict(sources=sources,index=index,source_root=source_root,t_source_root=t_source_root,active_bindings=active_bindings,producer_abi=producer_abi,B2_source_inputs=B2_inputs,
++        receipt=dict(kind='ACTUAL_COMPLETE_TEXT_SOURCE_PIN_VERIFICATION_TYPED_PHASE1_V1',source_derivation_version=1,source_mirror=mirror_receipt,typed_producer_schema=SCHEMA,v1_entry_SHA256=V1_ENTRY_SHA256,v2_entry_SHA256=V2_ENTRY_SHA256,v3_entry_SHA256=V3_ENTRY_SHA256,boundary_device_source_contract=boundary_receipt,B2_source_closure=B2_receipt,worker=worker_receipt,
++            index_bytes=len(index_raw),index_SHA256=H(index_raw),source_mappings=34,overlay_source_mappings=32,independent_baseline_bootstrap_mappings=2,dependency_seals=receipts,
+             actual_original_C_source_pins=182,bootstrap_original_source_evidence=bootstrap_text_evidence,source_native_enabled=False,native_executed=False,model_reads=0))
+ 
+ 
+@@ -351,15 +369,15 @@
+     return True
+ 
+ 
+-def prepare(original_group_root, source_root, native_root, new_root, group_id, gpu_uuid, *, controls=64):
++def prepare(original_group_root, source_root, native_root, new_root, group_id, gpu_uuid, *, controls=64, t_source_root):
+     original_group_root,new_root=lexical(original_group_root),lexical(new_root)
+     need(type(controls) is int and controls in (64,128),'capture controls must be64 or128')
+     need(not new_root.is_symlink() and not new_root.exists(),'new-root must be absent; no overwrite/retry')
+     need(group_id==new_root.name and group_id.startswith(ROOT_PREFIX) and re.fullmatch('[A-Za-z0-9_]+',group_id),'explicit NEW passive capture root prefix required')
+     need(re.fullmatch('GPU-[0-9a-f-]+',gpu_uuid) is not None,'explicit original GPU UUID required')
+-    for old in (original_group_root,lexical(source_root),lexical(native_root)):
++    for old in (original_group_root,lexical(source_root),lexical(t_source_root),lexical(native_root)):
+         need(not new_root.is_relative_to(old) and not old.is_relative_to(new_root),'new-root overlaps an input')
+-    bundle=load_sources(source_root);boundary=native_boundary(native_root)
++    bundle=load_sources(source_root,t_source_root=t_source_root);boundary=native_boundary(native_root)
+     old,old_raw=metadata(original_group_root/'GROUP_PLAN.json')
+     need(old.get('group_id')==original_group_root.name==ORIGINAL_GROUP_ID and old.get('asset_SHA')==USD and old.get('contract_SHA')==CONTRACT,'exact original V8 group/assets required')
+     rows=old.get('roles');need(type(rows) is list and len(rows)==9 and {r['role'] for r in rows}==set(ROLES)|{'H1_normal'},'original complete9-to8 catalog differs')
+@@ -371,7 +389,7 @@
+         rel=safe_relative(item['relative']);need(not any(denied(p) for p in rel.split('/')),'non-static original worker file')
+         path=no_links(original_group_root,rel);info=identity(path)
+         need(info=={k:item[k] for k in ('bytes','SHA')},'actual original worker file differs: '+rel);originals[rel]=(path,info)
+-    plan=dict(kind='PHASE1_PASSIVE_CAPTURE_E3_ONLY_PLAN_V1',batch_purpose=PURPOSE,policy_variant='EXPLICIT_SYNTHETIC_ZERO6_NOT_POLICY_QUALITY',
++    plan=dict(kind=PLAN_KIND,typed_producer_schema=SCHEMA,batch_purpose=PURPOSE,policy_variant='EXPLICIT_SYNTHETIC_ZERO6_NOT_POLICY_QUALITY',
+         group_id=group_id,GPU_UUID=gpu_uuid,asset_SHA=USD,contract_SHA=CONTRACT,capture_controls=controls,
+         requested_roles=['E3'],deferred_roles=list(ROLES[1:]),paired_reset_protocol=paired_plan(),roles=[],comparison=None,
+         overall_eight_pass_rate=None,source_native_enabled=False,staged=False,dispatched=False,actual_SDK_executed=False,
+@@ -408,6 +426,7 @@
+     aliases={r['relative'] for r in files}|set(bundle['sources'])|{'supermimic_vendor_v2/'+r for r in vendor}
+     plan['worker_files']=[dict(relative=rel,**materials[rel][1]) for rel in sorted(aliases)]
+     bundle=dict(bundle,materials=materials,originals=originals)
++    verify_active_aliases(bundle['active_bindings'],bundle)
+     need(len(json.dumps(plan,allow_nan=False).encode())<=64*1024*1024,'full inventory exceeds actual runtime metadata64MiB bound')
+     validation=metadata_validate(bundle,plan)
+     return dict(plan=plan,materials=materials,originals=originals,source_bundle=bundle,new_root=new_root,boundary=boundary,
+@@ -425,7 +444,8 @@
+             return function(path,*a,**kw)
+         return call
+     watched=('phase1_capture_contract','phase1_capture_runtime','phase1_capture_observer','worker_passive_interface_v1',
+-        'source_api','passive_capture','phase1_sealed_actuation_tap','_phase1_capture_pinned_a1_core',
++        'typed_capture_codec','source_api','field_snapshot','dependency_contract','passive_capture',
++        'phase1_sealed_actuation_tap','phase1_sealed_actuation_c2','_phase1_capture_pinned_a1_core',
+         'frozen_a1_raw35_v1','pose_cache_runtime_adapter_v3','app_close_semantics_v5','resume_runtime_contracts_v3',
+         'launch_storage_contract','n80_gpu_capacity')
+     before={n:sys.modules.get(n) for n in watched};temporary=None
+@@ -456,15 +476,22 @@
+         builtins.open,io.open,os.stat,os.lstat=filesystem(old_open),filesystem(old_io_open),filesystem(old_stat),filesystem(old_lstat)
+         for n in watched:
+             if n not in BOOTSTRAP_ORIGINAL_SOURCES:sys.modules.pop(n,None)
++        active=verify_active_aliases(bundle['active_bindings'],bundle,actual_root=root)
+         close=verify_close_dependency_imports(root/'app_close_semantics_v5.py',root/'resume_runtime_contracts_v3.py')
+         contract=importlib.import_module('phase1_capture_contract');runtime=importlib.import_module('phase1_capture_runtime')
++        require_import_root(root,runtime)
++        if actual_root is not None:runtime.validate_installed_root(root,runtime.HERE)
+         selected=contract.validate_plan(plan,bundle['index'])
+         validate_preservation(plan['retained_static_inventory'],bundle['materials'],originals=bundle['originals'])
+         need(runtime.source_index()==bundle['index'],'runtime actual full installed source_index differs')
+         core=runtime.core();core_raw=Path(core.__file__).read_bytes()
+         need((len(core_raw),H(core_raw))==(37927,'7a092364cf63e9621481dc0a5554b56a22e4412cf89870c3db9a124864074b2e'),'actual full canonical7a092 alias differs')
+-        runtime.dependency('source_api','phase1_deps/sensor/source_api.py');runtime.dependency('passive_capture','phase1_deps/sensor/passive_capture.py')
+-        runtime.dependency('phase1_sealed_actuation_tap','phase1_deps/actuation/actuation_tap.py')
++        runtime.dependency('typed_capture_codec','phase1_deps/codec/typed_capture_codec.py')
++        runtime.dependency('source_api','phase1_deps/sensor/source_api.py')
++        runtime.dependency('field_snapshot','phase1_deps/sensor/field_snapshot.py')
++        runtime.dependency('dependency_contract','phase1_deps/sensor/dependency_contract.py')
++        runtime.dependency('passive_capture','phase1_deps/sensor/passive_capture.py')
++        runtime.dependency('phase1_sealed_actuation_c2','phase1_deps/actuation_c2/actuation_tap_v2.py')
+         importlib.import_module('phase1_capture_observer');worker=importlib.import_module('worker_passive_interface_v1')
+         bootstrap=worker.bootstrap_original_helpers(root)
+         origin=bootstrap['origin_evidence']
+@@ -473,18 +500,11 @@
+         need({r['relative'] for r in origin['sources']}=={r['relative'] for r in BOOTSTRAP_ORIGINAL_SOURCES.values()},
+              'bootstrap actual full source origin set differs')
+         importlib.import_module('pose_cache_runtime_adapter_v3');importlib.import_module('frozen_a1_raw35_v1')
+-        task=runtime.make_task(selected[0],plan,2000.,[101,102])  # placeholders only, validate_task not fstat/admission
+-        need(task['controls']==plan['capture_controls'] and task['model_PT_reads']==0 and not any(k in task for k in ('teacher_path','source_path','checkpoint','a1_producer')),'synthetic task carries model fallback')
+-        negatives=0
+-        for key,value in (('controls',160),('seed',20260929),('requested_roles',['E3','W35']),('checkpoint','NO_FILE_MODEL_DESCRIPTOR')):
+-            bad=copy.deepcopy(task);bad[key]=value
+-            try:contract.validate_task(bad)
+-            except ValueError:negatives+=1
+-            else:raise ValueError('capture task negative unexpectedly passed: '+key)
++        task_protocol=validate_task_metadata(runtime,contract,plan,bundle['index'])
+         need(not any(n.split('.')[0] in blocked for n in sys.modules),'native/resource module leaked into metadata import')
+-        return dict(kind='REAL_WHOLE_SAFE_CAPTURE_METADATA_IMPORT_CHECK_V4',source_derivation_version=4,original_helper_bootstrap=origin,passed=True,purpose=PURPOSE,requested_roles=['E3'],
+-                    task_controls=task['controls'],negative_tasks_rejected=negatives,placeholder_fds_not_inspected=True,
+-                    complete_AppV6_Base=close,canonical7a092_whole_module=True,full_safe_module_names=list(watched),
++        return dict(kind='REAL_WHOLE_SAFE_TYPED_CAPTURE_METADATA_IMPORT_CHECK_V1',source_derivation_version=1,typed_producer_schema=SCHEMA,active_bindings=active,task_protocol=task_protocol,ROOT_equals_HERE=True,original_helper_bootstrap=origin,passed=True,purpose=PURPOSE,requested_roles=['E3'],
++                    task_controls=plan['capture_controls'],positive_task_controls=task_protocol['positive_controls'],negative_tasks_rejected=task_protocol['real_task_and_plan_negative_checks'],placeholder_fds_not_inspected=True,
++                    complete_AppV6_Base=close,canonical7a092_whole_module=True,full_safe_module_names=[n for n in watched if n in sys.modules],namespace_cleanup_watchlist=list(watched),
+                     native_worker_main_executed=False,native_layer='COMPLETE_PIN_AST_RETAINED_NOT_IMPORTED',
+                     actual_SDK_binding=None,gate1='UNKNOWN',capture_interface_passed=False,resource_operations=0,model_reads=0)
+     finally:
+@@ -500,7 +520,7 @@
+ 
+ def preflight_summary(prepared):
+     inv=prepared['plan']['retained_static_inventory']
+-    return dict(kind='SOURCE_PHASE1_CAPTURE_PREFLIGHT_NOT_ADMISSION_V4',purpose=PURPOSE,group_id=prepared['plan']['group_id'],
++    return dict(kind='SOURCE_PHASE1_TYPED_CAPTURE_PREFLIGHT_NOT_ADMISSION_V1',typed_producer_schema=SCHEMA,purpose=PURPOSE,group_id=prepared['plan']['group_id'],
+         new_root=str(prepared['new_root']),requested_roles=['E3'],deferred_roles=list(ROLES[1:]),capture_controls=prepared['plan']['capture_controls'],
+         materials=len(prepared['materials']),original_static_files=len(inv['baseline']),baseline_SHA256=inv['SHA256'],
+         original_logical_tree_SHA256=inv['baseline_provenance']['original_logical_tree_SHA256'],
+@@ -533,7 +553,7 @@
+         validation=metadata_validate(prepared['source_bundle'],plan,actual_root=root)
+         put_json(root/'MATERIALIZED_STATIC_FILES_PHASE1_CAPTURE_V1.json',dict(files=[dict(relative=r,**i) for r,i in sorted(written.items())],
+              source_pins=prepared['source_bundle']['receipt'],baseline_SHA256=inv['SHA256'],original_logical_tree_SHA256=inv['baseline_provenance']['original_logical_tree_SHA256']))
+-        receipt=dict(kind='SOURCE_PHASE1_CAPTURE_MATERIALIZED_NOT_ADMISSION_V4',purpose=PURPOSE,materialized=True,parent_launches=0,
++        receipt=dict(kind='SOURCE_PHASE1_TYPED_CAPTURE_MATERIALIZED_NOT_ADMISSION_V1',typed_producer_schema=SCHEMA,purpose=PURPOSE,materialized=True,parent_launches=0,
+             group_id=plan['group_id'],root=str(root),requested_roles=['E3'],capture_controls=plan['capture_controls'],files=len(written),
+             GROUP_PLAN_bytes=len(raw),GROUP_PLAN_SHA256=H(raw),baseline_SHA256=inv['SHA256'],source_to_retained=inv['baseline_provenance']['source_to_retained'],
+             metadata_validation=validation,source_native_enabled=False,staged=False,dispatched=False,actual_SDK_executed=False,
+@@ -547,11 +567,11 @@
+ 
+ def main():
+     parser=argparse.ArgumentParser(description=__doc__)
+-    for name in ('original-group-root','source-root','native-root','new-root'):parser.add_argument('--'+name,required=True,type=Path)
++    for name in ('original-group-root','source-root','t-source-root','native-root','new-root'):parser.add_argument('--'+name,required=True,type=Path)
+     parser.add_argument('--group-id',required=True);parser.add_argument('--gpu-uuid',required=True)
+     parser.add_argument('--controls',type=int,choices=(64,128),default=64)
+     modes=parser.add_mutually_exclusive_group(required=True);modes.add_argument('--preflight-only',action='store_true');modes.add_argument('--stage',action='store_true')
+-    args=parser.parse_args();prepared=prepare(args.original_group_root,args.source_root,args.native_root,args.new_root,args.group_id,args.gpu_uuid,controls=args.controls)
++    args=parser.parse_args();prepared=prepare(args.original_group_root,args.source_root,args.native_root,args.new_root,args.group_id,args.gpu_uuid,controls=args.controls,t_source_root=args.t_source_root)
+     print(json.dumps(stage(prepared) if args.stage else preflight_summary(prepared),indent=2,allow_nan=False))
+ 
+ 

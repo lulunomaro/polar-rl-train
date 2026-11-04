@@ -1,0 +1,68 @@
+{
+  "kind": "OWN_TYPED_MATERIALIZER_SOURCE_TEST_ATTEMPTS_V1",
+  "source_only": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "OWN_HARNESS_IMPORT_FAILURE_BEFORE_SUITE_CONSTRUCTION",
+      "tests_run": 0,
+      "error": "AssertionError: SOURCE test native/resource import",
+      "chain": "unittest.mock -> asyncio -> subprocess -> conditional fcntl import intercepted by own audit hook",
+      "successful_fcntl_import_or_resource_operation": false,
+      "Producer_metadata_or_entry_called": false,
+      "fix": "Only remove unnecessary own unittest.mock dependency; use explicit own no_links probe assignment and try/finally restoration. Do not weaken the audit hook.",
+      "preserved": ["SOURCE_TEST_LOG_attempt1.txt", "SOURCE_TEST_RECEIPT_attempt1.json", "SOURCE_AFTER_attempt1.json"]
+    },
+    {
+      "attempt": 2,
+      "status": "OWN_NEW_METADATA_HELPER_UNSUPPORTED_NEGATIVE_EXPECTATION",
+      "tests_run": 9,
+      "passed_cases": 8,
+      "errors": 1,
+      "error": "ValueError: typed plan negative unexpectedly passed: capture_controls",
+      "location_at_attempt": "typed_source_support_v1.py:214 -> stage_phase1_typed_capture_v1.py:503 -> test_typed_materializer_v1.py:181",
+      "actual_Source_contract": "Original Producer validate_plan lines61-91 does not own the 64/128 control bound. Original prepare and real runtime.make_task lines107-121 -> validate_task lines42-58 own that bound.",
+      "fix": "Correct only the NEW helper: validate the supplied plan through real make_task before the 64/128 positive variants; route the control negative through real make_task. Keep plan kind/schema negatives through real validate_plan. No Producer source change.",
+      "passed_Full_App_Base_core_and_task_checks_before_own_error": true,
+      "audit_violations": [],
+      "preserved": ["SOURCE_TEST_LOG_attempt2.txt", "SOURCE_TEST_RECEIPT_attempt2.json", "SOURCE_AFTER_attempt2.json"]
+    },
+    {
+      "attempt": 3,
+      "status": "NINE_CASES_PASS_BEFORE_FINAL_RECEIPT_LABEL_REFINEMENT",
+      "tests_run": 9,
+      "failures": 0,
+      "errors": 0,
+      "tested_stage_bytes": 48328,
+      "tested_stage_SHA256": "b9d507bbd27a61cb0a5ec7cfcccf64de137cff0941d57519025e08f714465b43",
+      "later_refinement": "Separate actual imported module names from the broader namespace cleanup watchlist. A legacy C1 watchlist name is not declared to have been loaded by typed metadata. Preserve the cleanup watchlist and all guards; no Producer or resource protocol change.",
+      "preserved": ["SOURCE_TEST_LOG_attempt3.txt", "SOURCE_TEST_RECEIPT_attempt3.json", "SOURCE_AFTER_attempt3.json"]
+    },
+    {
+      "attempt": 4,
+      "status": "FINAL_NINE_CASES_PASS_WITH_TESTED_SOURCE_PINS",
+      "tests_run": 9,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 0.9090480000013486,
+      "tested_stage_bytes": 48397,
+      "tested_stage_SHA256": "0fbaad211b341c0d5cce5a429a1832c02230b2cfdfc15fb9100576514477c00b",
+      "receipt_pins_all_six_tested_own_source_files": true,
+      "preserved": ["SOURCE_TEST_LOG_attempt4.txt", "SOURCE_TEST_RECEIPT_attempt4.json", "SOURCE_AFTER_attempt4.json"]
+    }
+  ],
+  "all_attempts_immutable_old_source_inputs": 407,
+  "all_attempts_old_source_bytes_before_after_equal": true,
+  "immutable_old_source_map_SHA256": "0c4273f7f10a7fd4023ed0f52091a9d25cc40cdb8739ba0115dadd7cd8e690ac",
+  "unique_own_new_test_cases": 9,
+  "old_44_63_10_suites_run": false,
+  "actual_prepare_calls": 0,
+  "actual_preflight_calls": 0,
+  "actual_stage_calls": 0,
+  "parent_launches": 0,
+  "Producer_source_modified": false,
+  "native_enabled": false,
+  "exact": false,
+  "gate1": "UNKNOWN",
+  "stage2_GO": false
+}

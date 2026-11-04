@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:source:phase1-typed-capture-consumer:v1",
+  "title": "Caller-decoded original documents; SOURCE-only typed consumer V1",
+  "type": "object",
+  "required": ["worker_final"],
+  "properties": {
+    "worker_final": {"oneOf": [{"$ref": "#/$defs/worker"}, {"$ref": "#/$defs/incomplete"}, {"type": "null"}]},
+    "task": {"type": ["object", "null"], "properties": {"kind": {"const": "PHASE1_TYPED_NATIVE_CAPTURE_E3_N80_TASK_V1"}, "typed_producer_schema": {"const": "PHASE1_TYPED_NATIVE_PRODUCER_ABI_V1"}, "controls": {"enum": [64, 128]}, "num_envs": {"const": 80}}},
+    "lifecycle": {"type": ["object", "null"], "description": "Whole original documents under aliases group_final, parent_exit_scope, source_grade, common_go, worker_ready, worker_started, env_close, app_close_binding, app_fast_intent OR app_close_returned, parent_started, controller_started, parent_dispatch, outer_parent_wait; optional worker_error/parent_error."},
+    "provenance": {"type": ["object", "null"], "properties": {"whole_documents": {"type": "object", "additionalProperties": {"$ref": "#/$defs/byteClaim"}}, "schema_source_pins": {"type": "object"}, "reported_source_pins": {"type": "object"}}}
+  },
+  "additionalProperties": false,
+  "x-scope": "Structural schema is documentation, not a second validator. Executable consumer enforces exact decoded Python types, arithmetic, cross-document and clock identities. JSON Schema integer accepts mathematically integral 1.0; consumer additionally checks exact Python int/float and prevents Python bool/int equality.",
+  "x-source-ABI": "PHASE1_TYPED_NATIVE_PRODUCER_ABI_V1",
+  "x-permanent-output": {"Gate1": "UNKNOWN", "Stage2": false, "stage2_GO": false, "exact": false, "capture_interface_passed": false, "quality_or_causal_claim": false},
+  "$defs": {
+    "clock": {
+      "type": "object", "required": ["physics_tick", "feedback_tick", "common_control_counter", "phase", "reset_depth"],
+      "properties": {"physics_tick": {"type": "integer", "minimum": 0}, "feedback_tick": {"type": "integer", "minimum": 0}, "common_control_counter": {"type": "integer", "minimum": 0}, "phase": {"type": "string"}, "reset_depth": {"type": "integer", "minimum": 0}},
+      "description": "B4 normal/pre/post use complete original clocks. C2 outside adoption clock is a distinct domain: original stored tick/fb/common, outside_scene_update, depth0, control_slot UNKNOWN, is_original_100hz_slot false, no derived sim_time_us. Do not copy adoption fields into event.tick."
+    },
+    "tensor": {
+      "type": "object",
+      "required": ["envelope_kind", "semantic_role", "source_ref", "source_pin_ref", "source_field", "original_shape", "original_dtype", "original_device", "source_env_axis", "retained_shape", "row_mapping", "source_clock", "group", "ownership", "selection", "evidence_level", "values"],
+      "properties": {
+        "envelope_kind": {"const": "TYPED_SOURCE_TENSOR_V1"},
+        "semantic_role": {"enum": ["ENV_ROWS_WITNESS", "ENV_IDS_FULL", "TERMINAL_BOOL_FULL", "QUEUE_GROUP_FULL"]},
+        "source_ref": {"type": "string", "minLength": 1}, "source_pin_ref": {"type": "string", "minLength": 1}, "source_field": {"type": "string", "minLength": 1},
+        "original_shape": {"$ref": "#/$defs/shape"}, "retained_shape": {"$ref": "#/$defs/shape"},
+        "original_dtype": {"type": "string", "minLength": 1}, "original_device": {"type": "string", "minLength": 1},
+        "source_env_axis": {"type": ["integer", "null"], "minimum": 0},
+        "row_mapping": {"type": "object"}, "source_clock": {"$ref": "#/$defs/clock"}, "group": {"enum": [null, "legs", "wheels"]},
+        "ownership": {"enum": ["OWNED_BY_INDEX_SELECT", "OWNED_BY_DETACH_CLONE"]},
+        "selection": {"enum": ["ROWS_FROM_EXPLICIT_ROLE_NOT_SHAPE_INFERENCE", "FULL_SEMANTIC_EXCEPTION"]},
+        "evidence_level": {"const": "OWNED_TENSOR_SNAPSHOT_NOT_SDK_PROVENANCE_QUALIFICATION"},
+        "values": {"type": ["array", "boolean", "integer", "number"]}
+      },
+      "x-role-invariants": {
+        "ENV_ROWS_WITNESS": "Explicit original N80 env axis; general codec permits 1..8 unique declared IDs; current producer ABI/public consumer requires metadata IDs0..7. Index binding is caller-declared, not independent readback. Shape axis shrinks only to retained IDs. Standalone synthetic helpers test noncontiguous [2,79].",
+        "ENV_IDS_FULL": "Original integer shape[K], K0..80, source_env_axis null, full retained shape and argument order, VALUES_ARE_ENV_IDS_NOT_ENV_AXIS/preserve_entire_argument true. No first8 cut or env-axis inference.",
+        "TERMINAL_BOOL_FULL": "Original dtype torch.bool, shape[80], axis0, all80 original-order rows, exact bool JSON values; no cast/reduction.",
+        "QUEUE_GROUP_FULL": "Axis0 full80 original-order rows. Twelve queue fields per legs4/wheels2: target matrices float32, valid vectors bool, lag/episode/tick vectors int64. Not a sensor witness."
+      }
+    },
+    "shape": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "pack": {
+      "type": "object",
+      "required": ["worker_control_index", "begin_clock", "normal_samples", "pre_reset", "reset", "post_return", "retention_status", "missing", "unknowns", "b3_callback_provenance", "event_ids_are_clock"],
+      "properties": {
+        "worker_control_index": {"type": "integer", "minimum": 0, "maximum": 127}, "begin_clock": {"$ref": "#/$defs/clock"},
+        "normal_samples": {"type": "object", "required": ["mid", "end"], "description": "Each slot has original base_ang_vel3, projected_gravity3, leg_pos4, leg_vel4, wheel_vel2. Clean envelope plus complete original B4 payload; five channels totaling16 scalars per witness/slot, no MID remaining19 or clean35."},
+        "retention_status": {"enum": ["EXPECTED_FIELDS_RETAINED", "INCOMPLETE"]}, "missing": {"type": "array"}, "unknowns": {"type": "object"}, "event_ids_are_clock": {"const": false},
+        "b3_callback_provenance": {"type": "object", "required": ["original_terminal_callbacks", "original_reset_callbacks", "observer_error_count", "reset_observation"]}
+      },
+      "x-boundaries": "Original pre-reset s1[80,73] witness and bool80 flags, original integer reset IDs fullK, original reset before/after state and outcome. No callback, metadata failed, RAISED, late/unjoined, missing END remain distinct. Original raw actor35 only post_return END."
+    },
+    "ledger": {
+      "type": "object", "required": ["kind", "run_id", "requested_controls", "recorded_controls", "normal_channel_records", "control_cap", "normal_record_cap", "all_controls_observed", "controls", "Gate1", "stage2_GO"],
+      "properties": {"kind": {"const": "BOUNDED_TYPED_CONTROL_LEDGER_V1"}, "run_id": {"type": "string", "minLength": 1}, "requested_controls": {"enum": [64, 128]}, "recorded_controls": {"type": "integer", "minimum": 0, "maximum": 128}, "normal_channel_records": {"type": "integer", "minimum": 0, "maximum": 1280}, "control_cap": {"const": 128}, "normal_record_cap": {"const": 1280}, "all_controls_observed": {"type": "boolean"}, "controls": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/pack"}}, "Gate1": {"const": "UNKNOWN"}, "stage2_GO": {"const": false}},
+      "x-identity": "run_id == TASK.group_id + ':E3'; normal_channel_records is actual original key."
+    },
+    "worker": {
+      "type": "object", "required": ["kind", "integration", "typed_producer_schema", "sensor", "actuation"],
+      "properties": {"kind": {"const": "PHASE1_TYPED_NATIVE_CAPTURE_E3_N80_FINAL_V1"}, "integration": {"const": "PHASE1_TYPED_NATIVE_CAPTURE_SOURCE_V1"}, "typed_producer_schema": {"const": "PHASE1_TYPED_NATIVE_PRODUCER_ABI_V1"},
+        "sensor": {"type": "object", "required": ["kind", "control_ledger", "incomplete_current_control"], "properties": {"kind": {"const": "PASSIVE_SENSOR_CAPTURE_V3"}, "control_ledger": {"$ref": "#/$defs/ledger"}}},
+        "actuation": {"type": "object", "required": ["capture_schema", "windows"], "properties": {"capture_schema": {"const": "PHASE1_TYPED_C2_EVENT_WINDOWS_V1"}, "windows": {"type": "object", "required": ["control_windows_seen", "retained_window_bound", "first", "last", "retention", "middle_windows"], "properties": {"retained_window_bound": {"const": 4}, "first": {"type": "array", "maxItems": 2}, "last": {"type": "array", "maxItems": 2}, "retention": {"const": "ORIGINAL_FIRST2_LAST2_NOT_ALL_C2_WINDOWS"}, "middle_windows": {"const": "UNKNOWN_UNRETAINED"}}}}}
+      },
+      "x-C2": "Every original event retained including auxiliary/unparented writes. Physics event.tick and issue/apply arguments require type(x) is int and >=0, never bool or float. UNPARENTED target_write has separate tick NOT_APPLICABLE domain with raw counter retained, not a manufactured apply(-1). Same-asset term context supplies only parent seq/group/clock; DOF/target/readback join stays UNKNOWN."
+    },
+    "incomplete": {"type": "object", "required": ["kind"], "properties": {"kind": {"const": "PHASE1_TYPED_NATIVE_CAPTURE_INCOMPLETE_V1"}}, "description": "Not a successful FINAL. Original pending owned_partial_control/provenance is retained, never synthesized into a completed pack."},
+    "byteClaim": {"type": "object", "required": ["original_bytes", "original_SHA256", "decoded_canonical_SHA256"], "properties": {"original_bytes": {"type": "integer", "minimum": 1}, "original_SHA256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "decoded_canonical_SHA256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "description": "Caller-supplied original byte identities are distinct from consumer-computed original.digest(decoded). Source pins and source_ref aliases are claims, not automatic runtime authentication."}
+  }
+}

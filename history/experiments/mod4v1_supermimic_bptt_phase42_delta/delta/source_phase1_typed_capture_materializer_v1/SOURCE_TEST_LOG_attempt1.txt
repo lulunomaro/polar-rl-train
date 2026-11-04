@@ -1,0 +1,18 @@
+PRE-SUITE OWN HARNESS FAILURE; no test case or Producer metadata function ran.
+
+Traceback (most recent call last):
+  run_source_tests_v1.py:87 spec.loader.exec_module(module)
+  test_typed_materializer_v1.py:17 from unittest import mock
+  Python314/Lib/unittest/mock.py:27 import asyncio
+  Python314/Lib/asyncio/base_events.py:25 import subprocess
+  Python314/Lib/subprocess.py:58 import fcntl
+  run_source_tests_v1.py:71 raise AssertionError('SOURCE test native/resource import')
+AssertionError: SOURCE test native/resource import
+
+The own audit hook intercepted a stdlib subprocess conditional fcntl import while
+importing unittest.mock, before test-suite construction. No successful fcntl
+import, flock, subprocess, SDK call, actual original directory, or producer entry
+execution was observed. This is an own test-harness issue, not a Producer defect.
+Resolution: remove the unnecessary unittest.mock dependency; use explicit own
+no_links probe assignment plus try/finally restoration. Keep import/resource
+restrictions and all production files unchanged for the rerun.

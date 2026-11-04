@@ -1,0 +1,49 @@
+"""NEW independent holdout source preflight, not native launch or training.
+Upload the complete pinned two-project source mirror and run the sealed D7
+metadata/static preflight under its original boundary checks, with no resources.
+"""
+from pathlib import Path,PurePosixPath
+import ast,hashlib,json,shlex,sys,time
+R=Path(__file__).resolve().parent;out=R/'reports/GOOD_HOLDOUT_D7_SEED20260929_ACTUAL_PREFLIGHT_V1.json';marker=R/'PAPER_ALIGNED_REBUILD_20261103/GOOD_HOLDOUT_D7_SEED20260929_PREFLIGHT_STARTED_ONCE.json';assert not out.exists()and not marker.exists();H=lambda b:hashlib.sha256(b).hexdigest()
+def _require_published_seed30_qualified():
+ summary_raw=(R/'reports/GOOD_HOLDOUT_D7_SEED20260930_QUALIFIED_SUMMARY_V1.json').read_bytes();summary=json.loads(summary_raw);assert summary['kind']=='QUALIFIED_GOOD_ORIGINAL_CONDITIONAL_HOLDOUT_SINGLE_SEED_METADATA_SUMMARY_V1'and summary['seed']==20260930 and summary['passed_closed_execution']is True and summary['errors']==[]and summary['producer_grade_rewritten']is False
+ info=summary['closed_metadata'];p=Path(info['path']);assert p.is_absolute()and p.resolve().is_relative_to((R/'reports').resolve())and p.name=='CLOSED_RESULT.json'and p.is_file()and not p.is_symlink();raw=p.read_bytes();assert(len(raw),H(raw))==(info['bytes'],info['SHA256']);closed=json.loads(raw);assert closed['kind']=='GOOD_HOLDOUT_CLOSED_RESULT_V1'and closed['seed']==20260930 and closed['passed_closed_good_reference_execution']is True and closed['errors']==[]and closed['root']==summary['root']and closed['requested_roles']==['CURB_PROTECTED878','SLOPE135']
+ gates=closed['gates'];assert type(gates)is dict and gates and all(v is True for v in gates.values())and summary['gates']==gates;assert all(gates[k]is True for k in('producer_original_source_grade','original_ownchild_actual_waits','original_both_EX_released','independent_outer_actual_Popen_wait'))
+ docs=closed['metadata']['documents'];end=docs['PARENT_EXIT_SCOPE.json'];outer=docs['GOOD_HOLDOUT_PARENT_WAITED_ACTUAL_V1.json'];waits=closed['own_child_waits'];assert waits==summary['own_child_waits']==end['child_waits']and len(waits)==2 and {v['role']for v in waits}=={'CURB_PROTECTED878','SLOPE135'}and all(v['actual_waited']is True and type(v['returncode'])is int and v['returncode']==0 for v in waits)
+ assert end['all_own_children_waited']is True and end['original_single_GPU_private_EX_released']is True and end['original_global_finite_EX_released']is True and end['errors']==[]and type(end['canonical_writes'])is int and end['canonical_writes']==0
+ assert outer['actual_parent_p_wait_returned']is True and type(outer['returncode'])is int and outer['returncode']==closed['actual_outer_parent_returncode']==summary['actual_outer_parent_returncode']==0 and outer['controller_errors']==[]and outer['original_parent_resource_close_wait_not_replaced']is True and type(outer['actual_native_parent_Popen_calls'])is int and outer['actual_native_parent_Popen_calls']==1 and outer['root']==closed['root']and outer['seed']==20260930
+_require_published_seed30_qualified()
+prior=json.loads((R/'reports/GOOD_HOLDOUT_D4_SEED20260929_ACTUAL_PREFLIGHT_V1.json').read_bytes());assert prior['returncode']==1 and 'actual selected E1 canonical metadata differs'in prior['stderr'];diagnostic_raw=(R/'reports/GOOD_HOLDOUT_CONCENTRATED_ACTUAL_SOURCE_INPUT_DIAGNOSTIC_V1.json').read_bytes();assert(len(diagnostic_raw),H(diagnostic_raw))==(49207,'31e4ab2668701db00fad59ea94badf09d3e8fe8975cc8b70f35aad73f77767c0');diagnostic=json.loads(diagnostic_raw);assert diagnostic['returncode']==0 and diagnostic['receipt']['status']=='PASS'and diagnostic['receipt']['errors']==[];root_raw=(R/'reports/GOOD_HOLDOUT_RUNTIME_ROOT_CANONICAL_METADATA_DIAGNOSIS_V2.json').read_bytes();assert(len(root_raw),H(root_raw))==(3180,'f3c2bab54a38baddf4d2c1bbce49ac7b2df6abe8210828b8a833f4ca4d00ecd2');wire=json.loads((R/'reports/GOOD_HOLDOUT_ORIGINAL_PLAN_WIRE_VS_PUBLISHED_DIAGNOSIS_V1.json').read_bytes());assert wire['whole_decoded_values_equal']and wire['differences_first30']==[]and wire['actual_wire_SHA256']=='a78cbaf8961264f16bdd1007dbab72a0fb442fae080978f057e52fef1dfd7fd1'
+prior5=json.loads((R/'reports/GOOD_HOLDOUT_D5_SEED20260929_ACTUAL_PREFLIGHT_V1.json').read_bytes());assert prior5['returncode']==1 and 'identity distinction required'in prior5['stderr'];teacher_raw=(R/'reports/GOOD_HOLDOUT_ACTUAL_TEACHER_IDENTITY_SCHEMA_DIAGNOSIS_V2.json').read_bytes();assert(len(teacher_raw),H(teacher_raw))==(11764,'06faee44b02f910df7093eee19dc3bc1996f0b416fbd8945751aeed24706998a')and json.loads(teacher_raw)['returncode']==0
+review_path=R/'source_good_holdout_lifecycle_parent_review_v2/SOURCE_REVIEW.json';b=review_path.read_bytes();assert(len(b),H(b))==(8953,'4c91f5cc1085be24e55e6758f4a5343cb4fa30a203cd9369e0371c018dc015d0');review=json.loads(b);assert review['unique_project_suite']['tests']==review['unique_project_suite']['passed']==40 and review['unique_project_suite']['failures']==review['unique_project_suite']['errors']==0 and all(v==0 for v in review['project_suite_independent_audit'].values())and review['continuous_monitoring']['all_profile_and_FS_wrapper_checkpoints_true']
+review2_path=R/'source_good_holdout_v3_parent_review_v1/SOURCE_REVIEW.json';bb=review2_path.read_bytes();assert(len(bb),H(bb))==(11507,'11cfc09956a3f2254cb7c0fb66e2eedc920b9ba5cc996874d4a2d67aa70d76db');r2=json.loads(bb)
+failed=json.loads((R/'reports/GOOD_HOLDOUT_D6_SEED20260929_CLOSED_FAILURE_FACTS_V1.json').read_bytes());ps=failed['parent_exit'];ow=failed['actual_outer_wait'];assert not failed['passed_closed_execution']and failed['producer_source_grade']['passed_closed_reference_source_grade']is False and ps['all_own_children_waited']and ps['original_single_GPU_private_EX_released']and ps['original_global_finite_EX_released']and ps['errors']==[]and ow['actual_parent_p_wait_returned']and ow['returncode']==1 and ow['controller_errors']==[];assert len(failed['original_errors'])==2 and all('JSON metadata exceeds bounded source contract'in q['error']for q in failed['original_errors'].values())
+cff=(R/'source_good_holdout_lifecycle_routes_v5/SOURCE_SEAL.json').read_bytes();assert(len(cff),H(cff))==(2446,'ddfa3f19c4be7961003207ac6e6c79f96f8befad97a91a2477e0589c37e0ab6d')
+pay=json.loads((R/'PAPER_ALIGNED_REBUILD_20261103/GOOD_HOLDOUT_D7_CASE_FINAL_SOURCE_PAYLOAD_V1.json').read_bytes());assert pay['unique_files']==246 and pay['mirror_files']==164 and pay['original_complete_source_mapping_passed']==20 and pay['old207_payload_files_preserved_bytewise']and pay['new_active_flat20_separate_from_historical_flat20']and pay['all19_other_overlay_rows_unchanged']and pay['actual_remote_prepare_preflight_stage_parent_SDK_model_C_or_resource_operations']==0;local=Path(pay['payload_root']);payload={}
+for x in pay['files']:
+ rel=x['workspace_relative'];p=PurePosixPath(rel);assert not p.is_absolute()and '..'not in p.parts and p.suffix.lower()in('.py','.json','.md','.txt','.patch');b=(local/Path(*p.parts)).read_bytes();assert(len(b),H(b))==(x['bytes'],x['SHA256']);payload[rel]=b
+entry=R.name+'/source_stage_good_expert_holdout_v7/stage_good_expert_holdout_v7.py';assert(len(payload[entry]),H(payload[entry]))==(53571,'06e82474aa80ec1280cc38aee8a199556ec2ff054189db02394f7f608f30b8f5')
+B='/home/lc01/Zonglin Li/zonglin2';stamp=str(time.time_ns());gid='MOD4V1_GOOD_TEACHER_HOLDOUT_20260929_D7_CASE_FINAL_V1_'+time.strftime('%Y%m%d_%H%M%S')+'_'+stamp;root=B+'/tasks/'+gid;source=B+'/tasks/'+gid+'_SOURCE_INPUT';ws=source+'/WORKSPACE';project=ws+'/'+R.name;gpu='GPU-16828f91-2b45-b646-8dc0-9481138e2842';original=B+'/tasks/MOD4V1_NINE_N80_SINGLE_GPU_PARALLEL_V8_20261102_101426_1793585666425343700';native=B+'/tasks/MOD4V1_A1_RAW35_V6_ADMISSION2_20261102_231937_1793632777470828000';script=ws+'/'+entry
+argv=[script,'--original-group-root',original,'--source-dir',ws+'/'+pay['flat_source_workspace_relative'],'--source-index',ws+'/'+pay['source_index_workspace_relative'],'--native-root',native,'--new-root',root,'--group-id',gid,'--gpu-uuid',gpu,'--seed','20260929','--preflight-only'];config=dict(kind='NEW_GOOD_HOLDOUT_D7_SEED20260929_FINITE_CASE_FINAL_SOURCE_PREFLIGHT_NOT_NATIVE',epoch=time.time(),root=root,group_id=gid,source_input=source,workspace=ws,GPU_UUID=gpu,seed=20260929,argv=argv,source_files=pay['files'],source_file_count=len(payload),lifecycle_parent_review_V2_SHA256=H(review_path.read_bytes()),materializer_independent_review_SHA256=H(bb),actual_parent_or_SDK_or_model_C_or_lock_operations=0,expected_materialized=False)
+with marker.open('x',encoding='utf8')as f:json.dump(config,f,indent=2)
+sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72
+c=connect72();s=c.open_sftp()
+try:
+ for p in(root,source):
+  try:s.lstat(p)
+  except FileNotFoundError:pass
+  else:raise AssertionError('New purpose path exists')
+ s.mkdir(source);s.mkdir(ws);made={source,ws}
+ for rel,b in sorted(payload.items()):
+  target=PurePosixPath(ws)/rel
+  for p in list(target.parents)[::-1]:
+   p=str(p)
+   if p==ws or p.startswith(ws+'/'):
+    if p not in made:s.mkdir(p);made.add(p)
+  with s.open(str(target),'wx')as f:f.write(b)
+ code="import sys,runpy;sys.path.insert(0,%r);sys.argv=%r;runpy.run_path(%r,run_name='__main__')"%(str(PurePosixPath(script).parent),argv,script)
+ i,o,e=c.exec_command('PYTHONDONTWRITEBYTECODE=1 '+shlex.quote(B+'/run-python.sh')+' -B -c '+shlex.quote(code),timeout=1200);i.close();stdout=o.read().decode('utf8','replace');stderr=e.read().decode('utf8','replace');rc=o.channel.recv_exit_status();v=dict(config,returncode=rc,stdout=stdout,stderr=stderr)
+ if rc==0:v['receipt']=json.loads(stdout)
+ with out.open('x',encoding='utf8')as f:json.dump(v,f,indent=2)
+ print(json.dumps({k:v[k]for k in('root','group_id','source_input','seed','source_file_count','returncode')},indent=2));assert rc==0,stderr
+finally:s.close();c.close()

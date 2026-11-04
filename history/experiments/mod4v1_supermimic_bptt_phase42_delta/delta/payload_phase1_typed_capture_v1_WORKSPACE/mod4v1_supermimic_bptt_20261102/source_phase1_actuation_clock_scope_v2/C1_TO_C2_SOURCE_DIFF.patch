@@ -1,0 +1,84 @@
+--- source_phase1_actuation_capture_v1/actuation_tap.py
++++ source_phase1_actuation_clock_scope_v2/actuation_tap_v2.py
+@@ -1,4 +1,4 @@
+-"""SOURCE-only passive actuation tap. No native imports, I/O, RNG, or reset hooks.
++"""DISABLED C2 NEW-schema actuation clock/scope source; not connected to a worker. No native imports, I/O, RNG, or reset hooks.
+ Hooks existing calls once; copies only already-stored memory / write arguments.
+ Torch tensors, if present in a future live call, are detached+cloned on their
+ existing device, never cpu()/tolist() here. That path is NOT live-verified.
+@@ -147,33 +147,64 @@
+         @wraps(original)
+         def wrapped(*args, **kwargs):
+             seq = tap.sequence;tap.sequence += 1
++            counter = stored(tap.env,"_sim_step_counter")
++            parent = tap.context[-1] if tap.context else None
+             group = fixed_group
++            scope = "NOT_A_SETTER"
++            clock_source = "stored_counter"
+             if kind in ("queue_submit","queue_apply"):
+                 group = args[0] if args else kwargs.get("key")
+                 tick = args[2 if kind=="queue_submit" else 1] if len(args)>(2 if kind=="queue_submit" else 1) else kwargs.get("tick")
++                clock_source = "original_queue_argument_UNVALIDATED"
++            elif kind=="target_write":
++                # A method name alone is never a command group or physics clock.
++                if parent is not None and parent["asset"] is owner:
++                    group, tick = parent["group"], parent["tick"]
++                    scope, clock_source = "SAME_ASSET_TERM_APPLY_CONTEXT", "original_parent_term_context"
++                else:
++                    group = unknown("No same-asset term_apply parent; setter method is not a group proof")
++                    scope = "NON_TERM_SETTER" if parent is None else "ACTIVE_TERM_ASSET_MISMATCH"
++                    tick = {"status":"NOT_APPLICABLE" if parent is None else "UNKNOWN",
++                            "reason":"No qualified original term_apply physics clock for this setter"}
++                    clock_source = "NO_QUALIFIED_PHYSICS_CLOCK"
+             else:
+-                counter = stored(tap.env,"_sim_step_counter")
+-                tick = counter-1 if kind in ("term_apply","target_write") and type(counter) is int else counter
+-            event = {"seq":seq,"kind":kind,"group":group,"tick":tick,
++                # Invalid physical -1/float/bool values are not repaired or accepted.
++                tick = counter-1 if kind=="term_apply" and type(counter) is int else counter
++                if kind=="term_apply":clock_source = "original_term_entry_stored_counter_minus_one_UNVALIDATED"
++            def snapshot():
++                return queue_snapshot(tap.queue,group) if type(group) is str and group in GROUPS else unknown("No qualified queue group for this call scope")
++            event = {"capture_schema":"ACTUATION_CLOCK_SCOPE_V2_SOURCE_DISABLED",
++                     "seq":seq,"kind":kind,"group":group,"tick":tick,"write_scope":scope,
++                     "raw_stored_counter":tap._guard(lambda:freeze_memory(counter)),"clock_source":clock_source,
+                      "args":tap._guard(lambda:freeze_memory(args)),"kwargs":tap._guard(lambda:freeze_memory(kwargs)),
+-                     "pre":tap._guard(lambda:queue_snapshot(tap.queue,group))}
++                     "pre":tap._guard(snapshot)}
+             if kind=="queue_submit":event["static"]=tap._guard(lambda:snapshot_static(tap.env))
+             if kind=="target_write":
+-                event["parent_term_apply_seq"] = tap.context[-1] if tap.context else None
+-                event["physical_readback"] = unknown("Only original target writer argument observed")
+-            if kind=="term_apply":tap.context.append(seq)
++                qualified = scope=="SAME_ASSET_TERM_APPLY_CONTEXT"
++                event["parent_term_apply_seq"] = parent["seq"] if qualified else None
++                event["active_term_context"] = ({"seq":parent["seq"],"group":parent["group"],"tick":parent["tick"]}
++                                                if parent is not None else unknown("No active term_apply context"))
++                event["physical_readback"] = unknown("Only original setter argument observed; no physical readback")
++                if "joint_ids" in kwargs:
++                    ids_source, ids = "kwargs.joint_ids", event["kwargs"].get("joint_ids",unknown("Argument snapshot unavailable"))
++                elif len(args)>1:
++                    ids_source = "positional[1]_UNQUALIFIED_SDK_SIGNATURE"
++                    ids = event["args"][1] if type(event["args"]) is list else unknown("Argument snapshot unavailable")
++                else:
++                    ids_source, ids = "OMITTED", unknown("No explicit joint_ids captured; no SDK signature/default inference")
++                event["setter"] = {"method":name,"owner_source":"stored original term._asset binding",
++                                   "discovery_group_hint_NOT_AUTHORITY":fixed_group,"joint_ids_source":ids_source,"joint_ids":ids}
++            if kind=="term_apply":tap.context.append({"seq":seq,"group":group,"tick":tick,"asset":stored(owner,"_asset")})
+             try:
+                 result = original(*args,**kwargs)
+             except BaseException as exc:
+                 event["outcome"]="RAISED";event["exception_type"]=type(exc).__name__;event["exception_identity"]=id(exc)
+-                event["post"]=tap._guard(lambda:queue_snapshot(tap.queue,group))
++                event["post"]=tap._guard(snapshot)
+                 tap._guard(lambda:tap._keep(event))
+                 raise
+             else:
+                 event["outcome"]="RETURNED"
+-                event["post"]=tap._guard(lambda:queue_snapshot(tap.queue,group))
+-                # Only queue.apply output is numeric memory needed for linkage;
+-                # the original object itself is returned untouched for every hook.
++                event["post"]=tap._guard(snapshot)
+                 if kind=="queue_apply":event["selected_target"]=tap._guard(lambda:freeze_memory(result))
+                 tap._guard(lambda:tap._keep(event))
+                 return result

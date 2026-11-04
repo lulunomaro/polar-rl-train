@@ -1,0 +1,103 @@
+{
+  "kind": "TYPED_CAPTURE_CODEC_SCHEMA_V1",
+  "scope": "SOURCE_CODEC_AND_RETENTION_ONLY_NOT_INTERFACE_QUALIFICATION",
+  "envelope_kind": "TYPED_SOURCE_TENSOR_V1",
+  "semantic_roles": ["ENV_ROWS_WITNESS", "ENV_IDS_FULL", "TERMINAL_BOOL_FULL", "QUEUE_GROUP_FULL"],
+  "n": 80,
+  "queue_full_rows": 80,
+  "role_rules": {
+    "ENV_ROWS_WITNESS": {
+      "source_env_axis": "explicit integer axis with source extent80",
+      "witness_count": [1, 8],
+      "selection": "detach().index_select(existing_same_device_index)",
+      "ownership": "OWNED_BY_INDEX_SELECT",
+      "mapping": "explicit caller Python IDs; index contents not read back"
+    },
+    "ENV_IDS_FULL": {
+      "source_env_axis": null,
+      "source_shape": "one-dimensional K in [0,80]",
+      "dtype": "actual original integer dtype, including int32",
+      "selection": "detach().clone(); K80 never cropped",
+      "ownership": "OWNED_BY_DETACH_CLONE"
+    },
+    "TERMINAL_BOOL_FULL": {
+      "source_env_axis": 0,
+      "source_shape": [80],
+      "dtype": "torch.bool",
+      "selection": "detach().clone(); all80 masks retained",
+      "ownership": "OWNED_BY_DETACH_CLONE"
+    },
+    "QUEUE_GROUP_FULL": {
+      "source_env_axis": "explicit integer axis with source extent80",
+      "group": ["legs", "wheels"],
+      "selection": "detach().clone(); every queue group row retained",
+      "ownership": "OWNED_BY_DETACH_CLONE",
+      "difference_from_frozen_design": "NEW explicit role; queue groups keep full80 rather than generic witness8"
+    }
+  },
+  "required_envelope_fields": [
+    "envelope_kind", "semantic_role", "source_ref", "source_pin_ref", "source_field",
+    "original_shape", "original_dtype", "original_device", "source_env_axis",
+    "retained_shape", "row_mapping", "source_clock", "group", "ownership",
+    "selection", "evidence_level", "values"
+  ],
+  "metadata_before_selection": ["original_shape", "original_dtype", "original_device", "source_env_axis", "row_mapping", "source_clock"],
+  "source_ref_alias": "source_pin_ref == source_ref; source_ref is the API parameter",
+  "source_authority": "caller-supplied source reference; codec does not authenticate live SDK provenance",
+  "actual_index_values": "UNKNOWN_CALLER_DECLARED_INDEX_BINDING_NOT_READBACK",
+  "data": {
+    "capture": "owned same-device tensor, no CPU copy/cast",
+    "materialize": "explicit outside-loop detach().cpu().tolist() only; metadata preserved; no float()/dtype cast",
+    "roundtrip": "JSON-native integers/bools/floats retain original dtype metadata; not a bitwise tensor wire-format or implicit float32 reconstruction",
+    "bare_tensor": "CaptureError: every tensor requires an explicit role",
+    "caller_ownership": "handoff buffers and metadata are read-only; ledger stores references without a second clone"
+  },
+  "original_clock": {
+    "required": ["physics_tick", "feedback_tick", "phase", "reset_depth"],
+    "preserved_when_supplied": ["sim_time_us", "common_control_counter", "control_slot", "is_original_100hz_slot", "sample_identity"],
+    "renormalization": "none; existing B2 names/values retained",
+    "normal_slot": "phase scene_update, reset_depth0, original100Hz flag true; mid tick%8==4, end tick>0 and tick%8==0",
+    "event_ids_are_clock": false
+  },
+  "ledger": {
+    "controls": [64, 128],
+    "max_controls": 128,
+    "one_active_control": true,
+    "normal_slots": ["mid", "end"],
+    "channel_widths": {"base_ang_vel": 3, "projected_gravity": 3, "leg_pos": 4, "leg_vel": 4, "wheel_vel": 2},
+    "normal_channels_per_control": 10,
+    "max_normal_channel_records": 1280,
+    "max_clean16_witness_scalars": 32768,
+    "begin": "begin(control_index, *, clock)",
+    "normal": "normal_sample(channel, slot, clean, *, clock, payload=None)",
+    "pre_reset": "pre_reset(term, trunc, *, clock, event_id, payload=None)",
+    "reset": "reset(ids, *, clock, event_id, before=None, after=None, outcome='RETURNED')",
+    "reset_site": "original reset hook finally/completion, using its already-owned before/after/IDs; no new reset",
+    "end": "end(*, post_term, post_trunc, clock, actor=None)",
+    "finish": "finish() returns already-owned tree; caller separately materializes outside loop",
+    "not_observed_reset": {"callback_status": "NOT_OBSERVED", "ids": null},
+    "observed_reset": "original complete ID envelope even if K0, K80 or outcome RAISED",
+    "link": "run/control + prior termination event captured before reset + original clocks; late pre cannot retroactively repair a link",
+    "incomplete": "missing normal/pre/actor or unjoined edge retained as INCOMPLETE, never synthesized",
+    "all_controls_observed": "count only, not complete retention, native validation or Gate1",
+    "metadata_failure": "CaptureError; caller must preserve original callback count/identity/exception, never replay or SDK fallback"
+  },
+  "unknowns": {
+    "mid_remaining19": "UNKNOWN_NOT_SAMPLED_AT_MID",
+    "mid_full_clean35": "UNKNOWN_NOT_COMPUTED",
+    "mid_actor35": "UNKNOWN_50HZ_ONLY",
+    "terminal_clean35": "UNKNOWN_NOT_COMPUTED",
+    "nonwitness_episodes": "UNKNOWN",
+    "untapped_bitwise_actor": "UNKNOWN",
+    "private_global_rng_states": "UNKNOWN",
+    "physical_target_readback": "UNKNOWN_NOT_PERFORMED_BY_CODEC",
+    "C2_runtime": "UNKNOWN_NOT_ACCESSED"
+  },
+  "forbidden_operations": [
+    "Torch or SDK import/construction", "new index tensor allocation", "Tensor nonzero/any",
+    "SDK getter/audit", "observation/reset/sampling", "RNG/getstate", "dtype/float cast",
+    "ledger second clone", "clock repair", "worker/stager/controller modification"
+  ],
+  "Gate1": "UNKNOWN",
+  "stage2_GO": false
+}

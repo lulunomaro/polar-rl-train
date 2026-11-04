@@ -1,0 +1,31 @@
+"""One meaningful combined source/first-native-stage archive; never replay to collect later progress."""
+from pathlib import Path
+import sys,json,time,hashlib,subprocess
+D=Path(__file__).resolve().parent;W=D.parent;repo=W/'repo-lqr';rel=Path('history/experiments/e3_fudan_64closed_n20000_admission_20261104');dest=repo/rel
+def G(*a):
+ p=subprocess.run(['git','-C',str(repo),*a],capture_output=True,text=True,encoding='utf8')
+ if p.returncode:print(p.stdout,flush=True);print(p.stderr,file=sys.stderr,flush=True);p.check_returncode()
+ return p.stdout.strip()
+assert G('branch','--show-current')=='mod4v1-experts-fulldr-rm70'and not G('status','--porcelain')and not dest.exists();G('merge-base','--is-ancestor','9e11cc7039bbc4a027f022193d09e02dad825dd3','HEAD')
+assert(D/'FDN_W3_4096_CLOSED_FOR_N20000_SOURCE.json').exists()and(D/'FDN_N20000_W4_STAGE_RESULT.json').exists()
+assert(D/'FDN_N20000_W4_ORIGINAL_OWNER_DISPATCH_RESULT.json').exists()
+assert(D/'FDN_N20000_W4_FIRST_ADMISSION_PATH.json').exists()or(D/'FDN_N20000_W4_LATEST_CLOSED_RESULT_PATH.json').exists()or(D/'FDN_N20000_W4_ORIGINAL_RESOURCE_WAIT_CONTEXT.json').exists()
+# Do not race the deliberately scoped new inference adapter's source delivery.
+assert(D/'source_fudan_frozen_mean_v1/CPU_RESULT.json').exists(),'Complete new frozen-mean CPU delivery before this one snapshot'
+note=(D/'CURRENT_PROGRESS_V7_N20000_ORIGINAL_ADMISSION_ACTIVE.md').read_text(encoding='utf8');dest.mkdir(parents=True);files=[];rows=[]
+NO={'.pt','.pth','.ckpt','.onnx','.safetensors','.pt2','.pkl','.pickle','.npz','.npy','.png','.jpg','.jpeg','.webp','.usd','.usda','.usdc','.zip','.mp4','.xml','.stl','.obj','.ply','.dae','.mesh','.pyc','.pyo','.tmp'}
+def capture(label,p,r):
+ row=dict(source_path=str(p))
+ if p.suffix.lower()in NO or p.name=='RESULT.json':row['status']='weight_geometry_image_video_raw_or_transient_reference_only_skipped_before_stat_read_hash';rows.append(row);return
+ if not p.is_file():return
+ raw=p.read_bytes();out=dest/'files'/label/r;out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(raw);rp=out.relative_to(repo).as_posix();files.append(rp);row.update(status='complete_text_point_in_time',bytes=len(raw),SHA256=hashlib.sha256(raw).hexdigest(),archive_path=rp);rows.append(row)
+for label,src in(('E3_Fudan_source_and_native_stage',D),('earlier_rejected_tilted_demo',W/'mod4v1_e3_full_leg_pose_view_20261104'),('earlier_extended_hip_belly_demo_NOT_native',W/'mod4v1_e3_belly_ground_rear_20261104')):
+ for p in sorted(src.rglob('*')):
+  if'__pycache__'in p.parts:continue
+  capture(label,p,p.relative_to(src))
+p=W/'mod4v1_e3_stowed_startup_20261104/REPLAY_CLOSED.json'
+if p.exists():capture('prior_owned_replay_normal_close',p,Path(p.name))
+(dest/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,all_current_text_reports_snapshot=True,dynamic_metadata_only_point_in_time=True,models_raw_images_video_geometry_not_opened_for_Git=True,physical_or_once_replay_for_Git=False,main_push_or_reset=False),indent=2),encoding='utf8');(dest/'.gitattributes').write_text('* -text\n',encoding='utf8');(dest/'NOTE.md').write_text(note+'\n\n## Archive scope\nThis snapshot preserves all earlier failures, W2 zero-GO timeout and original resource release, Admission3 real 64 PPO updates with both Adam states and the entire saved 4096 cohort, the user request for N20000, and the new isolated N20000 admission with full learner continuation plus fresh environment/DR/history stream cut. Source W3 has 3110 actual controls versus 3072 optimized controls; 38 pending controls remain source-only and are not invented updates. Cumulative and newly added window counters are separate. N20000 runtime status is only true at each captured timestamp; admission, initialized environments, CPU checks and update counts are not independent recovery success. N80 source implementations including the unused parent qualifier are not executed tests. The reference video whole-leg-same-end target remains uncovered by the constrained low-rise subtask. Source parity is not backend/hardware proof. Earlier models, all original 74-case grading, physics/DR/limits, H1 and Registryv12 remain preserved. Physical traces, weights and original media are path references, not reopened or copied for this archive. Later actual reports require a later meaningful stage, not replay of this archive.\n',encoding='utf8');files.extend((rel/n).as_posix()for n in('INDEX.json','.gitattributes','NOTE.md'))
+sys.path.insert(0,str(repo/'archive_tools'));import record_experiment
+trial_id='e3-fudan-64closed-n20000-native-admission';sys.argv=['record_experiment.py','--id',trial_id,'--title','E3 Fudan real 64-update closure and user-requested N20000 learner continuation admission','--kind','training','--note-file',str(dest/'NOTE.md'),'--validation','E3-only;Fudan-PPO-five-frame-velocity-encoder;4096-64-real-updates-1280-twoAdam-12582912-optimized-transitions-original-inner-outer-wait-cost-release;source-38-pending-controls-not-optimized;user-request-N20000-T48;full-learner-twoAdam-LR-STD-private-generator-continuation-with-exact-base-delta;fresh-20000-environment-DR-history-stream-cut-no-shape-projection;original-canonical-private-locks-physics-DR-limits-74grader-unchanged;admission-not-skill-pass;H1-mothers-frozen;all-errors-preserved;no-model-raw-media-opened-forGit;feature-only-no-main-push-reset','--files',*files];record_experiment.main();head=G('rev-parse','HEAD');tag='trial-20261104-'+trial_id;obj=G('rev-parse','refs/tags/'+tag);assert G('cat-file','-t','refs/tags/'+tag)=='tag'and G('rev-parse','refs/tags/'+tag+'^{}')==head
+G('push','--atomic','origin','HEAD:refs/heads/mod4v1-experts-fulldr-rm70','refs/tags/'+tag+':refs/tags/'+tag);remote={ref:sha for sha,ref in(x.split()for x in G('ls-remote','origin','refs/heads/mod4v1-experts-fulldr-rm70','refs/tags/'+tag,'refs/tags/'+tag+'^{}','refs/heads/main').splitlines())};assert remote['refs/heads/mod4v1-experts-fulldr-rm70']==head and remote['refs/tags/'+tag]==obj and remote['refs/tags/'+tag+'^{}']==head and not G('status','--porcelain');print(json.dumps(dict(commit=head,tag=tag,annotated_tag_object=obj,remote=remote,main_push_or_reset=False,physical_or_once_replay_for_Git=False,source_entries=len(rows)),indent=2))

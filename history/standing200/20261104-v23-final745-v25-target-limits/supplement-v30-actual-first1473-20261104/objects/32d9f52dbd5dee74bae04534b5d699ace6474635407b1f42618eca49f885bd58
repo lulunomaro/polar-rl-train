@@ -1,0 +1,11 @@
+"""Append current actual launch/FIRST to the recorded V25 phase."""
+from pathlib import Path
+
+P=Path(__file__).resolve().parent/'archive.py'
+source=P.read_text(encoding='utf-8')
+source=source.replace('supplement-final1472-native-v30-frozen-20261104',
+    'supplement-v30-actual-first1473-20261104')
+source=source.replace('V28_FINAL1472_ACTUAL80_NATIVE_REVIEW_V30_SAME_RECIPE_FROZEN_UNUSED_FOREIGN_LOCAL_BUSY',
+    'V30_ACTUAL_FIRST1473_COMPLETE_FULLRESTORE1472_SAME_V25_RECIPE')
+source=source.replace("R/'scut_recipe_v30/README.md'","R/'scut_recipe_v30/LIVE_FIRST1473.md'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

@@ -1,0 +1,31 @@
+"""Publish current FIRST using the immutable prior metadata-only handoff."""
+from pathlib import Path
+import hashlib
+import re
+
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v28/handoff.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='655b1c31141d1df7beeafd604e8f48f7af4ad0e201e25d616fb8fae97bb5086e'
+mapping={'scut_recipe_v28':'scut_recipe_v30','SCUT28':'SCUT30','SCUT27':'SCUT28',
+    'V28':'V30','V27':'V28','1235':'1473','1234':'1472','24680':'29440','29616':'35328'}
+source=re.sub('|'.join(map(re.escape,sorted(mapping,key=len,reverse=True))),lambda m:mapping[m.group()],raw.decode())
+start=source.index('    resource=dict(captured=')
+end=source.index('    value=dict(',start)
+source=source[:start]+'''    resource=dict(captured=inventory['captured'],snapshot_only=True,hosts={})
+    for host,item in inventory['hosts'].items():
+        actual=item.get('actual',{})
+        resource['hosts'][host]=dict(passed=item['passed'],GPU=actual.get('gpu',{}).get('stdout'),
+            compute_apps=actual.get('compute_apps',{}).get('stdout'),canonical=actual.get('canonical'),disk=actual.get('disk'))
+'''+source[end:]
+old="    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\\n',encoding='utf-8')"
+new="""    w['archival']['V23final745_V25targetlimits']['latest_supplement']=dict(
+        path='history/standing200/20261104-v23-final745-v25-target-limits/supplement-v30-actual-first1473-20261104',
+        status='ordinarysupplement source/admission/resource/launch/fullrestore/FIRST/handoff/automation; actualcommitpushverification tooloutputonly')
+    w['closed_transfer_original_once_unused']=True
+    w['pending_repair']['run_id']=plan['run_id']
+    w['pending_repair']['source_only']=False
+    w['pending_repair']['frozen_SHA']=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest()
+"""+old
+assert source.count(old)==1
+source=source.replace(old,new)
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

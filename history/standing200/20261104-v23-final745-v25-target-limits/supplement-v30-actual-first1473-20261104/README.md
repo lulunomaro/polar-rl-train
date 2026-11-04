@@ -1,0 +1,13 @@
+V30在2026-11-04实际从V28 final1472完整恢复，并完成FIRST1473。原source为8924208B、SHA aaf81888220824369bfaa5e74630a0cb3933e5c66d96be124a17b674d9c6ea86。单次生产decode后actor/critic/STD和17组Adam全等，各29440步；实际恢复学习率为0.00038443359375000017，保存debug0/common35328、全部RNG和原组件队列恢复，再一次fresh physical reset。这不是PhysX续帧。
+
+FIRST完成24 controls、98304 on-policy samples、192 physics ticks、20次Adam更新，actor/critic梯度有限非零；完整保存8927449B、SHA 3e86a4a0feaceff3f5dd2a70d4fad51203e47b34b515bb6dc75d525917715dbb。FORMAT继续MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS，因为算法接口未变。FIRST是实际训练与保存证据，本轮尚未独立评测200mm技能。
+
+原owner1614229/create1793793094.65，worker1614239/create1793793095.7；exec后exe/argv在STATUS_SCUT30_FIRST与新handoff中。初始bash Popen身份另行保留，不混为exec后身份。GO19:51:35.372965+08、SAVE20:51:35.372965、NOMINAL20:56:35.372965；原3900/save3600/exit300与strict reserve86412.86069250107不变。唯一原canonical准入实际activeNone、剩余234660.4214746952秒是启动前snapshot，不是实时余额。
+
+此前foreign sole collector63276已结束，本地发布POSTROUND_FULL_RETURNED。新的fresh LOCAL通过，V30原四卡检查、launch和FIRST各唯一消费。19:50四卡：72两张compute empty且各24203MiB free；210 compute empty但diskfree0B；86 compute占21602MiB，不因利用率较低叫空闲。fresh原canonical/privateGPU/finite准入通过，选72 GPU-16828f91-2b45-b646-8dc0-9481138e2842。资源读与launch连接均正常关闭，FIRSTcollector已结束并SSHclosed/serialFREE。没有新watcher，没有修改其它scope。
+
+本轮仍原SCUT flat1472向8000，之后才原rough weights-only/freshAdam；V25硬件target接口、rawGaussian likelihood、wheel路径、奖励、reset、PPO、PD/DC/D0-D7和物理均保持。当前shared repo其它scope的单台阶跳跃改动与本聊天隔离，生产只用冻结V25实现和已固定SHA模块。V28 final1472实际0/80已回放审图，不重复其closed、评测或render。
+
+健康期间不重复launch/FIRST/四卡/验模或hotpatch。每窗同原owner fullsave安全关闭后立即独立200mm80首episode，原actual OWNER_EXIT和collectorclosed、freshLOCAL FREE后才调用unused V30dispatch closed一次。取新actual400Hz与poses后用V18有限render，当前模型原生审侧俯图/曲线和全80manifold、targetactual、接触终止理由，再决定接续。执行错误不能称0/80技能。
+
+本次为V25既有phase普通supplement，不重record/retag。源码、准入、资源、once、launch、restore、FIRST、交接与自动化全部进Git；大型权重/NPZ/USD/media只真实path/bytes/已有SHA。Git后的remote main与保护tag/peel/lqr核验只留工具输出，不追HEAD报告循环。

@@ -1,0 +1,78 @@
+"""Publish actual final1472 review and a frozen, unlaunched continuation."""
+from pathlib import Path
+from datetime import datetime
+import hashlib
+import json
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+HERE = Path(__file__).resolve().parent
+
+
+def main():
+    report = ROOT/'reports/SCUT30_FINAL1472_NATIVE_FROZEN_LOCAL_BUSY_HANDOFF_20261104.json'
+    assert not report.exists()
+    assert not (ROOT/'reports/SCUT30_LAUNCH_ONCE.json').exists()
+    assert not (ROOT/'reports/FOUR4090_READ_SCUT30B_ONCE.json').exists()
+    local_path = max((ROOT/'reports').glob('SCUT30_EXACT_LOCAL_TELEOP_CLASSIFICATION_*.json'), key=lambda p:p.stat().st_mtime_ns)
+    local = json.loads(local_path.read_bytes())
+    assert local['serial']=='BUSY' and local['blocked']
+    review_path = ROOT/'reports/SCUT28_FINAL1472_NATIVE_CONTACT_REVIEW_V30_DECISION.json'
+    review = json.loads(review_path.read_bytes())
+    frozen = json.loads((HERE/'FROZEN.json').read_bytes())
+    transferred = json.loads((ROOT/'reports/SCUT28_CLOSED_TRANSFER_ACTUAL.json').read_bytes())
+    closed = json.loads((ROOT/'reports/SCUT28_CLOSED_TRANSFER_SSH_CLOSED.json').read_bytes())
+    own = review['own_exit']; final = review['actual_source_final']
+    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    assert closed['SSHclosed'] and closed['SESSION_restored'] and closed['serial']=='FREE'
+    peer_root = ROOT.parent/'mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/env20000_scut_stairs_1h_20261104/attempt08/reports'
+    peer_path = peer_root/'OWNER_LAUNCH.json'
+    peer = json.loads(peer_path.read_bytes())
+    value = dict(epoch=time.time(),local_captured=datetime.now().astimezone().isoformat(),
+        status='SCUT28_FINAL1472_ACTUAL80_NATIVE_REVIEWED_SCUT30_FROZEN_UNUSED_FOREIGN_SERIAL_BUSY',
+        run_id=own['run_id'],actual_final=final,new_PPO_updates=review['new_PPO_updates'],
+        own_exit=own,owner_exit_local=datetime.fromtimestamp(own['epoch']).astimezone().isoformat(),
+        evaluation=review['actual_evaluation'],all80_manifold=review['all80_manifold'],actuator=review['actuator'],
+        native_review=review['native_review'],decision=review['decision'],review_source=str(review_path),
+        transfer=dict(receipt=str(ROOT/'reports/SCUT28_CLOSED_TRANSFER_ACTUAL.json'),
+            files=len(transferred['files']),once_consumed=True,SSHclosed=True,SESSION_restored=True,serial='FREE'),
+        continuation=dict(root=str(HERE),run_id=frozen['run_id'],remote=frozen['job'],
+            frozen=str(HERE/'FROZEN.json'),frozen_SHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest(),
+            source_iteration=1472,launch_once_consumed=False,fourGPU_once_consumed=False,FIRST_consumed=False,
+            source_only=True,recipe_changes=[],checkpoint_format='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'),
+        latest_local_gate=dict(path=str(local_path),epoch=local['epoch'],blocked=local['blocked'],serial='BUSY',
+            excluded_exact_local_GUI=local['known_local_CPU_teleop_only'],network=0,once_consumed=False),
+        foreign_published_metadata=dict(path=str(peer_path),SHA=hashlib.sha256(peer_path.read_bytes()).hexdigest(),
+            value=peer,interpretation='Foreign launch actualpublished; initialPopen identity only. Use freshCIM and publishedcollector state beforeanynewfiniteSSH; no claimofexecidentity or skill.'),
+        next='Whileforeigncontroller/collectoractive, localpublishedmetadataonly. WhenclosedandfreshLOCALFREE, unusedV30dispatchgpu thenfreshoriginalcanonical/privateGPU/finite launchonce andFIRSTonce. Ifcanonicalforeignactive, keepV30unlaunched.',
+        production_PT_reads=0,new_physics=0,optimizer_operations=0,no_foreign_scope_mutation=True,
+        no_new_canonical_budget_grant_refund=True,no_V28_closed_eval_render_replay=True)
+    with report.open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+    p=ROOT/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    w.update(status=value['status'],training_completed=True,current_run_final=final,latest_checkpoint=final,
+        current_own_exit=own,actual_owner_exit=own,current_model_independent_evaluation=value['evaluation'],
+        evaluation_result=value['evaluation'],evaluation_status='V28final1472actualstrict0of80 completed andnative-reviewed',
+        evaluation_closed_and_transferred=True,evaluation_once_consumed=True,closed_transfer_once_consumed=True,
+        closed_transfer_original_once_unused=False,current_model_native_reviewed=True,model_native_reviewed=True,
+        replay_native_reviewed=value['native_review'],native_review_report=str(review_path),
+        evaluation_closed_receipt=value['transfer'],current_diagnosis=value['actuator'],
+        latest_status=str(report.relative_to(ROOT)),latest_handoff=str(report),handoff_current=str(report),
+        latest_actual_progress=dict(final=final,PPO_updates=review['new_PPO_updates']),latest_live_progress=None,
+        current_state_evidence='ActualV28final1472/ownerexit/eval80transferred/native-reviewed;V30sourcefrozenunused. FreshLOCALBUSYforeignlaunch60636/50984;network0.',
+        health_interpretation='Trainingcompleted/safelyclosed. Actual200mmstrict0of80; nextproductionnotlaunched.',
+        standing200_evaluation='V28final1472actual0of80/native-reviewed',no_training_skill_claim=True,training_skill_pass=False,
+        pending_repair=dict(version='SCUT30_SAME_RECIPE_FULL_RESUME',**value['continuation'],status='FROZEN_UNUSED_LOCAL_FOREIGN_BUSY'),
+        current_resource_blocker=dict(**value['latest_local_gate'],foreign_published_metadata=value['foreign_published_metadata']),
+        closed_transfer_entry='V28consumed;do notcallagain',
+        followup_commands=dict(local=str(HERE/'dispatch.py')+' local',gpu=str(HERE/'dispatch.py')+' gpu',
+            launch=str(HERE/'dispatch.py')+' launch',first=str(HERE/'dispatch.py')+' first',
+            closed='OnlynewV30actualownerexitandunusedonceafterproduction;V28alreadyconsumed'),
+        automation_status='ACTIVE_HOURLY_V28_FINAL1472_NATIVE_V30_FROZEN_LOCAL_BUSY',next=value['next'])
+    phase=w['archival']['V23final745_V25targetlimits']
+    phase['latest_supplement']=dict(path='history/standing200/20261104-v23-final745-v25-target-limits/supplement-final1472-native-v30-frozen-20261104',
+        status='ordinarysupplement pendingarchive andcommit;no record/retag')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(report=str(report),status=value['status'],V30launch=False,network=0)))
+
+
+if __name__=='__main__':main()

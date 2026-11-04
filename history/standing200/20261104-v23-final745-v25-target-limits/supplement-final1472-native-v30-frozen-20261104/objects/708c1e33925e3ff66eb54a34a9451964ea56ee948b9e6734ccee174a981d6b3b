@@ -1,0 +1,48 @@
+"""Freeze the same V25 recipe after native review of actual V28 final1472."""
+from pathlib import Path
+import hashlib
+import re
+
+P = Path(__file__).resolve().parent.parent / 'scut_recipe_v28/prepare.py'
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == 'd8b36a5e48c3ff6f43a39f06981ef9ecdfef4848fcd3bf90cb5c47d4ed26cd98'
+mapping = {'scut_recipe_v27':'scut_recipe_v28', 'scut_recipe_v28':'scut_recipe_v30',
+    'SCUT27':'SCUT28', 'SCUT28':'SCUT30', 'V27':'V28', 'V28':'V30', '1234':'1472',
+    'comparison_V25':'comparison_V27'}
+source = re.sub('|'.join(map(re.escape, sorted(mapping, key=len, reverse=True))),
+    lambda match:mapping[match.group()], raw.decode())
+replacements = {
+    'All selected stay on the lower area without wheel-top support. env0 is nearly stationary through about8.5s, then translates. env1 andenv41 approach the left/lower boundary and pause with repeated nonwheel contact. env40 changes direction around5s and approaches another boundary. No actual ascent onto the raised surface.':
+    'All four selected stay in the lower area without wheel-top support. env0 moves toward the boundary during about0-3s and remains nearly stationary thereafter. env40 reaches another boundary around2s and pauses, with a lower posture after about5s. env1 repeatedly circles near the lower boundary; env41 circles then translates toward the upper-left boundary around8.5-10s. No actual ascent onto the raised surface.',
+    'env0/1/40 complete10s;env41 terminates8.72s with originalcontact>1N/duration20, not roll/pitch.':
+    'All four selected complete10s. Across all80,16terminate on originalcontact>1N/duration20; allroll/pitchflagsfalse.',
+    'env0 roughly.265 then.29m;env1/41 roughly.33m;env40 roughly.30 then.25m. Height alone is not200mm success.':
+    'After1s env0 roughly.248-.262m;env1 .294-.353m;env40 .280-.314m;env41 .289-.331m. Initial.38m is unsupported. Height alone is not200mm success.',
+    'Left hip target now varies more; right target remains+.5rad. Measuredhip remains below target under load, particularlyenv1/41 left. Targets withinhardwarelimits; no new sole-cause claim.':
+    'Right hip target is at+.5rad for99.9917%activecontrols; left26.7983%. Measuredangles remain belowtargets underload, particularlyenv1/40/41left. No targetlimitexcess. This does not identify a solefailurecause.',
+    'Final1472 shows different posture and translation, but no200mm skill and mean survival lower. It is still flat1472of8000, so continue the original flat preparation with unchangedV25 targetinterface; no evidence here justifies changingreward/reset or switchingearlyrough.':
+    'Final1472 remains0of80, mean9.05s versus9.20775s at1234;64full10s versus68. This is still originalflat1472of8000. Continue unchangedV25interface/fullstate; currentevidence does not justify anearlyroughswitch or a newreward/reset.',
+    'SCUT28_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_1793774798974325600.json':
+    'SCUT28_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_1793782215868840000.json',
+    'ForeignE3collector16548/59752 active; network0/once0. Later publishedclosed and exactprocessgone, freshlocaladmission then originalclosedonce succeeded. No otherscope modification.':
+    'Foreignsolecollector59804/32784 blocked earlierattempt;network0/once0. Later localpublishedPOSTROUND_FULL_RETURNED plusfreshCIMabsence allowed uniqueV29entry tooriginalV28closed. ExactCPUteleop3608 classifiednonserialonly. No otherscope modification.'
+}
+for old,new in replacements.items():
+    assert source.count(old)==1, old
+    source=source.replace(old,new)
+start=source.index("    p=ROOT/'scut_recipe_v28/dispatch.py'")
+end=source.index("    shared=list(prior['shared_text'])", start)
+dispatch = '''    p=ROOT/'scut_recipe_v28/closed_transfer_v29.py'
+    text=('"""Fresh broad local gate with the same one exact CPU teleop identity."""\\n'
+        'from pathlib import Path\\nimport hashlib\\nimport sys\\n'
+        "P=Path(__file__).resolve().parent.parent/'scut_recipe_v28/closed_transfer_v29.py'\\nraw=P.read_bytes()\\n"
+        f"assert hashlib.sha256(raw).hexdigest()=={row(p)['SHA']!r}\\n"
+        "mode=sys.argv[1]\\nassert mode in ('local','gpu','launch','first','closed')\\n"
+        "source=raw.decode().replace(\\\"    assert not (ROOT/'reports/SCUT28_CLOSED_TRANSFER_ONCE.json').exists()\\\\n\\\",'')\\n"
+        "source=source.replace('scut_recipe_v28/control.py','scut_recipe_v30/control.py').replace('SCUT29_EXACT_LOCAL_TELEOP_CLASSIFICATION_','SCUT30_EXACT_LOCAL_TELEOP_CLASSIFICATION_')\\n"
+        "source=source.replace('    controller.closed()',\\\"    if MODE!='local':getattr(controller,MODE)()\\\")\\n"
+        "exec(compile(source,str(P),'exec'),dict(__file__=__file__,__name__='__main__',MODE=mode))\\n")
+    (HERE/'dispatch.py').write_text(text,encoding='utf-8',newline='\\n')
+'''
+source=source[:start]+dispatch+source[end:]
+exec(compile(source, str(Path(__file__).absolute()), 'exec'), globals())

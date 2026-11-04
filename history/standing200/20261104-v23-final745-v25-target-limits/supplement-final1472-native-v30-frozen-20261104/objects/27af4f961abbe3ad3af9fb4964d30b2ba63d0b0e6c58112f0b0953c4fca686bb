@@ -1,0 +1,18 @@
+"""Reuse the saved-data analysis for V28 final1472; no model or simulation."""
+from pathlib import Path
+import hashlib
+
+ROOT = Path(__file__).resolve().parent.parent
+P = ROOT / 'scut_recipe_v28/analyze.py'
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == '3656a5283c865f9e2791d44aee5e23e61729a2c58965211d7f5c95fd12abf71e'
+source = raw.decode().replace('MOD4_STANDING200_SCUT_RECIPE_V27_FLAT_1793767960992813900',
+    'MOD4_STANDING200_SCUT_RECIPE_V28_FLAT_1793775284830406900')
+source = source.replace('final1234', 'final1472').replace('FINAL1234', 'FINAL1472').replace('SCUT27', 'SCUT28').replace('V27 final1234', 'V28 final1472')
+source = source.replace("'V27 final1472'", "'V28 final1472'")
+source = source.replace('comparison_V25=dict(final=985', 'comparison_V27=dict(final=1234')
+source = source.replace('mean_seconds=9.88225,full10s=77', 'mean_seconds=9.20775,full10s=68')
+source = source.replace('root_z_after1s_median=.2608376443386078', 'root_z_after1s_median=.29273')
+source = source.replace('Final1234 still no200mm skill. Mean survival lower, postlanding root height higher; neither is graduation.',
+    'Final1472 still no200mm skill. Compare actual survival and posture with final1234; neither is graduation.')
+exec(compile(source, str(Path(__file__).absolute()), 'exec'), globals())

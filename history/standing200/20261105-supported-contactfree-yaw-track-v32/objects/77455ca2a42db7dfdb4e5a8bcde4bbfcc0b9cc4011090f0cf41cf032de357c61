@@ -1,0 +1,146 @@
+{
+  "schema": "MOD4_SUPPORTED_STANDING200_PLAN_V32",
+  "created_local": "2026-11-05T02:49:17.203010+08:00",
+  "stage": "LOCAL_CONTACT_FREE_YAW_TRACK_FINAL_CPU_PASS_NATIVE_PENDING",
+  "human_instruction": "奖励给站高，底盘蹭上台阶，收腿上台阶，导轮撞击啥的终止条件直接忽略，记得给偏航惩罚轮距惩罚",
+  "scope": "This chat only. Supported standing ascent of one actual200mm vertical step; chassis/guide contact allowed. No flight requirement. Other chat jump200 branch untouched.",
+  "source_checkpoint": {
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900/production/model_final.pt",
+    "bytes": 8924208,
+    "SHA": "56459cb4ae1e052d6061ae42218477acd3fd8760a0a804e4e5cdf618f1c55f5b",
+    "format": "MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS",
+    "iteration": 1709,
+    "provenance": "Direct remote read in prior human read-only survey 2026-11-05 00:30-00:42; formal unused V30 closed transfer still pending"
+  },
+  "source_SCUT_commit": "1a26356d6f591734d4f6f666f5cead1a6925da67",
+  "intended_num_envs": 4096,
+  "actor_dim": 35,
+  "critic_dim": 78,
+  "raw_Gaussian_clip_actions": null,
+  "initial_root_height_targets_m": {
+    "approach": 0.39,
+    "extended": 0.39,
+    "supported": 0.42,
+    "top": 0.5
+  },
+  "height_target_basis": "Existing chassis belly collider underside root_z-0.167; .39m nominal leaves .023m above .2m step. Attainability under load must be measured in native run, not inferred from unsupported spawn.",
+  "train_geometry": {
+    "step_height_m": 0.2,
+    "edge_x_m": 0.8,
+    "top_x_m": [
+      0.8,
+      3.5
+    ],
+    "top_y_m": [
+      -3.5,
+      3.5
+    ],
+    "mesh": "explicit horizontal top/vertical riser"
+  },
+  "preserve": {
+    "USD_SHA": "2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3",
+    "contract_SHA": "bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755",
+    "physics_dt": 0.0025,
+    "TGS": [
+      32,
+      4
+    ],
+    "closure_episode_m": 0.01,
+    "mimic_rad": 0.01,
+    "DR": "full D0-D7",
+    "actuators": "original PD_DC and delayed queues",
+    "leg_target_limits": [
+      [
+        -1.2,
+        0.9
+      ],
+      [
+        -0.5,
+        0.5
+      ],
+      [
+        -1.2,
+        0.9
+      ],
+      [
+        -0.5,
+        0.5
+      ]
+    ],
+    "PPO": "original saved flat PPO/24rollout5epochs4minibatches",
+    "full_learning_restore": true
+  },
+  "intended_train_seconds": 3600,
+  "exit_headroom_seconds": 300,
+  "strictreserve": 86412.86069250107,
+  "canonical": true,
+  "production_allowed_now": false,
+  "required_next": [
+    "freshLOCAL must be free before any SSH",
+    "unusedV30 closed transfer once; render existing poses and native review all80",
+    "verify actual immutable SDK and full command/component restore compatibility",
+    "finalize small overlay/entry/owner/evaluator/controller and source freeze",
+    "bounded native validation of new contact/geometry and restore",
+    "freshallfour/originalcanonical/privateGPU/finite admission before finite production",
+    "fullsave safeclose immediateindependent80/400Hzposes/currentmodelview and stagewise diagnosis"
+  ],
+  "native_acceptance": {
+    "both_wheel_whole_footprint": true,
+    "actual_top_support_N": 1,
+    "stable_seconds": 0.5,
+    "velocity_xyz_max": 0.03,
+    "roll_pitch_deg": 10,
+    "yaw_rad": 0.2,
+    "returned_to_ground": false,
+    "unsupported_max_s": 0.1,
+    "chassis_support_allowed": true,
+    "flight_required": false
+  },
+  "evidence": [
+    "reports/SCUT32_CONTACT_FREE_YAW_TRACK_FINAL_CPU_20261105.json"
+  ],
+  "collector_blocker_snapshot": {
+    "pid": 39092,
+    "parent": 51972,
+    "created": "2026-11-05T01:41:43.419762+08:00",
+    "argv": "collect_fudan_fresh1cd_w8_admission2_window_once.py",
+    "snapshot_only": true,
+    "network": 0
+  },
+  "no_claims": [
+    "native SDK integration not yet validated",
+    "new training not launched",
+    "200mm skill not achieved",
+    "not unchanged SCUT training reward/reset recipe"
+  ],
+  "previous_candidate": {
+    "root": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_recipe_v31_supported",
+    "frozen": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_recipe_v31_supported\\FROZEN.json",
+    "preserved": true
+  },
+  "contact_policy": {
+    "chassis_and_guide_contact_termination": false,
+    "requires_top_support_for_contact_exemption": false,
+    "requires_upright_for_contact_exemption": false,
+    "chassis_and_guide_undesired_contact_cost": false,
+    "other_structural_contact": "original cost only; no added contact reset",
+    "preserve_termination": [
+      "original orientation",
+      "nonfinite/outlier/observation numerical",
+      "closure0.01m",
+      "mimic0.01rad",
+      "timeout"
+    ]
+  },
+  "reward_policy": {
+    "standing": "actual supported height, no forward speed prerequisite",
+    "chassis_scrape": "actual upper riser/lip or top contact",
+    "retraction": "actual top support followed by actual wheel-bottom lift",
+    "yaw": "negative squared deviation from step normal; initial weight1/scale0.35rad",
+    "wheel_distance": "signed yaw-aligned lateral wheel-center spacing, reference enhanced contract0.4376000000008m, tolerance0.02m, scale0.05m, initialweight1",
+    "wheel_stagger": "fore-aft mismatch tolerance0.03m/scale0.05m/initialweight0.5; replaces duplicate oldno_fork",
+    "vertical_wheel_offset": "excluded from wheel-distance penalty; necessary lifting allowed"
+  },
+  "prior_CPU_evidence": "reports/SCUT32_CONTACT_FREE_YAW_TRACK_CPU_20261105.json",
+  "final_local_fix": "Initial/reset height command aligned to0.39m with new ungated standing reward; final20CPUchecks/3000vectorized passed. Initial19check and source-only snapshot preserved; no production between snapshots."
+}

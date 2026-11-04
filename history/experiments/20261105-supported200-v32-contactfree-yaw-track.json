@@ -1,0 +1,27 @@
+{
+  "id": "20261105-supported200-v32-contactfree-yaw-track",
+  "tag": "trial-20261105-supported200-v32-contactfree-yaw-track",
+  "title": "Ignore supported-ascent contact resets and reward standing scraping retracting with yaw track costs",
+  "kind": "repair",
+  "recorded_at": "2026-11-04T18:50:55.278065+00:00",
+  "repair_or_experiment_note": "# 200mm站爬 V32：站高、蹭台沿、收腿；忽略接触终止；偏航与轮距\n\n2026-11-05人类明确：“奖励给站高，底盘蹭上台阶，收腿上台阶，导轮撞击啥的终止条件直接忽略，记得给偏航惩罚轮距惩罚”。本条覆盖V31仅对已验证台顶支撑免接触终止的限制，也覆盖必须前进才能得到站高奖励的设计。V31原源码、FROZEN、检查与失败保留；V32只新增小型delta，引用V31原字节，不复制运行框架。\n\n- 站高奖励使用实际机身高度与轮子落地/实际支撑，不再要求正向速度。台下目标0.39m，底盘实际支撑后0.42m，双轮上台后0.50m；初始悬空的高位置不给站高信用。\n- 底盘实际接触到200mm台沿上部或台顶时给蹭台沿奖励；在实际台顶支撑后按真实轮缘抬升给收腿奖励。台沿触碰和挂台本身不算技能成功。\n- 底盘与全部8个导轮的撞击/接触终止一律关闭，不要求先站直、达到高度或先取得台顶法向力；接触测量仅用于奖励和回放。底盘/导轮接触不收undesired-contact罚分，其它结构接触只保留原成本。\n- 保留原倾倒、非有限数值/观测、闭链0.01m、mimic0.01rad与时间上限。偏航通过独立负奖励约束，不新增偏航终止。\n- 偏航偏离台阶法向有连续平方惩罚。轮距使用偏航对齐坐标里的左右轮心横向有符号间距，参考增强契约0.4376m，容差0.02m；另惩罚前后错轮，代替旧no_fork重复项。抬轮造成的高度差不计入轮距，不惩罚必要的上下台过程。\n\n仍为本地未部署候选。先完成已有V30终末回传和实际轨迹审查，再验证冻结SDK/完整恢复接入，使用原canonical与锁按完整保存边界推进。不能把CPU通过称为原生训练或200mm技能通过；任何已运行任务不热改。\n",
+  "validation": "Final20CPU semantic and AST checks include3000vectorized cases; original noncontact done logic preserved. NoPT/SDK/physics/launch; nativeintegration pending. Same30min heartbeat updated to finalV32 source.",
+  "source_and_evidence_sha256": {
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/INDEX.json": "95a3b4237b747dbc6f170a01ac11fde3ec8eed4d21d6f967779ed6fd593012f9",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/0ed68ad24aa65271b1cdc958f6285cfde58c99c8dd1c08a2c6ad0830857027c0": "0ed68ad24aa65271b1cdc958f6285cfde58c99c8dd1c08a2c6ad0830857027c0",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/2a2186ea549be44a23910f07fdfa6acfed3396f1bff1c5264285849f6cf5a540": "2a2186ea549be44a23910f07fdfa6acfed3396f1bff1c5264285849f6cf5a540",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/2b134c6d8a7941ccc26474ec8d089a253f053180868f31eee9574c1d16e45925": "2b134c6d8a7941ccc26474ec8d089a253f053180868f31eee9574c1d16e45925",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/57506311820a2a0ccc5bce2c1a58951b484b2ee3260e60f87e976d62db0e006b": "57506311820a2a0ccc5bce2c1a58951b484b2ee3260e60f87e976d62db0e006b",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/741297bdbee1eda59d20d7aad026d72cff77729d8dad947c4687b2a944e99540": "741297bdbee1eda59d20d7aad026d72cff77729d8dad947c4687b2a944e99540",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/77455ca2a42db7dfdb4e5a8bcde4bbfcc0b9cc4011090f0cf41cf032de357c61": "77455ca2a42db7dfdb4e5a8bcde4bbfcc0b9cc4011090f0cf41cf032de357c61",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/8e185693ddd2943fbd00518686657fb1dd792324db497abac21c1dff486f5cdc": "8e185693ddd2943fbd00518686657fb1dd792324db497abac21c1dff486f5cdc",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/8e7866ccf7aa5086a8263ac7d6992dc26dfadc4c3964069194badd7fadd2062f": "8e7866ccf7aa5086a8263ac7d6992dc26dfadc4c3964069194badd7fadd2062f",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/a4b44c6417a8e09a89e25d31d781471be4a41a3057e8424653d63f73e09220ed": "a4b44c6417a8e09a89e25d31d781471be4a41a3057e8424653d63f73e09220ed",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/a551f26fd8ad0ca1e718e5c8dab2352eebe9afe164c2db93abe4300bf5a94708": "a551f26fd8ad0ca1e718e5c8dab2352eebe9afe164c2db93abe4300bf5a94708",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/edbdf9ce7cb1f63d5bd2f81771f6bd1847ee7dcb6567013352f569abe0883ede": "edbdf9ce7cb1f63d5bd2f81771f6bd1847ee7dcb6567013352f569abe0883ede",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/f8cae8b0e6ca2473ec1579aad99bb086a5153510794805206d7f176d881e3558": "f8cae8b0e6ca2473ec1579aad99bb086a5153510794805206d7f176d881e3558",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/objects/fd40e96c5eea1541404118a36ab268bcbcf6eaf3138544dcc8b90c4e37760f98": "fd40e96c5eea1541404118a36ab268bcbcf6eaf3138544dcc8b90c4e37760f98",
+    "history/standing200/20261105-supported-contactfree-yaw-track-v32/README.md": "2b134c6d8a7941ccc26474ec8d089a253f053180868f31eee9574c1d16e45925"
+  },
+  "real_robot_certified": false
+}

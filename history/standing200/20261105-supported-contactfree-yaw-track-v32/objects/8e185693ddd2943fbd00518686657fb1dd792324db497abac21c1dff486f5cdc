@@ -1,0 +1,76 @@
+"""Small V32 delta to immutable V31: ignore impacts, reward stand/edge, yaw/track."""
+from pathlib import Path
+import hashlib
+import sys
+
+HERE = Path(__file__).resolve().parent
+BASE = HERE.parent / 'scut_recipe_v31_supported'
+if not BASE.exists():
+    raise RuntimeError('Bind the frozen V31 source directory before V32 install')
+sys.path.append(str(BASE))
+P = BASE / 'recipe.py'
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == '89e6b8ba0aa7f57a88d99fdb2fde8a582829c334ff2272f3cf059f14d90e2302'
+
+
+def candidate_source():
+    source = raw.decode('utf-8')
+    def replace(old, new):
+        nonlocal source
+        assert source.count(old) == 1, old
+        source = source.replace(old, new)
+
+    replace("FORMAT = 'MOD4V1_SCUT_STANDING200_V31_CHASSIS_SUPPORT'",
+            "FORMAT = 'MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK'")
+    replace('from reward_model import terms, harmful_contact',
+            'from reward_model import terms, contact_termination, wheel_geometry')
+    replace("custom_names = ('progress','raise','height','approach','support','retract','top','top_quiet','idle','hang','heading','lane')",
+            "custom_names = ('progress','raise','height','approach','chassis_edge','support','retract','top','top_quiet','idle','hang','heading','wheel_distance','wheel_stagger','lane')")
+    replace('cfg.height_range = (.30, .30)', 'cfg.height_range = (.39, .39)')
+    replace('target=torch.full((self.n,), .30, device=self.device)',
+            'target=torch.full((self.n,), .39, device=self.device)')
+    replace('            self.stand31_target[ids] = .30',
+            '            self.stand31_target[ids] = .39')
+    replace("        cfg.rewards.update({'stand31_' + key: 1. for key in custom_names})",
+            """        cfg.rewards['no_fork'] = 0.
+        cfg.rewards['no_fork_square'] = 0.
+        cfg.rewards.update({'stand31_' + key: 1. for key in custom_names})""")
+    replace('        self.stand31_body_top = torch.zeros(self.n, len(reset_names), device=self.device)',
+            """        self.stand31_body_top = torch.zeros(self.n, len(reset_names), device=self.device)
+        self.stand31_body_edge = torch.zeros_like(self.stand31_body_top)
+        self.stand31_chassis_id = reset_names.index('chassis')
+        neutral = r.contract['bodies']
+        self.stand31_nominal_span = abs(neutral['left_wheel']['neutral_position_m'][1] - neutral['right_wheel']['neutral_position_m'][1])""")
+    replace('        self.stand31_body_top.zero_()',
+            '        self.stand31_body_top.zero_()\n        self.stand31_body_edge.zero_()')
+    replace('            self.stand31_body_top[:, reset_id].copy_(torch.where(valid, f[ids], 0.).sum((-1, -2)))',
+            """            self.stand31_body_top[:, reset_id].copy_(torch.where(valid, f[ids], 0.).sum((-1, -2)))
+            # Lip/riser contact near the top is shaping evidence, not a reset
+            # exemption or skill success. Low ground contact earns no lip credit.
+            lip = (offset < count[..., None]) & (pts[..., 0] >= .798) & (pts[..., 0] <= .83) & (pts[..., 1].abs() <= 3.501) & (pts[..., 2] >= .17) & (pts[..., 2] <= .22) & ((normals[ids, 0].abs() > .5) | (normals[ids, 2].abs() > .8))
+            self.stand31_body_edge[:, reset_id].copy_(torch.where(lip, f[ids], 0.).sum((-1, -2)))""")
+    replace('        support = b.stand31_body_top.sum(-1)',
+            """        support = b.stand31_body_top.sum(-1)
+        wheel_span, wheel_stagger = wheel_geometry(torch, body.body_pos_w[:, self._wheel_link_idx], yaw)""")
+    replace('            previous_potential=self.stand31_previous_potential,',
+            """            chassis_edge_force=b.stand31_body_edge[:, b.stand31_chassis_id],
+            wheel_span=wheel_span, wheel_stagger=wheel_stagger,
+            nominal_wheel_span=b.stand31_nominal_span,
+            previous_potential=self.stand31_previous_potential,""")
+    replace("        # Harmful links still incur contact cost; verified supporting chassis\n        # and guides alone do not receive the old undesired-contact penalty.",
+            "        # Chassis/guide scraping is the requested motion; keep only other\n        # structural contact costs. None of these contact costs terminate.")
+    replace('        bad = harmful_contact(torch, contact[:, self._reset_contact_link_idx].norm(dim=-1),\n            b.stand31_body_top, root[:, 2], roll, pitch)',
+            '        bad = contact_termination(torch, contact[:, self._reset_contact_link_idx].norm(dim=-1))')
+    replace("    def bad_contact(self, contact):\n        roll, pitch, _ = euler_xyz_from_quat(self.robot.data.root_quat_w)\n        b = self.stand31_bridge\n        return harmful_contact(torch, contact, b.stand31_body_top,\n            self.robot.data.root_pos_w[:, 2]-b.env.scene.env_origins[:, 2], roll, pitch)",
+            "    def bad_contact(self, contact):\n        return contact_termination(torch, contact)")
+    replace('            self.stand31_bridge.stand31_body_top[ids] = 0.',
+            '            self.stand31_bridge.stand31_body_top[ids] = 0.\n            self.stand31_bridge.stand31_body_edge[ids] = 0.')
+    replace('        contact_reset_change=\'Only actual upward platform-top chassis/guide support is exempt; original numerical/orientation/closure/mimic kept\',',
+            "        contact_reset_change='All chassis/guide impact/contact reset predicates disabled; retain numerical/observation/orientation/closure/mimic/timeouts',\n        wheel_distance_reference='yaw-aligned lateral wheel-center span from contract; tolerance .02m; no vertical-separation penalty',")
+    return source.replace('stand31', 'stand32')
+
+
+_namespace = dict(__file__=__file__, __name__='standing32_supported')
+exec(compile(candidate_source(), str(P), 'exec'), _namespace)
+install = _namespace['install']
+FORMAT = _namespace['FORMAT']

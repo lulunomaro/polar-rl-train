@@ -1,0 +1,78 @@
+"""Standing, chassis-on-edge, and supported retraction with yaw/track costs."""
+
+EDGE = .8
+HEIGHT = .2
+NORMAL_ROOT = .30
+EXTENDED_ROOT = .39
+NOMINAL_WHEEL_SPAN = .4376000000008
+SPAN_TOLERANCE = .02
+
+
+def contact_termination(xp, reset_force_norm):
+    """Chassis/guide impacts never terminate this supported-ascent task."""
+    return xp.zeros_like(reset_force_norm[:, 0]) > 0.
+
+
+def wheel_geometry(xp, wheel_centers, yaw):
+    """Signed lateral track and fore/aft stagger in the yaw-aligned frame.
+
+    Wheel height is deliberately excluded: lifting a wheel onto the step is
+    progress and must not masquerade as an excessive 3-D wheel separation.
+    """
+    delta = wheel_centers[:, 0] - wheel_centers[:, 1]
+    cosine, sine = xp.cos(yaw), xp.sin(yaw)
+    stagger = cosine * delta[:, 0] + sine * delta[:, 1]
+    span = -sine * delta[:, 0] + cosine * delta[:, 1]
+    return span, stagger
+
+
+def height_command(xp, x, both_top, supported):
+    # Reward standing tall before approaching. No forward-speed prerequisite.
+    extended = xp.ones_like(x) * EXTENDED_ROOT
+    return xp.where(both_top, HEIGHT + NORMAL_ROOT,
+                    xp.where(supported, HEIGHT + .22, extended))
+
+
+def terms(xp, *, root, velocity, roll, pitch, yaw_error, wheel_low,
+          wheel_top_force, wheel_ground_force, support_top_force,
+          chassis_edge_force, wheel_span, wheel_stagger,
+          previous_potential, supported_ticks,
+          nominal_wheel_span=NOMINAL_WHEEL_SPAN):
+    x, y, z = root[:, 0], root[:, 1], root[:, 2]
+    upright = xp.exp(-4. * (roll * roll + pitch * pitch))
+    heading = xp.exp(-(yaw_error / .35) ** 2)
+    lane = xp.exp(-(y / .45) ** 2)
+    top = xp.all(wheel_top_force > 1., axis=-1)
+    grounded = xp.any(wheel_ground_force > 1., axis=-1)
+    supported = (support_top_force > 1.) & (z > .31) & (xp.abs(roll) < .5) & (xp.abs(pitch) < .5)
+    edge = (chassis_edge_force > 1.) & (z > .31)
+    target = height_command(xp, x, top, supported)
+    raised = xp.clip((z - NORMAL_ROOT) / (EXTENDED_ROOT - NORMAL_ROOT), 0., 1.)
+    advance = xp.clip(velocity[:, 0] / .25, 0., 1.)
+    potential = xp.clip(x / (EDGE + .55), 0., 1.)
+    delta = xp.clip((potential - previous_potential) / .02, -1., 1.)
+    lift = xp.clip(wheel_low[:, :, 2] / HEIGHT, 0., 1.).mean(axis=-1)
+    align = upright * heading * lane
+    approach = ~top & ~supported
+    bearing = top | supported | grounded
+    calm = xp.exp(-xp.sum(velocity * velocity, axis=-1) / .01)
+    span_error = xp.clip(xp.abs(wheel_span - nominal_wheel_span) - SPAN_TOLERANCE, 0., None)
+    stagger_error = xp.clip(xp.abs(wheel_stagger) - .03, 0., None)
+    values = dict(
+        stand32_progress=3. * delta * align,
+        stand32_raise=2. * raised * grounded * approach * align,
+        stand32_height=1.5 * xp.exp(-((z - target) / .055) ** 2) * bearing * align,
+        stand32_approach=1.5 * advance * approach * align,
+        stand32_chassis_edge=1. * edge * raised * align,
+        stand32_support=.5 * supported * (supported_ticks <= 50) * align,
+        stand32_retract=4. * supported * lift * align,
+        stand32_top=7. * top * align,
+        stand32_top_quiet=4. * top * calm * align,
+        stand32_idle=-.5 * (xp.abs(velocity[:, 0]) < .03) * approach,
+        stand32_hang=-1. * supported * (supported_ticks > 100),
+        stand32_heading=-1. * xp.clip((yaw_error / .35) ** 2, 0., 4.),
+        stand32_wheel_distance=-1. * xp.clip((span_error / .05) ** 2, 0., 4.),
+        stand32_wheel_stagger=-.5 * xp.clip((stagger_error / .05) ** 2, 0., 4.),
+        stand32_lane=-.5 * xp.clip((y / .5) ** 2, 0., 4.),
+    )
+    return values, potential, target, supported, top

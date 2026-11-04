@@ -1,5 +1,7 @@
 # 200mm单台阶实际基线与训练决定
 
+2026-11-05 00:44接续：人类已明确“允许100小时”，累计按每小时保存/评测/实际回放与定向修复接续，达到目标提前停止，不重复问同小时授权，原canonical余额/reserve保持。fresh四卡72两4090空闲24203MiB，已选GPU1启动接近/上推奖励修复版20,000环境；owner1624598/create1793810449.35、唯一local61200/create00:40:28.273021/session54368，INDEX5small55refs和launch/FIRSTonce消费，20,000scene完成，FIRST仍pending。上一final150/all80/4图已完成；当前新原生更新与GO/save绝对值以soleFIRST回执为准，不能把旧0起跳当新结果或再次启动。
+
 2026-11-05 00:32最新：批准原hour已完整结束，70新PPO/33.6M样本/final150/Adam3000/fullfinald0735d97…；独立80=41起跳请求、0真实起跳/越沿/落台/成功，80局原7.98秒timeout，0闭链/mimic/数值异常。4张实际早晚图已审，完整训练/评测日志0实际错误。实际23:10:11保存、23:13:00原owner完整释放；00:13:43才因另一聊天读者退出而正式传回，延迟没有延长训练。策略退化成台沿前停滞，idle每步仍得.082479奖励。已修接近阶段五项正奖励按真实前进门控、push新增原源码向上速度奖励；12+8必要CPU检查通过，5小文件/55refs候选准备完成但0INDEX/LAUNCH/GO，新hour待人类批准。全部实测和决定见`JUMP200_FINAL150_AND_APPROACH_REPAIR.md`；下文旧pending均历史。
 
 2026-11-04 19:36–19:39在实际空闲72 GPU1运行80首局/newDR/seed9137/400Hz，来源为小阶梯final `f6b6b649b78752a89c0688850ae89e93afd0a87fe21eb6b6705f9b02ecf81da4`。0optimizer/0ledgerwrite，原owner1613410/create1793792185.63已ownwait/released，正式NPZ传回均SHA核验。当前没有本聊天活controller，原once不重跑。

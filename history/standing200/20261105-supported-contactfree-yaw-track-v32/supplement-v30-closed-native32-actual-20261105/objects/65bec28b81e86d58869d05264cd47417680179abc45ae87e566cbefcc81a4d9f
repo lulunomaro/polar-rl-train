@@ -1,0 +1,127 @@
+"""Finite real-SDK contact integration; no checkpoint or policy is opened."""
+from pathlib import Path
+import argparse
+import hashlib
+import json
+import sys
+import time
+import traceback
+
+J = Path(__file__).resolve().parent
+
+
+def main():
+    plan = json.loads((J/'PLAN.json').read_bytes())
+    sys.path.insert(0, plan['package_root'])
+    import os
+    os.environ['MOD4_SCUT_SOURCE_PATHS'] = str(J/'SOURCE_PATHS.json')
+    import mod4v1_scut.sdk
+    import mod4v1_scut.checkpoint
+    import mod4v1_scut.train
+    for name, row in plan['shared_modules'].items():
+        raw = Path(row['path']).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == row['SHA']
+        module = sys.modules['mod4v1_scut.'+name]
+        module.__dict__.update(__file__=row['path'], __package__='mod4v1_scut')
+        exec(compile(raw, row['path'], 'exec'), module.__dict__)
+    from recipe import install
+    receipt = install('eval200', source_stage='supported200')
+    from mod4v1_scut.train import boot, load_guard, put, ScutVecEnv
+    out = J/'native_validation'
+    out.mkdir(exist_ok=False)
+    args = argparse.Namespace(**{k:plan[k] for k in ('assets','runtime','runtime_manifest','guard','support')},
+        num_envs=16,seed=66,device='cuda:0',profile='trained_stair')
+    ns = boot(args, out)
+    env = bridge = None
+    error = None
+    try:
+        import torch
+        from chassis_pd_training_env import ChassisPDMod4Env
+        import mod4_task as task
+        from mild_dr import tensor
+        from mod4v1_scut.sdk import configure, ScutBridge
+        from mod4v1_scut.config import model_contract
+        from mod4v1_scut.math_ops import euler_xyz_from_quat,wrap_to_pi
+        guardmod = load_guard(args.guard)
+        identity = ns['E0_IDENTITY']
+        guardmod.verify_task_module(task,identity)
+        cfg = task.Mod4EnvCfg(); cfg.seed=66; cfg.sim.device=args.device
+        configure(cfg,16,'trained_stair')
+        guardmod.configure_new_task(cfg,identity)
+        env = ChassisPDMod4Env(cfg=cfg)
+        guard = guardmod.FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor)
+        from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
+        install_pose_cache_runtime_adapter_v4(env.scene['robot'])
+        bridge = ScutBridge(env,task,model_contract(args.assets),tensor,'trained_stair')
+        vec = ScutVecEnv(env,bridge)
+        with guard.around_original_fullstate_restore():
+            reset=env.reset()
+        vec.current=reset[0] if isinstance(reset,tuple) else reset
+        guard.check_observations(vec.current)
+        guard.verify_live_parameters()
+        bridge.ready=True
+        sensor_rows=[dict(body=s.body_names,filter_count=s.contact_view.filter_count) for s in bridge.stand32_sensors]
+        assert len(sensor_rows)==9 and all(len(s['body'])==1 and s['filter_count']==1 for s in sensor_rows)
+        # Real ground, upper riser and platform contacts. These are probe poses,
+        # never training resets or a learned trajectory.
+        ids=torch.arange(16,device=args.device)
+        states=tensor(bridge.robot.data.root_state_w).clone()
+        states[:,:3]=env.scene.env_origins
+        states[:,0]+=torch.tensor([0.,.79,.82,1.5]*4,device=args.device)
+        states[:,2]+=torch.tensor([.13,.27,.32,.46]*4,device=args.device)
+        yaw=torch.full((16,),.25,device=args.device)
+        states[:,3:7]=0.;states[:,3]=torch.cos(yaw/2);states[:,6]=torch.sin(yaw/2);states[:,7:]=0.
+        bridge.robot.write_root_state_to_sim(states,env_ids=ids)
+        env.scene.write_data_to_sim()
+        env.scene.update(.0025)
+        vec.current=env.observation_manager.compute()
+        records=[]
+        original=bridge.reward.compute
+        weighted=[]
+        def capture():
+            value=original()
+            weighted.append({k:v.detach().cpu().tolist() for k,v in bridge.reward._last_reward_terms.items() if k.startswith('stand32_')})
+            return value
+        bridge.reward.compute=capture
+        for control in range(100):
+            if time.time()>json.loads((J/'NATIVE_GO.json').read_bytes())['save_deadline']:
+                raise TimeoutError('Bounded contact integration deadline')
+            with torch.inference_mode():
+                _,rew,done,_=vec.step(torch.zeros(16,6,device=args.device))
+            snap=bridge.terminal_snapshot
+            forces=bridge.reward.contact_sensor.data.net_forces_w[:,bridge.reward._reset_contact_link_idx].norm(dim=-1)
+            hypothetical=torch.full_like(forces,1.e6)
+            assert not bridge.reward._stand32_harmful_contact(hypothetical).any()
+            roll,pitch,_=euler_xyz_from_quat(bridge.robot.data.root_quat_w)
+            records.append(dict(control=control+1,force_max_N=forces.amax(-1).cpu().tolist(),
+                top_N=bridge.stand32_body_top.sum(-1).cpu().tolist(),edge_N=bridge.stand32_body_edge.sum(-1).cpu().tolist(),
+                terminated=snap['terminated'].cpu().tolist(),time_out=snap['time_out'].cpu().tolist(),
+                contact_predicate=bridge.reward._stand32_harmful_contact(forces).cpu().tolist()))
+        terms=set(weighted[-1])
+        assert {'stand32_heading','stand32_wheel_distance','stand32_raise','stand32_retract','stand32_chassis_edge'}<=terms
+        assert all(torch.isfinite(torch.tensor(v)).all() for row in weighted for v in row.values())
+        assert any(min(row['stand32_heading'])<0 for row in weighted)
+        max_force=max(max(r['force_max_N']) for r in records)
+        assert max_force>1.,'Real chassis/guide contacts were not exercised'
+        assert not any(any(r['contact_predicate']) for r in records)
+        put(out/'REWARD_LOG.json',dict(weighted_terms=weighted,source='actual reward compute before reset'))
+        put(out/'CONTACT_TRACE.json',dict(records=records))
+        put(out/'RESULT.json',dict(passed=True,actual_SDK=True,num_envs=16,controls=100,
+            actual_physics_ticks=bridge.physics_ticks,probe_pose_override=True,training_reset_changed=False,
+            source_PT_reads=0,policy_operations=0,Adam_operations=0,sensors=sensor_rows,
+            max_actual_chassis_guide_force_N=max_force,
+            all_actual_and_arbitrary_impact_contact_predicates_false=True,
+            actual_weighted_reward_keys=sorted(terms),yaw_actual_negative=True,
+            wheel_distance_logged=True,recipe=receipt,D0_D7=guard.receipt(),
+            skill_evaluation=False,full_restore_still_requires_production=True))
+    except BaseException:
+        error=traceback.format_exc();put(out/'ERROR.json',dict(error=error,epoch=time.time()))
+        raise
+    finally:
+        if bridge is not None:bridge.close()
+        if env is not None:env.close();put(out/'ENV_CLOSED.json',dict(returned=True))
+        put(out/'APP_CLOSE_INTENT.json',dict(error=error))
+        ns['app'].close()
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,69 @@
+"""Finite native probe under the same original authority, GPU and cost ledger."""
+from pathlib import Path
+import fcntl
+import json
+import os
+import subprocess
+import sys
+import time
+import traceback
+import owner as a
+
+J=Path(__file__).resolve().parent
+
+
+def main():
+    plan=a.read(J/'PLAN.json');run=plan['run_id']+'_NATIVE';uuid=plan['GPU_UUID']
+    with (J/'NATIVE_OWNER_STARTED.json').open('x') as f:json.dump(dict(epoch=time.time(),identity=a.b.ident(os.getpid()),run_id=run),f)
+    locks=[];private=finite=process=None;active=False;go={};rows={};error=None
+    try:
+        for path in a.b.LOCKS:
+            stream=path.open('rb+');locks.append(stream);fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        c=a.read(a.C)
+        assert c['active_segment'] is None and a.authority_tracking_schema_admitted(c) and a.authority_budget_GO_allowed(c)
+        assert c['remaining_training_seconds']>a.RESERVE+3900
+        private=(a.C.parent.parent/('three_expert_v2_'+uuid+'.lock')).open('rb+')
+        fcntl.flock(private,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        finite=(a.C.parent.parent/'finite_environment_validation.lock').open('rb+')
+        fcntl.flock(finite,fcntl.LOCK_SH|fcntl.LOCK_NB)
+        resource=a.resource(uuid)
+        for row in a.read(J/'INSTALL_MANIFEST.json')['files']:
+            p=J/row['relative'];assert p.stat().st_size==row['bytes'] and a.b.H(p)==row['SHA']
+        now=time.time()
+        go['native_contact32']=dict(kind='MOD4V1_SCUT32_BOUNDED_NATIVE_CONTACT',run_id=run,GPU_UUID=uuid,
+            learning_started_epoch=now,save_deadline=now+600,nominal_end_epoch=now+900,max_parent_seconds=900)
+        c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,
+            kind='MOD4V1_SCUT32_BOUNDED_NATIVE_CONTACT',started_epoch=now,accounted_through_epoch=now,
+            charged_expert_seconds=0.,experts={},charge_contract='original charge_values through own native worker wait')
+        a.put(a.C,c);active=True
+        a.put(J/'NATIVE_GO.json',go['native_contact32'])
+        a.put(J/'NATIVE_ADMISSION.json',dict(resource=resource,canonical_active_before=None,remaining=c['remaining_training_seconds'],strictreserve=a.RESERVE))
+        with (J/'NATIVE_WORKER.log').open('xb') as log:
+            process=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'native_probe.py')],
+                cwd=J,env=a.environment(uuid),stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,
+                pass_fds=tuple(f.fileno() for f in [*locks,private,finite]),start_new_session=True)
+        a.put(J/'NATIVE_WORKER_IDENTITY.json',a.b.ident(process.pid))
+        while process.poll() is None:
+            a.account(run,go,rows);time.sleep(5)
+        rc=process.wait()
+        rows['native_contact32']=dict(terminal_all_own_children_waited=True,returncode=rc,owner_received_terminal_epoch=time.time())
+        a.account(run,go,rows,True);active=False
+        a.put(J/'NATIVE_WAITED.json',dict(returncode=rc,own_waited=True))
+    except BaseException:
+        error=traceback.format_exc();a.put(J/'NATIVE_OWNER_ERROR.json',dict(error=error,active_not_falsely_cleared=active))
+        if process is not None:
+            while process.poll() is None:
+                if active:a.account(run,go,rows)
+                time.sleep(5)
+        if active:
+            rows['native_contact32']=dict(terminal_all_own_children_waited=True,returncode=process.wait() if process is not None else 1,owner_received_terminal_epoch=time.time())
+            a.account(run,go,rows,True);active=False
+    finally:
+        for stream in [finite,private,*reversed(locks)]:
+            if stream is not None:fcntl.flock(stream,fcntl.LOCK_UN);stream.close()
+        a.put(J/'NATIVE_OWNER_EXIT.json',dict(epoch=time.time(),error=error,all_own_waited=process is None or process.poll() is not None,
+            original_cost_settled=not active,original_leases_released=True,no_new_budget_or_refund=True))
+    if error:raise RuntimeError(error)
+
+
+if __name__=='__main__':main()

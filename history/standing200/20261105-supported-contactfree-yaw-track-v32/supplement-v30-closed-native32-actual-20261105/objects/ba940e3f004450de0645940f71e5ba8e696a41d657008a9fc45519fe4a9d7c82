@@ -1,0 +1,193 @@
+"""Small staged native integration and production controller; original locks."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent
+R=HERE.parent
+sys.path.insert(0,str(R))
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with (R/'reports'/name).open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def admission():
+    spec=importlib.util.spec_from_file_location('standing32_broad_gate',R/'repair_v11/control.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    return module.admission()
+
+
+def connection():
+    sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+    from project_connector import connect72
+    return connect72()
+
+
+def gpu():
+    raw=(HERE/'resource_control.py').read_text(encoding='utf-8')
+    raw=raw.replace('SCUT32H1','SCUT32H2')
+    namespace=dict(__name__='standing32_second_inventory',__file__=str(HERE/'resource_control.py'))
+    exec(compile(raw,namespace['__file__'],'exec'),namespace)
+    namespace['admission']=admission
+    namespace['gpu']()
+
+
+def checked():
+    frozen=json.loads((HERE/'DEPLOYMENT_FROZEN.json').read_bytes())
+    plan=json.loads((HERE/'PLAN.json').read_bytes())
+    for row in frozen['files']:
+        raw=Path(row['path']).read_bytes()
+        assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+    return frozen,plan
+
+
+ADMIT=r'''
+from pathlib import Path
+import json,time,fcntl,subprocess,shutil,psutil,hashlib
+C=Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(C.read_bytes());assert c['active_segment'] is None
+assert c['remaining_training_seconds']>86412.86069250107+3900
+for path in [C.parent/'native_floor_supervisor.lock',C.parent/'autonomy_controller.lock',C.parent.parent/('three_expert_v2_'+v['uuid']+'.lock'),C.parent.parent/'finite_environment_validation.lock']:
+ with path.open('rb+') as f:fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB);fcntl.flock(f,fcntl.LOCK_UN)
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert v['uuid'] not in apps
+assert psutil.virtual_memory().available>64*1024**3 and shutil.disk_usage(C).free>50*1024**3
+for row in v['shared']:
+ p=Path(row['path']);assert p.suffix not in ('.pt','.pth','.npz','.usd');raw=p.read_bytes()
+ assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA'],str(p)
+if not v.get('deployed'):assert not Path(v['job']).exists()
+print(json.dumps(dict(passed=True,epoch=time.time(),canonical_active=None,remaining=c['remaining_training_seconds'],original_locks_free=True,private_GPU_free=True,PT_reads=0,physics=0)))
+'''
+
+
+def native():
+    frozen,plan=checked()
+    assert not (R/'reports/SCUT32_NATIVE2_ONCE.json').exists()
+    _,blocked=admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    client=sf=None
+    try:
+        client=connection()
+        check=run(client,ADMIT,dict(job=frozen['job'],uuid=plan['GPU_UUID'],shared=frozen['shared_text'],deployed=True),90)
+        put('SCUT32_NATIVE2_PARENT_ADMISSION.json',check)
+        put('SCUT32_NATIVE2_ONCE.json',dict(epoch=time.time(),frozen_SHA=hashlib.sha256((HERE/'DEPLOYMENT_FROZEN.json').read_bytes()).hexdigest(),run_id=plan['run_id'],source_PT_reads=0))
+        sf=client.open_sftp()
+        for row in json.loads((HERE/'NATIVE_REPAIR2_FROZEN.json').read_bytes())['files']:
+            with sf.open(frozen['job']+'/'+row['relative'],'wx') as f:f.write(Path(row['path']).read_bytes())
+        sf.close();sf=None
+        code=r'''
+from pathlib import Path
+import subprocess,psutil,time,json
+J=Path(v['job'])
+with (J/'NATIVE2_OWNER.log').open('xb') as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'native_owner_r2.py')],cwd=J,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ q=psutil.Process(p.pid)
+ print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd())))
+'''
+        actual=run(client,code,dict(job=frozen['job']),45)
+        put('SCUT32_NATIVE2_OWNER_LAUNCH.json',actual)
+        print(json.dumps(actual))
+    except BaseException:
+        put('SCUT32_NATIVE2_DISPATCH_ERROR.json',dict(error=traceback.format_exc(),once_consumed=(R/'reports/SCUT32_NATIVE2_ONCE.json').exists()))
+        raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        put('SCUT32_NATIVE2_DISPATCH_CLOSED.json',dict(SSHclosed=True,SESSION_restored=True,serial='FREE',epoch=time.time()))
+
+
+def native_result():
+    frozen,plan=checked()
+    _,blocked=admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0)));return
+    client=sf=None
+    value=dict(epoch=time.time(),job=frozen['job'],files={},logs={})
+    try:
+        client=connection();sf=client.open_sftp();sf.get_channel().settimeout(45)
+        for name in ['NATIVE2_OWNER_STARTED.json','NATIVE2_OWNER_EXIT.json','NATIVE2_OWNER_ERROR.json','NATIVE2_WAITED.json','NATIVE2_ADMISSION.json','NATIVE2_GO.json','NATIVE2_WORKER_IDENTITY.json',
+            'native_validation_r2/RESULT.json','native_validation_r2/ERROR.json','native_validation_r2/CONTACT_TRACE.json','native_validation_r2/REWARD_LOG.json','native_validation_r2/APP_CLOSE_INTENT.json','native_validation_r2/ENV_CLOSED.json']:
+            try:
+                with sf.open(frozen['job']+'/'+name,'rb') as f:value['files'][name]=json.loads(f.read())
+            except FileNotFoundError:pass
+        for name in ['NATIVE2_OWNER.log','NATIVE2_WORKER.log']:
+            try:
+                size=sf.stat(frozen['job']+'/'+name).st_size
+                with sf.open(frozen['job']+'/'+name,'rb') as f:f.seek(max(0,size-10000));raw=f.read()
+                value['logs'][name]=dict(bytes=size,tail=raw.decode('utf-8','replace'))
+            except FileNotFoundError:pass
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+    value.update(SSHclosed=True,SESSION_restored=True,serial='FREE',source_PT_reads=0)
+    put('SCUT32_NATIVE2_RESULT_'+str(time.time_ns())+'.json',value)
+    print(json.dumps(dict(files={k:v for k,v in value['files'].items() if k not in ['native_validation_r2/CONTACT_TRACE.json','native_validation_r2/REWARD_LOG.json']},logs=value['logs'])))
+
+
+def launch():
+    frozen,plan=checked()
+    assert not (R/'reports/SCUT32_LAUNCH_ONCE.json').exists()
+    invs=sorted((R/'reports').glob('FOUR4090_RESOURCE_ACTUAL_SCUT32H*.json'),key=lambda p:p.stat().st_mtime)
+    inventory=json.loads(invs[-1].read_bytes())
+    from datetime import datetime
+    assert time.time()-datetime.fromisoformat(inventory['captured']).timestamp()<600,'Need new distinct resource-read version'
+    results=sorted((R/'reports').glob('SCUT32_NATIVE2_RESULT_*.json'))
+    native=json.loads(results[-1].read_bytes())['files']
+    own=native['NATIVE2_OWNER_EXIT.json']
+    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    assert native['NATIVE2_WAITED.json']['returncode']==0 and native['native_validation_r2/RESULT.json']['passed']
+    _,blocked=admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    client=None
+    try:
+        client=connection()
+        check=run(client,ADMIT,dict(job=frozen['job'],uuid=plan['GPU_UUID'],shared=frozen['shared_text'],deployed=True),90)
+        put('SCUT32_PRODUCTION_PARENT_ADMISSION.json',check)
+        put('SCUT32_LAUNCH_ONCE.json',dict(epoch=time.time(),run_id=plan['run_id'],frozen_SHA=hashlib.sha256((HERE/'DEPLOYMENT_FROZEN.json').read_bytes()).hexdigest()))
+        code=r'''
+from pathlib import Path
+import subprocess,psutil,time,json
+J=Path(v['job']);assert not (J/'OWNER_STARTED.json').exists()
+result=json.loads((J/'native_validation_r2/RESULT.json').read_bytes());assert result['passed']
+with (J/'OWNER.log').open('xb') as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/'owner.py')],cwd=J,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ q=psutil.Process(p.pid)
+ print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd())))
+'''
+        actual=run(client,code,dict(job=frozen['job']),45)
+        put('SCUT32_OWNER_LAUNCH_ACTUAL.json',actual)
+        path=R/'CURRENT_WORK_ORDER.json';w=json.loads(path.read_bytes())
+        w.update(status='SCUT32_SUPPORTED200_OWNER_DISPATCHED_AWAIT_FULLRESTORE_FIRST',run_id=plan['run_id'],remote_job=frozen['job'],
+            original_owner=actual,training_started='AWAIT_GO_FIRST',training_completed=False,current_run_final=None,evaluation_result=None,
+            next='Single SCUT32 FIRST collector; then fullsave/safeclose/independent80 and actual native review. No relaunch or old once replay.')
+        path.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(actual))
+    except BaseException:
+        put('SCUT32_LAUNCH_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),once_consumed=(R/'reports/SCUT32_LAUNCH_ONCE.json').exists()))
+        raise
+    finally:
+        if client is not None:client.close()
+        put('SCUT32_LAUNCH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+def first():
+    raw=(R/'collect_standing_status_v1.py').read_text(encoding='utf-8')
+    raw=raw.replace("assert '/MOD4_STANDING200_RLBPTT_' in job","assert '/MOD4_STANDING200_SUPPORTED_V32_' in job")
+    for old,new in [('production/NATIVE_STARTUP.json','production/STARTUP.json'),('production/PROGRESS.json','production/LATEST_PROGRESS.json'),('production/WORKER_ERROR.json','production/ERROR.json'),('evaluation/EVAL_ERROR.json','evaluation/ERROR.json')]:raw=raw.replace(old,new)
+    raw=raw.replace("'production/STARTUP.json'","'production/STARTUP.json','production/FULL_RESTORE.json'")
+    ns=dict(__name__='standing32_first',__file__=str(R/'collect_standing_status_v1.py'))
+    exec(compile(raw,ns['__file__'],'exec'),ns);ns['local_rows']=admission
+    sys.argv=[ns['__file__'],'--label','SCUT32_FIRST','--wait-seconds','300'];ns['main']()
+
+
+def closed():
+    raw=(R/'scut_recipe_v20/control.py').read_text(encoding='utf-8').replace('SCUT20','SCUT32')
+    raw=raw.replace('limit=32*1024**2','limit=96*1024**2')
+    raw=raw.replace("'production/ERROR.json', 'production/ENV_CLOSED.json'","'production/ERROR.json', 'production/FULL_RESTORE.json', 'production/ENV_CLOSED.json'")
+    ns=dict(__name__='standing32_closed',__file__=__file__)
+    exec(compile(raw,__file__,'exec'),ns);ns['admission']=admission;ns['closed']()

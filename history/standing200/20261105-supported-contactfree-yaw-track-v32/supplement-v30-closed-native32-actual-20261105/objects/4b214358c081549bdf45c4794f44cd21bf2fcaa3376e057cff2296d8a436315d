@@ -1,0 +1,12 @@
+"""Independent repair of the probe-only pose-cache callback; frozen V32 intact."""
+from pathlib import Path
+import hashlib
+
+P=Path(__file__).resolve().parent/'native_probe.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='65bec28b81e86d58869d05264cd47417680179abc45ae87e566cbefcc81a4d9f'
+source=raw.decode().replace("out = J/'native_validation'","out = J/'native_validation_r2'")
+source=source.replace('NATIVE_GO.json','NATIVE2_GO.json')
+source=source.replace("install_pose_cache_runtime_adapter_v4(env.scene['robot'])", "install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=lambda value:put(out/'POSE_CACHE_EVENTS.json',dict(actual_latest=value)))")
+source=source.replace("states[:,3:7]=0.;states[:,3]=torch.cos(yaw/2);states[:,6]=torch.sin(yaw/2);states[:,7:]=0.", "states[:,3:7]=0.\n        if bridge.quaternion_order=='wxyz':\n            states[:,3]=torch.cos(yaw/2);states[:,6]=torch.sin(yaw/2)\n        else:\n            states[:,6]=torch.cos(yaw/2);states[:,5]=torch.sin(yaw/2)\n        states[:,7:]=0.")
+exec(compile(source,str(P),'exec'),globals())

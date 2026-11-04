@@ -1,0 +1,59 @@
+"""Ordinary supplement to recorded V32; text dedup and published artifact rows."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import time
+
+R=Path(__file__).resolve().parent.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261105-supported-contactfree-yaw-track-v32/supplement-v30-closed-native32-actual-20261105'
+
+
+def main():
+    assert not (DEST/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('standing32_archive_redaction',REPO/'archive_tools/capture_history.py')
+    redactor=importlib.util.module_from_spec(spec);spec.loader.exec_module(redactor)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files=set()
+    for root in [R/'reports',R/'scut_native_v32',R/'scut_recipe_v30',
+        R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900']:
+        files.update(p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.md','.yaml','.toml','.txt','.log'}
+            and not any(x in p.parts for x in ('localdeps','__pycache__')))
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    rows=[];large=[]
+    def artifacts(value,publication):
+        if isinstance(value,dict):
+            path=value.get('path') or value.get('local_path') or value.get('remote_path')
+            if isinstance(path,str) and Path(path).suffix.lower() in {'.pt','.pth','.npz','.npy','.usd','.usda','.png','.mp4','.zip'} and value.get('bytes') is not None:
+                large.append(dict(value,published_by=publication))
+            for child in value.values():artifacts(child,publication)
+        elif isinstance(value,list):
+            for child in value:artifacts(child,publication)
+    (DEST/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        if p.name=='CONTROL_CURVES.json':
+            publication=json.loads((R/'reports/SCUT30_CLOSED_TRANSFER_ACTUAL.json').read_bytes())
+            item=next(r for r in publication['files'] if r['local_path']==str(p))
+            rows.append(dict(source_path=str(p),bytes=item['bytes'],SHA=item['SHA'],mode='external_large_raw_only',published_by='reports/SCUT30_CLOSED_TRANSFER_ACTUAL.json'))
+            continue
+        raw=p.read_bytes();safe,count=redactor.redact(raw.decode('utf-8-sig'))
+        content=raw if not count else safe.encode();sha=hashlib.sha256(content).hexdigest()
+        target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha;out.write_bytes(content);target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=count,mode='redacted_text' if count else 'complete_text'))
+        if p.suffix=='.json':artifacts(json.loads(raw),str(p))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    (DEST/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='V30_CLOSED_FINAL1709_NATIVE_REVIEW_V32_ACTUAL_STAGED_NATIVE_AND_PRODUCTION',
+        rows=rows,large_external_artifacts=large,status=w['status'],source_PT_NPZ_USD_media_reads_for_archive=0,shared_runtime_copies=0,
+        original_trial='trial-20261105-supported200-v32-contactfree-yaw-track',original_annotated='22aee7b27113f86259446633849d53e9752a3a45',original_peel='f9837af03f8e704b05c28c16ca13c21bc3aa958a',
+        ordinary_supplement_only=True),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DEST/'README.md').write_bytes((R/'scut_native_v32/ACTUAL_HANDOFF.md').read_bytes())
+    print(json.dumps(dict(destination=str(DEST),textrows=len(rows),newobjects=len(list((DEST/'objects').iterdir())),large_references=len(large))))
+
+
+if __name__=='__main__':main()

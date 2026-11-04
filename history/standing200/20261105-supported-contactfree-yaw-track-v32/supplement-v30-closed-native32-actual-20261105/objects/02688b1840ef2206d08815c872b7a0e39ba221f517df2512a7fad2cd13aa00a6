@@ -1,0 +1,44 @@
+{
+  "epoch": 1793822919.7068005,
+  "broad_exact_CIM": [
+    {
+      "ProcessId": 41596,
+      "ParentProcessId": 16228,
+      "CreationDate": "2026-11-03T18:26:50.667612+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe\" C:\\Users\\lulu\\.cc-switch\\catalog-maxfix\\watcher.py"
+    },
+    {
+      "ProcessId": 72592,
+      "ParentProcessId": 16772,
+      "CreationDate": "2026-11-05T04:08:37.779384+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n@'\nfrom pathlib import Path\nimport json,hashlib,time\nR=Path('F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103');D=R/'scut_native_v32'\np=D/'native_control.py';raw=p.read_bytes()\nwith (R/'reports/SCUT32_NATIVE_CONTROLLER_R1_SOURCE_AND_FAILURE_20261105.json').open('x',encoding='utf-8') as f:json.dump(dict(epoch=time.time(),source=raw.decode(),SHA=hashlib.sha256(raw).hexdigest(),failure='Probe omitted mandatory pose-cache receipt_callback; source_PT0. Native worker incorrectly returned0 after app.close although ERROR exists; production gate requires RESULT passed as well.',freeze_failure='freeze first attempt could not find V30 SOURCE_PATHS.json; retained same PLAN and used exact V18 source-paths SHA, no remote operation'),f,indent=2)\ns=raw.decode().replace('SCUT32_NATIVE','SCUT32_NATIVE2').replace('NATIVE_OWNER','NATIVE2_OWNER').replace('NATIVE_WAITED','NATIVE2_WAITED').replace('NATIVE_ADMISSION','NATIVE2_ADMISSION').replace('NATIVE_GO','NATIVE2_GO').replace('NATIVE_WORKER','NATIVE2_WORKER').replace('native_validation/','native_validation_r2/').replace(\\\"'native_owner.py'\\\",\\\"'native_owner_r2.py'\\\")\na=\\\"        sf=client.open_sftp();sf.mkdir(frozen['job'])\\n        for row in frozen['files']:\\n            with sf.open(frozen['job']+'/'+row['relative'],'wx') as f:f.write(Path(row['path']).read_bytes())\\n        manifest=dict(files=[{k:r[k] for k in ('relative','bytes','SHA')} for r in frozen['files']],shared_text=frozen['shared_text'])\\n        with sf.open(frozen['job']+'/INSTALL_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2).encode())\\\"\nb=\\\"        sf=client.open_sftp()\\n        for row in json.loads((HERE/'NATIVE_REPAIR2_FROZEN.json').read_bytes())['files']:\\n            with sf.open(frozen['job']+'/'+row['relative'],'wx') as f:f.write(Path(row['path']).read_bytes())\\\"\nassert s.count(a)==1;s=s.replace(a,b)\ns=s.replace(\\\"shared=frozen['shared_text']),90)\\\",\\\"shared=frozen['shared_text'],deployed=True),90)\\\")\np.write_text(s,encoding='utf-8')\nrows=[]\nfor name in ['native_probe_r2.py','native_owner_r2.py']:\n p=D/name;raw=p.read_bytes();rows.append(dict(path=str(p),relative=name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))\nwith (D/'NATIVE_REPAIR2_FROZEN.json').open('x',encoding='utf-8') as f:json.dump(dict(files=rows,old_candidate_unchanged=True,no_old_once_replay=True),f,indent=2)\n'@ | & 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 -\n& 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 'F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103/scut_native_v32/dispatch_native.py' native\""
+    },
+    {
+      "ProcessId": 61180,
+      "ParentProcessId": 72592,
+      "CreationDate": "2026-11-05T04:08:38.167284+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103/scut_native_v32/dispatch_native.py native"
+    },
+    {
+      "ProcessId": 39140,
+      "ParentProcessId": 61180,
+      "CreationDate": "2026-11-05T04:08:38.293276+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "pwsh -NoProfile -NonInteractive -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5\""
+    }
+  ],
+  "known_local_CPU_teleop_only": [],
+  "blocked": [],
+  "serial": "FREE",
+  "teleop_source": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\teleop_lqr_mujoco_v2.py",
+    "SHA": "246fdac4cb8199b4a10dc553ca4fb6ed9f1884636ec6b07acbcfe2686041a56f"
+  },
+  "classification": "CPU MuJoCo keyboard/controller GUI; no remote SSH/serial/canonical operations in reviewed source. This is live local physics, not saved-pose replay.",
+  "viewer_untouched": true,
+  "production_PT_reads": 0,
+  "new_physics_by_this_operation": 0
+}

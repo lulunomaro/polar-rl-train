@@ -1,0 +1,46 @@
+"""Freeze only this task's small new overlays and existing shared SHA paths."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+D=Path(__file__).resolve().parent;R=D.parent
+
+
+def main():
+    assert not (D/'DEPLOYMENT_FROZEN.json').exists()
+    old=json.loads((R/'scut_recipe_v30/PLAN.json').read_bytes())
+    binding=json.loads((D/'LOCAL_BINDING_FINAL.json').read_bytes())
+    selection=json.loads((R/'reports/SCUT32H1_GPU_SELECTION.json').read_bytes())
+    assert selection['selected']['host']=='72'
+    run='MOD4_STANDING200_SUPPORTED_V32_'+str(time.time_ns())
+    plan={k:old[k] for k in ('assets','runtime','runtime_manifest','guard','support','package_root','shared_modules','source_SCUT_commit','original_strictreserve')}
+    plan.update(run_id=run,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+run,stage='supported200',
+        GPU_UUID=selection['selected']['uuid'],num_envs=4096,seed=66,train_seconds=3600,max_parent_seconds=3900,
+        target_iterations=8000,resume_checkpoint=binding['source_checkpoint'],source_checkpoint=binding['source_checkpoint'],
+        new_checkpoint_format='MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK',
+        changes='Explicit supported200 rewards; unconditional chassis/guide contact-reset removal; yaw/track costs; original PPO/action/physics retained',
+        skill_acceptance='Both whole wheels on real200mm platform supported400Hz stable0.5s; vxyvz<=.03/rp10deg/yaw.2/no return/unsupported<=.1s',
+        native_probe='16env100controls real SDK; no model; original finite authority accounting before production')
+    if (D/'PLAN.json').exists():
+        plan=json.loads((D/'PLAN.json').read_bytes());run=plan['run_id']
+    else:
+        with (D/'PLAN.json').open('x',encoding='utf-8') as f:json.dump(plan,f,ensure_ascii=False,indent=2)
+    files=[]
+    for name in ('recipe.py','full_resume.py','entry.py','owner.py','evaluate.py','native_probe.py','native_owner.py','PLAN.json'):
+        p=D/name;raw=p.read_bytes()
+        if p.suffix=='.py':ast.parse(raw)
+        files.append(dict(path=str(p),relative=name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    for name,p in [('reward_model.py',R/'scut_recipe_v32_supported/reward_model.py'),('SOURCE_PATHS.json',R/'scut_recipe_v18/SOURCE_PATHS.json')]:
+        raw=p.read_bytes();files.append(dict(path=str(p),relative=name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    shared=json.loads((R/'scut_recipe_v30/FROZEN.json').read_bytes())['shared_text']
+    for row in binding['shared_text']:
+        if not any(x['path']==row['path'] for x in shared):shared.append(row)
+    frozen=dict(schema='V32_STAGED_NATIVE_THEN_PRODUCTION',run_id=run,job=plan['remote_root'],files=files,shared_text=shared,
+        production_only_after_actual_native_pass=True,source_PT_reads=0,runtime_tree_copies=0)
+    with (D/'DEPLOYMENT_FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(run_id=run,files=len(files),shared=len(shared),production_started=False)))
+
+
+if __name__=='__main__':main()

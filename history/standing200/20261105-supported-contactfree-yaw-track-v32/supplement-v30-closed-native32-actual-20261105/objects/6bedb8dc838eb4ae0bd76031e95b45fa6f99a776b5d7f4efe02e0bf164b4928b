@@ -1,0 +1,8 @@
+"""Independent second native attempt; original owner and budget semantics."""
+from pathlib import Path
+import hashlib
+P=Path(__file__).resolve().parent/'native_owner.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='3d8fc4d0b887b0502b32490039c31d529bac10d32d911d3df184225089dc0ed2'
+source=raw.decode().replace('NATIVE_','NATIVE2_').replace("+'_NATIVE'","+'_NATIVE2'").replace('native_probe.py','native_probe_r2.py')
+exec(compile(source,str(P),'exec'),globals())

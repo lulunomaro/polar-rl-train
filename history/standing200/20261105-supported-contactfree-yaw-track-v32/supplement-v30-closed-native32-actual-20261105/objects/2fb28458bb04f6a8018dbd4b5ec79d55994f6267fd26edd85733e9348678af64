@@ -1,0 +1,79 @@
+"""Read final1709 saved trajectories and motor curves; no model/simulation."""
+from pathlib import Path
+import json
+import time
+import numpy as np
+
+ROOT=Path(__file__).resolve().parent.parent
+RUN='MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900'
+
+
+def main():
+    report=ROOT/'reports/SCUT30_FINAL1709_ACTUAL_NUMERIC_ANALYSIS.json'
+    assert not report.exists()
+    p=ROOT/'scut_recipe_v25/motor_plot.py'
+    source=p.read_text(encoding='utf-8')
+    source=source.replace('MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800',RUN)
+    source=source.replace('V23 final745','V30 final1709')
+    source=source.replace('SCUT23_FINAL745_MOTOR_CURVE_ARTIFACT','SCUT30_FINAL1709_MOTOR_CURVE_ARTIFACT')
+    exec(compile(source,str(p),'exec'),dict(__file__=str(p),__name__='final1709_saved_motor_plot'))
+    actual=ROOT/'actual_closed'/RUN;E=actual/'evaluation'
+    result=json.loads((E/'RESULT.json').read_bytes())
+    final=json.loads((actual/'production/FINAL.json').read_bytes())
+    own=json.loads((actual/'OWNER_EXIT.json').read_bytes())
+    episodes=json.loads((E/'ALL80.json').read_bytes())['first_episodes']
+    a=np.load(E/'actual400hz.npz',allow_pickle=False);active=a['active']
+    pos=a['root_pos']-np.asarray(result['origins'])[None,:,:]
+    top=a['top_force'];ground=a['ground_force'];support=a['support_force']
+    after1=active&(a['tick'][:,None]>=400)
+    curves=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+    ca=np.asarray([v['active'] for v in curves],dtype=bool)
+    target=np.asarray([v['joint_pos_target'] for v in curves])
+    measured=np.asarray([v['joint_pos_measured'] for v in curves])
+    torque=np.asarray([v['applied_torque'] for v in curves])
+    actions=np.asarray([v['action'] for v in curves])
+    terminated=[v for v in episodes if v['terminated']]
+    times=np.asarray([v['seconds'] for v in episodes])
+    evaluation=dict(cases=80,seed=9137,max_controls=500,seconds_max=10,
+        strict=sum(v['strict200_standing'] for v in episodes),whole=sum(v['whole_footprint'] for v in episodes),
+        both_top=int(np.any(np.all(top>1,axis=2)&active,axis=0).sum()),max_top_force_N=float(top[active].max()),
+        terminated=len(terminated),full10s=int((times==10).sum()),mean_seconds=float(times.mean()),median_seconds=float(np.median(times)),
+        original_contact_duration_terminated=sum(v['source_contact_force_max_N']>1 and v['source_duration_raw'] and v['source_duration_counter']==20 for v in terminated),
+        source_roll_excess=sum(v['source_roll_excess'] for v in episodes),source_pitch_excess=sum(v['source_pitch_excess'] for v in episodes),
+        closure_resets=sum(v['closure_reset'] for v in episodes),mimic_resets=sum(v['mimic_reset'] for v in episodes),
+        numerical_resets=sum(v['numerical_safety'] for v in episodes),source_clock_values=sorted(set(v['source_clock'] for v in episodes)))
+    selected=[]
+    for env in [0,1,40,41]:
+        keep=after1[:,env]
+        selected.append(dict(env=env,seconds=episodes[env]['seconds'],terminated=episodes[env]['terminated'],
+            root_z_after1s_minmax=[float(pos[keep,env,2].min()),float(pos[keep,env,2].max())],
+            max_abs_xy_m=np.abs(pos[active[:,env],env,:2]).max(axis=0).tolist(),
+            terminal_root_relative_m=(np.asarray(episodes[env]['root_pos'])-result['origins'][env]).tolist()))
+    value=dict(epoch=time.time(),actual_source_final=final['checkpoint'],new_PPO_updates=final['PPO_updates'],own_exit=own,
+        actual_evaluation=evaluation,
+        all80_manifold=dict(actual400Hz=True,active_physics_records=int(active.sum()),
+            any_strict_envs=int(np.any(a['strict']&active,axis=0).sum()),
+            any_wholeclear_envs=int(np.any(a['wholeclear']&active,axis=0).sum()),
+            any_both_ground_support_over1N_envs=int(np.any(np.all(ground>1,axis=2)&active,axis=0).sum()),
+            any_nonwheel_support_over1N_envs=int(np.any((support[:,:,2]>1)&active,axis=0).sum()),
+            support_column_semantics=['leftwheel','rightwheel','nonwheel'],
+            max_abs_xy_from_origin_m=np.abs(pos[active][:,:2]).max(axis=0).tolist(),
+            root_z_after1s_quantiles=np.quantile(pos[:,:,2][after1],[0,.1,.5,.9,1]).tolist(),
+            first20ms_support_over1N_envs=int(np.any((support>1).any(axis=2)&active&(a['tick'][:,None]<=8),axis=0).sum()),selected=selected),
+        actuator=dict(active_controls=int(ca.sum()),decoded_target_min=target[ca].min(axis=0).tolist(),decoded_target_max=target[ca].max(axis=0).tolist(),
+            hip_target_over_upper_fraction=[float((target[:,:,j][ca]>.500001).mean()) for j in [1,3]],
+            hip_target_at_upper_fraction=[float((np.abs(target[:,:,j][ca]-.5)<=1e-6).mean()) for j in [1,3]],
+            actual_hip_within1mrad_upper_fraction=[float((np.abs(measured[:,:,j][ca]-.5)<=.001).mean()) for j in [1,3]],
+            applied_torque_abs99=np.quantile(np.abs(torque[ca]),.99,axis=0).tolist(),
+            raw_action_abs99=np.quantile(np.abs(actions[ca]),.99,axis=0).tolist()),
+        raw_artifacts=[result['all80_manifold'],result['actual_poses']],
+        comparison_V28=dict(final=1472,strict=0,whole=0,both_top=0,mean_seconds=9.05,full10s=64,
+            root_z_after1s_median=.29685,
+            interpretation='Final1709 still no200mm skill. Compare measured posture and survival with previous final1472; neither is graduation.'),
+        metadata_label_scope='Actualcourse step_height_m=.2 and raisedboxes, despite inherited explicit_specialization label saying270mm; raw source metadata preserved.',
+        native_review_pending=True,production_PT_reads=0,new_physics=0,optimizer_operations=0)
+    with report.open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(report=str(report),evaluation=evaluation,manifold=value['all80_manifold'],actuator=value['actuator'])))
+
+
+if __name__=='__main__':main()

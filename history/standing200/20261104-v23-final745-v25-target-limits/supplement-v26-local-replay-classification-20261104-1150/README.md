@@ -1,0 +1,1 @@
+V25 FIRST746仍是本聊天最后已取回生产证据，原有限窗已过但最终保存/评测/OWNER_EXIT尚未知。本轮没有SSH/model/physics/ledger操作。逐字核本地E3保存姿态GUI及exactCIM/publicmetadata，将固定两viewer进程分类非串行；另scope真实launch29304仍阻断，原SCUT25_CLOSED_TRANSFER_ONCE未消费。V26小入口在实际foreign释放后仍调用唯一原V25closed，不重跑生产或评测，不改变原冻结脚本。原准入拒绝和初版source保留；本轮源码、报告、工作单和自动化为普通补充归档，不新record/retag。

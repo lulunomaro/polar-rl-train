@@ -1,0 +1,74 @@
+"""Original single closed transfer; classify one exact local replay as display."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import os
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+VIEW = ROOT.parent / 'mod4v1_e3_stowed_startup_20261104'
+SOURCE_SHA = '5db111a4b8efd17f44e0bc4a48e1507045926f967c2e088fdc3fe38c14787def'
+KNOWN = {
+    49288: (42296, '2026-11-04T11:18:08.62742+08:00',
+            r'C:\Users\lulu\Desktop\claude\mjcf\.venv\Scripts\pythonw.exe'),
+    25156: (49288, '2026-11-04T11:18:08.666237+08:00',
+            r'C:\Users\lulu\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pythonw.exe'),
+}
+
+
+def main():
+    assert not (ROOT/'reports/SCUT25_CLOSED_TRANSFER_ONCE.json').exists()
+    spec = importlib.util.spec_from_file_location('standing26_closed_controller', ROOT/'scut_recipe_v25/control.py')
+    controller = importlib.util.module_from_spec(spec); spec.loader.exec_module(controller)
+    original = controller.admission
+    last = {}
+
+    def admission():
+        rows, blocked = original()
+        by = {r['ProcessId']:r for r in rows}
+        own = {os.getpid(), os.getppid()}; parent = os.getppid()
+        while parent in by:
+            parent = by[parent]['ParentProcessId']
+            if parent in own:break
+            own.add(parent)
+        blocked = [r for r in blocked if r['ProcessId'] not in own]
+        # This source was reviewed locally: it loads saved qpos, calls only
+        # mj_forward/viewer.sync, and has no SSH, connector, network, policy,
+        # optimizer, canonical/lock access or mj_step. Do not stop its window.
+        raw = (VIEW/'view_startup_replay.py').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == SOURCE_SHA
+        started = json.loads((VIEW/'VIEWER_STARTED.json').read_bytes())
+        current = json.loads((VIEW/'CURRENT_REPLAY.json').read_bytes())
+        assert started['pid'] == current['pid'] == 25156
+        assert started['model_weights_opened'] == 0 and not current['live_policy']
+        benign = []
+        remaining = []
+        for row in blocked:
+            declared = KNOWN.get(row['ProcessId'])
+            argv = row.get('CommandLine') or ''
+            if (declared and row['ParentProcessId'] == declared[0]
+                    and row['CreationDate'] == declared[1]
+                    and row['ExecutablePath'] == declared[2]
+                    and argv.endswith(str(VIEW/'view_startup_replay.py'))
+                    and ' -B ' in argv):
+                benign.append(row)
+            else:
+                remaining.append(row)
+        last.update(epoch=time.time(),broad_exact_CIM=rows,known_local_replay_only=benign,
+                    blocked=remaining,serial='BUSY' if remaining else 'FREE',
+                    viewer_source=dict(path=str(VIEW/'view_startup_replay.py'),bytes=len(raw),SHA=SOURCE_SHA),
+                    reason='Exact known saved-pose GUI is not an SSH/serial controller; all other broad matches remain blockers',
+                    viewer_untouched=True,production_PT_reads=0,new_physics=0)
+        return rows, remaining
+
+    controller.admission = admission
+    _, blocked = admission()
+    path = ROOT/'reports'/('SCUT26_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_'+str(time.time_ns())+'.json')
+    with path.open('x',encoding='utf-8') as f:json.dump(last,f,ensure_ascii=False,indent=2)
+    if blocked:
+        print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    controller.closed()
+
+
+if __name__ == '__main__':main()

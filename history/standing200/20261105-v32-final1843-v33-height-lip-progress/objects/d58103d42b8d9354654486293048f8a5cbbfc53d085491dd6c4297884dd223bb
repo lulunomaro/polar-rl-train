@@ -1,0 +1,129 @@
+"""Exercise the new reward state on saved all80 endpoints and direct edge cases."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+import numpy as np
+from scipy.spatial.transform import Rotation
+import reward_model as new
+
+R=Path(__file__).resolve().parent.parent
+E=R/'actual_closed/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/evaluation'
+
+
+def state(n):
+    return dict(edge_seen=np.zeros(n,bool),support_gap=np.full(n,6,np.int64),
+        support_count=np.zeros(n,np.int64),lip_dwell=np.zeros(n,np.int64),peak_lift=np.zeros(n))
+
+
+def fixture(z=.35,support=0.,edge=50.,vx=0.,lift=0.):
+    return dict(root=np.array([[.71,0.,z]]),velocity=np.array([[vx,0.,0.]]),roll=np.zeros(1),pitch=np.zeros(1),yaw_error=np.zeros(1),
+        wheel_low=np.array([[[.65,.22,lift],[.65,-.22,lift]]]),wheel_top_force=np.zeros((1,2)),
+        wheel_ground_force=np.ones((1,2))*80,support_top_force=np.ones(1)*support,chassis_edge_force=np.ones(1)*edge,
+        wheel_span=np.ones(1)*.4376,wheel_stagger=np.zeros(1),previous_potential=np.ones(1)*(.71/1.35),supported_ticks=np.zeros(1,np.int64))
+
+
+def main():
+    out=R/'reports/SCUT33_HEIGHT_LIP_PROGRESS_CPU_SAVED80_20261105.json'
+    assert not out.exists()
+    checks={}
+    for p in Path(__file__).parent.glob('*.py'):ast.parse(p.read_text(encoding='utf-8'))
+    checks['overlay_AST']=True
+    for name in ['recipe.py','full_resume.py']:
+        text=(Path(__file__).parent/name).read_text(encoding='utf-8')
+        remote='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500'
+        text=text.replace(remote,(R/'scut_native_v32').as_posix())
+        if name=='full_resume.py':
+            # Its inner original V21 wrapper is also source-only and local.
+            class LocalPath(type(Path())):
+                pass
+            nested=(R/'scut_native_v32/full_resume.py').read_text(encoding='utf-8')
+            # Evaluate the outer transform and parse it without running imports
+            # from remote paths. No torch or model is needed for this check.
+            ns=dict(__file__=str(Path(__file__).parent/name),__name__='source_check')
+            tree=ast.parse(text)
+            prefix=tree.body[:-1]
+            exec(compile(ast.Module(body=prefix,type_ignores=[]),'<source-transform>','exec'),ns)
+            ast.parse(ns['source'])
+            assert 'MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS' in ns['source']
+        else:
+            ns=dict(__file__=str(Path(__file__).parent/name),__name__='recipe_source_check')
+            exec(compile(text,'<local-recipe-source>','exec'),ns)
+            ast.parse(ns['source'])
+            assert 'stand33_state' in ns['source'] and 'extra_names' in ns['source']
+    checks['exact_recipe_and_restore_source_transforms']=True
+    k=fixture();s=state(1);edges=[];hangs=[]
+    for _ in range(200):
+        v,*_=new.terms(np,state=s,**k);edges.append(float(v['stand32_chassis_edge'][0]));hangs.append(float(v['stand32_hang'][0]))
+    assert sum(x>0 for x in edges)==1 and hangs[-1]==-3.
+    checks['edge_discovery_paid_once_and_lip_hang_penalized']=True
+    s=state(1);k=fixture(support=50.)
+    credits=[]
+    for i in range(200):
+        k['support_top_force'][:]=50. if i%2==0 else 0.
+        v,*_=new.terms(np,state=s,**k);credits.append(float(v['stand32_support'][0]))
+    assert sum(x>0 for x in credits)==50 and v['stand32_hang'][0]==-3.
+    checks['contact_flicker_cannot_refill_support_or_erase_dwell']=True
+    s=state(1);k=fixture(support=50.)
+    _,_,_,supported,_=new.terms(np,state=s,**k)
+    k['support_top_force'][:]=0.
+    recent=[]
+    for i in range(6):recent.append(bool(new.terms(np,state=s,**k)[3][0]))
+    assert recent==[True]*5+[False]
+    checks['recent_support_bounded100ms']=True
+    low=new.terms(np,state=state(1),**fixture(z=.35))[0]
+    high=new.terms(np,state=state(1),**fixture(z=.39))[0]
+    assert high['stand32_raise'][0]>0 and high['stand33_height_shortfall'][0]>low['stand33_height_shortfall'][0]
+    checks['standing_reward_zero_forward_and_height_shortfall_gradient']=True
+    k=fixture(z=.39);k['wheel_ground_force'][:]=0.
+    v,*_=new.terms(np,state=state(1),**k)
+    assert v['stand32_raise'][0]==0 and v['stand33_height_shortfall'][0]==0
+    checks['unsupported_spawn_not_standing_credit']=True
+    s=state(1);k=fixture(support=50.,lift=.05)
+    v1=new.terms(np,state=s,**k)[0];v2=new.terms(np,state=s,**k)[0]
+    k['wheel_low'][:,:,2]=.10;v3=new.terms(np,state=s,**k)[0]
+    assert v1['stand33_new_lift'][0]>0 and v2['stand33_new_lift'][0]==0 and v3['stand33_new_lift'][0]>0
+    checks['new_lift_pays_height_improvement_only']=True
+    k=fixture();k['yaw_error'][:]=.3;k['wheel_span'][:]=.30
+    v=new.terms(np,state=state(1),**k)[0]
+    assert v['stand32_heading'][0]<0 and v['stand32_wheel_distance'][0]<0
+    assert not new.contact_termination(np,np.full((200,9),1.e9)).any()
+    checks['yaw_track_costs_and_unconditional_contactreset_preserved']=True
+    a=np.load(E/'actual400hz.npz',allow_pickle=False);r=json.loads((E/'RESULT.json').read_bytes())
+    c=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves'];poses=np.load(E/'selected_actual_poses.npz',allow_pickle=False)
+    origins=np.asarray(r['origins']);s=state(80);prev=np.zeros(80);ticks=np.zeros(80,np.int64)
+    totals={};oldtotals={};finite=True
+    for row in c:
+        i=row['control']*8-1
+        angles=Rotation.from_quat(a['root_quat'][i][:,[1,2,3,0]]).as_euler('xyz')
+        old={key:np.asarray(value) for key,value in row['reward_terms'].items()}
+        low=np.zeros((80,2,3))
+        # V32 exact retraction term exposes its measured wheel-lift scalar.
+        root=a['root_pos'][i]-origins
+        align=np.exp(-4*(angles[:,0]**2+angles[:,1]**2))*np.exp(-(angles[:,2]/.35)**2)*np.exp(-(root[:,1]/.45)**2)
+        measured_lift=np.where(align>1.e-12,old['stand32_retract']/(.02*4*np.maximum(align,1.e-12)),0.)
+        low[:,:,2]=measured_lift[:,None]*.2
+        k=dict(root=root,velocity=a['velocity'][i],roll=angles[:,0],pitch=angles[:,1],yaw_error=angles[:,2],
+            wheel_low=low,wheel_top_force=a['top_force'][i],wheel_ground_force=a['ground_force'][i],
+            support_top_force=a['support_body_top'][i].sum(-1),chassis_edge_force=a['chassis_edge_force'][i],
+            wheel_span=a['wheel_span'][i],wheel_stagger=a['wheel_stagger'][i],previous_potential=prev,supported_ticks=ticks)
+        v,prev,_,supported,_=new.terms(np,state=s,**k);ticks=np.where(supported,ticks+1,0)
+        for key,value in v.items():
+            finite=finite and bool(np.isfinite(value).all());totals[key]=totals.get(key,np.zeros(80))+value*.02
+        for key,value in old.items():oldtotals[key]=oldtotals.get(key,np.zeros(80))+value
+    assert finite
+    assert np.mean(totals['stand32_chassis_edge'])<np.mean(oldtotals['stand32_chassis_edge'])*.1
+    assert np.mean(totals['stand32_hang'])<np.mean(oldtotals['stand32_hang'])
+    checks['saved80_endpoint_replay_finite_and_stall_return_reduced']=True
+    report=dict(epoch=time.time(),checks=checks,passed=all(checks.values()),source_evaluation=r['source'],
+        saved80_replay=dict(controls=len(c),environments=80,endpoint_pairs=len(c)*80,
+            no_new_policy_or_physics=True,old_weighted_episode_mean_sum={k:float(v.mean()) for k,v in oldtotals.items()},
+            new_weighted_episode_mean_sum={k:float(v.mean()) for k,v in totals.items()},
+            wheel_lift_reconstruction='All80 measured V32 retraction term exposes active lift; when old support isfalse use0. This replay is accounting diagnostic, not a V33 rollout.',
+            causal_or_skill_pass_claim=False),PT_reads=0,SDK=0,new_physics=0,production_started=False)
+    with out.open('x',encoding='utf-8') as f:json.dump(report,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(passed=report['passed'],checks=len(checks),saved_endpoint_pairs=len(c)*80,report=str(out))))
+
+
+if __name__=='__main__':main()

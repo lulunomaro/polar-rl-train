@@ -1,0 +1,13 @@
+"""Same exact local-CIM classifier and teleop identity; unique V33 operations."""
+from pathlib import Path
+import hashlib
+import sys
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v28/closed_transfer_v29.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='93dcdb92aaa40b103cf32ac2b8ae8026aa35dac0b126bda578da7a0b47935b48'
+mode=sys.argv[1];assert mode in ('local','gpu','launch','first','closed')
+source=raw.decode().replace("    assert not (ROOT/'reports/SCUT28_CLOSED_TRANSFER_ONCE.json').exists()\n",'')
+source=source.replace('scut_recipe_v28/control.py','scut_native_v33/control.py')
+source=source.replace('SCUT29_EXACT_LOCAL_TELEOP_CLASSIFICATION_','SCUT33_EXACT_LOCAL_TELEOP_CLASSIFICATION_')
+source=source.replace('    controller.closed()',"    if MODE!='local':getattr(controller,MODE)()")
+exec(compile(source,str(P),'exec'),dict(__file__=__file__,__name__='__main__',MODE=mode))

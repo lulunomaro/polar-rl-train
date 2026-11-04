@@ -1,0 +1,48 @@
+"""Target V32's measured lip stall; preserve standing, heading and track terms."""
+from pathlib import Path
+import hashlib
+import importlib.util
+
+BASE=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/reward_model.py')
+if not BASE.exists():BASE=Path(__file__).resolve().parent.parent/'scut_recipe_v32_supported/reward_model.py'
+raw=BASE.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='57506311820a2a0ccc5bce2c1a58951b484b2ee3260e60f87e976d62db0e006b'
+spec=importlib.util.spec_from_file_location('supported33_original32_formula',BASE)
+old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+contact_termination=old.contact_termination
+wheel_geometry=old.wheel_geometry
+height_command=old.height_command
+
+
+def terms(xp, *, state, **kwargs):
+    root=kwargs['root'];velocity=kwargs['velocity']
+    roll,pitch=kwargs['roll'],kwargs['pitch']
+    actual_support=(kwargs['support_top_force']>1.)&(root[:,2]>.31)&(xp.abs(roll)<.5)&(xp.abs(pitch)<.5)
+    state['support_gap'][:]=xp.where(actual_support,0,state['support_gap']+1)
+    recent=state['support_gap']<=5  #50Hz: at most100ms since measured top support
+    effective=dict(kwargs)
+    effective['support_top_force']=xp.where(recent,xp.ones_like(root[:,0])*2.,kwargs['support_top_force'])
+    values,potential,target,supported,top=old.terms(xp,**effective)
+    grounded=xp.any(kwargs['wheel_ground_force']>1.,axis=-1)
+    bearing=grounded|supported|top
+    upright=xp.exp(-4.*(roll*roll+pitch*pitch))
+    align=upright*xp.exp(-(kwargs['yaw_error']/.35)**2)*xp.exp(-(root[:,1]/.45)**2)
+    edge=(kwargs['chassis_edge_force']>1.)&(root[:,2]>.31)
+    # A one-time discovery payment cannot finance an entire stationary episode.
+    values['stand32_chassis_edge']*=~state['edge_seen']
+    state['edge_seen'][:]=state['edge_seen']|edge
+    values['stand32_support']=.5*supported*(state['support_count']<50)*align
+    state['support_count'][:]=state['support_count']+supported
+    # Keep the requested stand-high reward active even at zero forward speed.
+    # Penalize the measured remaining deficit rather than rewarding medium height.
+    deficit=xp.clip((target-root[:,2])/.09,0.,2.)
+    values['stand33_height_shortfall']=-4.*deficit*deficit*bearing
+    stalled=state['edge_seen']&(root[:,0]>=old.EDGE-.25)&~top&(xp.abs(velocity[:,0])<.03)&(xp.abs(velocity[:,2])<.03)
+    state['lip_dwell'][:]=xp.where(stalled,state['lip_dwell']+1,xp.clip(state['lip_dwell']-1,0,None))
+    # Contact flicker does not reset this no-progress dwell counter.
+    values['stand32_hang']=-3.*xp.clip((state['lip_dwell']-50)/100.,0.,1.)*stalled
+    lift=xp.clip(kwargs['wheel_low'][:,:,2]/old.HEIGHT,0.,1.).mean(axis=-1)
+    improvement=xp.clip((lift-state['peak_lift'])/.10,0.,1.)
+    values['stand33_new_lift']=4.*supported*improvement*align
+    state['peak_lift'][:]=xp.where(supported,xp.maximum(state['peak_lift'],lift),state['peak_lift'])
+    return values,potential,target,supported,top

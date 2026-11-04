@@ -1,0 +1,16 @@
+"""Record new V33 repair stage; reuse previous archiver's text/artifact policy."""
+from pathlib import Path
+import hashlib
+
+R=Path(__file__).resolve().parent.parent
+P=R/'scut_native_v32/archive_actual.py'
+raw=P.read_bytes()
+source=raw.decode()
+source=source.replace('20261105-supported-contactfree-yaw-track-v32/supplement-v30-closed-native32-actual-20261105','20261105-v32-final1843-v33-height-lip-progress')
+source=source.replace("R/'scut_native_v32',R/'scut_recipe_v30'","R/'scut_native_v32',R/'scut_native_v33'")
+source=source.replace('MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900','MOD4_STANDING200_SUPPORTED_V32_1793822795305806500')
+source=source.replace('SCUT30_CLOSED_TRANSFER_ACTUAL.json','SCUT32_CLOSED_TRANSFER_ACTUAL.json')
+source=source.replace('V30_CLOSED_FINAL1709_NATIVE_REVIEW_V32_ACTUAL_STAGED_NATIVE_AND_PRODUCTION','V32_FINAL1843_ACTUAL80_NATIVE_REVIEW_V33_HEIGHT_LIP_SOURCE_CPU_PENDING')
+source=source.replace("ordinary_supplement_only=True","new_unique_V33_repair_phase=True")
+source=source.replace("R/'scut_native_v32/ACTUAL_HANDOFF.md'","R/'scut_native_v33/HANDOFF.md'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

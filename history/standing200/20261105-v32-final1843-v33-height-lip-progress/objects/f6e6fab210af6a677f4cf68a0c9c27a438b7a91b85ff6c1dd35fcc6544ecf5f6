@@ -1,0 +1,20 @@
+"""Reuse original finite controller with unique V33 admission and evidence labels."""
+from pathlib import Path
+import hashlib
+import json
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+R=HERE.parent
+P=R/'scut_recipe_v20/control.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='6f07bdbce9ba32fe3906b30f57c1ffaddf4c7e8bc0f3d7a46b83b5d472cc855c'
+source=raw.decode().replace('SCUT20','SCUT33').replace('SCUT18B','SCUT33B').replace('SCUT20B','SCUT33B')
+source=source.replace("assert '/MOD4_STANDING200_SCUT_RECIPE_V20_' in job","assert '/MOD4_STANDING200_SUPPORTED_V33_' in job")
+source=source.replace("w['prior_V19_startup_false'] = dict(run_id=w['run_id'], remote_job=w['remote_job'], final=w.get('current_run_final'), evaluation=w.get('evaluation_result'))", "w['prior_V32_closed_actual_reference'] = 'reports/SCUT32_FINAL1843_NATIVE_REVIEW_V33_DECISION_20261105.json'")
+source=source.replace("limit=32*1024**2","limit=96*1024**2")
+source=source.replace("'production/ERROR.json', 'production/ENV_CLOSED.json'","'production/ERROR.json', 'production/FULL_RESTORE.json', 'production/ENV_CLOSED.json'")
+source=source.replace("s = s.replace(\"'production/NATIVE_STARTUP.json'\", \"'production/STARTUP.json'\")", "s = s.replace(\"'production/NATIVE_STARTUP.json'\", \"'production/STARTUP.json','production/FULL_RESTORE.json'\")")
+source=source.replace("'SCUT33_FLAT_ORIGINAL_OWNER_DISPATCHED_AWAIT_FIRST'","'SCUT33_HEIGHT_LIP_REPAIR_OWNER_DISPATCHED_AWAIT_FIRST'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

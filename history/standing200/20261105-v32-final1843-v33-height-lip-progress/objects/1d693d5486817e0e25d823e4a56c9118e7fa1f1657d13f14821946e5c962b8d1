@@ -1,0 +1,58 @@
+"""Prepare this small delta from actual final1843 and original shared modules."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+D=Path(__file__).resolve().parent;R=D.parent
+
+
+def main():
+    assert not (D/'FROZEN.json').exists()
+    cpu=json.loads((R/'reports/SCUT33_HEIGHT_LIP_PROGRESS_CPU_SAVED80_20261105.json').read_bytes())
+    assert cpu['passed']
+    review=json.loads((R/'reports/SCUT32_FINAL1843_NATIVE_REVIEW_V33_DECISION_20261105.json').read_bytes())
+    assert review['native_review']['four_side_four_top'] and review['own_exit']['original_cost_settled']
+    old=json.loads((R/'scut_native_v32/PLAN.json').read_bytes())
+    inventory=json.loads((R/'reports/FOUR4090_RESOURCE_ACTUAL_SCUT33B.json').read_bytes())
+    from datetime import datetime
+    assert time.time()-datetime.fromisoformat(inventory['captured']).timestamp()<600
+    spec=__import__('importlib.util',fromlist=['spec_from_file_location'])
+    selectspec=spec.spec_from_file_location('standing33_resource_selector',R/'scut_native_v32/resource_control.py')
+    selector=spec.module_from_spec(selectspec);selectspec.loader.exec_module(selector)
+    selection=selector.choose(inventory)
+    assert selection['selected'] and selection['selected']['host']=='72'
+    source=review['source']
+    run='MOD4_STANDING200_SUPPORTED_V33_'+str(time.time_ns())
+    plan={k:old[k] for k in ['assets','runtime','runtime_manifest','guard','support','package_root','shared_modules','source_SCUT_commit','original_strictreserve']}
+    plan.update(run_id=run,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+run,stage='supported200',
+        GPU_UUID=selection['selected']['uuid'],num_envs=4096,seed=66,train_seconds=3600,max_parent_seconds=3900,
+        target_iterations=8000,resume_checkpoint=source,source_checkpoint=source,new_checkpoint_format='MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS',
+        V32_prior_actual='reports/SCUT32_FINAL1843_NATIVE_REVIEW_V33_DECISION_20261105.json',
+        changes=review['decision']['changes'],new_native_sensor_changes=False,
+        full_restore_expected=dict(Adam_states=17,Adam_steps_each=36860,source_common_counter=44232,source_model_decodes=1),
+        original_one_canonical=True,clip_actions=None,skill_acceptance=old['skill_acceptance'])
+    with (D/'PLAN.json').open('x',encoding='utf-8') as f:json.dump(plan,f,ensure_ascii=False,indent=2)
+    files=[]
+    for name in ['recipe.py','full_resume.py','entry.py','owner.py','evaluate.py','reward_model.py','control.py','dispatch.py','PLAN.json']:
+        p=D/name;raw=p.read_bytes()
+        if p.suffix=='.py':ast.parse(raw)
+        files.append(dict(path=str(p),relative=name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    p=R/'scut_recipe_v18/SOURCE_PATHS.json';raw=p.read_bytes()
+    files.append(dict(path=str(p),relative='SOURCE_PATHS.json',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    previous=json.loads((R/'scut_native_v32/DEPLOYMENT_FROZEN.json').read_bytes())
+    shared=list(previous['shared_text'])
+    for row in previous['files']:
+        if row['relative'] in ['recipe.py','full_resume.py','entry.py','owner.py','evaluate.py','reward_model.py']:
+            remote=previous['job']+'/'+row['relative']
+            if not any(x['path']==remote for x in shared):shared.append(dict(path=remote,bytes=row['bytes'],SHA=row['SHA']))
+    frozen=dict(schema='SCUT33_SAVED80_DIRECTED_REWARD_DELTA',run_id=run,job=plan['remote_root'],files=files,shared_text=shared,
+        CPU_evidence=str(R/'reports/SCUT33_HEIGHT_LIP_PROGRESS_CPU_SAVED80_20261105.json'),
+        same_native_contact_geometry_and_physics_as_passed32=True,PT_reads=0,new_physics=0,production_started=False)
+    with (D/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,ensure_ascii=False,indent=2)
+    with (R/'reports/SCUT33_GPU_SELECTION_AND_FREEZE.json').open('x',encoding='utf-8') as f:json.dump(selection,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(run_id=run,small_files=len(files),shared_text=len(shared),production=False)))
+
+
+if __name__=='__main__':main()

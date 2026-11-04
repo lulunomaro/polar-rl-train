@@ -1,0 +1,40 @@
+"""Publish native saved-pose review and the evidence-directed next decision."""
+from pathlib import Path
+import json
+import time
+
+R=Path(__file__).resolve().parent.parent
+RUN='MOD4_STANDING200_SUPPORTED_V32_1793822795305806500'
+
+
+def main():
+    a=json.loads((R/'reports/SCUT32_FINAL1843_ACTUAL_NUMERIC_STAGE_ANALYSIS.json').read_bytes())
+    p=R/'reports/SCUT32_FINAL1843_NATIVE_REVIEW_V33_DECISION_20261105.json'
+    value=dict(epoch=time.time(),run_id=RUN,source=a['source'],actual_evaluation=a['actual_evaluation'],own_exit=a['own_exit'],
+        native_review=dict(by='current model native view_image',four_side_four_top=True,curve400Hz=True,hip_target_actual=True,
+            observations='All four selected drive to the positive-x200mm lip in roughly1-2s and remain there to9.98s. Chassis/front guides overlap the lip, wheels remain below on ground. env1 briefly changes heading more than env40; env0/41 settle at a slight angle. No wheel rises onto the platform.',
+            actuator='Right hip target+.5rad for100% active controls; left only0.8442%. All four left measured hips remain around.07-.10rad after settling, belowtarget; right measured around.35-.41rad below+.5. No targetlimit excess; this is not a unique physical cause.',
+            support='Top-body contacts are intermittent in measured400Hz data. Median longest uninterrupted support.03875s while upper-edge contact lastsmedian8.5275s. Do not call contact count stable perch.'),
+        stage_evidence=a['manifold'],reward_actual=a['reward_actual'],
+        decision=dict(next_version='V33 height deficit and no sustained lip reward',
+            achieved='Actual approach and upper-edge contact80/80; numerical/contact-policy execution healthy.',
+            missing='No supported.39m after1s, no wheel-top support, no whole footprint or stable ascent.',
+            changes=['Keep standing reward independent of forward motion; add dense height-shortfall cost.',
+                'Pay upper-edge discovery once per episode; limit initial support credit cumulatively instead of resetting each contact gap.',
+                'Count stationary lip dwell across contact gaps and penalize prolonged no-lift dwell.',
+                'Use at most.10s recent actual measured top support for reward continuity; reward new supported wheel-lift height.',
+                'Keep unconditional chassis/guide contact-reset removal, yaw/track costs and all original physical/learning interfaces.'],
+            resume='Full V32final1843 actorcriticSTD17AdamLRallRNGcomponents then one fresh physicalreset; no PT inspection outside actual restore.',
+            no_identical_failed_hour=True,skill_success=False,CPU_replay_and_actual_FIRST_required=True),
+        closed_once_consumed=True,render_once_completed=True,source_PT_reads=0,new_physics=0)
+    with p.open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+    wpath=R/'CURRENT_WORK_ORDER.json';w=json.loads(wpath.read_bytes())
+    w.update(status='SCUT32_FINAL1843_CLOSED_ACTUAL80_NATIVE_REVIEWED_V33_DIRECTED_REPAIR',training_started=False,training_completed=True,
+        current_run_final=a['source'],evaluation_result=a['actual_evaluation'],latest_checkpoint=a['source'],current_model_native_reviewed=True,
+        evaluation_closed_and_transferred=True,latest_handoff=str(p),prior_V32_final1843_actual=value,
+        next='Build small V33 reward delta, replay saved all80 and synthetic edge cases, then freshLOCAL/allfour/canonical/privateGPU finite production; preserve originalclosed/render/once.')
+    wpath.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(report=str(p),status=w['status'])))
+
+
+if __name__=='__main__':main()

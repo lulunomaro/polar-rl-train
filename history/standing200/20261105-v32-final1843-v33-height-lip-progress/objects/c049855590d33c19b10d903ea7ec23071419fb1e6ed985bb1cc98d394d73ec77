@@ -1,0 +1,40 @@
+"""Small source transform of immutable V32; no runtime tree duplication."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='2f3ec577313d0b15c4d85e048afeb3cf71c9085e00b18e35c833000b8adb7ecc'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK','MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS')
+old="    custom_names = ('progress','raise','height','approach','chassis_edge','support','retract','top','top_quiet','idle','hang','heading','wheel_distance','wheel_stagger','lane')"
+assert source.count(old)==1
+source=source.replace(old,old+"\n    extra_names=('stand33_height_shortfall','stand33_new_lift')")
+old="        cfg.rewards.update({'stand32_' + key: 1. for key in custom_names})"
+assert source.count(old)==1
+source=source.replace(old,old+"\n        cfg.rewards.update({key:1. for key in extra_names})")
+old="        r.stand32_target = self.stand32['target']"
+assert source.count(old)==1
+source=source.replace(old,old+"""
+        r.stand33_state=dict(edge_seen=torch.zeros(self.n,dtype=torch.bool,device=self.device),
+            support_gap=torch.full((self.n,),6,dtype=torch.long,device=self.device),
+            support_count=torch.zeros(self.n,dtype=torch.long,device=self.device),
+            lip_dwell=torch.zeros(self.n,dtype=torch.long,device=self.device),
+            peak_lift=torch.zeros(self.n,device=self.device))""")
+old="            supported_ticks=self.stand32_supported_ticks)"
+assert source.count(old)==1
+source=source.replace(old,"            supported_ticks=self.stand32_supported_ticks,state=self.stand33_state)")
+old="            self.stand32_bridge.stand32_body_edge[ids] = 0."
+assert source.count(old)==1
+source=source.replace(old,old+"""
+            for key,value in self.stand33_state.items():
+                value[ids]=6 if key=='support_gap' else 0""")
+old="    return receipt"
+assert source.count(old)==1
+source=source.replace(old,"""    receipt['V33_measured_lip_stall_repair']=dict(
+        supported_height_deficit_cost=4.,height_scale_m=.09,
+        edge_reward_once_per_episode=True,support_credit_cumulative_controls=50,
+        no_progress_lip_dwell_across_contact_gaps=True,recent_actual_support_max_s=.10,
+        new_supported_lift_reward=True,standing_reward_no_forward_gate=True,
+        physics_action_PPO_unchanged=True)
+    return receipt""")
+exec(compile(source,str(P),'exec'),globals())

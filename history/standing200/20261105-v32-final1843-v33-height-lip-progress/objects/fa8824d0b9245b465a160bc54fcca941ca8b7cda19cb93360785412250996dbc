@@ -1,0 +1,9 @@
+"""One original complete learning restore from V32; fresh episode reward state."""
+from pathlib import Path
+import hashlib
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/full_resume.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='4b7f2c7a9229f195523f91b5dbec559205be4774839cf2d3fcbace5f46c0a115'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK','MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS')
+source=source.replace('MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS','MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK')
+exec(compile(source,str(P),'exec'),globals())

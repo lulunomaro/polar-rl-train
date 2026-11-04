@@ -1,0 +1,9 @@
+# 端口转发单4090的Windows数据盘与本轮接续
+
+2026-11-04人类明确“端口转发的单4090主机可以在Windows盘放数据”。20:38用既有pinned210端口转发/原凭据进行一次独立host只读检查，GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e无compute、23890MiB free，Windows NTFS已挂载可写，实际`/mnt/mod4_expanded_original_EF3105C85DD986BD_20261026`剩694,983,204,864B。`/mnt/mod4_linux_durable_20261013`是同分区别名，不重复计算。HOME仍0，但仅据HOME0排除数据容量的旧判断不完整，原false保留并由本段纠正。实际可用RAM43,310,092,288B；不能以磁盘解决后就声称原20k的RAM>64GiB准入已通过。
+
+原200mm生产owner通过同一canonical active_segment独占计账，实际standingV30已经GO，没有将新任务挂入运行段的接口。历史多卡cohort要在firstGO前注册各node，与本次运行中owner不同。Windows数据授权不制造第二writer，不复制canonical、退款、改预算或热改现owner。原生产继续保持完整保存边界。
+
+本聊天旧67488只在本地sleep、尚无网络/INDEX/LAUNCH/生产GO，已按exactPID/create/exe/argv确认后停止；保留原timer的全部once。新唯一35308/create2026-11-04T20:36:24.331634+08负责串行接续，先等另一聊天exact52216有限72元数据observer退出，再fresh四卡和实际peer ownwaitsettledreleased/canonicalNone/原锁即原launch，不再额外固定等20:57。新3600save+300exit从actualGO起算，当前未GO。首次fourWindows探测撞observer网络前拒绝原false已保存；210独立host只读不连接72、0模型/SDK/physics/账本访问，finallySSHclosed与SESSIONrestoredFREE。
+
+本次只补充实际数据盘与接续依据。200mm基线80局仍0起跳/越沿/落台，不把资源检查说成训练或技能。

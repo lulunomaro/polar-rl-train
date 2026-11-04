@@ -22,3 +22,5 @@
 19:59接续：修正版已获批准，PLAN及7module+3control准备完成，尚无INDEX/LAUNCH_ONCE/生产GO。首轮准入在网络前遇standingV30实际controller而拒绝，原false保留。V30真实GO19:51:35、SAVE20:51:35、NOMINAL20:56:35；唯一localtimer将在20:57:35后freshLOCAL核exactowner1614229/create1793793094.65已ownwait/settled/released、canonicalNone/原锁，并刷新四张4090后自动launch。等待不计入新小时，不再询问相同授权。
 
 20:01实际：唯一localtimer67488/create2026-11-04T20:01:12.771869+08已绑定且stderr为空，RESOURCE_TIMER_BIND_ONCE/RESOURCE_TIMER_ONCE均消费。首次bind被另一聊天E3正式回传21548在网络前拒绝，原false保留；仅把本地等待的bind改为允许记录外部controller，所有网络前freshLOCAL原gate不变。不得再bind/timer/探卡或重复launch；等待程序自己负责原锁释放后的有限准入与FIRST→唯一postround。
+
+20:38最新覆盖：人类指出端口转发单4090可以用Windows盘，实际独立210只读核GPU空闲23890MiB、Windows NTFS挂载`/mnt/mod4_expanded_original_EF3105C85DD986BD_20261026`可写剩694,983,204,864B（约695GB），第二别名是同一块盘，不重复加容量。HOME0不能再称无可用数据盘；当前MemAvailable43,310,092,288B仍低于既有20k的64GiB准入。旧67488在网络/生产前按exactCIM停止，其once全保留。新唯一35308/create20:36:24.331634运行`jump200_forwarded_windows.py resume`，先等另一聊天72只读observer52216结束，再fresh四卡/Windows盘/原exactV30释放及原canonical锁；取消额外固定20:57等待，原生产launch仍未消费，新授权小时仍未开始。首Windowsfourread被52216网络前拒绝false保留；210单独host只读已完成并SSHclosed/SESSIONrestoredFREE，没有碰72现有连接。

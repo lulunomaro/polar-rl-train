@@ -1,0 +1,30 @@
+"""Prepare the next source-only frozen-stage front door; no stage or model operation."""
+from pathlib import Path
+import ast
+D=Path(__file__).resolve().parent;dest=D/'stage_fudan_timeout8_frozen_original_once.py';assert not dest.exists()
+t=(D/'stage_fudan_n20000_frozen_original_v2_once.py').read_text(encoding='utf8')
+def one(a,b):
+ global t
+ assert t.count(a)==1,(a,t.count(a));t=t.replace(a,b)
+one('BRANCH = "FDN_FULL_LEARNER_CONTINUATION_FRESH_N20000_ENV"','BRANCH = "FDN_FULL_LEARNER_CONTINUATION_FRESH_N20000_TIMEOUT8_ENV"')
+one('BASE = dict(updates=64, policy_optimizer_steps=1280,\n            encoder_optimizer_steps=1280, transitions_seen=12582912)','BASE = dict(updates=133, policy_optimizer_steps=2660,\n            encoder_optimizer_steps=2660, transitions_seen=78822912)')
+one('TASKS = "/home/lc01/Zonglin Li/zonglin2/tasks"','LEARNER_SHA = "8af4e04c3a2b7dff8e805eb28a47caee442ae2f9c9ac25d08369e25d4aa6ca78"\nSOURCE_KIND = "fdn_n20000_full_learner_timeout8_source"\nOVERLAY_SHA = "386107b02983505518e1dcfb5bbdeb6f243392d390dfd48e16a61d75cb2c51e2"\nTASKS = "/home/lc01/Zonglin Li/zonglin2/tasks"')
+for obj in('f','intent','latest'):one(obj+'["version"] == 2',obj+'["version"] == 3')
+one('"Qualified version2 E3 full save required"','"Qualified version3 timeout8 E3 full save required"')
+one('"Pinned base64 and exact cumulative/window deltas required"','"Pinned base133 and exact cumulative/window deltas required"')
+one('lineage["source_envs"] == 4096','lineage["source_envs"] == 20000')
+one('"Actual 4k-to-fresh20k learner continuation required"','"Actual N20000-to-freshN20000 learner continuation required"')
+one('source_receipt["source_sha256"] == SOURCE_4K_SHA == lineage["source_sha256"] ==','source_receipt["source_sha256"] == LEARNER_SHA == lineage["source_sha256"] ==')
+one('f["original_mother_reads"] == 0 and f["learner_source_reads"] == 1,','f["original_mother_reads"] == 0 and f["ancestor_N4096_reads"] == 0 and f["learner_source_reads"] == 1 and\n          source_receipt["ancestor_N4096_reads"] == 0 and\n          f["ancestral_N4096_checkpoint"]["source_sha256"] == SOURCE_4K_SHA,')
+one('"Actual continued 4k source and separately named mother ancestry required"','"Actual continued N20000 source and separate N4096/mother ancestry required"')
+one('init["source_envs"] == 4096','init["source_envs"] == 20000')
+one('("ancestral_mother_checkpoint", f["ancestral_mother_checkpoint"])):', '("ancestral_mother_checkpoint", f["ancestral_mother_checkpoint"]),\n                        ("ancestral_N4096_checkpoint", f["ancestral_N4096_checkpoint"]),\n                        ("source_kind", SOURCE_KIND), ("task_runtime_overlay", f["task_runtime_overlay"])):')
+one('latest["original_mother_reads"] == 0 and latest["learner_source_reads"] == 1,','latest["original_mother_reads"] == 0 and latest["ancestor_N4096_reads"] == 0 and latest["learner_source_reads"] == 1,')
+one('    selected = dict(path=latest["path"], bytes=latest["bytes"], sha256=latest["sha256"], run=run)','    need(f["source_kind"] == intent["source_kind"] == SOURCE_KIND and\n          f["task_runtime_overlay"] == intent["task_runtime_overlay"] and\n          f["task_runtime_overlay"]["bytes"] == 8571 and\n          f["task_runtime_overlay"]["sha256"] == OVERLAY_SHA, "Fixed timeout8 producer overlay/source_kind required")\n    selected = dict(path=latest["path"], bytes=latest["bytes"], sha256=latest["sha256"], run=run)')
+one('selected["sha256"] not in (MOTHER_SHA, SOURCE_4K_SHA)','selected["sha256"] not in (MOTHER_SHA, SOURCE_4K_SHA, LEARNER_SHA)')
+one('source_fudan_frozen_native_eval_v2_n20000','source_fudan_frozen_native_eval_v3_timeout8')
+one('source_fudan_frozen_parent_v2_n20000','source_fudan_frozen_parent_v3_timeout8')
+one('SINGLE_GPU_E3_FDN_N20000_ORIGINAL_FRESH80_FROZEN_EVALUATION_PLAN','SINGLE_GPU_E3_FDN_TIMEOUT8_ORIGINAL_FRESH80_FROZEN_EVALUATION_PLAN')
+t=t.replace('FDNN20000_FROZEN_','FDNTIMEOUT8_FROZEN_')
+compile(ast.parse(t),str(dest),'exec');dest.write_text(t,encoding='utf8',newline='\n')
+print(str(dest)+' ; source-only AST/compile PASS; original materializer and N80 runtime loops retained; no stage/SSH/PT/SDK/GPU')

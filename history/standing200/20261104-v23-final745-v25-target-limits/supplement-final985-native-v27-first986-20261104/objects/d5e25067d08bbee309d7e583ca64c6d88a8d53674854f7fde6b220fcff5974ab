@@ -1,0 +1,14 @@
+"""Reuse reviewed exact saved-pose GUI classification for this finite mode."""
+from pathlib import Path
+import hashlib
+import sys
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v25/closed_transfer_v26.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='e4734299201c4dc8b7279d362581b7cd2dc32188be6b571659ab23a2744a71b8'
+mode=sys.argv[1]
+assert mode in ('local','gpu','launch','first','closed')
+source=raw.decode().replace("    assert not (ROOT/'reports/SCUT25_CLOSED_TRANSFER_ONCE.json').exists()\n",'')
+source=source.replace("ROOT/'scut_recipe_v25/control.py'","ROOT/'scut_recipe_v27/control.py'")
+source=source.replace('SCUT26_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_','SCUT27_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_')
+source=source.replace('    controller.closed()',"    if MODE!='local':getattr(controller,MODE)()")
+exec(compile(source,str(P),'exec'),dict(__file__=__file__,__name__='__main__',MODE=mode))

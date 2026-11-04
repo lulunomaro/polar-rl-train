@@ -1,0 +1,106 @@
+"""Publish actual FIRST evidence and current work order without model reads."""
+from pathlib import Path
+from datetime import datetime
+import hashlib
+import json
+import math
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+HERE = Path(__file__).resolve().parent
+
+
+def main():
+    status_path=ROOT/'reports/STATUS_SCUT27_FIRST.json'
+    status=json.loads(status_path.read_bytes()); files=status['files']
+    assert status['SSHclosed'] and status['serial']=='FREE'
+    assert not any(k in files for k in ['OWNER_ERROR.json','production/ERROR.json','OWNER_EXIT.json'])
+    restore=files['production/FULL_RESTORE.json'];first=files['production/FIRST_UPDATED.json']
+    assert restore['source']['iteration']==985 and restore['actor_critic_STD_complete_Adam_equal']
+    assert restore['source_model_decodes']==1 and restore['optimizer_states']==17
+    assert restore['Adam_step_min']==restore['Adam_step_max']==19700
+    assert restore['LR_restored'] and not restore['weights_or_Adam_reset']
+    assert restore['corrected_debug_step']==0 and restore['common_step_counter']==23640
+    assert first['iteration']==986 and first['PPO_updates']==1 and first['full_save']
+    assert first['rollout_controls']==24 and first['actual_onpolicy_samples']==98304
+    assert first['physics_ticks']==192 and first['gradient']['steps']==20
+    assert all(math.isfinite(v) and v>0 for k,v in first['gradient'].items() if k!='steps')
+    plan=json.loads((HERE/'PLAN.json').read_bytes())
+    review=json.loads((ROOT/'reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json').read_bytes())
+    correction=json.loads((ROOT/'reports/SCUT27_FINAL985_REVIEW_NONWHEEL_SCHEMA_CORRECTION.json').read_bytes())
+    resource=json.loads((ROOT/'reports/FOUR4090_RESOURCE_ACTUAL_SCUT27B.json').read_bytes())
+    go=files['GO_PRODUCTION.json']
+    windows={k:datetime.fromtimestamp(go[k]).astimezone().isoformat() for k in ['learning_started_epoch','save_deadline','nominal_end_epoch']}
+    resource_summary=dict(captured=resource['captured'],
+        host72='selectedGPU0 computeempty24203MiB;GPU1 computeoccupied6734MiB. Originalcanonical activeNone at admission; remaining251549.72788143158 snapshot.',
+        host210='computeempty but diskfree0B; not selected',
+        host86='computeoccupied21602MiB despiteutil0; not idle')
+    value=dict(epoch=time.time(),status='SCUT27_LIVE_ACTUAL_FIRST986_FULL_RESTORE985_SAME_V25_RECIPE',
+        run_id=plan['run_id'],remote_job=plan['remote_root'],source_checkpoint=restore['source'],
+        original_owner=files['OWNER_STARTED.json']['identity'],
+        original_worker=files['OWNER_CURRENT.json']['worker'],
+        initial_launch_Popen_identity=json.loads((ROOT/'reports/SCUT27_OWNER_LAUNCH_ACTUAL.json').read_bytes()),
+        initial_worker_Popen_identity=files['WORKER_IDENTITY.json'],GO=go,windows_local=windows,
+        actual_full_restore=restore,actual_first=first,first_native_startup=files['production/STARTUP.json'],
+        collector=dict(path=str(status_path),captured=status['captured_local'],SSHclosed=True,serial='FREE',model_reads=0),
+        previous_V25=dict(final=review['actual_source_final'],own_exit=review['own_exit'],
+            evaluation=review['actual_evaluation'],manifold=dict(review['all80_manifold'],
+                any_nonwheel_support_over1N_envs=correction['correct_value']),
+            actuator=review['actuator'],native_review=dict(review['native_review'],
+                actual_hip_target_vs_measured_native_reviewed=True),
+            original_review_preserved=True,correction_report='reports/SCUT27_FINAL985_REVIEW_NONWHEEL_SCHEMA_CORRECTION.json',
+            closed_transfer_once_consumed_complete=True,rendered_and_viewed=True,no_replay=True),
+        four4090_inventory='reports/FOUR4090_RESOURCE_ACTUAL_SCUT27B.json',resource_summary=resource_summary,
+        changes_from_V25=[],same_checkpoint_format='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS',
+        method='OriginalSCUT PPO flat985toward8000; then originalrough weights-only freshAdam. No reward/reset/PPO/physics/action changes.',
+        full_restore_scope='ActorcriticSTD/17Adam/LR/allRNG/savedcounters/complete originalcomponents andqueues then onefreshphysicalreset. Not PhysXcontinuation.',
+        schema_correction='Earlier review nonwheel count80 included wheelcolumns; actual22env have any nonwheel>1N. Originalfalse retained; no physics re-evaluation.',
+        pending_skill_evaluation='V27 not evaluated; FIRST is training/fullsave only. Originalsameowner complete save/safe close then immediate200mm80actual400Hz.',
+        next='No repeatlaunch/FIRST/GPU/startup/validation/hotpatch whilehealthy. Check localmetadata/once. FreshLOCALFREE andactualOWNEXIT then unusedV27dispatchclosed once, rendernewactualposes then native side/top/curve/all80 review.',
+        no_new_budget_copy_grant_refund=True,other_scope_untouched=True)
+    report=ROOT/'reports/SCUT27_ACTUAL_FIRST986_V25_FINAL985_NATIVE_HANDOFF_20261104.json'
+    with report.open('x',encoding='utf-8') as stream:json.dump(value,stream,ensure_ascii=False,indent=2)
+    wp=ROOT/'CURRENT_WORK_ORDER.json';w=json.loads(wp.read_bytes())
+    prior=value['previous_V25']
+    w['prior_V25_final985_actual']=dict(run_id=review['own_exit']['run_id'],remote_job=restore['source']['path'].rsplit('/production/',1)[0],**prior)
+    w.update(status=value['status'],training_started=True,training_completed=False,
+        run_id=plan['run_id'],remote_job=plan['remote_root'],original_owner=value['original_owner'],
+        original_worker=value['original_worker'],actual_worker=value['original_worker'],
+        original_launch_Popen_identity=value['initial_launch_Popen_identity'],
+        original_worker_current=value['original_worker'],current_own_exit=None,actual_owner_exit=None,
+        current_run_final=None,evaluation_result=None,current_model_independent_evaluation=None,
+        evaluation_status='V27 actual independent200mm80 pending original fullsave/safeclose; V25 reviewed0of80',
+        evaluation_closed_and_transferred=False,closed_transfer_once_consumed=False,
+        evaluation_once_consumed=False,closed_transfer_original_once_unused=True,
+        closed_transfer_entry=str(HERE/'dispatch.py')+' closed',
+        current_model_native_reviewed=False,model_native_reviewed=False,
+        replay_native_reviewed=dict(current_V27=False,previous_V25=prior['native_review']),
+        current_full_restore=restore,full_restore_receipt=restore,
+        current_first_complete_checkpoint=first['checkpoint'],latest_checkpoint=first['checkpoint'],first_checkpoint=first['checkpoint'],
+        first_actual_metrics=first,current_first_actual=first,
+        GO=go,absolute_times=windows,original_save_local=windows['save_deadline'],original_nominal_local=windows['nominal_end_epoch'],
+        latest_status=str(report.relative_to(ROOT)),latest_handoff=str(report),handoff_current=str(report),
+        current_state_evidence='ActualFIRST986 complete save/fullrestore985; collectorclosedSSHclosedFREE; skill evaluation not run yet forV27.',
+        latest_actual_progress=first,latest_live_progress=None,latest_live_metadata_captured=status['captured_local'],
+        latest_health_captured=status['captured_local'],health_interpretation='FIRST verifies production/fullsave; not200mm success.',
+        no_training_skill_claim=True,training_skill_pass=False,standing200_evaluation='CurrentV27notyet; previousV25strict0/80 alreadyactualevaluatednative reviewed',
+        source_version=dict(overlay=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            frozen_SHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest(),
+            dispatch=str(HERE/'dispatch.py'),shared_source='ImmutableV25 implementation, currentTASK final985, no recipe delta'),
+        current_resource_blocker=None,resource_summary=resource_summary,
+        resource_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_SCUT27B.json',
+        fourGPU_latest_snapshot='reports/FOUR4090_RESOURCE_ACTUAL_SCUT27B.json',fourGPU_latest_summary=resource_summary,
+        resource_snapshot_is_historical=True,current_diagnosis=dict(previous_V25=prior['actuator'],review_report=str(report)),
+        first_readonly_status_consumed=True,first_readonly_status_finished=True,
+        pending_repair=dict(version='SCUT27_SAME_RECIPE_FULL_RESUME',root=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            launch_once_consumed=True,FIRST_consumed=True,status='ACTUAL_FIRST986_LIVE'),
+        followup_commands=dict(closed=str(HERE/'dispatch.py')+' closed',
+            render='scut_recipe_v18/render.py only new actualV27npz after closed'),
+        automation_status='ACTIVE_HOURLY_UPDATE_V27_ACTUAL_FIRST986',
+        next=value['next'])
+    wp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(report=str(report),status=value['status'],windows=windows,
+        checkpoint=first['checkpoint']['SHA'],full_restore_Adam_steps=19700,collector_closed=True)))
+
+
+if __name__=='__main__':main()

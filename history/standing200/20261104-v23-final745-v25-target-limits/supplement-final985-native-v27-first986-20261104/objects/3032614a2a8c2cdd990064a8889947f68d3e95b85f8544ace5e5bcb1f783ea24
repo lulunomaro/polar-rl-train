@@ -1,0 +1,100 @@
+"""Analyze saved final985 data and reuse its motor plot; no model or physics."""
+from pathlib import Path
+import hashlib
+import json
+import time
+import numpy as np
+
+ROOT = Path(__file__).resolve().parent.parent
+RUN = 'MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_1793750781803008100'
+ACTUAL = ROOT/'actual_closed'/RUN
+E = ACTUAL/'evaluation'
+
+
+def main():
+    report = ROOT/'reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json'
+    assert not report.exists()
+    # Native view_image review of all eight pose sheets and support curve was
+    # completed before this saved report. Plot only the existing motor data.
+    p = ROOT/'scut_recipe_v25/motor_plot.py'
+    source = p.read_text(encoding='utf-8')
+    source = source.replace('MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800', RUN)
+    source = source.replace('V23 final745', 'V25 final985')
+    source = source.replace('SCUT23_FINAL745_MOTOR_CURVE_ARTIFACT', 'SCUT25_FINAL985_MOTOR_CURVE_ARTIFACT')
+    exec(compile(source, str(p), 'exec'), dict(__file__=str(p), __name__='final985_saved_motor_plot'))
+    result = json.loads((E/'RESULT.json').read_bytes())
+    final = json.loads((ACTUAL/'production/FINAL.json').read_bytes())
+    own = json.loads((ACTUAL/'OWNER_EXIT.json').read_bytes())
+    episodes = json.loads((E/'ALL80.json').read_bytes())['first_episodes']
+    arrays = np.load(E/'actual400hz.npz', allow_pickle=False)
+    active = arrays['active']
+    pos = arrays['root_pos'] - np.asarray(result['origins'])[None,:,:]
+    ground = arrays['ground_force']; support = arrays['support_force']
+    top = arrays['top_force']
+    curves = json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+    ca = np.asarray([v['active'] for v in curves], dtype=bool)
+    target = np.asarray([v['joint_pos_target'] for v in curves])
+    measured = np.asarray([v['joint_pos_measured'] for v in curves])
+    torque = np.asarray([v['applied_torque'] for v in curves])
+    mask = active & (arrays['tick'][:,None] >= 400)
+    times = np.asarray([v['seconds'] for v in episodes])
+    terminated = [v for v in episodes if v['terminated']]
+    selected = []
+    for env in [0,1,40,41]:
+        keep = mask[:,env]
+        selected.append(dict(env=env,seconds=episodes[env]['seconds'],
+            root_z_after1s_minmax=[float(pos[keep,env,2].min()),float(pos[keep,env,2].max())],
+            max_abs_xy_m=np.abs(pos[active[:,env],env,:2]).max(axis=0).tolist(),
+            terminal_root_relative_m=(np.asarray(episodes[env]['root_pos'])-result['origins'][env]).tolist(),
+            terminal_hips_rad=[episodes[env]['measured_actuated_joint_pos'][j] for j in [1,3]]))
+    evaluation = dict(cases=80,seed=9137,max_controls=500,seconds_max=10,
+        strict=sum(v['strict200_standing'] for v in episodes),
+        whole=sum(v['whole_footprint'] for v in episodes),
+        both_top=int(np.any(np.all(top>1,axis=2)&active,axis=0).sum()),
+        max_top_force_N=float(top[active].max()),terminated=len(terminated),
+        full10s=int((times==10).sum()),mean_seconds=float(times.mean()),median_seconds=float(np.median(times)),
+        source_contact_terminated=sum(v['source_contact_force_max_N']>1 for v in terminated),
+        source_roll_excess=sum(v['source_roll_excess'] for v in episodes),
+        source_pitch_excess=sum(v['source_pitch_excess'] for v in episodes),
+        closure_resets=sum(v['closure_reset'] for v in episodes),
+        mimic_resets=sum(v['mimic_reset'] for v in episodes),
+        numerical_resets=sum(v['numerical_safety'] for v in episodes),
+        source_clock_values=sorted(set(v['source_clock'] for v in episodes)))
+    manifold = dict(all80_actual400Hz=True,active_physics_records=int(active.sum()),
+        any_strict_envs=int(np.any(arrays['strict']&active,axis=0).sum()),
+        any_wholeclear_envs=int(np.any(arrays['wholeclear']&active,axis=0).sum()),
+        any_both_ground_support_over1N_envs=int(np.any(np.all(ground>1,axis=2)&active,axis=0).sum()),
+        any_nonwheel_support_over1N_envs=int(np.any(np.any(support>1,axis=2)&active,axis=0).sum()),
+        max_abs_xy_from_origin_m=np.abs(pos[active][:,:2]).max(axis=0).tolist(),
+        root_z_after1s_quantiles=np.quantile(pos[:,:,2][mask],[0,.1,.5,.9,1]).tolist(),
+        first20ms_support_over1N_envs=int(np.any(((ground.sum(axis=2)+support.sum(axis=2))>1)&active&(arrays['tick'][:,None]<=8),axis=0).sum()),
+        selected=selected)
+    motors = dict(active_controls=int(ca.sum()),
+        decoded_target_min=target[ca].min(axis=0).tolist(),decoded_target_max=target[ca].max(axis=0).tolist(),
+        hip_target_over_upper_fraction=[float((target[:,:,j][ca]>.500001).mean()) for j in [1,3]],
+        actual_hip_within1mrad_upper_fraction=[float((np.abs(measured[:,:,j][ca]-.5)<=.001).mean()) for j in [1,3]],
+        applied_torque_abs99=np.quantile(np.abs(torque[ca]),.99,axis=0).tolist(),
+        conclusion='Decoded joint target excess removed in actual data; this alone does not demonstrate standing200 or establish a unique causal explanation.')
+    value=dict(epoch=time.time(),actual_source_final=final['checkpoint'],new_PPO_updates=final['PPO_updates'],
+        own_exit=own,actual_evaluation=evaluation,all80_manifold=manifold,actuator=motors,
+        native_review=dict(viewer='current model native view_image',actual_four_side_four_top_sheets_reviewed=True,
+            actual_400Hz_route_support_curve_reviewed=True,selected=[0,1,40,41],
+            observation='Four selected robots stay inside lower square, make small translations and repeated turns; env0 nearly pauses between about2-8s. After unsupported spawn descent they maintain about.25-.28m root height. No ascent onto a raised surface. Selectedtop forces zero; support plot has brief nonwheel event in env0.',
+            initial_descent='Existing .38m unsupported reset is retained; initial fall is not wholly attributed to active policy crouching.',
+            actual_hip_target_vs_measured_native_reviewed=False),
+        comparison_V23=dict(final_iteration=745,strict=0,whole=0,both_top=0,mean_seconds=3.86775,full10s=12,
+            interpretation='Survival and target feasibility improve;200mm skill remains0/80.'),
+        transfer=dict(original_V25_closed_once_consumed=True,complete=True,
+            receipt='reports/SCUT25_CLOSED_TRANSFER_ACTUAL.json',closed='reports/SCUT25_CLOSED_TRANSFER_SSH_CLOSED.json',
+            no_transfer_or_evaluation_replay=True),
+        raw_artifacts=[result['all80_manifold'],result['actual_poses']],
+        decision=dict(next_version='V27',same_recipe_full_restore_final985=True,
+            rationale='Joint-target interface now follows originalSCUT target clipping and actual motion survives longer; continue original flat preparation toward8000 rather than change reward/reset or move early to rough.',
+            preserve='V25 targetadapter, PPO/reward/commands/reset/D0-D7/physical parameters; full actorcriticSTD/17Adam/LR/RNG/scalars/components/queues then onefreshphysicalreset',
+            pending='Fresh exactlocal serial, allfour inventory and originalcanonical/privateGPU/finite admission before anylaunch'),
+        production_PT_reads=0,new_physics=0,optimizer_operations=0)
+    with report.open('x',encoding='utf-8') as stream:json.dump(value,stream,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(report=str(report),evaluation=evaluation,manifold=manifold,motors=motors)))
+
+
+if __name__=='__main__':main()

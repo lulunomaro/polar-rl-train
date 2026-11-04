@@ -1,0 +1,27 @@
+"""Ordinary supplement of the recorded V25 phase; no experiment/tag replay."""
+from pathlib import Path
+import hashlib
+
+ROOT=Path(__file__).resolve().parent.parent
+P=ROOT/'scut_eval_v22/archive_actual.py'
+raw=P.read_bytes()
+source=raw.decode()
+source=source.replace("20261104-v20-eval22-v21-full-resume'",
+    "20261104-v23-final745-v25-target-limits/supplement-final985-native-v27-first986-20261104'")
+source=source.replace('V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284',
+    'V25_FINAL985_ACTUAL_NATIVE_REVIEW_SCHEMA_CORRECTION_V27_SAME_RECIPE_FULLRESUME_FIRST986')
+old="R/'scut_recipe_v21',R/'scut_eval_v22',"
+new="R/'scut_recipe_v25',R/'scut_recipe_v27',"
+assert source.count(old)==1;source=source.replace(old,new)
+source=source.replace('MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300',
+    'MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_1793750781803008100')
+source=source.replace("R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md'", "R/'scut_recipe_v27/README.md'")
+old="raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))"
+new="""if p.name=='CONTROL_CURVES.json':
+            publication=json.loads((R/'reports/SCUT25_CLOSED_TRANSFER_ACTUAL.json').read_bytes())
+            item=next(v for v in publication['files'] if v['local_path']==str(p))
+            rows.append(dict(source_path=str(p),bytes=item['bytes'],SHA=item['SHA'],mode='external_large_raw_only',published_by='reports/SCUT25_CLOSED_TRANSFER_ACTUAL.json'))
+            continue
+        raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))"""
+assert source.count(old)==1;source=source.replace(old,new)
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

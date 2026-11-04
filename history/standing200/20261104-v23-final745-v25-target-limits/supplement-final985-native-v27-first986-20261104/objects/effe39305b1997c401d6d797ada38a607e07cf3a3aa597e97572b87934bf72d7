@@ -1,0 +1,126 @@
+"""Freeze a small same-recipe continuation after the actual final985 review."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+
+
+def row(path, relative=None):
+    raw = path.read_bytes()
+    value = dict(path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    if relative is not None:value['relative']=relative
+    return value
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    review = json.loads((ROOT/'reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json').read_bytes())
+    assert review['native_review']['actual_four_side_four_top_sheets_reviewed']
+    assert review['actual_source_final']['iteration']==985
+    own = review['own_exit']
+    assert own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    prior = json.loads((ROOT/'scut_recipe_v25/FROZEN.json').read_bytes())
+    plan = json.loads((ROOT/'scut_recipe_v25/PLAN.json').read_bytes())
+    # Saved review used any support column for its nonwheel count; only column2
+    # is nonwheel. Preserve that report and publish the corrected interpretation.
+    import numpy as np
+    actual = ROOT/'actual_closed'/prior['run_id']
+    data = np.load(actual/'evaluation/actual400hz.npz',allow_pickle=False)
+    mask = data['active']
+    correction = dict(epoch=time.time(),corrects='reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json',
+        field='all80_manifold.any_nonwheel_support_over1N_envs',old_value=80,
+        reason='Saved support_force has wheel0,wheel1,nonwheel columns; only column2 counts nonwheel.',
+        correct_value=int(np.any((data['support_force'][:,:,2]>1)&mask,axis=0).sum()),
+        source='scut_recipe_v18/recipe.py recipe_support assignment',
+        actual_hip_target_vs_measured_native_reviewed=True,
+        native_motor_observation='All eight selected hip target plots remain at.5rad after clipping; measured hips mostly.38-.45rad. Target feasibility improved, tracking error remains under load. No claim of unique cause or skillpass.',
+        production_PT_reads=0,new_physics=0)
+    with (ROOT/'reports/SCUT27_FINAL985_REVIEW_NONWHEEL_SCHEMA_CORRECTION.json').open('x',encoding='utf-8') as f:
+        json.dump(correction,f,ensure_ascii=False,indent=2)
+    final = review['actual_source_final']
+    runid = 'MOD4_STANDING200_SCUT_RECIPE_V27_FLAT_'+str(time.time_ns())
+    plan.update(run_id=runid,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        source_checkpoint=final,resume_checkpoint=final,target_iterations=8000-final['iteration'],
+        source_review=str(ROOT/'reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json'),
+        source_review_supplement=str(ROOT/'reports/SCUT27_FINAL985_REVIEW_NONWHEEL_SCHEMA_CORRECTION.json'),
+        changes_from_V25=[],training_algorithm_reward_physics_action_reset_changes=[],
+        integration_repair='No new delta; exact V25 joint-target interface and V21 complete restore reused with currentTASK final985.',
+        same_checkpoint_format=True,full_restore_required_before_FIRST=True,
+        source_learning_state_verified='Verify during single actual production restore; do not decode productionPT for preparation/archive')
+    plan['support'].append(prior['job'])
+    (HERE/'PLAN.json').write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    remote = prior['job']
+    byname = {v['relative']:v for v in prior['files']}
+    # Wrapper compilation preserves current __file__/TASK binding while every
+    # common implementation remains the already deployed immutable V25 file.
+    for name in ['entry.py','evaluate.py','full_resume.py','owner.py','recipe.py']:
+        pre = ""
+        expression = 'raw'
+        if name=='recipe.py':
+            pre = "import sys\nsys.path.append(str(P.parent))\n"
+        if name=='owner.py':
+            expression = "raw.decode().replace('scut_standing200_recipe25','scut_standing200_recipe27')"
+        content = ('"""Reuse immutable V25 implementation with this task binding."""\n'
+            'from pathlib import Path\nimport hashlib\n'
+            f"P=Path({(remote+'/'+name)!r})\nraw=P.read_bytes()\n"
+            f"assert hashlib.sha256(raw).hexdigest()=={byname[name]['SHA']!r}\n"+pre+
+            f"exec(compile({expression},str(P),'exec'),globals())\n")
+        (HERE/name).write_text(content,encoding='utf-8',newline='\n')
+    p = ROOT/'scut_recipe_v25/control.py'
+    content = ('"""Original finite control; unique continuation labels, unchanged admission."""\n'
+        'from pathlib import Path\nimport hashlib\n'
+        "P=Path(__file__).resolve().parent.parent/'scut_recipe_v25/control.py'\nraw=P.read_bytes()\n"
+        f"assert hashlib.sha256(raw).hexdigest()=={row(p)['SHA']!r}\n"
+        "source=raw.decode().replace('SCUT25','SCUT27').replace('RECIPE_V25_','RECIPE_V27_')\n"
+        "source=source.replace(\"w['prior_V23_final745_actual']\",\"w['prior_V25_final985_actual']\")\n"
+        "exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())\n")
+    (HERE/'control.py').write_text(content,encoding='utf-8',newline='\n')
+    p = ROOT/'scut_recipe_v25/closed_transfer_v26.py'
+    content = ('"""Reuse reviewed exact saved-pose GUI classification for this finite mode."""\n'
+        'from pathlib import Path\nimport hashlib\nimport sys\n'
+        "P=Path(__file__).resolve().parent.parent/'scut_recipe_v25/closed_transfer_v26.py'\nraw=P.read_bytes()\n"
+        "assert hashlib.sha256(raw).hexdigest()=='e4734299201c4dc8b7279d362581b7cd2dc32188be6b571659ab23a2744a71b8'\n"
+        "mode=sys.argv[1]\nassert mode in ('local','gpu','launch','first','closed')\n"
+        "source=raw.decode().replace(\"    assert not (ROOT/'reports/SCUT25_CLOSED_TRANSFER_ONCE.json').exists()\\n\",'')\n"
+        "source=source.replace(\"ROOT/'scut_recipe_v25/control.py'\",\"ROOT/'scut_recipe_v27/control.py'\")\n"
+        "source=source.replace('SCUT26_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_','SCUT27_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_')\n"
+        "source=source.replace('    controller.closed()',\"    if MODE!='local':getattr(controller,MODE)()\")\n"
+        "exec(compile(source,str(P),'exec'),dict(__file__=__file__,__name__='__main__',MODE=mode))\n")
+    (HERE/'dispatch.py').write_text(content,encoding='utf-8',newline='\n')
+    shared = list(prior['shared_text'])
+    shared += [dict(path=prior['job']+'/'+v['relative'],bytes=v['bytes'],SHA=v['SHA']) for v in prior['files']]
+    files=[]
+    for name in ['recipe.py','full_resume.py','entry.py','owner.py','evaluate.py','control.py','dispatch.py','PLAN.json']:
+        p=HERE/name
+        if p.suffix=='.py':ast.parse(p.read_text(encoding='utf-8'))
+        files.append(row(p,name))
+    files.append(row(ROOT/'scut_recipe_v23/SOURCE_PATHS.json','SOURCE_PATHS.json'))
+    frozen = dict(epoch=time.time(),run_id=runid,job=plan['remote_root'],files=files,
+        shared_text=shared,changes_from_V25=[],whole_runtime_copies=0,production_PT_reads_for_freeze=0,new_physics=0,
+        CPU_evidence_reused=['reports/SCUT25_ACTUAL_TARGET_BOUNDARY_CPU.json','reports/SCUT25_FULL_RESTORE_FORMAT_MIGRATION_CPU.json'],
+        full_restore_binding='CurrentV27 TASK; immutableV25 recipe executes with current__file__, localfull_resume wrapper accepts sameV25 format')
+    with (HERE/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,indent=2)
+    wp=ROOT/'CURRENT_WORK_ORDER.json';w=json.loads(wp.read_bytes())
+    w.update(status='SCUT25_FINAL985_ACTUAL0OF80_NATIVE_REVIEWED_V27_SAME_RECIPE_FROZEN_UNUSED',
+        current_run_final=final,latest_checkpoint=final,training_completed=True,
+        current_own_exit=own,actual_owner_exit=own,evaluation_result=review['actual_evaluation'],
+        current_model_native_reviewed=True,model_native_reviewed=True,
+        replay_native_reviewed=dict(review['native_review'],actual_hip_target_vs_measured_native_reviewed=True),
+        native_review_report=str(ROOT/'reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json'),
+        evaluation_closed_and_transferred=True,closed_transfer_once_consumed=True,closed_transfer_original_once_unused=False,
+        current_diagnosis=dict(actuator=review['actuator'],review_supplement=correction),
+        latest_status='reports/SCUT25_FINAL985_NATIVE_TARGET_REVIEW_V27_DECISION.json',
+        current_resource_blocker=None,current_state_evidence='Actualfinal985/OWNEXIT/eval80 transferred and native reviewed; V27 only frozen unused.',
+        pending_repair=dict(version='SCUT27_SAME_RECIPE_FULL_RESUME',root=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            frozen_SHA=row(HERE/'FROZEN.json')['SHA'],launch_once_consumed=False,status='FROZEN_UNUSED_FROM_FINAL985'),
+        next='FreshV27 exactLOCAL/allfour/originalcanonical/privateGPU/finite; launchonce only if originalwriter free. Otherwise keep unused. NoV25transfer/render/eval replay; sameflat985toward8000.')
+    wp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(frozen=True,run_id=runid,source_iteration=985,production_PT_reads=0,new_physics=0,
+        nonwheel_schema_correction=correction)))
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,9 @@
+"""Original finite control with unique V28 labels; admission unchanged."""
+from pathlib import Path
+import hashlib
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v25/control.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='8fd8be8899a559d9fd00f98dbc00e31522838f76ba80ad6194b8d31dac9359b4'
+source=raw.decode().replace('SCUT25','SCUT28').replace('RECIPE_V25_','RECIPE_V28_')
+source=source.replace("w['prior_V23_final745_actual']","w['prior_V27_final1234_actual']")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

@@ -1,0 +1,8 @@
+"""Same exact saved-pose GUI classification and fresh finite local gate."""
+from pathlib import Path
+import hashlib
+P=Path(__file__).resolve().parent.parent/'scut_recipe_v27/dispatch.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='d5e25067d08bbee309d7e583ca64c6d88a8d53674854f7fde6b220fcff5974ab'
+source=raw.decode().replace('scut_recipe_v27/control.py','scut_recipe_v28/control.py').replace('SCUT27_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_','SCUT28_EXACT_LOCAL_REPLAY_SERIAL_CLASSIFICATION_')
+exec(compile(source,str(P),'exec'),globals())

@@ -6,6 +6,7 @@ and DR remain MOD4; the generator parameters come from the pinned saved YAML.
 from copy import deepcopy
 from functools import lru_cache
 import math
+import numpy as np
 import torch
 from .config import read_yaml
 from .math_ops import euler_xyz_from_quat
@@ -24,6 +25,15 @@ def terrain_columns(num_envs):
     """Repeat only the selected course to keep20k actors spatially separated."""
     generator, _ = recipe()
     return generator['num_cols']*max(1, math.ceil(num_envs/2000))
+
+
+def contact_mesh_paths(num_envs):
+    """Each global filter must match one shape for PhysX sensor broadcasting."""
+    if num_envs != 20000:
+        return [MESH]
+    generator, _ = recipe()
+    chunks = math.ceil(terrain_columns(num_envs)/generator['num_cols'])
+    return [f'/World/ground/terrain_collision_{i}/mesh' for i in range(chunks)]
 
 
 def metadata(num_envs=80):
@@ -85,7 +95,35 @@ def terrain_cfg(seed, num_envs=80):
         def import_mesh(self, name, mesh):
             self.scut_vertices = mesh.vertices.copy()
             self.scut_faces = mesh.faces.copy()
-            return super().import_mesh(name, mesh)
+            if num_envs != 20000:
+                return super().import_mesh(name, mesh)
+            # Keep the exact combined ray mesh. Cook collisions in strips of
+            # the original14columns after native140column cooking failed.
+            from isaaclab.sim import get_current_stage
+            from pxr import UsdGeom, Vt
+            # The ray mesh has no CollisionAPI at any time, so the oversized
+            # combined topology never enters PhysX cooking.
+            stage = get_current_stage()
+            root = self.cfg.prim_path+'/'+name
+            UsdGeom.Xform.Define(stage, root)
+            ray = UsdGeom.Mesh.Define(stage, root+'/mesh')
+            ray.CreatePointsAttr().Set(Vt.Vec3fArray.FromNumpy(np.asarray(mesh.vertices,dtype=np.float32)))
+            ray.CreateFaceVertexCountsAttr().Set(Vt.IntArray.FromNumpy(np.full(len(mesh.faces),3,dtype=np.int32)))
+            ray.CreateFaceVertexIndicesAttr().Set(Vt.IntArray.FromNumpy(mesh.faces.astype(np.int32).flatten()))
+            ray.CreateSubdivisionSchemeAttr().Set('none')
+            self.terrain_prim_paths.append(root)
+            centroids = mesh.triangles_center[:, 1]
+            width = generator['num_cols']*generator['size'][1]
+            start = -.5*terrain_columns(num_envs)*generator['size'][1]
+            bins = np.clip(((centroids-start)//width).astype(np.int32),0,
+                          math.ceil(terrain_columns(num_envs)/generator['num_cols'])-1)
+            self.scut_collision_chunks = []
+            for group in np.unique(bins):
+                ids = np.flatnonzero(bins == group)
+                chunk = mesh.submesh([ids], append=True, repair=False)
+                super().import_mesh('terrain_collision_'+str(group), chunk)
+                self.scut_collision_chunks.append(dict(group=int(group),triangles=len(chunk.faces)))
+            return None
 
         def __init__(self, cfg):
             super().__init__(cfg)

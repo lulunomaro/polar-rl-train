@@ -120,6 +120,29 @@ class Tests(unittest.TestCase):
                     'horizontal_scale', 'vertical_scale', 'height_command_range_m'):
             self.assertEqual(a[key], b[key])
 
+    def test_chunk_contact_filters_sum_without_duplicate_or_missing_forces(self):
+        force = torch.tensor([2.,3.,4.,5.,6.])
+        count = torch.tensor([[2,1],[0,2]])
+        start = torch.tensor([[0,2],[0,3]])
+        offset = torch.arange(4)[None,None]
+        valid = offset < count[...,None]
+        ids = (start[...,None]+offset).clamp(0,len(force)-1)
+        totals = torch.where(valid,force[ids],0.).sum((-1,-2))
+        torch.testing.assert_close(totals,torch.tensor([9.,11.]),atol=0,rtol=0)
+
+    def test_global_chunk_filters_use_singleton_broadcast_for_twenty_thousand(self):
+        from fnmatch import fnmatchcase
+        from .stairs import contact_mesh_paths, MESH
+        shapes = [f'/World/ground/terrain_collision_{i}/mesh' for i in range(10)]
+        # PhysX accepts a global singleton or one match per sensor. One
+        # wildcard matching ten global shapes is neither for20k sensors.
+        bad_count = sum(fnmatchcase(p, '/World/ground/terrain_collision_*/mesh') for p in shapes)
+        self.assertNotIn(bad_count, (1, 20000))
+        filters = contact_mesh_paths(20000)
+        self.assertEqual(set(filters), set(shapes))
+        self.assertEqual([sum(fnmatchcase(p, f) for p in shapes) for f in filters], [1]*10)
+        self.assertEqual(contact_mesh_paths(80), [MESH])
+
 
 if __name__ == '__main__':
     import argparse

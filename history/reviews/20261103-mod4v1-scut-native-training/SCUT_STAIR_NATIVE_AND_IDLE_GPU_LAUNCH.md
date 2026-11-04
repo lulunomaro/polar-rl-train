@@ -29,3 +29,19 @@ attempt02在首次PPO更新前OOM：只剩63.06MiB，ELU还需118MiB，当前进
 11:46:30启动attempt03 exactowner1591175/create1793763990.63，solelocal29304/create2026-11-04T11:46:24.443816+08有限FIRST。仍用原有效0fdd权重，不用两次失败的部分权重，仍20,000环境，原SAVE12:14:28.462118/NOMINAL12:19:28.462118，不开新小时或退款。原生是否消除pair/OOM须看本次真实日志与更新，不以CPU检查作成功。
 
 本阶段沿用既有annotated trial，全部false/reader错误与结果只追加普通Git提交；新训练不增加或复制canonical、不退款、不覆盖既有模型与冻结once。
+
+## 12:12实际覆盖：碰撞网格失败与attempt05
+
+attempt03的140列单一碰撞mesh约22.68M三角面，原生PhysX cooking失败，地形碰撞体未创建。因此即使FIRST和3次PPO存在，也不是有效训练。已通过原exact owner STOP_AFTER_SAVE完整保存、独立80并释放锁；final SHA7eaaddc6a21489fa07f9e7e25e24335574ff2a7433c8142e38fc980d1a82753c仅作失败证据，不续权重。新4幅早晚实际pose图已原生审看，80评测3恢复指标不能证明140列训练碰撞正常。
+
+attempt04将相同mesh拆为10个物理碰撞条带，完整无碰撞raymesh保持扫描几何；接触读者支持多filter求和。原生在Vt.IntArray(np.ndarray)构造处拒绝numpy.int32，发生于模型与physics前，0FIRST/0有效PPO。完整ERROR/ownwait/settled/released保留。
+
+attempt05仅将facecounts/indices改用Vt.IntArray.FromNumpy。12:07:14启动owner1593421/create1793765234.53，solelocal59228/create12:07:08.466793，session77440；12:11已建20,000环境scene，正在原生初始化，FIRST尚未出现。原始绝对SAVE12:14:28.462118/NOMINAL12:19:28.462118保持；不是新小时，若初始化耗尽原窗必须如实记录零更新。源仍有效0fdd，不采用此前失败权重。源码/物理/奖励边界保持。
+
+## 12:24关闭结果与接触接口修复
+
+attempt05在12:18:41.869608原owner ownwait/settled/released，actualPPO=0、无FIRST/FINAL/独立评测。模型初始化前，contactview创建失败：单个terrain_collision_*通配符匹配10个全局形状，既不是每sensor一个也不是可广播单形状，expected20000/found10。worker返回0被SDK关闭流程吞掉，TRAIN_CLOSED.passed_execution=false与production/ERROR为真实失败，不当成功。
+
+已将10个碰撞条带改为10个显式单形状filter路径。针对原错误的1项CPU检查通过，0生产PT/physics；12:23使用原传输只读目标SDK api.py文档，确认single-prim exception可以对所有sensor广播，source SHA以CLOSED05_EXACT_SOURCE_READ报告为准。该读者首次inline argv没任务路径而被本地gate拒绝，换命名脚本后成功，原false保留；未绕gate。
+
+原SAVE12:14:28.462118/NOMINAL12:19:28.462118均已结束，不自动延长或退款。NEXT_FILTER_FIX_PREPARED.json记录当前三文件SHA和正确源码方案；没有新生产namespace或启动。已向人类提出使用原canonical余额重新开20k一小时窗的问题，等待明确答案。当前没有live controller，不得以旧59228/50100/29304文字再等待或重放once。

@@ -74,10 +74,12 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.scene.num_envs, cfg.scene.env_spacing = n, 8.
     cfg.scene.ground.spawn.func = spawn_course
     cfg.scene.ground.init_state.pos = (0., 0., 0.)
+    contact_meshes = [MESH]
     if profile == 'scut_stairs':
-        from .stairs import terrain_cfg, MESH as stair_mesh
+        from .stairs import terrain_cfg, MESH as stair_mesh, contact_mesh_paths
         cfg.scene.ground = terrain_cfg(cfg.seed, n)
         MESH = stair_mesh
+        contact_meshes = contact_mesh_paths(n)
     cfg.scene.robot.init_state.pos = (0.,0.,SPAWN_HEIGHT)
     cfg.scene.scut_contacts = ContactSensorCfg(
         prim_path='{ENV_REGEX_NS}/Robot/links/.*', update_period=.005,
@@ -88,7 +90,7 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     for side in ('left', 'right'):
         setattr(cfg.scene, 'scut_top_'+side, ContactSensorCfg(
             prim_path='{ENV_REGEX_NS}/Robot/links/'+side+'_wheel', update_period=0.,
-            history_length=1, track_air_time=False, filter_prim_paths_expr=[MESH],
+            history_length=1, track_air_time=False, filter_prim_paths_expr=contact_meshes,
             max_contact_data_count_per_prim=64))
     scan = ground_scan_config()
     cfg.scene.scut_ground = RayCasterCfg(
@@ -110,7 +112,7 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     # orientation, timeout and consecutive duration come from pinned _get_dones.
     cfg.terminations = SimpleNamespace(closure=cfg.terminations.closure,
                                       mimic=cfg.terminations.mimic)
-    cfg.scene.chassis_contact.filter_prim_paths_expr = [MESH]
+    cfg.scene.chassis_contact.filter_prim_paths_expr = contact_meshes
     cfg.events.reset_base.params.update(
         pose_range=dict(POSE_RANGE),
         velocity_range={k:(0.,0.) for k in ('x','y','z','roll','pitch','yaw')})
@@ -408,14 +410,14 @@ class ScutBridge:
         """Read actual400Hz normal force, points and normals for strict evaluation."""
         import warp as wp
         for wi, sensor in enumerate(self.top_sensors):
-            if list(sensor.body_names) != [WHEEL_BODIES[wi]] or sensor.contact_view.filter_count != 1:
-                raise RuntimeError('Expected one explicit wheel/course manifold filter')
+            if list(sensor.body_names) != [WHEEL_BODIES[wi]] or sensor.contact_view.filter_count < 1:
+                raise RuntimeError('Expected explicit wheel/course manifold filters')
             force, point, normal, separation, counts, starts = sensor.contact_view.get_contact_data(dt=.0025)
             f = wp.to_torch(force).flatten().abs()
             p = wp.to_torch(point.view(wp.vec3))
             normal = wp.to_torch(normal.view(wp.vec3))
-            count = wp.to_torch(counts.view(wp.int32)).reshape(self.n).long()
-            start = wp.to_torch(starts.view(wp.int32)).reshape(self.n).long()
+            count = wp.to_torch(counts.view(wp.int32)).reshape(self.n,-1).long()
+            start = wp.to_torch(starts.view(wp.int32)).reshape(self.n,-1).long()
             if not bool(((count >= 0) & (count <= 64) & (start >= 0) & (start+count <= len(f))).all()):
                 raise RuntimeError('Manifold buffer capacity/count mismatch')
             self.top_force[:, wi] = 0
@@ -424,16 +426,16 @@ class ScutBridge:
             self.surface_height[:, wi] = 0
             if len(f) == 0:
                 continue
-            offset = torch.arange(64, device=self.device)[None]
-            valid = offset < count[:, None]
-            ids = (start[:, None]+offset).clamp(0, len(f)-1)
-            pts = p[ids]-self.env.scene.env_origins[:, None]
+            offset = torch.arange(64, device=self.device)[None,None]
+            valid = offset < count[..., None]
+            ids = (start[..., None]+offset).clamp(0, len(f)-1)
+            pts = p[ids]-self.env.scene.env_origins[:, None,None]
             upward = normal[ids, 2].abs() > .8
             horizontal = valid & upward
-            self.surface_force[:, wi] = torch.where(horizontal, f[ids], 0.).sum(-1)
-            peak = torch.where(horizontal, f[ids], -1.).argmax(-1)
-            world_height = p[ids, 2].gather(1, peak[:,None]).squeeze(1)
-            self.surface_height[:, wi] = torch.where(horizontal.any(-1), world_height, 0.)
+            self.surface_force[:, wi] = torch.where(horizontal, f[ids], 0.).sum((-1,-2))
+            peak = torch.where(horizontal, f[ids], -1.).flatten(1).argmax(-1)
+            world_height = p[ids, 2].flatten(1).gather(1, peak[:,None]).squeeze(1)
+            self.surface_height[:, wi] = torch.where(horizontal.flatten(1).any(-1), world_height, 0.)
             if self.profile == 'scut_stairs':
                 self.ground_force[:, wi] = self.surface_force[:, wi]
                 above_birth = self.surface_height[:,wi] > self.acceptance.birth_support[:,wi]+.0049
@@ -441,8 +443,8 @@ class ScutBridge:
                 continue
             top = valid & upward & top_mask(pts)
             ground = valid & upward & (pts[..., 2].abs() < .001)
-            self.top_force[:, wi] = torch.where(top, f[ids], 0.).sum(-1)
-            self.ground_force[:, wi] = torch.where(ground, f[ids], 0.).sum(-1)
+            self.top_force[:, wi] = torch.where(top, f[ids], 0.).sum((-1,-2))
+            self.ground_force[:, wi] = torch.where(ground, f[ids], 0.).sum((-1,-2))
 
     def snapshot(self, terminated, timeout):
         r = self.reward

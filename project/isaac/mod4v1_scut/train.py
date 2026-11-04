@@ -46,13 +46,15 @@ def parse_args():
     parser.add_argument('--runtime-manifest', required=True)
     parser.add_argument('--guard', required=True, help='Existing mod4v1_fresh_dr_guard.py')
     parser.add_argument('--job-root', required=True)
-    parser.add_argument('--profile', choices=['trained_stair', 'jump270', 'scut_stairs'], default='trained_stair')
+    parser.add_argument('--profile', choices=['trained_stair', 'jump270', 'scut_stairs', 'jump200'], default='trained_stair')
     parser.add_argument('--num-envs', type=int, default=80)
     parser.add_argument('--seed', type=int, default=66)
     parser.add_argument('--iterations', type=int, required=True)
     parser.add_argument('--save-deadline', type=float, required=True,
                         help='Original owner absolute epoch: full-save boundary')
     parser.add_argument('--resume')
+    parser.add_argument('--resume-source-profile',choices=['scut_stairs'],
+                        help='Explicit full-learning-state transfer from smallstairs to jump200')
     parser.add_argument('--resize-resume')
     parser.add_argument('--init-checkpoint')
     parser.add_argument('--init-SHA')
@@ -277,7 +279,8 @@ def main():
         with guard.around_original_fullstate_restore():
             reset = restore(runner, env, bridge, args.resume, args.profile,
                 repair_unclipped_v2=args.repair_unclipped_v2,
-                repair_target_limits=args.repair_target_limits) if args.resume else env.reset()
+                repair_target_limits=args.repair_target_limits,
+                source_profile=args.resume_source_profile) if args.resume else env.reset()
         if args.resume:
             optimizer_steps = [float(value['step']) for value in runner.alg.optimizer.state.values()
                                if 'step' in value]
@@ -289,6 +292,8 @@ def main():
                 optimizer_step_min=min(optimizer_steps) if optimizer_steps else None,
                 optimizer_step_max=max(optimizer_steps) if optimizer_steps else None,
                 learning_rate=runner.alg.learning_rate,
+                source_profile=args.resume_source_profile or args.profile,target_profile=args.profile,
+                task_changed=bool(args.resume_source_profile),
                 components_global_RNG_queues_and_counters_restored=True,
                 fresh_physical_reset=True,PhysX_state_restored=False))
         vec.current = reset[0] if isinstance(reset, tuple) else reset
@@ -306,6 +311,8 @@ def main():
         from .course import metadata
         if args.profile == 'scut_stairs':
             from .stairs import metadata
+        elif args.profile == 'jump200':
+            from .jump200 import metadata
         from .config import ACTION_CLIP, ACTION_INTERFACE, TARGET_INTERFACE
         put(job/'STARTUP.json',dict(epoch=time.time(),
             actual_native=True, profile=args.profile, usd_SHA=identity.usd_sha256,
@@ -374,8 +381,10 @@ def main():
             put(job/'LATEST_PROGRESS.json',dict(epoch=time.time(),
                 iteration=iteration+1, physics_ticks=bridge.physics_ticks,
                 actual_reward_mean=float(rewards.mean()), losses={k:float(v) for k,v in losses.items()},
-                strict270_current_count=int(bridge.acceptance.success.sum()) if args.profile != 'scut_stairs' else 0,
-                strict270_completed_count=bridge.completed_strict if args.profile != 'scut_stairs' else 0,
+                strict270_current_count=int(bridge.acceptance.success.sum()) if args.profile in ('trained_stair','jump270') else 0,
+                strict270_completed_count=bridge.completed_strict if args.profile in ('trained_stair','jump270') else 0,
+                jump200_current_count=int(bridge.acceptance.success.sum()) if args.profile == 'jump200' else None,
+                jump200_completed=bridge.completed_strict if args.profile == 'jump200' else None,
                 scut_stair_recovered=bridge.completed_strict if args.profile == 'scut_stairs' else None,
                 completed_episodes=bridge.completed_episodes,gradient=gradient))
             if iteration == start_iteration:
@@ -394,7 +403,8 @@ def main():
         final=save(runner, env, bridge, job/'model_final.pt', args.profile)
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=final,
             PPO_updates=runner.current_learning_iteration-start_iteration,
-            strict270_completed=bridge.completed_strict if args.profile != 'scut_stairs' else 0,
+            strict270_completed=bridge.completed_strict if args.profile in ('trained_stair','jump270') else 0,
+            jump200_completed=bridge.completed_strict if args.profile == 'jump200' else None,
             scut_stair_recovered=bridge.completed_strict if args.profile == 'scut_stairs' else None,
             episodes_completed=bridge.completed_episodes))
         started = False

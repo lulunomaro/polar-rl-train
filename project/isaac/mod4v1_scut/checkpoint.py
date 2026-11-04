@@ -102,9 +102,12 @@ def save(runner, env, bridge, path, profile):
                 iteration=runner.current_learning_iteration,physics_ticks=bridge.physics_ticks)
 
 
-def restore(runner, env, bridge, path, profile, repair_unclipped_v2=False, repair_target_limits=False):
+def restore(runner, env, bridge, path, profile, repair_unclipped_v2=False, repair_target_limits=False,
+            source_profile=None):
     data = torch.load(path, map_location='cpu', weights_only=False)
-    check_interface(data, profile, repair_unclipped_v2, repair_target_limits)
+    if source_profile is not None and (profile,source_profile) != ('jump200','scut_stairs'):
+        raise ValueError('Only explicit small-stair full-state transfer to jump200 is supported')
+    check_interface(data, source_profile or profile, repair_unclipped_v2, repair_target_limits)
     if data['num_envs'] != env.num_envs:
         raise ValueError('Checkpoint is not this MOD4v1 SCUT interface; no automatic input expansion')
     runner.alg.load(data, load_cfg=None, strict=True)

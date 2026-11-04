@@ -260,6 +260,16 @@ class ScutRewards:
         # Temporal scan results stay cached within that control step.
         self.state_machine_manager.on_command_updated(self)
         self.state_machine_manager.apply_command_overrides(self)
+        if hasattr(self, 'jump200_requested'):
+            # Request the source takeoff helper only after a measured step
+            # event; it cannot apply external force/velocity assistance.
+            request = (self.wheel_forward_step_detect_event & ~self.jump200_landed_top
+                       & (self.jump_takeoff_phase == 0) & (self.jump_takeoff_cooldown_time <= 0))
+            self.jump_takeoff_request |= request
+            self.jump200_requested |= request
+            # The task is to land and recover, so cease forward commands once
+            # both wheels have actually landed after airborne whole clearance.
+            self.command[self.jump200_landed_top] = 0.
         self._sync_command_generator_command()  # final V13 hook, inherited by V14
 
     def _apply_predefined_reset_air_command_limits(self):
@@ -317,6 +327,8 @@ class ScutRewards:
     def reset(self, ids):
         ids = torch.as_tensor(ids, device=self.device, dtype=torch.long)
         self.state_machine_manager.on_reset(self, ids)
+        if hasattr(self, 'jump200_requested'):
+            self.jump200_requested[ids] = False
         for name in ('_actions', '_previous_actions', '_before_previous_actions',
                      '_previous_applied_torque', '_before_previous_applied_torque'):
             getattr(self, name)[ids] = 0

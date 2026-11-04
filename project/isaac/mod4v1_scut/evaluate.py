@@ -27,7 +27,9 @@ def main():
     for name in ('assets','runtime','runtime-manifest','guard','job-root','checkpoint','checkpoint-SHA'):
         p.add_argument('--'+name,required=True)
     p.add_argument('--support',action='append',default=[])
-    p.add_argument('--profile',choices=['trained_stair','jump270','scut_stairs'],default='jump270')
+    p.add_argument('--profile',choices=['trained_stair','jump270','scut_stairs','jump200'],default='jump270')
+    p.add_argument('--jump200-source',action='store_true',
+                   help='Explicit weights-only inference of the selected SCUT source on single200mm jump task')
     p.add_argument('--scut-stair-source',action='store_true',
                    help='Explicit same-actor diagnostic of the trained_stair source on original SCUT stairs')
     p.add_argument('--repair-unclipped-v2',action='store_true')
@@ -53,6 +55,8 @@ def main():
         from .course import metadata
         if a.profile == 'scut_stairs':
             from .stairs import metadata
+        elif a.profile == 'jump200':
+            from .jump200 import metadata
         random.seed(a.seed);np.random.seed(a.seed);torch.manual_seed(a.seed);torch.cuda.manual_seed_all(a.seed)
         guard_module=load_guard(a.guard);identity=ns['E0_IDENTITY']
         guard_module.verify_task_module(task,identity)
@@ -81,12 +85,16 @@ def main():
             compatibility=dict(kind='E0_SOURCE_WEIGHTS_ONLY_DIAGNOSTIC',optimizer_operations=0)
         else:
             source_profile = a.profile
+            if a.jump200_source:
+                if a.profile != 'jump200' or saved.get('profile') not in ('scut_stairs','trained_stair','jump200'):
+                    raise ValueError('jump200 source diagnostic requires a compatible selected SCUT source')
+                source_profile = saved['profile']
             if a.scut_stair_source:
                 if a.profile != 'scut_stairs' or saved.get('profile') != 'trained_stair':
                     raise ValueError('Explicit SCUT stair diagnostic needs the selected trained_stair source')
                 source_profile = 'trained_stair'
             compatibility=check_interface(saved,source_profile,a.repair_unclipped_v2,a.repair_target_limits)
-            if a.scut_stair_source:
+            if a.scut_stair_source or a.jump200_source:
                 compatibility.update(source_profile=source_profile,target_profile=a.profile,course_changed=True)
         actor.load_state_dict(saved['actor_state_dict'],strict=True);actor.eval().requires_grad_(False)
         if a.repair_first_axis:
@@ -119,6 +127,12 @@ def main():
                     strict=torch.zeros_like(b.acceptance.success),
                     wholeclear=torch.zeros_like(b.acceptance.success),
                     leading=torch.zeros_like(b.acceptance.success))
+            elif a.profile == 'jump200':
+                contact=b.tensor(b.current_sensor.data.net_forces_w)[:,b.current_contact_order]
+                values.update(flight_id=b.acceptance.flight_id,
+                    upward_flight=b.acceptance.up,landed_top=b.acceptance.landed_top,
+                    wheel_contact_force=contact[:,b.reward._wheel_link_idx].norm(dim=-1),
+                    nonwheel_contact_force=contact[:,b.reward._nonwheel_contact_link_idx].norm(dim=-1).amax(-1))
             row.update({k:v.detach().cpu().numpy().copy() for k,v in values.items()})
             allticks.append(row)
             if b.physics_ticks%8==0:
@@ -154,12 +168,15 @@ def main():
                     'reset_body_contact_force','roll_pitch_rad','termination_raw',
                     'command','command_height','effective_height',
                     'termination_duration_counter')}))
-            if a.profile == 'scut_stairs':
+            if a.profile in ('scut_stairs','jump200'):
                 curves[-1].update({key:snap[key].detach().cpu().tolist() for key in (
                     'actual_motor_position','actual_motor_velocity','actual_motor_torque',
                     'ground_height','observed_height','scut_stair_max_rise','terrain_boundary_timeout')})
                 curves[-1]['weighted_reward_active_mean']={key:float(value[active].mean())
                     for key,value in bridge.reward._last_reward_terms.items()}
+            if a.profile == 'jump200':
+                curves[-1].update({key:snap[key].detach().cpu().tolist() for key in (
+                    'jump_takeoff_phase','jump_takeoff_trigger_event','jump200_landed_top')})
             active &= ~done
             if not bool(active.any()):break
         def npz(name,rows):
@@ -168,8 +185,16 @@ def main():
             with path.open('rb') as stream:sha=hashlib.file_digest(stream,'sha256').hexdigest()
             return dict(path=str(path),bytes=path.stat().st_size,SHA=sha)
         ticks=npz('actual400hz.npz',allticks);posefile=npz('selected_actual_poses.npz',poses)
-        if a.profile == 'scut_stairs':
-            terrain=env.scene['terrain'];vertices=terrain.scut_vertices;faces=terrain.scut_faces
+        if a.profile in ('scut_stairs','jump200'):
+            if a.profile == 'scut_stairs':
+                terrain=env.scene['terrain'];vertices=terrain.scut_vertices;faces=terrain.scut_faces
+            else:
+                from pxr import UsdGeom
+                from isaaclab.sim import get_current_stage
+                from .sdk import MESH
+                mesh=UsdGeom.Mesh.Get(get_current_stage(),MESH)
+                vertices=np.asarray(mesh.GetPointsAttr().Get(),dtype=np.float64)
+                faces=np.asarray(mesh.GetFaceVertexIndicesAttr().Get(),dtype=np.int64).reshape(-1,3)
             # Retain only actual authored triangles near selected robots. This
             # lets the pose renderer show the real stair mesh without physics.
             selected=[]
@@ -201,6 +226,12 @@ def main():
             scut_stair_max_rise=max(r['scut_stair_max_rise'] for r in result),
             scut_stair_stability='Both measured raised-surface contacts after leaving central platform, no nonwheel support,rollpitch<=10deg,abs(vz)<=.1 for.5s; horizontal travel allowed',
             strict270_required=False)
+        if a.profile == 'jump200':
+            stair_result=dict(jump200_success=sum(r['jump200_success'] for r in result),
+                jump200_wholeclear=sum(r['jump200_wholeclear'] for r in result),
+                jump200_landed_top=sum(r['jump200_landed_top'] for r in result),
+                jump200_requires_ground_takeoff_and_airborne_clearance=True,
+                first_flight_only=False,strict270_required=False)
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in result),
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
             saved_pose_quaternion_order='wxyz',native_sdk_quaternion_order=bridge.quaternion_order,

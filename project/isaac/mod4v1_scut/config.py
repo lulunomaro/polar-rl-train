@@ -38,7 +38,7 @@ def read_yaml(key):
 
 
 def reward_config(profile='trained_stair'):
-    if profile not in ('trained_stair', 'jump270', 'scut_stairs'):
+    if profile not in ('trained_stair', 'jump270', 'scut_stairs', 'jump200'):
         raise ValueError('Unknown SCUT profile')
     raw = read_yaml('trained_env')
     # Only reward/helper fields. No imported SCUT asset, actuator, randomizer or physics.
@@ -86,13 +86,39 @@ def reward_config(profile='trained_stair'):
             'mod4_stair_height': dict(type='height_track_exp', sigma=.01),
         }
         values['rewards'].update(mod4_stair_wheel_clearance=1., mod4_stair_height=1.)
+    if profile == 'jump200':
+        values['height_range'] = (.25, .25)
+        values['episode_length_s'] = 8.
+        values['enable_state_machines'] = True
+        values['airborne_state_machine_cfg']['enabled'] = True
+        values['stair_state_machine_cfg']['enabled'] = False
+        # StepUp supplies the original real-ray step event. Keep its temporary
+        # height command at the normal .25m; ballistic rewards own the push.
+        values['wheel_forward_scan_cfg'].update(enabled=True,
+            detect=dict(step_height_min=.18, step_height_max=.22, wall_height=.23),
+            height_cmd=dict(bias=0., hold_s=.2, max=.25))
+        takeoff = values['jump_takeoff_state_machine_cfg']
+        takeoff['enabled'] = True
+        takeoff['trajectory'].update(enabled=True, peak_height=(.55, .60))
+        takeoff['trigger'].update(mode='flag', require_tracking=False,
+                                  min_episode_time_s=.2, cooldown_s=1.)
+        takeoff['assist']['enabled'] = False
+        takeoff['push']['reward_additions'] = {
+            'jump200_push_height': dict(type='push_height_tracking_exp', sigma=.01),
+            'jump200_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.)}
+        takeoff['tuck']['reward_additions'] = {
+            'jump200_peak': dict(type='peak_height_tracking_exp', event='exit', sigma=.01)}
+        takeoff['reward_scales'].update(lin_vel_z=0., track_height_square=0.,
+                                       track_height_exp_tight=0.)
+        values['rewards'].update(jump200_push_height=2., jump200_push_velocity=1.,
+                                jump200_peak=2.)
     return SimpleNamespace(**values)
 
 
 def command_recipe(profile):
     """Saved command distribution; the 270mm course override is explicit."""
     raw = deepcopy(read_yaml('trained_env')['commands'])
-    if profile == 'jump270':
+    if profile in ('jump270', 'jump200'):
         raw.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0.,
                    special_modes=())
         raw['ranges'].update(lin_vel_x=(.6, .6), lin_vel_y=(0., 0.), ang_vel_z=(0., 0.))

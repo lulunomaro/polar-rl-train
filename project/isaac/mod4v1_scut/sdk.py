@@ -64,10 +64,17 @@ def placeholder_reward(env):
 
 
 def configure(cfg, n, profile='trained_stair', contract=None):
-    global COURSE_N, MESH
+    global COURSE_N, MESH, HEIGHT, BOXES, POSE_RANGE, SPAWN_HEIGHT, top_mask
     from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
     from isaaclab.managers import RewardTermCfg
     COURSE_N = n
+    from . import course
+    selected = course
+    if profile == 'jump200':
+        from . import jump200 as selected
+    HEIGHT, BOXES = selected.HEIGHT, selected.BOXES
+    POSE_RANGE, SPAWN_HEIGHT, top_mask = selected.POSE_RANGE, selected.SPAWN_HEIGHT, selected.top_mask
+    MESH = '/World/ground/scut_jump200' if profile == 'jump200' else '/World/ground/scut_step270'
     if contract is None:
         raise ValueError('Bind enhanced MOD4 contract before constructing action targets')
     cfg.actions.legs.class_type = limited_action_type(cfg.actions.legs.class_type, contract)
@@ -158,6 +165,11 @@ class ScutBridge:
         if profile == 'scut_stairs':
             from .stairs import StairTraversal
             self.acceptance = StairTraversal(self.n, self.device)
+        elif profile == 'jump200':
+            from .jump200 import Jump200Acceptance
+            self.acceptance = Jump200Acceptance(self.n, self.device)
+            self.reward.jump200_landed_top = self.acceptance.landed_top
+            self.reward.jump200_requested = torch.zeros(self.n, dtype=torch.bool, device=self.device)
         else:
             self.acceptance = FourSideStrict270(self.n, self.device)
         self.physics_observer = None
@@ -238,7 +250,7 @@ class ScutBridge:
             root[:,2]=self.env.scene.env_origins[ids,2]+SPAWN_HEIGHT
             root[:,7:]=0.
             self.robot.write_root_state_to_sim(root,env_ids=ids)
-            if isinstance(self.acceptance, FourSideStrict270):
+            if hasattr(self.acceptance, 'set_spawn_orientation'):
                 q = root[:,3:7]
                 if self.quaternion_order == 'xyzw':
                     q = q[:,[3,0,1,2]]
@@ -287,7 +299,8 @@ class ScutBridge:
         for name, value in r._episode_sums.items():
             log['Episode_Reward/scut_'+name] = value[ids].mean()/duration
         r.state_machine_manager.append_reset_logs(r, log, ids)
-        metric = 'Metrics/scut_stair_recovered' if self.profile == 'scut_stairs' else 'Metrics/strict270_completed'
+        metric = ('Metrics/scut_stair_recovered' if self.profile == 'scut_stairs' else
+                  'Metrics/jump200_completed' if self.profile == 'jump200' else 'Metrics/strict270_completed')
         log[metric] = self.completed_strict
         log['Metrics/episodes_completed'] = self.completed_episodes
         return log
@@ -509,6 +522,22 @@ class ScutBridge:
                 ground_height=r.ground_z_est.clone(),
                 observed_height=r._get_observed_height().clone())
             snapshot['terrain_boundary_timeout'] = self.terrain_boundary_timeout.clone()
+        if self.profile == 'jump200':
+            snapshot.update(strict270=self.acceptance.success.clone(),
+                first_flight_wholeclear=self.acceptance.wholeclear.clone(),
+                first_flight_leading=self.acceptance.leading.clone(),
+                jump200_success=self.acceptance.success.clone(),
+                jump200_wholeclear=self.acceptance.wholeclear.clone(),
+                jump200_landed_top=self.acceptance.landed_top.clone(),
+                jump200_flight_id=self.acceptance.flight_id.clone(),
+                jump_takeoff_phase=r.jump_takeoff_phase.clone(),
+                jump_takeoff_trigger_event=r.jump_takeoff_trigger_event.clone(),
+                actual_motor_position=r.robot.data.joint_pos[:,r._actuate_idx].clone(),
+                actual_motor_velocity=r.robot.data.joint_vel[:,r._actuate_idx].clone(),
+                actual_motor_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone(),
+                ground_height=r.ground_z_est.clone(),observed_height=r._get_observed_height().clone(),
+                scut_stair_max_rise=torch.zeros_like(r.ground_z_est),
+                terrain_boundary_timeout=self.terrain_boundary_timeout.clone())
         return snapshot
 
     def observations(self, raw):

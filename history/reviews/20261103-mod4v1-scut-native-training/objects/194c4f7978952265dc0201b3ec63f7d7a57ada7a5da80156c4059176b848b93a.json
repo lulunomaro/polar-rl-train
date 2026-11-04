@@ -1,0 +1,62 @@
+{
+  "epoch": 1793809612.2490263,
+  "kind": "FULLSTATE_REVIEW_EXPECTED_DISABLED_PERMISSION_NAN_SENTINELS",
+  "prior_false": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v1_scut_step270_2h_20261103\\env20000_jump200_1h_20261104\\attempt02\\reports\\FINAL_REVIEW_LOCAL_FINITE_ASSUMPTION_ERROR.json",
+  "source": {
+    "path": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\workspace\\MOD4_H1_SCUT_STEP270_ON_210_E3_CONTINUATION_20261021\\SCUT_UPSTREAM_JUMP_STAIRS_REWARD_REVIEW_V245_20261101\\primary\\source\\agent_tasks\\agent_tasks\\direct\\wheelbipe\\wheelbipe25_v3\\env.py",
+    "bytes": 297750,
+    "SHA": "9959c7fae6eff8591d655a18c29986f2c184c13f4905361b6c722efefbad12bc"
+  },
+  "excerpts": [
+    {
+      "start_line": 1409,
+      "text": "            iteration += max(int(getattr(self, \"common_step_counter\", 0)), 0) // steps_per_iteration\n        return iteration >= start and (end < 0 or iteration < end)\n\n    def _resample_jump_takeoff_permission(self, env_ids: Sequence[int] | torch.Tensor | None) -> None:\n        env_ids_t = self._as_env_ids_tensor(env_ids)\n        if env_ids_t.numel() == 0 or not hasattr(self, \"jump_takeoff_permission_mask\"):\n            return\n\n        self.jump_takeoff_permission_mask[env_ids_t] = False\n        self.jump_takeoff_permission_lin_vel_x[env_ids_t] = torch.nan\n        self.jump_takeoff_permission_lin_vel_y[env_ids_t] = torch.nan\n        self.jump_takeoff_permission_ang_vel_z[env_ids_t] = torch.nan\n\n        cfg = self._get_jump_takeoff_permission_cfg()\n        if not bool(cfg.get(\"enabled\", False)) or not self._is_jump_takeoff_permission_iteration_active(cfg):\n            return\n\n        rel_envs = max(min(float(cfg.get(\"rel_envs\", 0.0)), 1.0), 0.0)\n        if rel_envs <= 0.0:"
+    },
+    {
+      "start_line": 1473,
+      "text": "        height_cmd[mask] = self._sample_permission_range_spec(height_range, int(mask.sum().item()))\n        return height_cmd\n\n    def _apply_jump_takeoff_permission_command(self) -> None:\n        if not self._is_jump_takeoff_permission_enabled() or not hasattr(self, \"jump_takeoff_permission_mask\"):\n            return\n        mask = self.jump_takeoff_permission_mask\n        if not torch.any(mask):\n            return\n        field_specs = (\n            (0, self.jump_takeoff_permission_lin_vel_x),\n            (1, self.jump_takeoff_permission_lin_vel_y),\n            (2, self.jump_takeoff_permission_ang_vel_z),\n        )\n        for command_idx, values in field_specs:\n            field_mask = mask & torch.isfinite(values)\n            if torch.any(field_mask):\n                self.command[field_mask, command_idx] = values[field_mask]\n\n    def _clear_predefined_reset_ground_command_override(self, env_ids: Sequence[int] | torch.Tensor) -> None:\n        env_ids_t = self._as_env_ids_tensor(env_ids)"
+    },
+    {
+      "start_line": 2214,
+      "text": "        self.jump_takeoff_permission_mask = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)\n        self.jump_takeoff_permission_lin_vel_x = torch.full(\n            (self.num_envs,), torch.nan, dtype=torch.float, device=self.device\n        )\n        self.jump_takeoff_permission_lin_vel_y = torch.full(\n            (self.num_envs,), torch.nan, dtype=torch.float, device=self.device\n        )\n        self.jump_takeoff_permission_ang_vel_z = torch.full(\n            (self.num_envs,), torch.nan, dtype=torch.float, device=self.device\n        )\n        self.predefined_reset_air_command_limit_remaining_time = torch.zeros("
+    }
+  ],
+  "actual_nonfinite_fields": [
+    {
+      "path": "/source_reward_state/jump_takeoff_permission_lin_vel_x",
+      "shape": [
+        20000
+      ],
+      "count": 20000,
+      "nan": 20000,
+      "positive_infinity": 0,
+      "negative_infinity": 0
+    },
+    {
+      "path": "/source_reward_state/jump_takeoff_permission_lin_vel_y",
+      "shape": [
+        20000
+      ],
+      "count": 20000,
+      "nan": 20000,
+      "positive_infinity": 0,
+      "negative_infinity": 0
+    },
+    {
+      "path": "/source_reward_state/jump_takeoff_permission_ang_vel_z",
+      "shape": [
+        20000
+      ],
+      "count": 20000,
+      "nan": 20000,
+      "positive_infinity": 0,
+      "negative_infinity": 0
+    }
+  ],
+  "actor_critic_Adam_finite": true,
+  "interpretation": "These3 permission override tensors intentionally initialize/reset to NaN for unset commands; source applies only mask & isfinite. Not policy/RNG/DR corruption. Blanketfinite reviewer rejected supported state; repaired reader classifies them explicitly.",
+  "production_model_decodes_this_followup": 0,
+  "new_physics": 0,
+  "optimizer_operations": 0,
+  "canonical_writes": 0
+}

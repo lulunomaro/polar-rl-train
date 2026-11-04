@@ -105,13 +105,20 @@ def reward_config(profile='trained_stair'):
         takeoff['assist']['enabled'] = False
         takeoff['push']['reward_additions'] = {
             'jump200_push_height': dict(type='push_height_tracking_exp', sigma=.01),
-            'jump200_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.)}
+            'jump200_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.),
+            'jump200_upward_velocity': dict(type='takeoff_vel_z', max=3.)}
         takeoff['tuck']['reward_additions'] = {
             'jump200_peak': dict(type='peak_height_tracking_exp', event='exit', sigma=.01)}
         takeoff['reward_scales'].update(lin_vel_z=0., track_height_square=0.,
                                        track_height_exp_tight=0.)
         values['rewards'].update(jump200_push_height=2., jump200_push_velocity=1.,
-                                jump200_peak=2.)
+                                jump200_peak=2., jump200_upward_velocity=2.)
+        # Actual final150 remained stationary for most endpoints and earned
+        # .0825/control while only41/80 episodes requested takeoff. Gate the
+        # approach's positive tracking bonuses by forward progress so waiting
+        # before the measured step event no longer earns their full return.
+        # Active takeoff and verified landing retain their own reward shaping.
+        values['jump200_approach_progress_gate'] = True
     return SimpleNamespace(**values)
 
 

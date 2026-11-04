@@ -10,9 +10,12 @@
 - [x] 在原资源/预算/保存边界内做有限实际模型评测；立即原生审图与回放，按结果决定定向修复或训练（80局基线已回传并审完4图，0起跳越沿/0触台/0成功）。
 - [x] 四卡/原canonical/authority/finite实际准入通过；22:11选择72GPU1启动原授权窗，首attempt恢复失败已关闭，attempt02在同一原绝对窗口内修复接续。
 - [x] attempt02真实FIRST通过：iteration81、480,000样本、20新Adam、非零actor/critic梯度、FULL_V4首存；完整日志0实际错误。完整恢复source80/17Adam状态条目/step1600，并绑定唯一postround61924。
-- [ ] 训练完整保存退出后立即独立80局评测与实际回放，核真正起跳、整轮越沿、台顶落地和.5s稳定。
+- [x] 原训练完整保存退出后立即独立80局评测与实际回放已完成：70新PPO/final150，80局均7.98s timeout，0地面向上起跳/越沿/落台/成功；全部4幅actualpose已审。
 - [x] 截至200mm基线与授权自动接续的全部试错、失败、源码、回放与决定纳入本阶段Git补充；CURRENT_STATE/WORK_ORDER/现有mod4-10已更新。
-- [ ] 新训练FIRST及最终80结果产生后继续追加Git，并按真实动作决定下一步。
+- [x] 根据实际停滞定向修奖励：接近阶段五项正奖励按实际前进门控、push增加原源码向上速度奖励；12项jump200及8项旧阶梯CPU回归通过，候选5小文件/55sharedrefs已准备。
+- [x] 最终80/全部回放/读者false/奖励修复与新候选纳入本次普通Git补充；实际提交与远端核验以工具输出为准。
+- [ ] 人类批准修复版独立的新一小时；原批准小时已完整结束，不可延长。
+- [ ] 修复后原生验证、重新训练及独立真实200mm跳跃验收；新小时未获批前0GO。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

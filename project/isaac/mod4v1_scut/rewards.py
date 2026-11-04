@@ -42,6 +42,7 @@ class ScutRewards:
                  tensor=lambda x: x, cfg=None, quaternion_order='xyzw'):
         self.robot, self.contract = RobotView(robot, tensor, quaternion_order), contract
         self.num_envs, self.device = num_envs, device
+        self.profile = profile
         self.cfg = cfg or reward_config(profile)
         self.step_dt = .02
         self.wheel_radius = .0625
@@ -221,6 +222,18 @@ class ScutRewards:
     def _postprocess_reward_terms(self, terms):
         self.raw_terms = {key: value.clone() for key, value in terms.items()}
         result = self.state_machine_manager.apply_reward_term_scales(self, terms)
+        if self.profile == 'jump200' and getattr(self.cfg, 'jump200_approach_progress_gate', False):
+            # Use only the command and measured body velocity. This changes
+            # rewards, not observations, actions, physics or acceptance.
+            approaching = (self.jump_takeoff_phase == 0) & (self.command[:, 0] > 0.)
+            if hasattr(self, 'jump200_landed_top'):
+                approaching &= ~self.jump200_landed_top
+            progress = (self.robot.data.root_lin_vel_b[:, 0]
+                        / self.command[:, 0].clamp_min(1.e-6)).clamp(0., 1.)
+            gate = torch.where(approaching, progress, torch.ones_like(progress))
+            for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+                         'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight'):
+                result[name] = result[name] * gate
         self.state_terms = {key: value.clone() for key, value in result.items()}
         return result
 

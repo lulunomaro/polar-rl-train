@@ -1,5 +1,7 @@
 # 200mm单台阶实际基线与训练决定
 
+2026-11-05 00:32最新：批准原hour已完整结束，70新PPO/33.6M样本/final150/Adam3000/fullfinald0735d97…；独立80=41起跳请求、0真实起跳/越沿/落台/成功，80局原7.98秒timeout，0闭链/mimic/数值异常。4张实际早晚图已审，完整训练/评测日志0实际错误。实际23:10:11保存、23:13:00原owner完整释放；00:13:43才因另一聊天读者退出而正式传回，延迟没有延长训练。策略退化成台沿前停滞，idle每步仍得.082479奖励。已修接近阶段五项正奖励按真实前进门控、push新增原源码向上速度奖励；12+8必要CPU检查通过，5小文件/55refs候选准备完成但0INDEX/LAUNCH/GO，新hour待人类批准。全部实测和决定见`JUMP200_FINAL150_AND_APPROACH_REPAIR.md`；下文旧pending均历史。
+
 2026-11-04 19:36–19:39在实际空闲72 GPU1运行80首局/newDR/seed9137/400Hz，来源为小阶梯final `f6b6b649b78752a89c0688850ae89e93afd0a87fe21eb6b6705f9b02ecf81da4`。0optimizer/0ledgerwrite，原owner1613410/create1793792185.63已ownwait/released，正式NPZ传回均SHA核验。当前没有本聊天活controller，原once不重跑。
 
 原生mesh读回只有0与.2m两种高度、台沿x=.8m，一块水平台顶。80局全部有实际raycast阶跃→JumpTakeoff请求并进入push/tuck阶段，说明新增路径在真实SDK中执行；但源策略仍贴地向前，0真正向上飞行、0轮后缘离地越沿、0台顶触点、0落台或成功。78局原接触终止、2局原任务8s timeout，平均132.9375controls=2.65875s；闭链、mimic、数值、raw异常重置均0。

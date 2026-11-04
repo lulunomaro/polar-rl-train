@@ -100,7 +100,35 @@ class JumpTests(unittest.TestCase):
         self.assertEqual(cfg.wheel_forward_scan_cfg['detect']['step_height_max'], .22)
         self.assertEqual(command_recipe('jump200')['ranges']['lin_vel_x'], (.6, .6))
         self.assertTrue(all(cfg.rewards[k] > 0 for k in
-            ('jump200_push_height', 'jump200_push_velocity', 'jump200_peak')))
+            ('jump200_push_height', 'jump200_push_velocity', 'jump200_peak', 'jump200_upward_velocity')))
+
+    def test_approach_idle_bonus_cannot_outscore_forward_progress(self):
+        r, robot, _ = fixture(2, profile='jump200')
+        r.jump200_landed_top = torch.zeros(2, dtype=torch.bool)
+        robot.data.root_pos_w[:, 2] = .25
+        robot.data.root_lin_vel_b[:, 0] = torch.tensor([0., .3])
+        reward = r.compute()
+        self.assertGreater(float(reward[1]), float(reward[0]))
+        for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+                     'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight'):
+            self.assertEqual(float(r.state_terms[name][0]), 0.)
+            self.assertAlmostEqual(float(r.state_terms[name][1]), float(r.raw_terms[name][1])*.5, places=6)
+
+    def test_progress_gate_does_not_suppress_takeoff_or_landing(self):
+        r, _, _ = fixture(3, profile='jump200')
+        r.jump_takeoff_phase[:] = torch.tensor([0, 1, 0])
+        r.jump200_landed_top = torch.tensor([False, False, True])
+        terms={name:torch.ones(3) for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+            'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight')}
+        shaped=r._postprocess_reward_terms(terms)
+        torch.testing.assert_close(shaped['track_lin_vel_xy'], torch.tensor([0., 1., 1.]))
+
+    def test_source_upward_push_reward_distinguishes_real_velocity(self):
+        r, robot, _ = fixture(2, profile='jump200')
+        r.jump_takeoff_phase.fill_(1)
+        robot.data.root_lin_vel_w[:, 2] = torch.tensor([0., 1.])
+        r.compute()
+        torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'], torch.tensor([0., .04]))
 
     def test_source_step_event_requests_takeoff_and_actual_landing_stops_command(self):
         r, _, _ = fixture(2, profile='jump200')

@@ -1,0 +1,61 @@
+"""Local gate repair only; delegate the unused original V28 closed transfer."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import os
+import time
+
+ROOT=Path(__file__).resolve().parent.parent
+TELEOP=ROOT.parent/'mod4v1_lqr_mpc_robust_20261102/teleop_lqr_mujoco_v2.py'
+TELEOP_SHA='246fdac4cb8199b4a10dc553ca4fb6ed9f1884636ec6b07acbcfe2686041a56f'
+TELEOP_ARGV='"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe" -B "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\teleop_lqr_mujoco_v2.py"'
+
+
+def is_local_teleop(row):
+    if not (row['ProcessId']==3608 and row['ParentProcessId']==11076
+            and row['CreationDate']=='2026-11-04T16:21:45.322513+08:00'
+            and row['ExecutablePath']==r'C:\Users\lulu\AppData\Local\Programs\Python\Python314\pythonw.exe'
+            and row.get('CommandLine')==TELEOP_ARGV):
+        return False
+    assert hashlib.sha256(TELEOP.read_bytes()).hexdigest()==TELEOP_SHA
+    log=(TELEOP.parent/'teleop_v2_20261104_162145.stdout.log').read_text(encoding='utf-8')
+    assert log.startswith('MUJOCO_READY pid=3608 ') and 'MUJOCO_CLOSED' not in log
+    return True
+
+
+def main():
+    assert not (ROOT/'reports/SCUT28_CLOSED_TRANSFER_ONCE.json').exists()
+    p=ROOT/'scut_recipe_v28/control.py'
+    spec=importlib.util.spec_from_file_location('standing29_original_v28_control',p)
+    controller=importlib.util.module_from_spec(spec);spec.loader.exec_module(controller)
+    original=controller.admission
+    last={}
+    def admission():
+        rows,blocked=original()
+        by={r['ProcessId']:r for r in rows};own={os.getpid(),os.getppid()};parent=os.getppid()
+        while parent in by:
+            parent=by[parent]['ParentProcessId']
+            if parent in own:break
+            own.add(parent)
+        blocked=[r for r in blocked if r['ProcessId'] not in own]
+        benign=[r for r in blocked if is_local_teleop(r)]
+        remaining=[r for r in blocked if r not in benign]
+        # Only the single reviewed exact local CPU MuJoCo GUI is excluded.
+        # Any old saved-pose GUI returning with new identity stays a blocker.
+        last.update(epoch=time.time(),broad_exact_CIM=rows,known_local_CPU_teleop_only=benign,
+            blocked=remaining,serial='BUSY' if remaining else 'FREE',
+            teleop_source=dict(path=str(TELEOP),SHA=TELEOP_SHA),
+            classification='CPU MuJoCo keyboard/controller GUI; no remote SSH/serial/canonical operations in reviewed source. This is live local physics, not saved-pose replay.',
+            viewer_untouched=True,production_PT_reads=0,new_physics_by_this_operation=0)
+        return rows,remaining
+    controller.admission=admission
+    _,blocked=admission()
+    dest=ROOT/'reports'/('SCUT29_EXACT_LOCAL_TELEOP_CLASSIFICATION_'+str(time.time_ns())+'.json')
+    with dest.open('x',encoding='utf-8') as f:json.dump(last,f,ensure_ascii=False,indent=2)
+    if blocked:
+        print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    controller.closed()
+
+
+if __name__=='__main__':main()

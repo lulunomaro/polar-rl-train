@@ -1,0 +1,15 @@
+"""Append local refusal/classification evidence to the recorded V25 phase."""
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent.parent
+P=ROOT/'scut_eval_v22/archive_actual.py'
+source=P.read_text(encoding='utf-8')
+source=source.replace("20261104-v20-eval22-v21-full-resume'",
+    "20261104-v23-final745-v25-target-limits/supplement-v29-v28-local-busy-20261104-1650'")
+source=source.replace('V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284',
+    'V28_LAST_FIRST1235_FINAL_UNKNOWN_FOREIGN_COLLECTOR_BUSY_V29_EXACT_LOCAL_TELEOP_CLASSIFICATION')
+old="R/'scut_recipe_v21',R/'scut_eval_v22',\n                 R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300'"
+assert source.count(old)==1
+source=source.replace(old,"R/'scut_recipe_v28'")
+source=source.replace("R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md'","R/'scut_recipe_v28/WAIT_V29.md'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

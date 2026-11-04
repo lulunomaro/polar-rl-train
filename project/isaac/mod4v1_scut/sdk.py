@@ -104,6 +104,10 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.episode_length_s = reward_config(profile).episode_length_s
     cfg.decimation, cfg.sim.dt, cfg.sim.render_interval = 8, .0025, 8
     cfg.sim.physics.solver_type = 1  # target SDK uses physics, never physx
+    if profile == 'scut_stairs' and n == 20000:
+        # Actual20k stair rollout exceeded the164k default patch stream.
+        # Keep pair buffers unchanged; only increase the overflowing stream.
+        cfg.sim.physics.gpu_max_rigid_patch_count = 2**19
     cfg.scene.robot.spawn.articulation_props.solver_position_iteration_count = 32
     cfg.scene.robot.spawn.articulation_props.solver_velocity_iteration_count = 4
     cfg.terminations.closure.params['threshold'] = .01

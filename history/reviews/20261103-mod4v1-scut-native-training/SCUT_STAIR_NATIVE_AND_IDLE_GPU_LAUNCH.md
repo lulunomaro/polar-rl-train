@@ -53,3 +53,21 @@ attempt05在12:18:41.869608原owner ownwait/settled/released，actualPPO=0、无
 15:20四卡实际：72 GPU1 c27e空闲free24,203MiB/used13MiB/util0无compute；GPU0由standingV28 exactowner1600690/create1793775370.32占用，used5,862MiB。210卡空但HOME磁盘free0且RAM43.29GB；86used21,620MiB。V28还持有原canonical及两authority/finite锁，不能因另一GPU空闲绕锁。原GO固定save15:56:11.035646、nominal16:01:11.035646，非过去V25。
 
 唯一本地timer24412/create2026-11-04T15:22:46.230442+08已绑定，stderr/stdout空，RESOURCE_TIMER_BIND/ONCE均消费。等16:02:11.035646后freshLOCAL，再有限核exactV28 ownwait/settled/released、canonicalNone与锁，并实测选定GPU1容量；可用才冻结INDEX并调用原launch。原owner从实际准入GO计算新3600s，不占用等待时间。FIRST非零actorcriticgrad/480,000样本/FULLV4首存且无实际原生错误后自动bind唯一postround（带--root），完整保存退出后独立80与实际pose审看。当前只是等待资源，尚无GO或有效PPO。
+
+## 16:10实际自动启动
+
+不是继续等待：原peerV28已于15:58:39.303106完整ownwait/settled/released；16:02:19 fresh原canonicalNone、两authority/finite/privateGPU锁全部可用，GPU1 free24,203MiB/used13MiB/util0无compute，RAM532GB/disk262GB。原timer按计划冻结5个小source/control及共享SHA引用，于16:02:25启动owner1603578/create1793779345.12。16:09有限FIRST快照已有actualGO/worker，20,000场景在初始化；FIRST仍未返回，不能把launch或物理参数表当有效PPO。
+
+本地唯一24412仍为原FIRST读者，stderr空；它将根据FIRST非零梯度/480,000样本/FULLV4首存且无实际错误自动bind唯一postround，后者按原actualGO截止回收完整final/独立80。没有第二SSH、资源探针、启动或timer，尚未从FIRST取得的绝对save时间不根据launch推算。
+
+## 16:14 FIRST返回与新的patch stream实际溢出
+
+attempt06已走过先前接触filter错误，实际FIRST1PPO/480,000样本/20Adam/非零actorcritic梯度/FULLV4首存c66ec8413f3e6a4ec0d0b062dd0a72e1fbd11fd343ca46f7a14177b46e0c14d8。但firstrollout实报Patch buffer overflow（FIRST所见最低需求峰值267,958），该训练不能算有效。原timer识别真实错误后未bind正常postround并退出；原exactowner于16:13:26收到STOP_AFTER_SAVE，完成保存退出再独立80，无signal/kill/canonicalwrite。唯一本地collector28756/session20365正式收回关闭与评测，alive只本地。
+
+源码只对scut_stairs/20k将cfg.sim.physics.gpu_max_rigid_patch_count设为524,288，原pair容量、dt/solver/DR/reward/PPO保持；这次是实测patch stream溢出，不是先前aggregatepair280M扩容。未热改运行中冻结包，修复仍待下一smallsource原生。实际本轮GO16:02:25.845096、原SAVE17:02:25.845096/NOMINAL17:07:25.845096，同窗修复不新增/退款/再开一小时。先完整正式传回、原生4图审看后再接续。
+
+## 16:21 同窗attempt07实际启动
+
+attempt06完整final49e8abf1bf605537854f65f9ed4e4d447ffafefe4f696ad87e90615b3ec381f8/3PPO/1.44M样本/60Adam已传回，原owner1603578于16:17:11.986861 ownwait/settled/released，独立80的actual400Hz/poses和完整学习状态原件传回SHA核验。80为1接触终止/2边界timeout/77cap，mean7.94725s，0closure/mimic/nonfinite/rawoutlier，52双轮升阶/62任一升阶/2项目恢复指标。4幅早晚actualpose图已当前模型原生审：env0近中央，env1缓慢驶离，40/41出窄画面，41终态6.46s。评测指标不消除训练patch溢出，49e8和首存c66只作失败来源，不用于初始化。
+
+attempt07仅sdk改动+owner/entry/plan共4文件，直接引用既有source，设置20k阶梯patchstream524288，未改变aggregatepair缓冲。两项针对性contact回归通过，0生产PT/physics。原owner1605308/create1793780417.59于16:20:17实际启动，唯一本地launcher24732/create16:20:11.490949（toolsession78449）有限FIRST观察。source始终有效0fdd weights-only/freshAdam，无轴/STD再重置。原绝对SAVE17:02:25.845096/NOMINAL17:07:25.845096保持，未新开一小时或退款。当前初始化，尚不能称修复原生通过。

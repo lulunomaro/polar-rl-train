@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04 16:21最新：attempt06已按计划16:02自动启动并完成FIRST，但20k首轮实际触发contact patch buffer overflow，不能算有效训练。已完整保存退出/独立80/审完4图并释放原锁；final49e8仅作失败来源。新attempt07仅扩大实际溢出的`cfg.sim.physics.gpu_max_rigid_patch_count`至524,288，原pair容量与物理/reward/PPO保持，继续有效0fdd来源。16:20:17已实际启动owner1605308，solelocal24732有限FIRST观察；原授权窗SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，当前修复原生待FIRST完整日志与首存确认。
+
 2026-11-04 15:23人类已批准“允许重新训练一小时”。新attempt06为20,000环境/3600s保存+300s安全退出，继续用原canonical余额；修复版stairs/sdk共两个module，其它源码与0fdd有效来源按SHA引用。15:20实测72 GPU1空闲24,203MiB，但原canonical/authority/finite锁由standingV28 exactowner1600690持有。唯一localtimer24412已绑定，16:02:11后核原peer完整保存评测释放、freshLOCAL与目标GPU容量，再自动启动和绑定postround；当前尚未GO，不再等待人类批准。实际新GO/save/FIRST以WORK_ORDER和原始回执为准。
 
 2026-11-04 12:24最新覆盖：空闲72 GPU0上的20,000环境阶梯训练原窗口已经结束。此前碰撞对容量不足、扩大容量后OOM、140列单mesh烘焙失败均已关闭并保留；attempt05在接触视图构建时因一个通配符匹配10个全局碰撞体失败，0FIRST/0PPO，无final可评。原owner已ownwait/settled/released，当前没有live训练。现改为10个显式单碰撞体filter路径，目标SDK源码确认singleton广播契约，针对原错误的1项CPU检查通过；仍待原生验证。原窗口不延长，已询问人类是否批准同一canonical余额重新开20,000环境一小时窗。当前结果与修复见`history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIR_NATIVE_AND_IDLE_GPU_LAUNCH.md`和`WORK_ORDER.json`，下文旧GO/FIRSTpending文字仅为历史。

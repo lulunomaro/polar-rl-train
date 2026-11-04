@@ -1,0 +1,11 @@
+# T01 read-only contact geometry diagnosis
+
+One intentionally new instrumented nominal C2 trajectory, not an independent robustness sample or fourth controller. No control/robot/PD/D4/DC/KF/gate changes, no old raw rereads or extra mj_step/forward. The existing formal runner and audited plant were reused. Completed1200 controls/24000 physics/20000 scored samples, one model and one DR; 48.0468931s wall. Parent collected pwsh-7e88456422f844c3 exit0.
+
+Every low-force left2029/right897/whole165 sample had NO contact points/active constraints and exactly zero normal, rather than an existing contact force merely falling below1N. Supported samples had active constraints and negative distances (minimum left-51.1099um/right-48.8394um). No finite separation distance was measured during absent-contact samples: do not infer finite geometric flight, mesh-facet cause, or a solver bug solely from missing contacts. MuJoCo mj_geomDistance docstring is available for the next minimal missing observation, not yet run. Original T01 is still false: only main support and whole-low-force gates failed; all non-contact gates and guide/hard gates pass. Nominal metrics exactly reproduced prior deterministic C2.
+
+Important measurement erratum: whole_low_force.max_abs_applied_torque_Nm and post_speed_abs_peak_rad_s in the original generated summary stayed initialized0 because its accumulator used axis=None. These two whole-bucket fields are UNAVAILABLE, not physical zero. Original summary preserved; per-wheel measured fields are valid, not full DC clip duty. Task file carries the same erratum.
+
+Human20:06 explicitly requested one reused child for LQR/MPC jumping onto200mm. Existing child abf2088f-af10-479a-9108-202785031447 dispatched and acknowledged source work20:10; no new child. This is an explicit sequencing exception alongside parent T01. J200 active source/results are excluded from this cutoff, no completed200mm claim; full36 tasks/270mm remain. No hardware/newdeps/GPU/SSH/PPO/canonical/main changes.
+
+Raw control/contact logs are indexed only by path/size, SHA unknown and not read/hashed for archive. Existing record helper called once with in-memory sparse-add adapter, no edits to original helper. Prior pendingPH12 remains pending. Receipt updates do not trigger a new archive loop.

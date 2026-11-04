@@ -1,0 +1,133 @@
+{
+  "id": "T01_ROLL_FOLLOW_HEADING_CANDIDATE2_V1",
+  "status": "frozen_before_candidate_physics",
+  "scope": "task_function_screen_not_overall_reliability_or_hardware_qualification",
+  "parent_protocol": "RM_ROBUSTNESS_V1/roll_follow_v1/T01_PROTOCOL_V1.json",
+  "baseline_failed_case": "t01_c1_nominal_slow_420121_001",
+  "candidate_number": 2,
+  "maximum_mechanism_candidates": 3,
+  "scene": "latest_rm",
+  "zone_key": "flat_run",
+  "controller": "coord_soft_roll_follow_heading_v2",
+  "mechanism": "Retain C1 leg references and add the existing FPS heading outer loop: integrate operator yaw-rate into an independent heading reference, then command raw yaw-rate plus 3/s times wrapped heading error, bounded +/-1.5rad/s. Baseline explicitly removes heading error from K; C1 actually yawed ~0.737rad. This tests that measured drift without guessing a velocity estimator correction.",
+  "parameters": {
+    "heading_gain_per_s": 3.0,
+    "heading_command_limit_rad_s": 1.5,
+    "source": "RM_FPS_PLAYER_V1/player.py:294",
+    "leg_follow": "unchanged candidate1"
+  },
+  "diagnostic_logging": [
+    "raw sensor packet and its original timestamps",
+    "active_ref14",
+    "shaped v/w/a",
+    "park integral",
+    "heading reference/error",
+    "common wheel LQR contributions",
+    "yaw torque demand and actual requested common/differential wheel torque"
+  ],
+  "execution_order": [
+    "nominal_slow",
+    "nominal_stand",
+    "dr_stand_1",
+    "dr_slow_1",
+    "dr_stand_2",
+    "dr_slow_2"
+  ],
+  "execution_rule": "One fresh case at a time; inspect before the next. Failure of first slow case pauses all others. Never rerun consumed IDs or revise gates.",
+  "formal_cases": [
+    {
+      "id": "nominal_stand",
+      "seed": 420130,
+      "nominal": true,
+      "profile": "stand"
+    },
+    {
+      "id": "nominal_slow",
+      "seed": 420131,
+      "nominal": true,
+      "profile": "slow"
+    },
+    {
+      "id": "dr_stand_1",
+      "seed": 420132,
+      "nominal": false,
+      "profile": "stand"
+    },
+    {
+      "id": "dr_slow_1",
+      "seed": 420133,
+      "nominal": false,
+      "profile": "slow"
+    },
+    {
+      "id": "dr_stand_2",
+      "seed": 420134,
+      "nominal": false,
+      "profile": "stand"
+    },
+    {
+      "id": "dr_slow_2",
+      "seed": 420135,
+      "nominal": false,
+      "profile": "slow"
+    }
+  ],
+  "formal_duration_s": 12.0,
+  "slow_command": {
+    "start_s": 2.0,
+    "stop_s": 8.0,
+    "forward_m_s": 0.3,
+    "yaw_rate_rad_s": 0.0
+  },
+  "windows": {
+    "attitude_contact_s": [
+      2.0,
+      12.0
+    ],
+    "steady_slow_s": [
+      3.0,
+      7.0
+    ],
+    "final_stop_s": [
+      9.0,
+      12.0
+    ]
+  },
+  "gates": {
+    "complete_finite_no_auto_reset": true,
+    "max_closure_m": 0.01,
+    "max_mimic_rad": 0.01,
+    "pitch_abs_peak_rad": 0.1,
+    "roll_abs_peak_rad": 0.1,
+    "pitch_rms_rad": 0.035,
+    "roll_rms_rad": 0.035,
+    "stand_xy_drift_m": 0.2,
+    "stand_body_vx_rms_m_s": 0.05,
+    "slow_vx_rmse_m_s": 0.1,
+    "slow_min_progress_m": 1.2,
+    "slow_max_lateral_m": 0.2,
+    "final_stop_body_vx_rms_m_s": 0.05,
+    "contact_normal_threshold_N": 1.0,
+    "each_mainwheel_support_duty_min": 0.95,
+    "guide_support_duty_max": 0.01,
+    "guide_support_longest_s_max": 0.02,
+    "hard_contact_ticks_max": 0,
+    "whole_body_unsupported_ticks_max": 0,
+    "contact_audit_rate_Hz": 2000
+  },
+  "invariants": [
+    "fresh_model_each_case",
+    "DR_once_per_case",
+    "all_world_collision_geoms_not_ground_alias_only",
+    "root_contact_truth_grading_only",
+    "original_robot_PD_D4_DC_and_limits",
+    "no_root_assist_or_teleport",
+    "same_gates_windows_command_as_original_T01"
+  ],
+  "notes": [
+    "Candidate1 and all old failures remain frozen.",
+    "Only heading feedback is new control logic. Added logs never feed the controller.",
+    "Packet timestamp is queue epoch, not proof of instantaneous coherence across IMU boxcar/encoder/torque channels.",
+    "This is T01-only and not a self-spin, air-mode or moving-jump qualification."
+  ]
+}

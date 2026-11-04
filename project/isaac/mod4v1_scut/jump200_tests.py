@@ -115,9 +115,10 @@ class JumpTests(unittest.TestCase):
             self.assertAlmostEqual(float(r.state_terms[name][1]), float(r.raw_terms[name][1])*.5, places=6)
 
     def test_progress_gate_does_not_suppress_takeoff_or_landing(self):
-        r, _, _ = fixture(3, profile='jump200')
+        r, robot, _ = fixture(3, profile='jump200')
         r.jump_takeoff_phase[:] = torch.tensor([0, 1, 0])
         r.jump200_landed_top = torch.tensor([False, False, True])
+        robot.data.root_lin_vel_w[1, 2] = 1.
         terms={name:torch.ones(3) for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
             'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight')}
         shaped=r._postprocess_reward_terms(terms)
@@ -129,6 +130,52 @@ class JumpTests(unittest.TestCase):
         robot.data.root_lin_vel_w[:, 2] = torch.tensor([0., 1.])
         r.compute()
         torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'], torch.tensor([0., .04]))
+
+    def test_active_tracking_bonus_requires_ascent_and_landing_is_preserved(self):
+        r, robot, _ = fixture(4, profile='jump200')
+        r.jump_takeoff_phase[:] = torch.tensor([1, 1, 2, 0])
+        r.jump200_landed_top = torch.tensor([False, False, False, True])
+        robot.data.root_lin_vel_w[:, 2] = torch.tensor([0., 1., -.2, 0.])
+        names = ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+                 'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight')
+        shaped = r._postprocess_reward_terms({name:torch.ones(4) for name in names})
+        torch.testing.assert_close(shaped['track_lin_vel_xy'], torch.tensor([0., 1., 0., 1.]))
+
+    def test_visible_step_can_request_again_after_failed_attempt(self):
+        r, _, _ = fixture(1, profile='jump200')
+        r.jump200_requested = torch.zeros(1, dtype=torch.bool)
+        r.jump200_landed_top = torch.zeros(1, dtype=torch.bool)
+        r.forward_points[..., 2] = .3
+        r.forward_hits[..., 2] = .2
+        r.ground_z_est.zero_()
+        r.wheel_forward_prev_ground_z.fill_(.2)
+        r.wheel_forward_prev_ground_z_valid.fill_(True)
+        r.wheel_forward_prev_direction_sign.fill_(1.)
+        r._invalidate_step_caches()
+        r._on_command_updated()
+        self.assertFalse(bool(r.wheel_forward_step_detect_event.any()))
+        self.assertTrue(bool(r.jump_takeoff_request[0]))
+        r.jump_takeoff_request.zero_()
+        r.jump_takeoff_cooldown_time.fill_(1.)
+        r._on_command_updated()
+        self.assertFalse(bool(r.jump_takeoff_request[0]))
+        r.jump_takeoff_cooldown_time.zero_()
+        r._on_command_updated()
+        self.assertTrue(bool(r.jump_takeoff_request[0]))
+
+    def test_retry_rejects_top_flat_ground_and_nonfinite_rays(self):
+        r, _, _ = fixture(3, profile='jump200')
+        r.jump200_requested = torch.zeros(3, dtype=torch.bool)
+        r.jump200_landed_top = torch.zeros(3, dtype=torch.bool)
+        r.forward_points[..., 2] = .3
+        r.forward_hits[..., 2] = torch.tensor([.2, 0., float('nan')])[:,None]
+        r.ground_z_est[:] = torch.tensor([.2, 0., 0.])
+        r.wheel_forward_prev_ground_z.copy_(r.forward_hits[...,2])
+        r.wheel_forward_prev_ground_z_valid.fill_(True)
+        r.wheel_forward_prev_direction_sign.fill_(1.)
+        r._invalidate_step_caches()
+        r._on_command_updated()
+        self.assertFalse(bool(r.jump_takeoff_request.any()))
 
     def test_source_step_event_requests_takeoff_and_actual_landing_stops_command(self):
         r, _, _ = fixture(2, profile='jump200')

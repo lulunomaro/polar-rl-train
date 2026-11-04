@@ -119,6 +119,14 @@ def reward_config(profile='trained_stair'):
         # before the measured step event no longer earns their full return.
         # Active takeoff and verified landing retain their own reward shaping.
         values['jump200_approach_progress_gate'] = True
+        # Final263 reached the step in80/80 episodes, but its one temporal
+        # scan event gave only one failed push. Permit another unassisted
+        # attempt while the current forward and chassis-ground rays still
+        # straddle this step.
+        values['jump200_retry_visible_step'] = True
+        # The failed pushes still earned the full flat/velocity bonuses at
+        # almost zero upward speed. Gate those bonuses by measured ascent.
+        values['jump200_takeoff_progress_gate'] = True
     return SimpleNamespace(**values)
 
 

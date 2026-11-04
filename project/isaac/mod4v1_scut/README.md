@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-05 02:15最新覆盖：接近修复已完整保存113PPO/54.24M样本/final263/17Adam5260，独立80各1次请求但0真正离地/越沿/落台，全部4幅新actualpose已原生审看，完整训练/评测日志实际errors0。已针对单次事件不重试及静止push仍有正tracking回报修config/rewards；15项jump200＋8项旧阶梯检查通过。真实当前200mm扫描允许原冷却后重试，activetracking按向上速度门控，原物理/验收/学习状态保持。fresh四卡/原锁准入后新owner1628379已在空闲GPU1启动，sole4416等待FIRST264；actualGO/deadlines以FIRST实值为准。详见history/reviews/20261103-mod4v1-scut-native-training/JUMP200_FINAL263_AND_RETRY_ASCENT.md。下文为原始历史。
+
 2026-11-05 00:54实际覆盖：人类“允许100小时”已生效，按每小时完整保存/安全退出/独立80/实际回放/定向修复接续，原canonical余额与严格reserve保持，不再逐小时询问。当前接近/上推修复版已在空闲4090 GPU1通过真实FIRST151：480,000样本、20新Adam、非零actor/critic梯度、FULL_V4首存40,717,335B/SHA `eabb072a02761af1e75d1864a3acf236f91ab9a0335feba67162a432685a6c12`，完整首轮日志0实际错误。完整恢复source150/17项Adam/step3000/LR及RNG/队列/计数器，一次fresh物理reset。唯一collector20700/create00:48:15.353768；旧61200/session54368已完成。actualGO00:40:50.069379、SAVE01:40:50.069379、NOMINAL01:45:50.069379，正式回传于SAVE+45后进行；FIRST不等于技能。当前owner保存安全退出后立即独立80并审全部实际图，再按结果修复/接续。下文待批/FIRSTpending均为历史。
 
 2026-11-05 00:32最新：jump200原hour已完整保存/退出/独立80/审完4图，70新PPO、33.6M样本、final150/Adam3000，全日志无实际错误，但0真实起跳/0越沿/0台顶落地。41/80请求、idle每步仍有.0825奖励，实测策略停滞。新候选只修接近阶段五项正tracking奖励按`clamp(vx_body/command_vx,0,1)`门控、push增加原源码takeoff_vel_z（cap3/weight2），保持几何/验收/物理/PPO；12项jump200和8项旧阶梯CPU回归通过。修复尚未原生训练，新hour需独立授权，不能延长已结束原窗口。详见history/reviews/20261103-mod4v1-scut-native-training/JUMP200_FINAL150_AND_APPROACH_REPAIR.md。

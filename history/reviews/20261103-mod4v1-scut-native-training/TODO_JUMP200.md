@@ -16,7 +16,10 @@
 - [x] 最终80/全部回放/读者false/奖励修复与新候选纳入本次普通Git补充；实际提交与远端核验以工具输出为准。
 - [x] 人类2026-11-05明确“允许100小时”：后续按每小时完整保存/独立80/实际回放与定向修复接续，累计不超过100小时且受原canonical实际余额/reserve约束，不再逐小时询问。
 - [x] 接近/上推修复版原生FIRST151通过：24controls、480,000样本、20新Adam、完整FULL_V4首存；完整恢复source150/17项Adam/step3000，完整首轮日志0实际错误。
-- [ ] 当前segment完整保存/退出/独立80/全部实际回放与200mm跳跃验收：唯一collector20700，SAVE2026-11-05 01:40:50.069379、NOMINAL01:45:50.069379；按结果定向修复接续，100小时授权持续有效且受原余额/reserve约束。
+- [x] 接近/上推segment已完整保存退出、独立80和4图原生审看：113新PPO/54.24M样本/final263/Adam5260，完整日志0实际错误；80/80各请求一次，0起跳越沿/落台。
+- [x] 修复实际单次请求缺口与起跳静止正奖励：持续真实200mm扫描允许冷却后重试、active tracking按向上速度门控；15项jump200＋8项旧阶梯CPU检查通过。
+- [x] 原peerE3W8已提前02:09:09退出释放，fresh四卡/原锁/余额通过，空闲GPU1新owner1628379实际启动；仅sole4416观察FIRST，100h持续授权。
+- [ ] 当前重试/上升修复版FIRST264、完整保存/独立80与实际跳跃验收；actualGO/SAVE/NOMINAL以新FIRST实值为准，不延长旧窗。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

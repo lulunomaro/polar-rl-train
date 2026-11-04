@@ -234,6 +234,16 @@ class ScutRewards:
             for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
                          'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight'):
                 result[name] = result[name] * gate
+        if self.profile == 'jump200' and getattr(self.cfg, 'jump200_takeoff_progress_gate', False):
+            active = self.jump_takeoff_phase != 0
+            if hasattr(self, 'jump200_landed_top'):
+                active &= ~self.jump200_landed_top
+            # Keep the ascent incentive dense below the reference release
+            # speed. Descent and supported landing use their existing terms.
+            upward = self.robot.data.root_lin_vel_w[:, 2].clamp(0., 1.)
+            for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+                         'track_lin_vel_xy', 'track_ang_vel_z'):
+                result[name] = result[name] * torch.where(active, upward, torch.ones_like(upward))
         self.state_terms = {key: value.clone() for key, value in result.items()}
         return result
 
@@ -276,7 +286,23 @@ class ScutRewards:
         if hasattr(self, 'jump200_requested'):
             # Request the source takeoff helper only after a measured step
             # event; it cannot apply external force/velocity assistance.
-            request = (self.wheel_forward_step_detect_event & ~self.jump200_landed_top
+            detected = self.wheel_forward_step_detect_event.clone()
+            if getattr(self.cfg, 'jump200_retry_visible_step', False):
+                # A temporal height jump fires once. For a retry, require the
+                # current real forward ray to retain a200mm rise over the
+                # measured chassis ground. Stair's near scanner is disabled
+                # for this jump task; do not turn on another state machine.
+                far_points, far_hits = self.forward_scan(False)
+                detect = self.cfg.wheel_forward_scan_cfg['detect']
+                ground = self.ground_z_est[:, None]
+                rise = far_hits[..., 2] - ground
+                valid = torch.isfinite(far_hits).all(-1) & torch.isfinite(ground)
+                visible = valid & (rise > detect['step_height_min']) & (rise < detect['step_height_max'])
+                # Far hits below the query show ground/top support, not a
+                # vertical-face ray hit or a stale non-finite measurement.
+                visible &= far_hits[..., 2] <= far_points[..., 2]
+                detected |= visible.any(-1)
+            request = (detected & ~self.jump200_landed_top
                        & (self.jump_takeoff_phase == 0) & (self.jump_takeoff_cooldown_time <= 0))
             self.jump_takeoff_request |= request
             self.jump200_requested |= request

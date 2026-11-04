@@ -45,3 +45,11 @@ attempt05在12:18:41.869608原owner ownwait/settled/released，actualPPO=0、无
 已将10个碰撞条带改为10个显式单形状filter路径。针对原错误的1项CPU检查通过，0生产PT/physics；12:23使用原传输只读目标SDK api.py文档，确认single-prim exception可以对所有sensor广播，source SHA以CLOSED05_EXACT_SOURCE_READ报告为准。该读者首次inline argv没任务路径而被本地gate拒绝，换命名脚本后成功，原false保留；未绕gate。
 
 原SAVE12:14:28.462118/NOMINAL12:19:28.462118均已结束，不自动延长或退款。NEXT_FILTER_FIX_PREPARED.json记录当前三文件SHA和正确源码方案；没有新生产namespace或启动。已向人类提出使用原canonical余额重新开20k一小时窗的问题，等待明确答案。当前没有live controller，不得以旧59228/50100/29304文字再等待或重放once。
+
+## 15:23人类批准重新一小时与原锁等待
+
+人类已明确回答“允许重新训练一小时”。attempt06引用原有效0fdd来源，20,000环境/3600s保存+300s安全退出，原canonical余额扣账；不是延长旧12:14窗口、退款或增加canonical。2个改动module（stairs/sdk）+owner/entry/plan共5个小文件，共用源码/资产按SHA引用；原失败与once保留。
+
+15:20四卡实际：72 GPU1 c27e空闲free24,203MiB/used13MiB/util0无compute；GPU0由standingV28 exactowner1600690/create1793775370.32占用，used5,862MiB。210卡空但HOME磁盘free0且RAM43.29GB；86used21,620MiB。V28还持有原canonical及两authority/finite锁，不能因另一GPU空闲绕锁。原GO固定save15:56:11.035646、nominal16:01:11.035646，非过去V25。
+
+唯一本地timer24412/create2026-11-04T15:22:46.230442+08已绑定，stderr/stdout空，RESOURCE_TIMER_BIND/ONCE均消费。等16:02:11.035646后freshLOCAL，再有限核exactV28 ownwait/settled/released、canonicalNone与锁，并实测选定GPU1容量；可用才冻结INDEX并调用原launch。原owner从实际准入GO计算新3600s，不占用等待时间。FIRST非零actorcriticgrad/480,000样本/FULLV4首存且无实际原生错误后自动bind唯一postround（带--root），完整保存退出后独立80与实际pose审看。当前只是等待资源，尚无GO或有效PPO。

@@ -38,7 +38,7 @@ def read_yaml(key):
 
 
 def reward_config(profile='trained_stair'):
-    if profile not in ('trained_stair', 'jump270'):
+    if profile not in ('trained_stair', 'jump270', 'scut_stairs'):
         raise ValueError('Unknown SCUT profile')
     raw = read_yaml('trained_env')
     # Only reward/helper fields. No imported SCUT asset, actuator, randomizer or physics.
@@ -62,6 +62,11 @@ def reward_config(profile='trained_stair'):
     values['stair_state_machine_cfg']['wheel_radius'] = .0625
     # Both optional physical assists remain disabled. These are reward/state hooks only.
     values['jump_takeoff_state_machine_cfg'].setdefault('assist', {})['enabled'] = False
+    if profile == 'scut_stairs':
+        # Select the published stair branch only, without restoring its other
+        # rough terrain tasks. V13 applies this branch's saved height override.
+        override = raw['terrain_command_overrides'].get('inv_stair_slope_for_rm_mid', {})
+        values['height_range'] = tuple(override.get('height_range', [raw['height_range']])[0])
     if profile == 'jump270':
         values['height_range'] = (.25, .25)
         values['episode_length_s'] = 8.
@@ -91,7 +96,7 @@ def command_recipe(profile):
         raw.update(heading_command=False, rel_standing_envs=0., rel_heading_envs=0.,
                    special_modes=())
         raw['ranges'].update(lin_vel_x=(.6, .6), lin_vel_y=(0., 0.), ang_vel_z=(0., 0.))
-    elif profile != 'trained_stair':
+    elif profile not in ('trained_stair', 'scut_stairs'):
         raise ValueError('Unknown SCUT profile')
     return raw
 

@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--runtime-manifest', required=True)
     parser.add_argument('--guard', required=True, help='Existing mod4v1_fresh_dr_guard.py')
     parser.add_argument('--job-root', required=True)
-    parser.add_argument('--profile', choices=['trained_stair', 'jump270'], default='trained_stair')
+    parser.add_argument('--profile', choices=['trained_stair', 'jump270', 'scut_stairs'], default='trained_stair')
     parser.add_argument('--num-envs', type=int, default=80)
     parser.add_argument('--seed', type=int, default=66)
     parser.add_argument('--iterations', type=int, required=True)
@@ -102,7 +102,7 @@ def environment_settings(args):
     # The shared Mod4Env treats gyro=0 as a straight-only command contract.
     # trained_stair contains yaw commands. cfg.curriculum=None still disables
     # the inherited gyro curriculum; this selects the correct command domain.
-    os.environ['RM_GYRO_CURRICULUM'] = '1' if args.profile == 'trained_stair' else '0'
+    os.environ['RM_GYRO_CURRICULUM'] = '1' if args.profile in ('trained_stair', 'scut_stairs') else '0'
 
 
 def load_guard(path):
@@ -176,7 +176,7 @@ def initialize_episode_lengths(vec, profile):
     jump270 independent first-flight episodes instead start at time zero. This
     explicit task override does not change physical states or source rewards.
     """
-    if profile == 'trained_stair':
+    if profile in ('trained_stair', 'scut_stairs'):
         import torch
         vec.episode_length_buf = torch.randint_like(vec.episode_length_buf, high=vec.max_episode_length)
 
@@ -291,6 +291,8 @@ def main():
             raise RuntimeError('Original full D0-D7 profiles must all be active')
         bridge.ready = True
         from .course import metadata
+        if args.profile == 'scut_stairs':
+            from .stairs import metadata
         from .config import ACTION_CLIP, ACTION_INTERFACE, TARGET_INTERFACE
         put(job/'STARTUP.json',dict(epoch=time.time(),
             actual_native=True, profile=args.profile, usd_SHA=identity.usd_sha256,
@@ -357,8 +359,9 @@ def main():
             put(job/'LATEST_PROGRESS.json',dict(epoch=time.time(),
                 iteration=iteration+1, physics_ticks=bridge.physics_ticks,
                 actual_reward_mean=float(rewards.mean()), losses={k:float(v) for k,v in losses.items()},
-                strict270_current_count=int(bridge.acceptance.success.sum()),
-                strict270_completed_count=bridge.completed_strict,
+                strict270_current_count=int(bridge.acceptance.success.sum()) if args.profile != 'scut_stairs' else 0,
+                strict270_completed_count=bridge.completed_strict if args.profile != 'scut_stairs' else 0,
+                scut_stair_recovered=bridge.completed_strict if args.profile == 'scut_stairs' else None,
                 completed_episodes=bridge.completed_episodes,gradient=gradient))
             if iteration == start_iteration:
                 first=save(runner, env, bridge, job/'model_first_complete.pt', args.profile)
@@ -376,7 +379,9 @@ def main():
         final=save(runner, env, bridge, job/'model_final.pt', args.profile)
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=final,
             PPO_updates=runner.current_learning_iteration-start_iteration,
-            strict270_completed=bridge.completed_strict,episodes_completed=bridge.completed_episodes))
+            strict270_completed=bridge.completed_strict if args.profile != 'scut_stairs' else 0,
+            scut_stair_recovered=bridge.completed_strict if args.profile == 'scut_stairs' else None,
+            episodes_completed=bridge.completed_episodes))
         started = False
     except BaseException:
         error=traceback.format_exc()

@@ -64,7 +64,7 @@ def placeholder_reward(env):
 
 
 def configure(cfg, n, profile='trained_stair', contract=None):
-    global COURSE_N
+    global COURSE_N, MESH
     from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
     from isaaclab.managers import RewardTermCfg
     COURSE_N = n
@@ -74,6 +74,10 @@ def configure(cfg, n, profile='trained_stair', contract=None):
     cfg.scene.num_envs, cfg.scene.env_spacing = n, 8.
     cfg.scene.ground.spawn.func = spawn_course
     cfg.scene.ground.init_state.pos = (0., 0., 0.)
+    if profile == 'scut_stairs':
+        from .stairs import terrain_cfg, MESH as stair_mesh
+        cfg.scene.ground = terrain_cfg(cfg.seed)
+        MESH = stair_mesh
     cfg.scene.robot.init_state.pos = (0.,0.,SPAWN_HEIGHT)
     cfg.scene.scut_contacts = ContactSensorCfg(
         prim_path='{ENV_REGEX_NS}/Robot/links/.*', update_period=.005,
@@ -117,6 +121,7 @@ def configure(cfg, n, profile='trained_stair', contract=None):
 class ScutBridge:
     def __init__(self, env, task, contract, tensor, profile='trained_stair'):
         self.env, self.task, self.tensor = env, task, tensor
+        self.profile = profile
         self.robot = env.scene['robot']
         self.quaternion_order, self.quaternion_readback = detect_sdk_quaternion_order(self.robot.data, tensor)
         self.reward = ScutRewards(self.robot, contract, env.num_envs, env.device,
@@ -135,13 +140,19 @@ class ScutBridge:
         self.top_sensors = [env.scene['scut_top_'+s] for s in ('left', 'right')]
         self.top_force = torch.zeros(self.n, 2, device=self.device)
         self.ground_force = self.top_force.clone()
+        self.surface_force = self.top_force.clone()
+        self.surface_height = self.top_force.clone()
         self.physics_ticks = 0
         self.terminal_snapshot = None
         self.pending_actions = torch.zeros(self.n, 6, device=self.device)
         self.last_reward = torch.zeros(self.n, device=self.device)
         self.reset_scan_pending = torch.ones(self.n, dtype=torch.bool, device=self.device)
         self.scan_max_distance = ground_scan_config()['max_distance']
-        self.acceptance = FourSideStrict270(self.n, self.device)
+        if profile == 'scut_stairs':
+            from .stairs import StairTraversal
+            self.acceptance = StairTraversal(self.n, self.device)
+        else:
+            self.acceptance = FourSideStrict270(self.n, self.device)
         self.physics_observer = None
         self.completed_episodes = 0
         self.completed_strict = 0
@@ -157,7 +168,8 @@ class ScutBridge:
         self.reward.command_height_sink = self.write_height_command
         self.reward.forward_scan_provider = self.read_forward_scan
         self.reward.max_episode_length = env.max_episode_length
-        env.scene.env_origins.copy_(torch.as_tensor(layout(self.n), device=self.device))
+        if profile != 'scut_stairs':
+            env.scene.env_origins.copy_(torch.as_tensor(layout(self.n), device=self.device))
         self.install_hooks()
 
     def install_hooks(self):
@@ -264,13 +276,21 @@ class ScutBridge:
         for name, value in r._episode_sums.items():
             log['Episode_Reward/scut_'+name] = value[ids].mean()/duration
         r.state_machine_manager.append_reset_logs(r, log, ids)
-        log['Metrics/strict270_completed'] = self.completed_strict
+        metric = 'Metrics/scut_stair_recovered' if self.profile == 'scut_stairs' else 'Metrics/strict270_completed'
+        log[metric] = self.completed_strict
         log['Metrics/episodes_completed'] = self.completed_episodes
         return log
 
     def measure_acceptance(self):
         r = self.reward
         body = r.robot.data
+        if self.profile == 'scut_stairs':
+            contact = self.tensor(self.current_sensor.data.net_forces_w)[:,self.current_contact_order]
+            nonwheel = contact[:,r._nonwheel_contact_link_idx].norm(dim=-1).amax(-1)
+            self.acceptance.update(body.body_pos_w[:,r._wheel_link_idx], self.surface_height,
+                self.surface_force, nonwheel, body.root_lin_vel_w, body.root_quat_w, body.root_pos_w,
+                r.ground_z_est)
+            return
         if hasattr(self.acceptance, 'update_world'):
             contact = self.tensor(self.current_sensor.data.net_forces_w)[:,self.current_contact_order]
             nonwheel = contact[:,r._nonwheel_contact_link_idx].norm(dim=-1).amax(-1)
@@ -395,6 +415,8 @@ class ScutBridge:
                 raise RuntimeError('Manifold buffer capacity/count mismatch')
             self.top_force[:, wi] = 0
             self.ground_force[:, wi] = 0
+            self.surface_force[:, wi] = 0
+            self.surface_height[:, wi] = 0
             if len(f) == 0:
                 continue
             offset = torch.arange(64, device=self.device)[None]
@@ -402,6 +424,16 @@ class ScutBridge:
             ids = (start[:, None]+offset).clamp(0, len(f)-1)
             pts = p[ids]-self.env.scene.env_origins[:, None]
             upward = normal[ids, 2].abs() > .8
+            horizontal = valid & upward
+            self.surface_force[:, wi] = torch.where(horizontal, f[ids], 0.).sum(-1)
+            peak = torch.where(horizontal, f[ids], -1.).argmax(-1)
+            world_height = p[ids, 2].gather(1, peak[:,None]).squeeze(1)
+            self.surface_height[:, wi] = torch.where(horizontal.any(-1), world_height, 0.)
+            if self.profile == 'scut_stairs':
+                self.ground_force[:, wi] = self.surface_force[:, wi]
+                above_birth = self.surface_height[:,wi] > self.acceptance.birth_support[:,wi]+.0049
+                self.top_force[:,wi] = torch.where(above_birth, self.surface_force[:,wi], 0.)
+                continue
             top = valid & upward & top_mask(pts)
             ground = valid & upward & (pts[..., 2].abs() < .001)
             self.top_force[:, wi] = torch.where(top, f[ids], 0.).sum(-1)
@@ -422,7 +454,7 @@ class ScutBridge:
             r.contact_sensor.data.net_forces_w[:, r._reset_contact_link_idx], dim=-1)
         roll, pitch, _ = euler_xyz_from_quat(r.robot.data.root_quat_w)
         roll_pitch = torch.stack((roll, pitch), -1)
-        return dict(root_pos=r.robot.data.root_pos_w.clone(),
+        snapshot = dict(root_pos=r.robot.data.root_pos_w.clone(),
                     root_quat=r.robot.data.root_quat_w.clone(),
                     wheels=r.robot.data.body_pos_w[:, r._wheel_link_idx].clone(),
                     top_force=self.top_force.clone(), ground_force=self.ground_force.clone(),
@@ -450,6 +482,22 @@ class ScutBridge:
                     termination_duration_counter=r._termination_duration_counter.clone(),
                     observation_debug_step=r._value_debug_step,
                     observation_debug_enabled=r._value_debug_enabled)
+        if self.profile == 'scut_stairs':
+            snapshot.update(strict270=torch.zeros_like(self.acceptance.success),
+                first_flight_wholeclear=torch.zeros_like(self.acceptance.success),
+                first_flight_leading=torch.zeros_like(self.acceptance.success),
+                scut_stair_recovered=self.acceptance.success.clone(),
+                scut_stair_both_up=self.acceptance.wholeclear.clone(),
+                scut_stair_any_up=self.acceptance.leading.clone(),
+                scut_stair_max_rise=self.acceptance.max_rise.clone(),
+                surface_support_height=self.surface_height.clone(),
+                surface_support_force=self.surface_force.clone(),
+                actual_motor_position=r.robot.data.joint_pos[:,r._actuate_idx].clone(),
+                actual_motor_velocity=r.robot.data.joint_vel[:,r._actuate_idx].clone(),
+                actual_motor_torque=r.robot.data.applied_torque[:,r._actuate_idx].clone(),
+                ground_height=r.ground_z_est.clone(),
+                observed_height=r._get_observed_height().clone())
+        return snapshot
 
     def observations(self, raw):
         """35 actor; 78 critic with actual MOD4 equivalents of SCUT privileged fields."""

@@ -82,16 +82,20 @@ def initialize(runner, path, expected_sha, expected_bytes, repair_first_axis=Fal
     if len(raw) != expected_bytes or hashlib.sha256(raw).hexdigest() != expected_sha:
         raise ValueError('Pinned enhanced MOD4v1 E0 checkpoint identity mismatch')
     saved = torch.load(io.BytesIO(raw), map_location=runner.device, weights_only=False)
-    if repair_first_axis and saved.get('critic_dim') == 78:
+    if (repair_first_axis or profile == 'scut_stairs') and saved.get('critic_dim') == 78:
         from .checkpoint import check_interface
-        compatibility = check_interface(saved, profile, repair_target_limits=True)
+        source_profile = saved.get('profile') if profile == 'scut_stairs' else profile
+        if profile == 'scut_stairs' and source_profile not in ('trained_stair', 'scut_stairs'):
+            raise ValueError('SCUT stairs initialization requires the selected SCUT policy source')
+        compatibility = check_interface(saved, source_profile, repair_target_limits=True)
         runner.alg.actor.load_state_dict(saved['actor_state_dict'], strict=True)
         runner.alg.critic.load_state_dict(saved['critic_state_dict'], strict=True)
         if runner.alg.optimizer.state:
             raise ValueError('Initialization repair requires fresh Adam')
         runner.current_learning_iteration = 0
-        result = dict(kind='SCUT_SHAPE_WEIGHTS_ONLY_WITH_EXPLICIT_FIRST_AXIS_REPAIR',
+        result = dict(kind='SCUT_SHAPE_WEIGHTS_ONLY_FINETUNE',
             compatibility=compatibility, actor35_critic78_strict=True,
+            source_profile=source_profile, target_profile=profile,
             new_Adam_states=0, new_iteration=0, source_optimizer_loaded=False)
     else:
         result = migrate_weights(runner,saved)

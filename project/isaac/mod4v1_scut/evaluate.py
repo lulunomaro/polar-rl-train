@@ -27,7 +27,9 @@ def main():
     for name in ('assets','runtime','runtime-manifest','guard','job-root','checkpoint','checkpoint-SHA'):
         p.add_argument('--'+name,required=True)
     p.add_argument('--support',action='append',default=[])
-    p.add_argument('--profile',choices=['trained_stair','jump270'],default='jump270')
+    p.add_argument('--profile',choices=['trained_stair','jump270','scut_stairs'],default='jump270')
+    p.add_argument('--scut-stair-source',action='store_true',
+                   help='Explicit same-actor diagnostic of the trained_stair source on original SCUT stairs')
     p.add_argument('--repair-unclipped-v2',action='store_true')
     p.add_argument('--repair-target-limits',action='store_true')
     p.add_argument('--repair-first-axis',action='store_true')
@@ -49,6 +51,8 @@ def main():
         from .config import model_contract,runner_config
         from .checkpoint import check_interface
         from .course import metadata
+        if a.profile == 'scut_stairs':
+            from .stairs import metadata
         random.seed(a.seed);np.random.seed(a.seed);torch.manual_seed(a.seed);torch.cuda.manual_seed_all(a.seed)
         guard_module=load_guard(a.guard);identity=ns['E0_IDENTITY']
         guard_module.verify_task_module(task,identity)
@@ -76,7 +80,14 @@ def main():
                 raise ValueError('E0 diagnostic requires the explicitly selected source')
             compatibility=dict(kind='E0_SOURCE_WEIGHTS_ONLY_DIAGNOSTIC',optimizer_operations=0)
         else:
-            compatibility=check_interface(saved,a.profile,a.repair_unclipped_v2,a.repair_target_limits)
+            source_profile = a.profile
+            if a.scut_stair_source:
+                if a.profile != 'scut_stairs' or saved.get('profile') != 'trained_stair':
+                    raise ValueError('Explicit SCUT stair diagnostic needs the selected trained_stair source')
+                source_profile = 'trained_stair'
+            compatibility=check_interface(saved,source_profile,a.repair_unclipped_v2,a.repair_target_limits)
+            if a.scut_stair_source:
+                compatibility.update(source_profile=source_profile,target_profile=a.profile,course_changed=True)
         actor.load_state_dict(saved['actor_state_dict'],strict=True);actor.eval().requires_grad_(False)
         if a.repair_first_axis:
             from .finetune import repair_saturated_first_axis
@@ -89,6 +100,7 @@ def main():
             source_SHA=a.checkpoint_SHA,model_reads=1,optimizer_operations=0,seed=9137,
             saved_pose_quaternion_order='wxyz',native_sdk_quaternion_order=bridge.quaternion_order,
             compatibility=compatibility,course=metadata()))
+        origins=env.scene.env_origins.detach().cpu().tolist()
         active=torch.ones(80,dtype=torch.bool,device=a.device)
         allticks=[];poses=[];curves=[];result=[None]*80;record_ids=[0,1,40,41]
         input_comparison=[]
@@ -100,6 +112,13 @@ def main():
                 wheel_pos=d.body_pos_w[:,b.reward._wheel_link_idx],root_pos=d.root_pos_w,
                 root_quat=d.root_quat_w,root_velocity=d.root_lin_vel_w,
                 wholeclear=b.acceptance.wholeclear,leading=b.acceptance.leading,strict=b.acceptance.success)
+            if a.profile == 'scut_stairs':
+                values.update(surface_support_height=b.surface_height,surface_support_force=b.surface_force,
+                    scut_stair_recovered=b.acceptance.success,scut_stair_both_up=b.acceptance.wholeclear,
+                    scut_stair_any_up=b.acceptance.leading,
+                    strict=torch.zeros_like(b.acceptance.success),
+                    wholeclear=torch.zeros_like(b.acceptance.success),
+                    leading=torch.zeros_like(b.acceptance.success))
             row.update({k:v.detach().cpu().numpy().copy() for k,v in values.items()})
             allticks.append(row)
             if b.physics_ticks%8==0:
@@ -135,6 +154,12 @@ def main():
                     'reset_body_contact_force','roll_pitch_rad','termination_raw',
                     'command','command_height','effective_height',
                     'termination_duration_counter')}))
+            if a.profile == 'scut_stairs':
+                curves[-1].update({key:snap[key].detach().cpu().tolist() for key in (
+                    'actual_motor_position','actual_motor_velocity','actual_motor_torque',
+                    'ground_height','observed_height','scut_stair_max_rise')})
+                curves[-1]['weighted_reward_active_mean']={key:float(value[active].mean())
+                    for key,value in bridge.reward._last_reward_terms.items()}
             active &= ~done
             if not bool(active.any()):break
         def npz(name,rows):
@@ -143,6 +168,24 @@ def main():
             with path.open('rb') as stream:sha=hashlib.file_digest(stream,'sha256').hexdigest()
             return dict(path=str(path),bytes=path.stat().st_size,SHA=sha)
         ticks=npz('actual400hz.npz',allticks);posefile=npz('selected_actual_poses.npz',poses)
+        if a.profile == 'scut_stairs':
+            terrain=env.scene['terrain'];vertices=terrain.scut_vertices;faces=terrain.scut_faces
+            # Retain only actual authored triangles near selected robots. This
+            # lets the pose renderer show the real stair mesh without physics.
+            selected=[]
+            for eid in record_ids:
+                centre=np.asarray(origins[eid]);near=(abs(vertices[:,:2]-centre[:2])<=4.6).all(-1)
+                used=near[faces].all(-1);ids=np.unique(faces[used]);lookup=np.full(len(vertices),-1)
+                lookup[ids]=np.arange(len(ids));selected.append((vertices[ids]-centre,lookup[faces[used]]))
+            extra={}
+            for eid,(vertices_,faces_) in zip(record_ids,selected):
+                extra['terrain_vertices_'+str(eid)]=vertices_;extra['terrain_faces_'+str(eid)]=faces_
+            path=out/'selected_actual_poses.npz'
+            with np.load(path) as previous:
+                data={key:previous[key] for key in previous.files}
+            np.savez_compressed(path,**data,**extra)
+            with path.open('rb') as stream:digest=hashlib.file_digest(stream,'sha256').hexdigest()
+            posefile.update(bytes=path.stat().st_size,SHA=digest)
         put(out/'CONTROL_CURVES.json',dict(curves=curves))
         if a.e0_source_diagnostic:
             put(out/'E0_INPUT_COMPARISON.json',dict(source_SHA=a.checkpoint_SHA,
@@ -151,6 +194,13 @@ def main():
                 optimizer_operations=0,rows=input_comparison))
         put(out/'ALL80.json',dict(seed=9137,first_episodes=result))
         top=np.stack([r['top_force'] for r in allticks]);mask=np.stack([r['active'] for r in allticks])
+        stair_result = {} if a.profile != 'scut_stairs' else dict(
+            scut_stair_recovered=sum(r['scut_stair_recovered'] for r in result),
+            scut_stair_both_up=sum(r['scut_stair_both_up'] for r in result),
+            scut_stair_any_up=sum(r['scut_stair_any_up'] for r in result),
+            scut_stair_max_rise=max(r['scut_stair_max_rise'] for r in result),
+            scut_stair_stability='Both measured raised-surface contacts after leaving central platform, no nonwheel support,rollpitch<=10deg,abs(vz)<=.1 for.5s; horizontal travel allowed',
+            strict270_required=False)
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in result),
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
             saved_pose_quaternion_order='wxyz',native_sdk_quaternion_order=bridge.quaternion_order,
@@ -159,6 +209,7 @@ def main():
             wholeclear=sum(r['first_flight_wholeclear'] for r in result),leading=sum(r['first_flight_leading'] for r in result),
             **first_episode_contact_summary(top,mask),all80_manifold=ticks,actual_poses=posefile,
             recorded_envs=record_ids,body_names=list(bridge.robot.body_names),course=metadata(),
+            environment_origins=origins,**stair_result,
             native_pose_visual_review_pending=True))
     except BaseException:
         error=traceback.format_exc();put(out/'ERROR.json',dict(epoch=time.time(),error=error));raise

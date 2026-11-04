@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04人类更新：“跳台阶不再强求270mm 按照华南虎的来就行”。新`scut_stairs`只选择公开保存YAML的inverse-mid多级台阶分支，复用原SDK生成器与25–40mm配置阶高/100mm踏面、原difficulty和出生origin；不恢复其它rough科目。该分支无单独高度覆盖，按V13回退全局.2–.42m。原reward/PPO/commands与增强MOD4v1物理/DR保持。旧270mm/首次飞行验收只描述历史，不再阻断新上阶任务。当前target-axis窗已完整关闭59PPO/28.32M样本，独立80仍0top，4图已原生审看；新有限同final原生对照已准备并等待资源，CPU通过不能当技能。详见`history/reviews/20261103-mod4v1-scut-native-training/SCUT_STAIR_BRANCH_AND_RL_DIAGNOSIS.md`。
+
 2026-11-04公开trained_stair的20,000环境窗已完成46次PPO/22,080,000样本；final SHA `a8b954f378940421a5e9860faddf80c4575ae98ee062dddd1d60513de5a31aab`，独立80首局仍0触台/0strict。32局已用逐body接触与最后20步计数确认接触终止，48局达到8秒评测cap，非20秒任务timeout；早晚4幅actualpose已原生审看。新追到原SCUT执行路径中的processed leg target clamp在MOD4映射中遗漏，造成hip目标越过实际±.5rad。现补齐四motor contract限位，并保持原CAD差值/PD/DC/D4；FULL_V4显式区分此接口，旧V3仅 `--repair-target-limits` 可迁移。同final有限80对照正在进行，不能把CPU检查或修复源码称为原生成功。详见 `history/reviews/20261103-mod4v1-scut-native-training/PUBLISHED_RECIPE_FINAL_AND_TARGET_LIMITS.md`。
 
 上述限位对照现已完成：实际全部关节目标/CAD差值合规，但仍0top。随后同final显式 `--repair-first-axis` 对照只把饱和left_crank输出行/偏置置0、该轴STD置1，其余权重保持；原生80首局验证第一轴raw全0、目标合规、0数值异常，仍0top/strict；两次各4幅actualpose均已原生审看。新20,000环境一小时候选从该final做weights-only/freshAdam并显式带入单轴修复，保留原SCUT奖励/PPO。不是完整原SCUT复现或已达270mm技能；当前状态见工作单。

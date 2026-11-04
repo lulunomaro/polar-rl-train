@@ -1,5 +1,7 @@
 # 单200mm跳跃：final376与动作请求投影修复
 
+2026-11-05 06:30实际覆盖：target-projection修复版已实际开训并通过FIRST377（源376＋1），24controls/480,000样本/192physics/20新Adam，actorgrad1.0、critic1.000000119，FULL_V4首存40,877,907B/SHA `83f2e832234d2db9b71d4af367a944a7c45637e4f9e53626c5423fbdba4778eb`。完整恢复source376/17Adam7520/LR.00038443359375000017/actorcriticSTD/7组件/RNGqueuecounter，同jump200无commandadaptation，一次freshphysicalreset。STARTUP真实200mm，完整首轮WORKERerrors0，FIRST不是final或技能。旧72460正常结束，唯一collector69168/parent72460/create05:44:00.022424，POSTROUND_BIND_ONCE/ONCE消费、logs0。actualGO05:36:14.384236、SAVE06:36:14.384236/NOMINAL06:41:14.384236，正式回传SAVE+45=06:36:59.384236；不延期。原owner1636433/worker1636449负责完整保存安全退出后立即独立80。健康只本地69168，不第二SSH/recovery/rebind/launch/PTdecode/hotpatch。下文72460等待/0GO均为历史。
+
 2026-11-05 05:34实际覆盖：旧16444于05:14:51结束，已补齐final376完整WORKER/EVAL并核实际errors0、原owner关闭；SCUT32已05:14:48.545450释放。随后四卡准入在网络/once/INDEX/LAUNCH/GO之前被新真SSH读者17256拒绝，原false与stderr完整保留，当前修复版仍0GO/0新小时。另一E3W11实际GO05:15:08.385595、parent1635510/worker1635668，SAVE06:15:08.385595/NOMINAL06:20:08.385595；旧W10/SCUT32不再当前owner。唯一local72460/parent37064/create05:31:34.958986运行`jump200_training_control.py recover_admission --root A`，日志0，先只本地等待17256/create05:11:51.401918，后finite核exactE3W11退出/outerreaped/canonicalNone/原锁/fresh四卡/余额并执行同一未消费launch。无需重做模型/CPU/评测，不第二SSH/rebind/热改。100h授权持续，下文16444等待和日志pending均为历史。
 
 2026-11-05 04:44。本轮原生训练与独立80已关闭、回传并审完4幅实际保存姿态图，跳跃尚未成功。当前仅有一个本地接续程序16444，尚未新GO。

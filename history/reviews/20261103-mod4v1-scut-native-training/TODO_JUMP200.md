@@ -26,7 +26,8 @@
 - [x] 唯一16444/create04:40:09.633017本地接续已绑定；100h授权下等待真SSH39496，不第二SSH/重bind。
 - [x] 原16444已补齐final376完整日志并核0实际errors/ownerrelease、原SCUT32释放；四卡准入被新真SSH17256在网络前拒绝，原false保留，0新GO。
 - [x] 只恢复未消费准入：唯一72460/create05:31:34.958986已绑定，等待真实17256退出及当前E3W11 exactrelease，原source/PLAN/所有once保持。
-- [ ] sole72460完成有限原gate/实际E3W11parent/exit/outerreaped/canonicalNone/原锁/fresh四卡/实际余额，执行同一未消费launch、核FIRST377并bind唯一postround；保存后立即独立80与actualpose。尚未新GO。
+- [x] sole72460核实际E3W11提前释放/outerreaped、fresh四卡/原余额后唯一新GO05:36:14.384236；FIRST377/完整恢复source37617Adam7520/FULL_V4/完整首轮0errors已通过，唯一collector69168绑定。
+- [ ] 原owner按SAVE06:36:14.384236/NOMINAL06:41:14.384236完整保存安全退出后立即独立80；sole69168于SAVE+45有限正式回传，立即all80和全部新actualpose审看，再按实测修复/接续。FIRST不是技能。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

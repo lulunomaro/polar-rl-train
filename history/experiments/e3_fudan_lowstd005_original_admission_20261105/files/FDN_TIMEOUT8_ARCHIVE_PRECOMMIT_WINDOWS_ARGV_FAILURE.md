@@ -1,0 +1,9 @@
+# Timeout8原生阶段归档：提交前Windows argv长度失败
+
+原记录程序已完成当前文本快照、逐文件脱敏/大小/SHA检查，并由既有record_experiment写出唯一实验metadata；在git add启动阶段触发WinError206（CreateProcess命令行过长）。本次失败发生于任何commit/tag/push之前，不是原生训练、源码编译或技能评测失败。
+
+现场核验：feature HEAD仍为21763dd0c4ca97cb009913c1075caa6ca09160e6；没有本trial标签；仅本次snapshot目录与唯一实验metadata两项未跟踪。原record调用已消费，不重放。
+
+后续只续同一已准备record：以两个受限目录/文件pathspec执行git add，核对完整staged路径集合，再按既有metadata的title/validation/note完成同一个commit与annotated tag，原子推送同一feature/tag并只读核验main。将本失败说明和续接源码并入同一尚未提交的阶段；原代码/失败保留，未改record_experiment实现。
+
+不重跑训练、评测、stage、source读取或record，不改canonical/锁/预算，不读模型或raw。当前W6继续由其原父及唯一observer运行。

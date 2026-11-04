@@ -1,0 +1,1 @@
+V25已真实完整恢复final745，17Adam均14900步、LR1e-5、debug0/common17880；FIRST746有24controls/98304samples/20Adam及完整8927449B检查点。原SCUT flat朝8000推进，200mm尚待本窗完整保存安全退出后原owner独立80评测。09:41四卡实际全查、原canonical/private/finite准入、launch/FIRST与新自动化均入索引。原phase只ordinarysupplement，不record/retag。权重与大件仅发布路径/字节数/SHA，未为归档读取模型或跑physics。

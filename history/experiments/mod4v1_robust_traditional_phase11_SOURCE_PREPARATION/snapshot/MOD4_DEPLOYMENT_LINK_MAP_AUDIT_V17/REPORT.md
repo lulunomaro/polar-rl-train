@@ -1,0 +1,14 @@
+# V17：一次saved-map语义审查；不是新image/ABI/runtime验证
+- Catalog无相应BSP技能，用保存JSON/text分析。先落[MINIMUM_MAP_FACTS](<MINIMUM_MAP_FACTS.json>)再作此报告；本worker stdout打开1次/9989lines、stderr1次；父wrapper/grep先前读过，非全局首次读取。0 image/obj/lib原binary读/hash、native、模型/PHY/QA/Git/agent/Goal。
+- V16已存结果rc0/0.2097813s、AXF629048B，producerSHA a70772a2c56bf38c144817b86a27d2ca01d32aa288c17bdcb9b592987ff4f601，165input实际SHA匹配是父原link证据；此处未重核payload。空stderr/无Warning或Error pattern不等于无运行风险。
+- Map Code110680B（其中inc.data6886已包含，勿再加）、RO7460、未压缩RW1324、ZI65028；RO合118140/0x1cd7c，实际RAM合66352/0x10330。AXF文件629048B与ELF segment aggregate memory184492均不能当RAM用量。
+- LR_IROM1 base0x08000000：未压缩load119464/0x1d2a8，COMPRESSED118512/0x1cef0；RW initializer由1324存成372/0x174，RAM仍66352，不因压缩省RAM；ZI65028不作为ROM存储。
+- ER_IROM1 118140 of配置1MiB；RW_IRAM1 base0x20000000、66352 of配置128KiB，纯算术余量Flash930064/SRAM64720B，不保证动态heap/stack或真实板map；未新增CCMregion，非搬数据/改配置。
+- Map __Vectors0x08000000、end0x08000188/size392、__initial_sp0x20010330(STACK)、Reset_Handler0x080003dd(.text)均源000_startup_stm32f407xx.s.o；与父已存首vector SP/Reset/headerentry相符。这里只核map标签/地址，未重读vector bytes/relocation或验证实际复位执行。
+- SVC_Handler0x0800031d(28B)、PendSV_Handler0x08000379(88B)来自059_port.c.o(.emb_text)；SysTick_Handler0x0800f6bd(14B)来自018_stm32f4xx_it.c.o；SystemInit0x0800f781(64B)来自049_system_stm32f4xx.c.o。不是新ELF bind/ISR优先级/RTOS运行证明。
+- Map实际选AHRS.lib(ahrs.o)；DSP的9个member含common_tables、sin/cos_f32及mat_init/add/sub/mult/trans/inverse_f32。RT实际库名c_w.l/g_wm.l/m_wm.l，含CRT/scatter/ZI/heap/printf、软double/FP与math等；完整成员与每项memory-map行见[ASSESSMENT](<ASSESSMENT.json>)，不是全archive成员ABI覆盖或所有163TU代码保留。
+- 本次已存分配/库名证据中没有完整库目录，库basename不冒完整目录：两显式AHRS/DSP输入全路径仅有既有V15绑定；RT准确目录仍UNKNOWN，不猜安装默认目录。库size表AHRS Code2718/RO12/RW16、DSP Code2692/RO2052；其余RT细项已存。
+- Map semihost定义逐字：__I$use$semihosting                      0x0800224b   Thumb Code     0  use_no_semi.o(.text); __use_no_semihosting_swi                 0x0800224b   Thumb Code     2  use_no_semi.o(.text); __semihosting_library_function           0x0800224d   Thumb Code     0  indicate_semi.o(.text)。保留其map类型/来源，不把Number或ABSOLUTE标记冒充可执行函数；cross-ref见sys_command/sys_exit/sys_wrch Special refs，allocated成员列表有sys_exit/sys_wrch/use_no_semi/indicate_semi。
+- sys_command special-reference/文件名出现不证明已分配可达指令；semihost-name存在不证明执行BKPT，no_semihosting_swi之名也不证明standalone/retarget IO。真实可达/异常退出/printf行为UNKNOWN，无反汇编或调用实验。
+- 只是旧BSP Stage1 UNBOUND映像；旧机械LQR/MF9025接口与新MOD4绑定未解决，无C3＋新startup集成/sole-send。CRT/SystemInit/RTOS一致性、FPSCR/denorm、实时stackheap、pins/CAN/DM3519协议、WCET/HIL/flash与真实站立均未资格化。
+- PH11pending，PH10已closed。此任务只交保存文本assessment/receipt，不补link/fromelf/parser/实验/封包/刷写或源码修改，交付后停止。

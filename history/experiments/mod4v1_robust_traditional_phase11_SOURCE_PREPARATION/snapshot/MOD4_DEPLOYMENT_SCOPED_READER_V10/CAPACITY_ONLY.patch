@@ -1,0 +1,22 @@
+--- sealed_V7_reader
++++ new_V10_reader
+@@ -4,8 +4,8 @@
+ """
+ import struct
+ 
+-MAX_OBJECT=65536
+-MAX_SECTIONS=256
++MAX_OBJECT=1048576
++MAX_SECTIONS=4096
+ MAX_VENDORS=32
+ MAX_BLOCKS=128
+ MAX_PAIRS=2048
+@@ -225,7 +225,7 @@
+         tables=[s for s in raw if s[1]==2]
+         need(len(tables)==1,'SYMBOL scopes require one unambiguous SYMTAB')
+         table=tables[0]
+-        need(table[9]==16 and table[5]%16==0 and table[5]//16<=1024,'symbol-table bounds')
++        need(table[9]==16 and table[5]%16==0 and table[5]//16<=16384,'symbol-table bounds')
+         for index in attrs.symbol_ids:
+             need(0<index<table[5]//16,'SYMBOL index outside table')
+             entry=struct.unpack_from('<IIIBBH',data,table[4]+16*index)

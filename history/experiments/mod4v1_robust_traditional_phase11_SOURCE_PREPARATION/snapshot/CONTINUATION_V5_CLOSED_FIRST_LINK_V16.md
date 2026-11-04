@@ -1,0 +1,42 @@
+# 继续点：V5 已失败封存；真实旧底座首次 ARM 链接通过
+
+## 当前权威状态
+- 工作区 `F:\RMPOLAR-RL`；任务根 `F:\RMPOLAR-RL\mod4v1_lqr_mpc_robust_20261102`（R）。本轮实际读取 Goal `goal-4d4bef80-e614-432d-a8cd-8f385ef2dd7d`，revision17／round9of12，active、armed。目标未完成，不新建、rearm、complete 或 blocked。自动下一轮不是新的人工 resume。
+- 用户两个优先事项：地面自然摊卧启动起立；真实旧部署工程接入。动量／R64 未执行分支继续暂停。旧模型／增益／H1/H2/H4/H5／Stage1／所有失败不改；仿真、数学、编译链接、实时、HIL／实机资格独立报告。
+- Python `C:\Users\lulu\AppData\Local\Programs\Python\Python314\python.exe -B`；BLAS/OMP/MKL各1，最多4物理CPU worker；无GPU/SSH/PPO/canonical副本/其他RL工作树或index写入/新agent/Mnemon写入。Office／ACL catalog无robotics匹配，使用文件／CLI；read-before-edit、glob/grep/read约束继续。danger-full-access且approval-disabled，不请求escalation。
+- 只复用两个resident：C `abf2088f-af10-479a-9108-202785031447`；model `e4e6c8f2-f08d-4df1-9150-945c804e8c2a`。旧Mnemon idle children不动。
+- 新[进展报告 V4](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/reports/STARTUP_DEPLOY_PROGRESS_20261104_V4.md>)已写；旧 V3 文档及其31链接/3metadata的once验证不重跑、不改其snapshot。
+
+## 1. V5 独立审查、单案执行、单流诊断全部闭合
+- [独立review](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/STARTUP_STAND_V5/front_admission001/FINAL_ENTRY_REVIEW_001.json>)18行已实际完整read：266/266静态checks、84livepins/869099B/max223603B、原57记录一致。SHA `c4097f89c73b74c07e2e0264517b88f0d88a563b2475e2d28678fd1f1b0e01b3`。parent随后完整read配置15／protocol33／launcher32，另签[固定单案批准](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/STARTUP_STAND_V5/front_admission001/PARENT_APPROVAL.json>)；launcher实际核全部SHA／review／proofacceptance后执行。
+- case `startup_front065_lift_pose_v5_nominal1`，seed0 nominal，计划10s；[结果](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/results/startup_front065_lift_pose_v5_nominal1/result.json>)parent实际read1–205of389。job `pwsh-680724ac7608454c`已COLLECTED exit0，约9.584s，正式result/noERROR/softwareFalse。后到completion notice不再收同job。
+- 实际188ctrl／3760PHY，OBSERVE31→LIFT156→INHIBIT1，1.87s估计pitch1.004482443超过原1rad门，末真实POST1.88s pitch.9745308252、rootZ.3053217086／heightgain.06818300455、maxxy.3529450731。stable0、无BALANCE、原门False；guide3710ticks/hard0。不是完整10s资格。
+- [诊断REPORT18](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/STARTUP_STAND_V5/front_saved_analysis001/REPORT.md>)和[RECEIPT98](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/STARTUP_STAND_V5/front_saved_analysis001/RECEIPT.json>)parent已完整read。唯一NEW controltrace一次188行／1201204B，physics／旧raw／rawhash0。不要再读该trace做同一诊断或归档hash。
+- 156LIFT真实pose REQUEST38（24.36%）／quiet118；156请求公式误差0，38都不同于quiet。firstpose.31 common12.396→[3,3]；firstOFF.40是proper14.4347>11.772、qd仅.08368。失格partition proper-only11/qd-only37/qd+qerr70；lastON.83，.84..1.86连续103quiet。fresh未独立log，age0不是完整fresh；38gateTrue证其fresh，其他已有失格项的fresh保留UNKNOWN。
+- softguard first.70共5rows，源meanwheel峰13.046/13.335。proxymax.381835<.50，goalclip first.91／96条，gamma-limit first1.30／35。双主轮all20承重115/188，noOther-all20=0，combined0；不推真实接触身份、actual2k DC／电流／clipmask或唯一因果。
+- REPORT SHA406c7f6c1a260cd174dca2811d261ef95c98e6648fb5de20a9a8687d25e1e908；FACTS b6d323d5e02752639c581480f1f0b864f3edd4f19e13e5cd239a541f7a44029f；RECEIPT6a873bcbeae388a63e60ea3267d8a77499dc62e746789e39037bccb2ea57e0f5。trace producerSHA8819a78114124ba09ba24925b3ce8c51135256f3133e5bfda91c41e42f1f9cb6仅复用未重算。
+- 累计6次受控尝试2482ctrl／49640PHY：5formalFalse+V1ERROR prefix601/12020无结果回填；无完整10s，不称独立0/6通过率。被动3次12000PHY另列，front125落稳同front065一类，非三种独立包络。此前详情见[旧handoff](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/CONTINUATION_V5_PREEXEC_AND_ARMASM_V13.md>)。
+
+## 2. C14／C15／C16 实际底座进展
+- C14唯一ASM首跑返回0，6880B／SHA480f8c785deb11c702c437ee81e97ace0e27a24ff0c2b362cd5031cb7cb46134；[结果](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_STARTUP_ASSEMBLE_V14/RESULT.json>) FILE6=13/7=77/9=2/10=6/27=1/28=1/25=1、18/26norm0，91weak／112symbol／120reloc；imports SystemInit/__main/__use_two_region_memory。未使用C浮点gate、未推运行时资格。C13原draftreadyFalse与其未知历史不改；独立parent诊断批准后真实观察值补充。
+- C15静态[报告17](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_LINK_PREP_V15/REPORT.md>)／完整draft389／scatter11／memory38／ownhelp48，parent都实际read；registry首100+libs尾99读，其余结构由新firstlink脚本独立解析。sourceID0..162／163obj+2libs，只stat的原C15记录保持payload0。
+- C15closing checker line9固定参数错计13。原source16／trace6／failure receipt保留；parent唯一修复scope准新checker字节literal13→12，inverse exact，metadata close首次成功。原失败不是工具／input／link失败；不伪造首次close通过。成功RECEIPT SHAa8835d439ddbf054ad0fb6d9d7e589e4d7143fcc3035fa96ce98457b74b3c584；registry d7c39ab597356772dcb8b835ab9939a8ac442a9339135a82cdebec8e5e1c7dc6；draft3d8db6b62803bd595a6b9e8539761621d4f3aaba58b91fceb3347d08eddcd418。
+- [C16 parent scope](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_FIRST_LINK_V16/PARENT_FIRST_LINK_APPROVAL.json>)选择直接expandedargv，唯独output改新owned路径；不执行旧VIA，不改flags/order/cwd/scatter/库/region，无强制忽略／ABI覆盖／CCM搬移。
+- [实际一次link结果](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_FIRST_LINK_V16/RESULT.json>)：armlink rc0，.2097813s，提取Warning/Error行0；629048B AXF，SHAa70772a2c56bf38c144817b86a27d2ca01d32aa288c17bdcb9b592987ff4f601。真实firstlink完整性所需165输入各currentSHA一次匹配producer、poststat及smallpins同；这不是归档hash或旧QA重放。没有执行库算法／映像／ZIP脚本／UV／flash／realIO。
+- 基本新ELF snapshot1，ARM ET_EXEC、entry134218717=0x080003dd；vector0x08000000、SP0x20010330在SRAM且8对齐、ResetThumb且等entry。PT_LOAD memory_bytes不是简单SRAM使用；不把AXF629048B当ROM。
+- [map9976–9986](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_FIRST_LINK_V16/link.stdout.txt#L9976-L9986>)：RO118140，RW66352，ROM118512（压缩RW372/未压缩RW1324、ZI65028）。选中源配置Flash1MiB/SRAM128KiB，CCM未选；不是硬件map绑定。
+- map定义：__Vectors08000000；Reset080003dd来自startup；SVC0800031d/PendSV08000379来自059port；SysTick0800f6bd来自018stm32it；SystemInit0800f781来自049system。是map来源，不是运行中断证明或新ELFsymbol-bind审计。
+- semihost相关__I$use$semihosting/__use_no_semihosting_swi/__semihosting_library_function有map记录；实际可达／retarget／独立I/O未知。链接成功非CRT/RTOS/FPSCR/stackheap/WCET/HIL/实机资格。
+- 此镜像仍旧BSP／Stage1 gate、旧mechanicalcontrol/MF9025接口/defaultMOD4 UNBOUND，不是新C3+起立+功率driver/sole-send链。163source分段产物不是单次cleanbuild；5.06u6.750不是旧u4精确复现。旧V6 FILEgateFalse、V8 cap历史只读，V7/C10是后续补充。
+
+## 3. 当前两个resident任务（结果未收到前不提前宣称完成）
+1. **C resident：V6 body-fixed crouch 候选源码＋小合成准备**。[parent scope](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/STARTUP_STAND_V6/PARENT_BODY_CROUCH_PREP_SCOPE.json>)已完整read。public[bank：7–24](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/JUMP270_V1/GAIN_BANK.json#L7-L24>)q7 hip.45417412979711813、delta−.4956839978694916，ABS crank−.04150986807237346；原trim3.52298/−4.56659等，不用该point的K/新DARE。保祖V4 public20构造校验，active-only换OWNsupportq/ff与constant body-fixedgoal，不再在线−pitch平移；V5同wheel资格/caps/phase/time/rate/proxy/observer/driver/原门保留。默认off／operatoroff literalV5。原LIFT_WORLD_SUPPORT标签只是legacyFSMstring。新entryV8 load实际BANK gains.crouch/modelSHA+runtimepin，保gain0/20/full-loop/privateAST；未准import/runentry或PHY。
+   - scope budget<=160enabled（含oracle）/40TOTALoff（20pairs）/16typed，新FakeGC／0真实modelFK/DARE/PHY/旧57或551 replay。C已报计划31enabled、40off、16typed，尚非实际结果；METHOD/Plan/pins后才首次执行。source/proof/derivation/report/receipt后停，另需parent接受／独立review／批准／新case。
+2. **model resident：C17 saved-map-only审查**。[scope](<F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/MOD4_DEPLOYMENT_LINK_MAP_AUDIT_V17/PARENT_SCOPE.json>)已发：只新V16小result/basic/native与stdout/stderr文本，one own semantic pass，无image/obj/lib binaryread／parser／native／PHY。核selectedregion压缩区别、vector/中断map来源、实际selectedAHRS/DSP/RTmembers、semihosting未知。minimum后<=25line报告／receipt然后停；parent及wrapper此前读过map，勿称全局firstread。
+
+## 4. Jobs、归档、下一步
+- Parent无running／待收相关job：V5 `pwsh-680724ac7608454c`已收；C14、C16为同步工具完成。旧2e0/abbe/906b/8b87/d1f3等都早已收，不busy-poll或重复收。两个agent当前任务分别如上；不得加新agent。
+- PH10真实commit `e176d2a6401fafb9d618a042acba8190023c3273`、annotated tag `trial-20261104-mod4v1-robust-traditional-phase10`／tagobj38e3bd31b6d54cf3f05ea78cd936256ec299cdcb已推并verify；不重record/tag/push。[正式postreceipt](<F:/RMPOLAR-RL/repo-lqr-robust/history/experiments/mod4v1_robust_traditional_phase11_PENDING/ARCHIVE_PHASE10_RECEIPT.json>)旧已完整187line read。
+- 新V4/V5、geometry、C7–C17、本进展等PH11pending；尚无PH11cutoff/sourceprep/record执行。后续先有限closed-cutoff，排除activeV6／未来PHY／pausedmomentum／RL，按旧策略only ownrepo `F:\RMPOLAR-RL\repo-lqr-robust`、branch `mod4v1-lqr-mpc-robust`，originalhelper b2fd15... unchanged once/narrowallowlist/all-A/path+blob/parent+oldtag gates、only-ownbranch+newtag原子nonforce。原other `repo-lqr` expertbranch/index/main/凭据/hooks不动。raw/ZIP/USD/lib/image用已有producerSHA，不为归档重复扫payload。
+- 收V6实际source/proof与C17savedmap结果后做实际read／短接受，不重复旧once。起立新机制是可证伪假说；新front物理case要新sourcefreeze+独立review+parent批准，不自动放DR/back/side或调松门限。新BSP后续还缺100Hz控制任务、BMI088异步窗口／六motor源时间、SI/CAN标定、C3/FSM/Power/driver事务整合及双板HIL。
+- Goal整体还有270mm／真实RM全族／spin-stop-reversal／独立fullDR启动恢复等未达，不从nominal、数学或ARM镜像推全目标完成。

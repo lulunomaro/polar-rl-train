@@ -1,0 +1,25 @@
+# STATIC V7 — scoped AEABI interpretation, not target continuation
+
+- Authority: parent message 6302. Write only this new directory; all V1–V6 data, reader, gate, and execution ledger remain read-only. No ARM tool/version/fromelf/native/compile/probe/link/UV/target/robot/Git/agent/old-QA invocation.
+- Catalog reviewed: Office/ACL skills do not match ELF attribute analysis. Use supplied web_fetch + read/glob/grep, and Python 3.14 standard-library metadata scripts only.
+- Official sources first read through web_fetch: Arm abi-aa Addenda32 and AAELF32, both declare **2026Q3, 3 November 2026**. Store exact short excerpts plus URLs/line references from the formatted fetch receipts; no blog/default guess. Main URLs are mutable, not commit-pinned; excerpt hashes identify the actual evidence saved here.
+- Input payload QA is bounded to the existing **7804-byte V6 object**, existing **16518-byte fromelf stdout**, and old **2334-byte file-only reader**. Also hash the original gate/ledger/result metadata for immutability, without executing the old reader. No archive, library, 423-source tree, project option, or robot trace re-read.
+- Read ELF32 little-endian section headers/names/attribute bytes only; no instruction/data-section dump, disassembly, runtime, or dynamic loading. Read symbol-table linkage/index metadata only if a public SYMBOL scope actually needs it. Record private vendor blocks as opaque, never interpret ARM-private tags as AEABI.
+- Public format: validate format A, vendor boundaries, sub-subsection lengths, ULEB128 index lists and zero terminators, FILE/SECTION/SYMBOL IDs; merge any number/order of public scopes. Same-scope repeated same value is allowed; different values are a conflict (official rule), not an overwrite. Unknown mandatory tag/type/scope is a stop, not a guessed value.
+- Implement the official semiformally stated resolution literally: `value(T,S) = undefined if S.empty() and S.parent.has(nodefaults); else explicit S[T] if present; else value(T,parent)`, virtual parent of FILE = 0. `empty` excludes Tag_nodefaults but no other explicit attribute. This is narrower than blindly declaring every tag under nodefaults unknown.
+- For tags 18/26: distinguish explicit/inherited 2/1, normative zero `UNUSED_CONTRACT_TYPE_PROHIBITED` (not inferred C compiler sizes or proof by disassembly), undefined/reserved `UNKNOWN`, and same-scope `CONFLICT`. SYMBOL override is legal and distinct from same-scope conflict. Per-code-section rows retain section ID/name/flags/size and any symbol exceptions.
+- Preserve other observed CPU/FPU/VFP-argument/denormal values; no new hardware/FPSCR/library ABI conclusion. Deprecated/optional section/symbol attributes are deliberately honored by this reader; no claim that every consumer must do so.
+
+## Exact new fixture budget (four, no mutations/fuzz/old QA)
+1. **inheritance_nodefaults**: FILE 18=2/26=1/nodefaults, a nonempty child inheriting 2/1, an empty child undefined, and an explicit section 18=4 override. Tests exact empty-scope rule and inheritance.
+2. **multi_section_symbol_default**: FILE lacks 18/26, public section list [1,2] gives 2/1, SYMBOL 7 in section 2 overrides enum to 2, and section 3 resolves default 0/0 as unused. Tests multi-section list, symbol precedence, and normative (not compiler) omission.
+3. **same_scope_conflict**: two FILE records explicitly give tag 18 distinct values 2 and 4; expect typed conflict.
+4. **bounded_missing_index_terminator**: a correctly bounded vendor block contains a SECTION sub-subsection whose index list ends without zero; expect bounded parse error, never read beyond its declared end.
+
+Each fixture is a single new attribute blob <=4096 bytes; exactly one parsing attempt per fixture. No changed-input retries. Limits: object <=65536 bytes, <=256 sections, <=32 vendors, <=128 public blocks, <=2048 attribute pairs, <=256 IDs per scope, ULEB32 at most five bytes. These limits describe supported QA input, not a general ELF-tool qualification.
+
+## Execution and close
+- Freeze source/excerpt/old-input hashes before reader QA. Run the four fixtures once, then parse the one real object once with the new reader. A fixture failure stops before the real object; preserve prefix/error with no silent retry.
+- Cross-check only the saved fromelf text and old recorded FILE observations; do not execute fromelf or the old inspector. Assert the specific saved FILE values and function SECTION values, and enumerate all executable-section rows, including unused/unknown/conflict without forced 2/1 propagation.
+- Save raw public scopes and effective-value provenance plus a small report/receipt. Original V6 facts remain **compiler success 1, post-ABI accepted prefix 0**. Any scoped-static assessment is separate and does not update that ledger.
+- Conclusion may recommend separate parent review for the remaining 161 C + 1 ASM; it grants no native continuation, linker/full-firmware/hardware qualification, or ABI statement about uncompiled TUs or all libraries.

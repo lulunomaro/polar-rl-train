@@ -1,0 +1,21 @@
+# V13：ARMASM查询、精确ABI规则与未执行V14草案
+
+- 最小[query账本](<QUERY_LEDGER_01.jsonl>)先写；实际2/2次trusted ARMASM native，均rc0：--help一次+help35明载的--cpu list一次；source/-o/ASM调用0，第三query禁止。
+- help实际MDK5.26/ARM Compiler5.06u6.750/tool4d35ec；[help stdout](<armasm_help_stdout.log>)2034B/stderr0；CPU列表在[stderr](<armasm_cpu_list_stderr.log>)1209B、stdout0，不把stderr当error。
+- 实际CPU清单明确Cortex-M4.fp.sp；选择该精确拼写，不宣称旧C的.fp无效或两个tool默认相同。
+- [primary短引文](<PRIMARY_ABI_RULES_01.json>)来自官方[Addenda32](https://raw.githubusercontent.com/ARM-software/abi-aa/main/addenda32/addenda32.rst)/[AAELF32](https://raw.githubusercontent.com/ARM-software/abi-aa/main/aaelf32/aaelf32.rst)，HTTP200，2026Q3/2026-11-03；formatted-result SHA与精确UTF8引文SHA分别记录，非HTTPwire/rawRST/commit SHA。
+- Tag10=0禁止FP硬件指令；6允许v4 FP且寄存器限D0-D15/S0-S31；不是FP参数约定。
+- Tag27=0由10推断，不是UNUSED；1为派生SP变体，2reserved，3是deprecated的0同义；不能把0盲接C的1。
+- Tag28=0 BASE PCS，1 VFP PCS，2tool-specific，3仅在所述禁止非variadic FP参数/结果时both-compatible；0不是没有接口/通用neutral。
+- Tag24=0不依赖8byte/extended数据alignment，1依赖8/2依赖4；25=0不要求preserve8，1要求preserve8，2再要求所有指令边界SPmod8=0；source PRESERVE8不等实际whole-link契约已核。
+- 公有省略/继承/nodefaults/冲突按原规范；跨物件combination按demands偏序/上确界，不是数值max，25顺序反向。18/26规范0仍UNUSED而非width0。
+- AAELF EF_ARM_ABI_FLOAT_HARD/SOFT条款针对ET_EXEC/ET_DYN；不能由ET_REL header空位判断BASE/VFP，须审实际public scope。
+- [唯一V14完整literal草案](<V14_LITERAL_DRAFT_UNEXECUTED_01.json>)有完整argv/cwd/source30149B SHA7baf21c802efd7aaeace20cfecef16b967d124fcbd5f038088be0eee6138b261及每token出处；仅新V14-o字符串，未建V14文件/目录，不用sealed旧-o。
+- 按父[最小variant决定](<PARENT_MINIMAL_VARIANT_DECISION_01.json>)，草案仅--cpu=Cortex-M4.fp.sp、--li、唯一新-o与原source；source自带THUMB/PRESERVE8、无INCLUDE故无-I/新宏；MICROLIB OFF不定义__MICROLIB（不是=0）。
+- **不override APCS/FPU，hardFP public ABI未宣称选定/兼容**：真实help仅--apcs /<quals>；[精确子页访问记录](<PRIMARY_SYNTAX_ACCESS_01.json>)跨域redirect，未取到/interwork/hardfp值定义，父同意不猜C-only qualifier。
+- 完整草案可供父独立首诊断review，不是执行批准；未override的defaults待另批首次obj只采ASM metadata观察，不过C浮点gate，不声称oldUV/PCS全兼容。实际28=1或有条件3与C契约匹配仍需证据。
+- CPU FP硬件选择不自动等于VFP PCS；CPU依赖FPU/default APCS/实际属性、callee签名、runtime库、向量重定位/强IRQ绑定仍明确UNKNOWN。
+- [ASM-specific ABI提案](<ASM_ABI_PROPOSAL_01.json>)只文档，分别审CPU/Thumb/FP-use/FP-args/align/type/scope与imports/exports/weak；没有新parser/fixture或悄改C gate。
+- 源整数风格不证明callee没有FP参数；缺carrier/未知/冲突/reserved仍STOP，不能以unused或source无FPop偷放行。
+- 0 ARMCC/fromelf/汇编/probe/link/UV/hooks/flash/realIO/162Cobj/两库读取/oldQA/FK/PHY/Git/agent/Goal/Mnemon；旧V12/V11/V10全部只读。
+- 全部PH11pending，PH10闭合未重跑；停在完整草案/未知项交审，首次one-ASM及任何链接必须另批。

@@ -1,0 +1,17 @@
+# V15：静态first-link准备，尚未link／不构成固件资格
+- Catalog无匹配BSP/ELF技能，使用受限文件/JSON/stat与唯一获准CLI；未触V5封源、proof、admission或并行审查。
+- [最小registry](<MINIMUM_INPUT_REGISTRY.json>)先于draft保存：sourceid0..162各一、163唯一source/object路径；C6main1＋C8 39＋C11 122＋C14ASM1。只核165个obj/lib的存在与size，全部匹配producer；payload读取/hash均0。
+- object文件producer总字节1800400含debug/ELF等，不是ROM/RAM占用或已证容量。不是统一clean build，更不是latest MOD4完整firmware。
+- C6原FILEgateFalse/accepted0、C8原39compile/38accepted与TU40容量停止保留；V7 main分scope、C10 TU40新静态通过分列，未重写旧账。C11 122C通过及C14唯一ASM成功不替代完整link ABI。
+- C14 saved metadata：6880B、FILE27/28=1、18/26规范UNUSED0、Reset_Handler为weak Thumb定义、91weak symbols；SystemInit/__main/__use_two_region_memory待解析。无再fromelf/armar或新binary parser。
+- AHRS34756B producerSHA ace29e114d892a48a473cc3421f0c22d16841c1316313746650b8f441749413a；DSP13294064B producerSHA ba416f23efb992105c36b67d9002d8142e38877d1010c0e0a1d0f74b83325ab7。原member/CRC/copyreceipt已关联；当前payload/成员ABI未知，未反汇编或hash。
+- [唯一query ledger](<LINKER_QUERY_LEDGER.json>)：`C:\Keil_v5\ARM\ARMCC\bin\armlink.exe --help`一次rc0，stdout2377B/stderr0，先落原输出再分析；自报MDK Plus5.26、ARM Compiler5.06u6 build750。非项目u4精确复现，无第二version/query。
+- [真实窄段](<PROJECT_MEMORY_EXCERPT.txt>)：F407IGHx项目选择IROM1 0x08000000/0x100000、IRAM1 0x20000000/0x20000；CCM 0x10000000/0x10000虽列出但Ir2Chk0未选。useUlib0/noStLib0，umfTarg1/useFile0，ScatterFile/LibPath/Misc空，不猜物理板map或搬数据到CCM。
+- 旧standard_tpye_c.sct确存在且标UV generated，但不是当前mod4_port_stage1_UNBOUND明确指定的scatter；当前目标自动生成scatter仍UNKNOWN。旧文件未改。[新诊断草案](<diagnostic_IROM1_IRAM1_DRAFT.sct>)仅复用显式选中区、RESET+First、InRoot$$Sections、ANY_RO/RW_ZI。
+- [完整未执行draft](<FIRST_LINK_UNEXECUTED_DRAFT.json>)列literal argv/cwd/163obj固定顺序/两显式库/新owned输出；[VIA](<first_link_UNEXECUTED.via>)只为参数承载，不运行。用own-help支持的scatter/output/entry/map/symbols/xref/info sizes,totals,unused,veneers；未假借compiler flags或加入force/抑制/重叠/ABI覆盖。
+- own-help未列--list，故未来wrapper将stdout中的map/symbol/size诊断另存；当前0link。系统库按安装armlink默认查找，未猜--libpath/RT archives，不加microlib；实际路径/选择成员/semihosting/跨库解析在真实link前UNKNOWN。保留默认unused移除，完整源覆盖不等于全部代码入映像。
+- 后续firstlink如另批，才核真实ELF/map、undefined/duplicate、强ISR覆盖弱默认、vectors/entry、copy/ZI regions、Flash/SRAM/CCM布局/容量、所选库/veneers/stackheap。当前new VIA/scatter尚无native语法运行证明，startup保存的STACK/HEAP各8192不等于实际需求。
+- 这是旧BSP/Stage1底座：旧机械LQR/VMC参数与MF9025轮接口仍属旧机，MOD4新绑定默认UNBOUND，无C3启动一体化/sole-send transaction。
+- 即使link成功也不证明SystemInit/CRT/RTOS运行、FPSCR/denormal、no-semihosting、GPIO/CAN/Damiao标定、最新控制器/driver-power/sole-send、板级启动/HIL/WCET或物理站立。
+- [小输入pins](<SOURCE_INPUT_PINS.json>)前后全等；仅hash元数据/小项目config/旧SCT与新输出，不hashobj/lib/exe/ZIP。无source/object/flags改动，无compile/ASM/fromelf/armar/UV/旧QA/model/FK/PHY/Git/新agent/Goal操作。
+- PH11pending，PH10已closed；本任务native仅一次help。父需另选有界firstlink diagnostic scope和批准，当前无firstlink/flash/硬件send权限，交付后停止。

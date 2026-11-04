@@ -1,0 +1,163 @@
+{
+  "status": "CURRENT_PRIMARY_RULE_EXCERPTS_NOT_NEW_READER_OR_ACCEPTANCE_EXECUTION",
+  "fetched_via": "web_fetch twice HTTP200",
+  "release": "2026Q3",
+  "issue_date": "2026-11-03",
+  "URL_main_not_commit_pinned": true,
+  "hash_semantics": "SHA on complete saved FORMATTED web_fetch result bytes and separately exact persisted UTF8 quote. Neither is asserted HTTP-wire/raw-RST/commit SHA.",
+  "documents": [
+    {
+      "URL": "https://raw.githubusercontent.com/ARM-software/abi-aa/main/addenda32/addenda32.rst",
+      "rendered_URL": "https://github.com/ARM-software/abi-aa/blob/main/addenda32/addenda32.rst",
+      "formatted_snapshot": {
+        "path": "C:\\Users\\lulu\\AppData\\Local\\Temp\\dsh-spill-N99Hsy\\session-de481967f16c\\2f3988e12bdb-web_fetch.txt",
+        "bytes": 100499,
+        "SHA": "d3e013c99653a7e6cd15e893523530710fa95977efc11f1b5d8fb949a7996d0b"
+      },
+      "excerpts": [
+        {
+          "formatted_result_lines": [
+            640,
+            707
+          ],
+          "quote": "\nSuppose E1 and E2 are entities (for example, relocatable files) with\nattribute values a1 and a2 for an attribute tag T. This section discusses\nhow to generate the correct value of T for the entity formed by combining E1\nand E2 (for example, the executable file formed by linking E1 with E2)\n\nIn each case, the values of a tag can be partially ordered according to the\nsets of demands they represent. We shall write a1 ≤ a2 if an entity\ntagged with <T, a1> makes no more demands on its environment than an entity\ntagged with <T, a2>.\n\nWriting {T:a1} to denote the set of demands made by an entity tagged with\n<T, a1>,  we can define a1 ≤ a2 if {T:a1} ⊆ {T:a2}.\n(A set of demands might be the set of instructions a processor must execute, for\nexample).\n\nInformally we say that a1 is compatible with a2 or a1 is more compatible\nthan a2 when a1 ≤ a2.\n\nUsing ``Tag_CPU_arch`` (`The target-related attributes`_) as an example, v4T\n≤ v5TE, because the set of instructions conforming to architecture v4T\nis a subset of the set conforming to architecture v5TE. Stated more precisely,\nfor both the Arm ISA and the 16-bit Thumb ISA, it is the case that {ISA\\@v4T}\n⊆ {ISA\\@v5TE}.\n\nThis partial order often differs from the arithmetic order of the enumerated\nvalues though in many cases it\n\n*  Is identical (as with ``Tag_THUMB_ISA_use`` in\n   `The target-related attributes`_).\n\n*  Is reversed (as with ``Tag_ABI_align_preserved`` in\n   `The procedure call-related attributes`_).\n\n*  Represents mutually incompatible choices with which only the identical\n   choice, or no use at all, is compatible (as with ``Tag_ABI_PCS_wchar_t`` in\n   `The procedure call-related attributes`_).\n\nNote that the appropriate partial order to use can evolve over time as the\nunderlying specifications evolve.\n\nCombining two values of the same tag\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\nWe shall write a1 <> a2 if a1 and a2 are unordered in the partial order of\ndemands/compatibility and a1 + a2 to denote the combination of a1 and a2.\nThere are the following combination rules.\n\n*  If a1 ≤ a2, a1 + a2 = a2. Similarly, if a2 ≤ a1,\n   a1 + a2 = a1. (‘+’ behaves like the *maximum* function).\n\n*  If a1 <> a2 there are two mutually exclusive sub-cases.\n\n   *  There is a least a3 such that a1 ≤ a3 and a2 ≤ a3.\n      Then a1 + a2 = a3.\n\n      Example: ``Tag_CPU_arch`` when a1 = v6KZ, a2 = v6T2, and a3 = v7.\n\n   *  There is no such a3, so a1 + a2 denotes the attempted combination of\n      incompatible values.\n\n      Example: ``Tag_ABI_PCS_wchar_t`` when a1 = 2 and a2 = 4.\n\nIn this second sub-case it is a matter of notational taste whether a1 + a2\nis defined to have a value such as error or Top, or defined to have no\nvalue. Either way, in practice we expect an attempted combination to fail in\na way specific to a toolchain’s compatibility model (for example by\nprovoking a link-time diagnostic).\n",
+          "UTF8_excerpt_bytes": 2896,
+          "UTF8_excerpt_SHA": "b7f5ff185a7bf1a9d08b5bc55480ca863fd544f5c6dec84bb25b6d27d7152139",
+          "purpose": "Demands partial order and combination; alignment-preserved order reversed, not arithmetic max."
+        },
+        {
+          "formatted_result_lines": [
+            924,
+            969
+          ],
+          "quote": "Default values for public tags\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nThe effect of omitting a public tag in file scope is identical to including\nit with a value of 0 or “”, depending on its parameter type.\n\nA producer must consider what value it intends to give to each public tag.\nIn the absence of ``Tag_nodefaults`` (`No defaults tag`_) a\nconsumer should conclude that the producer intended to give the value 0 to\neach omitted public tag.\n\nInheritance of public tag values\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nAn attribute can be given to a symbol, a section, or a relocatable file.\nNormally, each section in a file inherits the attributes defined at file\nlevel and each symbol defined in a section inherits the attributes of that\nsection.\n\nA tag value given explicitly in a scope overrides a value that would\notherwise be inherited. If ``Tag_nodefaults`` (`No defaults tag`_)\nappears in a scope, enclosed empty scopes have undefined attribute values value\nrather than default zero values.\n\nSemi formally we define the value of a public tag T in a scope S (one of\nSymbol, Section, or File) as follows.\n\n.. parsed-literal::\n\n   value(T, S) ≡ S.empty() & S.parent.has(Tag_nodefaults) ? undefined :\n                 S.has(T) ? T.value :\n                 value(T, S.parent)\n   value(T, File.parent) ≡ 0\n\n   Where S.empty() ≡ not (S.has(T) for some T ≠ Tag_nodefaults)\n         S.has(T)  ≡ T and its value are given explicitly in scope S\n         Symbol.parent ≡ Section; Section.parent ≡ File\n\nIn any scope it is erroneous to give two different values to the same\nattribute, though the same value may be given more than once.\n\n.. note::\n\n   From the 2.09 release, section and symbol attributes are deprecated and\n   optional. Primary object producers are discouraged from generating them\n   and consumers are permitted to ignore them.\n",
+          "UTF8_excerpt_bytes": 1843,
+          "UTF8_excerpt_SHA": "356e0a670c0ea46adcec324b51930c3f07aad56e793d79fca0219e7f99586a86",
+          "purpose": "Default zero/string; explicit scoped override; nodefaults; conflicting duplicate; optional lower scopes."
+        },
+        {
+          "formatted_result_lines": [
+            1104,
+            1133
+          ],
+          "quote": "\n   Tag_ARM_ISA_use, (=8), uleb128\n      0  The user did not permit this entity to use Arm instructions\n      1  The user intended that this entity could use Arm instructions\n\n   Tag_THUMB_ISA_use, (=9), uleb128\n      0  The user did not permit this entity to use Thumb instructions\n      1  (deprecated) The user permitted this entity to use 16-bit Thumb instructions (including BL)\n      2  (deprecated) 32-bit Thumb instructions were permitted (implies 16-bit instructions permitted)\n      3  The user permitted this entity to use Thumb code. The set of permitted instructions can be\n         determined by the setting of Tag_CPU_arch and Tag_CPU_arch_profile\n\n      Note: The historical use of values 1 and 2 date to a time when there was\n      a clear separation between implementations using 16-bit only Thumb\n      instructions and those using the extended set of instructions. The\n      introduction of Armv8-M.baseline has blurred this distinction to the\n      point where it is no-longer useful. Arm recommends that in future all\n      toolchains emit a value of 3 when use of Thumb was intended by the user\n      and 0 (or omitting the tag entirely) when use of Thumb was not intended.\n\n   Tag_FP_arch, (=10), uleb128 (formerly Tag_VFP_arch = 10)\n      0  The user did not permit this entity to use instructions requiring FP hardware\n      1  The user permitted use of instructions from v1 of the floating point (FP) ISA\n      2  Use of the v2 FP ISA was permitted (implies use of the v1 FP ISA)\n      3  Use of the v3 FP ISA was permitted (implies use of the v2 FP ISA)\n      4  Use of the v3 FP ISA was permitted, but only citing registers D0-D15, S0-S31\n      5  Use of the v4 FP ISA was permitted (implies use of the non-vector v3 FP ISA)\n      6  Use of the v4 FP ISA was permitted, but only citing registers D0-D15, S0-S31\n      7  Use of the Arm v8-A FP ISA was permitted\n      8  Use of the Arm v8-A FP ISA was permitted, but only citing registers D0-D15, S0-S31\n",
+          "UTF8_excerpt_bytes": 1982,
+          "UTF8_excerpt_SHA": "a1b6cfc6b227d125df3969c48cd32445457c8e53e67fea11d6cb35daaeeb1f8c",
+          "purpose": "Thumb-use and FP_arch10 exact permitted-ISA values."
+        },
+        {
+          "formatted_result_lines": [
+            1354,
+            1386
+          ],
+          "quote": "   Tag_ABI_PCS_wchar_t, (=18), uleb128\n       0  The user prohibited the use of wchar_t when building this entity\n       2  The user intended the size of wchar_t to be 2\n       4  The user intended the size of wchar_t to be 4\n\n   Tag_ABI_enum_size, (=26), uleb128\n       0  The user prohibited the use of enums when building this entity\n       1  Enum values occupy the smallest container big enough to hold all their values\n       2  The user intended Enum containers to be 32-bit\n       3  The user intended that every enumeration visible across an ABI-complying interface\n          contains a value needing 32 bits to encode it; other enums can be containerized\n\nThe following pair of tags summarizes the alignment contract across an interface.\n\n::\n\n   Tag_ABI_align_needed, (=24), uleb128\n       0  The user did not permit code to depend the alignment of 8-byte data or data with\n          extended (> 8-byte) alignment\n       1  Code was permitted to depend on the 8-byte alignment of 8-byte data items\n       2  Code was permitted to depend on the 4-byte alignment of 8-byte data items\n       3  Reserved\n       n  (in 4..12) Code was permitted to depend on the 8-byte alignment of 8-byte data items\n          and the alignment of data items having up to 2n-byte extended alignment\n\n   Tag_ABI_align_preserved, (=25), uleb128\n       0  The user did not require code to preserve 8-byte alignment of 8-byte data objects\n       1  Code was required to preserve 8-byte alignment of 8-byte data objects\n       2  Code was required to preserve 8-byte alignment of 8-byte data objects and to\n          ensure (SP MOD 8) = 0 at all instruction boundaries (not just at function calls)\n       3  Reserved\n       n (in 4..12) Code was required to preserve the alignments of case 2 and the alignment\n         of data items having up to 2n-byte extended alignment.\n",
+          "UTF8_excerpt_bytes": 1858,
+          "UTF8_excerpt_SHA": "ee5906acaabe4208cd6d1441d0b9cb95467c2bdbade1ea8e2be34d0c7c3adc79",
+          "purpose": "Types18/26 unused and align24/25 exact zero/nonzero semantics."
+        },
+        {
+          "formatted_result_lines": [
+            1435,
+            1468
+          ],
+          "quote": "       2  Use of VFPv3/Advanced SIMD “alternative format” 16-bit FP numbers was permitted\n\nOptions 1 and 2 are mutually incompatible.\n\nThe next three tags record permitted use of the VFP extension and WMMX\nco-processor.  Note that:\n\n*  Under the base variant of the procedure call standard [AAPCS32_], FP\n   parameters and results are passed the soft FP way, in core registers or on\n   the stack. WMMX parameters and results are passed the same way.\n\n*  The VFP variant of [AAPCS32_] uses VFP registers D0-D7\n   (s0-s15) to pass parameters and results.\n\n*  The Intel WMMX convention is to use wR0-wR9 to pass parameters and\n   results.\n\n::\n\n   Tag_ABI_HardFP_use, (=27), uleb128\n       0  The user intended that FP use should be implied by Tag_FP_arch\n       1  The user intended this code to execute on the single-precision variant\n          derived from Tag_FP_arch\n       2  Reserved\n       3  The user intended that FP use should be implied by Tag_FP_arch\n          (Note: This is a deprecated duplicate of the default encoded by 0)\n\n   Tag_ABI_VFP_args, (=28), uleb128\n       0  The user intended FP parameter/result passing to conform to AAPCS, base variant\n       1  The user intended FP parameter/result passing to conform to AAPCS, VFP variant\n       2  The user intended FP parameter/result passing to conform to toolchain-specific\n          conventions\n       3  Code is compatible with both the base and VFP variants; the user did not permit\n          non-variadic functions to pass FP parameters/results\n",
+          "UTF8_excerpt_bytes": 1521,
+          "UTF8_excerpt_SHA": "1c13406927b24e3c0c762a7c14a3af6c02611d9de4c4ae7c896dca0b8db09f69",
+          "purpose": "FP arithmetic use27 differs from parameter/result passing28."
+        },
+        {
+          "formatted_result_lines": [
+            1687,
+            1717
+          ],
+          "quote": "No defaults tag\n~~~~~~~~~~~~~~~\n\nThe occurrence of a no defaults tag in an attributes sub-subsection\nindicates that the tag values inherited (`Default values for public tags`_,\n`Inheritance of public tag values`_) by entities in enclosed scopes with no\nexplicitly given tags are UNDEFINED rather than 0.\n\n::\n\n   Tag_nodefaults (=64), uleb128: ignored (write as 0)\n\nA consuming tool may take IMPLEMENTATION DEFINED action if any tag has an\nUNDEFINED value after a dot-ARM-dot-attributes section has been fully\nprocessed.\n\nConsumers that do not recognize this tag will default UNDEFINED values to 0.\n\nTo make processing easy for consumers, this tag should be emitted before any\nother tag in an attributes sub-subsection other than the conformance tag\n(`Conformance tag`_).\n\nWe expect the no defaults tag to be used only by linkers that merge\nattributed and un-attributed (legacy) relocatable files.\n\n.. note::\n\n   From the 2.09 release, section and symbol attributes are deprecated and\n   optional. Primary object producers are discouraged from generating them\n   and consumers are permitted to ignore them. Hence from the 2.09 release\n   use of this tag is deprecated.\n",
+          "UTF8_excerpt_bytes": 1168,
+          "UTF8_excerpt_SHA": "b105e328110c3355a81b0999ae01e3a0cfdbbeabd6ed4ee48023d67a3d160b65",
+          "purpose": "Exact nodefaults behavior/undefined and consumer-defined action."
+        }
+      ]
+    },
+    {
+      "URL": "https://raw.githubusercontent.com/ARM-software/abi-aa/main/aaelf32/aaelf32.rst",
+      "rendered_URL": "https://github.com/ARM-software/abi-aa/blob/main/aaelf32/aaelf32.rst",
+      "formatted_snapshot": {
+        "path": "C:\\Users\\lulu\\AppData\\Local\\Temp\\dsh-spill-N99Hsy\\session-de481967f16c\\04387bc0ca54-web_fetch.txt",
+        "bytes": 100387,
+        "SHA": "3741d4ccd6b2640f71bb381fe0f3923da5c8a2f75189cbb5d717f236f190b8ae"
+      },
+      "excerpts": [
+        {
+          "formatted_result_lines": [
+            1051,
+            1078
+          ],
+          "quote": "  | :code:`EF_ARM_ABIMASK`          | This masks an 8-bit version number, the version of the       |\n  | (0xFF000000)                    | ABI to which this ELF file conforms.  This ABI is            |\n  | (current version is 0x05000000) | version 5.  A value of 0 denotes unknown conformance.        |\n  +---------------------------------+--------------------------------------------------------------+\n  | :code:`EF_ARM_BE8`              | The ELF file contains BE-8 code, suitable for execution      |\n  | (0x00800000)                    | on an Arm Architecture v6 processor.  This flag must         |\n  |                                 | only be set on an executable file.                           |\n  +---------------------------------+--------------------------------------------------------------+\n  | :code:`EF_ARM_GCCMASK`          | Legacy code (ABI version 4 and earlier) generated by         |\n  | (0x00400FFF)                    | gcc-arm-xxx might use these bits.                            |\n  +---------------------------------+--------------------------------------------------------------+\n  | :code:`EF_ARM_ABI_FLOAT_HARD`   | Set in executable file headers                               |\n  | (0x00000400)                    | (e_type = ET_EXEC or ET_DYN) to note that the                |\n  | (ABI version 5 and later)       | executable file was built to conform to the hardware         |\n  |                                 | floating-point procedure-call standard.                      |\n  |                                 |                                                              |\n  |                                 | Compatible with legacy (pre version 5) gcc use as            |\n  |                                 | EF_ARM_VFP_FLOAT.                                            |\n  +---------------------------------+--------------------------------------------------------------+\n  | :code:`EF_ARM_ABI_FLOAT_SOFT`   | Set in executable file headers                               |\n  | (0x00000200)                    | (e_type = ET_EXEC or ET_DYN) to note explicitly that the     |\n  | (ABI version 5 and later)       | executable file was built to conform to the software         |\n  |                                 | floating-point procedure-call standard (the base standard).  |\n  |                                 | If both EF_ARM_ABI_FLOAT_XXXX bits are clear, conformance to |\n  |                                 | the base procedure-call standard is implied.                 |\n  |                                 |                                                              |\n  |                                 | Compatible with legacy (pre version 5) gcc use as            |\n  |                                 | EF_ARM_SOFT_FLOAT.                                           |\n",
+          "UTF8_excerpt_bytes": 2828,
+          "UTF8_excerpt_SHA": "1e1901dee521abefbe33b252cdcf68cb1281d79a4859461e1a3e1a868fb38f65",
+          "purpose": "ABI version and FLOAT_HARD/SOFT header flags apply to ET_EXEC/ET_DYN, not a replacement for ET_REL public attributes."
+        },
+        {
+          "formatted_result_lines": [
+            1087,
+            1102
+          ],
+          "quote": "EI_CLASS\n  An Arm ELF file shall contain ``ELFCLASS32`` objects.\n\nEI_DATA\n  This field may be either ``ELFDATA2LSB`` or ``ELFDATA2MSB``.  The choice will be\n  governed by the default data order in the execution environment.  On an\n  Architecture v6 processor operating in BE8 mode all instructions are in\n  little-endian format.  An executable image suitable for operation in this\n  mode will have ``EF_ARM_BE8`` set in the ``e_flags`` field.\n\nEI_OSABI\n  This field shall be zero unless the file uses objects that have flags which\n  have OS-specific meanings (for example, it makes use of a section index in\n  the range ``SHN_LOOS`` through ``SHN_HIOS``). Processor-specific values for\n  this field are defined in the following table.\n\n",
+          "UTF8_excerpt_bytes": 736,
+          "UTF8_excerpt_SHA": "56bc42c670d361c06a0f65ed4c8091745c32c6e041eeef8d229abc82b4c4e849",
+          "purpose": "ELF32 identification/little and big endian."
+        },
+        {
+          "formatted_result_lines": [
+            1227,
+            1284
+          ],
+          "quote": "unwinding. Names beginning ``.ARM.extab`` name sections containing exception\nunwinding information. See [EHABI] for details.\n\n``.ARM.preemptmap`` names a section that contains a BPABI DLL dynamic linking\npreemption map. See `Preemption Map Format`_.\n\n``.ARM.attributes`` names a section that contains build attributes.\nSee `Build Attributes`_.\n\n``.ARM.debug_overlay`` and ``.ARM.overlay_table`` name sections used by the\nDebugging Overlaid Programs ABI extension described in DBGOVL32_.\n\nAdditional special sections may be required by some platforms standards.\n\nSection Alignment\n^^^^^^^^^^^^^^^^^\n\nThere is no minimum alignment required for a section.  However, sections\ncontaining thumb code must be at least 16-bit aligned and sections containing\nArm code must be at least 32-bit aligned.\n\nPlatform standards may set a limit on the maximum alignment that they can\nguarantee (normally the page size).\n\nBuild Attributes\n^^^^^^^^^^^^^^^^\n\nBuild attributes are encoded in a section of type ``SHT_ARM_ATTRIBUTES``, and name\n``.ARM.attributes``.\n\nThe content of the section is a stream of bytes. Numbers other than subsection\nsizes are encoded numbers using unsigned LEB128 encoding (ULEB128), DWARF-3\nstyle [GDWARF_].\n\nAttributes are divided into sub-sections.  Each subsection is prefixed by the\nname of the vendor.  There is one subsection that is defined by the “aeabi”\npseudo-vendor and contains general information about compatibility of the\nobject file.  Attributes defined in vendor-specific sections are private to the\nvendor.  In a conforming object file the information recorded in a\nvendor-specific section may be safely ignored if it is not understood.\n\nMost build attributes naturally apply to a whole translation unit; however,\nothers might apply more naturally to a section or to a function (symbol of type\n``STT_FUNC``).  To permit precise description of attributes the syntax permits\nthree granularities of translation at which an attribute can be expressed.\n\nA section inherits the attributes of the file of which it is a component.  A\nsymbol definition inherits the attributes of the section in which it is\ndefined.  Attributes that cannot apply to the smaller entity are not inherited.\n\n.. note::\n   Attributes that naturally apply to a translation unit may, nonetheless, end\n   up applying to a section if sections from distinct relocatable files are\n   combined into a single relocatable file by \"partial linking\". Similar\n   exceptions may occur at the function level through use of #pragma and other\n   Q-o-I toolchain behavior.\n\n   Explicit per-section and per-symbol data should be generated only when it\n",
+          "UTF8_excerpt_bytes": 2633,
+          "UTF8_excerpt_SHA": "0e72f238ad9e0e197c4b599c751bf39d8c32742962fea4156b109144cc7afd7f",
+          "purpose": "ARM attributes carrier/source and build-attribute scope."
+        },
+        {
+          "formatted_result_lines": [
+            1434,
+            1456
+          ],
+          "quote": "Weak Definitions\n~~~~~~~~~~~~~~~~\n\nA weak definition does not change the rules by which object files are selected\nfrom libraries.  However, if a link set contains both a weak definition and a\nnon-weak definition, the non-weak definition will always be used.\n\nSymbol Types\n^^^^^^^^^^^^\n\nAll code symbols exported from an object file (symbols with binding ``STB_GLOBAL``)\nshall have type ``STT_FUNC``.\n\nAll extern data objects shall have type ``STT_OBJECT``.  No ``STB_GLOBAL`` data symbol\nshall have type ``STT_FUNC``.\n\nThe type of an undefined symbol shall be ``STT_NOTYPE`` or the type of its expected\ndefinition.\n\nThe type of any other symbol defined in an executable section can be\n``STT_NOTYPE``.  The linker is only required to provide interworking support for\nsymbols of type ``STT_FUNC`` (interworking for untyped symbols must be encoded\ndirectly in the object file).\n",
+          "UTF8_excerpt_bytes": 875,
+          "UTF8_excerpt_SHA": "85180953c68bf58c3581438c99fa1bf9eed9421c0a62e041f10a4263b6c6dc55",
+          "purpose": "Weak definitions do not prove final runtime resolution."
+        }
+      ]
+    }
+  ],
+  "exact_rule_summary": {
+    "10": {
+      "0": "No FP-hardware-requiring instructions permitted, not a universal compatible value.",
+      "6": "FP ISA v4, registers onlyD0-D15/S0-S31."
+    },
+    "27": {
+      "0": "FP use implied by10, NOT UNUSED.",
+      "1": "Single-precision variant derived from10.",
+      "2": "Reserved.",
+      "3": "Deprecated duplicate of0, evaluate through10."
+    },
+    "28": {
+      "0": "AAPCS BASE FP parameter/result convention, NOT no-ABI/no-use.",
+      "1": "AAPCS VFP parameter/result convention.",
+      "2": "Toolchain-specific.",
+      "3": "Both base/VFP-compatible only under stated no non-variadic FP parameter/result permission."
+    },
+    "24": {
+      "0": "No dependency on8-byte/extended alignment permitted.",
+      "1": "May depend8-byte alignment of8-byte data.",
+      "2": "May depend4-byte alignment of8-byte data.",
+      "3": "Reserved."
+    },
+    "25": {
+      "0": "No requirement to preserve8-byte alignment.",
+      "1": "Required preserve8-byte alignment of8-byte data.",
+      "2": "Also SPmod8=0at everyinstruction boundary.",
+      "3": "Reserved."
+    },
+    "combination": "Compare semantic demands; select dominating demand or least upper bound if defined, otherwise incompatible/error. Tag25 order reverses numeric order; never max(all tag numbers). Lower scope inheritance and conflict detection remain distinct from cross-object merging."
+  }
+}

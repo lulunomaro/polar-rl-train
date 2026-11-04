@@ -1,0 +1,54 @@
+{
+  "status": "ASSEMBLY_SPECIFIC_PROPOSAL_ONLY_NOT_READY_ACCEPTED_GATE",
+  "official_previous_pin": {
+    "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\MOD4_DEPLOYMENT_ABI_SCOPE_STATIC_V7\\OFFICIAL_RULES.json",
+    "bytes": 11714,
+    "SHA": "3a354c2e988fcd1822ed6dc19cbad9b889bd43df536ab941ed1964a3ab76b2a5"
+  },
+  "document_release": "2026Q3",
+  "official_URLs": [
+    "https://github.com/ARM-software/abi-aa/blob/main/addenda32/addenda32.rst",
+    "https://github.com/ARM-software/abi-aa/blob/main/aaelf32/aaelf32.rst"
+  ],
+  "not_commit_pinned": true,
+  "quoted_rules": [
+    "The syntactic structure of a public attributes subsection is::\n\n   [   Tag_File    (=1) <uint32: byte-size> <attribute>*\n     | Tag_Section (=2) <uint32: byte-size> <section number>* 0 <attribute>*\n     | Tag_Symbol  (=3) <uint32: byte-size> <symbol number>*  0 <attribute>*\n   ]+\n\nA public subsection contains any number of sub-subsections. Each records\nattributes relating to:\n\n*  The whole relocatable file.\n\n   These sub-subsections contain just a list of attributes. They are\n   identified by a leading ``Tag_File`` (=1) byte.\n\n*  A set of sections within the relocatable file.\n\n   These sub-subsections contain a list of ULEB128 section numbers followed\n   by a list of attributes. They are identified by a leading ``Tag_Section``\n   (=2) byte.\n\n*  A set of (defined) symbols in the relocatable file.\n\n   These sub-subsections contain a list of ULEB128 symbol numbers followed\n   by a list of attributes. They are identified by a leading ``Tag_Symbol`` (=3)\n   byte.\n\nIn each case, byte-size is a 4-byte unsigned integer in the byte order of\nthe ELF file. Byte-size includes the initial tag byte, the size field\nitself, and the sub-subsection content. That is, it is the byte offset from\nthe start of this sub-subsection to the start of the next sub-subsection.\n\nBoth section indexes and defined symbol indexes are non-zero, so a NUL byte\nends a string and a list of indexes without ambiguity.\n\nThere are no constraints on the order or number of sub-subsections in a\npublic attributes subsection (but see remarks in\n`Conformance tag`_ concerning ``Tag_conformance`` and\n`No defaults tag`_ concerning ``Tag_nodefaults``).",
+    "Default values for public tags\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nThe effect of omitting a public tag in file scope is identical to including\nit with a value of 0 or “”, depending on its parameter type.\n\nA producer must consider what value it intends to give to each public tag.\nIn the absence of ``Tag_nodefaults`` (`No defaults tag`_) a\nconsumer should conclude that the producer intended to give the value 0 to\neach omitted public tag.\n\nInheritance of public tag values\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nAn attribute can be given to a symbol, a section, or a relocatable file.\nNormally, each section in a file inherits the attributes defined at file\nlevel and each symbol defined in a section inherits the attributes of that\nsection.\n\nA tag value given explicitly in a scope overrides a value that would\notherwise be inherited. If ``Tag_nodefaults`` (`No defaults tag`_)\nappears in a scope, enclosed empty scopes have undefined attribute values value\nrather than default zero values.\n\nSemi formally we define the value of a public tag T in a scope S (one of\nSymbol, Section, or File) as follows.\n\n.. parsed-literal::\n\n   value(T, S) ≡ S.empty() & S.parent.has(Tag_nodefaults) ? undefined :\n                 S.has(T) ? T.value :\n                 value(T, S.parent)\n   value(T, File.parent) ≡ 0\n\n   Where S.empty() ≡ not (S.has(T) for some T ≠ Tag_nodefaults)\n         S.has(T)  ≡ T and its value are given explicitly in scope S\n         Symbol.parent ≡ Section; Section.parent ≡ File\n\nIn any scope it is erroneous to give two different values to the same\nattribute, though the same value may be given more than once.",
+    "The following two tags describe the permitted sizes of a wide character and\nan enumerated data item.\n\n::\n\n   Tag_ABI_PCS_wchar_t, (=18), uleb128\n       0  The user prohibited the use of wchar_t when building this entity\n       2  The user intended the size of wchar_t to be 2\n       4  The user intended the size of wchar_t to be 4\n\n   Tag_ABI_enum_size, (=26), uleb128\n       0  The user prohibited the use of enums when building this entity\n       1  Enum values occupy the smallest container big enough to hold all their values\n       2  The user intended Enum containers to be 32-bit\n       3  The user intended that every enumeration visible across an ABI-complying interface\n          contains a value needing 32 bits to encode it; other enums can be containerized",
+    "No defaults tag\n~~~~~~~~~~~~~~~\n\nThe occurrence of a no defaults tag in an attributes sub-subsection\nindicates that the tag values inherited (`Default values for public tags`_,\n`Inheritance of public tag values`_) by entities in enclosed scopes with no\nexplicitly given tags are UNDEFINED rather than 0.\n\n::\n\n   Tag_nodefaults (=64), uleb128: ignored (write as 0)\n\nA consuming tool may take IMPLEMENTATION DEFINED action if any tag has an\nUNDEFINED value after a dot-ARM-dot-attributes section has been fully\nprocessed.\n\nConsumers that do not recognize this tag will default UNDEFINED values to 0."
+  ],
+  "proposal_rows": [
+    {
+      "topic": "Structural object",
+      "proposal": "Later inspect ELF32LE ARM ET_REL, section/range/format, vector relocations and code/data distinction; actual assembly output and addresses UNKNOWN now. Keep bounded reader checks."
+    },
+    {
+      "topic": "ISA and stack declaration",
+      "proposal": "Source THUMB/PRESERVE8 and target Cortex-M4 are declared evidence only, not emitted CPU/FP attributes or runtime SP adequacy."
+    },
+    {
+      "topic": "Public FILE/SECTION/SYMBOL",
+      "proposal": "Honor exact public override/default/nodefaults rule. Missing whole carrier/unsupported tags/conflict/unknown are not silently normalized. Private ARM vendor bytes not public AEABI."
+    },
+    {
+      "topic": "wchar/enum",
+      "proposal": "Actual public effective 0 with normative/default provenance is UNUSED (prohibited type), not sizeof0. Startup has no C enum/wchar argument setup; do not force C2/1 onto genuine UNUSED. Explicit nonzero/incompatible/unknown declarations need separate documented resolution."
+    },
+    {
+      "topic": "Floating point",
+      "proposal": "Reviewed startup instructions only LDR/BLX/BX/B; calls set address registers, not FP arguments. This is call-site source evidence, not checked callee signatures. Do not hard-require C FP6/HardFP1/VFPargs1/denorm1or2 from unused startup. Exact unused/no-FP interface definitions of10/27/28 still UNKNOWN in pinned excerpts; no acceptance rule invented."
+    },
+    {
+      "topic": "Alignment",
+      "proposal": "PRESERVE8 promises preservation and AREA ALIGN=3 declares8-byte alignment; emitted24/25 exact meanings/merge rules not in pinned subset, unresolved rather than copied from C."
+    },
+    {
+      "topic": "Future object assessment",
+      "proposal": "Only a separate first-one-ASM grant and exact argv may create one object; then record actual attributes/imports/relocations, review assembly-specific applicability without changing C7/V10/C11 gates. No automatic link."
+    }
+  ],
+  "C_reader_or_gate_changes": 0,
+  "new_fixtures": 0,
+  "ASM_object_exists": false,
+  "runtime_or_library_or_link_qualified": false
+}

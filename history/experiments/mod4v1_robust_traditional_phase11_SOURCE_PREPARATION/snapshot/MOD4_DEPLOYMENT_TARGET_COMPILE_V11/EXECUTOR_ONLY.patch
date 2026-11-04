@@ -1,0 +1,72 @@
+--- sealed_V8_executor
++++ new_V11_executor
+@@ -51,11 +51,11 @@
+  return dict(pass_gate=all(x['pass_gate'] for x in checks+type_checks),non_type_checks=checks,type_checks=type_checks,metadata=info,not_runtime_FPSCR_or_library_qualification=True)
+ 
+ def main():
+- ledger_path=O/'EXECUTION_LEDGER_V8_01.jsonl';result_path=O/'COMPILE_RESULT_V8_01.json'
+- if ledger_path.exists() or result_path.exists():raise RuntimeError('V8_ALREADY_STARTED_NO_RESTART_OR_RETRY')
++ ledger_path=O/'EXECUTION_LEDGER_V11_01.jsonl';result_path=O/'COMPILE_RESULT_V11_01.json'
++ if ledger_path.exists() or result_path.exists():raise RuntimeError('V11_ALREADY_STARTED_NO_RESTART_OR_RETRY')
+  ledger=ledger_path.open('x',encoding='utf-8',newline='\n')
+  result_path.open('x',encoding='utf-8').close()
+- state=dict(status='EXECUTOR_ENTERED_BEFORE_NATIVE',variant='PARENT_NEW_V8_ORIGINAL_UNSTARTED_C_ONLY',native_invocations=[],TU_results=[],attempted_TU_ids=[],scope_accepted_prefix=[],failed_TU=None,reader_call_count=0,original_V6_record=dict(compiler_success=1,post_ABI_accepted_prefix=0,pass_gate=False,unchanged=True),inherited_main_not_recompiled=True,V7_main_static_resolution_separate=True,ASM_unstarted_ids=[0],ASM_compile_count=0,fromelf_probe_version_link_UV_flash=0,no_robot_old40_oldQA_Git_agents_root_goal=True)
++ state=dict(status='EXECUTOR_ENTERED_BEFORE_NATIVE',variant='PARENT_NEW_V11_REMAINING_C_ONLY_SEALED_V10',native_invocations=[],TU_results=[],attempted_TU_ids=[],scope_accepted_prefix=[],failed_TU=None,reader_call_count=0,original_V6_record=dict(compiler_success=1,post_ABI_accepted_prefix=0,pass_gate=False,unchanged=True),inherited_main_not_recompiled=True,V7_main_static_resolution_separate=True,ASM_unstarted_ids=[0],ASM_compile_count=0,fromelf_probe_version_link_UV_flash=0,no_robot_old40_oldQA_Git_agents_root_goal=True)
+  order=[];byid={};plan=None
+  def event(value):
+   ledger.write(json.dumps(value,ensure_ascii=False,allow_nan=False)+'\n');ledger.flush()
+@@ -70,11 +70,11 @@
+   with result_path.open('w',encoding='utf-8',newline='\n') as f:json.dump(state,f,ensure_ascii=False,indent=2,allow_nan=False);f.write('\n');f.flush()
+  checkpoint()
+  try:
+-  pre=load(O/'PREEXEC_V8_01.json')
++  pre=load(O/'PREEXEC_V11_01.json')
+   for key in ('plan','delta','executor','preparer','sealed_reader'):exact(pre[key])
+   assert pre['executor']['path']==str(Path(__file__).resolve())
+-  plan=load(O/'LITERAL_ARGV_V8_01.json');order=plan['execution_order'];byid={x['id']:x for x in plan['translation_units']}
+-  assert order==list(range(2,163)) and len(byid)==161 and all(byid[i]['language']=='C' for i in order)
++  plan=load(O/'LITERAL_ARGV_V11_01.json');order=plan['execution_order'];byid={x['id']:x for x in plan['translation_units']}
++  assert order==list(range(41,163)) and len(byid)==122 and all(byid[i]['language']=='C' for i in order)
+   assert plan['each_TU_attempt_max']==1 and plan['ASM_count']==0
+   for ref in plan['source_refs']+plan['existing_raw_overlay_header_pins']+plan['selected_C_fresh_pins']:exact(ref)
+   old=load(R/'MOD4_DEPLOYMENT_TARGET_COMPILE_V6'/'LITERAL_ARGV_V6_01.json')
+@@ -88,11 +88,11 @@
+     inv[field]=before[field]
+    inv['argv'][k]=before['argv'][k];assert inv==before
+    assert row['argv'][0]==r'C:\Keil_v5\ARM\ARMCC\bin\armcc.exe'
+-  spec=importlib.util.spec_from_file_location('v8_sealed_v7_attrs',plan['metadata_gate_reader']);reader=importlib.util.module_from_spec(spec);spec.loader.exec_module(reader)
+-  assert reader.MAX_OBJECT==65536 and reader.MAX_SECTIONS==256
++  spec=importlib.util.spec_from_file_location('v11_sealed_v10_attrs',plan['metadata_gate_reader']);reader=importlib.util.module_from_spec(spec);spec.loader.exec_module(reader)
++  assert reader.MAX_OBJECT==1048576 and reader.MAX_SECTIONS==4096
+   for sub in ('objects','logs','attributes'):(O/sub).mkdir(exist_ok=True)
+   state.update(status='FROZEN_PLAN_GUARDS_PASSED_READY_FIRST_C',plan=pre['plan'],executor=pre['executor'],sealed_reader=pre['sealed_reader']);checkpoint()
+-  event(dict(event='ALL161_PREFLIGHT_PINS_AND_OUTPUT_ONLY_INVERSE_PASSED',C_budget=161))
++  event(dict(event='ALL122_PREFLIGHT_PINS_AND_OUTPUT_ONLY_INVERSE_PASSED',C_budget=122))
+   for i in order:
+    row=byid[i];src=Path(row['source']);obj=Path(row['output_object']);actual=rec(src)
+    if actual!=row['fresh_source_pin']:
+@@ -113,7 +113,7 @@
+    if not item['object_nonempty']:state.update(status='STOP_COMPILER_EXIT0_MISSING_OR_EMPTY_OBJECT',failed_TU=item);break
+    if item['source_after']!=actual:state.update(status='STOP_SOURCE_PIN_DRIFT_AFTER_C',failed_TU=item);break
+    data=obj.read_bytes();assert hashlib.sha256(data).hexdigest()==item['object']['SHA']
+-   state['reader_call_count']+=1;item['reader_called']=True;event(dict(event='SINGLE_SEALED_V7_READER_CALL',id=i,object=item['object']));checkpoint()
++   state['reader_call_count']+=1;item['reader_called']=True;event(dict(event='SINGLE_SEALED_V10_READER_CALL',id=i,object=item['object']));checkpoint()
+    attrpath=O/'attributes'/('%03d_scope.json'%i)
+    try:
+     result=gate(data,reader,plan['first_object_expected_unchanged_non_type'])
+@@ -129,7 +129,7 @@
+     state['failed_TU']=item;event(dict(event='FIRST_METADATA_STOP',id=i,status=state['status'],scope_record=item['scope_record']));checkpoint();break
+    state['scope_accepted_prefix'].append(dict(id=i,name=row['name'],object=item['object'],scope_record=item['scope_record']))
+    state['status']='C_PREFIX_ACCEPTED_BEFORE_NEXT_C';event(dict(event='NEW_C_SCOPE_ACCEPTED',id=i,name=row['name']));checkpoint()
+-  else:state['status']='ALL161_NEW_C_OBJECTS_SCOPE_ACCEPTED_NOT_LINKED_ASM_UNSTARTED'
++  else:state['status']='ALL122_NEW_C_OBJECTS_SCOPE_ACCEPTED_NOT_LINKED_ASM_UNSTARTED'
+  except Exception:
+   state.update(status='STOP_EXECUTOR_EXCEPTION_NO_RETRY',executor_exception=traceback.format_exc());event(dict(event='EXECUTOR_EXCEPTION',error=state['executor_exception']))
+  finally:
+@@ -140,5 +140,5 @@
+    except Exception:state['end_pin_error']=traceback.format_exc();state['status_before_end_pin_error']=state['status'];state['status']='STOP_INPUT_DRIFT_AT_WAVE_END'
+   checkpoint();ledger.close()
+  print(json.dumps(dict(status=state['status'],result=rec(result_path),C_attempts=state['C_compile_attempts'],new_compile_success=state['new_compile_success_with_nonempty_object_count'],new_scope_accepted=state['scope_accepted_count'],reader_calls=state['reader_call_count'],failed_name=state['failed_TU'].get('name') if state['failed_TU'] else None,unstarted_C=len(state['unstarted_C_ids']),ASM=0,fromelf_probe_version_link=0),ensure_ascii=False))
+- raise SystemExit(0 if state['status']=='ALL161_NEW_C_OBJECTS_SCOPE_ACCEPTED_NOT_LINKED_ASM_UNSTARTED' else 1)
++ raise SystemExit(0 if state['status']=='ALL122_NEW_C_OBJECTS_SCOPE_ACCEPTED_NOT_LINKED_ASM_UNSTARTED' else 1)
+ if __name__=='__main__':main()

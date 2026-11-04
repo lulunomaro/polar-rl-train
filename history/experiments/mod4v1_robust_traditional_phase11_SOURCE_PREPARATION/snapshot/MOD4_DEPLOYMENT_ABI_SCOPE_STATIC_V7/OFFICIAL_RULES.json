@@ -1,0 +1,107 @@
+{
+  "license": "Arm source documents: CC-BY-SA-4.0 AND Apache-Patent-License; exact excerpts attributed to linked official documents",
+  "documents": [
+    {
+      "document": "addenda32",
+      "official_raw_URL": "https://raw.githubusercontent.com/ARM-software/abi-aa/main/addenda32/addenda32.rst",
+      "official_rendered_URL": "https://github.com/ARM-software/abi-aa/blob/main/addenda32/addenda32.rst",
+      "declared_release": "2026Q3",
+      "declared_issue_date": "2026-11-03",
+      "fetched_by": "host web_fetch HTTP 200 before reader implementation",
+      "commit_pinned": false,
+      "formatted_fetch_receipt_SHA256_not_raw_rst_SHA256": "d3e013c99653a7e6cd15e893523530710fa95977efc11f1b5d8fb949a7996d0b",
+      "excerpts": [
+        {
+          "formatted_receipt_lines": [
+            10,
+            11
+          ],
+          "quote": ".. |release| replace:: 2026Q3\n.. |date-of-issue| replace:: 3\\ :sup:`rd` November 2026"
+        },
+        {
+          "formatted_receipt_lines": [
+            789,
+            827
+          ],
+          "quote": "The syntactic structure of a public attributes subsection is::\n\n   [   Tag_File    (=1) <uint32: byte-size> <attribute>*\n     | Tag_Section (=2) <uint32: byte-size> <section number>* 0 <attribute>*\n     | Tag_Symbol  (=3) <uint32: byte-size> <symbol number>*  0 <attribute>*\n   ]+\n\nA public subsection contains any number of sub-subsections. Each records\nattributes relating to:\n\n*  The whole relocatable file.\n\n   These sub-subsections contain just a list of attributes. They are\n   identified by a leading ``Tag_File`` (=1) byte.\n\n*  A set of sections within the relocatable file.\n\n   These sub-subsections contain a list of ULEB128 section numbers followed\n   by a list of attributes. They are identified by a leading ``Tag_Section``\n   (=2) byte.\n\n*  A set of (defined) symbols in the relocatable file.\n\n   These sub-subsections contain a list of ULEB128 symbol numbers followed\n   by a list of attributes. They are identified by a leading ``Tag_Symbol`` (=3)\n   byte.\n\nIn each case, byte-size is a 4-byte unsigned integer in the byte order of\nthe ELF file. Byte-size includes the initial tag byte, the size field\nitself, and the sub-subsection content. That is, it is the byte offset from\nthe start of this sub-subsection to the start of the next sub-subsection.\n\nBoth section indexes and defined symbol indexes are non-zero, so a NUL byte\nends a string and a list of indexes without ambiguity.\n\nThere are no constraints on the order or number of sub-subsections in a\npublic attributes subsection (but see remarks in\n`Conformance tag`_ concerning ``Tag_conformance`` and\n`No defaults tag`_ concerning ``Tag_nodefaults``)."
+        },
+        {
+          "formatted_receipt_lines": [
+            833,
+            837
+          ],
+          "quote": ".. note::\n\n   From the 2.09 release, section and symbol attributes are deprecated and\n   optional. Primary object producers are discouraged from generating them\n   and consumers are permitted to ignore them."
+        },
+        {
+          "formatted_receipt_lines": [
+            888,
+            904
+          ],
+          "quote": "*  Tags 0-63 convey information that a consuming tool must comprehend. This\n   includes all the tags (1-32) defined by the first release (v1.0) of this\n   addendum. A tool encountering an unknown tag in this range should stop\n   processing or take similar defensive action (Q-o-I).\n\n*  Tags 64-127 convey information a consumer can ignore safely (though maybe\n   with degraded functionality).\n\n*  For N ≥ 128, tag N has the same properties as tag N modulo 128.\n\nTo allow an ignored tag and its parameter value to be skipped easily, we\nadopt this convention.\n\n*  For N > 32, even numbered tags have a ULEB128 parameter and odd numbered\n   ones have a null-terminated byte string (NTBS) parameter.\n\n*  A consumer must comprehend tags 1-32 individually."
+        },
+        {
+          "formatted_receipt_lines": [
+            909,
+            917
+          ],
+          "quote": "About public tags\n^^^^^^^^^^^^^^^^^\n\nA consumer must recognize the tags described in this section (`Public (\"aeabi\") attribute tags`_) in\nvendor subsections named \"aeabi\".\n\nOther vendor sections may re-use these tags, define their own tags, or use a\ncompletely different encoding of their private attribute data. In each case\nthe meaning of the data is private to the defining vendor."
+        },
+        {
+          "formatted_receipt_lines": [
+            924,
+            963
+          ],
+          "quote": "Default values for public tags\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nThe effect of omitting a public tag in file scope is identical to including\nit with a value of 0 or “”, depending on its parameter type.\n\nA producer must consider what value it intends to give to each public tag.\nIn the absence of ``Tag_nodefaults`` (`No defaults tag`_) a\nconsumer should conclude that the producer intended to give the value 0 to\neach omitted public tag.\n\nInheritance of public tag values\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nAn attribute can be given to a symbol, a section, or a relocatable file.\nNormally, each section in a file inherits the attributes defined at file\nlevel and each symbol defined in a section inherits the attributes of that\nsection.\n\nA tag value given explicitly in a scope overrides a value that would\notherwise be inherited. If ``Tag_nodefaults`` (`No defaults tag`_)\nappears in a scope, enclosed empty scopes have undefined attribute values value\nrather than default zero values.\n\nSemi formally we define the value of a public tag T in a scope S (one of\nSymbol, Section, or File) as follows.\n\n.. parsed-literal::\n\n   value(T, S) ≡ S.empty() & S.parent.has(Tag_nodefaults) ? undefined :\n                 S.has(T) ? T.value :\n                 value(T, S.parent)\n   value(T, File.parent) ≡ 0\n\n   Where S.empty() ≡ not (S.has(T) for some T ≠ Tag_nodefaults)\n         S.has(T)  ≡ T and its value are given explicitly in scope S\n         Symbol.parent ≡ Section; Section.parent ≡ File\n\nIn any scope it is erroneous to give two different values to the same\nattribute, though the same value may be given more than once."
+        },
+        {
+          "formatted_receipt_lines": [
+            1349,
+            1364
+          ],
+          "quote": "The following two tags describe the permitted sizes of a wide character and\nan enumerated data item.\n\n::\n\n   Tag_ABI_PCS_wchar_t, (=18), uleb128\n       0  The user prohibited the use of wchar_t when building this entity\n       2  The user intended the size of wchar_t to be 2\n       4  The user intended the size of wchar_t to be 4\n\n   Tag_ABI_enum_size, (=26), uleb128\n       0  The user prohibited the use of enums when building this entity\n       1  Enum values occupy the smallest container big enough to hold all their values\n       2  The user intended Enum containers to be 32-bit\n       3  The user intended that every enumeration visible across an ABI-complying interface\n          contains a value needing 32 bits to encode it; other enums can be containerized"
+        },
+        {
+          "formatted_receipt_lines": [
+            1393,
+            1401
+          ],
+          "quote": "   Tag_ABI_FP_rounding, (=19), uleb128\n       0  The user intended this code to use the IEEE 754 round to nearest rounding mode\n       1  The user permitted this code to choose the IEEE 754 rounding mode at run time\n\n   Tag_ABI_FP_denormal, (=20), uleb128\n       0  The user built this code knowing that denormal numbers might be flushed to (+) zero\n       1  The user permitted this code to depend on IEEE 754 denormal numbers\n       2  The user permitted this code to depend on the sign of a flushed-to-zero number being\n          preserved in the sign of 0"
+        },
+        {
+          "formatted_receipt_lines": [
+            1687,
+            1703
+          ],
+          "quote": "No defaults tag\n~~~~~~~~~~~~~~~\n\nThe occurrence of a no defaults tag in an attributes sub-subsection\nindicates that the tag values inherited (`Default values for public tags`_,\n`Inheritance of public tag values`_) by entities in enclosed scopes with no\nexplicitly given tags are UNDEFINED rather than 0.\n\n::\n\n   Tag_nodefaults (=64), uleb128: ignored (write as 0)\n\nA consuming tool may take IMPLEMENTATION DEFINED action if any tag has an\nUNDEFINED value after a dot-ARM-dot-attributes section has been fully\nprocessed.\n\nConsumers that do not recognize this tag will default UNDEFINED values to 0."
+        }
+      ]
+    },
+    {
+      "document": "aaelf32",
+      "official_raw_URL": "https://raw.githubusercontent.com/ARM-software/abi-aa/main/aaelf32/aaelf32.rst",
+      "official_rendered_URL": "https://github.com/ARM-software/abi-aa/blob/main/aaelf32/aaelf32.rst",
+      "declared_release": "2026Q3",
+      "declared_issue_date": "2026-11-03",
+      "fetched_by": "host web_fetch HTTP 200 before reader implementation",
+      "commit_pinned": false,
+      "formatted_fetch_receipt_SHA256_not_raw_rst_SHA256": "3741d4ccd6b2640f71bb381fe0f3923da5c8a2f75189cbb5d717f236f190b8ae",
+      "excerpts": [
+        {
+          "formatted_receipt_lines": [
+            10,
+            11
+          ],
+          "quote": ".. |release| replace:: 2026Q3\n.. |date-of-issue| replace:: 3\\ :sup:`rd` November 2026"
+        },
+        {
+          "formatted_receipt_lines": [
+            1251,
+            1286
+          ],
+          "quote": "Build Attributes\n^^^^^^^^^^^^^^^^\n\nBuild attributes are encoded in a section of type ``SHT_ARM_ATTRIBUTES``, and name\n``.ARM.attributes``.\n\nThe content of the section is a stream of bytes. Numbers other than subsection\nsizes are encoded numbers using unsigned LEB128 encoding (ULEB128), DWARF-3\nstyle [GDWARF_].\n\nAttributes are divided into sub-sections.  Each subsection is prefixed by the\nname of the vendor.  There is one subsection that is defined by the “aeabi”\npseudo-vendor and contains general information about compatibility of the\nobject file.  Attributes defined in vendor-specific sections are private to the\nvendor.  In a conforming object file the information recorded in a\nvendor-specific section may be safely ignored if it is not understood.\n\nMost build attributes naturally apply to a whole translation unit; however,\nothers might apply more naturally to a section or to a function (symbol of type\n``STT_FUNC``).  To permit precise description of attributes the syntax permits\nthree granularities of translation at which an attribute can be expressed.\n\nA section inherits the attributes of the file of which it is a component.  A\nsymbol definition inherits the attributes of the section in which it is\ndefined.  Attributes that cannot apply to the smaller entity are not inherited.\n\n.. note::\n   Attributes that naturally apply to a translation unit may, nonetheless, end\n   up applying to a section if sections from distinct relocatable files are\n   combined into a single relocatable file by \"partial linking\". Similar\n   exceptions may occur at the function level through use of #pragma and other\n   Q-o-I toolchain behavior.\n\n   Explicit per-section and per-symbol data should be generated only when it\n   cannot be implied by this inheritance.  Being explicit is more verbose, and the\n   explicit options are intended to capture exceptions."
+        }
+      ]
+    }
+  ],
+  "interpretation": "Public hierarchy honored voluntarily despite r2.09 deprecation. Omission means ABI zero absent nodefaults, not observed compiler default. Private vendor bytes remain opaque."
+}

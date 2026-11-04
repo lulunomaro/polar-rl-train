@@ -1,0 +1,21 @@
+# V12：startup id0源与首ASM命令静态准备（零native）
+
+- 仅一个startup：[源码](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s>)438行/30149B，fresh SHA7baf21c802efd7aaeace20cfecef16b967d124fcbd5f038088be0eee6138b261与saved id0相同；8小source/metadata before-after SHA一致。
+- [最小ledger](<MIN_STATIC_LEDGER_01.json>)先于本报告/提案；未重读162 C物件或两库，不解析整project。
+- [向量源码:69–178](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s#L69-L178>)：RESET DATA READONLY，__initial_sp/Reset_Handler开头，98个DCD词/6个reserved0，3个__Vectors*导出；实际地址/重定位/强ISR覆盖仍UNKNOWN。
+- [Reset:183–192](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s#L183-L192>)弱导出；LDR/BLX SystemInit，再LDR/BX __main，无返回路径；imports不是已解析链接。
+- [默认异常/外设:194–406](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s#L194-L406>)合计91个weak导出（含Reset），核心异常各B.，外设标签同址落到B.；未证明最终ISR实际绑定。
+- [Stack/Heap:46–65](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s#L46-L65>)各0x2000=8192B，NOINIT RW/ALIGN3，PRESERVE8+THUMB；这是声明，不是栈/heap充足或运行证明。
+- [microLib:413–434](<../MOD4_DEPLOYMENT_PORT_V1/derived/StandardRobotpp-balance1/MDK-ARM/startup_stm32f407xx.s#L413-L434>)检测:DEF:__MICROLIB；target useUlib0、Aads定义/undef空，按选定OFF policy应ELSE，尚未assembly证实；定义为0不等于未定义。
+- ELSE导入__use_two_region_memory/导出__user_initial_stackheap；R0/R1/R2/R3分别heap base/stack top/heap limit/stack base，BX LR；C runtime库匹配和地址仍未链接。
+- 原source无INCLUDE/GET/INCBIN，不需新source/header；C的ARM_MATH_CM4/__FPU_USED等定义不自动流向ASM Aads。
+- Raw Aads interw1/thumb0/其余标志记录原样，group无override；source THUMB是已知，旧数值selector/CLI有效性不是已测事实。
+- 首次可运行argv=UNKNOWN/null：旧V6未执行候选保在ledger（含sealed旧-o，禁止照跑）；ARMASM_QUERY_DEFERRED确未query，ARMCC C-help不证明ARMASM --cpu/--apcs/-I/-o语法/默认。
+- 工具仅可命名C:/Keil_v5/ARM/ARMCC/bin/armasm.exe；版本/完整first-only命令须父另批明确，不运行help/version以偷补预算。
+- [ASM ABI提案](<ABI_ASSESSMENT_PROPOSAL_01.json>)不套C的全浮点/type gate，不改C7/V10/C11 readers/gates，无新fixture/新物件。
+- 已钉[Arm Addenda32](https://github.com/ARM-software/abi-aa/blob/main/addenda32/addenda32.rst)/[AAELF32](https://github.com/ARM-software/abi-aa/blob/main/aaelf32/aaelf32.rst)：公有省略与继承/nodefaults/冲突按原规范；18/26=0是规范UNUSED，不是width0或任意缺失都兼容。
+- 源只见LDR/BLX/BX/B、无FP参数设置；不等同callee原型已核。当前钉excerpts不足定义10/27/28、24/25精确0与合并规则，明确UNKNOWN，不凭未用FPU硬填1/0或宣布兼容。
+- 缺carrier/格式/UNKNOWN/冲突仍STOP；未来新ASM元数据评定规则须单独文档审查，不能静默放宽C gate。
+- 0编译/assembler/fromelf/probe/help/version/link/UV/hooks/flash/realIO/旧QA/FK/PHY/Git/agent/root-goal；source/原project/old records无改动。
+- 原162 C覆盖是三段compile-only记录；startup ASM id0仍未启动，实际固件/库/板BSP/机械映射/ISR/WCET资格仍未形成。
+- 全部PH10 cutoff外；静态准备结束即停，仅后续明确first-one-ASM grant可调用trusted ARMASM，不做链接准备或自动执行。

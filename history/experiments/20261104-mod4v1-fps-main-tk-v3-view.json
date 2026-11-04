@@ -1,0 +1,31 @@
+{
+  "id": "20261104-mod4v1-fps-main-tk-v3-view",
+  "tag": "trial-20261104-mod4v1-fps-main-tk-v3-view",
+  "title": "Fix main-thread Tk lifecycle and show requested failed V3 recorded takeoff",
+  "kind": "diagnostic",
+  "recorded_at": "2026-11-04T14:36:22.604537+00:00",
+  "repair_or_experiment_note": "# Main-thread Tk lifecycle and requested V3 recorded-pose view\n\nNew FPS entry reuses frozen layout/render/GLFW helpers, while Tk/allVariables/widgets live only on process main thread and GLFW/context/Engine on one non-daemon worker. Plain input/status/action messages cross the boundary; worker closes GL before main destroys Tcl and joins. Engine/K/KF/PD/D4/DC/robot/solver/limits unchanged. One actual hidden paused latestCAD/c2_fps lifecycle: PID69912, Tk69916/GL70356,47600geoms/37nq, READY->worker closed->main Tk closed, exit0/stderr empty,0controls/0physics/sim_time0. This proves only that lifecycle path, not driving/fullGUI/performance/T01 acceptance. Old exit failure/source remain; launcher now chooses the new entry, desktop wrapper unchanged.\n\nHuman22:21 explicitly requested V3 takeoff playback, overriding earlier visual nonreplacement only for viewing, NOT adoption. Viewer now supports case3/start timestamp/follow; capture default unchanged. V3 starts recorded2.4s,1.11s before push,0.5x follow loop. No controller/mj_step or new physics run. V3 remains the previously archived FAILED candidate(landing22.95deg/endstable1.34s/guide43), current physical result unchanged. First launch50652 reached READY but was absent on process inspection with no closing/error line; cause unknown, logs kept. Second launch10548/1120612 was actually verified responding with exact command and READY/empty stderr. No speculation about first exit cause or new physical sample.\n\nSmall source/docs/logs/shortcuts only; no raw trajectory/CAD/model read/hash for archival. Original case/source/results already in b954dc0e5e5f16d73400a6c2d1c34144c3079725. Original recorder once, in-memory sparse-add adapter, unique annotated tag, own branch/tag atomic nonforce push. No other worktree/index/main, no old holdout/case rerun, no extra agents/dependencies/hardware. T01 strict support gate still failed and older PH12 pending remains pending. Post-push ledger receipt is next-stage material, not an archive loop.\n",
+  "validation": "Real latestCAD hidden paused lifecycle exit0/empty stderr/zero physics; requested V3 pose viewer verified. No control qualification or physics rerun.",
+  "source_and_evidence_sha256": {
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/TERRAIN_ADAPTATION_TASKS_V1.md": "bc88c0a5ccd9daa4570b46d0b8ea0aae0e772d1ed81e572abf1c98717558bf75",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/player_main_tk_v1.py": "a54d9daf525d33d246df75c21bb170f1a43eaf69f6fa8a9a750c080e612e1384",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/player.py": "7ec0270a08590e3d3a46a0beb06cf225534d99a047391812efec6cc694fa82af",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/runtime.py": "bc8058ee45a5bff8c9584a59a33996514f14ceb9f0cfa83c7b742eba03c68a84",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/Start_RM_FPS.bat": "6b9c773cf4814717d1e1a1ce511c58e3d02af221acde7b32c65ec71a2412a8a4",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/MAIN_TK_LIFECYCLE_V1.md": "9c6263d0fb8ead4f6fe92ee153e7695085167fb3797028a2c7557f7c022e6763",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/main_tk_lifecycle001.stdout.log": "4f608cc6031d37ab65c837e05ed8f1711038cbf4d8b47ebcc6c8cf854c4a52c1",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/RM_FPS_PLAYER_V1/main_tk_lifecycle001.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/play.py": "6ca682c6e1b02fa660f01f7877ecafac3000b70f95180a8d3c015cdaaf308da4",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/Start_J200_V3.bat": "57b9480561457573d21debca865a9493018b54c5ae465f22e6290565d17cef6c",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/README.md": "00f00b5ddc889642510e04978e4335ca394572a9b05156ee7db75ae9c4fd6567",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/v3_replay001.stdout.log": "7471a9c2e4790e86eba4d5f0eba0ef53c9b92cda81ec7b45dd0994b2d0d755ba",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/v3_replay001.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/v3_replay002.stdout.log": "44558592cd785dc3b0e211f74a23d40a895f54e7a713ddaec7513578d6d445c9",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/JUMP200_REPLAY_V1/v3_replay002.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/payload/user_launcher/看V3起跳回放.bat": "6a129ebbde6a0af32b720beeb5555861ac8cc2f8af72532bcee8b402cbabff4a",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/NOTE.md": "50eeca7e7bd18945e73dd0b4ac732eed56497e0d1b470fc5966abc21c4d471e7",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/archive_fps_main_tk_v3_view_v1.py": "ccc0bb29d7d6e29df16da757506997bc179abc42d6334f5d9341508f4c4e2f17",
+    "history/experiments/mod4v1_fps_main_tk_v3_view_20261104/SELECTED_FILES.txt": "4aa6778120539589a4e02bc0620456badf67acc78b6e785432c5551ecf7efd8c"
+  },
+  "real_robot_certified": false
+}

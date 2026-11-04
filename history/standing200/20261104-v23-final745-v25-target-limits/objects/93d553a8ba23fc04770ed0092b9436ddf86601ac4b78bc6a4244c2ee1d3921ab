@@ -1,0 +1,22 @@
+"""Local-only fresh status snapshot; no SSH, watcher or task mutations."""
+from pathlib import Path
+import importlib.util
+import json
+import os
+import time
+
+ROOT=Path(__file__).resolve().parent.parent
+p=ROOT/'repair_v11/control.py'
+spec=importlib.util.spec_from_file_location('standing25_local_status',p)
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+rows,blocked=m.admission()
+by={r['ProcessId']:r for r in rows};own={os.getpid(),os.getppid()};parent=os.getppid()
+while parent in by:
+    parent=by[parent]['ParentProcessId']
+    if parent in own:break
+    own.add(parent)
+blocked=[r for r in blocked if r['ProcessId'] not in own]
+value=dict(epoch=time.time(),blocked=blocked,serial='BUSY' if blocked else 'FREE',
+           no_network=True,no_model_SDK_physics=True)
+with(ROOT/'reports/SCUT25_FINAL_LOCAL_STATUS.json').open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+print(json.dumps(value))

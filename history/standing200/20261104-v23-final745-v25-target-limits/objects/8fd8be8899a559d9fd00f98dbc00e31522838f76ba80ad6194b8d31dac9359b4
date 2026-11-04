@@ -1,0 +1,14 @@
+"""Original finite controller with fresh V25 labels and larger closed transfer."""
+from pathlib import Path
+import hashlib
+P = Path(__file__).resolve().parent.parent / 'scut_recipe_v21/control.py'
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == 'da226542de1ac36766ac268820d109c14c73f9fbff51d141179e413614e5d4a8'
+source = raw.decode().replace('SCUT21', 'SCUT25').replace('RECIPE_V21_', 'RECIPE_V25_')
+source = source.replace("w['prior_V20_closed_actual_V22']", "w['prior_V23_final745_actual']")
+# The old32MiB limit rejected an existing43MiB text curve. New transfer only.
+old = "exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())"
+new = "source=source.replace('limit=32*1024**2', 'limit=96*1024**2')\n" + old
+assert source.count(old) == 1
+source = source.replace(old, new)
+exec(compile(source, str(Path(__file__).absolute()), 'exec'), globals())

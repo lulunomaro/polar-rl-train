@@ -1,0 +1,85 @@
+"""Independent repair of closed-evidence transfer size limit, never eval replay."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+import traceback
+
+R=Path(__file__).resolve().parent.parent
+sys.path.insert(0,str(R))
+from stage_start_standing200_v6 import run
+
+
+def put(name,value):
+    with (R/'reports'/name).open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+
+
+META=r'''
+from pathlib import Path
+import hashlib,json,time
+J=Path(v['job']);own=json.loads((J/'OWNER_EXIT.json').read_bytes())
+assert own['run_id']==v['run_id'] and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+rows=[]
+for rel in v['files']:
+ p=J/rel
+ assert p.is_relative_to(J) and p.suffix not in ['.pt','.pth']
+ if not p.exists():continue
+ assert p.stat().st_size<=96*1024**2
+ with p.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+ rows.append(dict(relative=rel,path=str(p),bytes=p.stat().st_size,SHA=sha))
+print(json.dumps(dict(epoch=time.time(),original_exit=own,files=rows,PT_reads=0,model_calls=0,physics=0,ledger_writes=0)))
+'''
+
+
+def main():
+    marker=R/'reports/SCUT24_MISSING_TRANSFER_ONCE.json';assert not marker.exists()
+    gate=importlib.util.spec_from_file_location('standing24_gate',R/'repair_v11/control.py')
+    m=importlib.util.module_from_spec(gate);gate.loader.exec_module(m)
+    rows,blocked=m.admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    plan=json.loads((R/'scut_recipe_v23/PLAN.json').read_bytes());job=plan['remote_root'];dest=R/'actual_closed'/plan['run_id']
+    failure=json.loads((R/'reports/SCUT23_CLOSED_TRANSFER_ERROR.json').read_bytes());assert failure['once_consumed']
+    names=['evaluation/CONTROL_CURVES.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json',
+        'evaluation/POSE_CACHE_EVENTS.json','evaluation/actual400hz.npz','evaluation/selected_actual_poses.npz','EVAL_WAITED.json']
+    client=sf=None
+    try:
+        sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+        from project_connector import connect72
+        client=connect72()
+        metadata=run(client,META,dict(job=job,run_id=plan['run_id'],files=names))
+        put('SCUT24_MISSING_TRANSFER_METADATA.json',metadata)
+        result=json.loads((dest/'evaluation/RESULT.json').read_bytes())
+        for key in ['all80_manifold','actual_poses']:
+            expected=result[key];actual=next(x for x in metadata['files'] if x['path']==expected['path'])
+            assert all(actual[k]==expected[k] for k in ['bytes','SHA'])
+        put(marker.name,dict(epoch=time.time(),run_id=plan['run_id'],purpose='Independent missingfile transfer after original32MB textlimit failure; no eval/once replay',local_rows=rows))
+        sf=client.open_sftp();sf.get_channel().settimeout(90);returned=[]
+        for row in metadata['files']:
+            p=dest/row['relative'];p.parent.mkdir(parents=True,exist_ok=True)
+            if p.exists():
+                assert p.stat().st_size==row['bytes']
+                with p.open('rb') as f:assert hashlib.file_digest(f,'sha256').hexdigest()==row['SHA']
+                returned.append(dict(row,local_path=str(p),existing_exact=True));continue
+            digest=hashlib.sha256();count=0
+            with sf.open(row['path'],'rb') as src,p.open('xb') as out:
+                while block:=src.read(1024**2):
+                    count+=len(block)
+                    if count>row['bytes']:raise ValueError('Closed artifact grew after sourcehash')
+                    digest.update(block);out.write(block)
+            assert count==row['bytes'] and digest.hexdigest()==row['SHA']
+            returned.append(dict(row,local_path=str(p),both_endpoint_bytes_SHA_equal=True))
+        put('SCUT24_MISSING_TRANSFER_ACTUAL.json',dict(epoch=time.time(),files=returned,source_original_exit=metadata['original_exit'],
+            original_transfer_false_preserved=True,PT_reads=0,physics=0,optimizer=0,ledger_writes=0))
+        print(json.dumps(dict(returned=len(returned),maximum_bytes=max(x['bytes'] for x in returned),eval_replays=0)))
+    except BaseException:
+        put('SCUT24_MISSING_TRANSFER_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),once_consumed=marker.exists()))
+        raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        if client is not None:put('SCUT24_MISSING_TRANSFER_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+if __name__=='__main__':main()

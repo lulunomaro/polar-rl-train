@@ -1,0 +1,228 @@
+{
+  "epoch": 1793751174.776868,
+  "source": {
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800/production/model_final.pt",
+    "bytes": 8924208,
+    "SHA": "e0ab1a5ebe5ef97cf8c9acc15125b9b25bd0cfa8b65bc8f3138ebeb7540c25c4",
+    "format": "MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK",
+    "iteration": 745,
+    "physics_ticks": 44736,
+    "recipe_stage": "flat",
+    "recipe": {
+      "stage": "flat",
+      "source_reward_terms": {
+        "termination": -200.0,
+        "leg_joint_acc": -5e-07,
+        "leg_joint_vel": -0.005,
+        "leg_joint_pair_pos_diff": -0.0,
+        "joint_torque": -0.0001,
+        "wheel_acc": -1e-08,
+        "wheel_vel": -1e-05,
+        "wheel_power": -0.0001,
+        "wheel_air_spin": 0.0,
+        "lin_vel_z": -0.5,
+        "ang_vel_xy": -0.05,
+        "action_smoothness_leg": -0.05,
+        "action_rate": -0.01,
+        "action_smoothness_wheel": -0.01,
+        "flat_orientation_y": -0.0,
+        "flat_orientation_y_v": -2.0,
+        "flat_orientation_y_exp": 1.0,
+        "flat_orientation_x": -0.0,
+        "flat_orientation_x_v": -2.0,
+        "flat_orientation_x_exp": 1.0,
+        "track_lin_vel_xy": 1.0,
+        "track_lin_vel_xy_tight": 0.0,
+        "track_lin_vel_xy_square": -0.1,
+        "track_ang_vel_z": 1.0,
+        "track_ang_vel_z_square": -0.1,
+        "stand_still_lin_vel": -2.0,
+        "stand_still": -0.0,
+        "track_height_exp": 0.0,
+        "track_height_exp_soft": 0.0,
+        "track_height_exp_tight": 1.0,
+        "track_height_square": -1.0,
+        "track_height_exp_both_wheels_contact": 0.0,
+        "no_fork": -1.0,
+        "no_fork_square": -1.0,
+        "no_fork_exp": -0.0,
+        "no_fork_z_exp": -0.0,
+        "undesired_contact": -2.0
+      },
+      "source_PPO": {
+        "class_name": "PPO",
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "learning_rate": 0.0001,
+        "schedule": "adaptive",
+        "gamma": 0.99,
+        "lam": 0.95,
+        "entropy_coef": 0.005,
+        "desired_kl": 0.01,
+        "max_grad_norm": 1.0,
+        "value_loss_coef": 4.0,
+        "use_clipped_value_loss": true,
+        "clip_param": 0.2,
+        "normalize_advantage_per_mini_batch": false,
+        "rnd_cfg": null,
+        "symmetry_cfg": null
+      },
+      "actor": 35,
+      "critic": 78,
+      "deterministic_residual": false,
+      "learned_WM_BPTT": false,
+      "original_gaussian_STD": true,
+      "model_substitutions": [
+        "MOD4v1USD",
+        "MOD4jointnames/geometry/no_gimbal",
+        "MOD4PD_DC_D0D7_queues",
+        "MOD4closure_consistentreset",
+        "2.5msTGS32/4"
+      ],
+      "training_reward_changes": [],
+      "source_predefined_robot_specific_resets": "not transferred across different mechanism;explicit MOD4 valid reset bank",
+      "flat_height_scanner": null,
+      "flat_sensor_instantiated": false,
+      "flat_world_ground_z": 0.0,
+      "original_source_clock_repair": {
+        "original_debug_function_unchanged_AST": true,
+        "cache_only_misplaced_increment_removed": true,
+        "original_debug_configuration_fields": true,
+        "reward_coefficients_changed": false,
+        "physical_or_PPO_changes": false,
+        "V20_source_and_false_preserved": true,
+        "production_model_reads": 0
+      },
+      "full_resume": {
+        "full_learning_restore": true,
+        "legacy_format": "MOD4V1_SCUT_STANDING_RECIPE_V20",
+        "target_format": "MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK",
+        "old_scalar_clock_missing_explicit": true,
+        "save_global_counters": true,
+        "production_source_decodes_in_restore": 1
+      },
+      "source_command_compatibility": {
+        "obsolete_straight_assertions_replaced": 1,
+        "physics_action_event_super_step_unchanged": true,
+        "command_distribution": "original SCUT recipe",
+        "other_AST_changed": false
+      }
+    },
+    "source_SCUT_commit": "1a26356d6f591734d4f6f666f5cead1a6925da67"
+  },
+  "actual_evaluation": {
+    "cases": 80,
+    "strict": 0,
+    "whole": 0,
+    "both_top": 0,
+    "max_top_force_N": 0.0,
+    "terminated": 68,
+    "full10s": 12,
+    "mean_seconds": 3.86775,
+    "median_seconds": 2.33
+  },
+  "native_review": {
+    "viewer": "current model native view_image",
+    "actual_four_side_four_top_sheets_reviewed": true,
+    "actual_400Hz_route_support_curve_reviewed": true,
+    "selected": [
+      0,
+      1,
+      40,
+      41
+    ],
+    "observation": "All selected fall from unsupported .38m spawn then stay near .19-.22m; env1 turns repeatedly in lower square, others move under .25m along axes. No wheel-top contacts or full climb. Images correspond saved actual poses, no new simulation.",
+    "interpretation": "Unreachable hip targets and actual hard-stop saturation are direct measurements. They do not establish that clipping alone will teach standing or200mm skill. Initial unsupported fall is separate known spawn behavior.",
+    "actual_hip_target_vs_measured_native_reviewed": true
+  },
+  "target_evidence": {
+    "ordered_motors": [
+      "left_crank",
+      "left_hip",
+      "right_crank",
+      "right_hip",
+      "left_wheel",
+      "right_wheel"
+    ],
+    "leg_limits_rad": [
+      [
+        -1.2,
+        0.9
+      ],
+      [
+        -0.5,
+        0.5
+      ],
+      [
+        -1.2,
+        0.9
+      ],
+      [
+        -0.5,
+        0.5
+      ]
+    ],
+    "active_controls": 15471,
+    "target_min": [
+      -0.6763752698898315,
+      0.07741114497184753,
+      -0.6597611904144287,
+      0.36065295338630676
+    ],
+    "target_max": [
+      0.0943455770611763,
+      0.7919492125511169,
+      0.020265355706214905,
+      0.9665748476982117
+    ],
+    "hip_target_above_upper_fraction": [
+      0.972787796522526,
+      0.9990304440566221
+    ],
+    "actual_hip_within1mrad_upper_fraction": [
+      0.8868205028763493,
+      0.9513929287053197
+    ],
+    "terminal_hip_near_upper_count": [
+      77,
+      80
+    ],
+    "terminal_both_hips_near_upper": 77,
+    "actual_torque_abs99": [
+      16.2529016494751,
+      15.08168592453,
+      16.757470893859853,
+      24.088711357116697,
+      5.775909900665283,
+      5.775909900665283
+    ]
+  },
+  "CPU_target_boundary": "reports/SCUT25_ACTUAL_TARGET_BOUNDARY_CPU.json",
+  "CPU_full_restore": "reports/SCUT25_FULL_RESTORE_FORMAT_MIGRATION_CPU.json",
+  "production": "FROZEN_UNUSED",
+  "resource": {
+    "epoch": 1793751141.0984006,
+    "blocked": [
+      {
+        "ProcessId": 14224,
+        "ParentProcessId": 16772,
+        "CreationDate": "2026-11-04T08:04:20.395017+08:00",
+        "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+        "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n& 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 'F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/repaired_training_control.py' launch --root 'F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/env20000_target_axis_repair_1h_20261104'\""
+      },
+      {
+        "ProcessId": 54808,
+        "ParentProcessId": 14224,
+        "CreationDate": "2026-11-04T08:04:20.629276+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/repaired_training_control.py launch --root F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v1_scut_step270_2h_20261103/env20000_target_axis_repair_1h_20261104"
+      }
+    ],
+    "serial": "BUSY",
+    "no_network": true,
+    "no_model_SDK_physics": true
+  },
+  "source_tree": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_recipe_v25",
+  "no_blind_continuation": true,
+  "next": "After known foreign controller closed fresh broadexactCIM/FREE then unused dispatch.py gpu allfour; if original canonical remains owned do not launch. When all admission free, single dispatch.py launch, then one FIRST collection. Preserve source final745 complete learning; flat toward8000; sameowner immediate independent80 and native review after save-close."
+}

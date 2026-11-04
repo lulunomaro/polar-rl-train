@@ -1,0 +1,71 @@
+"""Freeze only the small hardware-interface delta after actual V23 review."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parent
+
+
+def row(path, relative=None):
+    raw=path.read_bytes()
+    value=dict(path=str(path),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+    if relative is not None:value['relative']=relative
+    return value
+
+
+def main():
+    assert not (HERE/'FROZEN.json').exists()
+    review=json.loads((ROOT/'reports/SCUT23_FINAL745_NATIVE_TARGET_LIMIT_REVIEW_V25_DECISION.json').read_bytes())
+    assert review['native_review']['actual_four_side_four_top_sheets_reviewed']
+    assert review['transfer']['independent_V24_once_consumed_complete']
+    for name in ['SCUT25_ACTUAL_TARGET_BOUNDARY_CPU.json','SCUT25_FULL_RESTORE_FORMAT_MIGRATION_CPU.json']:
+        assert json.loads((ROOT/'reports'/name).read_bytes())['passed']
+    previous=json.loads((ROOT/'scut_recipe_v23/FROZEN.json').read_bytes())
+    own=json.loads((ROOT/'actual_closed'/previous['run_id']/'OWNER_EXIT.json').read_bytes())
+    assert own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    plan=json.loads((ROOT/'scut_recipe_v23/PLAN.json').read_bytes())
+    final=review['actual_source_final']
+    runid='MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_'+str(time.time_ns())
+    plan.update(run_id=runid,remote_root='/home/lc01/Zonglin Li/zonglin2/tasks/'+runid,
+        source_checkpoint=final,resume_checkpoint=final,target_iterations=8000-final['iteration'],
+        source_review=str(ROOT/'reports/SCUT23_FINAL745_NATIVE_TARGET_LIMIT_REVIEW_V25_DECISION.json'),
+        recipe_changes_from_V21=['Explicit MOD4 decoded leg position target limits; original SCUT target-clipping semantics adapted to contract'],
+        training_algorithm_reward_physics_action_reset_changes=['Decoded leg target clipping only; raw Gaussian action/PPO interface unchanged'],
+        integration_repair='Same original recipe and V21 clock/fullstate; clamp MOD4 target joint ranges before existing D4 queue, preserving CAD stop',
+        CPU_target_boundary=row(ROOT/'reports/SCUT25_ACTUAL_TARGET_BOUNDARY_CPU.json'),
+        CPU_full_resume=row(ROOT/'reports/SCUT25_FULL_RESTORE_FORMAT_MIGRATION_CPU.json'),
+        new_checkpoint_format='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS',
+        original_saved_clip_actions=None,no_action_clip6=True)
+    plan['support'].append(previous['job'])
+    (HERE/'PLAN.json').write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    shared=list(previous['shared_text'])
+    for item in previous['files']:
+        shared.append(dict(path=previous['job']+'/'+item['relative'],bytes=item['bytes'],SHA=item['SHA']))
+    files=[]
+    for name in ['recipe.py','target_adapter.py','full_resume.py','entry.py','owner.py','evaluate.py','control.py','PLAN.json']:
+        p=HERE/name
+        if p.suffix=='.py':ast.parse(p.read_text(encoding='utf-8'))
+        files.append(row(p,name))
+    files.append(row(ROOT/'scut_recipe_v23/SOURCE_PATHS.json','SOURCE_PATHS.json'))
+    frozen=dict(epoch=time.time(),run_id=runid,job=plan['remote_root'],files=files,
+                shared_text=shared,whole_runtime_copies=0,production_PT_reads_for_freeze=0,new_physics=0)
+    with (HERE/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,indent=2)
+    wp=ROOT/'CURRENT_WORK_ORDER.json';w=json.loads(wp.read_bytes())
+    w.update(status='SCUT23_FINAL745_ACTUAL0OF80_NATIVE_REVIEWED_SCUT25_TARGET_LIMITS_FROZEN_UNUSED',
+        current_model_native_reviewed=True,model_native_reviewed=True,replay_native_reviewed=review['native_review'],
+        evaluation_result=review['actual_evaluation'],current_diagnosis=review['actuator'],
+        latest_status='reports/SCUT23_FINAL745_NATIVE_TARGET_LIMIT_REVIEW_V25_DECISION.json',
+        pending_missing_transfer=dict(script='scut_recipe_v23/transfer_missing_v24.py',once_consumed=True,complete=True,
+                                     actual='reports/SCUT24_MISSING_TRANSFER_ACTUAL.json',native_render_completed=True),
+        pending_repair=dict(version='SCUT25_TARGET_LIMITS',root=str(HERE),frozen=str(HERE/'FROZEN.json'),
+            frozen_SHA=row(HERE/'FROZEN.json')['SHA'],launch_once_consumed=False,status='FROZEN_UNUSED_CPU_PASS'),
+        current_resource_blocker=None,
+        next='Fresh local exactCIM/serialFREE; allfour actual inventory and original canonical/private/finite admission. UniqueV25 fullstate final745 resume; same original flat toward8000, then independent200mm/native review after safe close.')
+    wp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print(json.dumps(dict(frozen=True,run_id=runid,source_iteration=final['iteration'],source_PT_reads=0)))
+
+
+if __name__=='__main__':main()

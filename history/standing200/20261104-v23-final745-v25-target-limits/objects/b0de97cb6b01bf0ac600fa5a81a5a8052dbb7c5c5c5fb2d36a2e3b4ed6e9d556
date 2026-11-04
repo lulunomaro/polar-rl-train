@@ -1,0 +1,44 @@
+"""Finite V25 dispatch using original gate plus exact own-ancestor exclusion."""
+from pathlib import Path
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import sys
+import time
+
+HERE=Path(__file__).resolve().parent
+ROOT=HERE.parent
+
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('mode',choices=['local','gpu','launch','first','closed'])
+    args=q.parse_args()
+    p=HERE/'control.py'
+    spec=importlib.util.spec_from_file_location('standing25_finite_control',p)
+    controller=importlib.util.module_from_spec(spec);spec.loader.exec_module(controller)
+    original=controller.admission
+    def admission():
+        rows,blocked=original()
+        bypid={r['ProcessId']:r for r in rows}
+        own={os.getpid(),os.getppid()}
+        parent=os.getppid()
+        while parent in bypid:
+            parent=bypid[parent]['ParentProcessId']
+            if parent in own:break
+            own.add(parent)
+        # Exact own ancestor IDs only; never exclude other children of app PID.
+        return rows,[r for r in blocked if r['ProcessId'] not in own]
+    controller.admission=admission
+    if args.mode=='local':
+        rows,blocked=admission()
+        value=dict(epoch=time.time(),rows=rows,blocked=blocked,
+            serial='BUSY' if blocked else 'FREE',network=0,
+            classification='Fresh broadCIM; only exact own process ancestors excluded')
+        with (ROOT/'reports/SCUT25_LOCAL_ADMISSION_ACTUAL.json').open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+        print(json.dumps(value));return
+    getattr(controller,args.mode)()
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,13 @@
+"""Exact V21 full-state restore, with declared V21-to-V25 format migration."""
+from pathlib import Path
+import hashlib
+P = Path(__file__).resolve().parent.parent / 'scut_recipe_v21/full_resume.py'
+if not P.exists():
+    P = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == 'e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+source = raw.decode().replace("LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'", "LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'")
+source = source.replace("FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'", "FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'")
+# The old restore compiles its identity check from the checkpoint namespace.
+source = source.replace('import torch\n    # Reuse', 'import torch\n    checkpoint.FORMAT=FORMAT\n    # Reuse')
+exec(compile(source, str(P), 'exec'), globals())

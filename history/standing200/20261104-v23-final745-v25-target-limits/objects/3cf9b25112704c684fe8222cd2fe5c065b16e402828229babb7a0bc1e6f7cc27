@@ -1,0 +1,15 @@
+{
+  "epoch": 1793751198.4890413,
+  "status": "ARCHIVE_READER_FALSE",
+  "error": "StopIteration selecting V24 published CONTROL_CURVES row while original helper still enumerated older V20 CONTROL_CURVES",
+  "new_trial_recorded": false,
+  "partial_archive": "history/standing200/20261104-v23-final745-v25-target-limits",
+  "new_model_physics_operations": 0,
+  "failed_source": {
+    "path": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_recipe_v25\\archive.py",
+    "bytes": 1745,
+    "SHA": "1230c443713f3dd1278d49b44ef60a61451636db39da649771cb1f9af66497ed",
+    "text": "\"\"\"New target-interface repair phase; SHA dedup and published large-raw index.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport json\n\nROOT=Path(__file__).resolve().parent.parent\nP=ROOT/'scut_eval_v22/archive_actual.py'\nraw=P.read_bytes()\nsource=raw.decode()\nsource=source.replace(\"20261104-v20-eval22-v21-full-resume'\", \"20261104-v23-final745-v25-target-limits'\")\nsource=source.replace(\"V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284\",\n                      \"V23_FINAL745_ACTUAL_FAIL_NATIVE_V24_TRANSFER_REPAIR_V25_TARGET_LIMITS_CPU_FROZEN\")\nold=\"R/'scut_recipe_v21',R/'scut_eval_v22',\"\nnew=\"R/'scut_recipe_v21',R/'scut_eval_v22',R/'scut_recipe_v23',R/'scut_recipe_v25',R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800',\"\nassert source.count(old)==1;source=source.replace(old,new)\nsource=source.replace(\"R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md'\", \"R/'scut_recipe_v25/README.md'\")\n# CONTROL_CURVES is large raw, not a report. The closed transfer already\n# published its actual43MB bytes/SHA. Never copy it into Git as a text object.\nsource=source.replace(\"raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))\", \"\"\"if p.name=='CONTROL_CURVES.json':\n            publication=json.loads((R/'reports/SCUT24_MISSING_TRANSFER_ACTUAL.json').read_bytes())\n            item=next(v for v in publication['files'] if v['local_path']==str(p))\n            rows.append(dict(source_path=str(p),bytes=item['bytes'],SHA=item['SHA'],mode='external_large_raw_only',published_by='reports/SCUT24_MISSING_TRANSFER_ACTUAL.json'))\n            continue\n        raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))\"\"\")\nexec(compile(source,str(Path(__file__).absolute()),'exec'),globals())\n"
+  },
+  "repair": "Exclude already archived V20 actualroot from newphase enumeration; retain old raw/index, new source history preserved in this report"
+}

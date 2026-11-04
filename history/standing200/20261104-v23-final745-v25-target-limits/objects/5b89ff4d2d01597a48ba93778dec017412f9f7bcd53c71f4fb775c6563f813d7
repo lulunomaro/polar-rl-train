@@ -1,0 +1,26 @@
+"""New target-interface repair phase; SHA dedup and published large-raw index."""
+from pathlib import Path
+import hashlib
+import json
+
+ROOT=Path(__file__).resolve().parent.parent
+P=ROOT/'scut_eval_v22/archive_actual.py'
+raw=P.read_bytes()
+source=raw.decode()
+source=source.replace("20261104-v20-eval22-v21-full-resume'", "20261104-v23-final745-v25-target-limits'")
+source=source.replace("V20_FINAL283_ACTUAL_EVAL22_NATIVE_FAIL_V21_FULL_RESUME_FIRST284",
+                      "V23_FINAL745_ACTUAL_FAIL_NATIVE_V24_TRANSFER_REPAIR_V25_TARGET_LIMITS_CPU_FROZEN")
+old="R/'scut_recipe_v21',R/'scut_eval_v22',"
+new="R/'scut_recipe_v21',R/'scut_eval_v22',R/'scut_recipe_v23',R/'scut_recipe_v25',R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800',"
+assert source.count(old)==1;source=source.replace(old,new)
+source=source.replace("R/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V20_FLAT_1793718811682640300'", "R/'scut_recipe_v25'")
+source=source.replace("R/'scut_recipe_v21/ACTUAL_EVAL_AND_CONTINUATION.md'", "R/'scut_recipe_v25/README.md'")
+# CONTROL_CURVES is large raw, not a report. The closed transfer already
+# published its actual43MB bytes/SHA. Never copy it into Git as a text object.
+source=source.replace("raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))", """if p.name=='CONTROL_CURVES.json':
+            publication=json.loads((R/'reports/SCUT24_MISSING_TRANSFER_ACTUAL.json').read_bytes())
+            item=next(v for v in publication['files'] if v['local_path']==str(p))
+            rows.append(dict(source_path=str(p),bytes=item['bytes'],SHA=item['SHA'],mode='external_large_raw_only',published_by='reports/SCUT24_MISSING_TRANSFER_ACTUAL.json'))
+            continue
+        raw=p.read_bytes();safe,count=guard.redact(raw.decode('utf-8-sig'))""")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

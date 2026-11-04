@@ -1,0 +1,85 @@
+"""Check the new actual-target boundary and complete-state format migration."""
+from pathlib import Path
+from types import SimpleNamespace
+import ast
+import hashlib
+import json
+import sys
+import time
+import traceback
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+REPO = Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+
+
+def main():
+    sys.path.insert(0, str(HERE))
+    import numpy as np
+    import torch
+    from target_adapter import install
+    torch.set_num_threads(2)
+    report = ROOT / 'reports/SCUT25_ACTUAL_TARGET_BOUNDARY_CPU.json'
+    assert not report.exists()
+    result = dict(epoch=time.time(), passed=False, production_PT_reads=0, SDK=0, physics=0)
+    try:
+        contract_path = ROOT.parent/'mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json'
+        contract = json.loads(contract_path.read_bytes())
+        p = REPO/'history/evidence/20261007-physics-clock-performance/clock_runtime/mod4_task.py'
+        raw = p.read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5'
+        node = next(n for n in ast.parse(raw).body if isinstance(n, ast.ClassDef) and n.name=='DelayedJointPositionAction')
+        class Base:
+            def process_actions(self, action):
+                self.processed_actions = action*.5+self.offset
+        ns = dict(torch=torch, _DelayMixin=Base,
+                  mdp_actions=SimpleNamespace(JointPositionAction=object))
+        exec(compile(ast.Module(body=[node], type_ignores=[]), str(p), 'exec'), ns)
+        cls=ns['DelayedJointPositionAction']
+        term=cls.__new__(cls);term.diff_min=-1.0843;term.diff_max=.85
+        term.offset=torch.tensor([-.1,.1,-.1,.1])
+        task=SimpleNamespace(DelayedJointPositionAction=cls, CONTRACT=contract,
+                             LEG_ORDER=['left_crank','left_hip','right_crank','right_hip'])
+        receipt=install(task)
+        E=ROOT/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800/evaluation'
+        curves=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+        active=np.asarray([x['active'] for x in curves])
+        recorded=np.asarray([x['joint_pos_target'] for x in curves])[active]
+        # Replay recorded target vectors through the exact old CAD method plus
+        # new projection, along with large Gaussian-tail and feasible cases.
+        target=torch.tensor(np.concatenate([recorded, [[-100,100,100,-100],[100,-100,-100,100],[.1,.2,.1,.2]]]), dtype=torch.float32)
+        actions=(target-term.offset)/.5;original_actions=actions.clone()
+        # The existing D4 wrapper calls this bound process then submits its
+        # processed target. Capture that same submitted boundary here.
+        term.process_actions(actions)
+        submitted=term.processed_actions.clone()
+        assert torch.equal(actions,original_actions)
+        low=torch.tensor([-1.2,-.5,-1.2,-.5]);high=torch.tensor([.9,.5,.9,.5])
+        assert bool((submitted>=low).all()) and bool((submitted<=high).all())
+        for a,b in ((0,1),(2,3)):
+            diff=submitted[:,a]-submitted[:,b]
+            assert bool((diff>=term.diff_min-1e-6).all()) and bool((diff<=term.diff_max+1e-6).all())
+        assert torch.allclose(submitted[-1],target[-1])
+        result.update(passed=True, original_task_SHA=hashlib.sha256(raw).hexdigest(),
+            recorded_first_episode_targets=len(recorded), raw_actions_unchanged=True,
+            all_submitted_targets_within_contract=True, all_CAD_difference_intervals_preserved=True,
+            feasible_targets_unchanged=True, adapter=receipt,
+            new_target_min=submitted.min(0).values.tolist(),new_target_max=submitted.max(0).values.tolist(),
+            classification='CPU interface validation; no skill claim')
+    except BaseException:
+        result['error']=traceback.format_exc()
+    with report.open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)
+    print(json.dumps(result))
+    if not result['passed']:raise SystemExit(1)
+    # Reuse the proven real-RSL synthetic20Adam full restore test under NEW
+    # report identity and the V25 migration module. No production PT is read.
+    p=ROOT/'scut_recipe_v23/check_resume.py'
+    raw=p.read_bytes()
+    source=raw.decode().replace('SCUT23_SAME_FORMAT_FULL_RESTORE_COUNTERS_CPU.json',
+                               'SCUT25_FULL_RESTORE_FORMAT_MIGRATION_CPU.json')
+    ns=dict(__name__='standing25_synthetic_restore',__file__=str(HERE/'check_resume.py'))
+    exec(compile(source,str(p),'exec'),ns)
+    ns['main']()
+
+
+if __name__=='__main__':main()

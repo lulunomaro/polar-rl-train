@@ -1,0 +1,42 @@
+"""Original SCUT recipe/full state, with explicit MOD4 hardware target limits."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+
+HERE = Path(__file__).resolve().parent
+BASE = HERE.parent / 'scut_recipe_v21'
+if not BASE.exists():
+    BASE = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300')
+sys.path.append(str(BASE))
+
+
+def install(stage, source_stage=None):
+    raw = (BASE / 'recipe.py').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'a008a9ec748a553ceae29d3decf9d3d833817958c15b4725025f366f4bd298ff'
+    spec = importlib.util.spec_from_file_location('standing25_original_recipe', BASE / 'recipe.py')
+    old = importlib.util.module_from_spec(spec); spec.loader.exec_module(old)
+    old.HERE = HERE  # full resume reads THIS task's declared final745 source
+    receipt = old.install(stage, source_stage)
+    import mod4v1_scut.train as train
+    import mod4v1_scut.checkpoint as checkpoint
+    from target_adapter import install as install_targets, FORMAT
+    old_boot = train.boot
+    def boot(*args, **kwargs):
+        ns = old_boot(*args, **kwargs)
+        import mod4_task as task
+        receipt['MOD4_joint_target_adapter'] = install_targets(task)
+        return ns
+    train.boot = boot
+    # Source is accepted by the proven V21 full-resume function. New saves and
+    # evaluation advertise the changed environment interface explicitly.
+    checkpoint.FORMAT = FORMAT
+    original_save = checkpoint.save
+    def save(*args, **kwargs):
+        result = original_save(*args, **kwargs)
+        result['hardware_target_adapter'] = receipt.get('MOD4_joint_target_adapter')
+        return result
+    checkpoint.save = save
+    receipt['hardware_adapter_change'] = 'Bound decoded MOD4 leg targets to actual joint limits; preserve original CAD stop'
+    return receipt

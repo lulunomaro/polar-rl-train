@@ -1,0 +1,7 @@
+"""Reuse the exact proven entry; current __file__ binds the new task."""
+from pathlib import Path
+import hashlib
+P = Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800/entry.py')
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == '9a7770609d622f7f556ccdbde652288c0f5bdabbfbadd5e8b68206fa8d0ce464'
+exec(compile(raw, str(P), 'exec'), globals())

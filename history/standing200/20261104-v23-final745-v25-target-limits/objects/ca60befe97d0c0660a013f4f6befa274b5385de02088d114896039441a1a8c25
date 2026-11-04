@@ -1,0 +1,37 @@
+"""Plot the already saved actual motor targets; zero model/simulation calls."""
+from pathlib import Path
+import hashlib
+import json
+import time
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+
+ROOT=Path(__file__).resolve().parent.parent
+E=ROOT/'actual_closed/MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800/evaluation'
+OUT=E.parent/'rendered_actual/ACTUAL_HIP_TARGET_VS_MEASURED.png'
+assert not OUT.exists()
+rows=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+active=np.asarray([r['active'] for r in rows])
+target=np.asarray([r['joint_pos_target'] for r in rows])
+measured=np.asarray([r['joint_pos_measured'] for r in rows])
+fig,axes=plt.subplots(4,2,figsize=(12,12),sharex='row',sharey=True)
+for i,env in enumerate([0,1,40,41]):
+    keep=active[:,env];t=np.arange(1,len(rows)+1)[keep]*.02
+    for j,index in enumerate([1,3]):
+        ax=axes[i,j]
+        ax.plot(t,target[keep,env,index],label='Actual applied target')
+        ax.plot(t,measured[keep,env,index],label='Measured joint angle')
+        ax.axhline(.5,color='red',ls='--',label='MOD4 upper joint limit')
+        ax.set_title(f"env{env} {'left' if j==0 else 'right'} hip")
+        ax.set_ylabel('rad');ax.grid(alpha=.2)
+        if i==0:ax.legend(fontsize=8)
+        if i==3:ax.set_xlabel('Actual first-episode seconds')
+fig.suptitle('V23 final745: saved motor targets and measured hip saturation')
+fig.tight_layout();fig.savefig(OUT,dpi=140);plt.close(fig)
+raw=OUT.read_bytes();p=ROOT/'reports/SCUT23_FINAL745_MOTOR_CURVE_ARTIFACT.json'
+with p.open('x',encoding='utf-8') as f:json.dump(dict(epoch=time.time(),source=str(E/'CONTROL_CURVES.json'),
+    artifact=dict(path=str(OUT),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()),
+    production_PT_reads=0,new_physics=0,interpolation=False),f,indent=2)
+print(json.dumps(dict(path=str(OUT),bytes=len(raw))))

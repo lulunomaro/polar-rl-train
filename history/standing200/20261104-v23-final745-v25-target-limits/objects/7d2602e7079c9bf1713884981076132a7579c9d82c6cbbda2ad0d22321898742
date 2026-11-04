@@ -1,0 +1,39 @@
+"""MOD4 joint targets bounded after decode, before the unchanged D4 queue."""
+import types
+
+LEG_ORDER = ('left_crank', 'left_hip', 'right_crank', 'right_hip')
+FORMAT = 'MOD4V1_SCUT_STANDING_RECIPE_V25_JOINT_TARGET_LIMITS'
+
+
+def project_targets(value, lower, upper, difference_min, difference_max):
+    import torch
+    value.clamp_(min=lower, max=upper)
+    # Keep the existing CAD crank-minus-hip interval and both joint limits.
+    for crank, hip in ((0, 1), (2, 3)):
+        lo = torch.maximum(lower[crank], value[:, hip] + difference_min)
+        hi = torch.minimum(upper[crank], value[:, hip] + difference_max)
+        value[:, crank].copy_(torch.maximum(lo, torch.minimum(value[:, crank], hi)))
+    return value
+
+
+def install(task):
+    import torch
+    cls = task.DelayedJointPositionAction
+    original = cls.process_actions
+    limits = [task.CONTRACT['joints'][key]['limits_si'] for key in LEG_ORDER]
+    if tuple(task.LEG_ORDER) != LEG_ORDER or limits != [[-1.2, .9], [-.5, .5], [-1.2, .9], [-.5, .5]]:
+        raise ValueError('Declared MOD4 leg order/contract differs')
+
+    def process(this, actions):
+        original(this, actions)  # original scale/default offset/CAD projection
+        if not hasattr(this, '_standing25_lower'):
+            this._standing25_lower = this.processed_actions.new_tensor([v[0] for v in limits])
+            this._standing25_upper = this.processed_actions.new_tensor([v[1] for v in limits])
+        project_targets(this.processed_actions, this._standing25_lower,
+                        this._standing25_upper, this.diff_min, this.diff_max)
+    cls.process_actions = process
+    return dict(version=FORMAT, leg_order=LEG_ORDER, limits_rad=limits,
+                location='decoded position targets before existing D4 submit',
+                original_CAD_difference_preserved=True,
+                raw_Gaussian_actions_likelihood_and_wheel_path_unchanged=True,
+                scale_offset_PD_DR_queue_physics_unchanged=True)

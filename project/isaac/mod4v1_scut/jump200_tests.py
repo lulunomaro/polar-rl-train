@@ -12,6 +12,48 @@ from .config import model_contract
 
 
 class JumpTests(unittest.TestCase):
+    def test_request_projection_uses_actual_scale_offset_and_cad(self):
+        from types import SimpleNamespace
+        from .target_limits import leg_target_projection_error
+        from .config import LEGS
+        term = SimpleNamespace(_scale=torch.tensor([.5, .25, .5, .25]),
+            _offset=torch.tensor([.1, .2, -.1, -.2]), diff_min=-1.0843, diff_max=.85)
+        actions = torch.tensor([[0., 0., 0., 0.], [0., 2., 0., -2.], [-4., 0., 0., 0.]])
+        before = actions.clone()
+        value = leg_target_projection_error(actions, term, self.contract)
+        # Hip requests +.7/-.7 project to +.5/-.5. Left crank -1.9
+        # projects to hip(.2)-1.0843, using the existing CAD constraint.
+        expected = torch.tensor([0., (.8**2+.8**2)/4, ((-1.9+.8843)/.5)**2/4])
+        torch.testing.assert_close(value, expected)
+        torch.testing.assert_close(actions, before, atol=0, rtol=0)
+
+    def test_projection_cost_has_negative_weight_and_one_dt(self):
+        r, _, _ = fixture(2, profile='jump200')
+        r._actions[:] = torch.tensor([0., 2., 0., 2., 0., 0.])
+        r.compute()
+        # .5*2 requests1rad at each hip, exceeding the .5rad limit.
+        torch.testing.assert_close(r.state_terms['jump200_target_projection'], torch.full((2,), .5))
+        torch.testing.assert_close(r._last_reward_terms['jump200_target_projection'], torch.full((2,), -.02))
+        r._actions[:] = torch.tensor([0., 1., 0., 1., 0., 0.])
+        r.compute()
+        self.assertEqual(float(r._last_reward_terms['jump200_target_projection'].abs().max()), 0.)
+
+    def test_projection_cost_does_not_charge_physical_tracking_or_d4_lag(self):
+        r, robot, _ = fixture(2, profile='jump200')
+        r._actions.zero_()
+        robot.data.joint_pos[:, r._legs_act_idx] = torch.tensor([-.5, .5, -.5, .5])
+        r.compute()
+        self.assertEqual(float(r._last_reward_terms['jump200_target_projection'].abs().max()), 0.)
+
+    def test_projection_cost_preserves_original_cad_then_limit_order(self):
+        from .target_limits import leg_target_projection_error
+        r, _, _ = fixture(1, profile='jump200')
+        # Original CAD turns left crank -1rad into1.9157rad when hip3rad,
+        # then motor limits yield crank.9/hip.5. Right pair is feasible.
+        actions = torch.tensor([[-2., 6., 0., 0.]])
+        value = leg_target_projection_error(actions, r.leg_action_term, self.contract)
+        self.assertAlmostEqual(float(value[0]), ((-1.-.9)**2+2.5**2)/(.5**2*4), places=5)
+
     def test_source_special_mode_flags_follow_new_task_constructor(self):
         from types import SimpleNamespace
         from .checkpoint import restore_command_fields

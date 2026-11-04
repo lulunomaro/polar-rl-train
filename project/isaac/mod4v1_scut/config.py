@@ -127,6 +127,10 @@ def reward_config(profile='trained_stair'):
         # The failed pushes still earned the full flat/velocity bonuses at
         # almost zero upward speed. Gate those bonuses by measured ascent.
         values['jump200_takeoff_progress_gate'] = True
+        # Final376 repeatedly pushed without flight while both hip targets
+        # stayed clamped. Charge requests outside the existing feasible target
+        # set; retain the processor, motor limits and CAD/D4 execution path.
+        values['rewards']['jump200_target_projection'] = -2.
     return SimpleNamespace(**values)
 
 

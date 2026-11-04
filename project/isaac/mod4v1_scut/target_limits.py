@@ -43,3 +43,19 @@ def limited_action_type(original, contract):
                 self.diff_min, self.diff_max))
 
     return ContractLimitedLegAction
+
+
+def leg_target_projection_error(actions, term, contract):
+    """Current request cost in action units, independent of physical D4 delay."""
+    scale = torch.as_tensor(term._scale, device=actions.device, dtype=actions.dtype)
+    offset = torch.as_tensor(term._offset, device=actions.device, dtype=actions.dtype)
+    requested = actions * scale + offset
+    # The original task projects crank/hip first; the wrapper then applies
+    # motor limits and reprojects CAD. Reproduce that order for this request.
+    cad = requested.clone()
+    if term.diff_min > -1.e8:
+        for crank, hip in ((0, 1), (2, 3)):
+            cad[:, crank] = cad[:, crank].clamp(cad[:, hip]+term.diff_min,
+                                               cad[:, hip]+term.diff_max)
+    projected = project_leg_targets(cad, LEGS, contract, term.diff_min, term.diff_max)
+    return ((requested-projected) / scale.abs().clamp_min(1.e-6)).square().mean(-1)

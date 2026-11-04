@@ -9,6 +9,7 @@ import torch
 from .config import LEGS, WHEELS, WHEEL_BODIES, GUIDE_BODIES, STRUCTURAL_BODIES, reward_config
 from .math_ops import quat_apply, wrap_to_pi
 from .upstream import bind_base_functions, initialize_buffers, state_classes
+from .target_limits import leg_target_projection_error
 
 
 def indices(actual, requested):
@@ -244,6 +245,9 @@ class ScutRewards:
             for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
                          'track_lin_vel_xy', 'track_ang_vel_z'):
                 result[name] = result[name] * torch.where(active, upward, torch.ones_like(upward))
+        if self.profile == 'jump200' and self.cfg.rewards.get('jump200_target_projection', 0.):
+            result['jump200_target_projection'] = leg_target_projection_error(
+                self._actions[:, :4], self.leg_action_term, self.contract)
         self.state_terms = {key: value.clone() for key, value in result.items()}
         return result
 

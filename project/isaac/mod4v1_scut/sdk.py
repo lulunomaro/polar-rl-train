@@ -139,6 +139,9 @@ class ScutBridge:
         self.quaternion_order, self.quaternion_readback = detect_sdk_quaternion_order(self.robot.data, tensor)
         self.reward = ScutRewards(self.robot, contract, env.num_envs, env.device,
                                   profile=profile, tensor=tensor, quaternion_order=self.quaternion_order)
+        # Read the real constructor's scale/default offset. The reward compares
+        # the current request to its projection, never to a delayed D4 target.
+        self.reward.leg_action_term = env.action_manager.get_term('legs')
         self.n, self.device = env.num_envs, env.device
         self.sensor = env.scene['scut_contacts']
         self.current_sensor = env.scene['scut_current']

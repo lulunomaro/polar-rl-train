@@ -45,6 +45,8 @@ def fixture(n=8, profile='trained_stair', order='xyzw'):
         data.body_pos_w[:,i] = torch.tensor(contract['bodies'][name]['neutral_position_m'])+data.root_pos_w
     robot = SimpleNamespace(data=data, joint_names=joints, body_names=bodies)
     r = ScutRewards(robot, contract, n, 'cpu', profile=profile, quaternion_order=order)
+    r.leg_action_term = SimpleNamespace(_scale=.5, _offset=torch.zeros(n, 4),
+                                       diff_min=-1.0843, diff_max=.85)
     endpoint(r)
     return r, robot, contract
 

@@ -20,7 +20,11 @@
 - [x] 修复实际单次请求缺口与起跳静止正奖励：持续真实200mm扫描允许冷却后重试、active tracking按向上速度门控；15项jump200＋8项旧阶梯CPU检查通过。
 - [x] 原peerE3W8已提前02:09:09退出释放，fresh四卡/原锁/余额通过，空闲GPU1新owner1628379实际启动；仅sole4416观察FIRST，100h持续授权。
 - [x] 重试/上升修复版真实FIRST264与完整首存通过：480,000样本/20新Adam/actorcritic梯度1.0，完整恢复source263/17Adam5260，完整首轮日志0实际错误。
-- [ ] 当前原窗SAVE03:14:24.739725/NOMINAL03:19:24.739725已到，唯一collector70820在网络前等待真实SSH读者68888退出后正式回传；FINAL/原owner关闭/独立80尚未返回，不重启生产或评测。回传后立即all80和新actualpose原生评审再接续。
+- [x] retry-ascent原窗完整关闭/正式回传/fullfinal376/17Adam7520；独立80、全部4新图已审：69requestenvs/300requests，0flight/wholeclear/top/landing，原70820退出。
+
+- [x] 针对两hip持续上限增加不可执行leg请求投影奖励惩罚，保留原scale/offset/动作/限位/CAD/D4；19jump200＋8旧阶梯CPU通过，4module/59refs候选已准备。
+- [x] 唯一16444/create04:40:09.633017本地接续已绑定；100h授权下等待真SSH39496，不第二SSH/重bind。
+- [ ] 原sole16444补齐final376完整日志并核actual0errors/ownerrelease；再核knownSCUT32 exactrelease/原canonical余额和四卡，唯一launch/FIRST377，原owner保存安全退出后立即独立80和全部实际图评审。新GO仍未发生。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

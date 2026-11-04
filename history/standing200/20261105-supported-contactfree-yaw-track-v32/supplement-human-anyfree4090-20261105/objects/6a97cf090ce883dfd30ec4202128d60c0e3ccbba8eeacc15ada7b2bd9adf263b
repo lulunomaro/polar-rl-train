@@ -1,0 +1,109 @@
+"""One bounded four-GPU inventory; select a compatible empty GPU when admitted."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+LABEL = 'SCUT32H1'
+
+
+def admission():
+    path = ROOT/'repair_v11/control.py'
+    spec = importlib.util.spec_from_file_location('standing32_original_broad_admission',path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.admission()
+
+
+def choose(inventory):
+    """Keep observed compute emptiness separate from actual launch readiness."""
+    hosts = inventory.get('hosts', {})
+    result = dict(snapshot_only=True, candidates=[], selected=None,
+        canonical_shared=True, runtime_location='72 existing SHA-bound paths',
+        note='A compute-empty card still needs host resources, compatible shared runtime and original canonical admission')
+    canonical = hosts.get('72', {}).get('actual', {}).get('canonical')
+    result['canonical'] = canonical
+    all_read = set(hosts) == {'72','210','86'} and all(v.get('passed') for v in hosts.values())
+    closed = inventory.get('all_clients_closed') and inventory.get('SESSION_restored') and inventory.get('serial') == 'FREE'
+    result['inventory_complete_and_closed'] = bool(all_read and closed)
+    known = {
+        'GPU-16828f91-2b45-b646-8dc0-9481138e2842':'72',
+        'GPU-c27eecbd-6838-7290-1cd2-37e34522213d':'72',
+        'GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e':'210',
+        'GPU-90a66ae2-f536-7033-79c0-487536ae36d3':'86',
+    }
+    for host, data in hosts.items():
+        if not data.get('passed'):
+            continue
+        actual = data['actual']
+        gpu, apps = actual.get('gpu', {}), actual.get('compute_apps', {})
+        if gpu.get('rc') != 0 or apps.get('rc') != 0:
+            continue
+        active_uuids = {line.split(',')[0].strip() for line in apps.get('stdout','').splitlines() if line.strip()}
+        ram = actual.get('ram', {})
+        available = ram.get('available')
+        if available is None and ram.get('rc') == 0:
+            mem = next((line.split() for line in ram.get('stdout','').splitlines() if line.startswith('Mem:')), None)
+            if mem:
+                available = int(mem[-1])
+        disk = actual.get('disk', {}).get('free')
+        for line in gpu.get('stdout','').splitlines():
+            fields = [v.strip() for v in line.split(',')]
+            if len(fields) < 6:
+                continue
+            index, uuid, name, total, free, util = fields[:6]
+            if known.get(uuid) != host or name != 'NVIDIA GeForce RTX 4090':
+                continue
+            empty = uuid not in active_uuids
+            reasons = []
+            if not empty: reasons.append('actual compute applications present')
+            if int(free) <= 15669: reasons.append('insufficient original VRAM headroom')
+            if available is None or available <= 64*1024**3: reasons.append('original RAM headroom not available')
+            if disk is None or disk <= 50*1024**3: reasons.append('original disk headroom not available')
+            if host != '72': reasons.append('existing frozen runtime and canonical owner paths on72; cross-host deployment not established')
+            if canonical is None or canonical.get('active') is not None: reasons.append('original canonical not confirmed idle')
+            if canonical is None or canonical.get('remaining',0) <= 86412.86069250107+3900: reasons.append('original remaining budget does not cover reserve plus finite window')
+            if not result['inventory_complete_and_closed']: reasons.append('incomplete or unclosed resource read')
+            result['candidates'].append(dict(host=host,index=int(index),uuid=uuid,
+                compute_empty=empty,memory_free_MiB=int(free),GPU_utilization=int(util),
+                RAM_available_bytes=available,disk_free_bytes=disk,admissible=not reasons,reasons=reasons))
+    candidates = [r for r in result['candidates'] if r['admissible']]
+    if candidates:
+        result['selected'] = sorted(candidates,key=lambda r:(-r['memory_free_MiB'],r['index']))[0]
+    result['production_started'] = False
+    result['selection_is_not_GO'] = True
+    return result
+
+
+def gpu():
+    _, blocked = admission()
+    if blocked:
+        print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)))
+        return
+    path = ROOT/'check_four4090_once.py'
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'e0187e63943ac5f2ee78bd6acf1e7a854adf453cc970597cb0043ff3434990c9'
+    source = raw.decode('utf-8')
+    for name in ['FOUR4090_READ_V1_ONCE.json','FRESH_LOCAL_CIM_BEFORE_FOUR4090_V1.json','FOUR4090_RESOURCE_ACTUAL_V1.json']:
+        assert source.count(name) == 1
+        source = source.replace(name,name.replace('_V1','_'+LABEL))
+    # Reuse the original bounded routes, credentials recovery and close/finally.
+    namespace = dict(__name__='standing32_four_gpu_inventory',__file__=str(path))
+    exec(compile(source,str(path),'exec'),namespace)
+    namespace['local_rows'] = admission
+    namespace['main']()
+    inventory_path = ROOT/'reports'/('FOUR4090_RESOURCE_ACTUAL_'+LABEL+'.json')
+    inventory = json.loads(inventory_path.read_bytes())
+    value = choose(inventory)
+    value.update(epoch=time.time(),inventory_path=str(inventory_path),
+        inventory_SHA=hashlib.sha256(inventory_path.read_bytes()).hexdigest(),
+        human_instruction='四张4090找一张空闲的用',
+        next='V30 unique closed/native review and bounded V32 native integration; fresh original locks/resource admission before production')
+    out = ROOT/'reports'/('SCUT32H1_GPU_SELECTION.json')
+    with out.open('x',encoding='utf-8') as stream:
+        json.dump(value,stream,ensure_ascii=False,indent=2)
+    print(json.dumps(value,ensure_ascii=False))

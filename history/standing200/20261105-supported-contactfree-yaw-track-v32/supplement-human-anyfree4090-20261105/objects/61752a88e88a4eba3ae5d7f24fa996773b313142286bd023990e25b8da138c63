@@ -1,0 +1,65 @@
+"""Exercise GPU1 selection and active-canonical refusal without a connection."""
+from pathlib import Path
+import ast
+from copy import deepcopy
+import hashlib
+import json
+import time
+
+from resource_control import choose
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+A = 'GPU-16828f91-2b45-b646-8dc0-9481138e2842'
+B = 'GPU-c27eecbd-6838-7290-1cd2-37e34522213d'
+C = 'GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e'
+D = 'GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+
+
+def main():
+    base = dict(all_clients_closed=True,SESSION_restored=True,serial='FREE',hosts={})
+    for host, uuids in [('72',[A,B]),('210',[C]),('86',[D])]:
+        actual=dict(gpu=dict(rc=0,stdout='\n'.join('%d, %s, NVIDIA GeForce RTX 4090, 24564, 24203, 0'%(i,u) for i,u in enumerate(uuids))),
+            compute_apps=dict(rc=0,stdout=''),ram=dict(available=128*1024**3),disk=dict(free=200*1024**3))
+        if host=='72':actual['canonical']=dict(active=None,remaining=200000.)
+        base['hosts'][host]=dict(passed=True,actual=actual)
+    checks={}
+    actual=deepcopy(base);actual['hosts']['72']['actual']['compute_apps']['stdout']=A+', 123, 21602'
+    chosen=choose(actual)
+    assert chosen['selected']['uuid']==B and chosen['selected']['index']==1
+    checks['selects_second72_GPU_when_first_has_compute'] = True
+    assert not next(c for c in chosen['candidates'] if c['uuid']==A)['admissible']
+    checks['zero_GPU_utilization_never_hides_a_compute_process'] = True
+    actual['hosts']['72']['actual']['canonical']['active']=dict(owner_run_id='foreign',owner_parent_pid=10)
+    assert choose(actual)['selected'] is None
+    checks['free_GPU_cannot_bypass_shared_active_canonical'] = True
+    actual=deepcopy(base);actual['hosts']['72']['actual']['canonical']['remaining']=86412.86069250107+3900
+    assert choose(actual)['selected'] is None
+    checks['strictreserve_and_next_window_must_fit_original_balance'] = True
+    actual=deepcopy(base);actual['hosts']['72']['actual']['disk']['free']=0
+    assert choose(actual)['selected'] is None
+    checks['empty_GPU_with_no_host_disk_not_selected'] = True
+    actual=deepcopy(base);actual['hosts']['72']['actual']['ram']=dict(rc=0,stdout='              total used free shared buff/cache available\nMem: 128000 1000 1000 0 0 1000\n')
+    assert choose(actual)['selected'] is None
+    checks['parse_actual_free_command_and_require_original_RAM'] = True
+    actual=deepcopy(base);actual['hosts']['72']['actual']['compute_apps']['stdout']=A+', 123, 21602\n'+B+', 124, 21602'
+    chosen=choose(actual)
+    assert chosen['selected'] is None and all(r['compute_empty'] for r in chosen['candidates'] if r['host']!='72')
+    checks['remote_empty_GPU_is_reported_without_inventing_cross_host_runtime'] = True
+    actual=deepcopy(base);actual['hosts']['86']['passed']=False
+    assert choose(actual)['selected'] is None
+    checks['all_four_reads_and_finally_close_required'] = True
+    assert not choose(base)['production_started'] and choose(base)['selection_is_not_GO']
+    checks['resource_selection_is_not_training_GO'] = True
+    for name in ['resource_control.py','dispatch.py',Path(__file__).name]:
+        ast.parse((HERE/name).read_text(encoding='utf-8'))
+    checks['small_resource_sources_parse'] = True
+    value=dict(epoch=time.time(),kind='SCUT32_HUMAN_FOUR4090_RESOURCE_SELECTOR_CPU',passed=True,checks=checks,
+        checks_count=len(checks),inputs='synthetic resource text only; no realtime free GPU claim',SSH=0,PT_reads=0,SDK=0,physics=0,
+        files=[dict(path=str(HERE/name),bytes=(HERE/name).stat().st_size,SHA=hashlib.sha256((HERE/name).read_bytes()).hexdigest()) for name in ['resource_control.py','dispatch.py',Path(__file__).name]])
+    path=ROOT/'reports/SCUT32_HUMAN_FOUR4090_SELECTOR_CPU_20261105.json'
+    with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(passed=True,checks=len(checks),SSH=0,PT=0,SDK=0,physics=0)))
+
+
+if __name__=='__main__':main()

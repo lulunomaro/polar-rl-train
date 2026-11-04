@@ -71,3 +71,11 @@ attempt06已走过先前接触filter错误，实际FIRST1PPO/480,000样本/20Ada
 attempt06完整final49e8abf1bf605537854f65f9ed4e4d447ffafefe4f696ad87e90615b3ec381f8/3PPO/1.44M样本/60Adam已传回，原owner1603578于16:17:11.986861 ownwait/settled/released，独立80的actual400Hz/poses和完整学习状态原件传回SHA核验。80为1接触终止/2边界timeout/77cap，mean7.94725s，0closure/mimic/nonfinite/rawoutlier，52双轮升阶/62任一升阶/2项目恢复指标。4幅早晚actualpose图已当前模型原生审：env0近中央，env1缓慢驶离，40/41出窄画面，41终态6.46s。评测指标不消除训练patch溢出，49e8和首存c66只作失败来源，不用于初始化。
 
 attempt07仅sdk改动+owner/entry/plan共4文件，直接引用既有source，设置20k阶梯patchstream524288，未改变aggregatepair缓冲。两项针对性contact回归通过，0生产PT/physics。原owner1605308/create1793780417.59于16:20:17实际启动，唯一本地launcher24732/create16:20:11.490949（toolsession78449）有限FIRST观察。source始终有效0fdd weights-only/freshAdam，无轴/STD再重置。原绝对SAVE17:02:25.845096/NOMINAL17:07:25.845096保持，未新开一小时或退款。当前初始化，尚不能称修复原生通过。
+
+16:28读者恢复：原launcher24732在16:24:55因SSH10054远端重置退出，原LAUNCH02_SSH_FREE已恢复FREE，未重复生产启动。首个读者恢复被新本地LQR/MuJoCo viewer3608/create16:21:45.322513误分类为remotecontroller而在网络前拒绝，原false保留。读其源码与直接依赖确认是本地交互物理/控制，无远端计账；只对确切PID/creation/exe/quotedargv/scriptSHA246fdac4…分类，不kill或修改其它聊天。当前唯一本地恢复reader53412/create16:28:02.182485（session81776）继续原owner1605308有限FIRST观察，0remote启动/0PT/0新physics/0canonicalwrite；真实FIRST过后核完整日志再bind一次原postround。
+
+## 16:31有效FIRST与原收尾绑定
+
+attempt07 FIRST已于16:30:08.857714返回：1PPO/24controls/480,000 onpolicy样本/192physics/20Adam，actor/critic norm均1.000000119，FULLV4首存37,849,545B SHA3a475d2b0909e6e07decceb77063c0fcff5c4a1008bb69ad9584a5e5bc5acfd0。对原exactowner有限读取完整WORKER.log，actual errorlines=0，无patchoverflow/原cookingfailure/droppedpairs/OOM/productionERROR，才将该FIRST标有效；仍不是最终技能。前次full-log读者与本聊天archive_stage短暂冲突，在网络前正确拒绝，原false保存后只恢复未消费读者。
+
+同原owner1605308继续运行；恢复reader已结束，唯一postroundcollector59804/create2026-11-04T16:31:10.931640+08已正确带--root attempt07绑定，POSTROUND_BIND/ONCE消费，stderr空。等待原SAVE+45=17:03:10.845096正式传回；原SAVE17:02:25.845096/NOMINAL17:07:25.845096保持，不延长窗口。原owner完整保存后安全退出并立即独立80，之后回传实际pose图原生审看及all80接触/动作/命令评审。健康时不第二SSH、资源probe、权重解码或重复验模。

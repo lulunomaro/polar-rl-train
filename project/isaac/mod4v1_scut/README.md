@@ -1,5 +1,7 @@
 # 华南虎台阶奖励与增强版 MOD4v1 的代码适配
 
+2026-11-04 16:31 attempt07已通过首个真实PPO与完整首存：480,000样本/192physics/20Adam，actorcritic梯度均非零，FULLV4首存SHA3a475d2b0909e6e07decceb77063c0fcff5c4a1008bb69ad9584a5e5bc5acfd0。对完整首轮WORKER.log有限读回确认actualerrorlines0，原patch溢出已消失；这是首轮执行证据，技能仍待最终独立评测。网络读者恢复完成且未重复启动训练，唯一collector59804已绑定；原SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，原owner保存退出后立即独立80与actualpose审看。
+
 2026-11-04 16:21最新：attempt06已按计划16:02自动启动并完成FIRST，但20k首轮实际触发contact patch buffer overflow，不能算有效训练。已完整保存退出/独立80/审完4图并释放原锁；final49e8仅作失败来源。新attempt07仅扩大实际溢出的`cfg.sim.physics.gpu_max_rigid_patch_count`至524,288，原pair容量与物理/reward/PPO保持，继续有效0fdd来源。16:20:17已实际启动owner1605308，solelocal24732有限FIRST观察；原授权窗SAVE17:02:25.845096/NOMINAL17:07:25.845096不延长，当前修复原生待FIRST完整日志与首存确认。
 
 2026-11-04 15:23人类已批准“允许重新训练一小时”。新attempt06为20,000环境/3600s保存+300s安全退出，继续用原canonical余额；修复版stairs/sdk共两个module，其它源码与0fdd有效来源按SHA引用。15:20实测72 GPU1空闲24,203MiB，但原canonical/authority/finite锁由standingV28 exactowner1600690持有。唯一localtimer24412已绑定，16:02:11后核原peer完整保存评测释放、freshLOCAL与目标GPU容量，再自动启动和绑定postround；当前尚未GO，不再等待人类批准。实际新GO/save/FIRST以WORK_ORDER和原始回执为准。

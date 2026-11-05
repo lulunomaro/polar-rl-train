@@ -1,0 +1,90 @@
+"""Render measured body poses on measured easy-terrain mesh; zero new physics."""
+from pathlib import Path
+import argparse,hashlib,io,json,os,sys,xml.etree.ElementTree as ET
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R))
+
+def main():
+    q=argparse.ArgumentParser();q.add_argument('--evaluation',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
+    q.add_argument('--usd',type=Path,default=Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/assets/robot.usd'))
+    a=q.parse_args();import numpy as np
+    result=json.loads((a.evaluation/'RESULT.json').read_bytes())
+    def load(key):
+        row=result[key];path=a.evaluation/Path(row['path']).name;raw=path.read_bytes()
+        assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+        with np.load(io.BytesIO(raw),allow_pickle=False) as z:return {k:z[k].copy() for k in z.files}
+    poses=load('actual_poses');mesh=load('terrain_mesh')
+    review=a.output.with_name(a.output.name+'_replay_input');review.mkdir(exist_ok=False,parents=True)
+    rows=[]
+    for j,env in enumerate(result['recorded_envs']):
+        active=poses['active'][:,j].astype(bool);path=review/('REPLAY_env%d.npz'%env)
+        np.savez_compressed(path,time=poses['tick'][active]*.0025,body_pos=poses['body_pos'][active,j],body_quat=poses['body_quat'][active,j][...,[1,2,3,0]])
+        rows.append(dict(path=str(path),env=env,bytes=path.stat().st_size,SHA=hashlib.sha256(path.read_bytes()).hexdigest()))
+    (review/'REPLAY_METADATA.json').write_text(json.dumps(dict(quaternion_order='xyzw',body_names=result['body_names'],origins=result['origins'],replay=rows,checkpoint=result['source'])))
+    import render_standing_recorded_v1 as base
+    from render_standing_recorded_v2 import mesh_visuals
+    base.USD_SHA='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18'
+    cache={}
+    def visuals(usd,names):
+        elements,vfs=mesh_visuals(usd,names);cache['vfs']=vfs
+        return elements,vfs
+    base.mesh_visuals=visuals
+    # Track the recorded chassis position as it travels beyond the old step view.
+    source=Path(base.__file__).read_text()
+    source=source.replace("camera.lookat[:]=[.65,0.,.25]","camera.lookat[:]=p['body_pos'][i,names.index('chassis')]")
+    source=source.replace('Actual standing200','Actual easy forward')
+    scope=dict(vars(base));exec(compile(source,str(base.__file__),'exec'),scope)
+    scope['USD_SHA']=base.USD_SHA
+    scope['mesh_visuals']=visuals
+    base.main=scope['main']
+    tostring=ET.tostring
+    # Each selected environment has a distinct tile. Overlay its own measured
+    # tile at its recorded origin in the same coordinate frame as body poses.
+    terrain_assets=[]
+    for j,env in enumerate(result['recorded_envs']):
+        origin=np.asarray(result['origins'][env]);v=mesh['vertices']-origin
+        keep=np.abs(v[:,:2]).max(-1)<5.5
+        faces=mesh['faces'];selected=faces[keep[faces].any(-1)]
+        used=np.unique(selected);remap=np.full(len(v),-1,int);remap[used]=np.arange(len(used));selected=remap[selected]
+        raw='\n'.join(['v %.8g %.8g %.8g'%tuple(x) for x in v[used]]+['f %d %d %d'%tuple(x+1) for x in selected])+'\n'
+        terrain_assets.append((env,raw.encode()))
+    # Render each case separately so its actual tile geometry matches exactly.
+    allrows=list(rows);media=[]
+    for row in allrows:
+        env=row['env'];packet=review/('env%d'%env);packet.mkdir()
+        os.link(review/Path(row['path']).name,packet/Path(row['path']).name)
+        (packet/'REPLAY_METADATA.json').write_text(json.dumps(dict(quaternion_order='xyzw',body_names=result['body_names'],origins=result['origins'],replay=[row],checkpoint=result['source'])))
+        current=env
+        def current_scene(element,*args,**kwargs):
+            asset=element.find('asset');world=element.find('worldbody')
+            for geom in list(world.findall('geom')):
+                if geom.get('name')=='step200' or geom.get('type')=='plane':world.remove(geom)
+            name='terrain_env%d'%current;cache['vfs'][name+'.obj']=dict(terrain_assets)[current]
+            ET.SubElement(asset,'mesh',name=name,file=name+'.obj')
+            ET.SubElement(world,'geom',name='actual_terrain',type='mesh',mesh=name,rgba='.27 .32 .35 1',contype='0',conaffinity='0')
+            return tostring(element,*args,**kwargs)
+        base.ET.tostring=current_scene
+        target=a.output/('env%d'%env)
+        sys.argv=[base.__file__,'--evaluation',str(packet),'--usd',str(a.usd),'--output',str(target)]
+        try:base.main()
+        finally:base.ET.tostring=tostring
+        media+=json.loads((target/'RENDER_REPORT.json').read_bytes())['media']
+    (a.output/'RENDER_REPORT.json').write_text(json.dumps(dict(source=result['source'],actual_terrain=result['terrain_mesh'],zero_policy_reads=True,zero_physics_steps=True,media=media),indent=2))
+    all400=load('all80_manifold')
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig,axes=plt.subplots(4,3,figsize=(15,12),sharex=True)
+    for j,env in enumerate(result['recorded_envs']):
+        use=all400['active'][:,env].astype(bool);t=all400['tick'][use]*.0025
+        for side in range(2):
+            axes[j,0].plot(t,all400['L0'][use,env,side],label='L0 '+str(side))
+            axes[j,1].plot(t,all400['theta0'][use,env,side],label='theta0 '+str(side))
+        axes[j,0].axhline(.334,color='k',linestyle='--');axes[j,1].axhline(0,color='k',linestyle='--')
+        axes[j,2].plot(t,all400['velocity'][use,env,0],label='forward speed')
+        axes[j,2].axhline(.35,color='k',linestyle='--')
+        for ax in axes[j]:ax.legend();ax.set_ylabel('env'+str(env))
+    fig.tight_layout();fig.savefig(a.output/'ACTUAL400HZ_L0_THETA_FORWARD.png',dpi=150);plt.close(fig)
+    print(json.dumps(dict(rendered_cases=len(rows),media=len(media),new_physics=0,PT_reads=0)))
+
+if __name__=='__main__':main()

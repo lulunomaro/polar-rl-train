@@ -1,0 +1,19 @@
+{
+  "epoch": 1793851585.4770427,
+  "kind": "CPU_READER_AND_CANDIDATE_CORRECTION",
+  "prior_false": "reports/SCUT35_CPU_SAVED80_READER_ASSERT_FALSE_20261105.json",
+  "diagnostic": {
+    "old_hang_weighted_max_error": 6.7532062511532764e-09,
+    "max_other_formula_delta": 0.11448705524219686,
+    "changed_hang_pairs": 26842
+  },
+  "original_candidate_reward_source": "\"\"\"Use measured upper-lip contact to retain no-progress dwell at low chassis poses.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport importlib.util\n\nBASE=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V34_1793841110455553500/reward_model.py')\nif not BASE.exists():BASE=Path(__file__).resolve().parent.parent/'scut_native_v34/reward_model.py'\nraw=BASE.read_bytes()\nassert hashlib.sha256(raw).hexdigest()=='91649afa8aea918a74834ea30becd3a8c25691b9ef1771eb2d7335f513045c4b'\nspec=importlib.util.spec_from_file_location('supported35_immutable34_formula',BASE)\nold=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)\ncontact_termination=old.contact_termination\nwheel_geometry=old.wheel_geometry\nheight_command=old.height_command\n\n\ndef terms(xp,*,state,**kwargs):\n    # Preserve the pre-call counter because V33 applies a root-x proxy inside\n    # its legacy dwell update. Actual measured lip contact supersedes that proxy.\n    dwell=state['lip_dwell']+0\n    values,potential,target,supported,top=old.terms(xp,state=state,**kwargs)\n    state['edge_seen'][:]=state['edge_seen']|(kwargs['chassis_edge_force']>1.)\n    velocity=kwargs['velocity']\n    stalled=state['edge_seen']&~top&(xp.abs(velocity[:,0])<.03)&(xp.abs(velocity[:,2])<.03)\n    state['lip_dwell'][:]=xp.where(stalled,dwell+1,xp.clip(dwell-1,0,None))\n    values['stand32_hang']=-3.*xp.clip((state['lip_dwell']-50)/100.,0.,1.)*stalled\n    return values,potential,target,supported,top\n",
+  "original_candidate_reward_SHA": "7b8fbc3b251b428e491052a9798d86b3d458fe4389af624f81cc59a8cff63ef5",
+  "reason": "Using the once-edge discovery state for low raw contacts changes later discovery payment. Separate lip_contact_seen is now used for stall only.",
+  "correction": "New boolean state allocated in existing bridge init; inherited reset zeros it. Old edge_seen and all non-hang terms remain unchanged.",
+  "transient_stdin_reader_error": "ModuleNotFoundError: reward_model before diagnostic executed. Fixed stdin sys.path only; no policy/SDK operation.",
+  "source_PT_reads": 0,
+  "SDK": 0,
+  "new_physics": 0,
+  "production_started": false
+}

@@ -1,0 +1,10 @@
+"""Restore V34's complete learning state and save the V35 descriptor."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V34_1793841110455553500/full_resume.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='000e6c7028aad6785b55271b36385295fc5234f2fcda5da48db449cbe579482a'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V34_SUPPORT_TRANSITION','MOD4V1_SCUT_STANDING200_V35_MEASURED_LIP_DWELL')
+source=source.replace('MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS','MOD4V1_SCUT_STANDING200_V34_SUPPORT_TRANSITION')
+exec(compile(source,str(P),'exec'),globals())

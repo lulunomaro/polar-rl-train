@@ -1,0 +1,16 @@
+"""Reuse the immutable saved-trajectory analysis for actual V34 final2112."""
+from pathlib import Path
+import hashlib
+
+R=Path(__file__).resolve().parent.parent
+P=R/'scut_native_v32/analyze_final1843.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='98ba6ce524752d6369c451b334d74720dffe6868e4c48abb4c5b2f5a7513e92e'
+source=raw.decode().replace('MOD4_STANDING200_SUPPORTED_V32_1793822795305806500',
+    'MOD4_STANDING200_SUPPORTED_V34_1793841110455553500')
+source=source.replace('SCUT32_FINAL1843','SCUT34_FINAL2112').replace('V32 final1843','V34 final2112')
+source=source.replace("stage_progress='All80 approach lip; actual upper edge contact in80; top-support contacts intermittent; no wheel-top contact and no0.39m supported standing after1s.'",
+    "stage_progress='Use the measured V34 all80 stages and current native visual review; no inherited V32 behavior claim.'")
+source=source.replace("next_gap='Sustained edge/standing returns support stopping at lip; source consecutive supported_ticks resets on contact gaps, making long-hang cost ineffective.'",
+    "next_gap='Pending V34 numerical and native visual review. V34 already preserves standing credit and a continuous height target at support acquisition.'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

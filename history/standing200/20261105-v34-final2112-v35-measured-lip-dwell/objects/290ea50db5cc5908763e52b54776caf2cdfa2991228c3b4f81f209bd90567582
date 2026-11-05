@@ -1,0 +1,9 @@
+"""Retain the broad exact local gate and unique V35 operation labels."""
+from pathlib import Path
+import hashlib
+
+P=Path(__file__).resolve().parent.parent/'scut_native_v33/dispatch.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='03951c36b21ac9066c09d81fddc687cd8f4ed8e13b413ef58187188630c72464'
+source=raw.decode().replace('scut_native_v33/control.py','scut_native_v35/control.py').replace('SCUT33','SCUT35')
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

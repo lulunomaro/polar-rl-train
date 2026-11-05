@@ -1,0 +1,20 @@
+"""Capture V34's completed review and the V35 repair as one unique new phase."""
+from pathlib import Path
+import hashlib
+
+R=Path(__file__).resolve().parent.parent
+P=R/'scut_native_v32/archive_actual.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='366d92ae9a90b767cfede1371a5ab21d0a6f88cf3ef2b2e78999b4f1c376c922'
+source=raw.decode().replace('20261105-supported-contactfree-yaw-track-v32/supplement-v30-closed-native32-actual-20261105',
+    '20261105-v34-final2112-v35-measured-lip-dwell')
+source=source.replace("R/'scut_native_v32',R/'scut_recipe_v30'","R/'scut_native_v34',R/'scut_native_v35'")
+source=source.replace('MOD4_STANDING200_SCUT_RECIPE_V30_FLAT_1793786097220799900','MOD4_STANDING200_SUPPORTED_V34_1793841110455553500')
+source=source.replace('SCUT30_CLOSED_TRANSFER_ACTUAL.json','SCUT34_CLOSED_TRANSFER_ACTUAL.json')
+source=source.replace('V30_CLOSED_FINAL1709_NATIVE_REVIEW_V32_ACTUAL_STAGED_NATIVE_AND_PRODUCTION','V34_FINAL2112_ACTUAL80_NATIVE_REVIEW_V35_MEASURED_LIP_DWELL_ACTUAL_FIRST2113')
+source=source.replace('trial-20261105-supported200-v32-contactfree-yaw-track','trial-20261105-supported200-v35-measured-lip-dwell')
+source=source.replace("original_annotated='22aee7b27113f86259446633849d53e9752a3a45',original_peel='f9837af03f8e704b05c28c16ca13c21bc3aa958a',",
+    'record_once_required=True,')
+source=source.replace('ordinary_supplement_only=True','new_unique_V35_repair_phase=True')
+source=source.replace("R/'scut_native_v32/ACTUAL_HANDOFF.md'","R/'scut_native_v35/ACTUAL_HANDOFF.md'")
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

@@ -1,0 +1,27 @@
+"""Use measured upper-lip contact to retain no-progress dwell at low chassis poses."""
+from pathlib import Path
+import hashlib
+import importlib.util
+
+BASE=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V34_1793841110455553500/reward_model.py')
+if not BASE.exists():BASE=Path(__file__).resolve().parent.parent/'scut_native_v34/reward_model.py'
+raw=BASE.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='91649afa8aea918a74834ea30becd3a8c25691b9ef1771eb2d7335f513045c4b'
+spec=importlib.util.spec_from_file_location('supported35_immutable34_formula',BASE)
+old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+contact_termination=old.contact_termination
+wheel_geometry=old.wheel_geometry
+height_command=old.height_command
+
+
+def terms(xp,*,state,**kwargs):
+    # Preserve the pre-call counter because V33 applies a root-x proxy inside
+    # its legacy dwell update. Actual measured lip contact supersedes that proxy.
+    dwell=state['lip_dwell']+0
+    values,potential,target,supported,top=old.terms(xp,state=state,**kwargs)
+    state['lip_contact_seen'][:]=state['lip_contact_seen']|(kwargs['chassis_edge_force']>1.)
+    velocity=kwargs['velocity']
+    stalled=state['lip_contact_seen']&~top&(xp.abs(velocity[:,0])<.03)&(xp.abs(velocity[:,2])<.03)
+    state['lip_dwell'][:]=xp.where(stalled,dwell+1,xp.clip(dwell-1,0,None))
+    values['stand32_hang']=-3.*xp.clip((state['lip_dwell']-50)/100.,0.,1.)*stalled
+    return values,potential,target,supported,top

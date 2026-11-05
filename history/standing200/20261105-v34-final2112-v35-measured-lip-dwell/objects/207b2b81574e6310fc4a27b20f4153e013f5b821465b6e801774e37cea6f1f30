@@ -1,0 +1,31 @@
+"""Retain the V34 task binding and describe the measured-contact dwell change."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V34_1793841110455553500/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='3bacf006c41849cc45159f8bb878b45779e13308c2166baf55867ea4b037e9d1'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V34_SUPPORT_TRANSITION','MOD4V1_SCUT_STANDING200_V35_MEASURED_LIP_DWELL')
+exec(compile(source,str(P),'exec'),globals())
+_install34=install
+
+
+def install(stage,source_stage=None):
+    receipt=_install34(stage,source_stage)
+    import torch
+    import mod4v1_scut.sdk as sdk
+    previous_init=sdk.ScutBridge.__init__
+    def init(self,*args,**kwargs):
+        previous_init(self,*args,**kwargs)
+        self.reward.stand33_state['lip_contact_seen']=torch.zeros(self.n,dtype=torch.bool,device=self.device)
+    sdk.ScutBridge.__init__=init
+    # The inherited reset zeros every state key except the support-gap counter.
+    receipt['V35_actual_contact_dwell']=dict(
+        edge_seen_from_measured_upper_lip_force_N=1.,
+        separate_lip_contact_state_preserves_once_edge_credit=True,
+        remove_root_x_and_z_proxy_for_stall=True,
+        persistent_across_contact_gaps=True,
+        grace_controls=50,ramp_controls=100,max_cost=3.,
+        standing_reward_independent_of_forward_speed=True,
+        original_physics_actions_PPO_acceptance=True)
+    return receipt

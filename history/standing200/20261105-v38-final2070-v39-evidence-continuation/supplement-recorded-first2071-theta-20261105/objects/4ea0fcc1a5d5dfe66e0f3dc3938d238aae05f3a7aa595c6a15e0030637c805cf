@@ -1,0 +1,98 @@
+"""Actual V38 close and V39 own collector/learning evidence handoff."""
+from pathlib import Path
+from datetime import datetime,timezone,timedelta
+import json,time
+D=Path(__file__).resolve().parent;R=D.parent
+
+def main():
+    p=json.loads((D/'PLAN.json').read_bytes())
+    launch=json.loads((R/'reports/SCUT39_LAUNCH_ACTUAL.json').read_bytes())
+    init=json.loads((R/'reports/SCUT39_INITIALIZATION_ACTUAL.json').read_bytes())
+    old=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    snapshot=R/'reports/SCUT39_PREVIOUS_WORK_ORDER_HISTORICAL.json'
+    if not snapshot.exists():snapshot.write_text(json.dumps(old,ensure_ascii=False,indent=2),encoding='utf-8')
+    reviewpath=R/'reports/SCUT38_FINAL2070_NATIVE_REVIEW_V39_DECISION.json'
+    review=json.loads(reviewpath.read_bytes())
+    published=json.loads((D/'DIRECT86_PUBLISHED.json').read_bytes()) if (D/'DIRECT86_PUBLISHED.json').exists() else {}
+    firstpath=R/'reports/SCUT39_FIRST_COMPLETE_ACTUAL.json'
+    first=json.loads(firstpath.read_bytes()) if firstpath.exists() else None
+    full=(first or published).get('full_restore')
+    error=published.get('error')
+    collectorpath=R/'reports/SCUT39_DIRECT_COLLECTOR_CLOSED.json'
+    cc=json.loads(collectorpath.read_bytes()) if collectorpath.exists() else None
+    error=error or (cc or {}).get('error')
+    status='V39_MOD4V2_ENV20000_HOST86_GO_INITIALIZING'
+    if full:status='V39_MOD4V2_ENV20000_FULL_RESTORE_FIRST_PENDING'
+    if first:status='V39_MOD4V2_ENV20000_ACTUAL_FIRST2071'
+    if error:status='V39_ACTUAL_ERROR_NEEDS_DIAGNOSIS'
+    go=launch['GO']
+    def local(t):return datetime.fromtimestamp(t,timezone(timedelta(hours=8))).isoformat()
+    times={k:local(go[k]) for k in ('learning_started_epoch','save_deadline','nominal_end_epoch')}
+    w=dict(old)
+    w.update(schema='MOD4_STANDING200_CURRENT_V39',status=status,updated_local=local(time.time()),run_id=p['run_id'],
+        execution_host='86',host86_root=p['host86_root'],remote_job=p['host86_root'],num_envs=20000,
+        current_GO=go,absolute_times=times,original_save_local=times['save_deadline'],original_nominal_local=times['nominal_end_epoch'],
+        selected_GPU=dict(host='86',index=0,uuid=p['GPU_UUID'],admitted_compute_empty=init['files']['PRODUCTION_RESOURCE.json']),
+        original_worker_current=init['postexec_identities'].get('WORKER_IDENTITY.json'),
+        original_agent_current=init['postexec_identities'].get('AGENT_PRODUCTION_STARTED.json'),
+        training_started=True,training_completed=False,training_skill_pass=False,current_error=error,
+        current_state_evidence=str(firstpath if first else D/'DIRECT86_PUBLISHED.json'),current_first_actual=(first or {}).get('FIRST'),
+        current_first_complete_checkpoint=first['FIRST']['checkpoint'] if first else None,current_full_restore=full,
+        current_model_independent_evaluation=None,current_model_native_reviewed=False,
+        current_background_collector=dict(pid=76260,creation='2026-11-05T23:10:02.537078+08:00',source=str(D/'collect.py'),
+            published=str(D/'DIRECT86_PUBLISHED.json'),once='reports/SCUT39_DIRECT_COLLECTOR_ONCE.json',closed=cc),
+        previous_closed_run=dict(run_id=review['run_id'],final=review['final'],new_PPO_updates=29,new_onpolicy_samples=13920000,new_physics_ticks=5568,
+            actual_evaluation=review['actual_evaluation'],manifold=review['manifold'],comparison_to_V37=review['comparison_to_V37'],
+            actual_agent_exit=review['AGENT_PRODUCTION_EXIT'],actual_collector_closed=review['collector_closed'],
+            closed_transfer_eval_render_FIRST_consumed=True,native_ten_images_reviewed=True,review=str(reviewpath)),
+        previous_V37_closed_reference=old.get('previous_closed_run'),
+        prior_work_order_snapshot=str(snapshot),latest_handoff=str(D/'ACTUAL_HANDOFF.md'),
+        source_binding=dict(old['source_binding'],learning_source=p['resume_checkpoint'],
+            fullrestore='same20000 actorcriticSTD/17Adam41400each/actualLR/iter2070/globalnamedRNG/components/queues thenonefreshphysicalreset; actualreceiptrequired'),
+        current_continuation_decision=review['decision'],
+        reward_physics_actions_PPO_delta=False,
+        archival_new_phase='history/standing200/20261105-v38-final2070-v39-evidence-continuation',
+        archival_new_trial='trial-20261105-supported200-mod4v2-env20000-continuation-v39',
+        V39_actual_record=old.get('V39_actual_record'),
+        next='Onlyowncollector actualFIRST thenlocalsleepto save; actualfullclose/eval80/onceclosedtransfer/v2savedpose10image review and evidence decision.',
+        next_action='Readlocalpublishedonlywhilecollectoractive; no duplicateSSHreader/FIRST/transfer/native/inventory/PTdecode.')
+    if full:
+        w['source_binding']['actual_learning_rate']=full['learning_rate']
+        w['source_binding']['frozen_plan_learning_rate_expectation']=p['full_restore_expected']['learning_rate']
+        w['source_binding']['learning_rate_note']='Actual saved adaptiveLR preserved; frozen plan1e-5 was an old expectation. Actual1.5e-5 receipt takes precedence; no LR reset or hotpatch.'
+    (R/'CURRENT_WORK_ORDER.json').write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    firsttext='Pending; do notclaimPPO/skillpass.'
+    if first:
+        f=first['FIRST'];c=f['checkpoint']
+        firsttext=f"ActualFIRST{f['iteration']}/new{f['PPO_updates']}PPO/{f['rollout_controls']}controls{f['actual_onpolicy_samples']}samples/{f['physics_ticks']}physics/{f['gradient']['steps']}Adam/fullsave{c['bytes']}B SHA{c['SHA']}; executionevidenceonly,independent80pending."
+    fulltext='Actualfullrestorepending.' if not full else f"ActualactorcriticSTD17Adam{full['Adam_step_min']}equal/actualLR{full['learning_rate']}/iter{full['iteration']}/globalnamedRNG/all20000componentsqueuesbeforeonefreshphysicalreset/common{full['common_step_counter']}debug{full['corrected_debug_step']}. NoweightsAdamreset,notPhysXcontinuation."
+    handoff=f'''# Current V39 actual supported200 continuation
+
+{status}. Run {p['run_id']}, root {p['host86_root']},86GPU0 GPU-90a66ae2-f536-7033-79c0-487536ae36d3.
+GO{times['learning_started_epoch']}/SAVE{times['save_deadline']}/NOMINAL{times['nominal_end_epoch']}; actualterminalrequired. agent696875/create1793891361.83,worker696886/create1793891362.08 exactpostexe/argv inSCUT39_INITIALIZATION_ACTUAL. Unique localcollector76260/create2026-11-05T23:10:02.537078+08 collect.py hasownSCUT39once; no secondwatcher/reader.
+
+{fulltext}
+{firsttext}
+Sourcefinal2070 fullsave38975975B SHA1d8105900db98f41468210ec04e8932761b897aa962409b4d055e6af083de62a,formatMOD4V2_SCUT_STANDING200_V38_UNCAPPED_YAW. Fullrestore same20000 required,notV37resizefresh. ExpectedFIRST2071/24controls480000samples/192physics20Adam; neverplannedasactual.
+
+V38actualfinal2070/new29PPO/13920000samples/5568physics safelyclosed,agentexit1793890017.6154535/errornull/allownwaitedGPUreleased,evaluation80complete,collectorclosed1793890140.8030083/SSHclosed. ClosedmetadataNPZ19368333B+curve85873612B onceconsumed. ExistingV18v2savedposerender0NN0newphysics/currentmodelnative10imagescomplete. strict0whole0bothtop0/topforce0,0terminated80timeout,all499controls9.98s;closure/mimic/numerical/rp0. Fourcasesnowremainlowatstepinsteadleavingground. yawabsafter1median.183225vsV37 1.43628;terminated78to0. Rootzafter1median.198935,4lipcontacts2bodytopbriefmax.0575s,no wheeltop;L0left/rightmedian.18397/.12280,theta-.1983/-.7170. Positiveheighttight8.43e-12/controlbutheightdeficitcost-.06525active; no L0arithmeticbug. Nonwheelforceplot includesground/riser,notjusttopsupport.
+
+V39oneadditionalwindow justified byactualnewyaw/survivalimprovementunder29PPO,notascentpass. PreserveoriginalSCUTcoefficients/L0.334/theta-2/yawuncapped/span2cm/v2mechanics/physicsPPO/actions; norewarddelta. Nextreviewmustcheckactualextension/rootheight/lipduration/wholewheels/yawrp; ifnonewprogressdo notrepeatunchangedfailedhours.
+
+Human23:15askedwhetherpen_theta_no0exists:yes,actualeffectivecoefficient-2.0,sumthetaL²thetaR²inradians,atan2(bodydx,-bodydz),nocontactgate. V38actualweightedmean-.02213990645/control20ms. Thiscostencouragessagittalverticalvirtuallegsbutdoesnotkinematicallylockwheelcentersbelowhips; laterallocationseparatelyconstrainedbysignedspan. No rewardchangefromquestion.
+
+Userexplicitnoaccountinggateappliesallfuturethischatcontinuations; no72receipt/costsettled/canonicalwait,sharedcanonicalandotherchatuntouched. GPUexclusive/computeempty,3600save+300exit/fullsave/ownwait/independent80 retained. BackgroundUIclose/Escauthorized. Single200mmverticalstep/horizontaltopallowswheel/chassis/guide scrape/support,no compulsoryflight. Success wholebothwheelstopquiet.5s/vxyvz<=.03/rp10deg/yaw.2/no退地/unsupported<=.10s; no loss/height/survival/hangassuccess.
+
+Onlylocalpublishedwhilecollectoralive; healthyFIRSTsleepuntilsave. TerminalactualAGENT_PRODUCTION_EXIT/allownwaited/GPUreleasedthenonceclosedtransfermetadataNPZ64MiB/curveseparate96MiB,thenv2savedposelimitedrender0NN0newphysics/currentmodel4cases8side/top+400Hz+hiptargetactualreview/all80decision. Collectorerror/closedmissingterminalallowsnecessarypinSSHfiniteread;freshCIMcontextonly,noforeignkill/locksteal/clearactive. Credentialsoriginalmemoryonly,nologGit,finallySSHclosed/SESSIONrestored.
+
+AllV38/V37/V36andearlierFIRSTclosed/eval/render/nativeconsumed. V38trial5f47b17b9efa44b4ca729b6463db0e95d941e2ad/annotated65185380fd5938eb05d488471acde7d2689b1aaeunchanged,closedordinarysupplement. V39phasehistory/standing200/20261105-v38-final2070-v39-evidence-continuation/id supported200-mod4v2-env20000-continuation-v39/tagtrial-20261105-supported200-mod4v2-env20000-continuation-v39; checkactualINDEXcommitbeforeinitialrecord,afterrecordonlyordinarysupplements. No newGoal/chat/automation/subagent/LunaOpenRouter. Sameautomationmod4-200-rl-bptt30minquietunchanged. Allnewsource/reports/workorder/automationGit;PTNPZUSDmediaonlypublishedpathbytesSHA,largecurveonlypublishedrow;norerunforGit;postGittooloutputonly.
+V39actuallyrecordedandpushedcommitpeel13e83856af539095a7f031840131a4704a601c0f/annotated0ba496df372a77d7b442042c93c15e8d7280bde4,remote main/tag/peelverified; old1565baselineallpreserved. Neverrepeatarchiveinitial/record/retag; newreports/source/workorderautomationonlyordinarysupplement.
+'''
+    (D/'ACTUAL_HANDOFF.md').write_text(handoff,encoding='utf-8')
+    oldhand=R/'scut_native_v38_yaw/ACTUAL_HANDOFF.md'
+    marker='## Actual closed final2070; currentV39 takes precedence'
+    if marker not in oldhand.read_text():
+        with oldhand.open('a',encoding='utf-8') as f:f.write('\n'+marker+'\n\nV38closed/eval80/v2render/native10imagesconsumed:strict0/80,0terminated80timeout;final2070. CurrentV39see scut_native_v39_continue/ACTUAL_HANDOFF.md andCURRENT_WORK_ORDER.json. No repeatV38FIRSTclosed/eval/render.\n')
+    print(json.dumps(dict(status=status,first=first is not None,full_restore=full is not None,error=error)))
+
+if __name__=='__main__':main()

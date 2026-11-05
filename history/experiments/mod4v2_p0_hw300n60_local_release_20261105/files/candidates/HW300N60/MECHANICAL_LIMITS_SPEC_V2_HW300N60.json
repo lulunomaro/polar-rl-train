@@ -1,0 +1,173 @@
+{
+  "schema": "mod4v2.p0.mechanical_limits.HW300N60.v1",
+  "status": "CONFIRMED_HARDWARE_GEOMETRY_AND_NOMINAL_FORCE_ENGINEERING_FORCE_CURVE",
+  "human_priority": "Latest user correction: actual stop between shin and linkage; both active outputs continuous; gas stroke60mm, fully extended eye-center200mm confirmed, nominal300N; old400N candidate superseded",
+  "source": {
+    "USD": "F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd",
+    "USD_SHA256": "2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3",
+    "contract": "F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json",
+    "contract_SHA256": "bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755",
+    "MJCF": "F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/contract_parity_mujoco_v1/scene.xml",
+    "kinematics": "F:/RMPOLAR-RL/traditional_control_20261101/kinematics.py",
+    "parameters": "F:/RMPOLAR-RL/traditional_control_20261101/model_parameters.json",
+    "manifest": "F:/RMPOLAR-RL/traditional_control_20261101/reports/model_manifest.json",
+    "v1_runtime_adapter": "F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/runtime_adapter.py"
+  },
+  "coordinate_convention": {
+    "units": "SI; USD revolute authored degree, MJCF radians",
+    "delta": "crank-hip on the continuous source branch",
+    "continuous_common_rotation": "hip+alpha and crank+alpha preserve delta; actual body/ground interference remains physical",
+    "unbounded_JSON_representation": "null lower means -infinity, null upper means +infinity",
+    "source_mechanical_delta_min_rad": -1.0863195404360622
+  },
+  "per_side_joint_bounds_SI": {
+    "hip": [
+      null,
+      null
+    ],
+    "crank": [
+      null,
+      null
+    ],
+    "drive_hip_spin": [
+      null,
+      null
+    ],
+    "drive_input_spin": [
+      null,
+      null
+    ],
+    "rocker_pin": [
+      -0.7828279184955527,
+      null
+    ],
+    "coupler_pin": [
+      null,
+      0.9027785273324023
+    ],
+    "knee": [
+      -0.7613787030122099,
+      null
+    ],
+    "distal_pin": [
+      null,
+      0.8152830434591931
+    ],
+    "gas_pin": [
+      null,
+      0.15599963671374795
+    ],
+    "gas_slide": [
+      -0.039360558909870585,
+      0.020639441090129412
+    ]
+  },
+  "stop_evidence": {
+    "fixed_part": 145,
+    "fixed_body": "thigh, not world/chassis",
+    "first_contact_part": 124,
+    "first_contact_body": "rocker",
+    "approaching_part": 134,
+    "approaching_body": "shin",
+    "source": "Existing CAD B-Rep mechanical delta reference with consistent same-source backsolve; user says shin/linkage stop; no new mesh-contact/hardware recertification",
+    "implementation": "CAD-backsolved equivalent one-sided relative joint stops plus original six closed-chain constraints; not new mesh contact",
+    "all_passive_bounds_are_one_stop_group_not_claimed_independent_contacts": true,
+    "remove_50e_minus6_hard_inset": true,
+    "training_soft_margin": "Separate optional configuration, disabled by default; not physical hard limit",
+    "source_legacy_rocker_min_rad": -0.7828277184955518,
+    "rocker_min_rad": -0.7828279184955527,
+    "rocker_numeric_consistency_fix_rad": 2.000000009e-07,
+    "rocker_new_value_basis": "Same neutral skeleton leg_configuration at source mechanical_delta_min; removes2e-7 metadata disagreement without extra margin",
+    "gas_at_mechanism_low_fold_m": -0.02675468436086534,
+    "gas_slide_hardware_lower_is_not_lowfold_stop": true
+  },
+  "gas_extension_evidence": {
+    "current_hardware_authority": "User2026-11-05 confirmed fully extended200mm, stroke60mm",
+    "extended_eye_length_m": 0.2,
+    "compressed_eye_length_m": 0.14,
+    "neutral_eye_length_m": 0.1793605589098706,
+    "slide_limits_m": [
+      -0.039360558909870585,
+      0.020639441090129412
+    ],
+    "hardware_stroke_spec_confirmed": true,
+    "old_parent_upper_restoration_superseded": true,
+    "earlier_screenshot_right_eye_m": 0.2081539082652016,
+    "screenshot_vs_confirmed_extension_excess_m": 0.00815390826520159,
+    "screenshot_required_to_pass": false,
+    "unresolved": "Earlier screenshot same-source pose exceeds confirmed hardware extension; inspect anchors/model-version rather than alter real stroke or fit geometry to picture"
+  },
+  "gas_law": {
+    "authoritative_source": "User nominal300N/full-extended200mm; linear spring surrogate declared separately",
+    "stiffness_N_m": 2000.0,
+    "damping_N_s_m": 3.0,
+    "left_target_position_m": 0.1706394410901294,
+    "right_target_position_m": 0.1706394410901294,
+    "nominal_extension_force_N": 300.0,
+    "force_at_compressed_endpoint_N": 420.0,
+    "stiffness_status": "Inherited simulation equivalent2000N/m, NOT measured new300N spring stiffness",
+    "damping_status": "Inherited simulation equivalent3Ns/m, NOT hardware damping measurement",
+    "force_reference_convention": "300N at fully extended endpoint",
+    "force_model": "F=k*(target-slide)-d*slide_velocity; equal-and-opposite joint force",
+    "force_curve_calibrated": false,
+    "legacy400N_model_not_current": true,
+    "MJCF_and_USD_must_match": true
+  },
+  "preserve": [
+    "31 body masses, COM, full inertia and transforms",
+    "all visual/collider meshes and contact filters unless explicitly versioned later",
+    "six closures and four mimic gearing/offset",
+    "motor torque/speed/armature/PD envelopes",
+    "50Hz policy,100Hz feedback,2.5ms physics,TGS32/4",
+    "closure10mm per-env reset and mimic.01rad",
+    "D0-D7 randomization semantics",
+    "old source files/checkpoints/Registry/budget/processes unchanged",
+    "Other geometry/actuator/PD/clock/DR fixed; only hardware-confirmed gas nominal force and stroke supersede old400N candidate"
+  ],
+  "runtime": {
+    "new_asset_opt_in_only": true,
+    "legacy_operating_window_is_default_physics": false,
+    "old_training_window_retained_for_provenance_not_enforced_by_default": true,
+    "target_projection": "Actual mechanical feasible delta branch derived from CAD lower and new slider bound/continuous closure; old default .85 is not a mechanical limit",
+    "target_multi_turn": "Common-turn unwrap near current hip; do not independently wrap two axes into incompatible relative turns",
+    "IK": "Use original neutral skeleton and continuous branch geometry; check new mechanical bounds, not old PARAMS operating interval",
+    "policy_network_or_action_dimensions_changed": false,
+    "old_experts_auto_promoted_or_retrained": false,
+    "hardware_spec_status_required": "CONFIRMED",
+    "source_model_selection": "New HW300N60 candidate only; old package disabled"
+  },
+  "minimal_regression": [
+    "USD/MJCF/contract/parameters limits match hardware140-to200mm and continuous active axes",
+    "Common-turn q+2pi not rejected by old motor boxes",
+    "CAD lowfold stop remains valid/reject below stop",
+    "Both gas endpoints match actual140/200mm and zero-velocity extension force300N",
+    "Old screenshot208.154mm is explicitly rejected under current same-source geometry, not force-fit",
+    "Portable dependencies and unchanged geometry/mass/closure/mimic/motor envelopes",
+    "Runtime adapter removes old projection, preserves delay ABI and common-turn semantics"
+  ],
+  "not_claimed": [
+    "Measured full300N force curve or damping",
+    "New full CAD/hardware stop recertification",
+    "All360-degree paths collision-free",
+    "New actual part145 mesh contact",
+    "PhysX/100Hz runtimeverified unless actually run",
+    "Old expert performance on changed D0 plant",
+    "Old208mm screenshot inside confirmed200mm gas stroke"
+  ],
+  "current_delivery_status": "BUILD_PENDING_HW300N60",
+  "package_directory": "candidates/HW300N60/package",
+  "hardware_configuration": {
+    "hardware_spec_status": "CONFIRMED",
+    "runtime_selection_enabled": true,
+    "nominal_extension_force_N": 300.0,
+    "stroke_m": 0.06,
+    "extended_eye_length_m": 0.2,
+    "compressed_eye_length_m": 0.14,
+    "center_distance_definition": "User explicitly selected fully extended installation hole-center distance200mm",
+    "neutral_eye_length_m": 0.1793605589098706,
+    "geometry_user_confirmed": true,
+    "force_reference_convention": "300N modeled at full extension; nominal-force convention, no independent full force-curve measurement",
+    "force_curve_calibrated": false,
+    "damping_calibrated": false
+  }
+}

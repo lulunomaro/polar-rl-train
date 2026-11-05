@@ -6,6 +6,8 @@
 
 实际Newton FIRST621已通过，20k首轮23483.90控制step/s，采样20.17294s、学习0.266594s。小批量H32 SuperMimic真实梯度/更新及四优化器replay保存恢复已通过，正式worker/eval尚待完成。速度诊断修复了每control重复解析YAML与重建扫描网格，三组姿态输出零差，本地128环境8control总耗时2.45458→1.13243s；这不是20k生产提速结果。线搜索逐world GPU打印改为原native overflow位累积和每轮汇总，4环境实际PPO通过；求解配置保持。当前active冻结包不热改，下一保存边界应用候选并实测。
 
+04:20有限SuperMimic训练与评测入口现已完成：`supermimic_train.py`、`supermimic_evaluate.py`，真实本地随机PPO来源34轮得到2次验证H32更新，完整四优化器/replay/7组件DR与RNG流保存；恢复CLI至35轮得到第3次BPTT。独立80接口、实际保存姿态图原生审阅完成，0跳跃；仅接口测试，不是生产策略成绩。数值异常标签从归一化、WM、aux、想象起点中排除并保留stream cut。新段20k replay容量64、预计2.26GB，正式显存和策略切换需本轮真实final80/回放后确认。有限截止测试在已过截止时间下仍完整保存退出、0新优化器步，不延长原窗。
+
 2026-11-06最新人类要求先用复旦奖励学习压腿跳跃，并明确不再因账本等待，直接训练。当前选择复旦`yly-true/fudan_rl_wheel_leg`固定commit `8204e853dfd2ed06d85a322e1a998c3d20a3be2c` 的jump完整16项奖励及原逐项裁剪。`fudan_source.py`直接抽取18个原方法，`FUDAN_SOURCE.json`记录原字节SHA、行号、权重与来源；没有混入华南虎基础奖励或weight12速度项。MOD4v2实测body-frame hip锚点到轮心的矢状面长度/角度替代参考机器人连杆公式；保留原0.16m空中收腿、0.31m接地正vz伸腿、0.65m腾空高度目标及contact OR滤波。15项CPU检查已通过。
 
 华南虎窗按人类切换要求完整保存至final357（17Adam7140、LR0.0002562890625000001、STD与7组件/RNG/队列/counter8568），独立80与全部实际回放仍0有效起跳上台。新复旦窗从完整final357接续，保留硬件/PD/DR/PPO/35actor78critic。最高指令覆盖旧账本准入，采用真实空闲GPU私有锁与固定3600s保存+300s退出，直接owner不读写canonical。旧账本拒绝、旧等待进程和全部失败保留；其它聊天继续运行。当前FIRST与真实时间边界见工作单。

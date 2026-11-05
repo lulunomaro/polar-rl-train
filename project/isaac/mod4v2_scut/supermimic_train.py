@@ -109,6 +109,8 @@ def main():
         while learner.buffer.size>=required:
             if stop[0]or(job.parent/'STOP_AFTER_SAVE.json').exists()or time.time()+max(30.,2*max_round)>=a.save_deadline:break
             start=time.time()
+            for optimizer in (learner.opt_wm,learner.opt_pi,learner.opt_v,learner.opt_aux):
+                for group in optimizer.param_groups:group['lr']=learner.lr_at(learner.iteration)
             fraction+=1/learner.cfg.utd;steps=int(fraction);fraction-=steps
             learner.collect(steps);collection=time.time()-start
             losses=[]

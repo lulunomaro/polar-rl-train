@@ -1,0 +1,15 @@
+"""Clarify missing guide bodies, enabled limits and neutral-frame/geometry correspondence."""
+from pathlib import Path
+import json,importlib.util
+import mujoco,numpy as np
+D=Path(__file__).resolve().parent;O=D/'STATIC_CORRESPONDENCE_DETAIL_V2.json';assert not O.exists();c=json.loads((D.parent/'mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json').read_bytes());m=mujoco.MjModel.from_xml_path('C:/Users/lulu/Desktop/claude/mjcf/chassis_mod4/scene.xml');d=mujoco.MjData(m);d.qpos[:7]=[0,0,0,1,0,0,0];mujoco.mj_forward(m,d);bn={m.body(i).name:i for i in range(1,m.nbody)};gn={m.geom(i).name:i for i in range(m.ngeom)};frames=[];geoms=[];limits={}
+for n,v in c['bodies'].items():
+ if n not in bn:continue
+ i=bn[n];frames.append(dict(name=n,neutral_position_error=float(np.max(abs(d.xpos[i]-v['neutral_position_m']))),neutral_quaternion_error=float(min(np.linalg.norm(d.xquat[i]-v['neutral_quat_wxyz']),np.linalg.norm(d.xquat[i]+v['neutral_quat_wxyz'])))))
+for n,v in c['geometry'].items():
+ if n not in gn:continue
+ i=gn[n];q=np.array(v['quat_wxyz']);geoms.append(dict(name=n,body_same=m.body(m.geom_bodyid[i]).name==v['body'],type_same=int(m.geom_type[i])==v['type'],size_error=float(np.max(abs(m.geom_size[i]-v['size']))),local_position_error=float(np.max(abs(m.geom_pos[i]-v['position_m']))),local_quaternion_error=float(min(np.linalg.norm(m.geom_quat[i]-q),np.linalg.norm(m.geom_quat[i]+q)))))
+for n in('left_distal_pin','left_coupler_pin','left_gas_pin'):
+ i=m.joint(n).id;limits[n]=dict(local_limited=bool(m.jnt_limited[i]),raw_range=m.jnt_range[i].tolist(),native_authored_limits=c['joints'][n]['limits_si'])
+r=dict(kind='STATIC_MODEL_CORRESPONDENCE_DETAIL_NOT_NATIVE_RUNTIME',local_body_count=m.nbody-1,native_body_count=len(c['bodies']),local_joint_count_without_free=m.njnt-1,native_core_coordinates=c['articulation_joint_count'],local_geom_count=m.ngeom,native_geometry_count=len(c['geometry']),native_only_bodies=[n for n in c['bodies']if n not in bn],neutral_frames=frames,geometry_common_count=len(geoms),geometry_differences=[v for v in geoms if not v['body_same']or not v['type_same']or max(v['size_error'],v['local_position_error'],v['local_quaternion_error'])>1e-7],native_only_geometry=[n for n in c['geometry']if n not in gn],local_only_geometry=[n for n in gn if n not in c['geometry']],guide_geometry={n:v for n,v in c['geometry'].items()if'guide'in n},passive_zero_raw_range_flags=limits,pxr_available=importlib.util.find_spec('pxr')is not None,models_raw_SDK_GPU_budget_operations=0)
+O.write_text(json.dumps(r,indent=2),encoding='utf8');print(json.dumps({k:v for k,v in r.items()if k not in('neutral_frames','guide_geometry','geometry_differences','native_only_geometry','local_only_geometry')},indent=2));print('MAX_NEUTRAL',max(x['neutral_position_error']for x in frames),max(x['neutral_quaternion_error']for x in frames));print('GEOM_DIFFERENCES',len(r['geometry_differences']),'native_only',r['native_only_geometry'],'local_only',r['local_only_geometry']);print(json.dumps(r['guide_geometry'],indent=2))

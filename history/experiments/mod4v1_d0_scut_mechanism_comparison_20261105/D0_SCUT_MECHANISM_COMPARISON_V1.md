@@ -1,0 +1,75 @@
+# MOD4与华南虎USD：连续电机轴、机构硬界与当前D0问题
+
+## 核查结论
+
+用户本轮明确说明MOD4电机可以360度转，真实硬界应来自滑块行程、平行四边形/小腿机构和连杆间止挡块。只读对比支持一个更核心的D0问题：**MOD4把旧训练operating envelope写成了主动轴的物理小角度硬限位；同时真实止挡几何未作为接触约束生效，机构约束依赖若干局部range与闭链/传动的交集。** 气弹簧伸长端还被400N wrapper额外截短。不是只改一个rocker上界就足够。
+
+本次未改资产、runtime、checkpoint、Registry或预算，未启动动力学/SDK/GUI/GPU/训练。用户“电机360度”作为新硬件事实记录；未新增实物测量，未把图片箭头像素直接认作特定CAD编号。
+
+## 1. 实际比较的是哪些资产
+
+- 华南虎：[既有V14审计](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/audit_scut_v14.json>)给出root `wheelbipeV14_2.usd` SHA **48f2d53ac589391a37f3df550e8e537af3ecb5bdb6ebb632fb8c7b83fa9af325**，本次实际pxr只读与该身份一致。root的LoadNone不展开physics payload，因此进一步静态读取其已链接`configuration/wheelbipeV14_2_physics.usd`；不能因root遍历0joint说它没有关节。
+- MOD4：[当前2c资产](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd>)与[bae契约](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json>)，实际joint属性与既有哈希身份一致。对比的是USD声明/组成，不是本轮PhysX执行。
+
+## 2. 最直接差异：主动腿轴
+
+按body连接拓扑MOD4 hip对应SCUT rear1，MOD4 crank对应SCUT front1；两台机器几何不同，数值不直接互抄。
+
+| 类别 | 华南虎V14（左右相同） | MOD4v1（左右相同） |
+|---|---|---|
+| 主动大腿轴 | rear1_joint：author −∞/+∞ degree | hip：author −.5/+.5 rad，即±28.647890° |
+| 主动输入轴 | front1_joint：author −∞/+∞ degree | crank：author −1.2/+.9 rad，即−68.754936°～+51.566200° |
+| 传动跟随轴 | 本表不假造一一对应 | drive_hip_spin同±.5；drive_input_spin同[-1.2,.9]，有mimic |
+| 两轮轴 | wheel_joint：author −∞/+∞ | wheel_spin未author finite上下界，schema fallback无界 |
+
+SCUT证据为[audit:5069–5076/5758–5765/7378/8067](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/audit_scut_v14.json#L5069-L8074>)的joint attrs，4个主动腿轴与其legs_act配置对应；MOD4证据为[contract:975–1304及右侧](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json#L975-L1667>)，且本次pxr读回有限lower/upper实际author。两者jointEnabled都未author而使用schema默认true，没有另一个被关闭的limitEnabled能解释掉这些范围。
+
+MOD4 hip只有57.3°总角窗、crank约120.3°，不是用户所述连续转动主动轴的自由度定义；这不是仅用于奖励或课程的soft window，已经进入physics位置硬界。跟随drive_spin不是额外4个独立动作DOF；相同1:1范围不意味着再把角域减半，但它们也需要与连续主动轴统一。
+
+## 3. 华南虎并不是整个机构不设限
+
+它把有限界留在被动机构和滑块，左右相同：
+
+| SCUT被动轴 | USD下/上界（degree；slider为m） |
+|---|---|
+| front2 | −57.295776 / +5.729578 |
+| front3 | −5.729578 / +57.295776 |
+| front4 | −114.591553 / +5.729578 |
+| rear2 | −1.145916 / +68.754936 |
+| spring1 | −28.647888 / +5.729578 |
+| spring2 slider | 约−.015 / +.065 m |
+
+SCUT云台pitch也有[-1.2,0]rad有限界，因此不泛称“所有电机都无限”。这些不同机构的滑块数值不是MOD4的修复目标。
+
+两台都有6个球关节闭链，author `excludeFromArticulation=true`、jointEnabled默认true。**排除articulation树不等于disable闭链约束。** 本次未见它们被关闭；问题不是简单的“没闭链”。Drive的K/D、maxForce、力矩或速度限制同样不是位置硬界。
+
+## 4. 用户所说的真实止挡块，目前模型怎样处理
+
+已知CAD止挡记录的part145属于thigh，part124属于rocker，part134属于shin；[旧builder:30–50](<C:/Users/lulu/Desktop/claude/mjcf/chassis_mod4_work/build_mod4.py#L30-L50>)与[当前geometry映射](<F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/import_contract.json#L7352-L7812>)一致。**145随大腿/hip转，是相对thigh固定，不是固定世界或固定chassis。** 这些编号来自源码/CAD记录，不是本轮按箭头像素识别。
+
+当前2c USD已按三个body实际composition只读核对：
+- `/Robot/links/right_thigh/visual_145`、`right_rocker/visual_124`、`right_shin/visual_134`自身、祖先、子孙均无CollisionAPI，是visual Mesh。
+- thigh真实collider只有`right_thigh_collision` Capsule；rocker有lower/upper两个Capsule；shin有主段/tip两个Capsule，不是真实145↔124/134表面。
+- right_thigh的`physics:filteredPairs`明确含right_rocker/right_shin；right_rocker又过滤right_shin。任一侧声明即可排除接触；shin没rel不代表该pair开放。
+- [当前MJCF visual class:10–11](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/contract_parity_mujoco_v1/scene.xml#L10-L15>)为contype/conaffinity0；[contact excludes:782–812](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/contract_parity_mujoco_v1/scene.xml#L782-L812>)同样过滤相关pair。[USD导出源:82–104、127–132、175–178](<C:/Users/lulu/Desktop/claude/mjcf/chassis_mod4/tools/export_usd.py#L82-L178>)解释了visual/碰撞、range照写和exclude转FilteredPairs机制。
+
+因此当前不是“实际限位块先碰到才止动”，而是用局部关节硬界替代它。运行源码即使[启用self_collisions:380–381](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/original_runtime_refs/mod4_task.py#L380-L390>)，也不会自动删掉这些filteredPairs。**这不等于所有CAD零件都必须开精细碰撞；可用精确少量止挡代理或经CAD核定的等价耦合约束，但不能用未经机械认证的训练窗口代替。** 本次未核SCUT同类过滤策略，不作它“所有止挡都靠网格碰撞”的假设。
+
+## 5. 为什么主动小角窗会挡掉真正可做的整腿动作
+
+设q_h为hip、q_c为crank，δ=q_c−q_h。同源[运动学:21–36](<F:/RMPOLAR-RL/traditional_control_20261101/kinematics.py#L21-L36>)下，四边形被动角及滑块长度主要由该相对构型决定；在同一连续支路保持δ时，共同增加q_h与q_c可以整体摆腿，许多相对几何量保持。真实边界仍由滑块行程、相对止挡、机构支路/奇异位与机身/地面干涉决定。
+
+但现在q_h到.5rad就先撞独立硬界，即便尚未碰到真实止挡；这会直接删除大幅整腿摆转可达域。电机可360°不代表任意q_h/q_c组合无限，而是**电机连续性与机构耦合可达域应分层建模**，不是矩形训练角窗。
+
+额外两层软件门控也需同步：
+- 原[DelayedJointPositionAction:961–991](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/original_runtime_refs/mod4_task.py#L961-L991>)对processed target投影δ：min读mechanical_stop/training_window，默认训练−1.0843，max读环境变量、默认+.85。它是target策略与训练窗口；具体运行值取环境配置，本轮未现场运行读取。
+- [旧set_configuration:38–49](<F:/RMPOLAR-RL/traditional_control_20261101/kinematics.py#L38-L49>)先检查operating difference再检查启用joint range。只改USD、不改相应新版本的IK/复位/命令门控，仍可能在另一层把姿态拦住。
+
+## 6. 现在已确认的问题与修复方向
+
+1. **主动连续轴被旧operating window硬化**：应按用户已确认的连续电机/传动事实核定物理转轴定义，保持力矩/速度/功率界，撤掉无真实机械依据的主动绝对小角度硬界；同时核对跟随轴与多圈角度表达，不把mimic符号约定误判成额外故障。
+2. **gas最大伸长被400N wrapper另行裁短**：底层35.203334mm→20.639440mm，截图需28.793349mm，见[上一轮精确事实](<F:/RMPOLAR-RL/mod4v1_d0_joint_limits_20261105/D0_LIMIT_ORIGIN_FACTCHECK_V1.md>)。力曲线与真实行程需要解耦。
+3. **真实止挡接触被过滤，而等价范围依据不完整**：已有低折一侧B-Rep数据要保留；并非所有被动界凭空设定。应补齐两侧真实边界/局部代理或耦合约束，不是全关节无界化。
+4. **资产、contract、IK/复位、target投影与角度连续性尚未形成同一机械定义**：需要独立新D0版本全栈同步，而非只把rocker/knee/gas三个数字改大。
+
+旧九专家/E3结果继续保留为旧限位版本下的真实记录；这些D0约束会改变探索与可达域，但本轮未证明每次历史失败都只由限位导致。不据此删模型/改旧成绩，也不继续用旧硬角窗证明真实机构做不到。**本次仅对比/问题定位，没有修复或重训。**

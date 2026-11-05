@@ -1,0 +1,27 @@
+"""Ordinary supplements after the unique V37 record; published large rows only."""
+from pathlib import Path
+import hashlib,importlib.util,json,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261105-v36-final2010-v37-env20000'
+def main():
+    name=sys.argv[1];assert name.startswith('supplement-') and '/' not in name and '\\' not in name
+    dest=BASE/name;assert not (dest/'INDEX.json').exists() and (BASE/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v37_supplement_redact',REPO/'archive_tools/capture_history.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.txt','.md','.log'} and '__pycache__' not in p.parts}
+    files.update((R/'reports').glob('SCUT37*.json'));files.update((R/'reports').glob('SCUT36*.json'))
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    rows=[];(dest/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,n=m.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode();sha=hashlib.sha256(content).hexdigest();out=known.get(sha)
+        if out is None:
+            target=dest/'objects'/sha;target.write_bytes(content);out=target.relative_to(REPO).as_posix();known[sha]=out
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=out,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='redacted_text' if n else 'complete_text'))
+    (dest/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='V37_ORDINARY_SUPPLEMENT',rows=rows,record_repeated=False,tags_modified=False,large_curve_reads=0),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (dest/'README.md').write_text('V37 ordinary supplement: actual state, queued deployment and saved reports. No re-record or retag; large artifacts use published references.\n',encoding='utf-8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())))))
+if __name__=='__main__':main()

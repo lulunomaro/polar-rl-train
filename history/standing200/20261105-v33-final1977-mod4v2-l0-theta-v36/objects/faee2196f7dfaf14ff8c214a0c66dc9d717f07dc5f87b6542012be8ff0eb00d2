@@ -1,0 +1,67 @@
+"""Prepare one small v2 migration; bind assets by exact source, no runtime clone."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import time
+
+D=Path(__file__).resolve().parent;R=D.parent
+PACKAGE=Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package')
+
+
+def main():
+    assert not (D/'PLAN.json').exists() and not (D/'FROZEN.json').exists()
+    cpu=json.loads((R/'reports/SCUT36_V2_L0_THETA_CPU_20261105.json').read_bytes());assert cpu['passed']
+    old=json.loads((R/'scut_native_v35/PLAN.json').read_bytes())
+    source=json.loads((R/'reports/SCUT33_FINAL1977_NATIVE_REVIEW_V34_DECISION_20261105.json').read_bytes())['source']
+    source={k:source[k] for k in ('path','bytes','SHA','format','iteration','physics_ticks')}
+    run='MOD4_STANDING200_SUPPORTED_V36_'+str(time.time_ns());remote='/home/lc01/Zonglin Li/zonglin2/tasks/'+run
+    plan={k:old[k] for k in ('runtime','runtime_manifest','support','package_root','shared_modules','source_SCUT_commit','original_strictreserve','skill_acceptance')}
+    plan.update(run_id=run,remote_root=remote,stage='supported200',assets=remote+'/v2package/assets',guard=remote+'/guard.py',
+        GPU_UUID='GPU-c27eecbd-6838-7290-1cd2-37e34522213d',GPU_preference='72 GPU1; another actual compute-empty 4090, never stack with the foreign GPU0 training',
+        selected_GPU_requires_fresh_admission=True,num_envs=4096,seed=66,train_seconds=3600,max_parent_seconds=3900,target_iterations=8000,
+        resume_checkpoint=source,source_checkpoint=source,new_checkpoint_format='MOD4V2_SCUT_STANDING200_V36_L0_THETA',
+        source_reward_yaml_SHA='85e82dc8025a53437a25fac4520c8caf7a0097a1627e851168dde15e913a544a',
+        full_restore_expected=dict(Adam_states=17,Adam_steps_each=39540,source_common_counter=47448,learning_rate=1e-5,source_model_decodes=1),
+        original_one_canonical=True,clip_actions=None,model='MOD4v2 HW300N60',
+        changes=['V33 full state -> v2 continuous active axes and actual passive/coupled stops; gas HW300N60',
+            'Restore every saved SCUT stair reward coefficient; preserve V33 flat architecture and PPO',
+            'Actual hip-axis to wheel-center 3D L0 target .334m continuously before and after step, no both-contact gate',
+            'theta0 sagittal body-frame deviation sum squares coefficient -2; retain signed lateral span and yaw costs',
+            'Only nonrolling structural link collision cost; wheel/chassis/guide scraping exempt; contact resets all off'],
+        native_probe='16env100controls0PT bounded v2 mechanics/reward/native test under original canonical before production')
+    with (D/'PLAN.json').open('x',encoding='utf-8') as f:json.dump(plan,f,ensure_ascii=False,indent=2)
+    migration=dict(source='MOD4v1 enhanced V33 final1977',target='MOD4v2_HW300N60',
+        new_USD_SHA='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18',
+        new_contract_SHA='00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e',
+        preserve_actor_critic_STD_17Adam_LR_components_RNG=True,new_constructor_nominals=True,one_fresh_physical_reset=True,
+        existing_reset_bank_SHA='48be349c9bae1ec089b8bfb46ccc79085576e14bf373f6cb514027c3c155e50f',all133poses_v2_limits_valid=True,original_filtered74=True,
+        no_v1_independent_active_limits=True,gas_nominal300N_extended200mm_stroke60mm=True)
+    with (D/'ASSET_MIGRATION.json').open('x',encoding='utf-8') as f:json.dump(migration,f,indent=2)
+    files=[]
+    def add(path,relative):
+        raw=path.read_bytes()
+        if path.suffix=='.py':ast.parse(raw)
+        files.append(dict(path=str(path),relative=relative,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    for name in ('recipe.py','reward_model.py','guard.py','asset_compat.py','integration.py','full_resume.py','entry.py','owner.py','evaluate.py','native_owner.py','native_probe.py','PLAN.json','ASSET_MIGRATION.json'):
+        add(D/name,name)
+    add(R/'scut_recipe_v18/SOURCE_PATHS.json','SOURCE_PATHS.json')
+    for relative in ('runtime_adapter_v2.py','kinematics_v2.py','runtime_requirements.json','model_parameters.json','assets/robot.usd','assets/import_contract.json'):
+        add(PACKAGE/relative,'v2package/'+relative)
+    previous=json.loads((R/'scut_native_v32/DEPLOYMENT_FROZEN.json').read_bytes())
+    shared=list(previous['shared_text']);known={r['path'] for r in shared}
+    for row in previous['files']:
+        if row['relative'] in ('recipe.py','reward_model.py','evaluate.py','native_owner.py','native_probe.py'):
+            path=previous['job']+'/'+row['relative']
+            if path not in known:shared.append(dict(path=path,bytes=row['bytes'],SHA=row['SHA']));known.add(path)
+    for report in ('SCUT36_SOURCE_PREREAD_20261105.json','SCUT36_RUNTIME_PREREAD_20261105.json'):
+        for row in json.loads((R/'reports'/report).read_bytes())['files']:
+            if row['remote'] not in known:shared.append(dict(path=row['remote'],bytes=row['bytes'],SHA=row['SHA']));known.add(row['remote'])
+    frozen=dict(schema='MOD4V2_V36_SMALL_EXPLICIT_MIGRATION',run_id=run,job=remote,files=files,shared_text=shared,
+        CPU_evidence=str(R/'reports/SCUT36_V2_L0_THETA_CPU_20261105.json'),production_started=False,
+        native_required=True,old_trial_tags_and_consumed_once_preserved=True,duplicate_runtime_tree=False)
+    with (D/'FROZEN.json').open('x',encoding='utf-8') as f:json.dump(frozen,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(run_id=run,files=len(files),shared=len(shared),production=False,GPU=plan['GPU_UUID'])))
+
+
+if __name__=='__main__':main()

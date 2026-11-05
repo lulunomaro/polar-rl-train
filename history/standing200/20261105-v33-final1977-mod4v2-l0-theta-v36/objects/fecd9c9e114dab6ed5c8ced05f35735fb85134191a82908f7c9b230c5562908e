@@ -1,0 +1,63 @@
+"""Pre-build ABI delta for the immutable SCUT / enhanced MOD4 runtime."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import sys
+import ast
+
+HERE=Path(__file__).resolve().parent
+_ADAPTER=None
+
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path)
+    module=importlib.util.module_from_spec(spec);sys.modules[name]=module
+    spec.loader.exec_module(module)
+    return module
+
+
+def adapter():
+    global _ADAPTER
+    if _ADAPTER is None:
+        path=HERE/'v2package/runtime_adapter_v2.py'
+        raw=path.read_bytes()
+        assert hashlib.sha256(raw).hexdigest()=='148cbfdfab17e9bad04c5974c196279200c645af31e2f0b70ea8aa474ee82d98'
+        text=raw.decode();assert text.count('cfg.sim.physx.solver_type = 1')==1
+        text=text.replace('cfg.sim.physx.solver_type = 1','cfg.sim.physics.solver_type = 1')
+        import types
+        m=types.ModuleType('mod4v2_v36_released_adapter');m.__file__=str(path)
+        sys.modules[m.__name__]=m;exec(compile(text,str(path),'exec'),vars(m));_ADAPTER=m
+    return _ADAPTER
+
+
+def install(train,config,checkpoint):
+    config.USD_SHA=checkpoint.USD_SHA='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18'
+    config.CONTRACT_SHA=checkpoint.CONTRACT_SHA='00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e'
+    previous_settings=train.environment_settings
+    def settings(args):
+        previous_settings(args)
+        a=adapter();receipt=a.prepare_environment(opt_in=True)
+        assert Path(args.assets).resolve()==a.HERE/'assets'
+        train._v36_preimport=receipt
+    train.environment_settings=settings
+    load('mod4v1_fresh_dr_guard',HERE/'guard.py')
+    load('mod4v1_e0_asset_compat',HERE/'asset_compat.py')
+    # Keep the original launcher and constructor module. Replace its adjacent
+    # declaration by this explicit migration declaration in this NEW job only.
+    raw=Path(train.__file__).read_bytes()
+    assert hashlib.sha256(raw).hexdigest()=='1cad73fcd3033f9c2839bfc61930d1776168778087404273f9087731ac24c79c'
+    text=raw.decode();tree=ast.parse(text)
+    node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='boot')
+    code=ast.get_source_segment(text,node)
+    before="declaration=runtime.parents[2]/'MOD4V1_ASSET_DIFF.json'"
+    assert code.count(before)==1
+    code=code.replace(before,"declaration=V36_HERE/'ASSET_MIGRATION.json'")
+    ns=dict(vars(train),V36_HERE=HERE)
+    exec(compile(code,str(train.__file__),'exec'),ns);boot=ns['boot']
+    def wrapped(args,job):
+        result=boot(args,job)
+        from mod4_env import Mod4Env
+        from step_adapter import adapt_step
+        adapt_step(Mod4Env)
+        return result
+    train.boot=wrapped

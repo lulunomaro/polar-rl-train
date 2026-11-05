@@ -1,0 +1,19 @@
+"""Bind the released v2 asset and retain the original fresh-nominal guard."""
+from pathlib import Path
+import hashlib
+import sys
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mod4v1_fresh_dr_guard.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='93a8ca97044a59bddbb83717c6e48cf04ef1696927d3d4eef37dec845fe4f4c6'
+source=raw.decode().replace('2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3','2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18').replace('bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755','00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e')
+source=source.replace('400N/k2000/damping3','v2 HW300N60/k2000/damping3')
+exec(compile(source,str(P),'exec'),globals())
+_original_configure=configure_new_task
+
+
+def configure_new_task(cfg,identity):
+    _original_configure(cfg,identity)
+    from integration import adapter
+    cfg._v36_mechanical_receipt=adapter().apply_runtime_cfg(cfg,sys.modules['mod4_task'],prebuild=True)
+    return cfg

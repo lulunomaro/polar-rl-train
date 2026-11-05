@@ -1,0 +1,87 @@
+"""V33 learning state -> v2; saved SCUT coefficients plus human L0/theta/track."""
+from pathlib import Path
+import ast
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='2f3ec577313d0b15c4d85e048afeb3cf71c9085e00b18e35c833000b8adb7ecc'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V32_CONTACT_FREE_YAW_TRACK','MOD4V2_SCUT_STANDING200_V36_L0_THETA')
+source=source.replace('MOD4_STANDING200_SCUT_RECIPE_V25_FLAT_1793750781803008100','MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300')
+source=source.replace('935084b6319c7b9cde135e762969d111d7ba895cad3ab7327e519c224cd665cb','a008a9ec748a553ceae29d3decf9d3d833817958c15b4725025f366f4bd298ff')
+source=source.replace('from reward_model import terms, contact_termination, wheel_geometry','from reward_model import virtual_legs, geometry_costs, contact_termination, wheel_geometry, L0_TARGET')
+source=source.replace("    flat, agent = base_module.original_recipe('flat')","    flat, agent = base_module.original_recipe('flat')\n    stair = config.read_yaml('trained_env')\n    from integration import install as install_v2\n    import mod4v1_scut.train as train\n    install_v2(train,config,checkpoint)")
+start=source.index('    custom_names = ');end=source.index('    config.reward_config = ',start)
+source=source[:start]+'''    custom_names=('pen_theta_no0','stand32_heading','stand32_wheel_distance')
+    def reward_config(profile='trained_stair'):
+        previous_yaml=config.read_yaml
+        config.read_yaml=lambda key: stair if key=='trained_env' else previous_yaml(key)
+        try:cfg=old_reward_config(profile)
+        finally:config.read_yaml=previous_yaml
+        from types import SimpleNamespace
+        cfg.use_absolute_height=False
+        cfg.use_leg_length_as_height=True
+        cfg.vel_height_gate_enabled=False
+        cfg.height_upright_gate_enabled=False
+        command=dict(flat['commands'])
+        command.update(heading_command=False,rel_standing_envs=0.,rel_heading_envs=0.,special_modes=())
+        command['ranges']=SimpleNamespace(lin_vel_x=(.35,.35),lin_vel_y=(0.,0.),ang_vel_z=(0.,0.))
+        cfg.commands=SimpleNamespace(**command)
+        cfg.enable_state_machines=False
+        for key in ('airborne_state_machine_cfg','jump_takeoff_state_machine_cfg','stair_state_machine_cfg','wheel_forward_scan_cfg'):
+            getattr(cfg,key)['enabled']=False
+        cfg.height_range=(L0_TARGET,L0_TARGET)
+        cfg.episode_length_s=10.
+        cfg.rewards=dict(stair['rewards'])
+        cfg.rewards.update(pen_theta_no0=-2.,stand32_heading=1.,stand32_wheel_distance=1.)
+        assert cfg.rewards['track_height_exp_both_wheels_contact']==0.
+        return cfg
+''' +source[end:]
+start=source.index('    original_post = ');end=source.index('    # Change the source contact predicate',start)
+source=source[:start]+'''    cls=rewards.ScutRewards
+    def observed_height(self,wheel_pos_b=None):
+        return virtual_legs(self)[0].mean(-1)
+    def reference_height(self,*unused):
+        return virtual_legs(self)[0].mean(-1)
+    def target_height(self):
+        return self.height_cmd.new_full((self.num_envs,),L0_TARGET)
+    cls._get_observed_height=observed_height
+    cls._get_height_reward_reference_height=reference_height
+    cls._get_height_reward_target_height=target_height
+    def motor_stop_terms(self,airborne=False):
+        # Active crank/hip axes are continuous in v2; there are no independent
+        # motor stop boxes. Actual coupled/passive stops remain in USD/actions.
+        z=self.height_cmd.new_zeros(self.num_envs)
+        return z,z.clone(),z.clone()
+    cls.motor_stop_terms=motor_stop_terms
+    original_post=cls._postprocess_reward_terms
+    def post(self,values):
+        values=original_post(self,values)
+        b=self.stand32_bridge;body=self.robot.data
+        yaw=euler_xyz_from_quat(body.root_quat_w)[2]
+        span,_=wheel_geometry(torch,body.body_pos_w[:,self._wheel_link_idx],yaw)
+        length,theta=virtual_legs(self)
+        self.v36_L0=length.detach();self.v36_theta0=theta.detach()
+        values.update(geometry_costs(torch,theta,span,wrap_to_pi(yaw),b.stand32_nominal_span))
+        structural=[i for i in self._undesired_contact_link_idx if i not in self._reset_contact_link_idx]
+        contact=self.contact_sensor.data.net_forces_w
+        values['undesired_contact']=(contact[:,structural].norm(dim=-1)>1.).any(-1).float()
+        return values
+    cls._postprocess_reward_terms=post
+
+''' +source[end:]
+source=source.replace('            target=torch.full((self.n,), .39, device=self.device))','            target=torch.full((self.n,), L0_TARGET, device=self.device))')
+source=source.replace('self.stand32_target[ids] = .39','self.stand32_target[ids] = L0_TARGET')
+source=source.replace("source_reward_terms=dict(flat['rewards'])","source_reward_terms=dict(stair['rewards'])")
+source=source.replace("source_recipe_base='flat YAML; explicit V32 reward/contact/geometry override'","source_recipe_base='saved SCUT stair reward coefficients; original V33 flat PPO architecture; human L0/theta/yaw/lateral-span'" )
+needle='    return receipt'
+assert source.count(needle)==1
+source=source.replace(needle,"""    receipt.update(asset='MOD4v2_HW300N60',L0_target_m=L0_TARGET,
+        L0_definition='3D distance from actual hip axis anchor to wheel center',
+        theta0_definition='atan2(wheel_minus_hip_body_x,-wheel_minus_hip_body_z)',
+        pen_theta_no0_coefficient=-2.,L0_both_wheel_contact_gate=False,
+        L0_before_after_step_same_target_and_weight=True,
+        human_forward_greater_extension_ratio_superseded_by_original_coefficients=True,
+        legacy_V32_V33_custom_shaping_removed=True)
+    return receipt""")
+exec(compile(source,str(P),'exec'),globals())

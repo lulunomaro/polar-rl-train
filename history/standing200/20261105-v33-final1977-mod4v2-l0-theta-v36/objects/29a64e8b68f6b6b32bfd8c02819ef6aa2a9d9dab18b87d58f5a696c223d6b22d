@@ -1,0 +1,86 @@
+"""Source transformations and geometry boundary checks; no PT/SDK/physics."""
+from pathlib import Path
+import ast
+import hashlib
+import importlib.util
+import json
+import math
+import sys
+import time
+from types import SimpleNamespace
+import numpy as np
+
+D=Path(__file__).resolve().parent;R=D.parent
+
+
+def main():
+    checks={}
+    for p in D.glob('*.py'):ast.parse(p.read_bytes())
+    checks['all_overlay_sources_parse']=True
+    # Execute the new recipe transform only; its install body remains uncalled.
+    text=(D/'recipe.py').read_text().replace('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/recipe.py',(R/'scut_native_v32/recipe.py').as_posix())
+    ns={'__file__':str(D/'recipe.py')};exec(compile(text,'<CPU-recipe-transform>','exec'),ns)
+    source=ns['source'];tree=ast.parse(source)
+    assert 'target_adapter' not in source and 'SCUT_RECIPE_V25' not in source
+    assert 'stand32_raise' not in source and 'stand33_' not in source
+    checks['legacy_V25_targets_and_V32_V33_shaping_absent']=True
+    # Reward cfg uses exact saved stair scales and helper values, while the
+    # flat actor/PPO remains unchanged. Evaluate this function without SDK.
+    fn=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='reward_config')
+    import yaml
+    class Loader(yaml.SafeLoader):pass
+    Loader.add_constructor('tag:yaml.org,2002:python/tuple',lambda loader,node:tuple(loader.construct_sequence(node)))
+    Loader.add_constructor('tag:yaml.org,2002:python/object/apply:builtins.slice',lambda loader,node:slice(*loader.construct_sequence(node)))
+    raw=(R/'upstream/pretrained/26_infantry/rough_rotation_stair/2026-07-23_16-23-21/params/env.yaml').read_bytes()
+    assert hashlib.sha256(raw).hexdigest()=='85e82dc8025a53437a25fac4520c8caf7a0097a1627e851168dde15e913a544a'
+    stair=yaml.load(raw,Loader=Loader)
+    cfgmod=SimpleNamespace(read_yaml=lambda k:stair)
+    def cfg(profile):
+        return SimpleNamespace(**{k:dict(stair.get(k,{})) for k in ['airborne_state_machine_cfg','jump_takeoff_state_machine_cfg','stair_state_machine_cfg','wheel_forward_scan_cfg']})
+    scope=dict(config=cfgmod,stair=stair,flat=stair,old_reward_config=cfg,L0_TARGET=.334)
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[fn],type_ignores=[])),'<reward-config>','exec'),scope)
+    actual=scope['reward_config']()
+    assert all(actual.rewards[k]==v for k,v in stair['rewards'].items())
+    assert actual.rewards['pen_theta_no0']==-2 and actual.height_range==(.334,.334)
+    assert not actual.height_upright_gate_enabled and not actual.vel_height_gate_enabled
+    assert actual.rewards['track_height_exp_both_wheels_contact']==0
+    checks['saved_SCUT_reward_coefficients_exact_plus_declared_three_terms']=True
+    spec=importlib.util.spec_from_file_location('v36_cpu_reward',D/'reward_model.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    t=np.array([[0.,0.],[.2,-.3],[0.,0.]])
+    c=m.geometry_costs(np,t,np.array([.4376,.4376,-.4376]),np.array([0.,0.,.2]),.4376)
+    assert c['pen_theta_no0'].tolist()==[0.,.13,0.]
+    assert c['stand32_wheel_distance'][0]==0 and c['stand32_wheel_distance'][2]<0
+    wheels=np.array([[[0.,.2188,.0625],[0.,-.2188,.2625]]])
+    assert abs(m.wheel_geometry(np,wheels,np.zeros(1))[0][0]-.4376)<1e-10
+    checks['theta_sum_squares_and_signed_span_no_vertical_lift_cost']=True
+    # Hip anchor removal, horizontal translation and rotation invariance.
+    anchor=np.array([.03,.18,.02]);v=np.array([0.,.037503413,-math.sqrt(.334**2-.037503413**2)])
+    assert abs(np.linalg.norm(v)-.334)<1e-10 and np.arctan2(v[0],-v[2])==0
+    checks['hip_axis_to_wheel_3D_target_and_theta_zero_down']=True
+    # Full restore source transformation compiles, retains every component/RNG
+    # statement and one reset; only declared v1 source identity is admitted.
+    text=(D/'full_resume.py').read_text().replace('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py',(R/'scut_recipe_v21/full_resume.py').as_posix())
+    ns={};exec(compile(text,'<CPU-fullresume-transform>','exec'),ns)
+    install=next(n for n in ast.parse(ns['source']).body if isinstance(n,ast.FunctionDef) and n.name=='install')
+    cp=(D/'pinned_source/checkpoint.py').read_text();cpmod=SimpleNamespace(__file__=str(D/'pinned_source/checkpoint.py'))
+    prefix=[]
+    for node in install.body:
+        if isinstance(node,ast.FunctionDef):break
+        if not isinstance(node,ast.Import):prefix.append(node)
+    env=dict(checkpoint=cpmod,Path=Path,ast=ast,FORMAT=ns['FORMAT'])
+    exec(compile(ast.fix_missing_locations(ast.Module(body=prefix,type_ignores=[])),'<CPU-restore>','exec'),env)
+    # Identity expression substitutions follow declared_source definition.
+    transformed=env['source'].replace("data['usd_SHA'] != USD_SHA","data['usd_SHA'] != (SOURCE_USD_SHA if data['format']==LEGACY else USD_SHA)").replace("data['contract_SHA'] != CONTRACT_SHA","data['contract_SHA'] != (SOURCE_CONTRACT_SHA if data['format']==LEGACY else CONTRACT_SHA)")
+    ast.parse(transformed)
+    assert transformed.count('env.reset()')==1 and 'runner.alg.load(data, load_cfg=None, strict=True)' in transformed
+    assert all(x in transformed for x in ['restore_named','data[\'components\']','data[\'physical_rng\']','SOURCE_USD_SHA','restore_globals','verify_learning'])
+    checks['explicit_V33_identity_full_learning_streams_one_reset_transform']=True
+    out=R/'reports/SCUT36_V2_L0_THETA_CPU_20261105.json'
+    result=dict(epoch=time.time(),passed=True,checks=checks,effective_rewards=actual.rewards,
+        L0_target_m=.334,L0_target_not_mechanical_maximum=True,SDK=0,PT_reads=0,new_physics=0,
+        native_v2_integration_and_production_fullrestore_still_required=True)
+    with out.open('x',encoding='utf-8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+    print(json.dumps(result,ensure_ascii=False))
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,35 @@
+"""Actual hip-to-wheel virtual leg geometry, without contact or stage gates."""
+import importlib.util
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/reward_model.py')
+if not P.exists():P=Path(__file__).resolve().parent.parent/'scut_recipe_v32_supported/reward_model.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='57506311820a2a0ccc5bce2c1a58951b484b2ee3260e60f87e976d62db0e006b'
+spec=importlib.util.spec_from_file_location('v36_existing_wheel_geometry',P)
+old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+wheel_geometry=old.wheel_geometry
+contact_termination=old.contact_termination
+L0_TARGET=.334
+THETA_WEIGHT=-2.
+
+
+def virtual_legs(reward):
+    from mod4v1_scut.math_ops import quat_apply_inverse
+    d=reward.robot.data
+    wheel=d.body_pos_w[:,reward._wheel_link_idx]-d.root_pos_w[:,None]
+    q=d.root_quat_w[:,None].expand(-1,2,-1)
+    anchors=wheel.new_tensor([reward.contract['joints'][side+'_hip']['local_pos0'] for side in ('left','right')])
+    vector=quat_apply_inverse(q,wheel)-anchors[None]
+    length=vector.norm(dim=-1)
+    import torch
+    theta=torch.atan2(vector[...,0],-vector[...,2])
+    return length,theta
+
+
+def geometry_costs(xp,theta,span,yaw,nominal_span):
+    error=xp.clip(xp.abs(span-nominal_span)-.02,0.,None)
+    return dict(pen_theta_no0=xp.sum(theta*theta,axis=-1),
+        stand32_heading=-xp.clip((yaw/.35)**2,0.,4.),
+        stand32_wheel_distance=-xp.clip((error/.05)**2,0.,4.))

@@ -1,0 +1,92 @@
+"""Analyze this saved V32 evaluation and stage rewards, without policy/physics."""
+from pathlib import Path
+import json
+import time
+import numpy as np
+from scipy.spatial.transform import Rotation
+
+R=Path(__file__).resolve().parent.parent
+RUN='MOD4_STANDING200_SUPPORTED_V35_1793851902554564100'
+
+
+def longest(mask):
+    current=np.zeros(mask.shape[1],np.int64);peak=current.copy()
+    for row in mask:
+        current=np.where(row,current+1,0);peak=np.maximum(current,peak)
+    return peak*.0025
+
+
+def main():
+    out=R/'reports/SCUT35_FINAL2246_ACTUAL_NUMERIC_STAGE_ANALYSIS.json'
+    assert not out.exists()
+    A=R/'actual_closed'/RUN;E=A/'evaluation'
+    result=json.loads((E/'RESULT.json').read_bytes())
+    final=json.loads((A/'production/FINAL.json').read_bytes())
+    own=json.loads((A/'OWNER_EXIT.json').read_bytes())
+    eps=json.loads((E/'ALL80.json').read_bytes())['first_episodes']
+    a=np.load(E/'actual400hz.npz',allow_pickle=False)
+    active=a['active'];t=a['tick']*.0025
+    pos=a['root_pos']-np.asarray(result['origins'])[None]
+    after=active&(t[:,None]>=1.)
+    edge=(a['chassis_edge_force']>1)&active
+    support=(a['support_body_top'].sum(-1)>1)&active
+    chassis=(a['chassis_top_force']>1)&active
+    both=(a['top_force']>1).all(-1)&active
+    q=[0,.1,.5,.9,1]
+    angles=Rotation.from_quat(a['root_quat'].reshape(-1,4)[:,[1,2,3,0]]).as_euler('xyz').reshape(len(t),80,3)
+    c=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+    ca=np.asarray([x['active'] for x in c],bool)
+    target=np.asarray([x['joint_pos_target'] for x in c])
+    joint=np.asarray([x['joint_pos_measured'] for x in c])
+    rewards={k:np.asarray([x['reward_terms'][k] for x in c]) for k in c[0]['reward_terms']}
+    selected=[]
+    for i in [0,1,40,41]:
+        selected.append(dict(env=i,seconds=eps[i]['seconds'],endpos=pos[-1,i].tolist(),
+            edge_seconds=float(edge[:,i].sum()*.0025),support_top_total_seconds=float(support[:,i].sum()*.0025),
+            support_top_longest_seconds=float(longest(support)[i]),
+            chassis_top_total_seconds=float(chassis[:,i].sum()*.0025),
+            root_z_after1_minmax=[float(pos[after[:,i],i,2].min()),float(pos[after[:,i],i,2].max())]))
+    value=dict(epoch=time.time(),run_id=RUN,source=final['checkpoint'],new_PPO_updates=final['PPO_updates'],own_exit=own,
+        actual_evaluation=dict(passed_execution=result['passed_execution'],cases=80,seed=9137,
+            strict=result['strict'],whole=sum(x['whole_footprint'] for x in eps),both_top_envs=int(both.any(0).sum()),
+            max_top_force_N=float(a['top_force'][active].max()),
+            terminated=sum(x['terminated'] for x in eps),timeouts=sum(x['time_out'] for x in eps),
+            controls_unique=sorted(set(x['controls'] for x in eps)),seconds_unique=sorted(set(x['seconds'] for x in eps)),
+            closure_resets=sum(x['closure_reset'] for x in eps),mimic_resets=sum(x['mimic_reset'] for x in eps),
+            numerical_resets=sum(x['numerical_safety'] for x in eps),roll_excess=sum(x['source_roll_excess'] for x in eps),
+            pitch_excess=sum(x['source_pitch_excess'] for x in eps),duration_raw=sum(x['source_duration_raw'] for x in eps),
+            contact_reset_disabled_all=all(x['contact_reset_disabled'] for x in eps),source_clock_values=sorted(set(x['source_clock'] for x in eps))),
+        manifold=dict(actual400Hz=True,active_records=int(active.sum()),active_controls=int(ca.sum()),
+            nonwheel_only_column2_envs=int(((a['support_force'][:,:,2]>1)&active).any(0).sum()),
+            edge_envs=int(edge.any(0).sum()),support_top_any_envs=int(support.any(0).sum()),chassis_top_any_envs=int(chassis.any(0).sum()),
+            edge_seconds_quantiles=np.quantile(edge.sum(0)*.0025,q).tolist(),
+            support_top_total_seconds_quantiles=np.quantile(support.sum(0)*.0025,q).tolist(),
+            support_top_longest_seconds_quantiles=np.quantile(longest(support),q).tolist(),
+            root_z_after1_quantiles=np.quantile(pos[:,:,2][after],q).tolist(),
+            root_z_peak_after1_quantiles=np.quantile(np.max(np.where(after,pos[:,:,2],-999),axis=0),q).tolist(),
+            root_z_at_edge_quantiles=np.quantile(pos[:,:,2][edge],q).tolist(),
+            final_x_quantiles=np.quantile(pos[-1,:,0],q).tolist(),
+            actual_raised_to39_envs=int(((pos[:,:,2]>=.39)&after).any(0).sum()),
+            first20ms_supported_envs=int(((a['support_force']>1).any(-1)&active&(t[:,None]<=.02)).any(0).sum()),
+            yaw_abs_after1_quantiles=np.quantile(np.abs(angles[:,:,2][after]),q).tolist(),
+            signed_track_after1_quantiles=np.quantile(a['wheel_span'][after],q).tolist(),
+            stagger_after1_quantiles=np.quantile(a['wheel_stagger'][after],q).tolist(),selected=selected),
+        actuator=dict(decoded_target_min=target[ca].min(0).tolist(),decoded_target_max=target[ca].max(0).tolist(),
+            target_hip_upper_fraction=[float((np.abs(target[:,:,k][ca]-.5)<=1.e-6).mean()) for k in [1,3]],
+            measured_hip_within1mrad_upper_fraction=[float((np.abs(joint[:,:,k][ca]-.5)<=.001).mean()) for k in [1,3]],
+            original_limits_violations=int((target[ca][:,[1,3]]>.500001).sum()),tracking_is_not_unique_cause=True),
+        reward_actual=dict(weighted_per_control_mean={k:float(v[ca].mean()) for k,v in rewards.items()},
+            weighted_episode_mean_sum={k:float(np.where(ca,v,0).sum(0).mean()) for k,v in rewards.items()}),
+        interpretation=dict(stage_progress='Use actual V35 measurements and native replay; no inherited behavior claim.',
+            next_gap='Human explicitly selects V33final1977 transfer to MOD4v2 and SCUT original coefficients plus L0/theta0/track constraints; do not continue V35.',
+            causality='Reward accounting and stopping trajectory support targeted shaping change; do not assert it is the only physical cause.',
+            timeout='All80 source timeout at499controls9.98s, not full500controls10s. Retain exact original result; no rerun.'),
+        artifacts=[result['all80_manifold'],result['actual_poses']],native_review_pending=True,source_PT_reads=0,new_physics=0)
+    with out.open('x',encoding='utf-8') as stream:json.dump(value,stream,ensure_ascii=False,indent=2)
+    motor=(R/'scut_recipe_v25/motor_plot.py').read_text(encoding='utf-8')
+    motor=motor.replace('MOD4_STANDING200_SCUT_RECIPE_V23_FLAT_1793735349303277800',RUN).replace('V23 final745','V35 final2246').replace('SCUT23_FINAL745_MOTOR_CURVE_ARTIFACT','SCUT35_FINAL2246_MOTOR_CURVE_ARTIFACT')
+    exec(compile(motor,str(R/'scut_recipe_v25/motor_plot.py'),'exec'),dict(__file__=str(R/'scut_recipe_v25/motor_plot.py'),__name__='saved_V32_motor'))
+    print(json.dumps(dict(report=str(out),evaluation=value['actual_evaluation'],manifold=value['manifold'])))
+
+
+if __name__=='__main__':main()

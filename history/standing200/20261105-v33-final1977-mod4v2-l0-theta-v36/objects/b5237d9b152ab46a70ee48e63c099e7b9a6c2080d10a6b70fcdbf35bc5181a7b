@@ -1,0 +1,33 @@
+"""Bounded v2 mechanics + reward integration, no checkpoint or policy."""
+from pathlib import Path
+import hashlib
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V32_1793822795305806500/native_probe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='65bec28b81e86d58869d05264cd47417680179abc45ae87e566cbefcc81a4d9f'
+source=raw.decode()
+source=source.replace("install_pose_cache_runtime_adapter_v4(env.scene['robot'])", "install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=lambda value:put(out/'POSE_CACHE_EVENTS.json',dict(actual_latest=value)))")
+source=source.replace("states[:,3:7]=0.;states[:,3]=torch.cos(yaw/2);states[:,6]=torch.sin(yaw/2);states[:,7:]=0.","states[:,3:7]=0.\n        if bridge.quaternion_order=='wxyz':\n            states[:,3]=torch.cos(yaw/2);states[:,6]=torch.sin(yaw/2)\n        else:\n            states[:,6]=torch.cos(yaw/2);states[:,5]=torch.sin(yaw/2)\n        states[:,7:]=0.")
+source=source.replace("if k.startswith('stand32_')", "if k.startswith('stand32_') or k in ('pen_theta_no0','track_height_exp_tight','track_height_square','track_lin_vel_xy','flat_orientation_x_exp','flat_orientation_y_exp')")
+source=source.replace("{'stand32_heading','stand32_wheel_distance','stand32_raise','stand32_retract','stand32_chassis_edge'}", "{'stand32_heading','stand32_wheel_distance','pen_theta_no0','track_height_exp_tight','track_height_square','track_lin_vel_xy'}")
+needle="        put(out/'RESULT.json'"
+assert source.count(needle)==1
+source=source.replace(needle,"""        action=env.action_manager.get_term('legs')
+        mechanical=action.v2_delta_bounds
+        assert type(action).__name__=='MechanicalDelayedJointPositionActionV2'
+        target=action.processed_actions
+        for side,c,h in [('left',0,1),('right',2,3)]:
+            lo,hi=mechanical[side]
+            assert bool(((target[:,c]-target[:,h]>=lo-1e-6)&(target[:,c]-target[:,h]<=hi+1e-6)).all())
+        preload=env.cfg.events.gas_spring_preload.params['targets']
+        assert all(abs(float(x)-.1706394410901294)<1e-9 for x in preload)
+        assert bridge.reward.cfg.rewards['pen_theta_no0']==-2.
+        assert bridge.reward.cfg.rewards['track_lin_vel_xy']==1.
+        assert bridge.reward.cfg.rewards['track_height_exp_tight']==1.
+        assert bridge.reward.cfg.rewards['track_height_square']==-1.
+        assert bridge.reward.cfg.rewards['track_height_exp_both_wheels_contact']==0.
+        put(out/'V2_MECHANICS_REWARD.json',dict(mechanical_delta_by_side=mechanical,
+            gas_preload_targets=preload,action_class=type(action).__name__,runtime_cfg=cfg._v36_mechanical_receipt,
+            L0_m=bridge.reward.v36_L0.cpu().tolist(),theta0_rad=bridge.reward.v36_theta0.cpu().tolist(),
+            original_reward_weights=bridge.reward.cfg.rewards,no_both_contact_gate=True))
+        put(out/'RESULT.json'""")
+exec(compile(source,str(P),'exec'),globals())

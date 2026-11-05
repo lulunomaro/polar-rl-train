@@ -1,0 +1,186 @@
+"""V36 finite deploy/native/train operations; original canonical and no overlap."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import os
+import subprocess
+import sys
+import time
+import traceback
+
+HERE=Path(__file__).resolve().parent;R=HERE.parent
+sys.path.insert(0,str(R))
+from stage_start_standing200_v6 import run
+
+
+def load(name,path):
+    spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec)
+    sys.modules[name]=m;spec.loader.exec_module(m);return m
+
+
+def put(name,value):
+    with (R/'reports'/name).open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def admission():
+    command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5"
+    q=subprocess.Popen(['pwsh','-NoProfile','-NonInteractive','-Command',command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8')
+    output,error=q.communicate(timeout=30)
+    if q.returncode:raise RuntimeError(error)
+    rows=json.loads(output) if output.strip() else []
+    if isinstance(rows,dict):rows=[rows]
+    by={r['ProcessId']:r for r in rows};own={os.getpid(),os.getppid(),q.pid};parent=os.getppid()
+    while parent in by:
+        parent=by[parent]['ParentProcessId']
+        if parent in own:break
+        own.add(parent)
+    teleop=load('v36_exact_teleop_classifier',R/'scut_recipe_v28/closed_transfer_v29.py')
+    blocked=[];benign=[]
+    for row in rows:
+        if row['ProcessId'] in own:continue
+        text=row.get('CommandLine') or ''
+        if text.endswith(r'C:\Users\lulu\.cc-switch\catalog-maxfix\watcher.py'):continue
+        if teleop.is_local_teleop(row):benign.append(row);continue
+        blocked.append(row)
+    put('SCUT36_EXACT_LOCAL_'+str(time.time_ns())+'.json',dict(epoch=time.time(),rows=rows,blocked=blocked,reviewed_teleop=benign,serial='BUSY' if blocked else 'FREE',only_own_ancestors_excluded=True))
+    return rows,blocked
+
+
+def connection():
+    sys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'))
+    from project_connector import connect72
+    return connect72()
+
+
+def local():
+    _,blocked=admission();print(json.dumps(dict(blocked=blocked,network=0,serial='BUSY' if blocked else 'FREE')))
+
+
+def gpu():
+    m=load('v36_resource_selector',R/'scut_native_v32/resource_control.py')
+    m.LABEL='SCUT36B';m.admission=admission;m.gpu()
+
+
+def checked():
+    frozen=json.loads((HERE/'FROZEN.json').read_bytes());plan=json.loads((HERE/'PLAN.json').read_bytes())
+    for row in frozen['files']:
+        raw=Path(row['path']).read_bytes()
+        assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+    return frozen,plan
+
+
+def admit_code():
+    m=load('v36_original_admission',R/'scut_native_v32/native_control.py')
+    return m.ADMIT
+
+
+def start(kind):
+    assert kind in ('native','production')
+    frozen,plan=checked()
+    marker='SCUT36_'+('NATIVE' if kind=='native' else 'LAUNCH')+'_ONCE.json'
+    assert not (R/'reports'/marker).exists()
+    if kind=='production':
+        native=json.loads((R/'reports/SCUT36_NATIVE_RESULT.json').read_bytes())['files']
+        own=native['NATIVE_OWNER_EXIT.json']
+        assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+        assert native['NATIVE_WAITED.json']['returncode']==0 and native['native_validation/RESULT.json']['passed']
+    _,blocked=admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0,once_consumed=False)));return
+    client=sf=None
+    try:
+        client=connection()
+        check=run(client,admit_code(),dict(job=frozen['job'],uuid=plan['GPU_UUID'],shared=frozen['shared_text'],deployed=kind=='production'),90)
+        put('SCUT36_'+kind.upper()+'_PARENT_ADMISSION.json',check)
+        put(marker,dict(epoch=time.time(),run_id=plan['run_id'],frozen_SHA=hashlib.sha256((HERE/'FROZEN.json').read_bytes()).hexdigest()))
+        if kind=='native':
+            sf=client.open_sftp();sf.mkdir(frozen['job'])
+            def upload(relative,raw):
+                path=frozen['job']
+                for part in relative.split('/')[:-1]:
+                    path+='/'+part
+                    try:sf.mkdir(path)
+                    except OSError:sf.stat(path)
+                with sf.open(frozen['job']+'/'+relative,'wx') as f:f.write(raw)
+            for row in frozen['files']:upload(row['relative'],Path(row['path']).read_bytes())
+            upload('TASK.json',(HERE/'PLAN.json').read_bytes())
+            upload('INSTALL_MANIFEST.json',json.dumps(dict(files=[{k:r[k] for k in ('relative','bytes','SHA')} for r in frozen['files']],shared_text=frozen['shared_text'])).encode())
+            sf.close();sf=None
+        code=r'''
+from pathlib import Path
+import subprocess,psutil,time,json
+J=Path(v['job']);entry='native_owner.py' if v['kind']=='native' else 'owner.py'
+logname='NATIVE_OWNER.log' if v['kind']=='native' else 'OWNER.log'
+assert not (J/('NATIVE_OWNER_STARTED.json' if v['kind']=='native' else 'OWNER_STARTED.json')).exists()
+with (J/logname).open('xb') as log:
+ p=subprocess.Popen(['/home/lc01/Zonglin Li/zonglin2/run-python.sh','-u','-B',str(J/entry)],cwd=J,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ q=psutil.Process(p.pid)
+ print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd())))
+'''
+        actual=run(client,code,dict(job=frozen['job'],kind=kind),45)
+        put('SCUT36_'+kind.upper()+'_OWNER_LAUNCH_ACTUAL.json',actual)
+        if kind=='production':
+            p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+            w.update(status='V36_MOD4V2_OWNER_DISPATCHED_AWAIT_ACTUAL_FULLRESTORE_FIRST',run_id=plan['run_id'],remote_job=frozen['job'],original_owner=actual,training_started='AWAIT_GO_FIRST',training_completed=False,current_run_final=None,evaluation_result=None,next='Unique V36 FIRST metadata; original finite save/exit/independent80; no legacy once replay')
+            p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps(actual))
+    except BaseException:
+        put('SCUT36_'+kind.upper()+'_DISPATCH_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),once_consumed=(R/'reports'/marker).exists()))
+        raise
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        put('SCUT36_'+kind.upper()+'_DISPATCH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True,serial='FREE'))
+
+
+def native():start('native')
+def launch():start('production')
+
+
+def native_result():
+    frozen,plan=checked();_,blocked=admission()
+    if blocked:print(json.dumps(dict(blocked=blocked,network=0)));return
+    assert not (R/'reports/SCUT36_NATIVE_RESULT.json').exists()
+    client=sf=None;result=dict(epoch=time.time(),job=frozen['job'],files={},logs={})
+    try:
+        client=connection();sf=client.open_sftp();sf.get_channel().settimeout(45)
+        for name in ['NATIVE_OWNER_STARTED.json','NATIVE_OWNER_EXIT.json','NATIVE_OWNER_ERROR.json','NATIVE_WAITED.json','NATIVE_ADMISSION.json','NATIVE_GO.json','NATIVE_WORKER_IDENTITY.json','native_validation/RESULT.json','native_validation/ERROR.json','native_validation/V2_MECHANICS_REWARD.json','native_validation/CONTACT_TRACE.json','native_validation/REWARD_LOG.json','native_validation/ENV_CLOSED.json','native_validation/APP_CLOSE_INTENT.json']:
+            try:
+                with sf.open(frozen['job']+'/'+name,'rb') as f:result['files'][name]=json.loads(f.read(4*1024**2))
+            except FileNotFoundError:pass
+        for name in ['NATIVE_OWNER.log','NATIVE_WORKER.log']:
+            try:
+                size=sf.stat(frozen['job']+'/'+name).st_size
+                with sf.open(frozen['job']+'/'+name,'rb') as f:f.seek(max(0,size-14000));raw=f.read()
+                result['logs'][name]=dict(bytes=size,tail=raw.decode('utf-8','replace'))
+            except FileNotFoundError:pass
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+    result.update(SSHclosed=True,SESSION_restored=True,serial='FREE')
+    terminal='NATIVE_OWNER_EXIT.json' in result['files']
+    put('SCUT36_NATIVE_RESULT.json' if terminal else 'SCUT36_NATIVE_PENDING_'+str(time.time_ns())+'.json',result)
+    print(json.dumps(dict(files={k:v for k,v in result['files'].items() if k not in ['native_validation/CONTACT_TRACE.json','native_validation/REWARD_LOG.json']},logs=result['logs'])))
+
+
+def first():
+    raw=(R/'collect_standing_status_v1.py').read_text(encoding='utf-8')
+    raw=raw.replace("assert '/MOD4_STANDING200_RLBPTT_' in job","assert '/MOD4_STANDING200_SUPPORTED_V36_' in job")
+    for old,new in [('production/NATIVE_STARTUP.json','production/STARTUP.json'),('production/PROGRESS.json','production/LATEST_PROGRESS.json'),('production/WORKER_ERROR.json','production/ERROR.json'),('evaluation/EVAL_ERROR.json','evaluation/ERROR.json')]:raw=raw.replace(old,new)
+    raw=raw.replace("'production/STARTUP.json'","'production/STARTUP.json','production/FULL_RESTORE.json'")
+    ns=dict(__name__='v36_first',__file__=str(R/'collect_standing_status_v1.py'))
+    exec(compile(raw,ns['__file__'],'exec'),ns);ns['local_rows']=admission
+    sys.argv=[ns['__file__'],'--label','SCUT36_FIRST','--wait-seconds','300'];ns['main']()
+
+
+def closed():
+    raw=(R/'scut_recipe_v20/control.py').read_text(encoding='utf-8').replace('SCUT20','SCUT36')
+    raw=raw.replace('limit=32*1024**2','limit=96*1024**2')
+    raw=raw.replace("'production/ERROR.json', 'production/ENV_CLOSED.json'","'production/ERROR.json', 'production/FULL_RESTORE.json', 'production/ENV_CLOSED.json'")
+    ns=dict(__name__='v36_closed',__file__=__file__)
+    exec(compile(raw,__file__,'exec'),ns);ns['admission']=admission;ns['closed']()
+
+
+if __name__=='__main__':
+    assert sys.argv[1] in ('local','gpu','native','native_result','launch','first','closed')
+    globals()[sys.argv[1]]()

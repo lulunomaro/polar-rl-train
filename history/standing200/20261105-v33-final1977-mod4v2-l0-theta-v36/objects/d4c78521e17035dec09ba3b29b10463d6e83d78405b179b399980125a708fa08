@@ -1,0 +1,139 @@
+{
+  "epoch": 1793870740.647603,
+  "label": "SCUT36_SOURCE_PREREAD_20261105",
+  "local_gate": [
+    {
+      "ProcessId": 41596,
+      "ParentProcessId": 16228,
+      "CreationDate": "2026-11-03T18:26:50.667612+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe\" C:\\Users\\lulu\\.cc-switch\\catalog-maxfix\\watcher.py"
+    },
+    {
+      "ProcessId": 61932,
+      "ParentProcessId": 16772,
+      "CreationDate": "2026-11-05T17:25:38.839151+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n@'\nfrom pathlib import Path\nimport ast,json,sys,time,hashlib\nR=Path('F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103');D=R/'scut_native_v36';sys.path.insert(0,str(R));from repair_v11.control import admission\nrows,blocked=admission()\nif blocked: print(json.dumps(dict(blocked=blocked,network=0)));raise SystemExit(0)\nlabel='SCUT36_SOURCE_PREREAD_20261105';out=R/'reports'/(label+'.json');assert not out.exists();dest=D/'pinned_source';dest.mkdir(exist_ok=False)\nsys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72\nplan=json.loads((R/'scut_native_v35/PLAN.json').read_bytes());source_job='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400';paths={k:(row['path'],row['SHA']) for k,row in plan['shared_modules'].items()}\nfor name in ['config','rewards','upstream']:\n paths[name]=(plan['package_root']+'/mod4v1_scut/'+name+'.py',None)\nfor name,relative in [('guard','runtime/isaac/mod4/mod4v1_fresh_dr_guard.py'),('mod4_task','runtime/isaac/mod4/mod4_task.py'),('reset_bank','runtime/isaac/mod4/reset_bank.json'),('asset_compat','runtime/isaac/mod4/mod4v1_e0_asset_compat.py'),('train_e0','runtime/isaac/mod4/train_mod4v1_e0.py'),('original_run_manifest','original_run_manifest.json'),('MOD4V1_ASSET_DIFF','MOD4V1_ASSET_DIFF.json')]:paths[name]=(source_job+'/'+relative,None)\nclient=sf=None;result=dict(epoch=time.time(),label=label,local_gate=rows,files=[],PT_reads=0,SDK=0,physics=0,serial='BUSY')\ntry:\n client=connect72();sf=client.open_sftp();sf.get_channel().settimeout(45)\n for name,(remote,expected) in paths.items():\n  with sf.open(remote,'rb') as stream:raw=stream.read(2*1024**2+1)\n  assert len(raw)<=2*1024**2\n  digest=hashlib.sha256(raw).hexdigest();assert expected is None or digest==expected\n  suffix=Path(remote).suffix;p=dest/(name+suffix);p.write_bytes(raw)\n  result['files'].append(dict(name=name,remote=remote,local=str(p),bytes=len(raw),SHA=digest,expected=expected))\nfinally:\n if sf is not None:sf.close()\n if client is not None:client.close()\n result.update(SSHclosed=True,SESSION_restored=True,serial='FREE');out.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')\nprint(json.dumps(dict(saved=str(out),files=[{k:v for k,v in row.items() if k in ['name','bytes','SHA']} for row in result['files']],SSHclosed=True)))\n'@ | & 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 -\""
+    },
+    {
+      "ProcessId": 47716,
+      "ParentProcessId": 1844,
+      "CreationDate": "2026-11-05T17:25:39.335823+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "pwsh -NoProfile -NonInteractive -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5\""
+    }
+  ],
+  "files": [
+    {
+      "name": "sdk",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_1h/overlay/sdk.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\sdk.py",
+      "bytes": 27534,
+      "SHA": "bb1fad65eb0792fd5f641dfba8f7b529acf30b64d14de37dc10b2067146049df",
+      "expected": "bb1fad65eb0792fd5f641dfba8f7b529acf30b64d14de37dc10b2067146049df"
+    },
+    {
+      "name": "train",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_1h/overlay/train.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\train.py",
+      "bytes": 18024,
+      "SHA": "1cad73fcd3033f9c2839bfc61930d1776168778087404273f9087731ac24c79c",
+      "expected": "1cad73fcd3033f9c2839bfc61930d1776168778087404273f9087731ac24c79c"
+    },
+    {
+      "name": "checkpoint",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/env20000_1h/overlay/checkpoint.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\checkpoint.py",
+      "bytes": 7338,
+      "SHA": "686f5a600cd640b54d37e8f40b1490996fbd8faf4fba7264d896453759a99413",
+      "expected": "686f5a600cd640b54d37e8f40b1490996fbd8faf4fba7264d896453759a99413"
+    },
+    {
+      "name": "config",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/package/mod4v1_scut/config.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\config.py",
+      "bytes": 9557,
+      "SHA": "95b5d0243218c222b3ee21a759ada2ef27ad1c74e180c0709efd0d2d153f72a0",
+      "expected": null
+    },
+    {
+      "name": "rewards",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/package/mod4v1_scut/rewards.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\rewards.py",
+      "bytes": 18124,
+      "SHA": "5788e2ff38b8e97e521d719fdf30ae76117a7b78adacf35a3307aa7226bc7207",
+      "expected": null
+    },
+    {
+      "name": "upstream",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V1_SCUT_STEP270_2H_1793711274668684600/package/mod4v1_scut/upstream.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\upstream.py",
+      "bytes": 6266,
+      "SHA": "8b026ac5dfe0722748ad59e0d335290a62ad2bbcfa72c44bbc58990c837ea936",
+      "expected": null
+    },
+    {
+      "name": "guard",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mod4v1_fresh_dr_guard.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\guard.py",
+      "bytes": 11812,
+      "SHA": "93a8ca97044a59bddbb83717c6e48cf04ef1696927d3d4eef37dec845fe4f4c6",
+      "expected": null
+    },
+    {
+      "name": "mod4_task",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mod4_task.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\mod4_task.py",
+      "bytes": 106603,
+      "SHA": "30ce41126a1a9b78a1c2b446281b28f4555c28052bfaa7c0e9a76079cf561fc5",
+      "expected": null
+    },
+    {
+      "name": "reset_bank",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/reset_bank.json",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\reset_bank.json",
+      "bytes": 157944,
+      "SHA": "48be349c9bae1ec089b8bfb46ccc79085576e14bf373f6cb514027c3c155e50f",
+      "expected": null
+    },
+    {
+      "name": "asset_compat",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mod4v1_e0_asset_compat.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\asset_compat.py",
+      "bytes": 2115,
+      "SHA": "b2d7092d44d21f9f03bf59de890f69ae843842220bd39c398a66b22e628a8b7e",
+      "expected": null
+    },
+    {
+      "name": "train_e0",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/train_mod4v1_e0.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\train_e0.py",
+      "bytes": 23093,
+      "SHA": "144da6303fd818640de4474dd1bca1cc4ae87cb48126ae8bb6bd9219d8bcf0e9",
+      "expected": null
+    },
+    {
+      "name": "original_run_manifest",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/original_run_manifest.json",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\original_run_manifest.json",
+      "bytes": 44247,
+      "SHA": "1dbde5972c65baf8842bc82024fe7ddfd6393d73a51137cc9880ed6310ff1af1",
+      "expected": null
+    },
+    {
+      "name": "MOD4V1_ASSET_DIFF",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/MOD4V1_ASSET_DIFF.json",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\MOD4V1_ASSET_DIFF.json",
+      "bytes": 14819,
+      "SHA": "faf6785a79da62b5b3829cb1b3fc245381ed6bf9b2f3609679d2b117dfa3c64f",
+      "expected": null
+    }
+  ],
+  "PT_reads": 0,
+  "SDK": 0,
+  "physics": 0,
+  "serial": "FREE",
+  "SSHclosed": true,
+  "SESSION_restored": true
+}

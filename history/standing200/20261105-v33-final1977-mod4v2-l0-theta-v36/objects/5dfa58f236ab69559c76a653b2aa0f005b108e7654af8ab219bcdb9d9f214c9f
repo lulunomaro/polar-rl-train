@@ -1,0 +1,30 @@
+"""Reuse the exact 133/74 geometric reset bank under the new mechanical limits."""
+from pathlib import Path
+import hashlib
+import json
+
+BANK_SHA='48be349c9bae1ec089b8bfb46ccc79085576e14bf373f6cb514027c3c155e50f'
+
+
+def require_mod4v1_flat_reset_bank(bank_path,new_contract_path,raw,*,actual_contract_SHA=None):
+    b=Path(bank_path).read_bytes()
+    assert hashlib.sha256(b).hexdigest()==BANK_SHA and json.loads(b)==raw
+    from integration import adapter
+    a=adapter();c,sha=a._contract()
+    assert Path(new_contract_path).resolve()==a.HERE/'assets/import_contract.json'
+    assert sha==actual_contract_SHA=='00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e'
+    poses=raw['poses'];selected=[p for p in poses if .24<=p['root_height_m']<=.272]
+    assert len(poses)==133 and len(selected)==74
+    for pose in poses:
+        q=pose['joint_pos']
+        for side in ('left','right'):
+            lo,hi=a._geometry().mechanical_delta_bounds(side)
+            assert lo<=q[side+'_crank']-q[side+'_hip']<=hi
+        for name,value in q.items():
+            bounds=c['joints'][name]['limits_si']
+            if bounds is not None:
+                lo,hi=bounds
+                assert (lo is None or value>=lo-1e-8) and (hi is None or value<=hi+1e-8),(name,value,bounds)
+    return dict(version='V36_MOD4V2_EXACT_GEOMETRIC_BANK',original_bank_SHA=BANK_SHA,
+        original_all_poses=133,original_filtered_poses=74,all_v2_mechanical_and_gas_stops_checked=True,
+        new_contract_SHA=sha,original_selector_and_complete_q_root_writes_unchanged=True)

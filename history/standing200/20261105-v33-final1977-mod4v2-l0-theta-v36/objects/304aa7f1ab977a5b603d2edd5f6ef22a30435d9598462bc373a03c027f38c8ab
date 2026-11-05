@@ -1,0 +1,53 @@
+"""Record new V36 text and all saved evidence, deduplicating archived bytes."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import time
+
+R=Path(__file__).resolve().parent.parent;D=R/'scut_native_v36'
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+DEST=REPO/'history/standing200/20261105-v33-final1977-mod4v2-l0-theta-v36'
+
+
+def main():
+    assert not (DEST/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v36_archive_redaction',REPO/'archive_tools/capture_history.py')
+    redactor=importlib.util.module_from_spec(spec);spec.loader.exec_module(redactor)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    closed=R/'actual_closed/MOD4_STANDING200_SUPPORTED_V35_1793851902554564100'
+    files=set()
+    for root in (R/'reports',D,closed):
+        files.update(p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.md','.yaml','.toml','.txt','.log'} and '__pycache__' not in p.parts)
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    publication=json.loads((R/'reports/SCUT35_CLOSED_TRANSFER_ACTUAL.json').read_bytes())
+    pub={r['local_path']:r for r in publication['files']}
+    rows=[];large=[]
+    def artifacts(value,origin):
+        if isinstance(value,dict):
+            path=value.get('path') or value.get('local_path') or value.get('remote_path')
+            if isinstance(path,str) and Path(path).suffix.lower() in {'.pt','.pth','.npz','.npy','.usd','.usda','.png','.mp4','.zip'} and value.get('bytes') is not None:large.append(dict(value,published_by=origin))
+            for child in value.values():artifacts(child,origin)
+        elif isinstance(value,list):
+            for child in value:artifacts(child,origin)
+    (DEST/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        if p.name=='CONTROL_CURVES.json':
+            item=pub[str(p)]
+            rows.append(dict(source_path=str(p),bytes=item['bytes'],SHA=item['SHA'],mode='external_large_raw_only',published_by='SCUT35_CLOSED_TRANSFER_ACTUAL.json'))
+            continue
+        raw=p.read_bytes();safe,count=redactor.redact(raw.decode('utf-8-sig'));content=raw if not count else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=DEST/'objects'/sha;out.write_bytes(content);target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=count,mode='redacted_text' if count else 'complete_text'))
+        if p.suffix=='.json':artifacts(json.loads(raw),str(p))
+    (DEST/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),kind='V35_FINAL2246_CLOSED_REVIEW_V33_TO_MOD4V2_V36_PREPARED',rows=rows,large_external_artifacts=large,source_PT_NPZ_USD_media_reads_for_archive=0,trial='trial-20261105-supported200-mod4v2-l0-theta-v36',new_unique_phase=True,status=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())['status']),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (DEST/'README.md').write_bytes((D/'ACTUAL_HANDOFF.md').read_bytes())
+    print(json.dumps(dict(destination=str(DEST),textrows=len(rows),newobjects=len(list((DEST/'objects').iterdir())),large_references=len(large))))
+
+
+if __name__=='__main__':main()

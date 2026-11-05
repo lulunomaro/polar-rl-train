@@ -1,0 +1,98 @@
+{
+  "epoch": 1793871617.930388,
+  "label": "SCUT36_RUNTIME_PREREAD_20261105",
+  "local_gate": [
+    {
+      "ProcessId": 41596,
+      "ParentProcessId": 16228,
+      "CreationDate": "2026-11-03T18:26:50.667612+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe\" C:\\Users\\lulu\\.cc-switch\\catalog-maxfix\\watcher.py"
+    },
+    {
+      "ProcessId": 72948,
+      "ParentProcessId": 16772,
+      "CreationDate": "2026-11-05T17:40:16.170183+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n@'\nfrom pathlib import Path\nimport ast,json,sys,time,hashlib\nR=Path('F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103');D=R/'scut_native_v36';sys.path.insert(0,str(R))\nfrom repair_v11.control import admission\nrows,blocked=admission()\nimport os\nby={r['ProcessId']:r for r in rows};own={os.getpid(),os.getppid()};parent=os.getppid()\nwhile parent in by:\n parent=by[parent]['ParentProcessId']\n if parent in own:break\n own.add(parent)\nblocked=[r for r in blocked if r['ProcessId'] not in own]\nif blocked:print(json.dumps(dict(blocked=blocked,network=0)));raise SystemExit(0)\nlabel='SCUT36_RUNTIME_PREREAD_20261105';out=R/'reports'/(label+'.json');assert not out.exists()\nsys.path.insert(0,str(R.parent/'mod4v1_experts_fulldr_rm70_20261101'));from project_connector import connect72\nruntime='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4'\nmanifest=json.loads((D/'pinned_source/original_run_manifest.json').read_bytes())['source_sha256'] if 'source_sha256' in json.loads((D/'pinned_source/original_run_manifest.json').read_bytes()) else {}\npaths={name:runtime+'/'+name for name in ['scut_flat_rescue.py','spring_pressure_training_env.py','spring_pressure_index_runtime.py','spring_pressure_component.py','gas_damping_training_env.py','gas_damping_sdk_adapter.py','spring_nominal_sdk_readback.py','mod4_env.py','mild_dr.py']}\nclient=sf=None;result=dict(epoch=time.time(),label=label,local_gate=rows,files=[],PT_reads=0,SDK=0,physics=0)\ntry:\n client=connect72();sf=client.open_sftp();sf.get_channel().settimeout(45)\n for name,remote in paths.items():\n  with sf.open(remote,'rb') as f:raw=f.read(512*1024+1)\n  assert len(raw)<=512*1024\n  p=D/'pinned_source'/name;assert not p.exists();p.write_bytes(raw)\n  result['files'].append(dict(name=name,remote=remote,local=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))\nfinally:\n if sf is not None:sf.close()\n if client is not None:client.close()\n result.update(SSHclosed=True,SESSION_restored=True,serial='FREE');out.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')\nprint(json.dumps(dict(saved=str(out),files=[{k:v for k,v in row.items() if k in ['name','bytes','SHA']} for row in result['files']],SSHclosed=True)))\n'@ | & 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 -\""
+    },
+    {
+      "ProcessId": 63868,
+      "ParentProcessId": 46416,
+      "CreationDate": "2026-11-05T17:40:16.610162+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "pwsh -NoProfile -NonInteractive -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5\""
+    }
+  ],
+  "files": [
+    {
+      "name": "scut_flat_rescue.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/scut_flat_rescue.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\scut_flat_rescue.py",
+      "bytes": 5104,
+      "SHA": "71f6c18897aaa4e7f116b801373ab46c9b3f31966b6628644de77555f0898eb0"
+    },
+    {
+      "name": "spring_pressure_training_env.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/spring_pressure_training_env.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\spring_pressure_training_env.py",
+      "bytes": 3392,
+      "SHA": "cffef4262f479ddd55e61e032dffbc2541ab7888af6c0b43b569dafb3289abf2"
+    },
+    {
+      "name": "spring_pressure_index_runtime.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/spring_pressure_index_runtime.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\spring_pressure_index_runtime.py",
+      "bytes": 7251,
+      "SHA": "4ea0a70293f09dda4d7fe862068c1460ea6acbb8db2accb7ea0fa31d9ccedc58"
+    },
+    {
+      "name": "spring_pressure_component.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/spring_pressure_component.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\spring_pressure_component.py",
+      "bytes": 2903,
+      "SHA": "1dc1cfd018351a3d7677a51dcf31d8c9ed8ba3987eedceb2eeed589428fd2d94"
+    },
+    {
+      "name": "gas_damping_training_env.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/gas_damping_training_env.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\gas_damping_training_env.py",
+      "bytes": 988,
+      "SHA": "6a64646c9cb0663f3d27017d5d49c95f7004cfa2e8af46090ffa57a8e2936936"
+    },
+    {
+      "name": "gas_damping_sdk_adapter.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/gas_damping_sdk_adapter.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\gas_damping_sdk_adapter.py",
+      "bytes": 6811,
+      "SHA": "3b318b827329e22038a2abb89ba97827355bf4ac5e6211ebce697def714e1ea5"
+    },
+    {
+      "name": "spring_nominal_sdk_readback.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/spring_nominal_sdk_readback.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\spring_nominal_sdk_readback.py",
+      "bytes": 5301,
+      "SHA": "52237fc36ee86ed2ff443bcd905ab17ad798258a79a7270c2e1c889f8335037c"
+    },
+    {
+      "name": "mod4_env.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mod4_env.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\mod4_env.py",
+      "bytes": 9384,
+      "SHA": "b7dede4c8f587b0b69d1b56e125a9e544045da66a50660be9861daeb5fccb307"
+    },
+    {
+      "name": "mild_dr.py",
+      "remote": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4/mild_dr.py",
+      "local": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\scut_native_v36\\pinned_source\\mild_dr.py",
+      "bytes": 9083,
+      "SHA": "a8c4fb06f16dbad215b3a380420909a80680f9819d9bdcfbf5f816061222fb7e"
+    }
+  ],
+  "PT_reads": 0,
+  "SDK": 0,
+  "physics": 0,
+  "SSHclosed": true,
+  "SESSION_restored": true,
+  "serial": "FREE"
+}

@@ -1,0 +1,21 @@
+"""One declared V33 -> v2 full restore; constructor mechanics remain v2."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+source=raw.decode().replace("LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'","LEGACY='MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS'")
+source=source.replace("FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'","FORMAT='MOD4V2_SCUT_STANDING200_V36_L0_THETA'")
+source=source.replace('import torch\n    # Reuse','import torch\n    checkpoint.FORMAT=FORMAT\n    # Reuse')
+needle='    verified={}'
+assert source.count(needle)==1
+source=source.replace(needle,'''    # The single allowed legacy source has its original v1 identities. New
+    # saves always advertise v2. No source dict/tensor is rewritten.
+    source=source.replace("data['usd_SHA'] != USD_SHA", "data['usd_SHA'] != (SOURCE_USD_SHA if data['format']==LEGACY else USD_SHA)")
+    source=source.replace("data['contract_SHA'] != CONTRACT_SHA", "data['contract_SHA'] != (SOURCE_CONTRACT_SHA if data['format']==LEGACY else CONTRACT_SHA)")
+    verified={}''')
+source=source.replace("ns=dict(vars(checkpoint),LEGACY=LEGACY,declared_source=declared_source,", "ns=dict(vars(checkpoint),LEGACY=LEGACY,\n        SOURCE_USD_SHA='2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3',\n        SOURCE_CONTRACT_SHA='bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755',declared_source=declared_source,")
+source=source.replace('source_preserved=True,weights_or_Adam_reset=False)',"source_preserved=True,weights_or_Adam_reset=False,\n            migration='declared V33 final1977 full learning/components/RNG -> new v2 constructor then one fresh reset',\n            new_v2_gas_preload_and_continuous_motor_mechanics_preserved=True)")
+source=source.replace("state['source_clock_semantics']='original reward-tail debug enabled only'", "state['source_clock_semantics']='original reward-tail debug enabled only'\n            state['v36_reward_descriptor']=dict(L0_target_m=.334,hip_to_wheel_3D=True,theta0_sum_squares_weight=-2.,no_both_contact_gate=True,same_extension_before_after_step=True,source_reward_coefficients='SCUT saved stair 85e82dc8',MOD4v2=True)")
+exec(compile(source,str(P),'exec'),globals())

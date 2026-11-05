@@ -1,0 +1,113 @@
+"""One background local collector: queue->actual FIRST->own terminal->evidence."""
+from pathlib import Path
+import hashlib,json,os,sys,time,traceback
+from control import D,R,plan,put
+from host_access import connect
+from dispatch86 import fresh
+
+def local(name,value):
+    tmp=D/(name+'.partial');tmp.write_text(json.dumps(value,indent=2),encoding='utf-8');tmp.replace(D/name)
+
+def read(sf,root,name,cap=4*1024**2):
+    try:
+        size=sf.stat(root+'/'+name).st_size
+        assert size<=cap
+        with sf.open(root+'/'+name,'rb') as f:raw=f.read(size+1)
+        assert len(raw)==size
+        return json.loads(raw)
+    except FileNotFoundError:return None
+
+def close_transfer(p,own):
+    marker=R/'reports/SCUT37_CLOSED_TRANSFER_ONCE.json';assert not marker.exists()
+    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    fresh();clients=[];streams=[];restores=[];rows=[];value=dict(epoch=time.time(),owner_exit=own,source_PT_reads=0,new_physics=0)
+    try:
+        for host in ['72','86']:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();streams.append(sf);sf.get_channel().settimeout(60)
+        a,b=streams;job=p['host86_root'];owner=p['authority72_root']
+        agent=read(b,job,'AGENT_PRODUCTION_EXIT.json');assert agent['all_own_waited'] and agent['GPU_lease_released']
+        put('CLOSED_TRANSFER_ONCE',dict(epoch=time.time(),run_id=p['run_id'],agent_exit=agent))
+        dest=R/'actual_closed'/p['run_id'];dest.mkdir(exist_ok=False,parents=True);total=0
+        def save(sf,root,name,prefix=''):
+            nonlocal total
+            try:size=sf.stat(root+'/'+name).st_size
+            except FileNotFoundError:return
+            assert size<24*1024**2 and total+size<64*1024**2
+            with sf.open(root+'/'+name,'rb') as f:raw=f.read(size+1)
+            assert len(raw)==size;total+=size
+            out=dest/prefix/name;out.parent.mkdir(parents=True,exist_ok=True)
+            with out.open('xb') as f:f.write(raw)
+            rows.append(dict(remote_path=root+'/'+name,local_path=str(out),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        for name in ['PRODUCTION_OWNER_STARTED.json','PRODUCTION_OWNER_EXIT.json','PRODUCTION_ADMISSION.json','PRODUCTION_REMOTE_WAITED.json','GO_PRODUCTION.json']:
+            save(a,owner,name,'authority72')
+        for name in ['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','TASK.json','PLAN.json','WORKER_IDENTITY.json','TRAIN_CLOSED.json','EVAL_WAITED.json','production/STARTUP.json','production/FULL_RESTORE.json','production/RESIZED_LEARNING_RESTORE.json','production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json','production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json','evaluation/RESULT.json','evaluation/ERROR.json','evaluation/NATIVE_STARTUP.json','evaluation/ALL80.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json']:
+            save(b,job,name)
+        result=read(b,job,'evaluation/RESULT.json')
+        if result:
+            for key in ['all80_manifold','actual_poses']:
+                source=result[key];name='evaluation/'+Path(source['path']).name
+                assert source['path']==job+'/'+name
+                save(b,job,name);assert rows[-1]['bytes']==source['bytes'] and rows[-1]['SHA']==source['SHA']
+        # Large curves are a separate one-file96MiB transfer. This avoids the
+        # actual V36 combined-cap failure; never reread curves for Git.
+        size=b.stat(job+'/evaluation/CONTROL_CURVES.json').st_size
+        assert size<96*1024**2
+        target=dest/'evaluation/CONTROL_CURVES.json';digest=hashlib.sha256();copied=0
+        with b.open(job+'/evaluation/CONTROL_CURVES.json','rb') as src,target.open('xb') as out:
+            while copied<size:
+                chunk=src.read(min(1024**2,size-copied));assert chunk;out.write(chunk);digest.update(chunk);copied+=len(chunk)
+        rows.append(dict(remote_path=job+'/evaluation/CONTROL_CURVES.json',local_path=str(target),bytes=copied,SHA=digest.hexdigest()))
+        value.update(files=rows,metadata_NPZ_bytes=total,curves_bytes=copied,agent_exit=agent,evaluation=str(dest/'evaluation'),native_review_pending=True)
+        put('CLOSED_TRANSFER_ACTUAL',value)
+    except BaseException:
+        value.update(error=traceback.format_exc(),files=rows);put('CLOSED_TRANSFER_ERROR',value);raise
+    finally:
+        for sf in streams:sf.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        put('CLOSED_TRANSFER_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def main():
+    assert not (R/'reports/SCUT37_BACKGROUND_COLLECTOR_ONCE.json').exists()
+    p=plan();put('BACKGROUND_COLLECTOR_ONCE',dict(epoch=time.time(),pid=os.getpid(),run_id=p['run_id'],queued_owner_wait_only=True))
+    value=dict(epoch=time.time(),pid=os.getpid());c=sf=None;restore=lambda:None
+    try:
+        # Local-only sleep through the currently measured foreign window.
+        until=1793882147.8734467+20
+        local('BACKGROUND_PUBLISHED.json',dict(epoch=time.time(),state='queued; sleeping locally until currentauthority save',next_finite_read_epoch=until,SSH_open=False))
+        while time.time()<until:time.sleep(min(30,until-time.time()))
+        # The only monitor for this exact newrun; bounded fourhours includes
+        # queue and our eventual3600save+exit/evaluation.
+        limit=time.time()+4*3600;first_seen=False;go=None
+        while time.time()<limit:
+            fresh();c,restore,_=connect('72');sf=c.open_sftp();sf.get_channel().settimeout(30)
+            try:
+                root=p['authority72_root'];own=read(sf,root,'PRODUCTION_OWNER_EXIT.json')
+                go=read(sf,root,'GO_PRODUCTION.json')
+                first=read(sf,root,'production/FIRST_UPDATED.json')
+                full=read(sf,root,'production/FULL_RESTORE.json')
+                current=read(sf,root,'PRODUCTION_OWNER_CURRENT.json')
+            finally:
+                sf.close();c.close();restore();sf=c=None;restore=lambda:None
+            state=dict(epoch=time.time(),queued=go is None,GO=go,FIRST=first,full_restore=full,current=current,owner_exit=own,SSH_open=False)
+            local('BACKGROUND_PUBLISHED.json',state)
+            if first and not first_seen:
+                assert first['actual_onpolicy_samples']==480000 and first['PPO_updates']==1 and first['full_save']
+                put('FIRST_COMPLETE_ACTUAL',dict(**state,FIRST_complete=True,num_envs=20000));first_seen=True
+            if own:
+                if own['error'] is None:close_transfer(p,own)
+                value['owner_exit']=own;break
+            # Once healthyFIRST is published, no network until originalsave.
+            delay=max(15,go['save_deadline']+30-time.time()) if go and first_seen and time.time()<go['save_deadline'] else 45
+            end=time.time()+delay
+            while time.time()<end:time.sleep(min(30,end-time.time()))
+        else:value['error']='Bounded backgroundcollection expired before actualterminal; task not claimedclosed'
+    except BaseException:
+        value['error']=traceback.format_exc()
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();value.update(epoch=time.time(),local_collector_closed=True,SSHclosed=True,SESSION_restored=True)
+        put('BACKGROUND_COLLECTOR_CLOSED',value)
+
+if __name__=='__main__':main()

@@ -1,0 +1,81 @@
+"""One checkpoint decode: complete PPO, fresh20000 population, one reset."""
+from pathlib import Path
+import ast,hashlib,json,time
+
+FORMAT='MOD4V2_SCUT_STANDING200_V36_L0_THETA'
+
+def install(checkpoint,expected,report_path):
+    import mod4v1_scut.train as train
+    import torch
+    # Reuse the measured strict learning comparison, without another PT read.
+    prior=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02/full_resume.py')
+    ns=dict(__file__=str(prior),__name__='previous_full_resume_helpers')
+    exec(compile(prior.read_bytes(),str(prior),'exec'),ns)
+    same=ns['same']
+    state={};bridge_holder={}
+    old_init=train.ScutVecEnv.__init__
+    def init(self,env,bridge):
+        old_init(self,env,bridge);bridge_holder['bridge']=bridge
+        old_reset=env.reset
+        def reset(*args,**kwargs):
+            result=old_reset(*args,**kwargs)
+            if state.get('await_fresh_reset'):
+                state['await_fresh_reset']=False
+                receipt=dict(state['receipt'],epoch=time.time(),fresh_physical_resets=1,
+                    current_num_envs=env.num_envs,full_original_components_restored=False,
+                    component_and_queue_population='new constructor20000 rows, new per-environment DR streams',
+                    corrected_debug_step=int(bridge.reward._value_debug_step),
+                    common_step_counter=int(bridge.reward.common_step_counter))
+                with Path(report_path).open('x') as f:json.dump(receipt,f,indent=2)
+            return result
+        env.reset=reset
+    train.ScutVecEnv.__init__=init
+    def verify(runner,data):
+        assert data['num_envs']==4096 and data['iter']==expected['iteration']==2010
+        assert data['format']==FORMAT and data['actor_dim']==35 and data['critic_dim']==78
+        actual=runner.alg.save()
+        for key in ('actor_state_dict','critic_state_dict','optimizer_state_dict'):
+            if not same(data[key],actual[key]):raise ValueError('Resized learning mismatch: '+key)
+        steps=[int(v['step'].item()) for v in actual['optimizer_state_dict']['state'].values() if 'step' in v]
+        state.update(actor_critic_STD_complete_Adam_equal=True,optimizer_states=len(steps),
+            Adam_step_min=min(steps),Adam_step_max=max(steps))
+        assert len(steps)==17 and min(steps)==max(steps)==40200
+    def globals_and_receipt(runner,data):
+        assert data['learning_rate']==runner.alg.learning_rate and all(g['lr']==data['learning_rate'] for g in runner.alg.optimizer.param_groups)
+        counters=data['source_reward_globals'];reward=bridge_holder['bridge'].reward
+        for key in ('_value_debug_step','common_step_counter'):setattr(reward,key,int(counters[key]))
+        state['await_fresh_reset']=True
+        state['receipt']=dict(kind='FULL_PPO_RESIZED_POPULATION_FRESH_PHYSICS',source=expected,
+            source_model_decodes=1,source_envs=4096,new_envs=20000,**{k:state[k] for k in ['actor_critic_STD_complete_Adam_equal','optimizer_states','Adam_step_min','Adam_step_max']},
+            learning_rate=runner.alg.learning_rate,LR_restored=True,iteration=data['iter'],
+            global_RNG_restored=True,source_reward_globals=counters,
+            per_environment_DR_queues_fresh=True,per_environment_DR_RNG_same_stream=False,
+            source_preserved=True,weights_or_Adam_reset=False)
+    raw=Path(checkpoint.__file__).read_text(encoding='utf-8-sig')
+    node=next(n for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef) and n.name=='restore_resized_learning')
+    text=ast.get_source_segment(raw,node)
+    needle='    runner.alg.load(data,load_cfg=None,strict=True)'
+    assert text.count(needle)==1
+    text=text.replace(needle,needle+'\n    verify(runner,data)')
+    needle="    return dict(kind='FULL_PPO_RESIZED_POPULATION_FRESH_PHYSICS'"
+    assert text.count(needle)==1
+    text=text.replace(needle,"    globals_and_receipt(runner,data)\n"+needle)
+    scope=dict(vars(checkpoint),verify=verify,globals_and_receipt=globals_and_receipt,FORMAT=FORMAT)
+    exec(compile(text,str(checkpoint.__file__),'exec'),scope)
+    checkpoint.restore_resized_learning=scope['restore_resized_learning'];checkpoint.FORMAT=FORMAT
+    original_learning=checkpoint.learning_state;original_save=checkpoint.save
+    def save(runner,env,bridge,path,profile):
+        def learning_state(r):
+            data=original_learning(r)
+            data['source_reward_globals']={k:int(getattr(bridge.reward,k)) for k in ('_value_debug_step','common_step_counter')}
+            data['source_clock_semantics']='original reward-tail debug enabled only'
+            data['v36_reward_descriptor']=dict(L0_target_m=.334,hip_to_wheel_3D=True,theta0_sum_squares_weight=-2.,no_both_contact_gate=True,same_extension_before_after_step=True,source_reward_coefficients='SCUT saved stair 85e82dc8',MOD4v2=True)
+            data['population_migration']=dict(source_envs=4096,current_envs=20000,source_iteration=2010,complete_PPO_preserved=True,per_environment_components_fresh=True)
+            return data
+        checkpoint.learning_state=learning_state
+        try:return original_save(runner,env,bridge,path,profile)
+        finally:checkpoint.learning_state=original_learning
+    checkpoint.save=save
+    return dict(kind='FULL_PPO_RESIZED_POPULATION_FRESH_PHYSICS',source_envs=4096,new_envs=20000,
+        target_format=FORMAT,source_model_decodes=1,complete_learning_and_global_RNG_preserved=True,
+        per_environment_DR_queues_fresh=True,one_fresh_reset_required=True,reward_physics_PPO_changed=False)

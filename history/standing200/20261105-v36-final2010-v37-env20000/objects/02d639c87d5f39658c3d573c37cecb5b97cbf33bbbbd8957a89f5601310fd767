@@ -1,0 +1,34 @@
+"""Human-requested safe PPO save/close before resizing this task to20000."""
+from pathlib import Path
+import hashlib
+import json
+import time
+from host_access import connect,R
+from dispatch86 import fresh,put
+from production02_prepare import PROD,OWNER
+
+def main():
+    assert not (R/'reports/SCUT36_RESIZE20000_STOP_REQUEST_ACTUAL.json').exists()
+    fresh();c=sf=None;restore=lambda:None;result=dict(epoch=time.time(),human='用20000env练你这个',current_job=PROD,next_num_envs=20000,reward_physics_PPO_unchanged=True)
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(30)
+        with sf.open(PROD+'/GO_PRODUCTION.json','rb') as f:go=json.loads(f.read())
+        assert go['run_id']=='MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02'
+        try:
+            with sf.open(PROD+'/AGENT_PRODUCTION_EXIT.json','rb') as f:result['already_closed']=json.loads(f.read())
+        except FileNotFoundError:
+            value=dict(epoch=time.time(),reason='Human requests sameV36 training at20000env; complete currentPPO then fullsave/safeclose/independent80 before resize',fullsave_required=True,next_num_envs=20000)
+            with sf.open(PROD+'/STOP_AFTER_SAVE_HUMAN20000.json','wx') as f:f.write(json.dumps(value,indent=2))
+            try:
+                with sf.open(PROD+'/STOP_AFTER_SAVE.json','wx') as f:f.write(json.dumps(value,indent=2))
+            except OSError:
+                with sf.open(PROD+'/STOP_AFTER_SAVE.json','rb') as f:result['existing_stop']=json.loads(f.read())
+            result['stop_requested']=value
+        result['GO_preserved']=go
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        put('SCUT36_RESIZE20000_STOP_REQUEST_ACTUAL.json',result);print(json.dumps(result))
+
+if __name__=='__main__':main()

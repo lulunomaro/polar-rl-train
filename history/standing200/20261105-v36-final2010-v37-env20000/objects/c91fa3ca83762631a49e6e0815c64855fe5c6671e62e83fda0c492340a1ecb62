@@ -1,0 +1,53 @@
+"""Publish the current queued20000 state; prior workorders remain in Git."""
+from pathlib import Path
+import json,time
+from control import D,R,plan,put
+p=plan();w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+previous={k:v for k,v in w.items() if k.startswith('current_') or k in ('status','run_id','next','next_action','original_worker_current','pending_run_id')}
+if not (R/'reports/SCUT37_PREUPDATE_V36_WORK_ORDER_STATE.json').exists():put('PREUPDATE_V36_WORK_ORDER_STATE',dict(epoch=time.time(),previous=previous))
+old=R/'actual_closed/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02'
+last=json.loads((R/'reports/SCUT37_METADATA_1793879037528649600.json').read_bytes())
+queued=json.loads((R/'reports/QUEUED_AUTHORITY_CONTEXT').read_bytes())
+native=json.loads((R/'reports/SCUT36_FINAL2010_NATIVE_REVIEW_20000_DECISION.json').read_bytes())
+collector=json.loads((R/'reports/SCUT37_BACKGROUND_COLLECTOR_ONCE.json').read_bytes())
+w.update(status='V37_MOD4V2_ENV20000_HOST86_QUEUED_ORIGINAL_AUTHORITY',run_id=p['run_id'],pending_run_id=p['run_id'],training_started=False,
+    current_resource_blocker='Original single canonical writer held by continuation_final60_1h_1793877942363455400; own20000 bridge queued,86GPU not yet launched',
+    current_scope='This chat supported200 allowedchassisguide support; V33->V36learningstate,nowhuman20000env. Other randomjump200chat separate.',
+    current_reward_policy='Same V36 savedSCUTstair coefficients plus L0.334/theta-2/yaw/signedspan2cm; no rewarddelta',
+    current_contact_policy='Wheel/chassis/guide scraping exempt,other structural links penalized; contactresetsdisabled',
+    SDK_model_or_physics_operations='V36final2010 safelyclosed independent80 native replay consumed; V37noSDK/PPOyet,queued20000',
+    current_CPU_admission='reports/SCUT37_PREPARE03_ACTUAL.json',current_first_actual=None,current_first_complete_checkpoint=None,
+    current_run_first=None,current_run_first_review=None,current_full_restore=None,current_native_fullrestore=None,
+    current_run_final=None,current_own_exit=None,current_model_independent_evaluation=None,current_model_native_reviewed=False,
+    original_worker_current=None,current_state_evidence=last,
+    current_budget=dict(original_canonical=queued['canonical'],remaining_snapshot=queued['remaining'],snapshot_epoch=queued['epoch'],active=queued['active'],strictreserve=86412.86069250107,not_current_live_balance=True),
+    previous_closed_run=dict(run_id='MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02',final=json.loads((old/'production/FINAL.json').read_bytes()),own_exit=json.loads((old/'authority72/PRODUCTION_OWNER_EXIT.json').read_bytes()),native_review=str(R/'reports/SCUT36_FINAL2010_NATIVE_REVIEW_20000_DECISION.json'),evaluation=native['actual_evaluation']),
+    current_diagnosis='ActualV36 33newPPO0/80; lowbodyyawcircles. Humanexplicit20000 population-only continuation fromfinal2010, not unchangedfailedhour.',
+    num_envs=20000,execution_host='86',host86_root=p['host86_root'],authority72_root=p['authority72_root'],
+    original_terminalcollector_V36_retired='reports/SCUT36_TERMINAL86_SLEEPER_RETIRED_FOR20000.json',
+    current_background_collector=dict(pid=collector['pid'],creation='2026-11-05T19:41:55.247852+08:00',source=str(D/'collect_background.py'),source_SHA='__COLLECTOR_SHA__',local_published=str(D/'BACKGROUND_PUBLISHED.json'),closed_receipt='reports/SCUT37_BACKGROUND_COLLECTOR_CLOSED.json',sleep_no_SSH_until=1793882167.8734467),
+    next='Queuedoriginal72ownerENTRY02 will autoGO86GPU0 after actualauthorityrelease, one3600save+300exit; onlylocalpublishedmetadata whilehealthy. CollectorautoFIRST+terminaltransfer thennative review.',
+    next_action='Confirmactualnum_envs20000/FIRST2011/480000samples/20Adam/fullsave; iferrorpreserveresultandrepairafteractualownwait. Never duplicateGO/FIRST/native.',
+    handoff_current=str(D/'ACTUAL_HANDOFF.md'),automation_status='ACTIVE_EVERY30MIN_V37_ENV20000_QUEUED',
+    archival_new_phase='history/standing200/20261105-v36-final2010-v37-env20000',archival_new_trial='trial-20261105-supported200-mod4v2-env20000-v37')
+import hashlib
+w['current_background_collector']['source_SHA']=hashlib.sha256((D/'collect_background.py').read_bytes()).hexdigest()
+tmp=R/'CURRENT_WORK_ORDER.json.partial';tmp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');tmp.replace(R/'CURRENT_WORK_ORDER.json')
+handoff='''# V37 20000env actual queued handoff
+
+Latesthuman: 用20000env练你这个. Population-only4096->20000 onhost86GPU0. PLAN/FROZEN preserved, deployment02 agent and evaldirectorybinding supplements arepreGO. ActualENTRY02 queuedownerPID1670473/create1793878848.21; postexecidentityseeSCUT37_METADATA_1793879037528649600. NoGO/no86worker/noFIRSTyet; do not claimstarted.
+
+V36final2010/33newPPO/fullsave9157223B SHA9284f55ef29a4647b09ba17258f9b8638a04ae5e31d0f5e51a72dff26921fc97 safelyclosed/costsettled/released. Independent80 strict0/whole0/bothtop0,14terminated66timeouts,closuremimicnumerical0,roll8pitch13overlap. Full80actualanalysis+currentmodel8side/top/400Hz/hiptargetactualreviewcomplete. Lowbodyyawningcircles,not skillpass. Originaltransfer96MiBcapfailurepreserved;onlyomitted2NPZ17MBfetchedafter,notduplicateclosed. V18v1renderidentityfailurepreserved;v2bindingrender0NN0physicscomplete.
+
+Newsourcefinal2010above. ActorcriticSTD17Adam40200/LR1e-5/iter/globalRNG/scalarclockrestore singledecode; env-dependentD0D7queues/privateRNGfresh20000 andonephysicalreset,not4096fullcomponentsinto20000. V36reward/model/physics/PPOunchanged. L0actual3Dhipaxiswheelcenter.334/theta0sum-2/yaw/signedspan2cmtolerance,contactgateoff,SCUToriginal85e82dc8coeffs. Native02reuse; noextravalidationphysics.
+
+Originalcanonicalnowheldbyotherchatcontinuation_final60_1h_1793877942363455400 since1793878547.8734467, nominalsave20:35:47.8734467/exit20:40:47.8734467; theseareschedulesnotterminationproof. Ownqueuedbridgewaitsactualrelease;donotclearactive/secondwriter/changeforeigntask. IndependentpinSSHallowed,oldblanketforeigncollectorbanrevoked. Strictreserve86412.86069250107unchanged.
+
+UniqueownlocalcollectorPID28708/create2026-11-05T19:41:55.247852+08,collect_background.py sleepslocallytill20:36:07.8734467,thenfiniteown72metadata,actualFIRSTpublishandhealthywindowlocalonlyuntilsave. Itcollectsactualterminalonce,metadata+NPZ64MiBcapandcurvesseparate96MiBcap,publishesCLOSED_TRANSFER_ACTUAL. Do notrelaunchcollectorwhilealive. V36collector70484wasintentionallyretiredafterhumanearlysave;donotresurrect.
+
+Afterterminalcollect: V18savedposev2render0NN0physics,actualall80stages/terminationandcurrentmodelnativeviewimagefourcases8side/top400Hzhiptargets. Basedonevidencefixorcontinuewithinoriginalbudget;notblindfailedhour. Nounverified0/80,notlossorheightassuccess. Fullwholewheelsreal200mmtopquiet.5s/supportallowedcriteriaunchanged.
+
+V36trialalreadyrecorded; ordinarysupplementonly. V37newphase/trialcheckactualINDEX/tagbeforearchiverecord. Allfailures/changedsource/workorder/automation/reportsGit; media/PT/NPZ/USDlargeonlypublishedpathbytesSHA. NoLuna/OpenRouter/subagents/newGoal/chat/automation. Sameautomationmod4-200-rl-bpttquietunchanged.
+'''
+(D/'ACTUAL_HANDOFF.md').write_text(handoff,encoding='utf-8')
+print(json.dumps(dict(status=w['status'],num_envs=20000,queued=True,collector_pid=collector['pid'])))

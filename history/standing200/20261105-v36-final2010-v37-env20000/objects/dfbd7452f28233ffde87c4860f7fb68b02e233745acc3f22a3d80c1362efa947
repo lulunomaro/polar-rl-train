@@ -1,0 +1,190 @@
+"""Minimal20000 overlay on the safely closed V36 host86 task."""
+from pathlib import Path
+import ast,hashlib,json,shlex,sys,time,traceback
+D=Path(__file__).resolve().parent;R=D.parent;PREV=R/'scut_native_v36'
+sys.path.insert(0,str(PREV))
+from host_access import connect,secret86
+from host86_prepare import RUNTIME,query
+from dispatch86 import fresh
+OLD='/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02'
+OLDOWNER='/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_HOST86_BRIDGE_PRODUCTION02'
+UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+
+def put(name,data):
+    with (R/'reports'/('SCUT37_'+name+'.json')).open('x',encoding='utf-8') as f:json.dump(data,f,ensure_ascii=False,indent=2)
+
+def plan():
+    p=json.loads((D/'PLAN.json').read_bytes())
+    if (D/'DEPLOYMENT02.json').exists():p.update(json.loads((D/'DEPLOYMENT02.json').read_bytes()))
+    return p
+
+def prepare():
+    retry=(D/'PLAN.json').exists()
+    if retry:
+        old_failure=json.loads((R/'reports/SCUT37_PREPARE_ACTUAL.json').read_bytes())
+        assert 'FileNotFoundError' in old_failure['error'] and not old_failure['files']
+        assert not (D/'FROZEN.json').exists()
+        (D/'PREPARE01_FAILED_PLAN.json').write_bytes((D/'PLAN.json').read_bytes())
+    prior=R/'actual_closed/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02'
+    own=json.loads((prior/'authority72/PRODUCTION_OWNER_EXIT.json').read_bytes())
+    agent=json.loads((prior/'AGENT_PRODUCTION_EXIT.json').read_bytes())
+    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    assert agent['error'] is None and agent['all_own_waited'] and agent['GPU_lease_released']
+    source=json.loads((prior/'production/FINAL.json').read_bytes())['checkpoint']
+    p=json.loads((PREV/'PLAN.json').read_bytes())
+    run=json.loads((D/'PLAN.json').read_bytes())['run_id'] if retry else 'MOD4_STANDING200_SUPPORTED_V37_ENV20000_'+str(time.time_ns())
+    job=OLD.rsplit('/',1)[0]+'/'+run;owner='/home/lc01/Zonglin Li/zonglin2/tasks/'+run+'_HOST86_BRIDGE'
+    p.update(run_id=run,remote_root=job,execution_host='86',host86_root=job,authority72_root=owner,
+        assets=job+'/v2package/assets',guard=job+'/guard.py',GPU_UUID=UUID,GPU_preference='host86 dedicated compute-empty GPU0',
+        num_envs=20000,resume_checkpoint=source,source_checkpoint=source,
+        full_restore_expected=dict(Adam_states=17,Adam_steps_each=40200,source_iteration=2010,source_envs=4096,new_envs=20000,learning_rate=1e-5),
+        changes=['Human requested4096->20000 environments only; V36 reward/physics/PPO unchanged','Completeactor/critic/STD/Adam/LR/iteration/globalRNG restored; fresh20000perenvcomponents/queues and onephysicalreset'],
+        native_probe='Reuse actualV36 native02; no new mechanical/rewarddelta; actual20000 firstPPO verifies resized deployment')
+    with (D/'PLAN.json').open('w' if retry else 'x') as f:json.dump(p,f,indent=2)
+    for name in ('entry.py','worker86.py','full_resume.py'):ast.parse((D/name).read_text())
+    original=(PREV/'owner86_bridge.py').read_text()
+    original=original.replace("REMOTE='"+OLD.rsplit('/production02',1)[0]+"'","REMOTE='"+job+"'")
+    assert "REMOTE='"+job+"'" in original
+    original=original.replace('supported200_v36_86','supported200_v37_20000_86').replace('MOD4V2_V36_PPO86','MOD4V2_V37_ENV20000_PPO86')
+    (D/'owner86_bridge.py').write_text(original)
+    fresh();clients=[];streams=[];restores=[];value=dict(epoch=time.time(),run_id=run,source=source,files=[])
+    try:
+        for host in ['86','72']:
+            c,restore,py=connect(host);clients.append(c);restores.append(restore);s=c.open_sftp();s.get_channel().settimeout(45);streams.append(s)
+        c86,c72=clients;s86,s72=streams
+        s86.mkdir(job);s72.mkdir(owner)
+        old_manifest=json.loads((prior/'INSTALL86_MANIFEST.json').read_bytes())
+        rows=list(old_manifest['files'])
+        # Four changed files only; assets and every unchanged module are references.
+        names=['SOURCE_PATHS.json','recipe.py','reward_model.py','integration.py','guard.py','asset_compat.py','evaluate.py','ASSET_MIGRATION.json','relocation86.py','backend86.py','agent86.py','v2package']
+        for name in names:s86.symlink(OLD+'/'+name,job+'/'+name)
+        for name in ['entry.py','worker86.py','full_resume.py','PLAN.json']:
+            raw=(D/name).read_bytes()
+            with s86.open(job+'/'+name,'wx') as f:f.write(raw)
+            rows.append(dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/name)))
+        with s86.open(job+'/TASK.json','wx') as f:f.write((D/'PLAN.json').read_bytes())
+        rows.append(dict(path=job+'/TASK.json',bytes=(D/'PLAN.json').stat().st_size,SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest()))
+        with s86.open(job+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(dict(files=rows),indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(dict(files=rows),indent=2))
+        s72.symlink(OLDOWNER+'/ssh_deps',owner+'/ssh_deps')
+        for name in ['PLAN.json','owner86_bridge.py']:
+            with s72.open(owner+'/'+name,'wx') as f:f.write((D/name).read_bytes())
+        code="""import sys,json,pathlib,hashlib,ast
+J=pathlib.Path(JOB)
+sys.path.insert(0,str(J))
+import relocation86
+relocation86.JOB=J
+r=relocation86.install()
+import integration,backend86,recipe,evaluate
+for m in (integration,backend86,recipe,evaluate):
+ if hasattr(m,'HERE'):m.HERE=J
+ if hasattr(m,'J'):m.J=J
+backend86.install()
+integration.adapter().prepare_environment(opt_in=True)
+integration.load('mod4v1_fresh_dr_guard',J/'guard.py')
+for n in ('entry.py','worker86.py','full_resume.py'):ast.parse((J/n).read_text())
+assert json.loads((J/'TASK.json').read_bytes())['num_envs']==20000
+source=pathlib.Path(SOURCE)
+assert source.stat().st_size==9157223
+print(json.dumps(dict(passed=True,new_envs=20000,reference_modules_imported=True,PT_reads=0,SDK_operations=0,new_physics=0,relocation=r)))
+""".replace('pathlib.Path(JOB)','pathlib.Path('+repr(job)+')').replace('pathlib.Path(SOURCE)','pathlib.Path('+repr(source['path'])+')')
+        value['CPU']=query(c86,RUNTIME,code);value.update(passed=True,unchanged_reference_task=OLD,new_files_only=True)
+    except BaseException:
+        value['error']=traceback.format_exc();raise
+    finally:
+        for s in streams:s.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        value.update(SSHclosed=True,SESSION_restored=True);put('PREPARE02_ACTUAL' if retry else 'PREPARE_ACTUAL',value)
+    frozen=dict(epoch=time.time(),run_id=run,num_envs=20000,files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*')) if f.is_file()],reference_manifest=str(D/'INSTALL86_MANIFEST.json'))
+    with (D/'FROZEN.json').open('x') as f:json.dump(frozen,f,indent=2)
+    print(json.dumps(dict(run_id=run,job=job,owner=owner,prepared=True)))
+
+def launch():
+    p=plan();assert json.loads((R/'reports/SCUT37_PREPARE03_ACTUAL.json').read_bytes())['passed']
+    review=json.loads((R/'reports/SCUT36_FINAL2010_NATIVE_REVIEW_20000_DECISION.json').read_bytes());assert review['native_review_completed']
+    marker=R/'reports/SCUT37_LAUNCH_ONCE.json';assert not marker.exists()
+    fresh();c=None;restore=lambda:None;secret=None
+    try:
+        c,restore,py=connect('72');secret=secret86()
+        put('LAUNCH_ONCE',dict(epoch=time.time(),run_id=p['run_id'],num_envs=20000))
+        code="""import sys,subprocess,psutil,json,time
+from pathlib import Path
+secret=sys.stdin.readline().rstrip('\\r\\n')
+job=Path(JOB)
+with (job/'PRODUCTION_BRIDGE.log').open('xb') as log:
+ p=subprocess.Popen([PY,'-u','-B',str(job/'owner86_bridge.py'),'train'],cwd=job,stdin=subprocess.PIPE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,text=True)
+ p.stdin.write(secret+'\\n');p.stdin.close()
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd(),bridge=JOB,execution_host='86',num_envs=20000)))
+""".replace('JOB',repr(p['authority72_root'])).replace('PY',repr(py))
+        i,o,e=c.exec_command(shlex.quote(py)+' -B -c '+shlex.quote(code),timeout=50)
+        i.write(secret['password']+'\n');i.flush();i.channel.shutdown_write();secret=None
+        raw=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status()
+        if rc:raise RuntimeError(err[-2000:])
+        value=json.loads(raw);put('LAUNCH_ACTUAL',value);print(json.dumps(value))
+    finally:
+        if c:c.close()
+        restore();secret=None;put('LAUNCH_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def collect():
+    p=plan();fresh();clients=[];streams=[];restores=[];value=dict(epoch=time.time(),files={},bridge={},logs={})
+    try:
+        for host,root in [('72',p['authority72_root']),('86',p['host86_root'])]:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);s=c.open_sftp();streams.append(s);s.get_channel().settimeout(30)
+            names=['PRODUCTION_OWNER_STARTED.json','PRODUCTION_WAIT_ORIGINAL_AUTHORITY.json','PRODUCTION_OWNER_CURRENT.json','PRODUCTION_OWNER_EXIT.json','PRODUCTION_OWNER_ERROR.json','PRODUCTION_ADMISSION.json','GO_PRODUCTION.json'] if host=='72' else ['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','WORKER_IDENTITY.json','PRODUCTION_RESOURCE.json','production/RESIZED_LEARNING_RESTORE.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/STARTUP.json','production/FINAL.json','production/ERROR.json','TRAIN_CLOSED.json','EVAL_WAITED.json','evaluation/RESULT.json','evaluation/ERROR.json']
+            out=value['bridge'] if host=='72' else value['files']
+            for name in names:
+                try:
+                    with s.open(root+'/'+name,'rb') as f:out[name]=json.loads(f.read(4*1024**2))
+                except FileNotFoundError:pass
+            for name in (['PRODUCTION_BRIDGE.log'] if host=='72' else ['AGENT_PRODUCTION.log','WORKER.log','EVAL.log']):
+                try:
+                    size=s.stat(root+'/'+name).st_size
+                    with s.open(root+'/'+name,'rb') as f:f.seek(max(0,size-6000));tail=f.read(6000)
+                    value['logs'][host+'/'+name]=dict(bytes=size,tail=tail.decode('utf-8','replace'))
+                except FileNotFoundError:pass
+    finally:
+        for s in streams:s.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        value.update(SSHclosed=True,SESSION_restored=True)
+    name='METADATA_'+str(time.time_ns());put(name,value)
+    print(json.dumps(dict(report=name,bridge_keys=list(value['bridge']),file_keys=list(value['files']),first=value['files'].get('production/FIRST_UPDATED.json'),error=value['files'].get('production/ERROR.json'))))
+
+def finish_prepare():
+    p=plan();job=p['host86_root'];source=p['source_checkpoint']
+    old=json.loads((R/'reports/SCUT37_PREPARE02_ACTUAL.json').read_bytes())
+    assert 'SyntaxError' in old['error'] and not (D/'FROZEN.json').exists()
+    fresh();c=None;restore=lambda:None;value=dict(epoch=time.time(),prior_failure_preserved=True)
+    try:
+        c,restore,_=connect('86')
+        code="""import sys,json,pathlib,ast
+J=pathlib.Path(REPLACE_JOB)
+sys.path.insert(0,str(J))
+import relocation86
+relocation86.JOB=J
+r=relocation86.install()
+import integration,backend86,recipe,evaluate
+for m in (integration,backend86,recipe,evaluate):
+ if hasattr(m,'HERE'):m.HERE=J
+ if hasattr(m,'J'):m.J=J
+backend86.install()
+integration.adapter().prepare_environment(opt_in=True)
+integration.load('mod4v1_fresh_dr_guard',J/'guard.py')
+for n in ('entry.py','worker86.py','full_resume.py'):ast.parse((J/n).read_text())
+assert json.loads((J/'TASK.json').read_bytes())['num_envs']==20000
+assert pathlib.Path(REPLACE_SOURCE).stat().st_size==9157223
+print(json.dumps(dict(passed=True,num_envs=20000,PT_reads=0,physics=0,reference_imports=True)))
+""".replace('REPLACE_JOB',repr(job)).replace('REPLACE_SOURCE',repr(source['path']))
+        value['CPU']=query(c,RUNTIME,code);value['passed']=True
+    except BaseException:
+        value['error']=traceback.format_exc();raise
+    finally:
+        if c:c.close()
+        restore();value.update(SSHclosed=True,SESSION_restored=True);put('PREPARE03_ACTUAL',value)
+    frozen=dict(epoch=time.time(),run_id=p['run_id'],num_envs=20000,files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*')) if f.is_file()],reference_manifest=str(D/'INSTALL86_MANIFEST.json'))
+    with (D/'FROZEN.json').open('x') as f:json.dump(frozen,f,indent=2)
+    print(json.dumps(value))
+
+if __name__=='__main__':{'prepare':prepare,'finish_prepare':finish_prepare,'launch':launch,'result':collect}[sys.argv[1]]()

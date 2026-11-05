@@ -1,0 +1,159 @@
+"""Original72 is the sole ledger writer;86 owns its GPU and worker waits."""
+from pathlib import Path
+import fcntl
+import hashlib
+import json
+import os
+import shlex
+import socket
+import sys
+import time
+import traceback
+sys.path.insert(0,str(Path(__file__).resolve().parent/'ssh_deps'))
+import paramiko
+
+J=Path(__file__).resolve().parent
+SHARED=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/control')
+sys.path.insert(0,str(SHARED))
+import three_slot_common_v1 as b
+from single_writer72_authority_V85M_source import authority_tracking_schema_admitted,authority_budget_GO_allowed
+C=b.C;RESERVE=86412.86069250107
+REMOTE='/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/MOD4_STANDING200_SUPPORTED_V37_ENV20000_1793878393149078100'
+UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+PIN='8adc87f3e75eb307a2429fa97b68761e09c0636b0eea684c71894438757c788b'
+read=lambda p:json.loads(Path(p).read_bytes())
+put=b.put
+
+
+def connect(secret):
+    sock=socket.create_connection(('10.50.0.86',22),timeout=12)
+    tr=paramiko.Transport(sock);tr.banner_timeout=tr.auth_timeout=12
+    try:
+        tr.start_client(timeout=12)
+        assert hashlib.sha256(tr.get_remote_server_key().asbytes()).hexdigest()==PIN
+        tr.auth_password('robemo',secret,fallback=False)
+        c=paramiko.SSHClient();c._transport=tr;return c
+    except BaseException:tr.close();raise
+
+
+def get(sf,name):
+    try:
+        with sf.open(REMOTE+'/'+name,'rb') as f:return json.loads(f.read(4*1024**2))
+    except FileNotFoundError:return None
+
+
+def send(sf,name,value):
+    with sf.open(REMOTE+'/'+name+'.partial','w') as f:f.write(json.dumps(value,indent=2))
+    sf.posix_rename(REMOTE+'/'+name+'.partial',REMOTE+'/'+name)
+
+
+def account(run,go,rows,end=False):
+    c=read(C);a=c['active_segment']
+    assert a and a['owner_parent_pid']==os.getpid() and a['owner_run_id']==run
+    c,a=b.charge_values(c,a,go,rows,time.time());c['active_segment']=a
+    if end:
+        assert set(go)==set(rows) and all(b.terminal(r) for r in rows.values())
+        a['ended_epoch']=time.time();a['actual_terminal_rows']=rows;c['completed_segments'].append(a);c['active_segment']=None
+    put(C,c);return c
+
+
+def main():
+    mode=sys.argv[1];assert mode in ('native','train')
+    secret=sys.stdin.readline().rstrip('\r\n');assert secret
+    plan=read(J/'PLAN.json');key='NATIVE' if mode=='native' else 'PRODUCTION';run=plan['run_id']+('_NATIVE86' if mode=='native' else '')
+    with (J/(key+'_OWNER_STARTED.json')).open('x') as f:json.dump(dict(epoch=time.time(),identity=b.ident(os.getpid()),run_id=run,execution_host='86'),f)
+    locks=[];private=finite=client=sf=None;active=False;go={};rows={};error=None;remote_started=False
+    try:
+        # Existing task keeps its active segment. Wait only for the original
+        # two locks and actual empty segment; independent SSH remains allowed.
+        wait_end=time.time()+7200
+        while True:
+            acquired=[]
+            try:
+                for path in b.LOCKS:
+                    stream=path.open('rb+');acquired.append(stream);fcntl.flock(stream,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                c=read(C)
+                assert authority_tracking_schema_admitted(c) and authority_budget_GO_allowed(c)
+                if c['active_segment'] is None:locks=acquired;break
+            except BlockingIOError:pass
+            for stream in reversed(acquired):stream.close()
+            if time.time()>=wait_end:raise TimeoutError('Original authority did not reach safe release within two hours')
+            put(J/(key+'_WAIT_ORIGINAL_AUTHORITY.json'),dict(epoch=time.time(),status='await original owner save/wait/release; no new ledger, GO or GPU worker'))
+            time.sleep(15)
+        assert c['remaining_training_seconds']>RESERVE+3900
+        private=(C.parent.parent/('three_expert_v2_'+UUID+'.lock')).open('a+b');fcntl.flock(private,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        finite=(C.parent.parent/'finite_environment_validation.lock').open('rb+');fcntl.flock(finite,fcntl.LOCK_SH|fcntl.LOCK_NB)
+        client=connect(secret);sf=client.open_sftp();sf.get_channel().settimeout(30)
+        assert get(sf,'AGENT_'+key+'_STARTED.json') is None
+        now=time.time();save=600 if mode=='native' else plan['train_seconds'];maximum=900 if mode=='native' else plan['max_parent_seconds']
+        g=dict(kind='MOD4V2_V36_NATIVE86' if mode=='native' else 'MOD4V2_V37_ENV20000_PPO86',run_id=run,GPU_UUID=UUID,execution_host='86',learning_started_epoch=now,save_deadline=now+save,nominal_end_epoch=now+maximum,max_parent_seconds=maximum,exit_headroom_seconds=300)
+        go['supported200_v37_20000_86']=g
+        c=read(C);assert c['active_segment'] is None
+        c['active_segment']=dict(pid=os.getpid(),owner_parent_pid=os.getpid(),owner_run_id=run,kind=g['kind'],started_epoch=now,accounted_through_epoch=now,charged_expert_seconds=0.,experts={},charge_contract='original charge_values on72 through actual86 own-worker wait; no ledger copy')
+        put(C,c);active=True
+        name='NATIVE_GO.json' if mode=='native' else 'GO_PRODUCTION.json'
+        put(J/name,g);send(sf,name,g)
+        put(J/(key+'_ADMISSION.json'),dict(epoch=now,remaining=c['remaining_training_seconds'],strictreserve=RESERVE,original_canonical=str(C),authority_two_EX=True,private_GPU_EX=True,finite_SH=True,execution_host='86'))
+        worker_python='/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh'
+        command=shlex.quote(worker_python)+' -u -B '+shlex.quote(REMOTE+'/agent86.py')+' '+shlex.quote(mode)+' > '+shlex.quote(REMOTE+'/AGENT_'+key+'.log')+' 2>&1'
+        channel=client.get_transport().open_session(timeout=30);channel.exec_command(command);channel.shutdown_write();remote_started=True
+        terminal=None
+        while terminal is None:
+            c=account(run,go,rows)
+            try:
+                terminal=get(sf,'AGENT_'+key+'_EXIT.json')
+                if time.time()>=g['save_deadline'] or c['remaining_training_seconds']<=RESERVE+300:
+                    send(sf,'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='original save/reserve',fullsave_required=True))
+                for name in (['NATIVE_WORKER_IDENTITY.json'] if mode=='native' else ['WORKER_IDENTITY.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/STARTUP.json']):
+                    target=J/name
+                    if not target.exists():
+                        data=get(sf,name)
+                        if data is not None:target.parent.mkdir(parents=True,exist_ok=True);put(target,data)
+                put(J/(key+'_OWNER_CURRENT.json'),dict(epoch=time.time(),GO=g,original_remaining=c['remaining_training_seconds'],remote_terminal=terminal))
+            except (EOFError,OSError,paramiko.SSHException):
+                if sf is not None:sf.close()
+                if client is not None:client.close()
+                # Retain active accounting and original locks until a fresh
+                # connection witnesses this exact remote task's own terminal.
+                while True:
+                    account(run,go,rows)
+                    try:client=connect(secret);sf=client.open_sftp();sf.get_channel().settimeout(30);break
+                    except (OSError,paramiko.SSHException):time.sleep(15)
+            if terminal is None:time.sleep(5)
+        assert terminal['all_own_waited'] and terminal['GPU_lease_released']
+        rows['supported200_v37_20000_86']=dict(terminal_all_own_children_waited=True,returncode=terminal['returncode'],owner_received_terminal_epoch=time.time())
+        account(run,go,rows,True);active=False;put(J/(key+'_REMOTE_WAITED.json'),terminal)
+        names=['NATIVE_WORKER_IDENTITY.json','native_validation/RESULT.json','native_validation/ERROR.json','native_validation/V2_MECHANICS_REWARD.json','native_validation/ENV_CLOSED.json','native_validation/APP_CLOSE_INTENT.json'] if mode=='native' else ['WORKER_IDENTITY.json','TRAIN_CLOSED.json','EVAL_WAITED.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/STARTUP.json','production/FINAL.json','production/ERROR.json','production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json','evaluation/RESULT.json','evaluation/ERROR.json']
+        for name in names:
+            data=get(sf,name)
+            if data is not None:(J/name).parent.mkdir(parents=True,exist_ok=True);put(J/name,data)
+    except BaseException:
+        error=traceback.format_exc();put(J/(key+'_OWNER_ERROR.json'),dict(epoch=time.time(),error=error,active_not_falsely_cleared=active,remote_started=remote_started))
+        if active and remote_started:
+            terminal=None
+            while terminal is None:
+                account(run,go,rows)
+                try:
+                    if client is None or not client.get_transport() or not client.get_transport().is_active():
+                        client=connect(secret);sf=client.open_sftp();sf.get_channel().settimeout(30)
+                    send(sf,'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='own72 bridge exception; complete fullsave and safe close',fullsave_required=True))
+                    terminal=get(sf,'AGENT_'+key+'_EXIT.json')
+                except (EOFError,OSError,paramiko.SSHException):
+                    if client is not None:client.close()
+                    client=sf=None
+                if terminal is None:time.sleep(15)
+            assert terminal['all_own_waited'] and terminal['GPU_lease_released']
+            rows['supported200_v37_20000_86']=dict(terminal_all_own_children_waited=True,returncode=terminal['returncode'],owner_received_terminal_epoch=time.time())
+            account(run,go,rows,True);active=False
+        if active and not remote_started:
+            rows['supported200_v37_20000_86']=dict(terminal_all_own_children_waited=True,returncode=1,owner_received_terminal_epoch=time.time());account(run,go,rows,True);active=False
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        secret=None
+        for stream in [finite,private,*reversed(locks)]:
+            if stream is not None:stream.close()
+        put(J/(key+'_OWNER_EXIT.json'),dict(epoch=time.time(),error=error,all_own_waited=not active,original_cost_settled=not active,original_leases_released=True,SSHclosed=True,no_new_budget_or_refund=True))
+    if error:raise RuntimeError(error)
+
+if __name__=='__main__':main()

@@ -1,0 +1,23 @@
+"""One read-only original-authority context while this owner is queued."""
+import json,shlex,sys,time
+from pathlib import Path
+D=Path(__file__).resolve().parent
+sys.path.insert(0,str(D.parent/'scut_native_v36'))
+from host_access import connect
+from dispatch86 import fresh
+from control import put
+fresh();c=None;restore=lambda:None
+try:
+    c,restore,py=connect('72')
+    code="""import json,pathlib,subprocess,time
+p=pathlib.Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json')
+c=json.loads(p.read_bytes())
+print(json.dumps(dict(epoch=time.time(),canonical=str(p),remaining=c['remaining_training_seconds'],active=c['active_segment'],locks=json.loads(subprocess.check_output(['lslocks','--notruncate','--json','--output','PID,COMMAND,TYPE,MODE,PATH'],text=True)))))
+"""
+    i,o,e=c.exec_command(shlex.quote(py)+' -B -c '+shlex.quote(code),timeout=30);i.close()
+    raw=o.read().decode();err=e.read().decode();assert o.channel.recv_exit_status()==0,err[-1000:]
+    v=json.loads(raw);put('QUEUED_AUTHORITY_CONTEXT',v)
+    print(json.dumps(dict(epoch=v['epoch'],remaining=v['remaining'],active=v['active'])))
+finally:
+    if c:c.close()
+    restore()

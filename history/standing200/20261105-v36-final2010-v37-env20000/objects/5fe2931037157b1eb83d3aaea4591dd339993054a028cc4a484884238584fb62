@@ -1,0 +1,21 @@
+"""V18 saved-pose renderer with the declared released v2 identity."""
+from pathlib import Path
+import json,sys,time,traceback
+R=Path(__file__).resolve().parent.parent
+sys.path[:0]=[str(R),str(R/'scut_recipe_v18')]
+import render_standing_recorded_v1 as base
+base.USD_SHA='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18'
+P=R/'scut_recipe_v18/render.py'
+text=P.read_text()
+text=text.replace('view.mkdir(parents=True, exist_ok=False)','view.mkdir(parents=True, exist_ok=True)')
+report=R/'reports/SCUT36_V2_RENDER_ACTUAL.json'
+value=dict(epoch=time.time(),previous_error='Original V18 renderer asserted fixedv1 USD identity before rendering; prior replayinput retained',
+    new_USD_SHA=base.USD_SHA,source_PT_reads=0,new_physics=0)
+try:
+    ns=dict(__name__='v36_v2_renderer',__file__=str(P))
+    exec(compile(text,str(P),'exec'),ns);ns['main']()
+    value['passed']=True
+except BaseException:
+    value['error']=traceback.format_exc();raise
+finally:
+    with report.open('x') as f:json.dump(value,f,indent=2)

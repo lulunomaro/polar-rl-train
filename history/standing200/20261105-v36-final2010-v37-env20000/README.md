@@ -1,0 +1,7 @@
+人类要求本chat支持上200mm台阶任务使用20000env。V36的4096环境在完整PPO边界保存final2010，独立80及当前模型原生回放完成：strict0/80，14terminated/66timeout，无双轮台顶。实际低身偏航绕圈，不称技能通过。原回传cap及v1renderidentity错误连同修复均保留。
+
+V37只改并行环境数，MOD4v2HW300N60/SCUT原系数/L0.334/theta-2/yaw/有符号轮距2cm/蹭沿豁免和物理PPO保持。来源final2010真实SHA，单decode恢复actorcriticSTD/17Adam40200/LR1e-5/globalRNG/scalarclock；人口依赖D0D7/queues/privateRNG fresh20000并一次physicalreset。
+
+实际ENTRY02后台队列已启动，当前原canonical由另一个训练窗持有；尚无本任务GO/PPO/FIRST。原writer在真实release后自动在86GPU0准入，一小时fullsave+300exit。唯一localcollector28708等待原窗口保存后收实际FIRST480000samples和terminal；UI关闭仍执行。不得把计划20000称实际首轮通过。
+
+本阶段记录部署/失败/队列；后续actualFIRST/评测用普通补充，不重record/retag。大型媒体/NPZ/PT/USD与CONTROL_CURVES只publishedpathbytesSHA。原V36及所有旧tag/peels不修改。

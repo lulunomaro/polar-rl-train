@@ -1,0 +1,57 @@
+"""Rebind the agent before firstGO; retire only our own empty queued bridge."""
+from pathlib import Path
+import hashlib,json,shlex,sys,time,traceback
+from control import D,PREV,plan,put,query,RUNTIME
+from host_access import connect
+from dispatch86 import fresh
+p=plan();fresh();clients=[];streams=[];restores=[]
+value=dict(epoch=time.time(),reason='Symlink agent resolves its own __file__ to old job; explicit supported argv2 is required before anyGO',training_started=False,PT_reads=0,new_physics=0)
+try:
+    for host in ['72','86']:
+        c,restore,py=connect(host);clients.append(c);restores.append(restore);s=c.open_sftp();s.get_channel().settimeout(30);streams.append(s)
+    c72,c86=clients;s72,s86=streams
+    owner=p['authority72_root'];job=p['host86_root']
+    code="""import json,pathlib,psutil,os,signal,time
+J=pathlib.Path(REPLACE_OWNER)
+p=psutil.Process(1670159)
+assert abs(p.create_time()-1793878588.82)<.02
+assert p.exe()=='/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2'
+assert p.cmdline()[-2:]==[str(J/'owner86_bridge.py'),'train']
+assert not (J/'GO_PRODUCTION.json').exists()
+c=json.loads(pathlib.Path('/home/lc01/Zonglin Li/zonglin2/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json').read_bytes())
+assert c['active_segment'] and c['active_segment']['owner_parent_pid']!=p.pid
+before=dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),children=[x.pid for x in p.children(recursive=True)])
+assert not before['children']
+p.terminate()
+for _ in range(50):
+ if not psutil.pid_exists(before['pid']):break
+ try:
+  if psutil.Process(before['pid']).status()=='zombie':break
+ except psutil.NoSuchProcess:break
+ time.sleep(.1)
+after=not psutil.pid_exists(before['pid']) or psutil.Process(before['pid']).status()=='zombie'
+assert after
+print(json.dumps(dict(before=before,own_queued_controller_stopped=True,GO_existed=False,foreign_canonical_unchanged=True,no_training_process_touched=True)))
+""".replace('REPLACE_OWNER',repr(owner))
+    py72='/home/lc01/Zonglin Li/zonglin2/run-python.sh'
+    value['retired_empty_queued_owner']=query(c72,py72,code)
+    raw=(D/'agent86_20000.py').read_bytes()
+    with s86.open(job+'/agent86_20000.py','wx') as f:f.write(raw)
+    manifest=json.loads((D/'INSTALL86_MANIFEST.json').read_bytes())
+    manifest['files'].append(dict(path=job+'/agent86_20000.py',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+    with s86.open(job+'/INSTALL86_MANIFEST.json','wb') as f:f.write(json.dumps(manifest,indent=2))
+    (D/'INSTALL86_MANIFEST02.json').write_text(json.dumps(manifest,indent=2))
+    text=(D/'owner86_bridge.py').read_text()
+    assert text.count("REMOTE+'/agent86.py'")==1
+    text=text.replace("REMOTE+'/agent86.py'","REMOTE+'/agent86_20000.py'")
+    (D/'owner86_bridge02.py').write_text(text)
+    with s72.open(owner+'/owner86_bridge02.py','wx') as f:f.write(text)
+    value['passed']=True
+except BaseException:
+    value['error']=traceback.format_exc();raise
+finally:
+    for s in streams:s.close()
+    for c in clients:c.close()
+    for restore in restores:restore()
+    value.update(SSHclosed=True,SESSION_restored=True);put('PREGO_AGENT_BINDING_REPAIR',value)
+print(json.dumps(value))

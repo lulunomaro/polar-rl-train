@@ -1,0 +1,39 @@
+"""Complete only the two omitted NPZ files after the original96MiB cap."""
+from pathlib import Path
+import hashlib,json,time,traceback
+from host_access import connect,R
+from dispatch86 import fresh,put
+from production02_prepare import PROD
+
+def main():
+    marker=R/'reports/SCUT36_CLOSED86_NPZ_REMAINDER_ONCE.json'
+    assert not marker.exists()
+    dest=R/'actual_closed'/Path(PROD).parent.name
+    dest=R/'actual_closed'/(Path(PROD).parent.name+'_PRODUCTION02')
+    failed=json.loads((R/'reports/SCUT36_CLOSED86_TRANSFER_ERROR.json').read_bytes())
+    assert failed['once_consumed']
+    result=json.loads((dest/'evaluation/RESULT.json').read_bytes())
+    rows=[];c=sf=None;restore=lambda:None
+    fresh()
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(60)
+        put(marker.name,dict(epoch=time.time(),reason='Original transfer completed86MB curves then hit96MiB aggregate cap before eitherNPZ; remainder only, no replay or duplicate transfer'))
+        total=0
+        for key in ['all80_manifold','actual_poses']:
+            row=result[key];p=dest/'evaluation'/Path(row['path']).name
+            assert not p.exists() and row['path'].startswith(PROD+'/evaluation/')
+            total+=row['bytes'];assert total<24*1024**2
+            with sf.open(row['path'],'rb') as f:raw=f.read(row['bytes']+1)
+            assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+            with p.open('xb') as f:f.write(raw)
+            rows.append(dict(**row,local_path=str(p)))
+        put('SCUT36_CLOSED86_NPZ_REMAINDER_ACTUAL.json',dict(epoch=time.time(),files=rows,bytes=total,source_PT_reads=0,new_physics=0,original_transfer_error_preserved=True))
+        print(json.dumps(dict(files=len(rows),bytes=total,evaluation=str(dest/'evaluation'))))
+    except BaseException:
+        put('SCUT36_CLOSED86_NPZ_REMAINDER_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),files=rows));raise
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();put('SCUT36_CLOSED86_NPZ_REMAINDER_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

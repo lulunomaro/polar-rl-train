@@ -1,0 +1,55 @@
+"""Index changed text, priorclosed results and published media rows only."""
+from pathlib import Path
+import hashlib,importlib.util,json,subprocess,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+PHASE=REPO/'history/standing200/20261105-v36-final2010-v37-env20000'
+def main():
+    assert not (PHASE/'INDEX.json').exists()
+    tag='trial-20261105-supported200-mod4v2-env20000-v37'
+    assert not subprocess.check_output(['git','-C',str(REPO),'tag','--list',tag],text=True).strip()
+    spec=importlib.util.spec_from_file_location('archive_redact',REPO/'archive_tools/capture_history.py');red=importlib.util.module_from_spec(spec);spec.loader.exec_module(red)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files=set()
+    for root in [D,R/'scut_native_v36']:
+        files.update(p for p in root.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.md','.txt','.log','.usda'} and '__pycache__' not in p.parts)
+    files.update((R/'reports').glob('SCUT36*.json'));files.update((R/'reports').glob('SCUT37*.json'))
+    files.add(R/'reports/QUEUED_AUTHORITY_CONTEXT')
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    closed=R/'actual_closed/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02'
+    files.update(p for p in closed.rglob('*.json') if p.name!='CONTROL_CURVES.json')
+    # Small content-addressed source cache is already archived; no need to
+    # duplicate it. The static INSTALL manifests provide every dependencySHA.
+    rows=[];(PHASE/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,n=red.redact(raw.decode('utf-8-sig'));content=raw if not n else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();archive=known.get(sha)
+        if archive is None:
+            target=PHASE/'objects'/sha;target.write_bytes(content);archive=target.relative_to(REPO).as_posix();known[sha]=archive
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=archive,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='redacted_text' if n else 'complete_text'))
+    error=json.loads((R/'reports/SCUT36_CLOSED86_TRANSFER_ERROR.json').read_bytes())
+    large=[r for r in error['files'] if r['remote_path'].endswith('CONTROL_CURVES.json')]
+    for p in [closed/'evaluation/RESULT.json',closed/'rendered_actual/RENDER_REPORT.json',closed/'rendered_actual/CURVE_SOURCE.json',R/'reports/SCUT36_FINAL2010_ACTUAL_NUMERIC_ANALYSIS.json']:
+        j=json.loads(p.read_bytes())
+        large.extend(j.get('artifacts',[]));large.extend(j.get('media',[]))
+        large.extend(j[k] for k in ('all80_manifold','actual_poses') if k in j)
+        if 'plot' in j:large.append(j['plot'])
+        if 'source' in j and isinstance(j['source'],dict) and 'SHA' in j['source']:large.append(j['source'])
+    index=dict(epoch=time.time(),kind='V36_ACTUAL_FINAL2010_REVIEW_AND_HUMAN_V37_ENV20000_HOST86_QUEUED',rows=rows,large_artifacts_published_only=large,
+        training_envs=20000,actual_training_started=False,actual_FIRST_pending=True,
+        prior_V36_trial_not_re_recorded=True,source_PT_reads_for_archive=0,large_curve_reads_for_archive=0,
+        failure_reports_preserved=['V36transferaggregatecap','V18v1rendereridentity','V37WindowsPathseparator','V37broadstringreplaceSyntaxError','V37queuedagentresolvedoldjob','V37workordercontextfilename'])
+    (PHASE/'INDEX.json').write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (PHASE/'README.md').write_text('''人类要求本chat支持上200mm台阶任务使用20000env。V36的4096环境在完整PPO边界保存final2010，独立80及当前模型原生回放完成：strict0/80，14terminated/66timeout，无双轮台顶。实际低身偏航绕圈，不称技能通过。原回传cap及v1renderidentity错误连同修复均保留。
+
+V37只改并行环境数，MOD4v2HW300N60/SCUT原系数/L0.334/theta-2/yaw/有符号轮距2cm/蹭沿豁免和物理PPO保持。来源final2010真实SHA，单decode恢复actorcriticSTD/17Adam40200/LR1e-5/globalRNG/scalarclock；人口依赖D0D7/queues/privateRNG fresh20000并一次physicalreset。
+
+实际ENTRY02后台队列已启动，当前原canonical由另一个训练窗持有；尚无本任务GO/PPO/FIRST。原writer在真实release后自动在86GPU0准入，一小时fullsave+300exit。唯一localcollector28708等待原窗口保存后收实际FIRST480000samples和terminal；UI关闭仍执行。不得把计划20000称实际首轮通过。
+
+本阶段记录部署/失败/队列；后续actualFIRST/评测用普通补充，不重record/retag。大型媒体/NPZ/PT/USD与CONTROL_CURVES只publishedpathbytesSHA。原V36及所有旧tag/peels不修改。
+''',encoding='utf-8')
+    print(json.dumps(dict(phase=str(PHASE),textrows=len(rows),newobjects=len(list((PHASE/'objects').iterdir())),large_rows=len(large))))
+if __name__=='__main__':main()

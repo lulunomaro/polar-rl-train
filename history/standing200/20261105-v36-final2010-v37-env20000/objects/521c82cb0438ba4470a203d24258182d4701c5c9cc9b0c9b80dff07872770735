@@ -1,0 +1,32 @@
+"""Place a regular eval entry beforeGO; keep all immutable sources referenced."""
+import ast,hashlib,json,sys,time,traceback
+from pathlib import Path
+from control import D,R,plan,put
+from host_access import connect
+from dispatch86 import fresh
+p=plan();fresh();clients=[];streams=[];restores=[];value=dict(epoch=time.time(),preGO_only=True)
+try:
+    for host in ['72','86']:
+        c,restore,_=connect(host);clients.append(c);restores.append(restore);s=c.open_sftp();s.get_channel().settimeout(30);streams.append(s)
+    a,b=streams;job=p['host86_root']
+    try:a.stat(p['authority72_root']+'/GO_PRODUCTION.json')
+    except FileNotFoundError:pass
+    else:raise RuntimeError('GO already issued; no preGO change allowed')
+    assert b.lstat(job+'/evaluate.py').st_mode&0o170000==0o120000
+    assert b.readlink(job+'/evaluate.py').endswith('/production02/evaluate.py')
+    b.remove(job+'/evaluate.py')
+    raw=(D/'evaluate.py').read_bytes();ast.parse(raw.decode())
+    with b.open(job+'/evaluate.py','wx') as f:f.write(raw)
+    manifest=json.loads((D/'INSTALL86_MANIFEST02.json').read_bytes())
+    manifest['files'].append(dict(path=job+'/evaluate.py',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/'evaluate.py')))
+    with b.open(job+'/INSTALL86_MANIFEST.json','wb') as f:f.write(json.dumps(manifest,indent=2))
+    (D/'INSTALL86_MANIFEST03.json').write_text(json.dumps(manifest,indent=2))
+    value.update(passed=True,evaluation_output_own_directory=True,training_started=False,SDK=0,PT=0,physics=0)
+except BaseException:
+    value['error']=traceback.format_exc();raise
+finally:
+    for s in streams:s.close()
+    for c in clients:c.close()
+    for restore in restores:restore()
+    value.update(SSHclosed=True,SESSION_restored=True);put('EVAL_DIRECTORY_BINDING_PREGO',value)
+print(json.dumps(value))

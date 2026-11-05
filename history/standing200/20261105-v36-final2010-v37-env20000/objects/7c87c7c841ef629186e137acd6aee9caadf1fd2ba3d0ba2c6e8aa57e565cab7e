@@ -1,0 +1,40 @@
+"""Launch corrected empty queued bridge at a distinct owner directory."""
+from pathlib import Path
+import json,shlex,sys,time,traceback
+from control import D,R,plan,put
+from host_access import connect,secret86
+from dispatch86 import fresh
+assert not (R/'reports/SCUT37_LAUNCH02_ONCE.json').exists()
+assert json.loads((R/'reports/SCUT37_PREGO_AGENT_BINDING_REPAIR.json').read_bytes())['passed']
+p=plan();old=p['authority72_root'];owner=old+'_ENTRY02';fresh();c=s=None;restore=lambda:None;secret=None
+try:
+    c,restore,py=connect('72');s=c.open_sftp();s.get_channel().settimeout(30);s.mkdir(owner)
+    s.symlink(old+'/ssh_deps',owner+'/ssh_deps')
+    for name,raw in [('owner86_bridge.py',(D/'owner86_bridge02.py').read_bytes()),('PLAN.json',(D/'PLAN.json').read_bytes())]:
+        with s.open(owner+'/'+name,'wx') as f:f.write(raw)
+    s.close();s=None
+    deployment=dict(authority72_root=owner,original_empty_bridge_retired=old,actual_entry_repair='agent explicitjob argv2',GO_not_previously_sent=True)
+    with (D/'DEPLOYMENT02.json').open('x') as f:json.dump(deployment,f,indent=2)
+    put('LAUNCH02_ONCE',dict(epoch=time.time(),run_id=p['run_id'],owner=owner,training_envs=20000))
+    secret=secret86()
+    code="""import sys,subprocess,psutil,json,time
+from pathlib import Path
+secret=sys.stdin.readline().rstrip('\\r\\n')
+J=Path(REPLACE_OWNER)
+with (J/'PRODUCTION_BRIDGE.log').open('xb') as log:
+ p=subprocess.Popen([REPLACE_PY,'-u','-B',str(J/'owner86_bridge.py'),'train'],cwd=J,stdin=subprocess.PIPE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,text=True)
+ p.stdin.write(secret+'\\n');p.stdin.close()
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd(),owner=REPLACE_OWNER,training_envs=20000)))
+""".replace('REPLACE_OWNER',repr(owner)).replace('REPLACE_PY',repr(py))
+    i,o,e=c.exec_command(shlex.quote(py)+' -B -c '+shlex.quote(code),timeout=45)
+    i.write(secret['password']+'\n');i.flush();i.channel.shutdown_write();secret=None
+    raw=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status()
+    if rc:raise RuntimeError(err[-2000:])
+    actual=json.loads(raw);put('LAUNCH02_ACTUAL',actual);print(json.dumps(actual))
+except BaseException:
+    put('LAUNCH02_ERROR',dict(epoch=time.time(),error=traceback.format_exc()));raise
+finally:
+    if s:s.close()
+    if c:c.close()
+    restore();secret=None;put('LAUNCH02_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))

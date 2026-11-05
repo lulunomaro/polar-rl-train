@@ -1,0 +1,66 @@
+"""Analyze saved V36 first episodes, including continuous v2 joints."""
+from pathlib import Path
+import hashlib,json,time
+import numpy as np
+from scipy.spatial.transform import Rotation
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+R=Path(__file__).resolve().parent.parent
+RUN='MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02'
+A=R/'actual_closed'/RUN;E=A/'evaluation';V=A/'rendered_actual'
+
+def longest(mask):
+    current=np.zeros(mask.shape[1],int);peak=current.copy()
+    for row in mask:current=np.where(row,current+1,0);peak=np.maximum(peak,current)
+    return peak*.0025
+
+def main():
+    result=json.loads((E/'RESULT.json').read_bytes());eps=json.loads((E/'ALL80.json').read_bytes())['first_episodes']
+    with np.load(E/'actual400hz.npz',allow_pickle=False) as f:a={k:f[k].copy() for k in f.files}
+    active=a['active'].astype(bool);t=a['tick']*.0025;after=active&(t[:,None]>=1.)
+    pos=a['root_pos']-np.asarray(result['origins'])[None]
+    edge=(a['chassis_edge_force']>1)&active;support=(a['support_body_top'].sum(-1)>1)&active
+    both=(a['top_force']>1).all(-1)&active
+    angles=Rotation.from_quat(a['root_quat'].reshape(-1,4)[:,[1,2,3,0]]).as_euler('xyz').reshape(len(t),80,3)
+    curves=json.loads((E/'CONTROL_CURVES.json').read_bytes())['curves']
+    ca=np.asarray([x['active'] for x in curves],bool)
+    target=np.asarray([x['joint_pos_target'] for x in curves]);joint=np.asarray([x['joint_pos_measured'] for x in curves])
+    weighted={k:np.asarray([x['reward_terms'][k] for x in curves]) for k in curves[0]['reward_terms']}
+    q=[0,.1,.5,.9,1]
+    def quant(x):return np.quantile(x,q).tolist() if np.size(x) else None
+    value=dict(epoch=time.time(),run_id=RUN,source=result['source'],
+        actual_evaluation=dict(passed_execution=result['passed_execution'],cases=80,seed=9137,strict=result['strict'],
+            whole=sum(x['whole_footprint'] for x in eps),both_top_envs=int(both.any(0).sum()),max_top_force_N=float(a['top_force'][active].max()),
+            terminated=sum(x['terminated'] for x in eps),timeouts=sum(x['time_out'] for x in eps),controls_unique=sorted(set(x['controls'] for x in eps)),
+            seconds_unique=sorted(set(x['seconds'] for x in eps)),closure_resets=sum(x['closure_reset'] for x in eps),mimic_resets=sum(x['mimic_reset'] for x in eps),
+            numerical_resets=sum(x['numerical_safety'] for x in eps),roll_excess=sum(x['source_roll_excess'] for x in eps),pitch_excess=sum(x['source_pitch_excess'] for x in eps),
+            contact_reset_disabled_all=all(x['contact_reset_disabled'] for x in eps)),
+        manifold=dict(active400Hz_records=int(active.sum()),active_controls=int(ca.sum()),edge_envs=int(edge.any(0).sum()),
+            body_top_envs=int(support.any(0).sum()),chassis_top_envs=int(((a['chassis_top_force']>1)&active).any(0).sum()),
+            root_z_after1_quantiles=quant(pos[:,:,2][after]),root_z_peak_after1_quantiles=quant(np.max(np.where(after,pos[:,:,2],-999),0)),
+            final_x_quantiles=quant(pos[-1,:,0]),yaw_abs_after1_quantiles=quant(np.abs(angles[:,:,2][after])),signed_span_after1_quantiles=quant(a['wheel_span'][after]),
+            support_longest_seconds=quant(longest(support)),unsupported_longest_seconds=quant(longest(active&~(a['support_force']>1).any(-1)))),
+        actuator=dict(decoded_target_min=target[ca].min(0).tolist(),decoded_target_max=target[ca].max(0).tolist(),
+            measured_min=joint[ca].min(0).tolist(),measured_max=joint[ca].max(0).tolist(),active_axes_continuous=True,old_v1_half_rad_hip_limit_not_applicable=True),
+        reward=dict(weighted_per_control_mean={k:float(v[ca].mean()) for k,v in weighted.items()},weighted_episode_mean_sum={k:float(np.where(ca,v,0).sum(0).mean()) for k,v in weighted.items()}),
+        decision=dict(human_requested_population=20000,source_final2010=True,reward_physics_PPO_unchanged=True,
+            reason='Explicit human20000 request after only33newPPO in4096; retain actual failed80 results and examine next finite window, no new skill claim'),
+        native_review_pending=True,source_PT_reads=0,new_physics=0,
+        curve_rows=[r for r in json.loads((R/'reports/SCUT36_CLOSED86_TRANSFER_ERROR.json').read_bytes())['files'] if r['remote_path'].endswith('CONTROL_CURVES.json')],
+        artifacts=[result['all80_manifold'],result['actual_poses']])
+    V.mkdir(exist_ok=True)
+    fig,axes=plt.subplots(4,2,figsize=(12,12),sharex='row')
+    for i,env in enumerate([0,1,40,41]):
+        keep=ca[:,env];ts=np.arange(1,len(curves)+1)[keep]*.02
+        for j,k in enumerate([1,3]):
+            axes[i,j].plot(ts,target[keep,env,k],label='Applied target');axes[i,j].plot(ts,joint[keep,env,k],label='Measured')
+            axes[i,j].set_title(f'env{env} {"left" if j==0 else "right"} continuous hip');axes[i,j].grid(alpha=.2)
+            if i==0:axes[i,j].legend()
+    fig.suptitle('V36 final2010 actual saved hip target / measured');fig.tight_layout()
+    p=V/'ACTUAL_HIP_TARGET_VS_MEASURED.png';fig.savefig(p,dpi=140);plt.close(fig)
+    value['artifacts'].append(dict(path=str(p),bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest()))
+    with (R/'reports/SCUT36_FINAL2010_ACTUAL_NUMERIC_ANALYSIS.json').open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(evaluation=value['actual_evaluation'],manifold=value['manifold'],reward_mean=value['reward']['weighted_per_control_mean'])))
+
+if __name__=='__main__':main()

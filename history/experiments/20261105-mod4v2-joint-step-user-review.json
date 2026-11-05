@@ -1,0 +1,23 @@
+{
+  "id": "20261105-mod4v2-joint-step-user-review",
+  "tag": "trial-20261105-mod4v2-joint-step-user-review",
+  "title": "MOD4v2 user-requested reopened joint/200mm-step GUI review; actual205frames normal close",
+  "kind": "diagnostic",
+  "recorded_at": "2026-11-05T08:55:52.558917+00:00",
+  "repair_or_experiment_note": "# MOD4v2关节/200mm台阶窗口：用户重新查看后的补充记录\n\n用户明确要求重新打开，随后说“我看完了，继续git”。本次是独立GUI查看会话，不是新训练、策略评测、PhysX或实车验收；“看完”不改写为“工程通过”。\n\n## 实际启动和结束\n\n- 新会话：[reopen_20261105_164916](<sessions/reopen_20261105_164916/STARTED.json>)，同一未改动的关节工具与场景，新metadata目录保存，不覆盖首次查看记录。\n- launcher PID67000，实际GUI child PID57612；实际读取到HWND135135562和标题“MOD4v2 HW300N60 关节位置探针 | 200mm台阶 | 静态”。这次不是把venv redirector当窗口进程。\n- 16:49:18.838实际启动；16:50:04.089正常关闭，渲染205帧，关闭reason=window_closed，无ERROR文件、stderr为空；用户完成查看后进程已退出，未再重开。\n- [最后状态](<sessions/reopen_20261105_164916/CURRENT.json>)与[关闭记录](<sessions/reopen_20261105_164916/CLOSED.json>)完整保留。静态mj_forward、不积分、不自动抬root、无policy/训练。\n\n## 本次调节状态（描述，不是毕业分数）\n\n- 30个关节位置控件，实际200mm碰撞台阶，原v2资产未改。\n- 左hip=-.09948376736367678rad，crank=-1.1857055452612375rad，差角=-1.0862217778975607rad，接近CAD低折边界；左gas眼距152.606617514445mm。\n- 右hip=crank=-.24783675378319478rad，差角0；右gas眼距179.3605589098706mm。\n- 当前闭链最大误差约7.2797683e-13m、接触数0，仅静态检查结果，不声称真实止挡网格接触或动态可达。\n- 无新输入拒绝记录；完整各joint/root已记录字段以原JSON为准，不补造未保存的操作过程。\n\n## Git范围\n\n上次源码/场景/首次查看/控制器功能验证已在639d6543a3002eb133c03bd85cac27b86e750389，tag trial-20261105-mod4v2-joint-step-interactive-ui。本补充只保存本次重新查看会话六个源文件/日志和本说明/新归档源码，保留旧记录，不重跑GUI/模型/物理为Git取证。main只读；使用原record_experiment完整validation/redaction/hash、唯一annotated trial及真实远端branch/tag/peeled核验。后续原生PhysX、100Hz与实物曲线状态保持原pending，不因人工查看自动改变。\n",
+  "validation": "actual-independent-reopen-session20261105_164916;30joints-real200mm-collision-step;actual-windowPID57612-HWND135135562observed;205renderframes-normal-closed-noerror;userfinished-review-not-engineering-graduation;complete30joint-root-gas-closure-contacts-state-and-logs-preserved;originalassets-weights-Registry-budget-unchanged;noGUI-model-physics-oldonce-replay-forGit;original-recordvalidation-redaction-hashes-exact2scopedstagedset;featureonly-mainreadonly",
+  "source_and_evidence_sha256": {
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/CLOSED.json": "579f5cd30ef513aaf53175c29f03081600eee4a5db23c359d76124015df26c10",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/CURRENT.json": "da678a63029211e4c93ff40d25ef7a357ddad9ed362b2b023842cd4b0fa25a93",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/GUI_STDERR.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/GUI_STDOUT.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/interactive_scene.xml": "f91fb15138f2b32958ca33cfdfaa126f3e926f6fad75c7d4d9672261aef22484",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/sessions/reopen_20261105_164916/STARTED.json": "b749bd9f6bea1c9ae638269d3c925935b972e23e0a34c4fc00f2d49506be7bf0",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/USER_REVIEW_SESSION_V1.md": "d8a9383f90872a36ace71b35d663081dbab42472cc139f60d855e489025d8762",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/files/record_user_review_session_once.py": "6e7723b6a49467c175330320b8e9cfa1ca3edb0b18fd3b4b4b09e564b491b4e2",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/INDEX.json": "c4b4d5c569cd524c62399ddbee0da9c8caebe9574c9ec3e5cccd1979c261212a",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/.gitattributes": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
+    "history/experiments/mod4v2_joint_step_user_review_20261105/NOTE.md": "2bc25462ee6cb5f4a48154a4d25101db6b55ecad9c1b8098dd98090ccac8d31d"
+  },
+  "real_robot_certified": false
+}

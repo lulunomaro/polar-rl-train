@@ -31,7 +31,9 @@
 - [x] 仅将projection惩罚权重-2→-10；19CPU通过、旧stairs8复用，旧轨迹counterfactual核算不当新motion；1module63refs候选与唯一67764已绑定，先补齐全文再等actualSCUT33释放。
 - [x] sole67764已核SCUT33真实安全释放，但四卡在网络前被新读者拒绝，原false/stderr保留，未启动新小时。
 - [x] 仅恢复未执行准入：唯一72124/create09:39:02.687642绑定，本地等待W13真handoff/collector，SCUT34实际GO已核而W13仍PREGO；5项衔接CPU通过。
-- [ ] sole72124等待真实外部读者退出，消费实际W13 FIRST或核SCUT34原释放/canonicalNone/原锁/fresh四卡/预算后唯一新launch/FIRST489，再完整保存退出、独立80与全部新actualpose审看。
+- [x] sole72124核SCUT34真实释放，W13零GO退出/W14真实关闭并完成N80后fresh四卡/原余额通过；10:37唯一launchowner1649149，INDEX4files63refs/LAUNCH/FIRSTonce消费。
+- [x] weight10 ACTUAL VALID FIRST489/完整FULL_V4首存、restore48817Adam9760/480k样本20Adam/完整首轮0errors通过，旧72124退出，唯一collector71192自动绑定。
+- [ ] 原actualGO10:37:21.212291/SAVE11:37:21.212291/NOMINAL11:42:21.212291完整保存安全退出后立即独立80/全部新actualpose审看，据实测接续或完成；FIRST不当技能。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

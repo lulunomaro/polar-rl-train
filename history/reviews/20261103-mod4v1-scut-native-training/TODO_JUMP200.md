@@ -35,7 +35,8 @@
 - [x] weight10 ACTUAL VALID FIRST489/完整FULL_V4首存、restore48817Adam9760/480k样本20Adam/完整首轮0errors通过，旧72124退出，唯一collector71192自动绑定。
 - [x] weight10原窗完整保存退出、独立80/4新图/fulllearner1decode/全文errors0审完：final600/112PPO53.76M，17局37次contact-free entry均下降，0upwardflight/越沿/落台；旧71192结束。
 - [x] 仅修机身接地推蹬奖励：双轮净高5mm余量/20mm门控、10%ground shaping与weight4抬轮×正vz；23jump＋8stairs CPU通过，2modules64refs候选及sole51768已绑定。
-- [ ] sole51768核SCUT35 actualrelease/canonicalNone/原锁/fresh四卡/余额后唯一新launch/FIRST601/fullrestore60017Adam12000；完整保存退出立即独立80/新actualpose据证据接续。
+- [x] sole51768核SCUT35实际释放/fresh四卡/原余额后13:16:22唯一GO；ACTUAL VALID FIRST601/FULL_V4完整首存/restore60017Adam12000/完整首轮0errors通过，旧51768退出，唯一collector49432已绑定。
+- [ ] 本轮14:16:22保存边界后原owner完整安全退出、立即独立80与新actualpose审看；唯一49432正式回传，按真实向上离地/越沿/落台证据决定接续。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

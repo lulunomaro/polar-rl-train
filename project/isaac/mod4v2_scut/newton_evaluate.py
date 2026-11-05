@@ -86,6 +86,7 @@ def main(actor_loader=None):
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
             actual_Newton_MuJoCo_Warp=True,optimizer_operations=0,source_SHA=a.checkpoint_SHA,
             numerical_resets=int(env.numerical_reset_counts.sum()),
+            constraint_resets=int(env.constraint_reset_counts.sum()),
             solver_overflow_world_masks=env.solver_overflow_summary(),
             jump200_success=sum(r['success']for r in rows),jump200_wholeclear=sum(r['wholeclear']for r in rows),
             jump200_landed_top=sum(r['landed_top']for r in rows),

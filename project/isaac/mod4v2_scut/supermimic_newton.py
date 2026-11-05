@@ -78,12 +78,25 @@ class FudanPPOResidualPolicy(torch.nn.Module):
         return (base+self.residual(history,goal).tanh()).clamp(-6,6)
 
 
-def warmstarted_learner(base_learner,teacher):
+def warmstarted_learner(base_learner,teacher,replay_storage='cpu'):
     """Keep the entire PPO checkpoint as source; BPTT has its own optimizers."""
     class FudanNewtonLearner(base_learner):
+        @property
+        def buffer(self):return self._replay
+
+        @buffer.setter
+        def buffer(self,value):
+            # The fixed upstream constructors create two replay schemas in
+            # succession. Release each device allocation before Newton creates
+            # its collision workspace; retain every field at full precision.
+            if replay_storage=='cpu':
+                value.data={key:tensor.to('cpu')for key,tensor in value.data.items()}
+                value.device=torch.device('cpu')
+            self._replay=value
+
         def __init__(self,*args,**kwargs):
             super().__init__(*args,**kwargs)
-            self.buffer=valid_replay(self.buffer)
+            self.buffer=valid_replay(self.buffer,self.device)
 
         def _make_policy(self):
             return FudanPPOResidualPolicy(super()._make_policy(),teacher)
@@ -122,7 +135,7 @@ def warmstarted_learner(base_learner,teacher):
     return FudanNewtonLearner
 
 
-def valid_replay(original):
+def valid_replay(original,sample_device=None):
     """Drop only numerical-invalid labels, while retaining their stream cuts."""
     from ctx_reward_learner import ContextReplayBuffer
     class ValidReplay(ContextReplayBuffer):
@@ -132,11 +145,15 @@ def valid_replay(original):
             self.data=dict(original.data)
             self.fields['sample_valid']=((),torch.bool)
             self.data['sample_valid']=torch.ones(self.T,self.N,dtype=torch.bool,device=self.device)
+            self.sample_device=torch.device(self.device if sample_device is None else sample_device)
+
+        def _batch(self,value):
+            return {key:tensor.to(self.sample_device)for key,tensor in value.items()}
 
         def add(self,transition):
             super().add(transition)
             row=(self.ptr-1)%self.T
-            self.data['stream_cut'][row]|=~transition['sample_valid']
+            self.data['stream_cut'][row]|=~transition['sample_valid'].to(self.device)
 
         def _valid_draw(self,B,max_age=None):
             size=self.size if max_age is None else max_age
@@ -151,7 +168,7 @@ def valid_replay(original):
 
         def sample_transitions(self,B):
             age,env=self._valid_draw(B);row=self._row(age)
-            return {k:v[row,env]for k,v in self.data.items()}
+            return self._batch({k:v[row,env]for k,v in self.data.items()})
 
         def sample_windows(self,B,k):
             if not 1<=k<=self.size:raise ValueError('Invalid WM window')
@@ -163,7 +180,7 @@ def valid_replay(original):
             cut=out['done']|self.data['stream_cut'][rows,env]|~valid
             out['mask']=valid.float()*torch.cumprod(torch.cat((torch.ones(B,1,device=self.device),
                 1-cut[:,:-1].float()),-1),-1)
-            return out
+            return self._batch(out)
 
         def sample_starts(self,B,hist):
             age,env=self._valid_draw(B);row=self._row(age)
@@ -173,7 +190,7 @@ def valid_replay(original):
             rows=self._row(age[:,None]-back);envs=env[:,None].expand_as(rows)
             start={k:self.data[k][row,env]for k in ('s','a_prev','xi','f')}
             history={k:self.data[k][rows,envs]for k in ('s','a_prev','xi','f')}
-            return start,history
+            return self._batch(start),self._batch(history)
     return ValidReplay()
 
 
@@ -225,7 +242,7 @@ class NewtonSuperMimicBridge:
         if self.pre is None:raise RuntimeError('Real pre-reset physical endpoint missing')
         snap=self.real.terminal_snapshot;term=snap['terminated'];trunc=snap['time_out']
         assert torch.equal(done,term|trunc)
-        valid=~snap['numerical_reset']
+        valid=snap['physical_transition_valid']
         context=self.context(obs);next_valid=context.clone();next_valid[done]=0
         transition=dict(s=old['s'],s1=self.pre,a=action.clone(),a_prev=old['a_prev'],
             xi=old['xi'],xi1=next_valid,xi1_valid=~done,r=reward.detach().clone(),

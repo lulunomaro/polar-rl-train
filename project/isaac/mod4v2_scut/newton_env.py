@@ -236,6 +236,7 @@ class NewtonEnv:
         self.physics_eager_warmed = False
         self.numerical_reset_counts=torch.zeros(n,dtype=torch.long,device=device)
         self.numerical_reset_events=[]
+        self.constraint_reset_counts=torch.zeros(n,dtype=torch.long,device=device)
         self.solver_overflow_latched=torch.zeros(n,dtype=torch.int32,device=device)
         # The footprint is fixed for this environment. Loading its source YAML
         # and recreating its grid at50Hz dominated the local sampling profile.
@@ -390,6 +391,7 @@ class NewtonEnv:
     def step(self,actions):
         p,d,r=self.plant,self.data,self.reward
         numerical_latched=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)
+        constraint_latched=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)
         applied=actions.clamp(-6.,6.)
         self.pending_actions.copy_(applied)
         targets=applied[:,:4]*.5
@@ -445,11 +447,20 @@ class NewtonEnv:
                     &torch.isfinite(d.body_pos_w).flatten(1).all(-1)
                     &torch.isfinite(d.body_quat_w).flatten(1).all(-1)
                     &torch.isfinite(d.body_lin_vel_w).flatten(1).all(-1))
-            badids=(~finite).nonzero().flatten()
+            # The original10mm loop and.01rad mimic episode thresholds must
+            # be enforced before another2.5ms step, rather than after8steps.
+            # A few finite-but-diverging worlds otherwise explode before the
+            # control endpoint and contaminate sensors/acceptance/replay.
+            physics_closure,physics_mimic=self.closure_errors()
+            constraint_bad=(physics_closure>.01)|(physics_mimic>.01)
+            badids=(~finite|constraint_bad).nonzero().flatten()
             if len(badids):
-                numerical_latched[badids]=True
-                self.numerical_reset_counts[badids]+=1
-                event=dict(physics_tick=self.physics_ticks,count=len(badids),envs=badids[:32].tolist())
+                numerical_latched|=~finite
+                constraint_latched|=constraint_bad
+                self.numerical_reset_counts[~finite]+=1
+                self.constraint_reset_counts[constraint_bad]+=1
+                event=dict(physics_tick=self.physics_ticks,count=len(badids),envs=badids[:32].tolist(),
+                    numerical_count=int((~finite).sum()),constraint_count=int(constraint_bad.sum()))
                 if len(self.numerical_reset_events)<200:self.numerical_reset_events.append(event)
                 print('NEWTON_NUMERICAL_EPISODE_RESET '+json.dumps(event),flush=True)
                 # The task's numerical safety is a per-environment episode
@@ -465,6 +476,10 @@ class NewtonEnv:
                 self.contacts.rigid_contact_normal,self.observables.contact_f,self.model.shape_body,
                 p.state.body_q,self.wheel_slots,self.model.body_world,
                 wp.from_torch(self.top_force),wp.from_torch(self.ground_force)],device=self.device)
+            if len(badids):
+                self.net_force[badids]=0.
+                self.top_force[badids]=0.;self.ground_force[badids]=0.
+            self.physics_transition_valid=~(numerical_latched|constraint_latched)
             if self.physics_ticks%2==0:
                 self.contact_history[:,1:]=self.contact_history[:,:-1].clone()
                 self.contact_history[:,0]=self.net_force
@@ -474,19 +489,19 @@ class NewtonEnv:
             self.acceptance.update_world(d.body_pos_w[:,self.wheel_bodies],d.body_quat_w[:,self.wheel_bodies],
                 self.contract,self.scene.env_origins,self.top_force,self.ground_force,
                 self.net_force[:,self.wheel_bodies],nonwheel,d.root_lin_vel_w,d.root_quat_w,
-                torch.ones(self.num_envs,dtype=torch.bool,device=self.device))
+                self.physics_transition_valid)
             if self.physics_observer is not None:self.physics_observer(self)
         self.common_step_counter+=1;self.episode_length_buf+=1
         ground,wheels,far,far_hits,near,near_hits=self.scans()
         finite=torch.isfinite(d.joint_pos).all(-1)&torch.isfinite(d.joint_vel).all(-1)
         closure,mimic=self.closure_errors()
-        hard=(closure>.01)|(mimic>.01)|~finite|numerical_latched
+        hard=(closure>.01)|(mimic>.01)|~finite|numerical_latched|constraint_latched
         r.begin(applied,r.command,r.height_cmd,hard,~finite|numerical_latched,self.episode_length_buf,
                 self.contact_history,ground,wheels,far,far_hits,near,near_hits)
         terminated,timeout=r._get_dones()
         terminated|=hard;timeout&=~hard
         rewards=r.compute()
-        rewards[numerical_latched]=0.
+        rewards[numerical_latched|constraint_latched]=0.
         self.terminal_snapshot=dict(root_pos=d.root_pos_w.clone(),root_quat=d.root_quat_w.clone(),
             wheels=d.body_pos_w[:,self.wheel_bodies].clone(),top_force=self.top_force.clone(),
             ground_force=self.ground_force.clone(),flight_id=self.acceptance.flight_id.clone(),
@@ -501,6 +516,8 @@ class NewtonEnv:
             command=r.command.clone(),command_height=r.height_cmd.clone(),
             contact_force=self.net_force.clone())
         self.terminal_snapshot['numerical_reset']=numerical_latched.clone()
+        self.terminal_snapshot['constraint_reset']=constraint_latched.clone()
+        self.terminal_snapshot['physical_transition_valid']=~(numerical_latched|constraint_latched)
         done=terminated|timeout;ids=done.nonzero().flatten()
         if len(ids):
             self.completed_episodes+=len(ids);self.completed_strict+=int(self.acceptance.success[ids].sum())

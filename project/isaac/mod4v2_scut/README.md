@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 05时更新：Newton上一完整小时实际final881/261新PPO，日志均37325.8控制step/s；独立80仍0真实200mm成功，约束异常原报告保留。新段将原10mm闭链/.01rad mimic重置落实到400Hz，异常control不进入SuperMimic标签。首个20k BPTT段因碰撞工作区显存不足而0更新退出；修复后2.26GB完整replay放内存，仅batch送GPU，保留20k/物理/奖励/H32。环形采样逐值比对、真实4环境H32及四优化器/replay完整恢复通过。正式20k新段实际FIRST/H32跨时间和WM路径梯度、参数变化及2.329GB完整首存均通过，原PPO来源保留；仍有数值/约束重置，技能与稳态速度待本轮独立80和完整日志。见`FINAL881_AND_SUPERMIMIC_MEMORY_REPAIR.md`。
+
 2026-11-06最新要求实际使用Newton/MuJoCo-Warp；`newton_model.py`、`newton_env.py`、`newton_checkpoint.py`、`newton_train.py`与`newton_evaluate.py`实现Kit独立的Newton SolverMuJoCo桥接。明确更换物理解算器，保留原模型、6闭环/4mimic、300N60mm气缸、D0–D7组件、35/78观测、复旦16项公式和完整PPO状态。当前不是Isaac Lab3管理器全迁移。正式20k状态与速度以工作单真实FIRST为准，小批量PPO或局部测试不能冒称生产成功。
 
 用户要求先启动真实一小时PPO，再在训练中开发SuperMimic BPTT兼容。现有mod4-10已改为同聊天每30分钟ACTIVE：训练中做兼容，没训练优先评测/回放/续训；真200mm跳跃达标后换Isaac Lab台阶地图，SuperMimic实际梯度、更新和保存兼容通过后在保存边界切换。执行条件和原话见`NEWTON_MIGRATION_AND_SUPERMIMIC.md`与工作单。实际mod4-200-rl-bptt属于其它聊天的ACTIVE任务，不修改它。

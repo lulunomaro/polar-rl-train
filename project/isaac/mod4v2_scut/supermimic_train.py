@@ -1,7 +1,7 @@
 """Finite Newton/Fudan learned-model BPTT, launched only at a saved boundary."""
 from dataclasses import asdict
 from pathlib import Path
-import argparse,hashlib,json,os,random,signal,time,traceback
+import argparse,gc,hashlib,json,os,random,signal,time,traceback
 import numpy as np
 import torch
 
@@ -52,6 +52,10 @@ def build(env,source,binding,log,small=False):
         teacher=runner.alg.actor
         config=source['args']
     else:raise ValueError('Expected complete Newton PPO or SuperMimic checkpoint')
+    # Only the actor is used as teacher. PPO rollout storage, critic and Adam
+    # remain preserved at the source checkpoint, not duplicated on this GPU.
+    del runner
+    gc.collect();torch.cuda.empty_cache()
     cfg=make_config(Config,small)if config is None else Config(**config)
     bridge=NewtonSuperMimicBridge(env)
     cls=warmstarted_learner(Base,teacher)
@@ -60,6 +64,7 @@ def build(env,source,binding,log,small=False):
         aux_hidden=aux_hidden,aux_batch=cfg.wm_batch)
     if source['format']==FORMAT:learner.restore_full(source)
     else:restore_rng(after_reset_rng)
+    gc.collect();torch.cuda.empty_cache()
     return learner,bridge
 
 
@@ -100,6 +105,11 @@ def main():
             learner='SuperMimic learned dynamics/context/reward H32 BPTT',
             reward_family='FUDAN_JUMP',source_PPO=source_ref,model=env.plant.receipt,
             config=asdict(learner.cfg),replay_bytes=memory,
+            replay_storage_device=str(learner.buffer.device),
+            replay_sample_device=str(learner.buffer.sample_device),
+            torch_allocated_bytes=torch.cuda.memory_allocated(),
+            torch_reserved_bytes=torch.cuda.memory_reserved(),
+            CUDA_memory_free_total=list(torch.cuda.mem_get_info()),
             original_PPO_complete_checkpoint_untouched=True,numerical_invalid_replay_excluded=True,
             physical_reset_resume=True,exact_solver_state_resume=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda*args:stop.__setitem__(0,True))
@@ -124,6 +134,7 @@ def main():
                 collection_seconds=collection,iteration_seconds=seconds,
                 counts=asdict(learner.counts),wm_losses=losses,auxiliary=learner.last_aux,
                 bptt=learner.last_bptt_receipt,numerical_resets=int(env.numerical_reset_counts.sum()),
+                constraint_resets=int(env.constraint_reset_counts.sum()),
                 solver_overflow_world_masks=env.solver_overflow_summary())
             put(job/'LATEST_PROGRESS.json',progress)
             if not first_saved and learner.last_bptt_receipt.get('verified_bptt_optimizer_step'):
@@ -136,6 +147,7 @@ def main():
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=ck,
             verified_BPTT_steps=learner.counts.pi_bptt_optimizer_steps,
             numerical_resets=int(env.numerical_reset_counts.sum()),
+            constraint_resets=int(env.constraint_reset_counts.sum()),
             jump200_completed=env.completed_strict))
     except BaseException:
         error=traceback.format_exc();put(job/'ERROR.json',dict(epoch=time.time(),error=error));raise

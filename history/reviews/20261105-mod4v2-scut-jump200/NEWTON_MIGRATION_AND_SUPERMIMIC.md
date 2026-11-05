@@ -1,5 +1,7 @@
 # Newton迁移与SuperMimic交叉推进
 
+2026-11-06 05:02最高实际更新：PPO已完整final881/独立80/全部4图原生审阅，0真实200mm成功。原20k SuperMimic尝试显存不足0更新退出；CPU完整replay与GPU抽样修复后，`supermimic_final881_host_replay02_1h`真实FIRST H32更新与完整首存通过。旧PPO仅作为冻结teacher完整来源保留，四个BPTT优化器独立。当前sole15096负责05:59:59保存后的80和正式回传，不再用下文历史35288/开发pending状态。详情见`FINAL881_AND_SUPERMIMIC_MEMORY_REPAIR.md`及工作单；数值/约束重置仍据实记录，FIRST不等技能毕业。
+
 2026-11-06人类要求实际使用Newton/MuJoCo-Warp，并在正式一小时PPO开始后开发SuperMimic BPTT兼容。当前mod4-10已更新为当前聊天每30分钟ACTIVE。实际mod4-200-rl-bptt已属于其它聊天的ACTIVE任务，不修改它；旧PAUSED描述已过时。
 
 执行顺序：

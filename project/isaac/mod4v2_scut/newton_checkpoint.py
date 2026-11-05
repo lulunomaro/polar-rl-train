@@ -25,6 +25,7 @@ def environment_state(env):
         physics_ticks=env.physics_ticks,common_step_counter=env.common_step_counter,
         completed_episodes=env.completed_episodes,completed_strict=env.completed_strict,
         numerical_reset_counts=env.numerical_reset_counts.clone(),
+        constraint_reset_counts=env.constraint_reset_counts.clone(),
         solver_overflow_latched=env.solver_overflow_latched.clone())
 
 
@@ -45,7 +46,7 @@ def restore_environment_streams(env,data,iteration):
     for key,value in data['source_global_counters'].items():setattr(env.reward,key,int(value))
     for key in ('physics_ticks','common_step_counter','completed_episodes','completed_strict'):
         if key in data:setattr(env,key,int(data[key]))
-    for key in ('numerical_reset_counts','solver_overflow_latched'):
+    for key in ('numerical_reset_counts','constraint_reset_counts','solver_overflow_latched'):
         if key in data:getattr(env,key).copy_(data[key].to(env.device))
     for group in env._physics_action_delay.groups.values():group['last_apply_tick'].fill_(-1)
     env.reset(torch.arange(env.num_envs,device=env.device))
@@ -103,6 +104,7 @@ def save(runner,env,path):
         source_global_counters={k:int(getattr(env.reward,k))for k in ('_value_debug_step','common_step_counter')},
         physics_ticks=env.physics_ticks,newton_source=env.plant.receipt,
         numerical_reset_counts=env.numerical_reset_counts.clone(),
+        constraint_reset_counts=env.constraint_reset_counts.clone(),
         solver_overflow_latched=env.solver_overflow_latched.clone(),
         resume_scope='Full PPO/DR/RNG/queue continuation, then one fresh physical episode')
     path=Path(path);tmp=path.with_name(path.name+'.partial')

@@ -1,0 +1,18 @@
+"""Same20000 population full restore; reuse proven V21 component/queue path."""
+from pathlib import Path
+import hashlib
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='e0b09d5d6a20c0fa290a539b961eb524714c452ee8789c38ed9fea43477ee3f7'
+text=raw.decode().replace("LEGACY='MOD4V1_SCUT_STANDING_RECIPE_V20'","LEGACY='MOD4V2_SCUT_STANDING200_V36_L0_THETA'")
+text=text.replace("FORMAT='MOD4V1_SCUT_STANDING_RECIPE_V21_SOURCE_CLOCK'","FORMAT='MOD4V2_SCUT_STANDING200_V38_UNCAPPED_YAW'")
+needle="        states=actual['optimizer_state_dict']['state']"
+assert text.count(needle)==1
+text=text.replace(needle,"        assert data['num_envs']==20000 and data['iter']==2041\n"+needle)
+needle="        verified.update(actor_critic_STD_complete_Adam_equal=True"
+assert text.count(needle)==1
+text=text.replace(needle,"        assert len(steps)==17 and min(steps)==max(steps)==40820\n"+needle)
+needle="            state['source_clock_semantics']='original reward-tail debug enabled only'"
+assert text.count(needle)==1
+text=text.replace(needle,needle+"\n            state['v38_reward_descriptor']=dict(L0_target_m=.334,theta_weight=-2.,heading_cost='-(wrap(yaw)/.35)^2',same20000_full_components=True,SCUT_coefficients_unchanged=True)")
+exec(compile(text,str(P),'exec'),globals())

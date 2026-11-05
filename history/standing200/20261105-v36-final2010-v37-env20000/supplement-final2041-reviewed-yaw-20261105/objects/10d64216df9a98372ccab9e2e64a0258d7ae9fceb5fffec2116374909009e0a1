@@ -1,0 +1,60 @@
+"""Preserve completed native review and quantify one yaw-reward correction."""
+from pathlib import Path
+import json,time
+import numpy as np
+from scipy.spatial.transform import Rotation
+
+D=Path(__file__).resolve().parent;R=D.parent
+RUN='MOD4_STANDING200_SUPPORTED_V37_ENV20000_1793878393149078100'
+A=R/'actual_closed'/RUN
+
+def main():
+    numeric=json.loads((R/'reports/SCUT37_FINAL2041_ACTUAL_NUMERIC_ANALYSIS.json').read_bytes())
+    geometry=json.loads((R/'reports/SCUT37_FINAL2041_SAVED_L0_THETA_AUDIT.json').read_bytes())
+    with np.load(A/'evaluation/actual400hz.npz',allow_pickle=False) as z:
+        q=z['root_quat'];active=z['active'].astype(bool);ticks=z['tick']
+    yaw=Rotation.from_quat(q.reshape(-1,4)[:,[1,2,3,0]]).as_euler('xyz')[:,2].reshape(active.shape)
+    endpoint=(ticks%8==0)
+    angles=yaw[endpoint];keep=active[endpoint]
+    old=-np.minimum((angles/.35)**2,4.)*.02
+    new=-(angles/.35)**2*.02
+    old_mean=float(old[keep].mean())
+    logged=numeric['reward']['weighted_per_control_mean']['stand32_heading']
+    assert abs(old_mean-logged)<2e-6,(old_mean,logged)
+    assert np.allclose(old[np.abs(angles)<=.7],new[np.abs(angles)<=.7])
+    assert -(.9/.35)**2 > -(1.4/.35)**2
+    after=active&(ticks[:,None]*.0025>=1.)
+    diagnostic=dict(old_heading_cost='-min((wrap(yaw)/.35)^2,4)',
+        candidate_heading_cost='-(wrap(yaw)/.35)^2',coefficient_unchanged=1.,
+        saturation_at_radians=.7,saturation_at_degrees=float(np.rad2deg(.7)),
+        saturated_fraction_after1=float((np.abs(yaw[after])>=.7).mean()),
+        envs_ever_saturated=int(((np.abs(yaw)>=.7)&active).any(0).sum()),
+        old_weighted_control_mean_reconstructed=old_mean,old_logged_mean=logged,
+        reconstruction_absolute_error=abs(old_mean-logged),
+        candidate_weighted_control_mean_on_old_poses=float(new[keep].mean()),
+        unchanged_inside_40_degree_band=True,other_reward_terms_changed=0,
+        no_new_behavior_claim=True,PT_reads=0,new_physics=0)
+    value=dict(epoch=time.time(),run_id=RUN,final=numeric['source'],
+        native_review_completed=True,reviewer='current model native view_image',
+        images_actually_reviewed=[str(A/'rendered_actual'/n) for n in
+            [f'ACTUAL_env{e}_{v}.png' for e in (0,1,40,41) for v in ('side','top')]+
+            ['ACTUAL_400HZ_ROUTE_SUPPORT_CURVES.png','ACTUAL_HIP_TARGET_VS_MEASURED.png']],
+        visual_findings=['Initially upright robot folds low; both wheels stay on lower ground.',
+            'Oblique lip approach and lateral drift precede leaving the finite ground and falling.',
+            'Brief chassis/lip impacts do not become stable support or wheel-top contacts.',
+            'Continuous v2 right/left hip targets differ substantially; measured response follows with load-dependent gaps. Old v1 hip limits do not apply.'],
+        actual_evaluation=numeric['actual_evaluation'],manifold=numeric['manifold'],
+        L0_theta_saved_pose_evidence=geometry,
+        geometry_conclusion='Saved-pose reconstruction confirms actual short legs and wheel displacement; no L0/theta arithmetic defect established.',
+        yaw_counterfactual=diagnostic,
+        next_decision=dict(version='V38',action='new small overlay; full20000 same-population final2041 restore; uncapped yaw penalty only',
+            reason='Actual80 yaw drift reaches a flat heading-cost region and leaves the finite ground; correct that measured objective gap before another window.',
+            preserve=['Original SCUT stair coefficients','L0 .334m before/after step, no contact gate','theta -2 sum squares','signed lateral span penalty','v2 mechanics/fullDR/physics/PPO','actor critic STD Adam LR and all20000 population streams'],
+            causal_limit='Counterfactual proves lost heading sensitivity, not that it uniquely causes crouching or predicts ascent success.',
+            skill_pass=False,identical_failed_hour_repeated=False,accounting_gate=False),
+        closed_transfer_render_eval_consumed=True,source_PT_reads=0,new_physics=0)
+    with (R/'reports/SCUT37_FINAL2041_NATIVE_REVIEW_V38_DECISION.json').open('x',encoding='utf-8') as f:
+        json.dump(value,f,ensure_ascii=False,indent=2)
+    print(json.dumps(diagnostic))
+
+if __name__=='__main__':main()

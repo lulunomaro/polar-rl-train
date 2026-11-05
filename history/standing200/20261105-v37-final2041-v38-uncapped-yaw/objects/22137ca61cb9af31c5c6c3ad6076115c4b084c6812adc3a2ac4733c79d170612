@@ -1,0 +1,50 @@
+"""Record only this small phase and published artifact rows; no large rereads."""
+from pathlib import Path
+import hashlib,importlib.util,json,subprocess,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261105-v37-final2041-v38-uncapped-yaw'
+
+def main():
+    name=sys.argv[1] if len(sys.argv)>1 else 'initial'
+    if name=='initial':
+        dest=BASE
+        assert not (BASE/'INDEX.json').exists()
+        assert not subprocess.check_output(['git','-C',str(REPO),'tag','--list','trial-20261105-supported200-mod4v2-env20000-yaw-v38'],text=True).strip()
+    else:
+        assert name.startswith('supplement-') and '/' not in name and '\\' not in name
+        dest=BASE/name;assert (BASE/'INDEX.json').exists() and not (dest/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v38_archive_redact',REPO/'archive_tools/capture_history.py')
+    red=importlib.util.module_from_spec(spec);spec.loader.exec_module(red)
+    known={}
+    for index in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(index.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.md','.log','.txt'} and '__pycache__' not in p.parts}
+    files.update((R/'reports').glob('SCUT38*.json'))
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    rows=[];(dest/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,n=red.redact(raw.decode('utf-8-sig'));content=safe.encode() if n else raw
+        sha=hashlib.sha256(content).hexdigest();out=known.get(sha)
+        if out is None:
+            target=dest/'objects'/sha;target.write_bytes(content);out=target.relative_to(REPO).as_posix();known[sha]=out
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=out,archive_SHA=sha,archive_bytes=len(content),redactions=n,mode='redacted_text' if n else 'complete_text'))
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    value=dict(epoch=time.time(),kind='V38_UNCAPPED_HEADING_SAME20000_FULL_RESTORE',rows=rows,
+        actual_status=w['status'],source_checkpoint=w['source_binding']['learning_source'],
+        V37_closed_supplement='history/standing200/20261105-v36-final2010-v37-env20000/supplement-final2041-reviewed-yaw-20261105/INDEX.json',
+        PT_reads_for_archive=0,NPZ_media_curve_reads_for_archive=0,shared_source_asset_runtime_referenced=True)
+    (dest/'INDEX.json').write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    note='''V37 20000env final2041 produced31PPO/14.88million samples but independent80strict0,78earlytermination/2timeout. Actual saved-pose v2replay and native tenimage review show crouching, yaw/lateral drift and departure from finite ground; no wheeltopsupport. Full closure/evaluation/transfer/render are consumed and preserved in the linked V37supplement.
+
+V38 corrects one measured objective gap: extra headingcost saturated at0.7rad, covering92.381% of after1second actual samples. Old saved-endpoint reward reconstruction agrees to1.06e-9. Remove only this saturation, retainingcoefficient1 and all user-selected originalSCUT coefficients/L0.334/theta-2/span/contactexemptions. This does not establish unique causality or skill success.
+
+Fresh new small host86task references the existing runtime/asset/source; no clonedSDK. Restore final2041 complete learning and same20000components/queues/allRNG then onefreshphysicalreset. Private GPU0 admitted empty, actualGO21:47:31+08, save22:47:31/nominalexit22:52:31. No ledger operations per explicit human repeal. Single background collector verifies actual fullrestore/FIRST, then sleeps locally until save and later closes/transfers actual80. No foreign tasks changed. Prepare01 invalid evaluate.HERE assertion and corrected prepare02 both retained. Actual FIRST status is in INDEX/workorder; planned values are not execution evidence.
+
+Allnewsource/reports/errors/workorder/automation are captured or SHA-deduplicated. This phase uses one annotatedtrial; future additions ordinarysupplements. Largeartifacts use published pathbytesSHA only; no rereadPT/NPZ/86MBcurve forGit. Prior tags and peels preserved.
+'''
+    (dest/'README.md').write_text(note,encoding='utf-8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())))))
+
+if __name__=='__main__':main()

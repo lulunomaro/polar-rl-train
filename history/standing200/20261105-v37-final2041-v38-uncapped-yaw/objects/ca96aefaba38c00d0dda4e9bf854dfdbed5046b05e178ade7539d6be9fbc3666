@@ -1,0 +1,20 @@
+"""Reuse bounded host86 collector; this new run has its own receipts only."""
+from pathlib import Path
+import hashlib,importlib.util,sys
+D=Path(__file__).resolve().parent;PREV=D.parent/'scut_native_v37_env20000'
+sys.path.append(str(PREV))
+
+def load_local(name,path):
+    spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec)
+    sys.modules[name]=m;spec.loader.exec_module(m);return m
+
+# Dependency imports use this run's control.D/plan/put, and immutable prior
+# helper bodies. No prior once or transfer method is executed here.
+transfer=load_local('collect_background',PREV/'collect_background.py')
+transfer.__file__=str(PREV/'collect_background.py')
+P=PREV/'collect_direct86.py'
+text=P.read_text().replace('SCUT37_','SCUT38_').replace('DIRECT86_LAUNCH02_ACTUAL','LAUNCH_ACTUAL')
+text=text.replace("src=(D/'collect_background.py').read_text()","src=(PREV/'collect_background.py').read_text()")
+text=text.replace("compile(text,'direct86_bounded_close_transfer'", "compile(text.replace('SCUT37_','SCUT38_'),'v38_bounded_close_transfer'")
+text=text.replace("    p=plan();put('DIRECT_COLLECTOR_ONCE'", "    p=plan();put('DIRECT_COLLECTOR_ONCE'")
+exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(D/'collect.py'),PREV=PREV))

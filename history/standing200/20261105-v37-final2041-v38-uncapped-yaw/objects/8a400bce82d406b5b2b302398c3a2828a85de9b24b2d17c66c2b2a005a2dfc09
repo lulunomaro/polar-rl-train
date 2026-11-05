@@ -1,0 +1,16 @@
+"""Keep L0/theta/span; remove only the heading cost's 0.7-rad saturation."""
+from pathlib import Path
+import hashlib,importlib.util
+P=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02/reward_model.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='4b00affafbe39007af18ef1847e81a872d5b96327ac349db644e0edaba4e175b'
+spec=importlib.util.spec_from_file_location('v38_preserved_v36_geometry',P)
+old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+virtual_legs=old.virtual_legs
+wheel_geometry=old.wheel_geometry
+contact_termination=old.contact_termination
+L0_TARGET=old.L0_TARGET
+def geometry_costs(xp,theta,span,yaw,nominal_span):
+    values=old.geometry_costs(xp,theta,span,yaw,nominal_span)
+    values['stand32_heading']=-(yaw/.35)**2
+    return values

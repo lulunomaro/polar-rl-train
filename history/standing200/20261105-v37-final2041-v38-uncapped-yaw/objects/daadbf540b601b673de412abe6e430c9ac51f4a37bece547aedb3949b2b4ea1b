@@ -1,0 +1,14 @@
+"""V36 user-selected recipe with one measured heading sensitivity correction."""
+from pathlib import Path
+import hashlib
+P=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='fbd73ab3d1bbcc539444bb5e67a118d461b387b4ff2ea6b14a1a369ea9072a8a'
+text=raw.decode().replace('MOD4V2_SCUT_STANDING200_V36_L0_THETA','MOD4V2_SCUT_STANDING200_V38_UNCAPPED_YAW')
+exec(compile(text,str(P),'exec'),globals())
+previous_install=install
+def install(stage,source_stage=None):
+    receipt=previous_install(stage,source_stage)
+    receipt['v38_heading_delta']=dict(old='-min((wrap(yaw)/.35)^2,4)',new='-(wrap(yaw)/.35)^2',
+        coefficient=1.,original_SCUT_coefficients_preserved=True,L0_theta_span_unchanged=True)
+    return receipt

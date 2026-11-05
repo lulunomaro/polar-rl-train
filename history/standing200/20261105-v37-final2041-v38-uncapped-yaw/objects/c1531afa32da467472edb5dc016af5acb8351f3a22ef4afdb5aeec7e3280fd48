@@ -1,0 +1,95 @@
+"""Publish actual local evidence; keep old work orders as history."""
+from pathlib import Path
+from datetime import datetime,timezone,timedelta
+import json,time
+D=Path(__file__).resolve().parent;R=D.parent
+
+def main():
+    p=json.loads((D/'PLAN.json').read_bytes())
+    launch=json.loads((R/'reports/SCUT38_LAUNCH_ACTUAL.json').read_bytes())
+    init=json.loads((R/'reports/SCUT38_INITIALIZATION_ACTUAL.json').read_bytes())
+    old=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    before=R/'reports/SCUT38_PREVIOUS_WORK_ORDER_HISTORICAL.json'
+    if not before.exists():before.write_text(json.dumps(old,ensure_ascii=False,indent=2),encoding='utf-8')
+    firstpath=R/'reports/SCUT38_FIRST_COMPLETE_ACTUAL.json'
+    first=json.loads(firstpath.read_bytes()) if firstpath.exists() else None
+    published=json.loads((D/'DIRECT86_PUBLISHED.json').read_bytes()) if (D/'DIRECT86_PUBLISHED.json').exists() else {}
+    closedpath=R/'reports/SCUT38_DIRECT_COLLECTOR_CLOSED.json'
+    collectorclosed=json.loads(closedpath.read_bytes()) if closedpath.exists() else None
+    error=published.get('error') or (collectorclosed or {}).get('error')
+    reviewpath=R/'reports/SCUT37_FINAL2041_NATIVE_REVIEW_V38_DECISION.json'
+    review=json.loads(reviewpath.read_bytes())
+    go=launch['GO']
+    def local(epoch):return datetime.fromtimestamp(epoch,timezone(timedelta(hours=8))).isoformat()
+    times={k:local(go[k]) for k in ('learning_started_epoch','save_deadline','nominal_end_epoch')}
+    status='V38_MOD4V2_ENV20000_HOST86_ACTUAL_FIRST2042' if first else 'V38_MOD4V2_ENV20000_HOST86_GO_INITIALIZING'
+    if error:status='V38_ACTUAL_ERROR_NEEDS_OWN_TERMINAL_DIAGNOSIS'
+    w=dict(schema='MOD4_STANDING200_CURRENT_V38',updated_local=local(time.time()),root=str(R),status=status,
+        automation_id='mod4-200-rl-bptt',automation_target_thread='01a19cd8-1c1f-79f3-8e55-9e2d7559dc8b',
+        automation_status='ACTIVE_EVERY30MIN_QUIET_HEALTHY',
+        current_scope='Supported ascent on a single real200mm vertical step and horizontal top; wheels/chassis/guides may scrape/support; no compulsory flight.',
+        human_scope_override='This chat has explicit task-specific MOD4v2 V33-derived full-learning continuation,20000env and noaccountinggate; otherchat randomjump200/100h untouched.',
+        accounting_policy=old['accounting_policy'],run_id=p['run_id'],execution_host='86',host86_root=p['host86_root'],remote_job=p['host86_root'],
+        num_envs=20000,selected_GPU=dict(host='86',index=0,uuid=p['GPU_UUID'],admitted_compute_empty=init['files']['PRODUCTION_RESOURCE.json']),
+        training_started=True,training_completed=False,training_skill_pass=False,
+        current_GO=go,absolute_times=times,original_save_local=times['save_deadline'],original_nominal_local=times['nominal_end_epoch'],
+        current_state_evidence=str(firstpath if first else R/'reports/SCUT38_INITIALIZATION_ACTUAL.json'),
+        original_worker_current=init['postexec_identities'].get('WORKER_IDENTITY.json'),
+        original_agent_current=init['postexec_identities'].get('AGENT_PRODUCTION_STARTED.json'),
+        current_first_actual=first.get('FIRST') if first else None,current_full_restore=first.get('full_restore') if first else None,
+        current_first_complete_checkpoint=first['FIRST']['checkpoint'] if first else None,current_error=error,
+        current_background_collector=dict(pid=30172,creation='2026-11-05T21:48:44.151344+08:00',source=str(D/'collect.py'),
+            published=str(D/'DIRECT86_PUBLISHED.json'),once='reports/SCUT38_DIRECT_COLLECTOR_ONCE.json',closed=collectorclosed),
+        previous_closed_run=dict(run_id=review['run_id'],final=review['final'],actual_evaluation=review['actual_evaluation'],manifold=review['manifold'],
+            current_model_native_review_completed=True,review=str(reviewpath),closed_transfer_eval_render_consumed=True,
+            learned_new_PPO=31,onpolicy_samples=14880000,physics_ticks=5952,
+            AGENT_PRODUCTION_EXIT=json.loads((R/'actual_closed'/review['run_id']/'AGENT_PRODUCTION_EXIT.json').read_bytes()),
+            collectorclosed='reports/SCUT37_DIRECT_COLLECTOR_CLOSED.json'),
+        current_reward_policy=dict(source='SCUT saved stairYAML85e82dc8 fixedcoefficients',source_commit=p['source_SCUT_commit'],
+            L0_target_m=.334,L0='actual3D hipaxis anchor to wheelcenter; samebefore/afterstep; no bothcontactgate',
+            theta0='atan2(bodydx,-bodydz)',theta_coefficient=-2.,theta_cost='thetaL^2+thetaR^2',
+            signed_lateral_span='contractnominal with2cm tolerance; no verticallegliftcost',
+            yaw_delta='remove -min((wrap(yaw)/.35)^2,4) saturation; now -(wrap(yaw)/.35)^2; coefficient1 unchanged',
+            evidence=review['yaw_counterfactual'],forward_extension_ratio='HumanoriginalSCUTcoefficients choice overrides earlierforwardgreaterrequest'),
+        current_contact_policy='Wheels/chassis/eightguides exempt fromcost; otherstructurallinks penalized; contactresetsoff.',
+        new_asset=old['new_asset'],limits=dict(physics_dt=.0025,TGS=[32,4],closure_episode_m=.01,mimic_rad=.01,
+            max_window_s=3900,save_at_s=3600,exit_headroom_s=300),
+        source_binding=dict(native='V36native02 alreadyactual; no newnative needed',learning_source=p['resume_checkpoint'],
+            fullrestore='same20000 actorcriticSTD/17Adam40820/LR1e-5/iter2041/globalnamedRNG/components/queues then onefreshphysicalreset; verifyactualreceipt',
+            physics='HW300N60 v2 releasedasset + PhysX110 finiteopenendexpression; actualCADstopsgasmechanics preserved',
+            actor=35,critic=78,rollout=24,epochs=5,minibatches=4,clip_actions=None),
+        strict_acceptance='Both wholewheel footprints actual200mmplatformtop stable>=.5s/vxyvz<=.03/rp<=10deg/yaw<=.2/no return/unsupported<=.1s; supportallowed.',
+        current_model_independent_evaluation=None,current_model_native_reviewed=False,
+        V37_actual_record=old.get('V37_actual_record'),V38_actual_record=old.get('V38_actual_record'),
+        archival_new_phase='history/standing200/20261105-v37-final2041-v38-uncapped-yaw',
+        archival_new_trial='trial-20261105-supported200-mod4v2-env20000-yaw-v38',
+        latest_handoff=str(D/'ACTUAL_HANDOFF.md'),prior_work_order_snapshot=str(before),
+        next='Solecollector verifiesactualfullrestore/FIRST, sleepslocallyhealthy then actualterminal/onceclosedtransfer; replayandwhole80reviewbeforefurthertraining.',
+        next_action='Read localpublishedonly whilecollectoractive; no repeatedSSHreader/FIRST/native/inventory/PTdecode.')
+    (R/'CURRENT_WORK_ORDER.json').write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    text=f'''# Actual V38 20000env host86 continuation
+
+{status}. Run `{p['run_id']}` at `{p['host86_root']}`.
+GO {times['learning_started_epoch']}; SAVE {times['save_deadline']}; NOMINAL {times['nominal_end_epoch']}. Nominal time is not terminal evidence.
+Agent694632/creation1793886450.41 and worker694643/creation1793886450.64 exactpostexec loader/argv in SCUT38_INITIALIZATION_ACTUAL. GPU86GPU0 GPU-90a66ae2-f536-7033-79c0-487536ae36d3 admittedempty. Noledgeroperation; humanaccountingoverridecontinues.
+
+V37 final2041 38976423B SHA449db547f015e253660a3f2bcc5a85bf74840335e0ba7c19132f2d22a7f09ea9 completefullsave,31newPPO,14880000samples,5952physics. Actualsafeclose/eval80/agentownwaitGPUrelease/collectorclosed/onceclosedtransfer/v2savedposerender/currentmodel10imagescompleted. strict0whole0bothtop0,78terminated2timeout,closure/mimic/numerical0,roll77pitch16overlap. Rootzafter1median.20238 and fleetingtopsupportmedian.025s/max.0875s; no wheeltopforce. Do not repeatV37closed/eval/render/FIRST.
+
+Savedposes confirm actualL0short andthetaoffset; no arithmeticdefectestablished. V37actual1s+92.381% ofvalidticks hadyawabs>=.7rad whereoldheadingcostcaps. CPU400Hzendpointreconstructionoldmeanerror1.06e-9. V38onlyremovesyawcostcap,keepscoefficient1/SCUToriginalcoefficients/L0.334/theta-2/span2cm/contactexemptions/physics/actionsPPO. No claimthisuniquelycausescrouchorsolvesascent.
+
+Sourcefinal2041 same20000 fulllearning/Adam40820/LR1e-5/iteration/globalnamedRNG/components/queues then onefreshphysicalreset. FIRST2042 expected24controls480000samples/192physics20Adam; actualreceipt required. CurrentFIRST {'actual report SCUT38_FIRST_COMPLETE_ACTUAL exists' if first else 'pending; do not call completePPO/fullrestore orskillpass'}.
+
+Onlycollector30172/create2026-11-05T21:48:44.151344+08 collect.py. Itreadsown86beforeFIRST,thenlocalsleepsuntilsave; healthynonewSSH. TerminalAGENT_PRODUCTION_EXIT allownwaitedGPUreleaseand80actualresults then ownonce metadataNPZ64MiB/curvesseparate96MiB,localcollectorclosedSSHclosed. No72ownerreceipt/accountinggate. UserUIclose/Escbackgroundauthorizationpersists. Thenv2savedposefinite0NN0newphysics/currentmodelview_image4case8side/top+400Hz+hiptargetreview,actual80decision; error/unevalnot0/80.
+
+Prepare01wrongassertionevaluate.HERE beforeGO preserved; correctedcheckevaluate.__file__.parent passedprepare02. Oldfrozenfilesunchanged,native02reused. NoLuna/OpenRouter/subagent/newchat/newGoal/newautomation. Sameautomationmod4-200-rl-bptt30minquiethealthy.
+
+V37uniquetriale0e04337112d1a4751f352b7270f01f920dcea2e/annotated4055565b13ccbc0a11c29f0e52a7a536307a9692unchanged; onlyordinarysupplementforV37. V38newphaseusesuniqueid/tagonce; checkactualINDEX/tagbeforearchive/record; afterrecordordinarysupplements. Allsource/false/reports/workorders/automationGit; artifactsjustpublishedpathbytesSHA,nocurvereread/PTdecodeforGit. PostGittooloutputonly.
+'''
+    (D/'ACTUAL_HANDOFF.md').write_text(text,encoding='utf-8')
+    oldhand=R/'scut_native_v37_env20000/ACTUAL_HANDOFF.md'
+    marker='## Closed final2041; currentV38 takes precedence'
+    if marker not in oldhand.read_text():
+        with oldhand.open('a',encoding='utf-8') as f:f.write('\n'+marker+'\n\nV37actualclosed/eval80/native10imagesconsumed; strict0/80,78terminated2timeouts. CurrentV38source/GO/collectorsee scut_native_v38_yaw/ACTUAL_HANDOFF.md andCURRENT_WORK_ORDER.json. Do not repeatV37closedtransfer/evaluation/render.\n')
+    print(json.dumps(dict(status=status,FIRST_actual=first is not None,error=error)))
+
+if __name__=='__main__':main()

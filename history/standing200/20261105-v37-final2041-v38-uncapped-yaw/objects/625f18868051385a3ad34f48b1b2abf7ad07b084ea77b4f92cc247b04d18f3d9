@@ -1,0 +1,171 @@
+"""Small host86 continuation: saved source references, one GPU, no ledger."""
+from pathlib import Path
+import ast,hashlib,json,shlex,sys,time,traceback
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+from host86_prepare import RUNTIME,query
+from dispatch86 import fresh
+PREV=R/'scut_native_v37_env20000'
+OLD=json.loads((PREV/'PLAN.json').read_bytes())['host86_root']
+UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+
+def put(name,value):
+    with (R/'reports'/('SCUT38_'+name+'.json')).open('x',encoding='utf-8') as f:
+        json.dump(value,f,ensure_ascii=False,indent=2)
+
+def plan():return json.loads((D/'PLAN.json').read_bytes())
+
+def prepare():
+    assert not (D/'PLAN.json').exists()
+    review=json.loads((R/'reports/SCUT37_FINAL2041_NATIVE_REVIEW_V38_DECISION.json').read_bytes())
+    assert review['native_review_completed'] and not review['next_decision']['skill_pass']
+    closed=R/'actual_closed'/json.loads((PREV/'PLAN.json').read_bytes())['run_id']
+    agent=json.loads((closed/'AGENT_PRODUCTION_EXIT.json').read_bytes())
+    assert agent['error'] is None and agent['all_own_waited'] and agent['GPU_lease_released']
+    assert json.loads((R/'reports/SCUT37_DIRECT_COLLECTOR_CLOSED.json').read_bytes())['local_collector_closed']
+    p=json.loads((PREV/'PLAN.json').read_bytes())
+    run='MOD4_STANDING200_SUPPORTED_V38_ENV20000_YAW_'+str(time.time_ns())
+    job=OLD.rsplit('/',1)[0]+'/'+run
+    p.update(run_id=run,remote_root=job,host86_root=job,authority72_root=None,
+        assets=job+'/v2package/assets',guard=job+'/guard.py',source_checkpoint=review['final'],resume_checkpoint=review['final'],
+        num_envs=20000,accounting_gate=False,source_review=str(R/'reports/SCUT37_FINAL2041_NATIVE_REVIEW_V38_DECISION.json'),
+        changes=['Remove heading penalty saturation at0.7rad only; preserve originalSCUT coefficients and humanL0/theta/span.',
+                 'Restore same20000 full learning/components/queues/allRNG then onefreshphysicalreset.'],
+        full_restore_expected=dict(Adam_states=17,Adam_steps_each=40820,source_iteration=2041,source_envs=20000,new_envs=20000,learning_rate=1e-5),
+        native_probe='Reuse V36native02; no mechanical/SDK/physical delta. Yaw formula CPU and saveddata checks only.')
+    p.pop('original_strictreserve',None)
+    (D/'PLAN.json').write_text(json.dumps(p,indent=2),encoding='utf-8')
+    # These entry files must be regular so __file__ resolves to the new job.
+    for name in ['worker86.py','evaluate.py']:
+        with (D/name).open('xb') as f:f.write((PREV/name).read_bytes())
+    with (D/'agent86_20000.py').open('xb') as f:f.write((PREV/'agent86_20000.py').read_bytes())
+    for f in D.glob('*.py'):ast.parse(f.read_text())
+    fresh();c=sf=None;restore=lambda:None;value=dict(epoch=time.time(),run_id=run,files=[])
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        sf.mkdir(job)
+        refs=['SOURCE_PATHS.json','integration.py','guard.py','asset_compat.py','ASSET_MIGRATION.json','relocation86.py','backend86.py','v2package']
+        for name in refs:sf.symlink(OLD+'/'+name,job+'/'+name)
+        oldmanifest=json.loads((PREV/'INSTALL86_MANIFEST03.json').read_bytes())
+        rows=list(oldmanifest['files'])
+        for name in ['recipe.py','reward_model.py','full_resume.py','entry.py','worker86.py','evaluate.py','agent86_20000.py','PLAN.json']:
+            raw=(D/name).read_bytes()
+            with sf.open(job+'/'+name,'wx') as f:f.write(raw)
+            row=dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/name))
+            rows.append(row);value['files'].append(row)
+        raw=(D/'PLAN.json').read_bytes()
+        with sf.open(job+'/TASK.json','wx') as f:f.write(raw)
+        rows.append(dict(path=job+'/TASK.json',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        manifest=dict(files=rows,unchanged_references=OLD,no_SDK_clone=True,no_canonical_operation=True)
+        with sf.open(job+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(manifest,indent=2))
+        code='''import sys,pathlib,json,hashlib,ast,numpy as np
+J=pathlib.Path(__JOB__)
+sys.path.insert(0,str(J))
+import relocation86
+relocation86.JOB=J
+relocation86.install()
+import integration,backend86,recipe,evaluate,reward_model,full_resume
+for m in (integration,backend86,recipe,evaluate):
+ if hasattr(m,'HERE'):m.HERE=J
+ if hasattr(m,'J'):m.J=J
+backend86.install()
+y=np.asarray([0.,.35,.7,.9,1.4,3.])
+t=np.zeros((6,2));s=np.full(6,.435)
+v=reward_model.geometry_costs(np,t,s,y,.435)
+old=reward_model.old.geometry_costs(np,t,s,y,.435)
+assert np.allclose(v['stand32_heading'][:3],old['stand32_heading'][:3])
+assert np.all(np.diff(v['stand32_heading'][2:])<0)
+for k in ('pen_theta_no0','stand32_wheel_distance'):assert np.array_equal(v[k],old[k])
+for n in ('entry.py','worker86.py','full_resume.py'):ast.parse((J/n).read_text())
+assert recipe.HERE==J and evaluate.HERE==J and full_resume.FORMAT=='MOD4V2_SCUT_STANDING200_V38_UNCAPPED_YAW'
+assert pathlib.Path(__SOURCE__).stat().st_size==38976423
+print(json.dumps(dict(passed=True,yaw_boundaries=True,other_geometry_unchanged=True,regular_entry_output_bound=True,same20000_full_restore=True,PT_reads=0,physics=0)))
+'''.replace('__JOB__',repr(job)).replace('__SOURCE__',repr(p['resume_checkpoint']['path']))
+        compile(code,'v38_prepare_cpu','exec')
+        value['CPU']=query(c,RUNTIME,code);value['passed']=True
+    except BaseException:
+        value['error']=traceback.format_exc();raise
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();value.update(SSHclosed=True,SESSION_restored=True);put('PREPARE_ACTUAL',value)
+    frozen=dict(epoch=time.time(),run_id=run,files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*.py'))],
+        PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),reference_manifest=str(D/'INSTALL86_MANIFEST.json'))
+    with (D/'FROZEN.json').open('x') as f:json.dump(frozen,f,indent=2)
+    print(json.dumps(dict(run_id=run,job=job,prepared=True,CPU=value['CPU'])))
+
+def launch():
+    assert not (R/'reports/SCUT38_LAUNCH_ONCE.json').exists()
+    p=plan();fr=json.loads((D/'FROZEN.json').read_bytes())
+    for row in fr['files']:
+        raw=Path(row['path']).read_bytes();assert hashlib.sha256(raw).hexdigest()==row['SHA']
+    assert hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest()==fr['PLAN_SHA']
+    fresh();c=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86')
+        code='''import pathlib,json,subprocess,time,psutil,os,shutil
+J=pathlib.Path(__JOB__)
+assert not (J/'GO_PRODUCTION.json').exists()
+uuid=__UUID__
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert uuid not in apps
+assert psutil.virtual_memory().available>64*1024**3 and shutil.disk_usage(J).free>50*1024**3
+now=time.time()
+go=dict(run_id=__RUN__,GPU_UUID=uuid,execution_host='86',num_envs=20000,learning_started_epoch=now,save_deadline=now+3600,nominal_end_epoch=now+3900,max_parent_seconds=3900,exit_headroom_seconds=300,accounting_gate=False)
+with (J/'GO_PRODUCTION.json').open('x') as f:json.dump(go,f,indent=2)
+with (J/'AGENT_PRODUCTION_DIRECT.log').open('xb') as f:
+ p=subprocess.Popen([__PY__,'-u','-B',str(J/'agent86_20000.py'),'train'],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1'))
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),GO=go,agent=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd()),compute_apps_before=apps,ledger_operations=0)))
+'''.replace('__JOB__',repr(p['host86_root'])).replace('__UUID__',repr(UUID)).replace('__RUN__',repr(p['run_id'])).replace('__PY__',repr(RUNTIME))
+        compile(code,'v38_launch','exec');put('LAUNCH_ONCE',dict(epoch=time.time(),run_id=p['run_id']))
+        value=query(c,RUNTIME,code);put('LAUNCH_ACTUAL',value);print(json.dumps(value))
+    except BaseException:
+        put('LAUNCH_ERROR',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if c:c.close()
+        restore();put('LAUNCH_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def finish_prepare():
+    p=plan();assert not (D/'FROZEN.json').exists()
+    failure=json.loads((R/'reports/SCUT38_PREPARE_ACTUAL.json').read_bytes())
+    assert "module 'evaluate' has no attribute 'HERE'" in failure['error']
+    fresh();c=None;restore=lambda:None;value=dict(epoch=time.time(),previous_false_preserved=True)
+    try:
+        c,restore,_=connect('86')
+        code='''import sys,pathlib,json,numpy as np
+J=pathlib.Path(__JOB__)
+assert not (J/'GO_PRODUCTION.json').exists()
+sys.path.insert(0,str(J))
+import relocation86
+relocation86.JOB=J
+relocation86.install()
+import integration,backend86,recipe,evaluate,reward_model,full_resume
+for m in (integration,backend86,recipe,evaluate):
+ if hasattr(m,'HERE'):m.HERE=J
+ if hasattr(m,'J'):m.J=J
+backend86.install()
+y=np.asarray([0.,.35,.7,.9,1.4,3.]);t=np.zeros((6,2));s=np.full(6,.435)
+v=reward_model.geometry_costs(np,t,s,y,.435)
+old=reward_model.old.geometry_costs(np,t,s,y,.435)
+assert np.allclose(v['stand32_heading'][:3],old['stand32_heading'][:3])
+assert np.all(np.diff(v['stand32_heading'][2:])<0)
+for k in ('pen_theta_no0','stand32_wheel_distance'):assert np.array_equal(v[k],old[k])
+assert recipe.HERE==J and pathlib.Path(evaluate.__file__).resolve().parent==J
+assert full_resume.FORMAT=='MOD4V2_SCUT_STANDING200_V38_UNCAPPED_YAW'
+print(json.dumps(dict(passed=True,corrected_reader_assertion=True,yaw_boundaries=True,other_geometry_unchanged=True,regular_entry_output_bound=True,same20000_full_restore=True,PT_reads=0,physics=0)))
+'''.replace('__JOB__',repr(p['host86_root']))
+        value['CPU']=query(c,RUNTIME,code);value['passed']=True
+    except BaseException:
+        value['error']=traceback.format_exc();raise
+    finally:
+        if c:c.close()
+        restore();value.update(SSHclosed=True,SESSION_restored=True);put('PREPARE02_ACTUAL',value)
+    frozen=dict(epoch=time.time(),run_id=p['run_id'],files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*.py'))],
+        PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),reference_manifest=str(D/'INSTALL86_MANIFEST.json'))
+    with (D/'FROZEN.json').open('x') as f:json.dump(frozen,f,indent=2)
+    print(json.dumps(value))
+
+if __name__=='__main__':{'prepare':prepare,'finish_prepare':finish_prepare,'launch':launch}[sys.argv[1]]()

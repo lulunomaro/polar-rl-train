@@ -1,0 +1,29 @@
+"""One initialization read before the sole background collector owns monitoring."""
+from control import D,R,plan,put,connect,fresh,RUNTIME,query
+import json,time
+p=plan();assert not (R/'reports/SCUT38_DIRECT_COLLECTOR_ONCE.json').exists()
+fresh();c=None;restore=lambda:None
+try:
+    c,restore,_=connect('86')
+    code='''import json,pathlib,psutil,time
+J=pathlib.Path(__JOB__);files={};logs={};identities={}
+for n in ['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','WORKER_IDENTITY.json','PRODUCTION_RESOURCE.json','production/STARTUP.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/ERROR.json']:
+ if (J/n).exists():files[n]=json.loads((J/n).read_bytes())
+for n in ['AGENT_PRODUCTION_DIRECT.log','WORKER.log']:
+ if (J/n).exists():
+  with (J/n).open('rb') as f:
+   f.seek(max(0,(J/n).stat().st_size-5000));logs[n]=f.read(5000).decode('utf-8','replace')
+for k in ['AGENT_PRODUCTION_STARTED.json','WORKER_IDENTITY.json']:
+ if k not in files:continue
+ ident=files[k].get('identity',files[k])
+ try:
+  p=psutil.Process(ident['pid']);assert abs(p.create_time()-ident['creation'])<.02
+  identities[k]=dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),root=p.cwd())
+ except psutil.NoSuchProcess:identities[k]=dict(exited=True)
+print(json.dumps(dict(epoch=time.time(),files=files,logs=logs,postexec_identities=identities)))
+'''.replace('__JOB__',repr(p['host86_root']))
+    value=query(c,RUNTIME,code);put('INITIALIZATION_ACTUAL',value)
+    print(json.dumps(value))
+finally:
+    if c:c.close()
+    restore();put('INITIALIZATION_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))

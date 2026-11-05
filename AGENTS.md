@@ -65,3 +65,7 @@ CUDA Graph采样，保留MOD4v2/复旦奖励/原物理与完整学习状态。
 从实际final接续。局部synthetic kernel测速不称整轮提速；原PhysX未换
 Newton时如实标记，不冒称完整第三方框架迁移。执行见v2工作单和
 WARP_SAMPLING_REPLACEMENT.md。人类直接训练/noledger最高指令保持。
+
+## 2026-11-06 Newton迁移与SuperMimic交叉推进
+
+人类要求实际使用Newton/MuJoCo-Warp，并明确先开始一小时PPO，再在训练期间做SuperMimic BPTT兼容。mod4-10复用当前聊天ACTIVE，每30分钟交叉推进：训练中做兼容；无训练优先保存退出、独立80、实际回放、据证据修复接续。单200mm真实跳跃验收达标后进入Isaac Lab台阶地图；SuperMimic有实际梯度/更新/完整保存证据后在保存边界切换。不得将Warp加速等同可微物理。旧mod4-200-rl-bptt保持PAUSED，不新建聊天/Goal/重复任务。直接空闲GPU/noledger最高指令、累计100h上限及所有失败Git记录保持。见v2工作单与NEWTON_MIGRATION_AND_SUPERMIMIC.md。

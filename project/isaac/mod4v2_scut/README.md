@@ -1,5 +1,9 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06最新要求实际使用Newton/MuJoCo-Warp；`newton_model.py`、`newton_env.py`、`newton_checkpoint.py`、`newton_train.py`与`newton_evaluate.py`实现Kit独立的Newton SolverMuJoCo桥接。明确更换物理解算器，保留原模型、6闭环/4mimic、300N60mm气缸、D0–D7组件、35/78观测、复旦16项公式和完整PPO状态。当前不是Isaac Lab3管理器全迁移。正式20k状态与速度以工作单真实FIRST为准，小批量PPO或局部测试不能冒称生产成功。
+
+用户要求先启动真实一小时PPO，再在训练中开发SuperMimic BPTT兼容。现有mod4-10已改为同聊天每30分钟ACTIVE：训练中做兼容，没训练优先评测/回放/续训；真200mm跳跃达标后换Isaac Lab台阶地图，SuperMimic实际梯度、更新和保存兼容通过后在保存边界切换。执行条件和原话见`NEWTON_MIGRATION_AND_SUPERMIMIC.md`与工作单；原mod4-200-rl-bptt保持PAUSED。
+
 2026-11-06最新人类要求先用复旦奖励学习压腿跳跃，并明确不再因账本等待，直接训练。当前选择复旦`yly-true/fudan_rl_wheel_leg`固定commit `8204e853dfd2ed06d85a322e1a998c3d20a3be2c` 的jump完整16项奖励及原逐项裁剪。`fudan_source.py`直接抽取18个原方法，`FUDAN_SOURCE.json`记录原字节SHA、行号、权重与来源；没有混入华南虎基础奖励或weight12速度项。MOD4v2实测body-frame hip锚点到轮心的矢状面长度/角度替代参考机器人连杆公式；保留原0.16m空中收腿、0.31m接地正vz伸腿、0.65m腾空高度目标及contact OR滤波。15项CPU检查已通过。
 
 华南虎窗按人类切换要求完整保存至final357（17Adam7140、LR0.0002562890625000001、STD与7组件/RNG/队列/counter8568），独立80与全部实际回放仍0有效起跳上台。新复旦窗从完整final357接续，保留硬件/PD/DR/PPO/35actor78critic。最高指令覆盖旧账本准入，采用真实空闲GPU私有锁与固定3600s保存+300s退出，直接owner不读写canonical。旧账本拒绝、旧等待进程和全部失败保留；其它聊天继续运行。当前FIRST与真实时间边界见工作单。

@@ -1,0 +1,42 @@
+"""Collect the safely stopped V39 once; no training, model decode or reset."""
+from pathlib import Path
+import ast,importlib.util,json,sys,time
+R=Path(__file__).resolve().parent.parent
+P=R/'scut_native_v39_continue'
+sys.path.insert(0,str(P))
+from control import plan,put,connect,fresh,RUNTIME,query
+spec=importlib.util.spec_from_file_location('prior_transfer_reader',R/'scut_native_v37_env20000/collect_background.py')
+reader=importlib.util.module_from_spec(spec);spec.loader.exec_module(reader)
+read=reader.read
+
+def main():
+    p=plan();assert not (R/'reports/SCUT39_CLOSED_TRANSFER_ONCE.json').exists()
+    fresh();c=sf=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        names=['AGENT_PRODUCTION_EXIT.json','TRAIN_CLOSED.json','production/FINAL.json','evaluation/RESULT.json','evaluation/ERROR.json','AGENT_PRODUCTION_ERROR.json']
+        v={n:read(sf,p['host86_root'],n) for n in names}
+        assert v['AGENT_PRODUCTION_EXIT.json'] and v['AGENT_PRODUCTION_EXIT.json']['all_own_waited'] and v['AGENT_PRODUCTION_EXIT.json']['GPU_lease_released'],v
+        put('EARLY_CLOSE_TERMINAL_ACTUAL',dict(epoch=time.time(),files=v))
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore()
+    # Reuse the existing measured bounded two-part host86 transfer body.
+    background=(R/'scut_native_v37_env20000/collect_background.py').read_text()
+    direct=(R/'scut_native_v37_env20000/collect_direct86.py').read_text()
+    node=next(n for n in ast.parse(direct).body if isinstance(n,ast.FunctionDef) and n.name=='close_transfer')
+    body=ast.get_source_segment(direct,node)
+    body=body.replace("src=(D/'collect_background.py').read_text()","src=background")
+    body=body.replace("compile(text,'direct86_bounded_close_transfer'","compile(text.replace('SCUT37_','SCUT39_'),'v39_manual_bounded_close_transfer'")
+    import hashlib,traceback
+    ns=dict(globals(),background=background,hashlib=hashlib,traceback=traceback)
+    exec(compile(body,'existing_direct_transfer','exec'),ns)
+    ns['close_transfer'](p,v['AGENT_PRODUCTION_EXIT.json'])
+    if not (R/'reports/SCUT39_DIRECT_COLLECTOR_CLOSED.json').exists():
+        put('DIRECT_COLLECTOR_CLOSED',dict(epoch=time.time(),local_collector_closed=True,SSHclosed=True,SESSION_restored=True,
+            original_collector_pid=76260,original_process_absent_on_fresh_CIM=True,original_exit_reason='not observed',
+            early_stop_manual_once_transfer_completed=True))
+    print(json.dumps(dict(final=v['production/FINAL.json']['checkpoint'],agent=v['AGENT_PRODUCTION_EXIT.json'],evaluation=v['evaluation/RESULT.json'] is not None)))
+
+if __name__=='__main__':main()

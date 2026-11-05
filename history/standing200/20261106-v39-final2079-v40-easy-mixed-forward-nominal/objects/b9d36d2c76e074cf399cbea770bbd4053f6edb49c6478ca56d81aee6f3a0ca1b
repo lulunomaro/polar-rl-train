@@ -1,0 +1,46 @@
+"""Finalize only pre-GO evaluated source and launch the authorized 20000env run."""
+from control import *
+
+def main():
+    p=plan();job=p['host86_root']
+    assert not (R/'reports/SCUT40_LAUNCH_ONCE.json').exists()
+    native=json.loads((D/'NATIVE05_RESULT.json').read_bytes())
+    assert native['native_validation05/RESULT.json']['passed']
+    assert native['AGENT_NATIVE05_EXIT.json']['all_own_waited'] and native['AGENT_NATIVE05_EXIT.json']['GPU_lease_released']
+    fresh();c=sf=None;restore=lambda:None;v=dict(epoch=time.time(),native_proof=str(D/'NATIVE05_RESULT.json'))
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(40)
+        try:sf.stat(job+'/GO_PRODUCTION.json');raise RuntimeError('GO already exists')
+        except FileNotFoundError:pass
+        manifest=json.loads((D/'INSTALL86_MANIFEST05.json').read_bytes());rows={r['path']:r for r in manifest['files']}
+        name='evaluate.py';raw=(D/name).read_bytes();remote=job+'/'+name
+        sf.rename(remote,remote+'.before_production')
+        with sf.open(remote,'wx') as f:f.write(raw)
+        rows[remote]=dict(path=remote,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+        sf.rename(job+'/INSTALL86_MANIFEST.json',job+'/INSTALL86_MANIFEST_NATIVE05.json')
+        manifest=dict(files=list(rows.values()),native_actual_passed=True,nominal_forward=True)
+        with sf.open(job+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST_PRODUCTION.json').write_text(json.dumps(manifest,indent=2))
+        fr=dict(epoch=time.time(),PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),
+            files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*.py'))],native=str(D/'NATIVE05_RESULT.json'))
+        (D/'FROZEN_PRODUCTION.json').write_text(json.dumps(fr,indent=2))
+        code='''import pathlib,json,subprocess,time,psutil,shutil,os
+J=pathlib.Path(__JOB__);uuid='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert uuid not in apps
+assert psutil.virtual_memory().available>64*1024**3 and shutil.disk_usage(J).free>50*1024**3
+now=time.time();go=dict(run_id=__RUN__,GPU_UUID=uuid,execution_host='86',num_envs=20000,learning_started_epoch=now,save_deadline=now+3600,nominal_end_epoch=now+3900,max_parent_seconds=3900,exit_headroom_seconds=300,accounting_gate=False)
+with (J/'GO_PRODUCTION.json').open('x') as f:json.dump(go,f,indent=2)
+with (J/'PRODUCTION_DIRECT.log').open('xb') as f:
+ p=subprocess.Popen([__PY__,'-u','-B',str(J/'agent86_20000.py'),'train'],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1'))
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),GO=go,agent=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline()),compute_apps_before=apps)))
+'''.replace('__JOB__',repr(job)).replace('__RUN__',repr(p['run_id'])).replace('__PY__',repr(RUNTIME))
+        compile(code,'v40_production','exec');put('LAUNCH_ONCE',dict(epoch=time.time(),run_id=p['run_id']))
+        v['launch']=query(c,RUNTIME,code);put('LAUNCH_ACTUAL',v['launch']);print(json.dumps(v['launch']))
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();put('LAUNCH_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

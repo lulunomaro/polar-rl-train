@@ -1,0 +1,9 @@
+"""Consume V39 saved actual poses and independent80; no model/physics rerun."""
+from pathlib import Path
+import json,sys
+D=Path(__file__).resolve().parent;R=D.parent
+P=R/'scut_native_v38_yaw/review_closed.py'
+text=P.read_text().replace('SCUT38_','SCUT39_').replace('final2070','final2079').replace('FINAL2070','FINAL2079')
+text=text.replace('SCUT39_FINAL2079_ACTUAL_NUMERIC_ANALYSIS','SCUT39_FINAL2079_ACTUAL_NUMERIC_ANALYSIS')
+# Source replacements inside the helper still target the original V36 names.
+exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(D/'review_closed.py')))

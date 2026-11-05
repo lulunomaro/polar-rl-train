@@ -1,0 +1,54 @@
+"""Installed Isaac Lab terrain primitives with explicitly easy dimensions."""
+DESCRIPTION=dict(size_m=[8.,8.],difficulty_range=[0.,.15],num_rows=4,num_cols=20,
+    seed=9137,flat_proportion=.25,rough_proportion=.20,rough_height_m=[-.01,.01],
+    boxes_proportion=.15,box_height_m=[.01,.025],stairs_proportion=.15,
+    step_height_m=[.01,.025],step_width_m=.5,slopes_proportion=.25,slope_rad=[0.,.06],
+    stationary=False,forward_m_s=.35)
+
+def generator():
+    import isaaclab.terrains as t
+    from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
+    cfg=ROUGH_TERRAINS_CFG.copy()
+    cfg.seed=9137;cfg.num_rows=4;cfg.num_cols=20;cfg.curriculum=False
+    cfg.difficulty_range=(0.,.15);cfg.vertical_scale=.0025
+    cfg.sub_terrains={
+        'flat':t.MeshPlaneTerrainCfg(proportion=.25),
+        'rough':t.HfRandomUniformTerrainCfg(proportion=.20,noise_range=(-.01,.01),noise_step=.005,downsampled_scale=.2,border_width=.25),
+        'boxes':t.MeshRandomGridTerrainCfg(proportion=.15,grid_width=.5,grid_height_range=(.01,.025),platform_width=1.),
+        'stairs':t.MeshPyramidStairsTerrainCfg(proportion=.075,step_height_range=(.01,.025),step_width=.5,platform_width=1.,border_width=1.,holes=False),
+        'stairs_down':t.MeshInvertedPyramidStairsTerrainCfg(proportion=.075,step_height_range=(.01,.025),step_width=.5,platform_width=1.,border_width=1.,holes=False),
+        'slope':t.HfPyramidSlopedTerrainCfg(proportion=.125,slope_range=(0.,.06),platform_width=1.,border_width=.25),
+        'slope_inv':t.HfInvertedPyramidSlopedTerrainCfg(proportion=.125,slope_range=(0.,.06),platform_width=1.,border_width=.25)}
+    return cfg
+
+class NoStepMeter:
+    def __init__(self,n,device):
+        import torch
+        for name in ('success','wholeclear','leading','ever_top'):
+            setattr(self,name,torch.zeros(n,dtype=torch.bool,device=device))
+        for name in ('stable_peak','support_peak'):
+            setattr(self,name,torch.zeros(n,dtype=torch.long,device=device))
+    def reset(self,ids):
+        for x in vars(self).values():x[ids]=0
+    def update_world(self,*args):pass
+
+def install(sdk):
+    import mod4v1_scut.course as course
+    sdk.MESH='/World/ground/terrain'
+    sdk.HEIGHT=course.HEIGHT=0.
+    sdk.BOXES=course.BOXES=()
+    sdk.POSE_RANGE=course.POSE_RANGE={k:(0.,0.) for k in ('roll','pitch','yaw')}
+    course.metadata=lambda:dict(stage='easy_mixed_forward',terrain=DESCRIPTION,
+        forward_command_m_s=.35,L0_target_m=.334,theta0_weight=-2.,full_DR=False,
+        step200_skill_test=False)
+    old_config=sdk.configure
+    def configure(cfg,n,profile='trained_stair'):
+        old_config(cfg,n,profile)
+        from isaaclab.terrains import TerrainImporterCfg
+        material=cfg.scene.ground.spawn.physics_material
+        cfg.scene.ground=TerrainImporterCfg(prim_path='/World/ground',terrain_type='generator',
+            terrain_generator=generator(),collision_group=-1,physics_material=material,
+            max_init_terrain_level=None,debug_vis=False,num_envs=n)
+        cfg.events.reset_base.params['pose_range']={k:(0.,0.) for k in ('roll','pitch','yaw')}
+        return cfg
+    sdk.configure=configure

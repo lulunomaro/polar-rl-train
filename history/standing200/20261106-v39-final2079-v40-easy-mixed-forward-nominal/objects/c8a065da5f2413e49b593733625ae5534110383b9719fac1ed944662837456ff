@@ -1,0 +1,61 @@
+"""Archive this requested curriculum and actual failures without rereading media."""
+from pathlib import Path
+import hashlib,importlib.util,json,subprocess,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261106-v39-final2079-v40-easy-mixed-forward-nominal'
+
+def main():
+    name=sys.argv[1] if len(sys.argv)>1 else 'initial'
+    dest=BASE if name=='initial' else BASE/name
+    assert not (dest/'INDEX.json').exists()
+    if name!='initial':assert name.startswith('supplement-') and '/' not in name and (BASE/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v40_archive_redact',REPO/'archive_tools/capture_history.py')
+    red=importlib.util.module_from_spec(spec);spec.loader.exec_module(red)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix in ('.py','.json','.md','.txt','.log')}
+    files.update(p for p in (D/'source_cache').glob('*') if p.is_file())
+    files.update((R/'reports').glob('SCUT40*.json'))
+    files.update((R/'reports').glob('SCUT39*.json'))
+    files.update([R/'scut_native_v39_continue/request_simple_standing.py',R/'scut_native_v39_continue/review_closed.py',R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    oldrun=json.loads((R/'scut_native_v39_continue/PLAN.json').read_bytes())['run_id']
+    oldclosed=R/'actual_closed'/oldrun
+    files.update(p for p in oldclosed.rglob('*.json') if p.name!='CONTROL_CURVES.json')
+    rows=[];(dest/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        if not p.exists():continue
+        raw=p.read_bytes();safe,count=red.redact(raw.decode('utf-8-sig'));content=safe.encode() if count else raw
+        sha=hashlib.sha256(content).hexdigest();out=known.get(sha)
+        if out is None:
+            target=dest/'objects'/sha;target.write_bytes(content);out=target.relative_to(REPO).as_posix();known[sha]=out
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=out,archive_SHA=sha,redactions=count))
+    large=[]
+    for report in ('SCUT39_CLOSED_TRANSFER_ACTUAL.json','SCUT39_FINAL2079_ACTUAL_NUMERIC_ANALYSIS.json'):
+        p=R/'reports'/report
+        if p.exists():
+            obj=json.loads(p.read_bytes());large+=obj.get('artifacts',[])
+            large += [r for r in obj.get('files',[]) if r['remote_path'].endswith(('.npz','CONTROL_CURVES.json'))]
+    p=oldclosed/'rendered_actual/RENDER_REPORT.json'
+    if p.exists():large+=json.loads(p.read_bytes()).get('media',[])
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    value=dict(epoch=time.time(),kind='V40_EASY_MIXED_FORWARD_NOMINAL',rows=rows,
+        large_artifacts_published_only=large,actual_status=w['status'],
+        source_checkpoint=json.loads((D/'PLAN.json').read_bytes())['resume_checkpoint'],
+        PT_reads_for_archive=0,NPZ_curve_media_reads_for_archive=0,old_trial_tags_unchanged=True)
+    (dest/'INDEX.json').write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n')
+    (dest/'README.md').write_text('''Human changed the task to low difficulty Isaac Lab mixed terrain forward locomotion without full DR, explicitly retaining wheel centers under the hip via pen_theta_no0=-2*(thetaL²+thetaR²), L0=.334m, levelbody/yaw/signedspan. Fixed +.35m/s commands,20000env,MOD4v2 HW300N60 and prior SCUT coefficients retained. This is not zero-speed balancing or the old200mm skill test.
+
+V39 safely stopped at final2079 after9PPO, all own workers and evaluation waited;80case step protocol strict0/whole0/bothtop0,0earlytermination80timeouts499controls9.98s. Actual savedpose rendering0policy/0newphysics and current model nativeview fourcases side/top,400Hz andhiptargetactual show lowbody stoppingbeforestep. User curriculum change is the continuation decision.
+
+V40 task-local nominal DR: mass/inertia/motor factors1,friction.9,sensoroff,feedback/action random delays off,gas stiffness/damping/COM/PD random factors disabled; real gas300N60 and physical PD/DC/CAD limits stay. Fresh nominal component/queue population; complete actorcriticSTD/17Adam/actual adaptiveLR/iteration2079/globalRNG/scalarclock restored once then onefresh physicalreset. No claim of restoring old randomized population into nominal settings. FullPPO checkpoint41580Adamsteps expected from actual final2079, restore receipt must prove.
+
+Actual native01 gridwidth border failure,02 receipt collision,03 ground/terrain scene key error,04 accidental unchanged repeat after local shell quoting SyntaxError all retained. Corrected native05 passed16env24controls192ticks,0PT/0policy/0Adam: real nominal parameter readback,positive.35 command,L0/theta terms active,valid terrain origins. Native smoke is not skill success. Production unique DirectGO00:30:51+08 Nov6 host86GPU0 exclusive and empty;3600save+300exit; one collector. Actual FIRST/status in INDEX workorder, never inferred from GO.
+
+Automatic post-save independent80 measures forwardprogress,speed,L0,theta,rp/yaw,falls by terrain with actual400Hz and bodyposes,actualcollisionmesh. Otherchat jump200 and sharedcanonical untouched. Human removed thischat accounting queue gates. All source/reports/failures archived,large artifacts only existing published pathbytesSHA. One annotatedtrial, later ordinary supplements. Existingtagspeels preserved.
+''',encoding='utf-8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())))))
+
+if __name__=='__main__':main()

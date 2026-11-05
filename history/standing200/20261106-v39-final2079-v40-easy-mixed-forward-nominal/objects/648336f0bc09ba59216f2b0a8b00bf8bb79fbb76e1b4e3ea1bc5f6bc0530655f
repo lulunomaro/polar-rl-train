@@ -1,0 +1,32 @@
+"""Finite task-specific source discovery for the authorized easy nominal phase."""
+from pathlib import Path
+import json,sys,time,hashlib
+R=Path(__file__).resolve().parent.parent;D=Path(__file__).resolve().parent
+sys.path.insert(0,str(R/'scut_native_v39_continue'))
+from control import connect,fresh,RUNTIME,query
+fresh();c=sf=None;restore=lambda:None
+value=dict(epoch=time.time(),source_files=[])
+try:
+    c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(40)
+    code='''import pathlib,json,time
+root=pathlib.Path('/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/src/fangzhen_linux/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab')
+names=['terrains/terrain_generator_cfg.py','terrains/terrain_importer.py','terrains/terrain_importer_cfg.py','terrains/config/rough.py','terrains/height_field/hf_terrains_cfg.py','terrains/trimesh/mesh_terrains_cfg.py']
+ref=pathlib.Path('/data/robemo/polar-rl-train/supported200_v36/reference72/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/isaac/mod4')
+files=[str(root/n) for n in names]+[str(ref/n) for n in ['sensor_a0_runtime.py','sensor_mild_math.py']]
+J=pathlib.Path(__JOB__)
+status={n:json.loads((J/n).read_bytes()) for n in ['AGENT_PRODUCTION_EXIT.json','production/FINAL.json','TRAIN_CLOSED.json','evaluation/RESULT.json'] if (J/n).exists()}
+print(json.dumps(dict(files=files,status=status,epoch=time.time())))
+'''.replace('__JOB__',repr(json.loads((R/'scut_native_v39_continue/PLAN.json').read_bytes())['host86_root']))
+    out=query(c,RUNTIME,code);value['status']=out['status']
+    (D/'source_cache').mkdir(exist_ok=True)
+    for path in out['files']:
+        size=sf.stat(path).st_size;assert size<100000
+        with sf.open(path,'rb') as f:raw=f.read(size+1)
+        sha=hashlib.sha256(raw).hexdigest();local=D/'source_cache'/sha;local.write_bytes(raw)
+        value['source_files'].append(dict(path=path,bytes=len(raw),SHA=sha,local=str(local)))
+finally:
+    if sf:sf.close()
+    if c:c.close()
+    restore();value.update(SSHclosed=True,SESSION_restored=True)
+    with (R/'reports/SCUT40_RUNTIME_SOURCE_INSPECTION.json').open('x',encoding='utf-8') as f:json.dump(value,f,indent=2)
+print(json.dumps(dict(files=[dict(path=x['path'],local=x['local']) for x in value['source_files']],status_keys=list(value.get('status',{})))))

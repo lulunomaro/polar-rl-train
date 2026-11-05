@@ -1,0 +1,50 @@
+"""One decode: preserve all PPO learning; replace old DR population by nominal."""
+from pathlib import Path
+import hashlib,io,json,random,time
+FORMAT='MOD4V2_SCUT_EASY_MIXED_FORWARD_V40_NOMINAL'
+
+def install(checkpoint,expected,report_path):
+    import torch,numpy as np
+    helper=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SCUT_RECIPE_V21_FLAT_1793728481083581300/full_resume.py')
+    ns={};exec(compile(helper.read_bytes(),str(helper),'exec'),ns);same=ns['same']
+    def restore(runner,env,bridge,path,profile):
+        assert str(path)==expected['path']
+        raw=Path(path).read_bytes()
+        assert len(raw)==expected['bytes'] and hashlib.sha256(raw).hexdigest()==expected['SHA']
+        data=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=False)
+        assert data['iter']==expected['iteration']==2079 and data['format']==expected['format']
+        assert data['actor_dim']==35 and data['critic_dim']==78 and data['num_envs']==env.num_envs==20000
+        runner.alg.load(data,load_cfg=None,strict=True)
+        runner.current_learning_iteration=data['iter'];runner.alg.learning_rate=data['learning_rate']
+        for g in runner.alg.optimizer.param_groups:g['lr']=data['learning_rate']
+        actual=runner.alg.save()
+        for key in ('actor_state_dict','critic_state_dict','optimizer_state_dict'):
+            assert same(data[key],actual[key]),key
+        steps=[int(v['step'].item()) for v in actual['optimizer_state_dict']['state'].values() if 'step' in v]
+        assert len(steps)==17 and min(steps)==max(steps)==41580
+        torch.set_rng_state(data['cpu_rng']);torch.cuda.set_rng_state_all(data['cuda_rng'])
+        random.setstate(data['python_rng']);np.random.set_state(data['numpy_rng'])
+        for key,value in data['source_reward_globals'].items():setattr(bridge.reward,key,int(value))
+        result=env.reset()
+        value=dict(epoch=time.time(),source=expected,actor_critic_STD_complete_Adam_equal=True,
+            Adam_states=len(steps),Adam_steps_each=min(steps),learning_rate=runner.alg.learning_rate,
+            LR_restored=all(g['lr']==data['learning_rate'] for g in runner.alg.optimizer.param_groups),
+            source_model_decodes=1,iteration=runner.current_learning_iteration,global_RNG_restored=True,
+            full_original_DR_components_restored=False,component_boundary='fresh nominal D0-D7 objects and zero delay queues; user disabled DR',
+            fresh_physical_resets=1,weights_or_Adam_reset=False,
+            common_step_counter=int(bridge.reward.common_step_counter),corrected_debug_step=int(bridge.reward._value_debug_step))
+        with Path(report_path).open('x') as f:json.dump(value,f,indent=2)
+        return result
+    checkpoint.restore=restore
+    learning=checkpoint.learning_state;save_old=checkpoint.save
+    def save(runner,env,bridge,path,profile):
+        def state(r):
+            value=learning(r)
+            value['source_reward_globals']={k:int(getattr(bridge.reward,k)) for k in ('_value_debug_step','common_step_counter')}
+            value['easy_forward_nominal']=dict(command_vx=.35,L0=.334,theta_weight=-2.,full_DR=False)
+            return value
+        checkpoint.learning_state=state
+        try:return save_old(runner,env,bridge,path,profile)
+        finally:checkpoint.learning_state=learning
+    checkpoint.save=save;checkpoint.FORMAT=FORMAT
+    return dict(target_format=FORMAT,full_PPO=True,DR_population_fresh_nominal=True,one_fresh_reset=True)

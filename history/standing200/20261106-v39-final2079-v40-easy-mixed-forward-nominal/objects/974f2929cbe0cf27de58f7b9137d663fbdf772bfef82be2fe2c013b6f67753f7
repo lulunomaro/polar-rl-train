@@ -1,0 +1,83 @@
+"""Distinct pre-production smoke attempts, retaining every failed source/result."""
+from control import D,R,plan,put,fresh,connect,RUNTIME,query
+import ast,hashlib,json,sys,time
+
+def deploy_launch(attempt):
+    tag='NATIVE'+attempt;job=plan()['host86_root']
+    assert not (R/('reports/SCUT40_'+tag+'_ONCE.json')).exists()
+    probe='native_probe'+attempt+'.py';worker='worker_native'+attempt+'.py';agent='agent_native'+attempt+'.py'
+    raw=(D/'native_probe.py').read_text().replace("J/'native_validation'","J/'native_validation"+attempt+"'")
+    (D/probe).write_text(raw)
+    raw=(D/'worker86.py').read_text().replace("mode.upper()+'_RELOCATION.json'","mode.upper()+'"+attempt+"_RELOCATION.json'").replace("J/'native_probe.py'","J/'"+probe+"'")
+    (D/worker).write_text(raw)
+    raw=(D/'agent_native02.py').read_text().replace('NATIVE02',tag).replace('worker86_native02.py',worker)
+    (D/agent).write_text(raw)
+    names=[probe,worker,agent]
+    # Local files changed only after the earlier native attempt exited.
+    available=[p for p in D.glob('INSTALL86_MANIFEST*.json') if p.stem[-2:].isdigit()]
+    manifest=json.loads(max(available,key=lambda p:p.stem).read_bytes())
+    current={r['path']:r for r in manifest['files']}
+    for f in D.glob('*.py'):
+        remote=job+'/'+f.name
+        if remote in current and hashlib.sha256(f.read_bytes()).hexdigest()!=current[remote]['SHA']:names.append(f.name)
+    fresh();c=sf=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(40)
+        try:sf.stat(job+'/GO_PRODUCTION.json');raise RuntimeError('Production GO exists')
+        except FileNotFoundError:pass
+        code='''import pathlib,json,time,subprocess
+J=pathlib.Path(__JOB__)
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert 'GPU-90a66ae2-f536-7033-79c0-487536ae36d3' not in apps
+print(json.dumps(dict(epoch=time.time(),compute_empty=True)))
+'''.replace('__JOB__',repr(job))
+        resource=query(c,RUNTIME,code)
+        for name in names:
+            f=D/name;ast.parse(f.read_text());raw=f.read_bytes();remote=job+'/'+name
+            try:
+                sf.stat(remote);sf.rename(remote,remote+'.before_'+attempt)
+            except FileNotFoundError:pass
+            with sf.open(remote,'wx') as stream:stream.write(raw)
+            current[remote]=dict(path=remote,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+        sf.rename(job+'/INSTALL86_MANIFEST.json',job+'/INSTALL86_MANIFEST.before_'+attempt+'.json')
+        manifest=dict(files=list(current.values()),preproduction_attempt=attempt)
+        with sf.open(job+'/INSTALL86_MANIFEST.json','wx') as stream:stream.write(json.dumps(manifest,indent=2))
+        (D/('INSTALL86_MANIFEST'+attempt+'.json')).write_text(json.dumps(manifest,indent=2))
+        code='''import pathlib,json,time,subprocess
+J=pathlib.Path(__JOB__);now=time.time()
+with (J/__GO__).open('x') as f:json.dump(dict(GPU_UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3',save_deadline=now+600),f)
+with (J/__LOG__).open('xb') as f:
+ p=subprocess.Popen([__PY__,'-u','-B',str(J/__AGENT__)],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+print(json.dumps(dict(epoch=time.time(),pid=p.pid)))
+'''.replace('__JOB__',repr(job)).replace('__GO__',repr(tag+'_GO.json')).replace('__LOG__',repr(tag+'_DIRECT.log')).replace('__PY__',repr(RUNTIME)).replace('__AGENT__',repr(agent))
+        put(tag+'_ONCE',dict(epoch=time.time(),attempt=attempt,resource=resource))
+        v=query(c,RUNTIME,code);put(tag+'_ACTUAL',v);print(json.dumps(v))
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();put(tag+'_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def result(attempt):
+    job=plan()['host86_root'];c=sf=None;restore=lambda:None;v={}
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(40)
+        for n in ['AGENT_NATIVE'+attempt+'_EXIT.json','native_validation'+attempt+'/RESULT.json','native_validation'+attempt+'/ERROR.json','AGENT_NATIVE'+attempt+'_ERROR.json']:
+            try:
+                with sf.open(job+'/'+n,'rb') as f:v[n]=json.loads(f.read(300000))
+            except FileNotFoundError:pass
+        if 'AGENT_NATIVE'+attempt+'_EXIT.json' in v:
+            with (D/('NATIVE'+attempt+'_RESULT.json')).open('x') as f:json.dump(v,f,indent=2)
+            if not any(k.endswith('/RESULT.json') for k in v):
+                for n in ['NATIVE'+attempt+'_WORKER.log','NATIVE'+attempt+'_DIRECT.log']:
+                    try:
+                        with sf.open(job+'/'+n,'rb') as f:raw=f.read(300000)
+                        (D/n).write_bytes(raw);v[n]=raw.decode(errors='replace')[-6000:]
+                    except FileNotFoundError:pass
+        print(json.dumps(v))
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore()
+
+if __name__=='__main__':
+    (deploy_launch if sys.argv[1]=='launch' else result)(sys.argv[2])

@@ -1,0 +1,125 @@
+"""One small nominal/easy-forward task on the existing dedicated host86 GPU."""
+from pathlib import Path
+import ast,hashlib,json,sys,time,traceback
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+from host86_prepare import RUNTIME,query
+from dispatch86 import fresh
+PREV=R/'scut_native_v39_continue'
+UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+
+def put(name,v):
+    with (R/'reports'/('SCUT40_'+name+'.json')).open('x',encoding='utf-8') as f:json.dump(v,f,indent=2,ensure_ascii=False)
+def plan():return json.loads((D/'PLAN.json').read_bytes())
+
+def prepare():
+    assert not (D/'PLAN.json').exists()
+    prior=json.loads((R/'reports/SCUT39_EARLY_CLOSE_TERMINAL_ACTUAL.json').read_bytes())['files']
+    exit=prior['AGENT_PRODUCTION_EXIT.json'];assert exit['all_own_waited'] and exit['GPU_lease_released'] and exit['error'] is None
+    assert prior['evaluation/RESULT.json'] and json.loads((R/'reports/SCUT39_CLOSED_TRANSFER_ACTUAL.json').read_bytes())
+    p=json.loads((PREV/'PLAN.json').read_bytes());old=p['host86_root']
+    run='MOD4V2_EASY_MIXED_FORWARD_V40_ENV20000_'+str(time.time_ns());job=old.rsplit('/',1)[0]+'/'+run
+    p.update(run_id=run,remote_root=job,host86_root=job,assets=job+'/v2package/assets',guard=job+'/guard.py',
+        stage='easy_mixed_forward',source_checkpoint=prior['production/FINAL.json']['checkpoint'],
+        resume_checkpoint=prior['production/FINAL.json']['checkpoint'],num_envs=20000,accounting_gate=False,
+        changes=['Easy installedIsaacLab mixedterrain, fixedforward .35m/s, preserve standing/L0theta/yaw/span and SCUT coefficients.',
+            'D0-D7 randomization off; nominal components/zero queues, real MOD4v2 mechanics unchanged.',
+            'Restore complete actorcriticSTD/Adam/actualLR/iteration/globalRNG/scalar clocks, onefresh reset; oldDRpopulation intentionally fresh.'],
+        full_restore_expected=dict(Adam_states=17,Adam_steps_each=41580,source_iteration=2079,source_envs=20000,new_envs=20000,learning_rate='actualsource'),
+        source_review=str(R/'reports/SCUT39_EARLY_CLOSE_TERMINAL_ACTUAL.json'),native_probe='16env24controls easyterrain/nominal smoke,0PT/0policy/0Adam')
+    p.pop('resume_helper_source',None)
+    with (D/'PLAN.json').open('x') as f:json.dump(p,f,indent=2)
+    # Reuse unchanged geometry; do not copy the robot, SDK, or checkpoints.
+    for f in D.glob('*.py'):ast.parse(f.read_text())
+    fresh();c=sf=None;restore=lambda:None;v=dict(epoch=time.time(),run_id=run,files=[])
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45);sf.mkdir(job)
+        for name in ('SOURCE_PATHS.json','integration.py','guard.py','asset_compat.py','ASSET_MIGRATION.json','relocation86.py','backend86.py','v2package','reward_model.py'):
+            sf.symlink(old+'/'+name,job+'/'+name)
+        rows=list(json.loads((PREV/'INSTALL86_MANIFEST.json').read_bytes())['files'])
+        names=['recipe.py','nominal.py','easy_terrain.py','full_resume.py','entry.py','worker86.py','agent86_20000.py','native_probe.py','evaluate.py','PLAN.json']
+        for name in names:
+            raw=(D/name).read_bytes()
+            with sf.open(job+'/'+name,'wx') as f:f.write(raw)
+            row=dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/name));rows.append(row);v['files'].append(row)
+        raw=(D/'PLAN.json').read_bytes()
+        with sf.open(job+'/TASK.json','wx') as f:f.write(raw)
+        rows.append(dict(path=job+'/TASK.json',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        manifest=dict(files=rows,reference_task=old,no_SDK_clone=True,no_canonical_operation=True)
+        with sf.open(job+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(manifest,indent=2))
+        code='''import sys,pathlib,json,ast
+J=pathlib.Path(__JOB__);sys.path.insert(0,str(J))
+import relocation86
+relocation86.JOB=J;relocation86.install()
+import integration,backend86,recipe,nominal,easy_terrain
+for m in (integration,backend86,recipe):
+ if hasattr(m,'HERE'):m.HERE=J
+ if hasattr(m,'J'):m.J=J
+backend86.install()
+for n in ('recipe.py','nominal.py','easy_terrain.py','full_resume.py','entry.py','evaluate.py','native_probe.py'):ast.parse((J/n).read_text())
+assert easy_terrain.DESCRIPTION['forward_m_s']>.0
+print(json.dumps(dict(passed=True,regular_binding=True,positive_forward=True,theta_weight=-2.,PT_reads=0,physics=0)))
+'''.replace('__JOB__',repr(job))
+        v['CPU']=query(c,RUNTIME,code);v['passed']=True
+    except BaseException:v['error']=traceback.format_exc();raise
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();v.update(SSHclosed=True,SESSION_restored=True);put('PREPARE_ACTUAL',v)
+    (D/'FROZEN.json').write_text(json.dumps(dict(epoch=time.time(),PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),
+        files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*.py'))]),indent=2))
+    print(json.dumps(dict(prepared=True,run_id=run,CPU=v['CPU'])))
+
+def launch(mode):
+    p=plan();label='NATIVE' if mode=='native' else 'LAUNCH'
+    assert not (R/('reports/SCUT40_'+label+'_ONCE.json')).exists()
+    if mode=='train':
+        assert json.loads((D/'NATIVE_RESULT.json').read_bytes())['RESULT.json']['passed']
+        assert json.loads((D/'NATIVE_RESULT.json').read_bytes())['AGENT_NATIVE_EXIT.json']['GPU_lease_released']
+    fr=json.loads((D/'FROZEN.json').read_bytes())
+    for row in fr['files']:assert hashlib.sha256(Path(row['path']).read_bytes()).hexdigest()==row['SHA']
+    fresh();c=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86')
+        code='''import pathlib,json,subprocess,time,psutil,os
+J=pathlib.Path(__JOB__);uuid=__UUID__;mode=__MODE__
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert uuid not in apps,apps
+name='NATIVE_GO.json' if mode=='native' else 'GO_PRODUCTION.json'
+now=time.time();go=dict(run_id=__RUN__,GPU_UUID=uuid,execution_host='86',num_envs=16 if mode=='native' else 20000,learning_started_epoch=now,save_deadline=now+(600 if mode=='native' else 3600),nominal_end_epoch=now+(900 if mode=='native' else 3900),accounting_gate=False)
+with (J/name).open('x') as f:json.dump(go,f,indent=2)
+with (J/(mode.upper()+'_DIRECT.log')).open('xb') as f:
+ p=subprocess.Popen([__PY__,'-u','-B',str(J/'agent86_20000.py'),mode],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1'))
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),GO=go,agent=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline()),compute_apps_before=apps)))
+'''.replace('__JOB__',repr(p['host86_root'])).replace('__UUID__',repr(UUID)).replace('__MODE__',repr(mode)).replace('__RUN__',repr(p['run_id'])).replace('__PY__',repr(RUNTIME))
+        compile(code,'v40_launch','exec');put(label+'_ONCE',dict(epoch=time.time(),run_id=p['run_id']))
+        v=query(c,RUNTIME,code);put(label+'_ACTUAL',v);print(json.dumps(v))
+    except BaseException:put(label+'_ERROR',dict(epoch=time.time(),error=traceback.format_exc()));raise
+    finally:
+        if c:c.close()
+        restore();put(label+'_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def native_result():
+    p=plan();fresh();c=sf=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(30)
+        v={}
+        for local,remote in [('AGENT_NATIVE_EXIT.json','AGENT_NATIVE_EXIT.json'),('RESULT.json','native_validation/RESULT.json'),('ERROR.json','native_validation/ERROR.json')]:
+            try:
+                with sf.open(p['host86_root']+'/'+remote,'rb') as f:v[local]=json.loads(f.read(256*1024))
+            except FileNotFoundError:pass
+        if v.get('AGENT_NATIVE_EXIT.json'):
+            with (D/'NATIVE_RESULT.json').open('x') as f:json.dump(v,f,indent=2)
+        print(json.dumps(v))
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore()
+
+if __name__=='__main__':
+    if sys.argv[1]=='prepare':prepare()
+    elif sys.argv[1]=='result':native_result()
+    else:launch(sys.argv[1])

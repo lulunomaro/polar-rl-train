@@ -1,0 +1,20 @@
+"""Regular job binding for the existing dedicated GPU agent."""
+from pathlib import Path
+import importlib,json,runpy,sys
+J=Path(__file__).resolve().parent
+import relocation86
+relocation86.JOB=J
+receipt=relocation86.install()
+for name in ('integration','backend86','recipe'):
+    m=importlib.import_module(name)
+    if hasattr(m,'HERE'):m.HERE=J
+    if hasattr(m,'J'):m.J=J
+import backend86
+backend86.install()
+mode=sys.argv[1];assert mode in ('native','train','evaluate')
+with (J/(mode.upper()+'04_RELOCATION.json')).open('x') as f:json.dump(receipt,f,indent=2)
+if mode=='native':
+    runpy.run_path(str(J/'native_probe04.py'),run_name='__main__')
+else:
+    sys.argv=[str(J/'entry.py'),mode]
+    runpy.run_path(str(J/'entry.py'),run_name='__main__')

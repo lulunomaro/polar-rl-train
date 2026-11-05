@@ -1,0 +1,81 @@
+"""Task-local nominal D0-D7 configuration; real mechanics and control remain."""
+import ast,inspect,json,os,textwrap
+
+def patch_constructor(module,cls,substitutions):
+    raw=textwrap.dedent(inspect.getsource(cls.__init__))
+    raw=raw.replace('super().__init__','super('+cls.__name__+',self).__init__')
+    for before,after in substitutions:
+        assert before in raw,before
+        raw=raw.replace(before,after)
+    scope=dict(vars(module));exec(compile(raw,str(module.__file__),'exec'),scope)
+    cls.__init__=scope['__init__']
+
+def runtime_components():
+    import mild_dr
+    previous=mild_dr.MildDR.__call__
+    def nominal(self,env,env_ids):
+        previous(self,env,env_ids)
+        ids=slice(None) if env_ids is None else env_ids
+        self.nominal[ids]=True
+    mild_dr.MildDR.__call__=nominal
+    import action_delay_training_env as a
+    patch_constructor(a,a.ActionDelayMod4Env,[
+        ("assert profile=='physical_target_0_2500_5000us_v1'","assert profile=='off'"),
+        ('PhysicalActionDelayAdapter(self,True,','PhysicalActionDelayAdapter(self,False,')])
+    import spring_pressure_training_env as s
+    patch_constructor(s,s.SpringPressureMod4Env,[
+        ("assert os.environ.get('RM_SPRING_PRESSURE_PROFILE')==PROFILE","assert os.environ.get('RM_SPRING_PRESSURE_PROFILE')=='off'"),
+        ('LearningSpringPressure(self,True,','LearningSpringPressure(self,False,')])
+
+def readback(env):
+    import torch
+    d=env._mild_dr
+    assert d.profile=='nominal_v40' and bool((d.factor==1).all()) and bool(d.nominal.all())
+    assert all(bool((a.episode_scale==1).all() and (a.step_scale==1).all()) for name,a in d.robot.actuators.items() if name in ('legs','wheels'))
+    assert env._sensor_mild.profile=='off'
+    assert not env._feedback_delay_mild.enabled
+    assert not env._physics_action_delay.queue.enabled
+    disabled={key:not getattr(env,key).component.enabled for key in ('_spring_pressure','_gas_damping','_chassis_com','_explicit_pd')}
+    assert all(disabled.values()),disabled
+    assert bool(torch.isfinite(env.scene.env_origins).all())
+    command=env.command_manager.get_command('twist')
+    assert bool((command[:,0]>.0).all()) and bool((command[:,1:]==0).all()),command
+    return dict(profile='nominal_v40',D0_mass_inertia_motor_factor=1.,D1_D2_sensor='off',D3_feedback_delay=False,
+        D4_action_delay=False,disabled_components=disabled,real_gas_PD_DC_retained=True,
+        forward_command_range=[float(command[:,0].min()),float(command[:,0].max())],
+        actual_parameter_audit=d.audit(),num_envs=env.num_envs)
+
+def install(train):
+    old_settings=train.environment_settings
+    def settings(args):
+        old_settings(args)
+        import autonomy_policy
+        autonomy_policy.DR_PROFILES['nominal_v40']=dict(mass=(1.,1.),motor=(1.,1.),friction=(.9,.9))
+        os.environ.update(RM_DR_OFF='1',RM_MILD_DR_PROFILE='nominal_v40',RM_SENSOR_PROFILE='off',
+            RM_FEEDBACK_DELAY_PROFILE='off',RM_PHYSICS_ACTION_DELAY_PROFILE='off',
+            RM_SPRING_PRESSURE_PROFILE='off',RM_GAS_DAMPING_PROFILE='off',
+            RM_CHASSIS_COM_PROFILE='off',RM_EXPLICIT_PD_PROFILE='off')
+    train.environment_settings=settings
+    from pathlib import Path
+    import integration
+    raw=Path(train.__file__).read_text()
+    node=next(n for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef) and n.name=='boot')
+    body=ast.get_source_segment(raw,node).replace("declaration=runtime.parents[2]/'MOD4V1_ASSET_DIFF.json'","declaration=V36_HERE/'ASSET_MIGRATION.json'")
+    scope=dict(vars(train),V36_HERE=integration.HERE)
+    exec(compile(body,str(train.__file__),'exec'),scope);boot=scope['boot']
+    def wrapped_boot(args,job):
+        result=boot(args,job)
+        from mod4_env import Mod4Env
+        from step_adapter import adapt_step
+        adapt_step(Mod4Env)
+        runtime_components()
+        return result
+    train.boot=wrapped_boot
+    source=inspect.getsource(train.main)
+    start=source.index("        if not (env._mild_dr.profile == 'white_v3'")
+    end=source.index('        bridge.ready = True',start)
+    source=source[:start]+"        put(job/'NOMINAL_READBACK.json',nominal_readback(env))\n"+source[end:]
+    scope=dict(vars(train),nominal_readback=readback)
+    exec(compile(source,str(train.__file__),'exec'),scope)
+    # main's globals capture boot/settings explicitly after the v2 binding.
+    train.main=scope['main']

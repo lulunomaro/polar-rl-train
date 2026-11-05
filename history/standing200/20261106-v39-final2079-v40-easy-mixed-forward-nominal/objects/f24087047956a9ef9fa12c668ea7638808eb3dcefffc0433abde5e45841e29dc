@@ -1,0 +1,89 @@
+"""Single finite own-run collector: actual FIRST then local sleep and terminal."""
+from control import *
+import os
+
+def publish(v):
+    tmp=D/'DIRECT86_PUBLISHED.partial';tmp.write_text(json.dumps(v,indent=2));tmp.replace(D/'DIRECT86_PUBLISHED.json')
+
+def read(sf,job,name,cap=512*1024):
+    try:
+        size=sf.stat(job+'/'+name).st_size;assert size<=cap
+        with sf.open(job+'/'+name,'rb') as f:return json.loads(f.read(size+1))
+    except FileNotFoundError:return None
+
+def terminal_transfer(p,agent):
+    assert agent['all_own_waited'] and agent['GPU_lease_released']
+    assert not (R/'reports/SCUT40_CLOSED_TRANSFER_ONCE.json').exists()
+    c=sf=None;restore=lambda:None;v=dict(epoch=time.time(),files=[],agent=agent)
+    try:
+        fresh();c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(60)
+        job=p['host86_root'];actual=read(sf,job,'AGENT_PRODUCTION_EXIT.json')
+        assert actual==agent
+        put('CLOSED_TRANSFER_ONCE',dict(epoch=time.time(),run_id=p['run_id']))
+        dest=R/'actual_closed'/p['run_id'];dest.mkdir(parents=True,exist_ok=False);total=0
+        def copy(name,cap=24*1024**2):
+            nonlocal total
+            try:size=sf.stat(job+'/'+name).st_size
+            except FileNotFoundError:return
+            assert size<=cap
+            if not name.endswith('CONTROL_CURVES.json'):assert total+size<=64*1024**2;total+=size
+            target=dest/name;target.parent.mkdir(parents=True,exist_ok=True);sha=hashlib.sha256();copied=0
+            with sf.open(job+'/'+name,'rb') as src,target.open('xb') as out:
+                while copied<size:
+                    chunk=src.read(min(1024**2,size-copied));assert chunk;out.write(chunk);sha.update(chunk);copied+=len(chunk)
+            row=dict(remote_path=job+'/'+name,local_path=str(target),bytes=copied,SHA=sha.hexdigest());v['files'].append(row)
+            return row
+        names=['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','WORKER_IDENTITY.json','PRODUCTION_RESOURCE.json','GO_PRODUCTION.json','TRAIN_CLOSED.json','EVAL_WAITED.json','PLAN.json','TASK.json',
+            'production/STARTUP.json','production/NOMINAL_READBACK.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json','production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json',
+            'evaluation/NATIVE_STARTUP.json','evaluation/RESULT.json','evaluation/ALL80.json','evaluation/ERROR.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json']
+        for name in names:copy(name)
+        result=read(sf,job,'evaluation/RESULT.json')
+        if result:
+            for k in ('all80_manifold','actual_poses','terrain_mesh'):
+                row=result[k];assert row['path'].startswith(job+'/evaluation/')
+                actual=copy('evaluation/'+Path(row['path']).name)
+                assert actual['bytes']==row['bytes'] and actual['SHA']==row['SHA']
+        copy('evaluation/CONTROL_CURVES.json',96*1024**2)
+        v.update(metadata_NPZ_bytes=total,native_review_pending=True)
+        put('CLOSED_TRANSFER_ACTUAL',v)
+    except BaseException:
+        v['error']=traceback.format_exc();put('CLOSED_TRANSFER_ERROR',v);raise
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();put('CLOSED_TRANSFER_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def main():
+    assert not (R/'reports/SCUT40_DIRECT_COLLECTOR_ONCE.json').exists()
+    p=plan();put('DIRECT_COLLECTOR_ONCE',dict(epoch=time.time(),pid=os.getpid(),run_id=p['run_id']))
+    go=json.loads((R/'reports/SCUT40_LAUNCH_ACTUAL.json').read_bytes())['GO']
+    end=time.time()+3*3600;first_seen=False;v=dict(epoch=time.time(),pid=os.getpid())
+    try:
+        while time.time()<end:
+            fresh();c=sf=None;restore=lambda:None
+            try:
+                c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(35)
+                files={n:read(sf,p['host86_root'],n) for n in ('AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','WORKER_IDENTITY.json','production/STARTUP.json','production/NOMINAL_READBACK.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json')}
+            finally:
+                if sf:sf.close()
+                if c:c.close()
+                restore()
+            state=dict(epoch=time.time(),GO=go,files=files,SSH_open=False);publish(state)
+            first=files['production/FIRST_UPDATED.json'];agent=files['AGENT_PRODUCTION_EXIT.json']
+            if first and not first_seen:
+                assert first['actual_onpolicy_samples']==480000 and first['full_save'] and first['PPO_updates']==1
+                put('FIRST_COMPLETE_ACTUAL',dict(**state,FIRST_complete=True,num_envs=20000));first_seen=True
+            if agent:
+                terminal_transfer(p,agent);v['agent_exit']=agent;break
+            if files['production/ERROR.json'] or files['AGENT_PRODUCTION_ERROR.json']:
+                v['error']=files['production/ERROR.json'] or files['AGENT_PRODUCTION_ERROR.json']
+            wait=go['save_deadline']+30-time.time() if first_seen and time.time()<go['save_deadline'] else 45
+            until=time.time()+max(15,wait)
+            while time.time()<until:time.sleep(min(30,until-time.time()))
+        else:v['error']='Finite own collector expired; terminal not observed'
+    except BaseException:v['error']=traceback.format_exc()
+    finally:
+        v.update(epoch=time.time(),local_collector_closed=True,SSHclosed=True,SESSION_restored=True)
+        put('DIRECT_COLLECTOR_CLOSED',v)
+
+if __name__=='__main__':main()

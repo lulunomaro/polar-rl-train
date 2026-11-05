@@ -1,0 +1,34 @@
+"""Publish the measured launch/FIRST state; never replace planned with actual."""
+from pathlib import Path
+import datetime,json,time
+D=Path(__file__).resolve().parent;R=D.parent
+
+def main():
+    p=json.loads((D/'PLAN.json').read_bytes());go=json.loads((R/'reports/SCUT40_LAUNCH_ACTUAL.json').read_bytes())['GO']
+    w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    first=R/'reports/SCUT40_FIRST_COMPLETE_ACTUAL.json'
+    pub=json.loads((D/'DIRECT86_PUBLISHED.json').read_bytes()) if (D/'DIRECT86_PUBLISHED.json').exists() else None
+    actual=json.loads(first.read_bytes()) if first.exists() else None
+    w.update(schema='MOD4_EASY_FORWARD_CURRENT_V40',updated_local=datetime.datetime.now().astimezone().isoformat(),
+        status='V40_ACTUAL_FIRST2080' if actual else 'V40_ACTUAL_DIRECT_GO_AWAIT_FIRST',
+        training_started=True,training_completed=False,skill_pass=False,current_GO=go,
+        absolute_times={k:datetime.datetime.fromtimestamp(go[k]).astimezone().isoformat() for k in ('learning_started_epoch','save_deadline','nominal_end_epoch')},
+        latest_local_published=pub,first_actual=actual,
+        local_collector=dict(pid=45440,creation='2026-11-06T00:31:46.655777+08:00',script=str(D/'collect.py'),once_consumed=True),
+        native_result=str(D/'NATIVE05_RESULT.json'),source_binding=dict(learning_source=p['resume_checkpoint']),
+        next_action='Onlyowncollector readsactualFIRST thenlocalsleep untilsave; safeclose independent80 then once boundedtransfer and matchingactualterrain replay. No duplicateSSHreader/native/FIRST/PTdecode.',
+        archival_phase='history/standing200/20261106-v39-final2079-v40-easy-mixed-forward-nominal',
+        archival_id='mod4v2-easy-mixed-forward-nominal-v40')
+    (R/'CURRENT_WORK_ORDER.json').write_text(json.dumps(w,indent=2,ensure_ascii=False),encoding='utf-8')
+    text='''V40 actual dedicated host86GPU0 run {run};num_envs20000. New usergoal: lowdifficultyIsaacLab mixedterrain standingheight forward +.35m/s; not zerovelocity. L0actualhipanchor3D .334,theta0 atan2(bodydx,-bodydz),pen_theta_no0=-2sum(theta²),levelbody/yaw/signedspan2cm preserved. OriginalSCUT coeffs,actor35critic78/rawGaussian/PPO unchanged. DRoff actualnominal verified16env24control192ticks native05,0PT/policy/Adam. Failures native01-04 retained. No changes sharedSDK/foreignjump200.
+
+ActualGO {start};absoluteSAVE {save};nominalexit {end};GO is not PPO/FIRST/skillpass. Singlelocalcollector45440 at00:31:46+08 readsownrun FIRST480000samples/fullsave thenlocalsleep tosave; nosecondwatcher. Current FIRST actual exists: {first}. SourceV39final2079 SHA835c23f6132f73941ee5c87e99403abe51f4feaa7f42893a4ab461cc223e6a37. CompletePPO/17Adam41580/actualLR/globalRNG/scalars, freshnominal population+onephysicalreset. Do notclaim randomizedcomponents restored. Actualrestore evidence from collectoronly.
+
+V39 safeclosed/eval80/once transfer/savedposesrender/currentmodel10image native review consumed. Strict0/whole0/bothtop0/0terminated80timeouts/all499controls9.98. Nextthisphase independent80 uses standingforward metrics/actualterrainmesh, not strictstep200. Owneragent auto fullsaveclose/eval80/allownwait/GPUrelease. TransfermetadataNPZ64MiB/curves96MiB separately. Currentmodel view_image savedposes only no NN/physics replay. UIclose/Escbackground authorized; no accounting waits by humanoverride,foreigncanonical untouched.
+
+Sameautomationmod4-200-rl-bptt30min quiethealthy. All source/errors/metadata/workorder/automation Git onceuniqueV40,subsequentordinarysupplements;V39tagunchanged. NoGo/newchat/subagent/Luna. Credentials originalmemoryonly andfinallySSHclosed/sessionrestored. FollowCURRENT_WORK_ORDER latest.
+'''.format(run=p['run_id'],start=w['absolute_times']['learning_started_epoch'],save=w['absolute_times']['save_deadline'],end=w['absolute_times']['nominal_end_epoch'],first=bool(actual))
+    (D/'ACTUAL_HANDOFF.md').write_text(text,encoding='utf-8')
+    print(json.dumps(dict(status=w['status'],times=w['absolute_times'],FIRST=bool(actual))))
+
+if __name__=='__main__':main()

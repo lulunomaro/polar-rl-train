@@ -1,0 +1,57 @@
+"""Easy Isaac Lab mixed terrain, nominal plant and upright forward locomotion."""
+from pathlib import Path
+import hashlib,json
+HERE=Path(__file__).resolve().parent
+P=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='fbd73ab3d1bbcc539444bb5e67a118d461b387b4ff2ea6b14a1a369ea9072a8a'
+
+def simplify(source):
+    source=source.replace('MOD4V2_SCUT_STANDING200_V36_L0_THETA','MOD4V2_SCUT_EASY_MIXED_FORWARD_V40_NOMINAL')
+    start=source.index('    class SingleSupported200(')
+    end=source.index('    cls=rewards.ScutRewards',start)
+    source=source[:start]+'''    from easy_terrain import NoStepMeter
+    sdk.FourSideStrict270=NoStepMeter
+    old_init=sdk.ScutBridge.__init__
+    old_refresh=sdk.ScutBridge.refresh_observation_context
+    def init(self,env,task,contract,tensor,profile='trained_stair'):
+        previous_layout=sdk.layout
+        sdk.layout=lambda n:tensor(env.scene['terrain'].env_origins).detach().cpu().numpy().copy()
+        try:old_init(self,env,task,contract,tensor,profile)
+        finally:sdk.layout=previous_layout
+        r=self.reward
+        neutral=contract['bodies']
+        self.stand32_nominal_span=abs(neutral['left_wheel']['neutral_position_m'][1]-neutral['right_wheel']['neutral_position_m'][1])
+        r.stand32_bridge=self
+        r.stand32_target=torch.full((self.n,),L0_TARGET,device=self.device)
+    sdk.ScutBridge.__init__=init
+    sdk.ScutBridge.read_manifold=lambda self:None
+    sdk.ScutBridge.measure_acceptance=lambda self:None
+
+'''+source[end:]
+    return source
+
+text=raw.decode()
+needle="exec(compile(source,str(P),'exec'),globals())"
+assert text.count(needle)==1
+text=text.replace(needle,"source=simplify(source)\n"+needle)
+exec(compile(text,str(P),'exec'),globals())
+prior_install=install
+
+def install(stage,source_stage=None):
+    receipt=prior_install(stage,source_stage)
+    from easy_terrain import install as install_terrain
+    from nominal import install as install_nominal
+    import mod4v1_scut.train as train
+    import mod4v1_scut.sdk as sdk
+    import mod4v1_scut.checkpoint as checkpoint
+    install_terrain(sdk)
+    install_nominal(train)
+    receipt.update(stage='easy_mixed_forward',asset='MOD4v2_HW300N60',full_DR=False,
+        command_vx_m_s=.35,command_vy_m_s=0.,command_wz_rad_s=0.,stationary_command=False,
+        L0_target_m=.334,pen_theta_no0=-2.,theta0_definition='atan2(bodydx,-bodydz)',
+        wheel_center_under_hip_reward_always_active=True,no_both_contact_gate=True,
+        scope='stand tall, level and stable while travelling forward on easy mixed terrain',
+        step200_acceptance_used=False,contact_manifold_step_sensors_removed=True)
+    checkpoint.FORMAT='MOD4V2_SCUT_EASY_MIXED_FORWARD_V40_NOMINAL'
+    return receipt

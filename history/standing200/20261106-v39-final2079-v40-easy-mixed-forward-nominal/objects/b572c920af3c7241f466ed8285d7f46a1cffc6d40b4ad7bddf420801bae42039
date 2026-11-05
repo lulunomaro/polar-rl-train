@@ -1,0 +1,25 @@
+"""Human-requested switch: exact own run stop at next complete PPO/save boundary."""
+from control import D,R,plan,put,connect,fresh,RUNTIME,query
+import json,time
+p=plan();assert not (R/'reports/SCUT39_HUMAN_SIMPLE_STANDING_STOP_ONCE.json').exists()
+fresh();c=None;restore=lambda:None
+try:
+    c,restore,_=connect('86')
+    code='''import pathlib,json,time,psutil
+J=pathlib.Path(__JOB__)
+out={}
+for n in ('AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','WORKER_IDENTITY.json','production/LATEST_PROGRESS.json','production/FINAL.json','production/ERROR.json'):
+ if (J/n).exists():out[n]=json.loads((J/n).read_bytes())
+if 'AGENT_PRODUCTION_EXIT.json' not in out:
+ for pid,creation in ((696875,1793891361.83),(696886,1793891362.08)):
+  p=psutil.Process(pid);assert abs(p.create_time()-creation)<.02
+  assert any(str(J) in x for x in p.cmdline()),p.cmdline()
+ with (J/'STOP_AFTER_SAVE.json').open('x') as f:json.dump(dict(epoch=time.time(),reason='Human requested nominal lowdifficulty mixedterrain standing curriculum; finish currentPPO and fullsave safely.',fullsave_required=True),f,indent=2)
+print(json.dumps(dict(epoch=time.time(),exact_own_run=True,files=out,stop_after_save_requested=True,no_signal_or_kill=True)))
+'''.replace('__JOB__',repr(p['host86_root']))
+    put('HUMAN_SIMPLE_STANDING_STOP_ONCE',dict(epoch=time.time(),human='先不加全DR，低难度混合地形站稳',run_id=p['run_id']))
+    value=query(c,RUNTIME,code);put('HUMAN_SIMPLE_STANDING_STOP_ACTUAL',value)
+    print(json.dumps(dict(epoch=value['epoch'],keys=list(value['files']),stop_requested=True,latest=value['files'].get('production/LATEST_PROGRESS.json'))))
+finally:
+    if c:c.close()
+    restore();put('HUMAN_SIMPLE_STANDING_STOP_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))

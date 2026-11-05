@@ -1,0 +1,71 @@
+"""Preserve failed native01 and deploy a distinct native02 before production GO."""
+from control import D,R,plan,put,fresh,connect,RUNTIME,query
+import ast,hashlib,json,time
+
+def main():
+    p=plan();assert not (R/'reports/SCUT40_LAUNCH_ONCE.json').exists()
+    assert json.loads((D/'NATIVE_RESULT.json').read_bytes())['AGENT_NATIVE_EXIT.json']['GPU_lease_released']
+    saved=D/'attempt01';saved.mkdir(exist_ok=False)
+    for name in ('easy_terrain.py','worker86.py','FROZEN.json','INSTALL86_MANIFEST.json'):
+        (saved/name).write_bytes((D/name).read_bytes())
+    text=(D/'easy_terrain.py').read_text().replace('grid_width=.5','grid_width=.45')
+    (D/'easy_terrain.py').write_text(text)
+    native=(D/'native_probe.py').read_text().replace("J/'native_validation'","J/'native_validation02'")
+    (D/'native_probe02.py').write_text(native)
+    (D/'worker86_native02.py').write_text((D/'worker86.py').read_text().replace("J/'native_probe.py'","J/'native_probe02.py'"))
+    agent="""from pathlib import Path
+import sys
+J=Path(__file__).resolve().parent
+P=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/production02/agent86.py')
+text=P.read_text().replace('NATIVE','NATIVE02').replace('worker86.py','worker86_native02.py')
+sys.argv=[str(P),'native',str(J)]
+exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(P)))
+"""
+    (D/'agent_native02.py').write_text(agent)
+    names=['easy_terrain.py','native_probe02.py','worker86_native02.py','agent_native02.py']
+    for name in names:ast.parse((D/name).read_text())
+    fresh();c=sf=None;restore=lambda:None;v=dict(epoch=time.time(),old_native_error_preserved=True)
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        job=p['host86_root']
+        try:sf.stat(job+'/GO_PRODUCTION.json');raise RuntimeError('Production already GO')
+        except FileNotFoundError:pass
+        with sf.open(job+'/AGENT_NATIVE_EXIT.json','rb') as f:assert json.loads(f.read())['all_own_waited']
+        sf.rename(job+'/INSTALL86_MANIFEST.json',job+'/INSTALL86_MANIFEST_NATIVE01.json')
+        sf.rename(job+'/easy_terrain.py',job+'/easy_terrain_native01.py')
+        rows=[r for r in json.loads((D/'INSTALL86_MANIFEST.json').read_bytes())['files'] if r['path'] not in {job+'/'+n for n in names}]
+        for name in names:
+            raw=(D/name).read_bytes()
+            with sf.open(job+'/'+name,'wx') as f:f.write(raw)
+            rows.append(dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        manifest=dict(files=rows,prior_manifest=job+'/INSTALL86_MANIFEST_NATIVE01.json',preproduction_only=True)
+        with sf.open(job+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST02.json').write_text(json.dumps(manifest,indent=2))
+        v['files']=[r for r in rows if r['path'].startswith(job+'/')]
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();v.update(SSHclosed=True,SESSION_restored=True);put('PREPARE02_ACTUAL',v)
+    fr=dict(epoch=time.time(),PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),
+        files=[dict(path=str(f),bytes=f.stat().st_size,SHA=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(D.glob('*.py'))])
+    (D/'FROZEN02.json').write_text(json.dumps(fr,indent=2))
+    fresh();c=None;restore=lambda:None
+    try:
+        c,restore,_=connect('86')
+        code='''import pathlib,subprocess,json,time,os
+J=pathlib.Path(__JOB__)
+assert not (J/'GO_PRODUCTION.json').exists()
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert 'GPU-90a66ae2-f536-7033-79c0-487536ae36d3' not in apps
+now=time.time()
+with (J/'NATIVE02_GO.json').open('x') as f:json.dump(dict(GPU_UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3',save_deadline=now+600),f)
+with (J/'NATIVE02_DIRECT.log').open('xb') as f:
+ p=subprocess.Popen([__PY__,'-u','-B',str(J/'agent_native02.py')],cwd=J,stdin=subprocess.DEVNULL,stdout=f,stderr=subprocess.STDOUT,start_new_session=True)
+print(json.dumps(dict(epoch=time.time(),pid=p.pid,attempt='native02',PT_reads=0)))
+'''.replace('__JOB__',repr(p['host86_root'])).replace('__PY__',repr(RUNTIME))
+        put('NATIVE02_ONCE',dict(epoch=time.time()));v=query(c,RUNTIME,code);put('NATIVE02_ACTUAL',v);print(json.dumps(v))
+    finally:
+        if c:c.close()
+        restore();put('NATIVE02_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

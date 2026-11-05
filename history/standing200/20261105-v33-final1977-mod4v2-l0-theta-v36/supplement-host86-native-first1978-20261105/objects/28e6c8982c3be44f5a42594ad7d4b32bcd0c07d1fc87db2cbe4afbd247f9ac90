@@ -1,0 +1,31 @@
+"""Resume the admitted native segment after pre-worker system-Python failure."""
+from pathlib import Path
+import json
+import time
+from host_access import connect,R
+from host86_prepare import RUNTIME,query
+from dispatch86 import JOB86,fresh,put
+
+def main():
+    assert not (R/'reports/SCUT36_AGENT86_INTERPRETER_RECOVERY_ONCE.json').exists()
+    fresh();c=None;restore=lambda:None
+    try:
+        c,restore,py=connect('86')
+        code="""from pathlib import Path
+import json,subprocess,time
+J=Path(JOB)
+assert not (J/'AGENT_NATIVE_STARTED.json').exists() and not (J/'AGENT_NATIVE_EXIT.json').exists()
+text=(J/'AGENT_NATIVE.log').read_text();assert "ModuleNotFoundError: No module named 'psutil'" in text
+assert not (J/'NATIVE_WORKER_IDENTITY.json').exists() and not (J/'native_validation').exists()
+go=json.loads((J/'NATIVE_GO.json').read_bytes());assert time.time()<go['save_deadline']
+with (J/'AGENT_NATIVE_R2.log').open('xb') as log:
+ p=subprocess.Popen([PY,'-u','-B',str(J/'agent86.py'),'native'],cwd=J,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+print(json.dumps(dict(epoch=time.time(),pid=p.pid,original_GO=go,original_failure_before_worker=True,new_GO=False,physics_before_retry=0)))
+""".replace('JOB',repr(JOB86)).replace('PY',repr(RUNTIME))
+        put('SCUT36_AGENT86_INTERPRETER_RECOVERY_ONCE.json',dict(epoch=time.time(),only_interpreter_changed=True,original_GO_retained=True))
+        actual=query(c,py,code);put('SCUT36_AGENT86_INTERPRETER_RECOVERY_ACTUAL.json',actual);print(json.dumps(actual))
+    finally:
+        if c is not None:c.close()
+        restore();put('SCUT36_AGENT86_INTERPRETER_RECOVERY_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

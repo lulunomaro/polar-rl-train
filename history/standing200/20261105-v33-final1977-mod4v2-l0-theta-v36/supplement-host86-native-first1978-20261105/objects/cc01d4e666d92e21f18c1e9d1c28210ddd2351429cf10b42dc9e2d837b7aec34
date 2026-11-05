@@ -1,0 +1,94 @@
+"""One86 task worker, with local GPU lease and complete own wait."""
+from pathlib import Path
+import fcntl
+import hashlib
+import json
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import time
+import traceback
+
+J=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else Path(__file__).resolve().parent
+PY='/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh'
+UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+
+
+def put(path,value):
+    path=Path(path);tmp=path.with_suffix(path.suffix+'.partial')
+    tmp.write_text(json.dumps(value,indent=2));tmp.replace(path)
+
+
+def identity(pid):
+    import psutil
+    p=psutil.Process(pid)
+    return dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),root=p.cwd())
+
+
+def resource():
+    import psutil
+    line=subprocess.check_output(['nvidia-smi','-i',UUID,'--query-gpu=uuid,name,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True)
+    apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+    row=[x.strip() for x in line.split(',')]
+    assert row[0]==UUID and row[1]=='NVIDIA GeForce RTX 4090' and int(row[2])>15669 and UUID not in apps
+    ram=psutil.virtual_memory().available;disk=shutil.disk_usage(J).free
+    assert ram>64*1024**3 and disk>50*1024**3
+    return dict(epoch=time.time(),gpu=line,compute_apps=apps,ram_available=ram,disk_free=disk,compute_empty=True)
+
+
+def environment():
+    return dict(os.environ,CUDA_VISIBLE_DEVICES=UUID,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',
+                PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y')
+
+
+def main():
+    mode=sys.argv[1];assert mode in ('native','train')
+    key='NATIVE' if mode=='native' else 'PRODUCTION'
+    start=J/('AGENT_'+key+'_STARTED.json');finish=J/('AGENT_'+key+'_EXIT.json')
+    assert not start.exists() and not finish.exists()
+    put(start,dict(epoch=time.time(),identity=identity(os.getpid()),mode=mode))
+    gpu=None;process=evaluator=None;error=None;rc=None;erc=None
+    stop=False
+    def on_signal(*unused):
+        nonlocal stop
+        stop=True;put(J/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='own bridge disconnect/signal',fullsave_required=True))
+    for signum in (signal.SIGHUP,signal.SIGINT,signal.SIGTERM):signal.signal(signum,on_signal)
+    try:
+        lease=Path('/data/robemo/polar-rl-train/state')/('three_expert_v2_'+UUID+'.lock')
+        gpu=lease.open('a+b');fcntl.flock(gpu,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        for row in json.loads((J/'INSTALL86_MANIFEST.json').read_bytes())['files']:
+            p=Path(row['path']);assert p.stat().st_size==row['bytes'] and hashlib.sha256(p.read_bytes()).hexdigest()==row['SHA'],str(p)
+        actual=resource();put(J/(key+'_RESOURCE.json'),actual)
+        assert not stop
+        go=json.loads((J/('NATIVE_GO.json' if mode=='native' else 'GO_PRODUCTION.json')).read_bytes())
+        assert go['GPU_UUID']==UUID and 0<go['save_deadline']-time.time()<=3600
+        with (J/('NATIVE_WORKER.log' if mode=='native' else 'WORKER.log')).open('xb') as log:
+            process=subprocess.Popen([PY,'-u','-B',str(J/'worker86.py'),mode,str(J)],cwd=J,env=environment(),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,pass_fds=(gpu.fileno(),),start_new_session=True)
+        put(J/('NATIVE_WORKER_IDENTITY.json' if mode=='native' else 'WORKER_IDENTITY.json'),identity(process.pid))
+        rc=process.wait()
+        put(J/(key+'_WORKER_WAITED.json'),dict(epoch=time.time(),returncode=rc,own_waited=True))
+        if mode=='train':
+            final=json.loads((J/'production/FINAL.json').read_bytes()) if (J/'production/FINAL.json').exists() else None
+            close=json.loads((J/'production/APP_CLOSE_INTENT.json').read_bytes()) if (J/'production/APP_CLOSE_INTENT.json').exists() else None
+            okay=bool(rc==0 and final and final['passed_execution'] and close and close['error'] is None and close['env_closed'])
+            put(J/'TRAIN_CLOSED.json',dict(epoch=time.time(),returncode=rc,all_own_waited=True,passed_execution=okay,final=final,close=close))
+            if okay and final['PPO_updates']>0:
+                resource()
+                with (J/'EVAL.log').open('xb') as log:
+                    evaluator=subprocess.Popen([PY,'-u','-B',str(J/'worker86.py'),'evaluate'],cwd=J,env=environment(),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,pass_fds=(gpu.fileno(),),start_new_session=True)
+                put(J/'EVAL_IDENTITY.json',identity(evaluator.pid));erc=evaluator.wait()
+                put(J/'EVAL_WAITED.json',dict(epoch=time.time(),returncode=erc,own_waited=True,result=json.loads((J/'evaluation/RESULT.json').read_bytes()) if (J/'evaluation/RESULT.json').exists() else None))
+    except BaseException:
+        error=traceback.format_exc();put(J/('AGENT_'+key+'_ERROR.json'),dict(epoch=time.time(),error=error))
+        if process is not None and process.poll() is None:
+            put(J/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='own agent exception',fullsave_required=True))
+            rc=process.wait()
+        if evaluator is not None and evaluator.poll() is None:erc=evaluator.wait()
+    finally:
+        if gpu is not None:fcntl.flock(gpu,fcntl.LOCK_UN);gpu.close()
+        put(finish,dict(epoch=time.time(),mode=mode,error=error,returncode=rc if rc is not None else 1,evaluation_returncode=erc,all_own_waited=(process is None or process.poll() is not None) and (evaluator is None or evaluator.poll() is not None),GPU_lease_released=True))
+    if error:raise RuntimeError(error)
+
+if __name__=='__main__':main()

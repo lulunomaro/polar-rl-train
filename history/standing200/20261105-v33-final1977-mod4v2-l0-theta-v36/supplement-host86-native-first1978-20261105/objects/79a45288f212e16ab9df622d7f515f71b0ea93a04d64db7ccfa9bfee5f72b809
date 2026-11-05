@@ -1,0 +1,46 @@
+"""Prepare production supplement after native02; preserve prior attempts."""
+from pathlib import Path
+import hashlib
+import json
+import time
+from host_access import connect,R
+from dispatch86 import JOB86,fresh,put
+
+D=Path(__file__).resolve().parent
+
+def main():
+    assert not (R/'reports/SCUT36_PRODUCTION86_PREPARE_ACTUAL.json').exists()
+    proof=json.loads((R/'reports/SCUT36_NATIVE86_N02_RESULT.json').read_bytes())
+    own=proof['bridge']['NATIVE_OWNER_EXIT.json']
+    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    assert proof['files']['native_validation/RESULT.json']['passed']
+    fresh();c=sf=None;restore=lambda:None;result=dict(epoch=time.time(),frozen_source_changed=False,files=[])
+    try:
+        c,restore,py=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(40)
+        try:sf.stat(JOB86+'/AGENT_PRODUCTION_STARTED.json')
+        except FileNotFoundError:pass
+        else:raise RuntimeError('Production already started')
+        with sf.open(JOB86+'/INSTALL86_MANIFEST.json','rb') as f:manifest=json.loads(f.read())
+        for name in ['agent86.py','worker86.py']:
+            raw=(D/name).read_bytes();target=JOB86+'/'+name
+            with sf.open(target,'wb') as f:f.write(raw)
+            row=dict(path=target,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/name))
+            manifest['files']=[r for r in manifest['files'] if r['path']!=target];manifest['files'].append(row);result['files'].append(row)
+        p=Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/reports/model_manifest.json')
+        row=dict(path=JOB86+'/v2package/reports/model_manifest.json',bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest(),source=str(p))
+        manifest['files'].append(row);result['files'].append(row)
+        with sf.open(JOB86+'/INSTALL86_MANIFEST_PRODUCTION.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        # Agent reads the applicable phase manifest; no original frozenfile changes.
+        raw=(D/'agent86.py').read_text().replace("J/'INSTALL86_MANIFEST.json'","J/'INSTALL86_MANIFEST_PRODUCTION.json'")
+        with sf.open(JOB86+'/agent86_production.py','wx') as f:f.write(raw)
+        result['production_agent_source']=dict(path=JOB86+'/agent86_production.py',bytes=len(raw.encode()),SHA=hashlib.sha256(raw.encode()).hexdigest())
+        (D/'agent86_production.py').write_text(raw)
+        (D/'INSTALL86_MANIFEST_PRODUCTION.json').write_text(json.dumps(manifest,indent=2)+'\n')
+        result['passed']=True
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        put('SCUT36_PRODUCTION86_PREPARE_ACTUAL.json',result);print(json.dumps(result))
+
+if __name__=='__main__':main()

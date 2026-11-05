@@ -1,0 +1,44 @@
+"""One finite local return after save; no SSH while the window is healthy."""
+from pathlib import Path
+import json
+import os
+import sys
+import time
+import traceback
+from host_access import connect,R
+from dispatch86 import fresh,put
+from production02_prepare import OWNER
+
+D=Path(__file__).resolve().parent
+
+def main():
+    marker=R/'reports/SCUT36_TERMINAL86_COLLECTOR_ONCE.json';assert not marker.exists()
+    first=json.loads((R/'reports/SCUT36_FIRST_COMPLETE86_ACTUAL.json').read_bytes())
+    go=first['files']['GO_PRODUCTION.json'];assert first['FIRST_complete']
+    put(marker.name,dict(epoch=time.time(),pid=os.getpid(),wait_until=go['save_deadline']+45,original_GO=go,new_model_or_physics=0))
+    while time.time()<go['save_deadline']+45:time.sleep(min(30,go['save_deadline']+45-time.time()))
+    fresh();c=sf=None;restore=lambda:None;result=dict(epoch=time.time(),terminal=None)
+    try:
+        c,restore,_=connect('72');sf=c.open_sftp();sf.get_channel().settimeout(30)
+        end=go['nominal_end_epoch']+600
+        while time.time()<end:
+            try:
+                with sf.open(OWNER+'/PRODUCTION_OWNER_EXIT.json','rb') as f:result['terminal']=json.loads(f.read(200000))
+            except FileNotFoundError:pass
+            if result['terminal'] is not None:break
+            time.sleep(15)
+    except BaseException:
+        result['error']=traceback.format_exc()
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        put('SCUT36_TERMINAL86_COLLECTOR_ACTUAL.json',result)
+    if result['terminal'] is not None:
+        own=result['terminal']
+        if own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']:
+            import closed86
+            closed86.main()
+    put('SCUT36_TERMINAL86_COLLECTOR_CLOSED.json',dict(epoch=time.time(),local_collector_closed=True,SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

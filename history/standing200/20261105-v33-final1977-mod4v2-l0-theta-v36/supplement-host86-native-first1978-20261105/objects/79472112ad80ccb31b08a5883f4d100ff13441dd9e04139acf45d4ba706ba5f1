@@ -1,0 +1,80 @@
+"""Correct an entry checksum typo before its first model load; no physics delta."""
+from pathlib import Path
+import hashlib
+import json
+import time
+import traceback
+from host_access import connect,R
+from dispatch86 import JOB86,BRIDGE,fresh,put
+from host86_prepare import RUNTIME,query
+
+D=Path(__file__).resolve().parent
+PROD=JOB86+'/production02'
+OWNER=BRIDGE+'_PRODUCTION02'
+
+def main():
+    assert not (R/'reports/SCUT36_PRODUCTION02_PREPARE_ACTUAL.json').exists()
+    proof=max((R/'reports').glob('SCUT36_PRODUCTION86_METADATA_*.json'),key=lambda p:p.stat().st_mtime)
+    data=json.loads(proof.read_bytes());own=data['bridge']['PRODUCTION_OWNER_EXIT.json'];agent=data['files']['AGENT_PRODUCTION_EXIT.json']
+    assert own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released'] and agent['returncode']==1
+    assert not any(name.startswith('production/') for name in data['files'])
+    fresh();clients=[];streams=[];restores=[];result=dict(epoch=time.time(),job=PROD,owner=OWNER,prior_zero_PPO_closed=str(proof))
+    try:
+        for host in ['86','72']:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();sf.get_channel().settimeout(40);streams.append(sf)
+        c86,c72=clients;s86,s72=streams
+        s86.mkdir(PROD);s72.mkdir(OWNER)
+        rows=json.loads((D/'INSTALL86_MANIFEST_PRODUCTION.json').read_bytes())['files']
+        rows=[r for r in rows if not r['path'].startswith(JOB86+'/')]
+        names=['PLAN.json','SOURCE_PATHS.json','entry.py','recipe.py','reward_model.py','integration.py','guard.py','asset_compat.py','full_resume.py','evaluate.py','ASSET_MIGRATION.json','relocation86.py','worker86.py','backend86.py','agent86.py']
+        frozen=json.loads((D/'FROZEN.json').read_bytes())
+        mapping={r['relative']:Path(r['path']) for r in frozen['files']}
+        corrected=None
+        for name in names:
+            local=mapping[name] if name in mapping else D/name
+            raw=local.read_bytes()
+            if name=='entry.py':
+                old=b'c08e5fefdbcbddb42e662817c5b622576a687babcc3bdfcae6b9b28ed68bf'
+                new=b'c08e5fefdbcbddb42e662817c5b622576a687babcc3bdf3bfcae6b9b28ed68bf'
+                assert raw.count(old)==1;raw=raw.replace(old,new);corrected=raw
+                (D/'entry86_checksum_repair.py').write_bytes(raw)
+            with s86.open(PROD+'/'+name,'wx') as f:f.write(raw)
+            rows.append(dict(path=PROD+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(local)))
+        s86.symlink(JOB86+'/v2package',PROD+'/v2package')
+        for row in frozen['files']:
+            if row['relative'].startswith('v2package/'):
+                rows.append(dict(path=JOB86+'/'+row['relative'],bytes=row['bytes'],SHA=row['SHA']))
+        for p in [D/'physx_runtime.usda',Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/reports/model_manifest.json')]:
+            remote=JOB86+('/v2package/assets/' if p.suffix=='.usda' else '/v2package/reports/')+p.name
+            rows.append(dict(path=remote,bytes=p.stat().st_size,SHA=hashlib.sha256(p.read_bytes()).hexdigest(),source=str(p)))
+        with s86.open(PROD+'/TASK.json','wx') as f:f.write((D/'PLAN.json').read_bytes())
+        with s86.open(PROD+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(dict(files=rows),indent=2))
+        s72.symlink(BRIDGE+'/ssh_deps',OWNER+'/ssh_deps')
+        text=(D/'owner86_bridge.py').read_text().replace("REMOTE='"+JOB86+"'","REMOTE='"+PROD+"'")
+        text=text.replace("plan['run_id']+('_NATIVE86' if mode=='native' else '')","plan['run_id']+('_NATIVE86' if mode=='native' else '_PRODUCTION02')")
+        with s72.open(OWNER+'/owner86_bridge.py','wx') as f:f.write(text)
+        with s72.open(OWNER+'/PLAN.json','wx') as f:f.write((D/'PLAN.json').read_bytes())
+        code="""import sys,json,hashlib
+sys.path.insert(0,OUTPUT_ROOT)
+from relocation86 import install
+r=install()
+raw=open(OUTPUT_ROOT+'/entry.py','rb').read()
+exec(compile(raw,OUTPUT_ROOT+'/entry.py','exec'),dict(__name__='entry_source_check',__file__=OUTPUT_ROOT+'/entry.py'))
+from backend86 import install as backend
+backend()
+import integration
+a=integration.adapter();a.prepare_environment(opt_in=True)
+integration.load('mod4v1_fresh_dr_guard',OUTPUT_ROOT+'/guard.py')
+print(json.dumps(dict(passed=True,entry_source_imported=True,entry_sha=hashlib.sha256(raw).hexdigest(),preimport_geometry=True,physics=0,PT_reads=0,relocation=r)))
+""".replace('OUTPUT_ROOT',repr(PROD))
+        result['CPU']=query(c86,RUNTIME,code);result['passed']=True
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        for sf in streams:sf.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        result.update(all_SSH_closed=True,SESSION_restored=True)
+        put('SCUT36_PRODUCTION02_PREPARE_ACTUAL.json',result);print(json.dumps(result))
+
+if __name__=='__main__':main()

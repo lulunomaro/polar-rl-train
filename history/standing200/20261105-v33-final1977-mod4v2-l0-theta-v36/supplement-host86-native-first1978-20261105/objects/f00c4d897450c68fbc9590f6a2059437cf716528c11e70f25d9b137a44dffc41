@@ -1,0 +1,44 @@
+"""Publish native02 pass and actual V33 fullrestore FIRST1978."""
+from pathlib import Path
+import datetime
+import json
+import time
+from production02_prepare import PROD,OWNER
+
+R=Path(__file__).resolve().parent.parent;D=R/'scut_native_v36'
+
+def main():
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    source=json.loads((R/'reports/SCUT36_FIRST_COMPLETE86_ACTUAL.json').read_bytes());assert source['FIRST_complete']
+    f=source['files'];go=f['GO_PRODUCTION.json'];first=f['production/FIRST_UPDATED.json'];restore=f['production/FULL_RESTORE.json']
+    native=json.loads((R/'reports/SCUT36_NATIVE86_N02_RESULT.json').read_bytes())
+    receipt=dict(epoch=time.time(),run_id=go['run_id'],host='86',GPU_UUID=go['GPU_UUID'],job=PROD,budget_owner72=OWNER,
+        actual_FIRST=first,actual_FULL_RESTORE=restore,native_result=native['files']['native_validation/RESULT.json'],
+        native_owner_exit=native['bridge']['NATIVE_OWNER_EXIT.json'],source_full_restore_completed=True,
+        independent80_result=None,skill_pass=False,original_GO=go,
+        local_times={k:datetime.datetime.fromtimestamp(go[k],datetime.timezone(datetime.timedelta(hours=8))).isoformat() for k in ['learning_started_epoch','save_deadline','nominal_end_epoch']},
+        preserved_failures=['bridge Paramiko preSTARTED','86systemPython psutil preworker','native01 missinggeometrymanifest preSDK','native02prepare sourceformat SyntaxError','native02prepare mistaken no-directory assertion','production01entrySHA literalmissing3bf premodel'],
+        source_PPO_architecture_unchanged=True,frozen_original_files_unchanged=True,artifact_PT_decode_for_this_report=0)
+    with (R/'reports/SCUT36_ACTUAL_HOST86_FULLRESTORE_FIRST1978_20261105.json').open('x',encoding='utf-8') as out:json.dump(receipt,out,ensure_ascii=False,indent=2)
+    w.update(status='V36_MOD4V2_HOST86_PRODUCTION02_FULLRESTORE_ACTUAL_FIRST1978',training_started=True,training_completed=False,
+        run_id=go['run_id'],pending_run_id=None,remote_job=PROD,pending_remote_job=None,execution_host='86',budget_writer_host='72',
+        current_resource_blocker=None,original_owner=f['PRODUCTION_OWNER_STARTED.json'],original_worker=f['WORKER_IDENTITY.json'],
+        GO=go,full_restore_receipt=restore,first_checkpoint=first['checkpoint'],first_actual_metrics=first,
+        current_CPU_admission='reports/SCUT36_MAPPING86_CPU_R2_ACTUAL.json',native_review_report='reports/SCUT36_NATIVE86_N02_RESULT.json',
+        actual_first_receipt='reports/SCUT36_ACTUAL_HOST86_FULLRESTORE_FIRST1978_20261105.json',
+        first_readonly_status_consumed=True,first_readonly_status_finished=True,first_actual_returns='reports/SCUT36_FIRST_COMPLETE86_ACTUAL.json',
+        current_run_final=None,evaluation_result=None,current_model_independent_evaluation=None,current_model_native_reviewed=False,
+        training_skill_pass=False,latest_checkpoint=first['checkpoint'],current_diagnosis='Actual v2 FIRST update/fullsave confirmed; skill requires later independent80/replay',
+        next='Original finite86training to actualsave boundary; single localterminalcollector returns safeclosed80; render existingNPZ and nativeview_image then evidence-basedfix',
+        followup_commands=dict(terminal_collector='scut_native_v36/collect86_terminal.py already once when started',closed='scut_native_v36/closed86.py unused until actual terminal',no_repeat='native01/native02/production01/production02/FIRST all consumed'),
+        automation_status='ACTIVE_EVERY30MIN_HOST86_ACTUAL_FIRST1978')
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    with (D/'ACTUAL_HANDOFF.md').open('a',encoding='utf-8') as out:
+        out.write('\n\n2026-11-05 19:10 ACTUAL FIRST1978（最新，覆盖上方pending状态）\n\n')
+        out.write('native02实际16env100controls/801ticks/0PT0policy0Adam通过；v2actiondelta/gaspreload/L0theta/yawspan/九支持传感器/接触reset豁免实际入log，owner安全结算释放。native01漏manifest和production01入口SHA漏字符为preSDK/零PPO失败，原报告保留。\n\n')
+        out.write('production02实际run '+go['run_id']+'，86root '+PROD+'，72预算owner '+OWNER+'。\n\n')
+        out.write('实际恢复V33final1977 actorcriticSTD17Adam39540全等，LR1e-5/common47448/globalnamedRNG/components/queues后一次freshphysicalreset；不是PhysX续帧。FIRST1978/new1PPO/24controls98304samples/192physics20Adam/actor1critic1.000000119有限非零grad。fullsave9160563B SHA86a429b2afd494410e18e1d105027b6a7b24e3c116606d9191b5154da205388c，formatMOD4V2_SCUT_STANDING200_V36_L0_THETA。\n\n')
+        out.write('GO '+receipt['local_times']['learning_started_epoch']+'/SAVE '+receipt['local_times']['save_deadline']+'/NOMINAL '+receipt['local_times']['nominal_end_epoch']+'。不凭时间称live/final。native/FIRST均已消费，不重复。后续独立80未评，不称成功；原3600save+300exit、原canonicalstrictreserve保持。\n')
+    print(json.dumps(dict(status=w['status'],FIRST=first['iteration'],save=receipt['local_times']['save_deadline'])))
+
+if __name__=='__main__':main()

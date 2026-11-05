@@ -1,0 +1,39 @@
+"""One finite FIRST collector; original72 owner publishes exact86 receipts."""
+from pathlib import Path
+import json
+import time
+import traceback
+from host_access import connect,R
+from dispatch86 import fresh,put
+from production02_prepare import PROD,OWNER
+
+def main():
+    marker=R/'reports/SCUT36_FIRST_COMPLETE86_ONCE.json';assert not marker.exists()
+    fresh();put(marker.name,dict(epoch=time.time(),max_wait_seconds=420,metadata_only=True))
+    c=sf=None;restore=lambda:None;result=dict(epoch=time.time(),job=PROD,bridge=OWNER,files={},FIRST_complete=False)
+    try:
+        c,restore,_=connect('72');sf=c.open_sftp();sf.get_channel().settimeout(30);end=time.time()+420
+        names=['GO_PRODUCTION.json','PRODUCTION_OWNER_STARTED.json','PRODUCTION_OWNER_CURRENT.json','PRODUCTION_OWNER_EXIT.json','PRODUCTION_OWNER_ERROR.json','PRODUCTION_REMOTE_WAITED.json','WORKER_IDENTITY.json','production/STARTUP.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json','production/APP_CLOSE_INTENT.json','TRAIN_CLOSED.json']
+        while True:
+            for name in names:
+                try:
+                    with sf.open(OWNER+'/'+name,'rb') as f:result['files'][name]=json.loads(f.read(4*1024**2))
+                except FileNotFoundError:pass
+            result['FIRST_complete']=all(k in result['files'] for k in ['production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/STARTUP.json'])
+            if result['FIRST_complete'] or 'PRODUCTION_OWNER_EXIT.json' in result['files'] or time.time()>=end:break
+            time.sleep(10)
+        result['captured_epoch']=time.time()
+        if result['FIRST_complete']:
+            first=result['files']['production/FIRST_UPDATED.json'];restoredata=result['files']['production/FULL_RESTORE.json']
+            assert first['full_save'] and first['PPO_updates']==1 and first['gradient']['actor_norm']>0 and first['gradient']['critic_norm']>0
+            assert restoredata['actor_critic_STD_complete_Adam_equal'] and restoredata['optimizer_states']==17 and restoredata['source_model_decodes']==1 and restoredata['LR_restored']
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        put('SCUT36_FIRST_COMPLETE86_ACTUAL.json',result)
+        print(json.dumps(result))
+
+if __name__=='__main__':main()

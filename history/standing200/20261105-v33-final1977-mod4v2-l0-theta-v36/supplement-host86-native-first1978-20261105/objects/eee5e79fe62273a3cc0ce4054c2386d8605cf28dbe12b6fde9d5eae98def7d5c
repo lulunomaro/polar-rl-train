@@ -1,0 +1,64 @@
+"""Narrow task path mapping; source bytes and code remain immutable."""
+from pathlib import Path
+import builtins
+import io
+import importlib.util
+import json
+import os
+import sys
+
+OLD='/home/lc01/Zonglin Li/zonglin2'
+ROOT='/data/robemo/polar-rl-train/supported200_v36'
+JOB=Path(__file__).resolve().parent
+RUN='MOD4_STANDING200_SUPPORTED_V36_1793872547340580700'
+OLD_JOB=OLD+'/tasks/'+RUN
+
+
+def path(value):
+    if not isinstance(value,(str,bytes,os.PathLike)):return value
+    if isinstance(value,bytes):return value
+    text=os.fspath(value)
+    if text==OLD_JOB or text.startswith(OLD_JOB+'/'):
+        return str(JOB)+text[len(OLD_JOB):]
+    if text.startswith(OLD+'/tasks/'):
+        return ROOT+'/reference72'+text[len(OLD):]
+    return value
+
+
+def value(item):
+    if isinstance(item,str):return path(item)
+    if isinstance(item,list):return [value(x) for x in item]
+    if isinstance(item,dict):return {k:value(v) for k,v in item.items()}
+    return item
+
+
+def install():
+    old_spec=importlib.util.spec_from_file_location
+    def spec(name,location,*args,**kwargs):return old_spec(name,path(location),*args,**kwargs)
+    importlib.util.spec_from_file_location=spec
+    original_open=io.open;original_builtin=builtins.open
+    def opened(file,*args,**kwargs):return original_open(path(file),*args,**kwargs)
+    def builtin_opened(file,*args,**kwargs):return original_builtin(path(file),*args,**kwargs)
+    io.open=opened;builtins.open=builtin_opened
+    original_resolve=Path.resolve;original_stat=Path.stat
+    def resolve(self,*args,**kwargs):return original_resolve(Path(path(self)),*args,**kwargs)
+    def stat(self,*args,**kwargs):return original_stat(Path(path(self)),*args,**kwargs)
+    Path.resolve=resolve;Path.stat=stat
+    original_loads=json.loads
+    def loads(raw,*args,**kwargs):
+        result=value(original_loads(raw,*args,**kwargs))
+        if isinstance(result,dict) and result.get('run_id')==RUN and 'GPU_UUID' in result:
+            result['GPU_UUID']='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+            result['execution_host']='86'
+        return result
+    json.loads=loads
+    original_env_update=os.environ.update
+    def env_update(*args,**kwargs):
+        incoming=dict(*args,**kwargs)
+        return original_env_update({k:str(path(v)) for k,v in incoming.items()})
+    os.environ.update=env_update
+    # Imports use real mapped locations; declarations can retain their frozen
+    # paths, whose read/resolve/stat operations are mapped above.
+    plan=loads((JOB/'PLAN.json').read_bytes())
+    sys.path[:0]=[str(JOB),plan['runtime'],*plan['support'],str(Path(plan['runtime']).parents[1])]
+    return dict(schema='SCUT36_TASK_PATH_RELOCATION_ONLY',source_prefix=OLD,task_root=str(JOB),reference_root=ROOT+'/reference72',source_bytes_preserved=True,canonical_path_not_mapped=True)

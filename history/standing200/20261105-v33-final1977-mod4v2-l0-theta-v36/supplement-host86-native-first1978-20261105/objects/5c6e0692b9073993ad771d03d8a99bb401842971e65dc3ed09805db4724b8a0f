@@ -1,0 +1,66 @@
+"""One bounded86 closed evidence transfer, after actual own-wait receipts."""
+from pathlib import Path
+import hashlib
+import json
+import time
+import traceback
+from host_access import connect,R
+from dispatch86 import JOB86,BRIDGE,fresh,put,FROZEN
+from production02_prepare import PROD,OWNER
+JOB86=PROD;BRIDGE=OWNER
+
+
+def main():
+    marker=R/'reports/SCUT36_CLOSED86_TRANSFER_ONCE.json';assert not marker.exists()
+    fresh();clients=[];streams=[];restores=[];rows=[];consumed=False
+    try:
+        for host in ['72','86']:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();streams.append(sf);sf.get_channel().settimeout(60)
+        a,b=streams
+        total=0
+        def read(sf,root,name):
+            nonlocal total
+            size=sf.stat(root+'/'+name).st_size
+            assert size<=96*1024**2 and total+size<=96*1024**2
+            with sf.open(root+'/'+name,'rb') as f:raw=f.read(size+1)
+            assert len(raw)==size;total+=size;return raw
+        own=json.loads(read(a,BRIDGE,'PRODUCTION_OWNER_EXIT.json'))
+        agent=json.loads(read(b,JOB86,'AGENT_PRODUCTION_EXIT.json'))
+        assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+        assert agent['all_own_waited'] and agent['GPU_lease_released']
+        put(marker.name,dict(epoch=time.time(),run_id=FROZEN['run_id'],original72owner=own,agent86=agent));consumed=True
+        dest=R/'actual_closed'/(FROZEN['run_id']+'_PRODUCTION02');dest.mkdir(parents=True,exist_ok=False)
+        def save(root,name,raw,local=None):
+            p=dest/(local or name);p.parent.mkdir(parents=True,exist_ok=True)
+            with p.open('xb') as f:f.write(raw)
+            rows.append(dict(remote_path=root+'/'+name,local_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        ownernames=['PRODUCTION_OWNER_STARTED.json','PRODUCTION_OWNER_EXIT.json','PRODUCTION_OWNER_ERROR.json','PRODUCTION_ADMISSION.json','PRODUCTION_REMOTE_WAITED.json','GO_PRODUCTION.json']
+        names=['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','INSTALL86_MANIFEST.json','TASK.json','PLAN.json','DEPLOYMENT86.json','WORKER_IDENTITY.json','TRAIN_CLOSED.json','EVAL_WAITED.json','GO_PRODUCTION.json','production/STARTUP.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/LATEST_PROGRESS.json','production/FINAL.json','production/ERROR.json','production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json','production/POSE_CACHE_EVENTS.json','evaluation/RESULT.json','evaluation/ERROR.json','evaluation/NATIVE_STARTUP.json','evaluation/ALL80.json','evaluation/CONTROL_CURVES.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json']
+        for name in ownernames:
+            try:raw=read(a,BRIDGE,name)
+            except FileNotFoundError:continue
+            save(BRIDGE,name,raw,'authority72/'+name)
+        for name in names:
+            try:raw=read(b,JOB86,name)
+            except FileNotFoundError:continue
+            save(JOB86,name,raw)
+        if (dest/'evaluation/RESULT.json').exists():
+            result=json.loads((dest/'evaluation/RESULT.json').read_bytes())
+            for key in ['all80_manifold','actual_poses']:
+                source=result[key];relative='evaluation/'+Path(source['path']).name
+                assert source['path']==JOB86+'/'+relative
+                raw=read(b,JOB86,relative)
+                assert len(raw)==source['bytes'] and hashlib.sha256(raw).hexdigest()==source['SHA']
+                save(JOB86,relative,raw)
+        put('SCUT36_CLOSED86_TRANSFER_ACTUAL.json',dict(epoch=time.time(),run_id=FROZEN['run_id'],original_exit=own,agent_exit=agent,files=rows,evaluation=str(dest/'evaluation'),bytes=total,source_PT_reads=0,physics_operations=0,native_review_pending=True))
+        print(json.dumps(dict(files=len(rows),bytes=total,evaluation=str(dest/'evaluation'))))
+    except BaseException:
+        if consumed:put('SCUT36_CLOSED86_TRANSFER_ERROR.json',dict(epoch=time.time(),error=traceback.format_exc(),once_consumed=True,files=rows))
+        raise
+    finally:
+        for sf in streams:sf.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        if consumed:put('SCUT36_CLOSED86_TRANSFER_SSH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

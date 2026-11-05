@@ -1,0 +1,24 @@
+"""Native02 uses repaired small manifest, distinct output/once, same source."""
+import json
+import sys
+import time
+import dispatch86 as m
+from host_access import connect
+from native02_prepare import NATIVE,OWNER
+from host86_prepare import query
+
+if __name__=='__main__':
+    m.JOB86=NATIVE;m.BRIDGE=OWNER
+    if sys.argv[1]=='launch':
+        m.fresh();c=None;restore=lambda:None
+        try:
+            c,restore,py=connect('72');sf=c.open_sftp()
+            try:sf.symlink(m.BRIDGE.rsplit('_NATIVE02',1)[0]+'/ssh_deps',m.BRIDGE+'/ssh_deps')
+            except OSError:sf.stat(m.BRIDGE+'/ssh_deps')
+            finally:sf.close()
+        finally:
+            if c is not None:c.close()
+            restore()
+        m.launch('native','N02')
+    elif sys.argv[1]=='result':m.collect('native','N02')
+    else:raise ValueError(sys.argv[1])

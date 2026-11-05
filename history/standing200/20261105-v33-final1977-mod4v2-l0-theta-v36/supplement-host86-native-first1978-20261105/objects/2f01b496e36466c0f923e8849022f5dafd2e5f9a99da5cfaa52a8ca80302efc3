@@ -1,0 +1,81 @@
+"""Missing geometry manifest repair; preserve closed native01 without replay."""
+from pathlib import Path
+import hashlib
+import json
+import sys
+import time
+import traceback
+from host_access import connect,load,R
+from dispatch86 import JOB86,BRIDGE,fresh,put
+from host86_prepare import RUNTIME,query
+
+D=Path(__file__).resolve().parent
+NATIVE=JOB86+'/native02'
+OWNER=BRIDGE+'_NATIVE02'
+
+def main():
+    report='SCUT36_NATIVE02_PREPARE'+('_'+sys.argv[1] if len(sys.argv)>1 else '')+'_ACTUAL.json'
+    assert not (R/'reports'/report).exists()
+    fresh();clients=[];streams=[];restores=[];result=dict(epoch=time.time(),native=NATIVE,owner=OWNER)
+    try:
+        for host in ['86','72']:
+            c,restore,py=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();streams.append(sf);sf.get_channel().settimeout(40)
+        s86,s72=streams;c86,c72=clients
+        source=Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/reports/model_manifest.json')
+        raw=source.read_bytes();target=JOB86+'/v2package/reports/model_manifest.json'
+        try:s86.mkdir(JOB86+'/v2package/reports')
+        except OSError:s86.stat(JOB86+'/v2package/reports')
+        try:
+            with s86.open(target,'wx') as f:f.write(raw)
+        except OSError:
+            with s86.open(target,'rb') as f:assert f.read()==raw
+        result['missing_manifest']=dict(source=str(source),path=target,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+        code="""import pathlib,json
+J=pathlib.Path(PLACEHOLDER_JOB);N=pathlib.Path(PLACEHOLDER_NATIVE)
+old=json.loads((J/'AGENT_NATIVE_EXIT.json').read_bytes());assert old['all_own_waited'] and old['GPU_lease_released'] and old['returncode']==1
+assert 'v2package/reports/model_manifest.json' in (J/'NATIVE_WORKER.log').read_text()
+assert not (J/'native_validation/RESULT.json').exists()
+N.mkdir()
+for name in ['PLAN.json','TASK.json','SOURCE_PATHS.json','relocation86.py','backend86.py','integration.py','recipe.py','reward_model.py','guard.py','asset_compat.py','ASSET_MIGRATION.json','v2package']:
+ (N/name).symlink_to(J/name)
+print(json.dumps(dict(previous_native_closed=old,physics_before_retry=0,new_attempt=str(N))))
+""".replace('PLACEHOLDER_NATIVE',repr(NATIVE)).replace('PLACEHOLDER_JOB',repr(JOB86))
+        result['previous_closed']=query(c86,'/usr/bin/python3',code)
+        rows=json.loads((D/'INSTALL86_MANIFEST.json').read_bytes())['files']
+        rows.append(result['missing_manifest'])
+        for name in ['agent86.py','worker86.py','native_probe.py']:
+            raw=(D/name).read_bytes()
+            with s86.open(NATIVE+'/'+name,'wx') as f:f.write(raw)
+            rows.append(dict(path=NATIVE+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        with s86.open(NATIVE+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(dict(files=rows),indent=2))
+        s72.mkdir(OWNER)
+        raw=(D/'owner86_bridge.py').read_text()
+        raw=raw.replace("REMOTE='"+JOB86+"'","REMOTE='"+NATIVE+"'")
+        raw=raw.replace("plan['run_id']+('_NATIVE86'", "plan['run_id']+('_NATIVE86_02'")
+        # Native agent is real in this attempt; worker takes its output root.
+        with s72.open(OWNER+'/owner86_bridge.py','wx') as f:f.write(raw)
+        with s72.open(OWNER+'/PLAN.json','wx') as f:f.write((D/'PLAN.json').read_bytes())
+        code="""import sys,json
+sys.path.insert(0,JOB)
+from relocation86 import install
+install()
+from backend86 import install as backend
+backend()
+import integration
+a=integration.adapter();r=a.prepare_environment(opt_in=True)
+assert a._geometry().JOINT_BOUNDS is not None
+g=integration.load('mod4v1_fresh_dr_guard',JOB+'/guard.py')
+print(json.dumps(dict(passed=True,preimport=r,guard_loaded=True,physics=0)))
+""".replace('JOB',repr(JOB86))
+        result['geometry_preimport_CPU']=query(c86,RUNTIME,code)
+        result['passed']=True
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        for sf in streams:sf.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        result.update(all_SSH_closed=True,SESSION_restored=True)
+        put(report,result);print(json.dumps(result))
+
+if __name__=='__main__':main()

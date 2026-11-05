@@ -1,0 +1,11 @@
+"""Distinct corrected production entry; preserve zero-update attempt01."""
+import sys
+import dispatch86 as m
+from production02_prepare import PROD,OWNER
+
+if __name__=='__main__':
+    m.JOB86=PROD;m.BRIDGE=OWNER
+    if sys.argv[1]=='launch':m.launch('train','P02')
+    elif sys.argv[1]=='result':m.collect('train','P02')
+    elif sys.argv[1]=='first':m.collect('first','P02')
+    else:raise ValueError(sys.argv[1])

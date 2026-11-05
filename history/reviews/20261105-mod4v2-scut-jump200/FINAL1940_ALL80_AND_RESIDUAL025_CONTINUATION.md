@@ -1,5 +1,7 @@
 # SuperMimic final1940与残差修复接续
 
+2026-11-06 07:44最高实际覆盖：原collector75124于07:24:39因SSH TCP超时退出；缺失回传恢复也超时。到原服务器不可达而普通外网可达，最终保存/退出/80状态Unknown；当前0收集器。先读`POSTROUND_NETWORK_RECOVERY_PENDING.md`，仅有限恢复同一窗结果，禁止重launch/evalonce或把下文历史FIRST/healthy描述当当前状态。
+
 2026-11-06原一小时SuperMimic已完整保存、安全退出、立即独立80并正式回传。完整final2328856863字节，SHA `087c357ddc77f8e860d553b5ee13df8e7299b418a2c7541c9b7e3c3e047a559d`。实际iteration1940、1908次验证H32 BPTT、7760WM、7760aux、7632critic，4914真实controls、98.28M环境转移。四Adam分别14/16/6/6个状态，步数7760/1908/7632/7760，模型及优化器有限；64×20000 replay1279998有效/2无效样本，原streamcut完整，7组件/DR/RNG/queues/counters完整。唯一最终学习诊断已完成，不为归档再次解模。
 
 原full881 PPO仍作冻结teacher完整来源保留，新四Adam不是原PPO17Adam接续。当前源父模型没有逐轮持久化progress历史，只有FIRST/LATEST及最终计数；不补造中间学习曲线。原完整WORKER1393640字节SHA `5e8d6d98e608d4b01207e24debd46c88ec081bdfa53e15342995626db5f90746`，EVAL21378字节SHA `dd3ee40eea7155ab28b2d071a9f2559eea9e161d4f27411988cda2c71b905a1c`，全文错误0；仍有7369次solver32上限警告与893条单环境重置event。训练最后计数361numerical/778constraint，不能说生产数值全部通过。

@@ -109,3 +109,22 @@ class ScutBridge(_source.ScutBridge):
         from .train import put
         put(Path(os.environ['MOD4V1_E0_JOB_ROOT']) / 'MOD4V2_NATIVE_HARDWARE.json',
             self.hardware_readback)
+        from .config import reward_config
+        recipe = reward_config(profile)
+        put(Path(os.environ['MOD4V1_E0_JOB_ROOT']) / 'FUDAN_REWARD_RECIPE.json', dict(
+            family='FUDAN_JUMP', commit=recipe.fudan_reward_commit,
+            weights=recipe.rewards, clip_single_weighted_rate=2.5, dt=.02,
+            virtual_leg='Measured body-frame hip-to-wheel sagittal L0/theta',
+            tuck_length_m=.16, extend_length_m=.31, flight_base_height_m=.65,
+            original_contact_filter='vertical wheel force>1N OR previouscontrol contact',
+            SCUT_reward_terms_active=False, physical_assists=False))
+
+    def snapshot(self, terminated, timeout):
+        value = super().snapshot(terminated, timeout)
+        r = self.reward
+        value.update(fudan_leg_length=r.fudan_leg_length.clone(),
+                     fudan_leg_theta=r.fudan_leg_theta.clone(),
+                     fudan_contact_filt=r.fudan_contact_filt.clone(),
+                     fudan_was_in_flight=r.fudan_was_in_flight.clone(),
+                     fudan_base_air_time=r.fudan_base_air_time.clone())
+        return value

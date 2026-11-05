@@ -1,4 +1,10 @@
-# MOD4v2 华南虎单200mm跳跃
+# MOD4v2 复旦奖励压腿跳跃
+
+2026-11-06最新人类要求先用复旦奖励学习压腿跳跃，并明确不再因账本等待，直接训练。当前选择复旦`yly-true/fudan_rl_wheel_leg`固定commit `8204e853dfd2ed06d85a322e1a998c3d20a3be2c` 的jump完整16项奖励及原逐项裁剪。`fudan_source.py`直接抽取18个原方法，`FUDAN_SOURCE.json`记录原字节SHA、行号、权重与来源；没有混入华南虎基础奖励或weight12速度项。MOD4v2实测body-frame hip锚点到轮心的矢状面长度/角度替代参考机器人连杆公式；保留原0.16m空中收腿、0.31m接地正vz伸腿、0.65m腾空高度目标及contact OR滤波。15项CPU检查已通过。
+
+华南虎窗按人类切换要求完整保存至final357（17Adam7140、LR0.0002562890625000001、STD与7组件/RNG/队列/counter8568），独立80与全部实际回放仍0有效起跳上台。新复旦窗从完整final357接续，保留硬件/PD/DR/PPO/35actor78critic。最高指令覆盖旧账本准入，采用真实空闲GPU私有锁与固定3600s保存+300s退出，直接owner不读写canonical。旧账本拒绝、旧等待进程和全部失败保留；其它聊天继续运行。当前FIRST与真实时间边界见工作单。
+
+以下为华南虎阶段历史来源。
 
 人类2026-11-05要求停止旧训练、换MOD4v2并用华南虎奖励重训。运行代码引用原SCUT公式、训练循环、完整保存和独立80评测，仅新增v2资产/目标/复位接入。新actor、critic、STD和Adam从随机初始化开始，旧v1失败策略不载入。
 
@@ -8,9 +14,9 @@
 
 奖励采用固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的保存基础reward字典，启用源码可选的push-height、push-velocity和peak-height公式，权重2/1/2。单200mm场地、实际ray触发、MOD4轮半径及禁物理助推是明确任务适配，不声称公开训练的逐字复现；v1累加projection/bilateral/tuck等奖励修补不带入。
 
-final239独立80仍0验证起跳/越沿/落台，push阶段实测平均向上速度仅0.064225m/s。下一窗口额外选择同一固定华南虎源码的`takeoff_vel_z`奖励：仅push阶段计算`clamp(world_vz,0,3)`，权重4，dt仍在原reward tail乘一次。基础字典和原2/1/2保持，未引入新奖励公式或物理助推。3项源码速度奖励检查及6项既有v2检查通过；完整final239/17Adam4780接续，效果以新独立80和实际回放判定。
+final239之后选择同一固定华南虎源码的`takeoff_vel_z`奖励：仅push阶段计算`clamp(world_vz,0,3)`，原weight4训练至final346，push向上速度均值0.064225→0.223073m/s，最大0.185133→0.421753。独立80仍0有效起跳/越沿/落台，全部push轮底不超过1.312mm。全部实际回放已审阅，据此只将该权重4→12；dt仍在原reward tail乘一次，基础字典与原2/1/2保持，未引入新奖励公式或物理助推。3项源码公式和6项既有v2检查通过；从完整final346/17Adam6920/STD/组件RNG队列计数器接续，原newconstructor nominal保护与一次fresh physical reset保持。首次准入遇原共享账本实际占用而拒绝，原false保留；实际释放后追加admission_resume01并启动，FIRST与窗口边界以实际回传为准。
 
-20,000环境、原canonical/reserve、3600s保存+300s退出、完整actor/critic/STD/Adam/DR/RNG/queue/counter保存、退出后立即独立80/seed9137/400Hz评测保持。目标仍为地面主动向上离地、整轮腾空越沿、双轮真实台顶稳定0.5s。
+20,000环境、3600s保存+300s退出、完整actor/critic/STD/Adam/DR/RNG/queue/counter保存、退出后立即独立80/seed9137/400Hz评测保持。旧canonical/reserve准入现由最新直接训练指令覆盖。目标仍为地面主动向上离地、整轮腾空越沿、双轮真实台顶稳定0.5s。
 
 当前真实状态和所有失败见`history/reviews/20261105-mod4v2-scut-jump200/WORK_ORDER.json`与`EVIDENCE_INDEX.json`。原目录及once不清除、不重放。`BINDINGS.json`记录唯一共享依赖；新任务不整树复制旧生产目录。
 

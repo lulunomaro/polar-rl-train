@@ -2,7 +2,7 @@
 from types import SimpleNamespace
 import unittest
 import torch
-from .config import reward_config
+from .config import scut_reward_config as reward_config
 from .shared import load
 
 
@@ -33,7 +33,7 @@ class TakeoffVelocityTests(unittest.TestCase):
 
     def test_existing_recipe_and_physical_assist_stay_fixed(self):
         cfg = reward_config()
-        self.assertEqual(cfg.rewards['scut_jump_takeoff_velocity'], 4.)
+        self.assertEqual(cfg.rewards['scut_jump_takeoff_velocity'], 12.)
         self.assertEqual([cfg.rewards[k] for k in
                           ['scut_jump_push_height', 'scut_jump_push_velocity', 'scut_jump_peak']],
                          [2., 1., 2.])

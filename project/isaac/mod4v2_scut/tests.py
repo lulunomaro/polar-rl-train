@@ -19,13 +19,11 @@ class V2Tests(unittest.TestCase):
                                .1706394410901294)
 
     def test_source_reward_base_and_no_old_repairs(self):
-        from .shared import load
-        base = load('config').reward_config('trained_stair')
         cfg = reward_config()
-        self.assertTrue(all(cfg.rewards[k] == value for k, value in base.rewards.items()))
-        self.assertEqual(set(cfg.rewards) - set(base.rewards),
-            {'scut_jump_push_height', 'scut_jump_push_velocity', 'scut_jump_peak',
-             'scut_jump_takeoff_velocity'})
+        source = json.loads(Path(__file__).with_name('FUDAN_SOURCE.json').read_bytes())
+        self.assertEqual(cfg.rewards, source['weights'])
+        self.assertTrue(cfg.fudan_jump_reward)
+        self.assertFalse(any(k.startswith('scut_') for k in cfg.rewards))
         self.assertFalse(any(k.startswith('jump200_') for k in cfg.rewards))
         self.assertFalse(cfg.jump_takeoff_state_machine_cfg['assist']['enabled'])
 

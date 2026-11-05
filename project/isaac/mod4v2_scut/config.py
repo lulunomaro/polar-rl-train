@@ -9,7 +9,7 @@ ACTION_INTERFACE = 'mod4v2_clip6_before_PD_reward_and_action_history'
 TARGET_INTERFACE = 'mod4v2_HW300N60_continuous_common_turn_mechanical_delta_before_D4'
 
 
-def reward_config(profile='jump200'):
+def scut_reward_config(profile='jump200'):
     if profile != 'jump200':
         raise ValueError('This fresh MOD4v2 task selects only single200mm jumping')
     cfg = _source.reward_config('trained_stair')
@@ -30,18 +30,32 @@ def reward_config(profile='jump200'):
     takeoff['push']['reward_additions'] = {
         'scut_jump_push_height': dict(type='push_height_tracking_exp', sigma=.01),
         'scut_jump_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.),
-        # Final239 still has no verified takeoff: push mean vz=.064m/s.
-        # Select the pinned SCUT dense velocity term without new reward math.
+        # Final346 improves push mean vz=.064->.223m/s, with wheels grounded.
+        # Retain the source velocity term; its weight is the next measured repair.
         'scut_jump_takeoff_velocity': dict(type='takeoff_vel_z', max=3.)}
     takeoff['tuck']['reward_additions'] = {
         'scut_jump_peak': dict(type='peak_height_tracking_exp', event='exit', sigma=.01)}
     takeoff['reward_scales'].update(lin_vel_z=0., track_height_square=0.,
                                    track_height_exp_tight=0.)
     cfg.rewards.update(scut_jump_push_height=2., scut_jump_push_velocity=1., scut_jump_peak=2.,
-                       scut_jump_takeoff_velocity=4.)
+                       scut_jump_takeoff_velocity=12.)
     # A current real step ray may request another unassisted source attempt.
     # This is task triggering, with no additional reward formula or reward gate.
     cfg.jump200_retry_visible_step = True
+    return cfg
+
+
+def reward_config(profile='jump200'):
+    cfg = scut_reward_config(profile)
+    # Keep task clocks, observations and unassisted triggering. Replace the
+    # complete reward dictionary with the pinned Fudan jump recipe.
+    source = json.loads(Path(__file__).with_name('FUDAN_SOURCE.json').read_bytes())
+    cfg.rewards = dict(source['weights'])
+    cfg.fudan_jump_reward = True
+    cfg.fudan_reward_commit = source['commit']
+    cfg.jump_takeoff_state_machine_cfg['push']['reward_additions'] = {}
+    cfg.jump_takeoff_state_machine_cfg['tuck']['reward_additions'] = {}
+    cfg.jump_takeoff_state_machine_cfg['reward_scales'] = {}
     return cfg
 
 

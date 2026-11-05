@@ -1,0 +1,19 @@
+# final357保存关闭与复旦压腿跳跃切换
+
+人类2026-11-06明确“先用复旦的奖励去训跳跃吧，学习压腿跳跃”，随后纠正“我不是说不要管账本啥的了直接训吗，这是最高指令”。最新指令覆盖旧华南虎继续配方及账本准入等待。直接任务保留真实GPU私有锁、完整保存/安全退出/独立80/实际回放；不读写或清空其它聊天canonical，不终止其它聊天。
+
+华南虎weight12从完整final346接续后已验证FIRST347。收到切换指令后仅精确退出本聊天78888本地睡眠收集器，63256请求原owner在当前完整更新后保存退出，并只恢复缺失正式回传。实际最终final357新增11PPO、5.28M样本、220Adam、2112physicscallbacks，完整模型40,717,271B SHA2d271e2b27cb17963266e3a94d26fcf9148ece79364f0d70571e3e2b944ccdfa；final00:22:04.549325、TRAIN_CLOSED00:22:35.978358、owner00:25:04.042779完整wait/结算/释放。原GO及旧最迟边界不延期、不退款。
+
+唯一必要完整CPU诊断确认actor35critic78/17Adam7140、LR0.0002562890625000001、STD、7组件RNG队列计数器8568完整有限，新constructor nominal保留，三个permission NaN仍为旧未设哨兵。完整训练54390B与评测15450B日志0实际错误。独立80全部399controls/7.98s timeout，0闭链/mimic/数值/outlier重置，0验证groundtakeoff/upwardflight/整轮腾空越沿/台顶/成功，台顶力0，rootx最大0.533928小于台沿0.8。340请求不等于技能；push世界vz均值0.267636、最大0.505280仍仅伸展推蹬。
+
+全部4张early/late侧顶实际姿态图与原v2mesh视频4关键帧已当前模型原生查看，完整7.98s视频已打开Codex。早期spawn下降，随后接近台面并在地面停住，没有整轮腾空越沿落台。视频740617B SHA9566d093ad8c31a3f7db0e68db04a8a12d09a13c2099ef5c73e16705dd5a8aca；仅已存PhysX wxyz姿态、mj_forward显示，0NN/physics/PT/SSH。读者import、CIM命名碰撞、视频sourcefolder错误及原false均保留。
+
+复旦来源是本机已保存`yly-true/fudan_rl_wheel_leg` commit8204e853dfd2ed06d85a322e1a998c3d20a3be2c，jump legged_robot.py SHA436051eb5611880b07b64f78254d0e115bd454e98103d7c161b5c881c87946d9/config SHAcd9c7f86bebe97ca307b6e57aab00091914acb3968a37fe7fa69c276ba1dec0b。新fudan_source.py AST抽取18个原method且逐体比对，无公式改写。完整16原weights、每项weightedrate裁剪±2.5、dt0.02一次、总负值不裁。使用原flight、encourage_jump、base_height_flight、leg_tuck、takeoff_extend、line_z、腿角对称/方向、运动/姿态/能耗/碰撞项；不混SCUTbase或velocity12。原contactfilter为垂直轮力>1N OR previouscontrol，两轮无filteredcontact为rewardflight；它不替代400Hz真实地面起跳验收。
+
+MOD4v2适配仅测量映射：bodyframe hip锚点到wheel的矢状面L0/theta，保留原空中tuck目标0.16m、有接触且worldvz>0.15时extend目标0.31m、flightheight0.65m、yaw命令映射。没有参考机器人动作/VMC或连杆长度写入MOD4。硬件300N60mm、35actor78critic、20k、50/100/400Hz、DR、PD/DC、CAD/mimic和PPO保持。6新CPU＋6既有v2＋3历史SCUT源码检查共15通过，0生产PT/physics。
+
+新fudan_jump_final357_1h仅6个模块/来源文件叠加＋PLAN/entry/owner及92共享SHA引用。完整final357/17Adam7140/STD/LR/组件RNG队列counter恢复；新奖励contact/airtime/legmemory随freshphysicalreset开始，全部写进完整checkpoint。最初按旧账本约束的准入被E0真实占用拒绝，原拒绝保留。人类最高指令后仅精确退出31636本地等待者，改为direct owner，不访问canonical或全局authority/finitevalidation锁，不覆盖E0账段。真实GPU1私有EX、fresh空闲显存24203MiB、RAM499827937280B/disk240951590912B；另一GPU E0继续运行。实际owner1683223/create1793896803.65于00:40:03.893235 launch，唯一41528原FIRST控制器负责首轮验证后自动bind。FIRST/GO/SAVE/NOMINAL以实际回传为准，不能从launch猜。
+
+00:47:54.253361实际FIRST358已验证：source357+1、新48万样本、192physics、20Adam、actor/critic梯度均1.0、FULL首存37,124,209B SHA544c6c5b53cb1f04b075f48d14f90cb8d47117a3f24ff77c62d6f7919e27f481。完整首轮WORKER18050B SHA1d24e5a9a1e56bd9af4997f3b8e45259824732a0f3af1677fc0337b88137f144，0实际错误；FUDAN_REWARD_RECIPE实际16原weights、SCUTtermsfalse。完整source357/17Adam7140/LR/STD/RNG队列计数器恢复、新nominal保留、一次freshphysicalreset已证。首轮logger13931step/s，不是即时速度或技能。原41528正常退出，唯一29424/parent41528/create00:48:08.935583本地收集器已绑定。实际GO00:40:04.261653、SAVE01:40:04.261653、NOMINAL01:45:04.261653、收集器SAVE+45=01:40:49.261653。FIRST不是技能，不再重复读模型或FIRST。
+
+mod4-10维持原chat每小时ACTIVE，提示更新为复旦与最高直接训练指令；旧mod4-200-rl-bptt实际发现ACTIVE已按本聊天要求恢复PAUSED。所有错误、原false、回放、源码、授权与当前state按已有v2trial普通补充入Git，不record/retag。原tag对象和其它聊天提交保持。

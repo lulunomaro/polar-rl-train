@@ -1,0 +1,35 @@
+"""Remove the measured negative reward jump when chassis support begins."""
+from pathlib import Path
+import hashlib
+import importlib.util
+
+BASE=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V33_1793834866525473900/reward_model.py')
+if not BASE.exists():BASE=Path(__file__).resolve().parent.parent/'scut_native_v33/reward_model.py'
+raw=BASE.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='7d1a6e1a287c7ed1a2b57f34cb04c64a1b8e35627d71e25f73e461828cad1b6f'
+spec=importlib.util.spec_from_file_location('supported34_immutable33_formula',BASE)
+old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
+contact_termination=old.contact_termination
+wheel_geometry=old.wheel_geometry
+
+
+def height_command(xp,lift,both_top,supported):
+    # Contact discovery alone must not increase the required height.
+    # Actual supported wheel lift raises the target from .39 to .42m.
+    return xp.where(both_top,.50,xp.where(supported,.39+.03*lift,.39))
+
+
+def terms(xp,*,state,**kwargs):
+    values,potential,_,supported,top=old.terms(xp,state=state,**kwargs)
+    root=kwargs['root'];roll=kwargs['roll'];pitch=kwargs['pitch']
+    grounded=xp.any(kwargs['wheel_ground_force']>1.,axis=-1)
+    bearing=grounded|supported|top
+    align=xp.exp(-4.*(roll*roll+pitch*pitch))*xp.exp(-(kwargs['yaw_error']/.35)**2)*xp.exp(-(root[:,1]/.45)**2)
+    raised=xp.clip((root[:,2]-.30)/.09,0.,1.)
+    lift=xp.clip(kwargs['wheel_low'][:,:,2]/.20,0.,1.).mean(axis=-1)
+    target=height_command(xp,lift,top,supported)
+    values['stand32_raise']=2.*raised*bearing*(~top)*align
+    values['stand32_height']=1.5*xp.exp(-((root[:,2]-target)/.055)**2)*bearing*align
+    deficit=xp.clip((target-root[:,2])/.09,0.,2.)
+    values['stand33_height_shortfall']=-4.*deficit*deficit*bearing
+    return values,potential,target,supported,top

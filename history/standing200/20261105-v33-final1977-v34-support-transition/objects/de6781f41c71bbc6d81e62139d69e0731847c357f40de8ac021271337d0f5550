@@ -1,0 +1,8 @@
+"""Use the reviewed finite controller with unique V34 operations."""
+from pathlib import Path
+import hashlib
+P=Path(__file__).resolve().parent.parent/'scut_native_v33/control.py'
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='f6e6fab210af6a677f4cf68a0c9c27a438b7a91b85ff6c1dd35fcc6544ecf5f6'
+source=raw.decode().replace('SCUT33','SCUT34').replace('SUPPORTED_V33_','SUPPORTED_V34_').replace('V32_closed_actual_reference','V33_closed_actual_reference').replace('SCUT32_FINAL1843_NATIVE_REVIEW_V33_DECISION_20261105','SCUT33_FINAL1977_NATIVE_REVIEW_V34_DECISION_20261105')
+exec(compile(source,str(Path(__file__).absolute()),'exec'),globals())

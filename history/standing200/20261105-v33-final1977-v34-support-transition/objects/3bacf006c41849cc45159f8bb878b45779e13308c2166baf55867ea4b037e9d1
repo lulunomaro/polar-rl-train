@@ -1,0 +1,20 @@
+"""Use immutable V33 binding and record the support-transition reward delta."""
+from pathlib import Path
+import hashlib
+
+P=Path('/home/lc01/Zonglin Li/zonglin2/tasks/MOD4_STANDING200_SUPPORTED_V33_1793834866525473900/recipe.py')
+raw=P.read_bytes()
+assert hashlib.sha256(raw).hexdigest()=='c049855590d33c19b10d903ea7ec23071419fb1e6ed985bb1cc98d394d73ec77'
+source=raw.decode().replace('MOD4V1_SCUT_STANDING200_V33_HEIGHT_LIP_PROGRESS','MOD4V1_SCUT_STANDING200_V34_SUPPORT_TRANSITION')
+exec(compile(source,str(P),'exec'),globals())
+_install33=install
+
+
+def install(stage,source_stage=None):
+    receipt=_install33(stage,source_stage)
+    receipt['V34_support_acquisition_reward']=dict(
+        standing_credit_on_ground_or_support=True,first_support_target_m=.39,
+        target_blend_from_actual_wheel_lift_m=[.39,.42],both_top_target_m=.50,
+        height_shortfall_weight=4.,height_shortfall_scale_m=.09,
+        original_physics_actions_PPO_acceptance=True)
+    return receipt

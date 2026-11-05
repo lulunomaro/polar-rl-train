@@ -1,0 +1,127 @@
+{
+  "id": "MOD4V2_HW300N60_T01_REFERENCE_FULL_STATIC_FF_001",
+  "status": "frozen_before_only_M3_nominal_case",
+  "scope": "M3 retain full nominal reference static bias including common; original common LQR FEEDBACK/PD/K,driver and gates unchanged",
+  "scene": "latest_rm",
+  "zone_key": "flat_run",
+  "controller": "coord_soft_MOD4v2_reference_full_static_ff_v1",
+  "pilot": null,
+  "formal_cases": [
+    {
+      "id": "nominal_full_static_ref_ff",
+      "seed": 520151,
+      "nominal": true,
+      "profile": "slow"
+    }
+  ],
+  "formal_duration_s": 12.0,
+  "slow_command": {
+    "start_s": 2.0,
+    "stop_s": 8.0,
+    "forward_m_s": 0.3,
+    "yaw_rate_rad_s": 0.0
+  },
+  "windows": {
+    "attitude_contact_s": [
+      2.0,
+      12.0
+    ],
+    "steady_slow_s": [
+      3.0,
+      7.0
+    ],
+    "final_stop_s": [
+      9.0,
+      12.0
+    ]
+  },
+  "gates": {
+    "complete_finite_no_auto_reset": true,
+    "max_closure_m": 0.01,
+    "max_mimic_rad": 0.01,
+    "pitch_abs_peak_rad": 0.1,
+    "roll_abs_peak_rad": 0.1,
+    "pitch_rms_rad": 0.035,
+    "roll_rms_rad": 0.035,
+    "stand_xy_drift_m": 0.2,
+    "stand_body_vx_rms_m_s": 0.05,
+    "slow_vx_rmse_m_s": 0.1,
+    "slow_min_progress_m": 1.2,
+    "slow_max_lateral_m": 0.2,
+    "final_stop_body_vx_rms_m_s": 0.05,
+    "contact_normal_threshold_N": 1.0,
+    "each_mainwheel_support_duty_min": 0.95,
+    "guide_support_duty_max": 0.01,
+    "guide_support_longest_s_max": 0.02,
+    "hard_contact_ticks_max": 0,
+    "whole_body_unsupported_ticks_max": 0,
+    "contact_audit_rate_Hz": 2000
+  },
+  "invariants": [
+    "fresh_model_each_case",
+    "DR_once_per_case",
+    "all_world_collision_geoms_not_ground_alias_only",
+    "root_contact_truth_grading_only",
+    "original_robot_PD_D4_DC_and_limits",
+    "no_root_assist_or_teleport"
+  ],
+  "notes": [
+    "Missing contact audit is unavailable, never zero.",
+    "Four DR TRAIN cases are screening only, not a reliability estimate.",
+    "No holdout or old once is rerun or tuned.",
+    "Failed candidates and software prefixes stay preserved; protocol is not relaxed retrospectively.",
+    "New v2 model/controllers only; v1 evidence retained separately.",
+    "Original gas reference guard changed to .1706394410901294, not restored to 400N.",
+    "Fresh v2 Ad/Bd/trim and newly solved configured DARE; old pack.K_6x14 is never assigned.",
+    "An engineering screen on this cylinder-tire P0 is not USD faceted-tire/PhysX/hardware qualification.",
+    "M3 replaces M2 projection with full reference model correction; no added reference-geometry change.",
+    "Nominal simulation only; Python static model runtime is not 100Hz wallclock/ARM WCET qualified."
+  ],
+  "robot_source": "mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/mjcf/scene.xml",
+  "robot_collision_representation": "P0 cylinder tires r=.0625 halfwidth=.01 / guides r=.015; NOT old v1 full faceted tire mesh",
+  "source_gates_unchanged_from": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\RM_ROBUSTNESS_V1\\T01_PROTOCOL_V1.json",
+  "direction_sign": 1.0,
+  "public_route": {
+    "source": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\MOD4_LOCAL_LATEST_MOE_PLAYER_REQUESTED_20261023\\player\\routes.json",
+    "id": "flat_run",
+    "start_ground_m": [
+      -9.0,
+      -1.0,
+      -0.026185922166028774
+    ],
+    "goal_ground_m": [
+      -5.5,
+      -1.0,
+      -0.02618592209367776
+    ],
+    "yaw_rad": 0.0,
+    "change": "Original public flat_run start -9,-1 before physics;forward profile as baseline,not prior reverse initialization"
+  },
+  "observer": {
+    "motor_2khz": true,
+    "source_time": true,
+    "public_signal_adapter": true,
+    "force_or_FSM_or_controller_connection": false,
+    "original_engine_tick": true,
+    "original_PD_D4_DC_order": true,
+    "old_raw_or_QA_reread": false,
+    "controller_candidate": "M3_reference_full_static_ff_only"
+  },
+  "hypothesis": {
+    "source": "NEW M2 one-pass REDUCTION001 plus existing model formula;not old QA",
+    "observed_M2_ref_hip_excursion_peak_rad": 0.22076902837274615,
+    "observed_M2_removed_common_peak2_Nm": [
+      0.5752944557961261,
+      0.7311269973791825
+    ],
+    "common_deletion_breaks_full_reference_static_balance": true,
+    "rationale": "restoring discarded nominal model common bias,not scanning gains/FF weight or changing reference geometry",
+    "unique_contact_failure_cause_proven": false,
+    "fixed_design_F0_not_measured": true,
+    "gas_curve_not_calibrated": true,
+    "static_design_not_measured_alpha": true,
+    "no_measured_or_proxy_force_or_DR_feedback": true,
+    "only_M3_one_case_no_automatic_DR": true,
+    "stage_mechanism_limit": 3
+  }
+}

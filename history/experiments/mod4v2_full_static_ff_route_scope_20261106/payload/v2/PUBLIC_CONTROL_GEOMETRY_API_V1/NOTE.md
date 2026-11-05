@@ -1,0 +1,12 @@
+# Actual public control geometry API — one nominal alignment
+- Source-read [bridge_v2.geometry](<../bridge_v2.py#L19-L21>) constructs public pins; [LinkageGeometry](<../../mod4v1_lqr_mpc_robust_20261102/sensor_core.py#L34-L59>) is pure. SDK imports newly allowed; no model factory/Plant constructed.
+- [PREEXEC](<PREEXEC.json>), [script](<check_api_once.py>), [RESULT](<RESULT.json>), [log](<check_api_once_001.log>): actual factory1, wheel_kinematics left1/right1; each contains nominal1+4FD pose calls, total10 internal poses. No replay of sealed VMC/old validator.
+- Same absolute hip/crank `.2503281103649727/.0503281103649727`; all rates/spin/gyro0; return tuple `forward_m_s,r_BODY3,J_BODY3x2,relative_knee_rad`.
+- Actual left r=`[-.0342023946788467,+.2188,-.2385431981528164]`m; right y=`-.2188`; J columns absolute hip/crank, rows body x/y/z in m/rad, actual Jy=`[0,0]`.
+- Actual left Jxz=`[[-.0848225881200371,-.1537206100313271],[+.1762857023995812,-.1420833077206418]]`; FK/J stencils use original eps=`1e-5rad`.
+- Against only stored same-point reference: max XZ error≤`2.878e-13m`, Jxz≤`1.805e-11m/rad`, T(l,phi)≤`6.571e-11`; within PREEXEC tolerances, no widened tolerance or rerun.
+- Therefore BODY ROOT XZ frame/units/sign and `phi=atan2(x,-z)` match saved public P0 constants to FD error at this point; this is not all-domain/physical ABI qualification.
+- Old RESULT did NOT save numeric y/Jy reference: full3D numerical comparison remains UNKNOWN on those rows; actual y/Jy recorded, no invented old reference or added FK.
+- `u_phi=-physical Tp_y`; compression effort has opposite sign to outward-length effort. No change to old `leg_coordinates` convention or candidate.
+- Source packet joint_pos4=`[Lhip,Lcrank,Rhip,Rcrank]`; DR raw-order metadata alone is not a swap defect. No packet/DR/controller replay or mapping modification performed.
+- Actual guarded model_compile/MjData/forward/integration/statics/DARE0, oldraw/QA/Git/Goal/agents0; old source pins unchanged. One first run exit0; completed and stopped, no closing rerun.

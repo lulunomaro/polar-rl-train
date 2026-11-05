@@ -1,0 +1,19 @@
+{
+  "scope": "NEW_ACTUAL_BRIDGE_GEOMETRY_API_NOMINAL_ALIGNMENT_NOT_VMC_REOPEN_OR_OLD_QA",
+  "catalog": "Current Office/ACL skills do not match engineering geometry; filesystem plus existing Python314 -B NumPy, BLAS/OMP/MKL1, oneCPU",
+  "source_inspection": "bridge_v2.geometry19-21 reads only public manifest pins and constructs sensor_core.LinkageGeometry(radius.0625); sensor_core imports no SDK and constructor/pose/J are pure. bridge and transitive builder/linearization import SDK but model builders/constructors remain function/class bodies, not called at import.",
+  "actual_geometry_factory_calls": 1,
+  "actual_wheel_kinematics_calls": {"left": 1, "right": 1},
+  "operating_pose": "Sealed VMC RESULT q0abs [.2503281103649727,.0503281103649727] for each side; zero rates/spin/gyro",
+  "FD_internal_calls": "Existing wheel_kinematics does basepose1+4central FD stencils eachside; not extra operating poses",
+  "reference": "../VMC_DIAGONAL_DESIGN_V1/RESULT.json saved r_ROOT_xz_m/Jwheel_xz_absq_m_rad/T0 only; no rerun/import nominal_model.derivatives or sealed compute_once",
+  "reference_gap": "Old saved RESULT has no numeric y or Jy row: compare XZ/T only; record actual y/Jy without inventing a full3D reference",
+  "tolerance_before_run": {"position_abs_m": 1e-9, "J_xz_abs_m_per_rad": 1e-8, "T_length_abs_m_per_rad": 1e-8, "T_phi_abs_rad_per_rad": 1e-7},
+  "T_definition": "l=norm(r_XZ),phi=atan2(x,-z),T=[[x/l,z/l],[-z/l^2,x/l^2]]@Jxz; conjugate phi effort=-physical Tp_y",
+  "SDK_policy": "SDK import newly allowed, all MjModel constructors/compile/MjData/forward/integrators guarded against invocation before actual bridge import; no Plant/model/statics/DARE construction",
+  "inputs": ["../bridge_v2.py", "../../mod4v1_lqr_mpc_robust_20261102/sensor_core.py", "../VMC_DIAGONAL_DESIGN_V1/RESULT.json", "P0 package reports/model_manifest.json via actual geometry()"],
+  "packet_order_boundary": "geometry API takes absolute hip,crank; SensorPacket.joint_pos4 Lhip,Lcrank,Rhip,Rcrank; do not infer exchange bug solely from DR raw-order metadata; no packet runtime/DR replay here",
+  "zero": ["model compile", "MjData", "forward", "integration", "statics_DARE", "new controller/candidate change", "old raw/QA", "native MCU", "hardware", "Git", "Goal", "Mnemon", "new agents"],
+  "first_error": "save actual failure/prefix; no silent rerun or tolerance widening",
+  "outputs": "RESULT.json + small log + explanation <=12lines, then stop"
+}

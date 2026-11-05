@@ -1,0 +1,11 @@
+# V13 — timeout8真实closed72；原范围0/74；仍保留1cd
+
+- 当前goal goal-c490e4cc-b28b-440e-bde6-30ee956813f0 rev3 active/armed/max14；目标是质量，不标complete/pause/blocked。
+- [完整实测报告](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/FDN_TIMEOUT8_CLOSED72_QUALITY_RESULTS_V1.md>)与[紧凑选择](<F:/RMPOLAR-RL/e3_fudan_recovery_alignment_20261104/FDN_TIMEOUT8_CLOSED72_QUALITY_DECISION_V1.json>)已发布。本窗72真实PPO/两Adam各1440/69,120,000优化转移；累计205/4100/147,942,912，原始4096×64不能冒充N20000。完整保存48个未优化控制。
+- 完整新候选SHA 3e64ebca251b0457409fe83521da69c99378f4fedd7726c7d5761c6a39ac868e，1204253399B；母版1cd、4096祖先47937、上窗8af4与pi-only93753各自独立。完整learner续接实际CPU一次，环境/DR/history流切断fresh。所有原训练wait/cost/release闭环/errors空，无本任务native训练剩余。
+- 原N80实际父1623792/worker1623801/controller1623785，单N80/160/seed20260928/fullDR/原74首episode+6normal。父actual qualification原本为true；collector忘改kind导致仅reader误报false，旧文件保留，新metadata-only reprocess已纠正，不重跑SDK/模型/父资格。结果0/74，normal物理终止0/6。
+- MuJoCo相同5姿每条400control/8s全finite。新候选均值高度0.182897、速度0.391495、位移3.020520；母版0.241437/0.038073/0.639393；严格信用双方0/5，但母版确实抬高了身。不能称全DR/硬件/视频同端姿态成绩或native因果退化。
+- Decision KEEP_REGISTRY_V12_E3_1CD_NO_3E64_PROMOTION，所有候选保留，H1/其它专家不动。下一步单一质量干预源分析尚未形成部署，不按205步数盲续。
+- 原训练observer009、原N80observer895均completed0并已收输出；CPUexport和MuJoCo命令均完成0。旧once/roots不可重放，不为状态/Git开模型或raw。
+- 本交接生成点最近archive为cce218551eba7d527e4b611a41bc6536c1f75039；随后本次72闭环、collector stale-kind false＋metadata纠正、MuJoCo/0-74/保留决定及全部当前文本已完成373 entries合并归档：HEAD/远端feature/peeled均7ad15203471201e1534dbc82ba85ee6bfc99f69c，tag trial-20261105-e3-fudan-timeout8-closed72-quality-keep-mother，annotated object 222aa5c294f7d0117c0dbd1547940c1175da5002；main只读78c628d45f27730097521abf4113c426f734238a。原record_experiment全部校验保留，仅git-add精确短directory＋record pathspec并核对完整staged集合，未重放record/物理，工作树clean。此新增验证段不生成新回执/新trial，下一实际阶段再归档。
+- 下一步已给唯一child 3b92c2b6-8850-4ad3-857f-77fc0e518590仅最小worker source-only任务：基于真跑过的v2 Mapping warm worker，fresh1cd仅actor8/critic8 MLP；encoder fresh随机（非全零）、新增latent列0、STD.5/双Adam/LR/generator/计数全fresh，schema4/branch FRESH_FUDAN_MLP_WARM_FROM1CD_N20000_TIMEOUT8，source_kind fdn_fresh_mlp_warm_1cd_n20000_timeout8，base0/window=current；N20000/T48和同8571B/386107 overlay，PPO/physics/DR/奖励/原资源不改，允许max_iterations1..300以供新25更新pilot。只一个worker+单AST静态检查；不helper/fixture/SSH/PT/SDK/GPU/Git/部署。新源尚未完成接原owner或stage，不能称已开训，也不拼205旧计数。

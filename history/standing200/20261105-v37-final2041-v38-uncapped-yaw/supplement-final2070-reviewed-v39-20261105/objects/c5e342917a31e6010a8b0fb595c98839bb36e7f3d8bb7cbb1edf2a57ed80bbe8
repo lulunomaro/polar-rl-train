@@ -1,0 +1,55 @@
+"""Actual final2070 ten-image review and measured finite continuation decision."""
+from pathlib import Path
+import json,time
+D=Path(__file__).resolve().parent;R=D.parent
+RUN=json.loads((D/'PLAN.json').read_bytes())['run_id'];A=R/'actual_closed'/RUN
+
+def main():
+    numeric=json.loads((R/'reports/SCUT38_FINAL2070_ACTUAL_NUMERIC_ANALYSIS.json').read_bytes())
+    geometry=json.loads((R/'reports/SCUT38_FINAL2070_SAVED_L0_THETA_AUDIT.json').read_bytes())
+    prev=json.loads((R/'reports/SCUT37_FINAL2041_ACTUAL_NUMERIC_ANALYSIS.json').read_bytes())
+    final=json.loads((A/'production/FINAL.json').read_bytes())
+    agent=json.loads((A/'AGENT_PRODUCTION_EXIT.json').read_bytes())
+    collector=json.loads((R/'reports/SCUT38_DIRECT_COLLECTOR_CLOSED.json').read_bytes())
+    assert agent['error'] is None and agent['all_own_waited'] and agent['GPU_lease_released']
+    assert collector['local_collector_closed'] and collector['SSHclosed']
+    assert json.loads((R/'reports/SCUT38_V2_RENDER_ACTUAL.json').read_bytes())['passed']
+    compare=dict(previous_terminated=prev['actual_evaluation']['terminated'],current_terminated=numeric['actual_evaluation']['terminated'],
+        previous_timeout=prev['actual_evaluation']['timeouts'],current_timeout=numeric['actual_evaluation']['timeouts'],
+        previous_yaw_abs_median=prev['manifold']['yaw_abs_after1_quantiles'][2],current_yaw_abs_median=numeric['manifold']['yaw_abs_after1_quantiles'][2],
+        previous_root_z_median=prev['manifold']['root_z_after1_quantiles'][2],current_root_z_median=numeric['manifold']['root_z_after1_quantiles'][2],
+        previous_bodytop=prev['manifold']['body_top_envs'],current_bodytop=numeric['manifold']['body_top_envs'],
+        previous_strict=prev['actual_evaluation']['strict'],current_strict=numeric['actual_evaluation']['strict'])
+    value=dict(epoch=time.time(),run_id=RUN,final=final['checkpoint'],new_PPO_updates=final['PPO_updates'],
+        new_onpolicy_samples=final['PPO_updates']*20000*24,new_physics_ticks=final['checkpoint']['physics_ticks'],
+        AGENT_PRODUCTION_EXIT=agent,collector_closed=collector,native_review_completed=True,
+        reviewer='current model native view_image',
+        images_actually_reviewed=[str(A/'rendered_actual'/n) for n in
+            [f'ACTUAL_env{e}_{v}.png' for e in (0,1,40,41) for v in ('side','top')]+
+            ['ACTUAL_400HZ_ROUTE_SUPPORT_CURVES.png','ACTUAL_HIP_TARGET_VS_MEASURED.png']],
+        visual_findings=['Allfour cases lower the body soon after spawn, approach the step, and stay low at the lower side of the riser.',
+            'Top views show a bounded oblique heading; the prior departure off the finite ground is absent in these cases.',
+            'Both wheels remain on the lower ground throughout; no wheel-top support or wholefootprint ascent.',
+            '400Hz curves show rootheight near0.20m and x near0.5m, with nonwheel ground/riser impacts; the plotted nonwheel-force channel is not platform-top support.',
+            'Right continuous hip target near1.35rad follows measured angle closely; left target near0.64rad versus measured near0.52rad. Load-dependent gaps do not establish a unique failurecause.'],
+        actual_evaluation=numeric['actual_evaluation'],manifold=numeric['manifold'],saved_L0_theta=geometry,
+        reward=numeric['reward'],comparison_to_V37=compare,
+        current_deficit='Standing/extension and stable lip acquisition. 4of80lipcontacts,2briefbodytops,max0.0575s; no wheeltops. L0 selectedcases medians about0.184/0.123m versus0.334m.',
+        height_reward_diagnosis=dict(mean_weighted_tight=numeric['reward']['weighted_per_control_mean']['track_height_exp_tight'],
+            mean_weighted_square=numeric['reward']['weighted_per_control_mean']['track_height_square'],
+            interpretation='Positive tight-height kernel is nearly zero at the actual shortleg poses; squared deficit cost is nonzero and active. Not a missing reward or demonstrated arithmetic bug.',
+            original_coefficients_or_kernels_changed=False),
+        decision=dict(version='V39',action='one further finite3600save+300exit continuation fromactualfinal2070,20000env; currentV38reward unchanged',
+            reason='First29PPO under the yawcorrection produced a large verified behavioral improvement:78to0earlyterminations and yawmedian1.436to0.183rad. Retain learning and measure whether extension/lipacquisition follows before introducing another shapingchange.',
+            expected_full_restore='Singledecode actorcriticSTD/17Adam41400each/LRactual/iter2070/all20000componentsqueues/globalnamedRNG/scalarclock thenonefreshphysicalreset',
+            evaluate_next_against=['strictwholewheeltopstable metrics','all80rootheight and real lip/topsupportduration','selected actual L0/theta extension','yaw/rp/termination regression'],
+            stop_repeating_if_no_new_progress=True,reward_physics_actions_PPO_delta=False,
+            skill_pass=False,accounting_gate=False,
+            causal_limit='Stability improved but ascent remains0/80; this finitecontinuation decision does not claim yaw was the only cause or that moretraining will succeed.'),
+        closed_eval_render_FIRST_consumed=True,PT_reads=0,new_physics=0,
+        artifacts=numeric['artifacts'],large_curve_rows=numeric['curve_rows'])
+    with (R/'reports/SCUT38_FINAL2070_NATIVE_REVIEW_V39_DECISION.json').open('x',encoding='utf-8') as f:
+        json.dump(value,f,ensure_ascii=False,indent=2)
+    print(json.dumps(dict(final_iteration=final['checkpoint']['iteration'],new_PPO=final['PPO_updates'],comparison=compare,next=value['decision'])))
+
+if __name__=='__main__':main()

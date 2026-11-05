@@ -1,0 +1,10 @@
+"""One own collector; preserve proven bounded FIRST and terminal transfers."""
+from pathlib import Path
+import sys
+D=Path(__file__).resolve().parent
+P=D.parent/'scut_native_v38_yaw/collect.py'
+text=P.read_text().replace('SCUT38_','SCUT39_')
+text=text.replace(".replace('SCUT37_','SCUT39_')",".replace('SCUT37_','SCUT39_')")
+# Outer collector uses SCUT39; generated transfer AST independently rewrites
+# the original SCUT37 prefix. Globals/control are bound to this new task.
+exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(D/'collect.py')))

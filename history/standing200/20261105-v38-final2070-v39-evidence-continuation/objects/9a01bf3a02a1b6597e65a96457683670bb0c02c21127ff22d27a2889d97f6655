@@ -1,0 +1,12 @@
+"""Continue unchanged V38 rewards with all20000 learning and population streams."""
+from pathlib import Path
+import hashlib
+P=Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/MOD4_STANDING200_SUPPORTED_V38_ENV20000_YAW_1793886351503432700/full_resume.py')
+raw=P.read_bytes()
+# Local prepare binds and records this immutable source SHA before deployment.
+import json
+task=json.loads((Path(__file__).resolve().parent/'PLAN.json').read_bytes())
+assert hashlib.sha256(raw).hexdigest()==task['resume_helper_source']['SHA']
+text=raw.decode().replace("data['iter']==2041","data['iter']==2070").replace('max(steps)==40820','max(steps)==41400')
+assert text!=raw.decode() and "data['iter']==2070" in text and 'max(steps)==41400' in text
+exec(compile(text,str(P),'exec'),globals())

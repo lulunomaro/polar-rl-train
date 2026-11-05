@@ -1,0 +1,6 @@
+"""One finite initialization read before own background collector starts."""
+from pathlib import Path
+D=Path(__file__).resolve().parent
+P=D.parent/'scut_native_v38_yaw/status_once.py'
+text=P.read_text().replace('SCUT38_','SCUT39_')
+exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(D/'status_once.py')))

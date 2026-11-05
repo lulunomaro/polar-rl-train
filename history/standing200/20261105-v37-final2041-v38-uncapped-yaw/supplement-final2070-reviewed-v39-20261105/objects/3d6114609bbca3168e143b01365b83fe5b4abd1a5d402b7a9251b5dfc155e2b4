@@ -1,0 +1,28 @@
+"""V38 actualfinal2070 saved-pose render and numeric analysis, once only."""
+from pathlib import Path
+import json,sys
+D=Path(__file__).resolve().parent;R=D.parent
+RUN=json.loads((D/'PLAN.json').read_bytes())['run_id']
+if sys.argv[1]=='render':
+    assert not (R/'reports/SCUT38_V2_RENDER_ACTUAL.json').exists()
+    P=R/'scut_native_v36/render_v2_closed.py'
+    text=P.read_text().replace("report=R/'reports/SCUT36_V2_RENDER_ACTUAL.json'","report=R/'reports/SCUT38_V2_RENDER_ACTUAL.json'")
+    text=text.replace("previous_error='Original V18 renderer asserted fixedv1 USD identity before rendering; prior replayinput retained'","previous_error=None")
+    sys.argv=[str(P),*sys.argv[2:]]
+    exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(P)))
+elif sys.argv[1]=='analyze':
+    assert not (R/'reports/SCUT38_FINAL2070_ACTUAL_NUMERIC_ANALYSIS.json').exists()
+    P=R/'scut_native_v36/analyze_final2010.py'
+    text=P.read_text().replace('MOD4_STANDING200_SUPPORTED_V36_1793872547340580700_PRODUCTION02',RUN)
+    text=text.replace('SCUT36_FINAL2010_ACTUAL_NUMERIC_ANALYSIS','SCUT38_FINAL2070_ACTUAL_NUMERIC_ANALYSIS').replace('V36 final2010','V38 final2070')
+    text=text.replace('source_final2010=True','source_final2070=True')
+    text=text.replace("reason='Explicit human20000 request after only33newPPO in4096; retain actual failed80 results and examine next finite window, no new skill claim'","reason='Analyze V38 uncapped-yaw final2070; next continuation decision pending native review'")
+    text=text.replace("R/'reports/SCUT36_CLOSED86_TRANSFER_ERROR.json'","R/'reports/SCUT38_CLOSED_TRANSFER_ACTUAL.json'")
+    text=text.replace("final_x_quantiles=quant(pos[-1,:,0])","final_x_quantiles=quant(np.asarray([e['root_pos'] for e in eps])[:,0]-np.asarray(result['origins'])[:,0])")
+    exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(P)))
+elif sys.argv[1]=='geometry':
+    assert not (R/'reports/SCUT38_FINAL2070_SAVED_L0_THETA_AUDIT.json').exists()
+    P=R/'scut_native_v37_env20000/saved_geometry_audit.py'
+    text=P.read_text().replace('MOD4_STANDING200_SUPPORTED_V37_ENV20000_1793878393149078100',RUN).replace('SCUT37_FINAL2041_SAVED_L0_THETA_AUDIT','SCUT38_FINAL2070_SAVED_L0_THETA_AUDIT')
+    exec(compile(text,str(P),'exec'),dict(__name__='__main__',__file__=str(P)))
+else:raise ValueError(sys.argv[1])

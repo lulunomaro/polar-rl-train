@@ -12,6 +12,8 @@
 
 当前真实状态和所有失败见`history/reviews/20261105-mod4v2-scut-jump200/WORK_ORDER.json`与`EVIDENCE_INDEX.json`。原目录及once不清除、不重放。`BINDINGS.json`记录唯一共享依赖；新任务不整树复制旧生产目录。
 
+人类最新要求“不用等控制器释放，账本共用，直接开训别浪费时间”。本地控制器清单现为信息记录，不再因另一聊天的host86收集器而阻断本聊天SSH/取回/启动；原服务器canonical余额、strictreserve、GPU私有锁与实际扣费准入保持。final60→148的闭窗新增88PPO、42.24M样本，完整17Adam2960；独立80全部7.98s但0真实起跳/越沿/落台。全部4张侧/顶回放图和7.98s原mesh视频关键帧已原生审阅。最新明确指令下从完整final148开下一小时，实际FIRST与时间边界只以工作单和原owner回执为准。
+
 第二次0PPO失败来自旧motor_stop_terms对连续关节None端点的假设；新v2奖励适配器明确将4个无独立角界电机的限位辅助代价返回0，不修改SCUT奖励公式和权重。6CPU和3phase真实源reward调用的合成端点均有限；独立rewardapi03已启动，FIRST以实际回传为准。
 
 首轮实际完成60次PPO更新（28.8M样本），final60已完整保存并回传，训练和原owner安全退出。随后的独立80评测在导出场地时访问了旧scut_step270网格，实际场地为scut_jump200，因此RESULT/ALL80未生成，不能称评测通过。v2 configure现同步共享配置选出的MESH，单项CPU验证通过；旧冻结生产包和原始错误保留。补评测仅用同一final60、0优化器操作，在原canonical和锁释放后进行，不重训。

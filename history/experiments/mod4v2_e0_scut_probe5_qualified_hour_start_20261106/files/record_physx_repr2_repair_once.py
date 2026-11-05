@@ -1,0 +1,36 @@
+"""One meaningful migration stage: genuine startup failures, repairs and pending A3; no runtime replay."""
+from pathlib import Path
+import json,sys,hashlib,subprocess,time
+D=Path(__file__).resolve().parent;repo=D.parent/'repo-lqr';rel=Path('history/experiments/mod4v2_physx_stop_representation_repair_20261105');dest=repo/rel
+
+def G(*args):
+ p=subprocess.run(['git','-C',str(repo),*args],capture_output=True,text=True,encoding='utf8')
+ if p.returncode:print(p.stdout);print(p.stderr,file=sys.stderr);p.check_returncode()
+ return p.stdout.strip()
+
+assert G('branch','--show-current')=='mod4v1-experts-fulldr-rm70'and not G('status','--porcelain')and not dest.exists();G('merge-base','--is-ancestor','3703a54b2c27d2aa941243d41353d0839ef196f5','HEAD')
+a2=json.loads(Path(json.loads((D/'NINE_ADMISSION2_CLOSED_RESULT_PATH.json').read_bytes())['path']).read_bytes());end=a2['metadata']['OWNER_EXIT_ACTUAL.json'];assert a2['closed']is True and all(end[k]is True for k in('all_own_children_waited','original_cost_settled','original_private_finite_authority_leases_released'))and all(v.get('V2_LEARNER_LOADED.json')is None for v in a2['cases'].values())
+stage=json.loads((D/'STAGE_NINE_ADMISSION5_RESULT.json').read_bytes());dispatch=json.loads((D/'DISPATCH_NINE_ADMISSION5_RESULT.json').read_bytes());assert stage['returncode']==stage['owner_import_only_preflight_rc']==dispatch['returncode']==0
+sys.path.insert(0,str(repo/'archive_tools'));import record_experiment
+from capture_history import redact
+dest.mkdir(parents=True);rows=[];files=[];skip={'.pt','.pth','.ckpt','.onnx','.safetensors','.npz','.npy','.usd','.usda','.usdc','.zip','.obj','.stl','.ply','.png','.jpg','.webp','.mp4','.pyc','.pyo','.partial','.tmp','.jsonl','.ndjson','.bin'}
+for p in sorted(D.rglob('*')):
+ if '__pycache__'in p.parts or p.suffix.lower()in skip:
+  rows.append(dict(source=str(p),status='binary_model_raw_or_transient_skipped_before_stat_read_hash'));continue
+ if not p.is_file():continue
+ raw=p.read_bytes()
+ try:text=raw.decode('utf-8-sig')
+ except UnicodeDecodeError:rows.append(dict(source=str(p),status='non_UTF8_not_archived'));continue
+ text,count=redact(text);data=text.encode('utf8');rp=rel/'files'/p.relative_to(D);out=repo/rp;out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(data);files.append(rp.as_posix());rows.append(dict(source=str(p),source_bytes=len(raw),source_SHA256=hashlib.sha256(raw).hexdigest(),archive=rp.as_posix(),archive_bytes=len(data),archive_SHA256=hashlib.sha256(data).hexdigest(),redactions=count,status='point_in_time_live_metadata'if p.name=='LATEST_METADATA.json'else'complete_text'))
+# Explicit changed native implementation TEXT only; do not inspect USD/meshes/XML for Git.
+build=json.loads((D/'PHYSX_REPR2_BUILD_RECEIPT.json').read_text(encoding='utf-8-sig'));pkg=Path(build['package']);native4=json.loads((D/'ADMISSION4_NATIVE_LIMIT_FAILURE_SUMMARY.json').read_bytes());assert native4['missing_finite_mechanical_endpoint_count']==10 and native4['source_weights_read_or_decode']==native4['new_PPO_updates']==0 and native4['other_eight_GO']is False
+for name in('runtime_adapter_v2.py','assets/import_contract.json','runtime_requirements.json'):
+ p=pkg/name;raw=p.read_bytes();text,count=redact(raw.decode('utf8'));data=text.encode('utf8');rp=rel/'new_native_package_text'/name;destp=repo/rp;destp.parent.mkdir(parents=True,exist_ok=True);destp.write_bytes(data);files.append(rp.as_posix());rows.append(dict(source=str(p),source_bytes=len(raw),source_SHA256=hashlib.sha256(raw).hexdigest(),archive=rp.as_posix(),archive_bytes=len(data),archive_SHA256=hashlib.sha256(data).hexdigest(),redactions=count,status='complete_changed_native_implementation_text'))
+(dest/'INDEX.json').write_text(json.dumps(dict(rows=rows,stage='actual_A4_native_lost10stops_new_canonical_repr_local24_A5submitted_not_native_pass',PT_or_old_raw_reads_for_Git=False,old_mothers_and_Registry_unchanged=True,host86_excluded=True,no_skill_pass_or_new_learner_success_claimed=True),indent=2),encoding='utf8');files.append((rel/'INDEX.json').as_posix());(dest/'.gitattributes').write_text('* -text\n',encoding='utf8');files.append((rel/'.gitattributes').as_posix())
+note=(D/'CURRENT_PROGRESS_V3_PHYSX_REPR2_A5_SUBMITTED.md').read_text(encoding='utf8')+'\n\nAll current text/real failures/pins are a point-in-time snapshot; A5 new-target source staging/import-only and dispatch do not prove native limits, source loading, PPO or skill. Original record validation/redaction/hashes retained, exact staged set, no main writes or runtime/model replay. Later actual A3 evidence belongs to the next meaningful stage.\n';note,count=redact(note);(dest/'NOTE.md').write_text(note,encoding='utf8');files.append((rel/'NOTE.md').as_posix())
+orig=record_experiment.git
+def scoped(*args):
+ if args[:2]==('add','--'):
+  rp=args[2];assert rp.startswith('history/experiments/20261105-mod4v2-physx-stop-representation-repair')and set(args[3:])==set(files);orig('add','--',rel.as_posix(),rp);assert set(orig('diff','--cached','--name-only').splitlines())==set(files)|{rp};return ''
+ return orig(*args)
+record_experiment.git=scoped;trial='mod4v2-physx-stop-representation-repair';sys.argv=['record_experiment.py','--id',trial,'--title','Actual V2 native lost10 CAD stops; separate finite representation built local24, A5 real native gate pending','--kind','training','--note-file',str(dest/'NOTE.md'),'--validation','formal9-source-metadata-only-includingH1;original-two4090-singlewriter-charge_values-actualGOthroughwait-tail-preserved;firstpreimport0GO-error-and-actualreap;A2-and-A3-and-A4-actualwait-account-release-with-real-errors-kept;A4N20000-10finiteCADends-rawFLT_MAX-0PT0PPO-sharedgate-blocks8;H1rc0notnativepass;newworker2launcher-isolation-and-before-assert-limitreadback;newnative-repr-only10None-ends-to-plusminuspi-CADfinite-8continuous-gas300N60mm140to200-geometryMCIunchanged;canonical-branch-set-equivalence-not-fullwindingcollisionproof;actualpxr-build-local24-no-sim-not-nativepass;newworker3-same1zero-gas-after-original-preload;A5H1sharednativegate-before-other-families;original-gpu-account-resource-functions-exact;all-local-source-generator-errors-and-sources-retained;source-stage-and-dispatch-not-training-or-skill;original-recordvalidation-redaction-hashes-exact2scopedstagedset;featureonly-mainreadonly-no-modelraw-runtime-replay','--files',*files];record_experiment.main();head=G('rev-parse','HEAD');tag='trial-'+time.strftime('%Y%m%d')+'-'+trial;obj=G('rev-parse','refs/tags/'+tag);assert G('cat-file','-t','refs/tags/'+tag)=='tag'and G('rev-parse','refs/tags/'+tag+'^{}')==head;G('push','--atomic','origin','HEAD:refs/heads/mod4v1-experts-fulldr-rm70','refs/tags/'+tag+':refs/tags/'+tag);remote={ref:sha for sha,ref in(line.split()for line in G('ls-remote','origin','refs/heads/mod4v1-experts-fulldr-rm70','refs/tags/'+tag,'refs/tags/'+tag+'^{}','refs/heads/main').splitlines())};assert remote['refs/heads/mod4v1-experts-fulldr-rm70']==head and remote['refs/tags/'+tag]==obj and remote['refs/tags/'+tag+'^{}']==head and not G('status','--porcelain');print(json.dumps(dict(commit=head,tag=tag,annotated_tag_object=obj,remote=remote,index_entries=len(rows),original_recorder_full_validation_redaction_hashes_retained=True,exact_staged_set=True,no_model_or_raw_or_runtime_or_old_record_replay=True,main_push_or_reset=False),indent=2))

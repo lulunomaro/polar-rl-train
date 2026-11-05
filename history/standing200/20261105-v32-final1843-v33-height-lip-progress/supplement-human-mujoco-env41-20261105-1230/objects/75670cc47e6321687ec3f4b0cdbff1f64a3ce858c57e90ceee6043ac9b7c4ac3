@@ -1,0 +1,120 @@
+"""Interactive V33 saved-PhysX-pose playback in MuJoCo; no policy or mj_step."""
+from pathlib import Path
+import argparse
+import hashlib
+import io
+import json
+import os
+import queue
+import sys
+import time
+import xml.etree.ElementTree as ET
+import numpy as np
+
+R=Path(__file__).resolve().parent.parent
+sys.path.insert(0,str(R))
+RUN='MOD4_STANDING200_SUPPORTED_V33_1793834866525473900'
+CHECKPOINT_SHA='f39064b8e6cb2311ef8e9f7b11dc6424a259ed8327fca5fd282947feeeead286'
+USD_SHA='2c421a8ec66e425ee6e47341ed0803f2c7e84f1f50afcc726572027ef6566ef3'
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--env',type=int,choices=[0,1,40,41],default=41)
+    parser.add_argument('--speed',type=float,default=.5)
+    parser.add_argument('--receipt',type=Path,required=True)
+    args=parser.parse_args()
+    assert args.speed>0 and not args.receipt.exists()
+    actual=R/'actual_closed'/RUN
+    replay=actual/'rendered_actual_replay_input'
+    meta=json.loads((replay/'REPLAY_METADATA.json').read_bytes())
+    result=json.loads((actual/'evaluation/RESULT.json').read_bytes())
+    assert meta['checkpoint']['iteration']==1977 and meta['checkpoint']['SHA']==CHECKPOINT_SHA
+    assert meta['quaternion_order']=='xyzw'
+    packets={}
+    for row in meta['replay']:
+        p=replay/Path(row['path']).name
+        raw=p.read_bytes()
+        assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+        with np.load(io.BytesIO(raw),allow_pickle=False)as z:
+            packet={key:z[key].copy()for key in z.files}
+        packet['body_pos']-=np.asarray(meta['origins'][row['env']])
+        packets[row['env']]=packet
+    usd=Path('F:/RMPOLAR-RL/mod4_usd_scut_fudan_20261101/candidates/v1/assets/robot.usd')
+    assert hashlib.sha256(usd.read_bytes()).hexdigest()==USD_SHA
+    from render_standing_recorded_v2 import mesh_visuals
+    names=meta['body_names'];elements,vfs=mesh_visuals(usd,names)
+    root=ET.Element('mujoco',model='MOD4v1 V33 final1977 - saved actual trajectory')
+    ET.SubElement(root,'compiler',angle='radian')
+    vis=ET.SubElement(root,'visual')
+    ET.SubElement(vis,'headlight',ambient='.6 .6 .6',diffuse='.6 .6 .6')
+    asset=ET.SubElement(root,'asset')
+    for name,filename in elements:ET.SubElement(asset,'mesh',name=name,file=filename)
+    world=ET.SubElement(root,'worldbody')
+    ET.SubElement(world,'light',pos='0 -1 3',dir='0 0 -1')
+    ET.SubElement(world,'geom',type='plane',size='6 6 .1',rgba='.25 .28 .32 1',contype='0',conaffinity='0')
+    for i,(xmin,xmax,ymin,ymax)in enumerate(result['course']['selected_evaluation_platform']['raised_boxes_xy']):
+        ET.SubElement(world,'geom',name='step200_%d'%i,type='box',
+            pos='%g %g .1'%((xmin+xmax)/2,(ymin+ymax)/2),
+            size='%g %g .1'%((xmax-xmin)/2,(ymax-ymin)/2),
+            rgba='.25 .5 .75 1',contype='0',conaffinity='0')
+    for name,_ in elements:
+        body=ET.SubElement(world,'body',name='recorded_'+name,mocap='true',pos='0 0 -10')
+        ET.SubElement(body,'geom',type='mesh',mesh=name,density='0',contype='0',conaffinity='0',rgba='.73 .77 .82 1')
+    import mujoco
+    import mujoco.viewer
+    model=mujoco.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'),vfs)
+    data=mujoco.MjData(model)
+    assert model.nq==0 and model.nmocap==len(names)
+    ids=np.array([model.body_mocapid[mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,'recorded_'+n)]for n in names])
+    controls=queue.SimpleQueue();env=args.env;speed=args.speed;elapsed=0.;paused=False
+    def camera(viewer,top=False):
+        viewer.cam.lookat[:]=[.65,0.,.25]
+        viewer.cam.distance=1.85
+        viewer.cam.azimuth=90
+        viewer.cam.elevation=-89 if top else -18
+    packet=packets[env]
+    data.mocap_pos[ids]=packet['body_pos'][0]
+    data.mocap_quat[ids]=packet['body_quat'][0][...,[3,0,1,2]]
+    mujoco.mj_forward(model,data)
+    with mujoco.viewer.launch_passive(model,data,key_callback=controls.put,show_left_ui=False,show_right_ui=False)as viewer:
+        camera(viewer)
+        receipt=dict(epoch=time.time(),kind='HUMAN_REQUESTED_V33_LOCAL_INTERACTIVE_SAVED_POSE_VIEWER',
+            pid=os.getpid(),parent_pid=os.getppid(),exe=sys.executable,argv=sys.argv,
+            source_script=dict(path=str(Path(__file__).resolve()),SHA=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),
+            source_checkpoint=meta['checkpoint'],initial_env=env,available_envs=list(packets),speed=speed,
+            trajectory_rows=meta['replay'],USD=dict(path=str(usd),SHA=USD_SHA),
+            new_policy_reads=0,new_physics_steps=0,SSH=0,canonical_operations=0,
+            playback='Existing V33 actual PhysX trajectory. MuJoCo mocap display only. No evaluation/render-once entry replayed.',
+            controls='Space/P pause; R restart;1/2/3/4 env0/1/40/41;T top;S side;-/+ speed;close window to exit')
+        with args.receipt.open('x',encoding='utf-8')as f:json.dump(receipt,f,ensure_ascii=False,indent=2)
+        print('V33_SAVED_POSE_VIEWER_READY '+json.dumps(dict(pid=os.getpid(),env=env,iteration=1977,speed=speed)),flush=True)
+        previous=time.perf_counter()
+        while viewer.is_running():
+            now=time.perf_counter();dt=now-previous;previous=now
+            while not controls.empty():
+                key=controls.get()
+                if key in (32,80):paused=not paused
+                elif key==82:elapsed=0.
+                elif key in (49,50,51,52):env=[0,1,40,41][key-49];elapsed=0.
+                elif key==84:camera(viewer,True)
+                elif key==83:camera(viewer,False)
+                elif key in (45,333):speed=max(.125,speed/2)
+                elif key in (61,334):speed=min(4.,speed*2)
+            packet=packets[env];times=packet['time']
+            if not paused:elapsed+=dt*speed
+            moment=times[0]+elapsed%(times[-1]-times[0]+.02)
+            index=int(np.clip(np.searchsorted(times,moment,side='right')-1,0,len(times)-1))
+            with viewer.lock():
+                data.mocap_pos[ids]=packet['body_pos'][index]
+                data.mocap_quat[ids]=packet['body_quat'][index][...,[3,0,1,2]]
+                data.time=float(times[index])
+                mujoco.mj_forward(model,data)
+            viewer.set_texts((mujoco.mjtFontScale.mjFONTSCALE_150,mujoco.mjtGridPos.mjGRID_TOPLEFT,
+                'MOD4v1 V33 final1977 | env%d | %.2fs / 9.98s | %.2fx%s\nSaved actual PhysX poses'%(env,times[index],speed,' | PAUSED'if paused else''),
+                'Space pause | R restart | 1-4 cases | T top | S side | +/- speed'))
+            viewer.sync()
+            time.sleep(max(0.,1/60-(time.perf_counter()-now)))
+
+
+if __name__=='__main__':main()

@@ -29,7 +29,9 @@
 - [x] sole72460核实际E3W11提前释放/outerreaped、fresh四卡/原余额后唯一新GO05:36:14.384236；FIRST377/完整恢复source37617Adam7520/FULL_V4/完整首轮0errors已通过，唯一collector69168绑定。
 - [x] 原target-projection权重-2版完整保存退出/独立80/4图审看/fullmodel诊断1次/全文errors0：112PPO53.76M/final48817Adam9760，79局362请求但0flight/wholeclear/top/landing。旧69168退出，reader网络前false保留。
 - [x] 仅将projection惩罚权重-2→-10；19CPU通过、旧stairs8复用，旧轨迹counterfactual核算不当新motion；1module63refs候选与唯一67764已绑定，先补齐全文再等actualSCUT33释放。
-- [ ] sole67764核SCUT33exactownerdead/ownwaitsettledreleased/canonicalNone/原锁与fresh四卡/余额后唯一新launch/FIRST489/fullrestore48817Adam9760，保存退出立即独立80和新actualpose审看；当前新GO未发生。
+- [x] sole67764已核SCUT33真实安全释放，但四卡在网络前被新读者拒绝，原false/stderr保留，未启动新小时。
+- [x] 仅恢复未执行准入：唯一72124/create09:39:02.687642绑定，本地等待W13真handoff/collector，SCUT34实际GO已核而W13仍PREGO；5项衔接CPU通过。
+- [ ] sole72124等待真实外部读者退出，消费实际W13 FIRST或核SCUT34原释放/canonicalNone/原锁/fresh四卡/预算后唯一新launch/FIRST489，再完整保存退出、独立80与全部新actualpose审看。
 
 当前证据：固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的terrains.py有STAIR_FOR_RM 200–220mm/1.5m踏面，以及HIGH_STAIR_FOR_RM 150–350mm/1.25m踏面。当前误选inverse-mid为25–40mm/0.1m踏面。公开rough_rotation_stair保存YAML关闭Airborne/JumpTakeoff/Stair，不能把小阶梯保存配方称作200mm起跳配方；须进一步核对应源码分支。
 

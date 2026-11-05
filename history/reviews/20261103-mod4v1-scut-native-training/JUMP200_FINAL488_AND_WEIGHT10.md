@@ -1,5 +1,7 @@
 # 单200mm跳跃：final488与projection权重修复
 
+2026-11-05 09:40实际覆盖：旧67764在08:32:37退出，已核SCUT33于08:32:27.990133完整释放；08:32:35的canonicalNone/三锁free/remaining196743.7411711216只是当时快照。四卡检查随后被另一聊天真controller25836/37964及其64796父进程网络前拒绝，原false/CONTROL_ERROR/stderr保留，0fouronce/0INDEX/0LAUNCH/0GO/0新小时。唯一72124/parent3776/create09:39:02.687642运行`jump200_training_control.py recover_admission --root A`，ADMISSION_RECOVERY_BIND_ONCE/ONCE/EXACT_CIM/SOURCE_FROZEN消费，日志0，先只本地等待W13真handoff42152与collector41896。W13当前PREGO/Errno11/partiallocks0/无ownerworker和actualGO；当前known actualowner是SCUT34/1645521/create1793841128.44，GO09:12:09.157377/SAVE10:12:09.157377/NOMINAL10:17:09.157377。恢复程序只在W13实际FIRST出现时用其真实parent/GO，否则核SCUT34原native释放；不按launch猜GO。针对重复的读者衔接竞争，只将明确未网络/未once的inventorybusy退回本地等待，原gate/false保持，消费过的操作不重试；5项必要CPU验证通过0PT/0网络/0physics。PLAN/prepared、weight10、sourcefinal488/17Adam9760和63refs均未改；controller已冻结，alive仅本地，不第二SSH/rebind/探卡/热改。100h授权持续。
+
 2026-11-05 07:34。原生训练、独立80、全部4幅savedpose和完整模型/日志核验已完成，跳跃目标未达成。下一候选仅加大现有请求投影代价，单个本地接续程序67764已绑定，新GO尚未发生。
 
 - 原窗GO05:36:14.384236、SAVE06:36:14.384236/NOMINAL06:41:14.384236。final06:35:11.266724、TRAIN_CLOSED06:35:39.166001；独立80完成06:38:08.012310、owner06:38:08.741872完整等待/结算/释放；正式回传06:39:32.068074。旧69168已结束，所有生产/评测/回收once消费不重放。

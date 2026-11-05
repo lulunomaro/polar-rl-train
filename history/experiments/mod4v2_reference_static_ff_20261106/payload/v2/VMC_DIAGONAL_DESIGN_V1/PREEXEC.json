@@ -1,0 +1,19 @@
+{
+  "scope": "NEW_NOMINAL_COORD_SOFT_F_Tp_COUPLING_GEOMETRY_ONLY_NOT_OLD_VALIDATOR_REPLAY",
+  "owner": "VMC_DIAGONAL_DESIGN_V1 only; parent owns controller/physics/Git",
+  "skill_match": "Current catalog Office/ACL do not match robot C/geometry; existing filesystem and Python314 NumPy only",
+  "inputs": ["../TERRAIN_ADAPTATION_TASKS_V2.md top", "../CONTACT_PROXY_V2/nominal_model.py", "../CONTACT_PROXY_V2/PUBLIC_NOMINAL_CONSTANTS.json", "../nominal_gain_v2.json", "../../mod4v1_lqr_mpc_robust_20261102/FLAT_STABILITY_FIX_V1/controller_v2.py lines19-35"],
+  "model_source": "published P0 c19c72d2690dce90fdef56bebd3b36e4c319d47b8ac7152cf42b2d01f6dfd125; no scene compile or payload read",
+  "requested_operating_pose_count": 1,
+  "nominal_q4": "[q7[3],q7[3]+q7[4],q7[5],q7[5]+q7[6]] from actual new gain; absolute hip/crank",
+  "derivatives": "Exactly one existing NominalModel.derivatives(q0), internally base FK1 plus fixed central-difference stencil FK8 at h1e-5 (both legs); this is one operating Jacobian, not9 validation poses or a gain grid",
+  "extra_pose_budget": "ONE q0+[1e-7,-2e-7,-1e-7,2e-7] pure FK for tiny virtual-work/tangent check; total public FK calls10",
+  "coordinate": "r=(wheel_B.x,wheel_B.z) chassis ROOT; l=norm(r), phi=atan2(x,-z); never subtract thigh pivot or reuse opposite-sign leg_coordinates theta",
+  "T_formula": "T0 = [[x/l,z/l],[-z/l^2,x/l^2]] @ Jwheel_xz_abs_hip_crank",
+  "matrices": "Kvirt=inv(T0).T @ (120I) @ inv(T0); Dvirt same4I; diagonal-only joint equivalent T0.T @ diag(Kvirt) @ T0",
+  "checks_before_data": {"finite_SPD": true, "normalized_abs_coupling_lt1": true, "tiny_virtualwork_linear_identity_abs_J": 1e-18, "one_tiny_nonlinear_FK_work_discrepancy_abs_J": 1e-11},
+  "no_gain_selection": true,
+  "zero": ["MuJoCo_or_other_SDK_import", "MjModel_compile", "mj_forward", "mj_step", "statics_DARE_recompute", "old_raw_QA_validator", "controller_or_asset_change", "hardware", "Git", "new_agent", "Goal"],
+  "run": "Python314 -B; OPENBLAS/OMP/MKL1, oneCPU; one saved helper run; first error preserves prefix and stops without silent retry",
+  "output": "RESULT.json constants/checks and short formula/units/commonmode/power note, not M2 physical qualification"
+}

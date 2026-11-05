@@ -1,0 +1,11 @@
+# 两目标参考静态FF设计（不是控制器验证）
+- 可复用接口：[static_ff.py](<static_ff.py>)中的`NominalStaticReferenceFF()`、`.base_design`、`.correction(q_ref4)`；返回输出侧Nm `[LH,LC,RH,RC]`。q_ref4为绝对hip/crank参考，仅用公开P0名义参数；没有实际q/Fn/alpha/DR输入或饱和处理，父另外取差分投影/统一余量缩放。
+- 符号：`tau_static(q_ref;F0)=load4−tauGas4−tauOtherPassive4−block(Jwheel_xz.T@F0)`。明确假设roll=pitch=0、proper_BODY=(0,0,9.81)、所有速度/加速度=0；静态其它被动力矩为0。F0从已有trim自然逆解，不固定mg/2，也不是测得的实际支持力。
+- [PREEXEC.json](<PREEXEC.json>)及[RESULT.json](<RESULT.json>)记录一次新公式研究：恰2个目标构型，复用封存有限差分的实际内部SDK-free FK18；无新解析导数实现、优化/DARE/MuJoCo/forward/step/旧QA/raw/硬件/Git/新代理。封存三姿态validator未重跑。
+- 基点q0取父nominal_gain_v2；F0_xz=[[-4.09546e−9,70.0574159960],[-2.26165e−9,70.1681002673]]N；q0原trim回代误差2.665e−15Nm。这是公式代数一致性，不是新独立力校准。
+- 唯一扰动dq=[+.02,−.02,−.02,+.02]rad：Δtau=[−.220167456,+.309338025,+.200511407,−.289693540]Nm；common=(L+R)/2=[−.009828025,+.009822243]Nm，diff=(L−R)/2=[−.210339431,+.299515782]Nm。
+- 纯差分投影为[−.210339431,+.299515782,+.210339431,−.299515782]Nm；保持原公共LQR/PD与是否接入均由父决定，本helper未接任何控制器。
+- 方向两点secant k_required=−12.74638Nm/rad，其中gravity=+.18601、−gas=−12.48102、−JᵀF0=−.45137。对固定参考的小位移恢复投影是−(120+k_required)dq，约107.25362，较120减弱10.6%；不是完整4×4刚度、瞬时导数或动态稳定性证明。
+- 对此次参考改变，原120*dq=[+2.4,−2.4,−2.4,+2.4]Nm，与所需静态修正方向相反。Δtau/120仅是产生该修正的PD参考误差等效值，幅度1.67–2.58mrad；不是已测/预测的actual−reference跟踪误差，后者不能忽略耦合静态斜率直接解释。
+- 该修正量级小、以未实测k=2000/d=3气弹簧名义几何斜率为主，尚不足单独解释接触失败或承诺显著收益。固定F0也不取消未知地面支持、动态惯性、真实Fn/alpha及DR差异；未改原门、K、模型/驱动、父代码。
+- [design_static_ff.py](<design_static_ff.py>)为误读two-pose预算时写下的解析草稿，**未导入、未执行**；父澄清后实际只运行复用封存terms的[static_ff.py](<static_ff.py>)。无第二套QA/额外姿态，交付后停止。

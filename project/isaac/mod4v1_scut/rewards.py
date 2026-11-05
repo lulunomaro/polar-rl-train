@@ -248,6 +248,27 @@ class ScutRewards:
         if self.profile == 'jump200' and self.cfg.rewards.get('jump200_target_projection', 0.):
             result['jump200_target_projection'] = leg_target_projection_error(
                 self._actions[:, :4], self.leg_action_term, self.contract)
+        lift_cfg = getattr(self.cfg, 'jump200_bilateral_lift_reward', None)
+        if self.profile == 'jump200' and lift_cfg:
+            active = self.jump_takeoff_phase != 0
+            if hasattr(self, 'jump200_landed_top'):
+                active &= ~self.jump200_landed_top
+            # Measured wheel heights relative to their current ground rays;
+            # the same nominal tire radius is used by the source takeoff helper.
+            clearance = self._get_wheel_relative_ground_heights_raw() - self.wheel_radius
+            bilateral = ((clearance.amin(-1)-lift_cfg['ground_margin_m'])
+                         / lift_cfg['full_clearance_m']).clamp(0., 1.)
+            bilateral = torch.where(torch.isfinite(clearance).all(-1),
+                                    bilateral, torch.zeros_like(bilateral))
+            fraction = lift_cfg['grounded_fraction']
+            gate = torch.where(active, fraction+(1.-fraction)*bilateral,
+                               torch.ones_like(bilateral))
+            for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
+                         'track_lin_vel_xy', 'track_ang_vel_z', 'jump200_push_height',
+                         'jump200_push_velocity', 'jump200_upward_velocity', 'jump200_peak'):
+                result[name] = result[name] * gate
+            upward = self.robot.data.root_lin_vel_w[:, 2].clamp(0., 1.)
+            result['jump200_bilateral_lift'] = active.float() * bilateral * upward
         self.state_terms = {key: value.clone() for key, value in result.items()}
         return result
 

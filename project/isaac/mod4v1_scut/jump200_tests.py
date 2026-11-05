@@ -162,6 +162,7 @@ class JumpTests(unittest.TestCase):
         r.jump_takeoff_phase[:] = torch.tensor([0, 1, 0])
         r.jump200_landed_top = torch.tensor([False, False, True])
         robot.data.root_lin_vel_w[1, 2] = 1.
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = .1
         terms={name:torch.ones(3) for name in ('flat_orientation_x_exp', 'flat_orientation_y_exp',
             'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight')}
         shaped=r._postprocess_reward_terms(terms)
@@ -170,6 +171,7 @@ class JumpTests(unittest.TestCase):
     def test_source_upward_push_reward_distinguishes_real_velocity(self):
         r, robot, _ = fixture(2, profile='jump200')
         r.jump_takeoff_phase.fill_(1)
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = .1
         robot.data.root_lin_vel_w[:, 2] = torch.tensor([0., 1.])
         r.compute()
         torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'], torch.tensor([0., .04]))
@@ -178,11 +180,64 @@ class JumpTests(unittest.TestCase):
         r, robot, _ = fixture(4, profile='jump200')
         r.jump_takeoff_phase[:] = torch.tensor([1, 1, 2, 0])
         r.jump200_landed_top = torch.tensor([False, False, False, True])
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = .1
         robot.data.root_lin_vel_w[:, 2] = torch.tensor([0., 1., -.2, 0.])
         names = ('flat_orientation_x_exp', 'flat_orientation_y_exp',
                  'track_lin_vel_xy', 'track_ang_vel_z', 'track_height_exp_tight')
         shaped = r._postprocess_reward_terms({name:torch.ones(4) for name in names})
         torch.testing.assert_close(shaped['track_lin_vel_xy'], torch.tensor([0., 1., 0., 1.]))
+
+    def test_body_only_push_keeps_small_impulse_signal_but_bilateral_lift_wins(self):
+        r, robot, _ = fixture(3, profile='jump200')
+        r.jump_takeoff_phase.fill_(1)
+        robot.data.root_lin_vel_w[:, 2] = 1.
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = torch.tensor(
+            [[.0625, .0625], [.0875, .0625], [.0875, .0875]])
+        r.compute()
+        # Weight and dt occur once after reward postprocessing.
+        torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'],
+                                   torch.tensor([.004, .004, .04]))
+        torch.testing.assert_close(r._last_reward_terms['jump200_bilateral_lift'],
+                                   torch.tensor([0., 0., .08]), atol=1.e-6, rtol=1.e-5)
+        self.assertGreater(float(r._last_total_reward[2]), float(r._last_total_reward[0]))
+
+    def test_lift_reward_rejects_spawn_descent_flat_top_and_one_wheel(self):
+        r, robot, _ = fixture(5, profile='jump200')
+        r.jump_takeoff_phase[:] = torch.tensor([0, 2, 1, 1, 1])
+        robot.data.root_lin_vel_w[:, 2] = torch.tensor([1., -.2, 1., 1., 1.])
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = torch.tensor(
+            [[.1, .1], [.1, .1], [.2625, .2625], [.1, .0625], [.1, .1]])
+        r.ground_wheels[2] = .2
+        r.ground_wheels[4, 0] = float('nan')
+        shaped = r._postprocess_reward_terms({k:torch.ones(5) for k in
+            ('flat_orientation_x_exp', 'flat_orientation_y_exp', 'track_lin_vel_xy',
+             'track_ang_vel_z', 'track_height_exp_tight')})
+        torch.testing.assert_close(shaped['jump200_bilateral_lift'], torch.zeros(5),
+                                   atol=1.e-6, rtol=0.)
+
+    def test_verified_landing_keeps_tracking_and_no_lift_bonus(self):
+        r, robot, _ = fixture(1, profile='jump200')
+        r.jump_takeoff_phase.fill_(2)
+        r.jump200_landed_top = torch.ones(1, dtype=torch.bool)
+        robot.data.root_lin_vel_w[:, 2] = 1.
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = .2625
+        r.ground_wheels.fill_(.2)
+        shaped = r._postprocess_reward_terms({k:torch.ones(1) for k in
+            ('flat_orientation_x_exp', 'flat_orientation_y_exp', 'track_lin_vel_xy',
+             'track_ang_vel_z', 'track_height_exp_tight')})
+        self.assertEqual(float(shaped['track_lin_vel_xy'][0]), 1.)
+        self.assertEqual(float(shaped['jump200_bilateral_lift'][0]), 0.)
+
+    def test_ground_contact_millimeter_motion_does_not_earn_lift_bonus(self):
+        r, robot, _ = fixture(2, profile='jump200')
+        r.jump_takeoff_phase.fill_(1)
+        robot.data.root_lin_vel_w[:, 2] = 1.
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = torch.tensor(
+            [[.0638, .0638], [.0674, .0674]])
+        r.compute()
+        torch.testing.assert_close(r._last_reward_terms['jump200_bilateral_lift'], torch.zeros(2))
+        torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'],
+                                   torch.full((2,), .004))
 
     def test_visible_step_can_request_again_after_failed_attempt(self):
         r, _, _ = fixture(1, profile='jump200')

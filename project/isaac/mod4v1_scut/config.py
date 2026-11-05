@@ -133,6 +133,12 @@ def reward_config(profile='trained_stair'):
         # Final488 still clamps both hips >99.5% of endpoints; the -2 cost
         # averages only -.00834/control while supported push earns +.05279.
         values['rewards']['jump200_target_projection'] = -10.
+        # Final600 rewards body extension over grounded wheels (+.07375/push
+        # control), then loses support only on descent. Retain a small push
+        # signal while shifting the existing bonuses toward bilateral lift.
+        values['jump200_bilateral_lift_reward'] = dict(
+            ground_margin_m=.005, full_clearance_m=.02, grounded_fraction=.1)
+        values['rewards']['jump200_bilateral_lift'] = 4.
     return SimpleNamespace(**values)
 
 

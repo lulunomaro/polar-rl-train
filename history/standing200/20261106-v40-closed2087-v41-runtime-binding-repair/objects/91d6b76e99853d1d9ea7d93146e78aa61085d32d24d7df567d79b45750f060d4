@@ -1,0 +1,18 @@
+"""V40 standing-forward curriculum with task-local runtime repairs."""
+from pathlib import Path
+import hashlib
+
+HERE = Path(__file__).resolve().parent
+P = Path('/data/robemo/polar-rl-train/supported200_v36/tasks/MOD4_STANDING200_SUPPORTED_V36_1793872547340580700/MOD4V2_EASY_MIXED_FORWARD_V40_ENV20000_1793895747619652700/recipe.py')
+raw = P.read_bytes()
+assert hashlib.sha256(raw).hexdigest() == '944c01ddedb7bf9f59c85eacd456a1198411887b8fe31975cd4d179d5375c0dc'
+exec(compile(raw, str(P), 'exec'), globals())
+HERE = Path(__file__).resolve().parent
+previous_install = install
+
+
+def install(stage, source_stage=None):
+    receipt = previous_install(stage, source_stage)
+    from runtime_repair import install as repair
+    receipt['runtime_repair'] = repair()
+    return receipt

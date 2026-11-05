@@ -1,0 +1,124 @@
+"""One finite collector: first full save, then terminal data and actual replay."""
+from pathlib import Path
+import hashlib, json, os, subprocess, sys, time, traceback
+
+D = Path(__file__).resolve().parent
+R = D.parent
+sys.path.insert(0,str(R/'scut_native_v40_easy_stand'))
+from control import connect
+
+
+def put(name, value):
+    target=R/'reports'/('SCUT41_'+name+'.json')
+    with target.open('x') as f: json.dump(value,f,indent=2)
+
+
+def read(sf, job, name):
+    try:
+        size=sf.stat(job+'/'+name).st_size
+        assert size<=512*1024, name
+        with sf.open(job+'/'+name,'rb') as f:return json.loads(f.read(size+1))
+    except FileNotFoundError:return None
+
+
+def transfer(p, agent):
+    assert agent['all_own_waited'] and agent['GPU_lease_released']
+    assert not (R/'reports/SCUT41_CLOSED_TRANSFER_ONCE.json').exists()
+    put('CLOSED_TRANSFER_ONCE',dict(epoch=time.time(),run_id=p['run_id']))
+    c=sf=None;restore=lambda:None
+    report=dict(epoch=time.time(),run_id=p['run_id'],files=[])
+    dest=R/'actual_closed'/p['run_id']
+    dest.mkdir(parents=True,exist_ok=False)
+    try:
+        c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        job=p['host86_root'];assert read(sf,job,'AGENT_PRODUCTION_EXIT.json')==agent
+        names=['AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json',
+            'TRAIN_CLOSED.json','EVAL_WAITED.json','GO_PRODUCTION.json','PLAN.json','WORKER_IDENTITY.json',
+            'production/STARTUP.json','production/NOMINAL_READBACK.json','production/FULL_RESTORE.json',
+            'production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json',
+            'production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json',
+            'evaluation/RESULT.json','evaluation/ALL80.json','evaluation/ERROR.json','evaluation/NATIVE_STARTUP.json',
+            'evaluation/RUNTIME_READBACK.json','evaluation/ENV_CLOSED.json','evaluation/APP_CLOSE_INTENT.json']
+        result=read(sf,job,'evaluation/RESULT.json')
+        if result:
+            names += ['evaluation/'+Path(result[k]['path']).name for k in ('all80_manifold','actual_poses','terrain_mesh')]
+            names += ['evaluation/CONTROL_CURVES.json']
+        total=0
+        for name in names:
+            try:size=sf.stat(job+'/'+name).st_size
+            except FileNotFoundError:continue
+            if name.endswith('CONTROL_CURVES.json'):assert size<=96*1024**2
+            else:
+                assert size<=32*1024**2 and total+size<=80*1024**2
+                total+=size
+            target=dest/name;target.parent.mkdir(parents=True,exist_ok=True)
+            sha=hashlib.sha256();copied=0
+            with sf.open(job+'/'+name,'rb') as src,target.open('xb') as out:
+                while copied<size:
+                    chunk=src.read(min(1024**2,size-copied));assert chunk
+                    out.write(chunk);sha.update(chunk);copied+=len(chunk)
+            row=dict(path=str(target),remote_path=job+'/'+name,bytes=copied,SHA=sha.hexdigest())
+            report['files'].append(row)
+            if result:
+                for key in ('all80_manifold','actual_poses','terrain_mesh'):
+                    expected=result[key]
+                    if Path(expected['path']).name==Path(name).name:
+                        assert row['bytes']==expected['bytes'] and row['SHA']==expected['SHA']
+        report.update(metadata_NPZ_bytes=total,actual_evaluation_result=result)
+    except BaseException:
+        report['error']=traceback.format_exc();raise
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();report.update(SSHclosed=True,SESSION_restored=True)
+        put('CLOSED_TRANSFER_ACTUAL',report)
+    if result:
+        output=dest/'rendered_actual'
+        with (D/'RENDER.log').open('xb') as log:
+            done=subprocess.run([sys.executable,'-B','-X','utf8',str(R/'scut_native_v40_easy_stand/render_closed.py'),
+                '--evaluation',str(dest/'evaluation'),'--output',str(output)],stdout=log,stderr=subprocess.STDOUT,check=False)
+        put('ACTUAL_REPLAY_EXECUTION',dict(epoch=time.time(),returncode=done.returncode,output=str(output),
+            zero_new_physics=True,zero_policy_operations=True,current_model_native_visual_review_pending=True))
+    return report
+
+
+def main():
+    p=json.loads((D/'PLAN.json').read_bytes())
+    go=json.loads((R/'reports/SCUT41_LAUNCH_production.json').read_bytes())['launch']['GO']
+    assert not (R/'reports/SCUT41_COLLECTOR_ONCE.json').exists()
+    put('COLLECTOR_ONCE',dict(epoch=time.time(),pid=os.getpid(),run_id=p['run_id']))
+    first_seen=False;end=time.time()+3*3600
+    report=dict(pid=os.getpid(),run_id=p['run_id'])
+    try:
+        while time.time()<end:
+            c=sf=None;restore=lambda:None
+            try:
+                c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(35)
+                files={name:read(sf,p['host86_root'],name) for name in ['AGENT_PRODUCTION_EXIT.json',
+                    'AGENT_PRODUCTION_ERROR.json','production/STARTUP.json','production/FULL_RESTORE.json',
+                    'production/FIRST_UPDATED.json','production/FINAL.json','production/ERROR.json']}
+            finally:
+                if sf:sf.close()
+                if c:c.close()
+                restore()
+            state=dict(epoch=time.time(),GO=go,files=files,SSH_open=False)
+            tmp=D/'PUBLISHED.partial';tmp.write_text(json.dumps(state,indent=2));tmp.replace(D/'PUBLISHED.json')
+            first=files['production/FIRST_UPDATED.json'];agent=files['AGENT_PRODUCTION_EXIT.json']
+            if first and not first_seen:
+                assert first['actual_onpolicy_samples']==480000 and first['full_save'] and first['PPO_updates']==1
+                put('FIRST_COMPLETE_ACTUAL',state);first_seen=True
+            if agent:
+                transfer(p,agent);report['agent_exit']=agent;break
+            if files['production/ERROR.json'] or files['AGENT_PRODUCTION_ERROR.json']:
+                report['error']=files['production/ERROR.json'] or files['AGENT_PRODUCTION_ERROR.json']
+            # Keep SSH closed between finite reads, and keep terminal detection
+            # responsive to a genuine early exit rather than sleeping an hour.
+            time.sleep(60 if first_seen else 35)
+        else:report['error']='Finite collector timeout; terminal not observed'
+    except BaseException:report['error']=traceback.format_exc()
+    finally:
+        report.update(epoch=time.time(),SSHclosed=True,SESSION_restored=True,local_collector_closed=True)
+        put('COLLECTOR_CLOSED',report)
+
+
+if __name__=='__main__':main()

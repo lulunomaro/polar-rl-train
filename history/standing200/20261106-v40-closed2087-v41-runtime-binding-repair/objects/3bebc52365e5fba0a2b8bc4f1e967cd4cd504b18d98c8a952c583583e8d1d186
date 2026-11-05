@@ -1,0 +1,65 @@
+"""Archive this phase's source and reports, reusing previously archived bytes."""
+from pathlib import Path
+import hashlib, importlib.util, json, subprocess, sys, time
+
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261106-v40-closed2087-v41-runtime-binding-repair'
+ID='mod4v2-standing-forward-runtime-binding-v41'
+
+
+def main():
+    name=sys.argv[1] if len(sys.argv)>1 else 'initial'
+    dest=BASE if name=='initial' else BASE/name
+    assert not dest.exists()
+    if name!='initial':assert name.startswith('supplement-') and (BASE/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v41_archive_redact',REPO/'archive_tools/capture_history.py')
+    red=importlib.util.module_from_spec(spec);spec.loader.exec_module(red)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+    old=R/'scut_native_v40_easy_stand'
+    files.update(p for p in old.rglob('*') if p.is_file() and '__pycache__' not in p.parts
+                 and (p.suffix in ('.py','.json','.md','.txt','.log') or 'source_cache' in p.parts))
+    files.update((R/'reports').glob('SCUT40*.json'));files.update((R/'reports').glob('SCUT41*.json'))
+    files.add(R/'CURRENT_WORK_ORDER.json')
+    files.add(Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml'))
+    prior=json.loads((old/'PLAN.json').read_bytes())['run_id']
+    files.update(p for p in (R/'actual_closed'/prior).rglob('*.json') if p.name!='CONTROL_CURVES.json')
+    current=json.loads((D/'PLAN.json').read_bytes())['run_id']
+    files.update(p for p in (R/'actual_closed'/current).rglob('*.json') if p.name!='CONTROL_CURVES.json')
+    rows=[];large=[];(dest/'objects').mkdir(parents=True)
+    for p in sorted(files,key=str):
+        if not p.exists():continue
+        if p.stat().st_size>2*1024**2 or p.suffix.lower() in ('.pt','.npz','.usd','.png','.mp4','.gif'):
+            large.append(dict(path=str(p),bytes=p.stat().st_size,SHA='not reread for archive'))
+            continue
+        raw=p.read_bytes()
+        safe,count=red.redact(raw.decode('utf-8-sig'));content=safe.encode() if count else raw
+        sha=hashlib.sha256(content).hexdigest();out=known.get(sha)
+        if out is None:
+            target=dest/'objects'/sha;target.write_bytes(content)
+            out=target.relative_to(REPO).as_posix();known[sha]=out
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+                         archive_path=out,archive_SHA=sha,redactions=count))
+    for f in (R/'reports').glob('SCUT41*TRANSFER*ACTUAL.json'):
+        large.extend(json.loads(f.read_bytes()).get('files',[]))
+    status=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    (dest/'INDEX.json').write_text(json.dumps(dict(epoch=time.time(),rows=rows,large_artifacts=large,
+        status=status['status'],source_checkpoint=json.loads((D/'PLAN.json').read_bytes())['resume_checkpoint'],
+        archive_model_decodes=0,prior_trial_objects_reused=True),indent=2,ensure_ascii=False)+'\n')
+    note='''Continue the referenced standing-forward branch: easy Isaac Lab mixed terrain,20000env,+.35m/s,L0 .334m,theta=-2sum(theta^2),level/yaw/span,no full DR. Keep MOD4v2 HW300N60/gas/CAD/PD/DC/2.5ms TGS32/4/closure .01m/mimic .01rad.
+
+V40 complete final2087/02362f98 and safe release retained. Its actual worker reported total/found-lost aggregate pair overflow and rejected mimic joints; its independent80 errored before rollout on Xform mesh reading, so no80result. False collector-closed receipt, correction and observed retirement all retained. No V40 once is replayed.
+
+Root cause proved by V41 native16c: the guard loader compared resolved symlink to unresolved task path, reexecuted rawguard, and dropped finiteUSD plus newbuffer config. Newtask binds the adapted guard and the main function captured loader beforeconstruction. Existing1e20deg finiteexpression reused. totalpairs2**23 and found/lostaggregate2**27; mesh reads actualMeshdescendant. Native16a JSONinf readerfailure/16b receiptcollision/16c execution-only falsepass preserved. Native16d24controls192ticks zeroPhysXerrors,livefiniteUSD and bufferreadback,zeroresets. Actual20000native then production evidence/status live in indexedreports; no inference from schedule or GO.
+
+Resume complete V39final2079 (invalidV40updates excluded),actorcriticSTD17Adam41580,actualLR/globalRNG/clocks,newnominalpopulation/onefreshphysicalreset. This source reference is not new certification of all historicalphysics. Newproduction3600save+300exit then independent80 and actualterrain/savedpose replay. No foreignprocess/budget mutation. All actualattempts/errors/reports in INDEX. Largeartifacts stay at source with publishedmetadata; noarchivePTreads. One annotatedtrial, laterordinarysupplements; oldtags neverreplaced.
+'''
+    (dest/'README.md').write_text(note,encoding='utf-8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())),status=status['status'])))
+
+
+if __name__=='__main__':main()

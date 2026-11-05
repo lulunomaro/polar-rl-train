@@ -1,0 +1,83 @@
+"""Repair measured pair overflow; read the collision mesh and live limits."""
+from pathlib import Path
+import sys
+
+TOTAL_PAIRS = 2**23
+FOUND_LOST_AGGREGATE_PAIRS = 2**27
+
+
+def install():
+    guard = sys.modules['mod4v1_fresh_dr_guard']
+    previous = guard.configure_new_task
+
+    def configure(cfg, identity):
+        result = previous(cfg, identity)
+        cfg.sim.physics.gpu_total_aggregate_pairs_capacity = TOTAL_PAIRS
+        cfg.sim.physics.gpu_found_lost_aggregate_pairs_capacity = FOUND_LOST_AGGREGATE_PAIRS
+        # In this SDK the generator assigns several isolated environments to
+        # each tile. Keep the existing environment collision filtering enabled.
+        assert cfg.scene.filter_collisions
+        assert cfg.sim.dt == .0025 and cfg.decimation == 8
+        assert cfg.sim.physics.solver_type == 1
+        return result
+
+    guard.configure_new_task = configure
+    return dict(total_aggregate_pairs=TOTAL_PAIRS,
+                found_lost_aggregate_pairs=FOUND_LOST_AGGREGATE_PAIRS,
+                solver='TGS32/4', dt_s=.0025, reward_changes=False)
+
+
+def mesh_data(env):
+    import numpy as np
+    from pxr import Usd, UsdGeom
+    from isaaclab.sim import get_current_stage
+    stage = get_current_stage()
+    roots = env.scene['terrain'].terrain_prim_paths
+    meshes = []
+    vertices, faces, offset = [], [], 0
+    for root in roots:
+        prim = stage.GetPrimAtPath(root)
+        for child in Usd.PrimRange(prim):
+            if not child.IsA(UsdGeom.Mesh):
+                continue
+            mesh = UsdGeom.Mesh(child)
+            points = mesh.GetPointsAttr().Get()
+            counts = mesh.GetFaceVertexCountsAttr().Get()
+            indices = mesh.GetFaceVertexIndicesAttr().Get()
+            if points is None or indices is None:
+                continue
+            assert np.all(np.asarray(counts) == 3)
+            world = UsdGeom.XformCache().GetLocalToWorldTransform(child)
+            v = np.asarray([world.Transform(p) for p in points], dtype=np.float32)
+            f = np.asarray(indices, dtype=np.int32).reshape(-1, 3)
+            vertices.append(v); faces.append(f + offset); offset += len(v)
+            meshes.append(str(child.GetPath()))
+    assert meshes, roots
+    return dict(vertices=np.concatenate(vertices), faces=np.concatenate(faces)), meshes
+
+
+def readback(env):
+    import math
+    import torch
+    from pxr import UsdPhysics
+    from isaaclab.sim import get_current_stage
+    stage = get_current_stage()
+    rows = []
+    for side in ('left', 'right'):
+        for name in ('hip', 'crank', 'drive_hip_spin', 'drive_input_spin'):
+            joint = UsdPhysics.RevoluteJoint(stage.GetPrimAtPath('/World/envs/env_0/Robot/joints/'+side+'_'+name))
+            def number(value):
+                return value if value is None or math.isfinite(value) else str(value)
+            rows.append(dict(name=side+'_'+name, lower_deg=number(joint.GetLowerLimitAttr().Get()), upper_deg=number(joint.GetUpperLimitAttr().Get())))
+    robot = env.scene['robot']
+    limits = robot.root_view.get_dof_limits()
+    if not isinstance(limits, torch.Tensor):
+        import warp as wp
+        limits = wp.to_torch(limits)
+    named = {name: [number(v) for v in limits[0, i].detach().cpu().tolist()] for i, name in enumerate(robot.joint_names)
+             if any(t in name for t in ('drive_hip', 'drive_input', 'crank', 'hip'))}
+    return dict(spawn_usd=env.cfg.scene.robot.spawn.usd_path, composed_limits=rows,
+                backend_limits_rad=named, collision_filter=env.cfg.scene.filter_collisions,
+                global_collision_paths=env.scene._global_prim_paths,
+                total_pairs=env.cfg.sim.physics.gpu_total_aggregate_pairs_capacity,
+                found_lost_aggregate_pairs=env.cfg.sim.physics.gpu_found_lost_aggregate_pairs_capacity)

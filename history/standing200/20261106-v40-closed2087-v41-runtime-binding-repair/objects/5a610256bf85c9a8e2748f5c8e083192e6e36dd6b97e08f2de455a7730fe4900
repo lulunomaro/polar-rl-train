@@ -1,0 +1,33 @@
+"""Request complete own PPO/save boundary after actual PhysX dropped-pair errors."""
+from control import D,R,plan,put,fresh,connect,RUNTIME,query
+import json,time,traceback
+
+def main():
+    p=plan();assert not (R/'reports/SCUT40_CAPACITY_SAFE_SAVE_ONCE.json').exists()
+    fresh();c=None;restore=lambda:None;v=dict(epoch=time.time(),run_id=p['run_id'])
+    try:
+        c,restore,_=connect('86')
+        code='''import pathlib,json,time,psutil
+J=pathlib.Path(__JOB__)
+out={}
+for n in ['AGENT_PRODUCTION_EXIT.json','production/LATEST_PROGRESS.json','production/FINAL.json','production/ERROR.json']:
+ if (J/n).exists():out[n]=json.loads((J/n).read_bytes())
+if not out.get('AGENT_PRODUCTION_EXIT.json'):
+ for pid,created in [(701309,1793896250.43),(701320,1793896250.67)]:
+  proc=psutil.Process(pid);assert abs(proc.create_time()-created)<.03
+  assert any(str(J) in a for a in proc.cmdline())
+ marker=J/'STOP_AFTER_SAVE.json'
+ if not marker.exists():
+  with marker.open('x') as f:json.dump(dict(epoch=time.time(),reason='Actual PhysX totalAggregatePairsCapacity overflow: simulation may miss interactions; finish current PPO and fullsave; preserve all errors and checkpoint.',fullsave_required=True),f,indent=2)
+ out['stop_marker']=json.loads(marker.read_bytes())
+print(json.dumps(dict(epoch=time.time(),exact_own_run=True,no_signal_or_kill=True,files=out)))
+'''.replace('__JOB__',repr(p['host86_root']))
+        compile(code,'own_capacity_safe_boundary','exec')
+        put('CAPACITY_SAFE_SAVE_ONCE',dict(epoch=time.time(),run_id=p['run_id'],actual_error='totalAggregatePairsCapacity overflow'))
+        v['actual']=query(c,RUNTIME,code);put('CAPACITY_SAFE_SAVE_ACTUAL',v['actual']);print(json.dumps(v['actual']))
+    except BaseException:v['error']=traceback.format_exc();put('CAPACITY_SAFE_SAVE_ERROR',v);raise
+    finally:
+        if c:c.close()
+        restore();put('CAPACITY_SAFE_SAVE_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+if __name__=='__main__':main()

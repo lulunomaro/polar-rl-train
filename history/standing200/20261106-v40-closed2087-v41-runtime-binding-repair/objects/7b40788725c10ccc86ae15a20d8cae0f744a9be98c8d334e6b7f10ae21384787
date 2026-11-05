@@ -1,0 +1,98 @@
+"""Finite task-only deploy, native attempts, production and status collection."""
+from pathlib import Path
+import hashlib, json, sys, time, traceback
+
+D = Path(__file__).resolve().parent
+R = D.parent
+sys.path.insert(0, str(R/'scut_native_v40_easy_stand'))
+from control import connect, query, RUNTIME
+
+
+def execute(action, label=None, n=16):
+    p = json.loads((D/'PLAN.json').read_bytes())
+    j = p['host86_root']
+    c = sf = None
+    restore = lambda: None
+    report = dict(epoch=time.time(), action=action, label=label, run_id=p['run_id'])
+    try:
+        c, restore, _ = connect('86')
+        sf = c.open_sftp(); sf.get_channel().settimeout(35)
+        if action == 'status':
+            files = {}
+            names = (['AGENT_NATIVE'+label+'_EXIT.json', 'native_validation'+label+'/INITIALIZED.json',
+                      'native_validation'+label+'/RESULT.json', 'native_validation'+label+'/ERROR.json']
+                     if label != 'production' else ['AGENT_PRODUCTION_EXIT.json','production/FULL_RESTORE.json',
+                         'production/FIRST_UPDATED.json','production/LATEST_PROGRESS.json','production/FINAL.json',
+                         'production/ERROR.json','evaluation/RESULT.json','evaluation/ERROR.json'])
+            for name in names:
+                try:
+                    with sf.open(j+'/'+name, 'rb') as f: files[name] = json.loads(f.read(256000))
+                except FileNotFoundError: pass
+            report['files'] = files
+            logfile = 'WORKER.log' if label == 'production' else 'NATIVE'+label+'_WORKER.log'
+            with sf.open(j+'/'+logfile, 'rb') as f:
+                size = f.stat().st_size
+                head = f.read(min(size, 160000)); f.seek(max(0, size-32000)); tail = f.read(32000)
+            report['log_size'] = size
+            report['physics_errors'] = [line for line in (head+b'\n'+tail).decode(errors='replace').splitlines()
+                                        if '[Error]' in line or 'Traceback' in line]
+            if size <= 500000: (D/logfile).write_bytes(head if size <= 160000 else head+b'\nBOUNDED_TAIL\n'+tail)
+            (D/('STATUS_'+label+'_'+str(time.time_ns())+'.json')).write_text(json.dumps(report, indent=2))
+            compact = {}
+            for name, value in files.items():
+                if name.endswith('RESULT.json'):
+                    compact[name] = {k:value[k] for k in ('passed','num_envs','controls','physics_ticks','controls_seconds','done_count','standing_forward_pass') if k in value}
+                elif name.endswith('INITIALIZED.json'): compact[name] = value
+                else: compact[name] = {k:value[k] for k in ('epoch','error','returncode','iteration','all_own_waited','GPU_lease_released','actual_reward_mean','losses','source_model_decodes','Adam_states','Adam_steps_each','learning_rate','full_save','checkpoint') if k in value}
+            print(json.dumps(dict(files=compact, physics_errors=report['physics_errors'][:8], log_size=size)))
+            return
+        # Mutate only the inactive task between observed, waited attempts.
+        with sf.open(j+'/INSTALL86_MANIFEST.json', 'rb') as f: rows = json.loads(f.read())['files']
+        p['native_attempt'] = label; p['native_num_envs'] = n
+        (D/'PLAN.json').write_text(json.dumps(p, indent=2))
+        names = ['PLAN.json','recipe.py','runtime_repair.py','worker86.py','native_probe.py','agent86.py','evaluate.py']
+        for name in names:
+            raw = (D/name).read_bytes(); sha = hashlib.sha256(raw).hexdigest()
+            current = next((row for row in rows if row['path'] == j+'/'+name), None)
+            if current and current['SHA'] == sha: continue
+            if current:
+                sf.rename(j+'/'+name, j+'/'+name+'.before_'+label)
+            with sf.open(j+'/'+name, 'wx') as f: f.write(raw)
+            rows = [row for row in rows if row['path'] != j+'/'+name]
+            rows.append(dict(path=j+'/'+name, bytes=len(raw), SHA=sha))
+        sf.rename(j+'/INSTALL86_MANIFEST.json', j+'/INSTALL86_MANIFEST.before_'+label+'.json')
+        manifest = dict(files=rows)
+        with sf.open(j+'/INSTALL86_MANIFEST.json', 'wx') as f: f.write(json.dumps(manifest, indent=2))
+        (D/('MANIFEST_'+label+'.json')).write_text(json.dumps(manifest, indent=2))
+        code = '''from pathlib import Path
+import json,subprocess,os,time,psutil
+j=Path(__JOB__);label=__LABEL__;uuid='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid','--format=csv,noheader'],text=True)
+assert uuid not in apps
+for f in j.glob('AGENT_*_STARTED.json'):
+ assert f.with_name(f.name.replace('_STARTED.json','_EXIT.json')).exists(),str(f)
+go_name='GO_PRODUCTION.json' if label=='production' else 'NATIVE'+label+'_GO.json'
+now=time.time();go=dict(GPU_UUID=uuid,run_id=__RUN__,num_envs=__N__,learning_started_epoch=now,save_deadline=now+(3600 if label=='production' else 600),nominal_end_epoch=now+(3900 if label=='production' else 900),accounting_gate=False)
+with (j/go_name).open('x') as f:json.dump(go,f,indent=2)
+with (j/(label+'_DIRECT.log')).open('xb') as log:
+ proc=subprocess.Popen([__PY__,'-u','-B',str(j/'agent86.py'),'train' if label=='production' else 'native',str(j)],cwd=j,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1'))
+q=psutil.Process(proc.pid)
+print(json.dumps(dict(pid=q.pid,creation=q.create_time(),argv=q.cmdline(),GO=go,compute_apps_before=apps)))
+'''.replace('__JOB__', repr(j)).replace('__LABEL__', repr(label)).replace('__PY__', repr(RUNTIME)).replace('__RUN__',repr(p['run_id'])).replace('__N__',str(n))
+        report['launch'] = query(c, RUNTIME, code)
+        print(json.dumps(report['launch']))
+    except BaseException:
+        report['error'] = traceback.format_exc()
+        raise
+    finally:
+        if sf: sf.close()
+        if c: c.close()
+        restore()
+        report.update(SSHclosed=True, SESSION_restored=True)
+        if action != 'status':
+            with (R/'reports'/('SCUT41_'+action.upper()+'_'+str(label)+'.json')).open('x') as f:
+                json.dump(report,f,indent=2)
+
+
+if __name__ == '__main__':
+    execute(sys.argv[1],sys.argv[2],int(sys.argv[3]) if len(sys.argv)>3 else 16)

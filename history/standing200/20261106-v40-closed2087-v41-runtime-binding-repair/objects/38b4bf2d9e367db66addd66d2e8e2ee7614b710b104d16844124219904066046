@@ -1,0 +1,72 @@
+"""Actual easy-terrain/nominal integration smoke; no policy or checkpoint."""
+from pathlib import Path
+import argparse,hashlib,json,os,sys,time,traceback
+J=Path(__file__).resolve().parent
+
+def main():
+    p=json.loads((J/'PLAN.json').read_bytes());sys.path.insert(0,p['package_root'])
+    os.environ['MOD4_SCUT_SOURCE_PATHS']=str(J/'SOURCE_PATHS.json')
+    import mod4v1_scut.sdk,mod4v1_scut.checkpoint,mod4v1_scut.train
+    for name,row in p['shared_modules'].items():
+        raw=Path(row['path']).read_bytes();assert hashlib.sha256(raw).hexdigest()==row['SHA']
+        m=sys.modules['mod4v1_scut.'+name];m.__dict__.update(__file__=row['path'],__package__='mod4v1_scut')
+        exec(compile(raw,row['path'],'exec'),m.__dict__)
+    from recipe import install
+    receipt=install('eval200',source_stage='easy_mixed_forward')
+    from mod4v1_scut.train import boot,put,ScutVecEnv
+    out=J/('native_validation'+str(p.get('native_attempt',p.get('native_num_envs',16))));out.mkdir(exist_ok=False)
+    a=argparse.Namespace(**{k:p[k] for k in ('assets','runtime','runtime_manifest','guard','support')},num_envs=p.get('native_num_envs',16),seed=66,device='cuda:0',profile='trained_stair')
+    ns=boot(a,out);env=bridge=None;error=None
+    try:
+        import torch
+        from chassis_pd_training_env import ChassisPDMod4Env
+        import mod4_task as task
+        from mild_dr import tensor
+        from mod4v1_scut.sdk import configure,ScutBridge
+        from mod4v1_scut.config import model_contract
+        import mod4v1_scut.train as train
+        guardmod=train.load_guard(a.guard);identity=ns['E0_IDENTITY']
+        guardmod.verify_task_module(task,identity)
+        cfg=task.Mod4EnvCfg();cfg.seed=66;cfg.sim.device='cuda:0'
+        configure(cfg,a.num_envs);guardmod.configure_new_task(cfg,identity)
+        env=ChassisPDMod4Env(cfg=cfg)
+        guard=guardmod.FreshDRNominalGuard(env,identity,torch_module=torch,tensor_converter=tensor)
+        from pose_cache_runtime_adapter_v4 import install_pose_cache_runtime_adapter_v4
+        install_pose_cache_runtime_adapter_v4(env.scene['robot'],receipt_callback=lambda v:put(out/'POSE_CACHE_EVENTS.json',dict(latest=v)))
+        bridge=ScutBridge(env,task,model_contract(a.assets),tensor)
+        vec=ScutVecEnv(env,bridge)
+        with guard.around_original_fullstate_restore():reset=env.reset()
+        vec.current=reset[0] if isinstance(reset,tuple) else reset
+        bridge.ready=True
+        from nominal import readback
+        nominal=readback(env);weighted=[]
+        from runtime_repair import readback as runtime_readback,mesh_data
+        runtime=runtime_readback(env)
+        mesh,mesh_paths=mesh_data(env)
+        put(out/'INITIALIZED.json',dict(epoch=time.time(),runtime=runtime,mesh_paths=mesh_paths,vertices=len(mesh['vertices']),faces=len(mesh['faces'])))
+        done_count=0
+        started=time.time()
+        for i in range(24):
+            with torch.inference_mode():obs,reward,done,info=vec.step(torch.zeros(a.num_envs,6,device='cuda:0'))
+            assert bool(torch.isfinite(reward).all()) and all(bool(torch.isfinite(x).all()) for x in obs.values())
+            done_count+=int(done.sum())
+            weighted.append({k:float(v.mean()) for k,v in bridge.reward._last_reward_terms.items()})
+        assert bridge.reward.cfg.rewards['pen_theta_no0']==-2.
+        assert bridge.reward.cfg.rewards['track_lin_vel_xy']==1.
+        assert not bridge.reward.cfg.vel_height_gate_enabled
+        assert not bridge.reward._stand32_harmful_contact(torch.ones(a.num_envs,9,device='cuda:0')*1e6).any()
+        assert bool(torch.allclose(env.scene.env_origins,env.scene['terrain'].env_origins))
+        put(out/'RESULT.json',dict(passed=True,actual_SDK=True,num_envs=a.num_envs,controls=24,
+            physics_ticks=bridge.physics_ticks,source_PT_reads=0,policy_operations=0,Adam_operations=0,
+            nominal=nominal,runtime=runtime,controls_seconds=time.time()-started,done_count=done_count,reward_log=weighted,L0_actual=bridge.reward.v36_L0[:16].cpu().tolist(),
+            theta0_actual=bridge.reward.v36_theta0[:16].cpu().tolist(),recipe=receipt,
+            terrain_types=env.scene['terrain'].terrain_types[:16].cpu().tolist(),correct_terrain_origins=True,
+            quaternion_order=bridge.quaternion_order,skill_pass=False))
+    except BaseException:
+        error=traceback.format_exc();put(out/'ERROR.json',dict(error=error,epoch=time.time()));raise
+    finally:
+        if bridge:bridge.close()
+        if env:env.close();put(out/'ENV_CLOSED.json',dict(returned=True))
+        put(out/'APP_CLOSE_INTENT.json',dict(error=error));ns['app'].close()
+
+if __name__=='__main__':main()

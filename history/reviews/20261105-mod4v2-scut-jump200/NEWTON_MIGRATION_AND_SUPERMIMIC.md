@@ -41,3 +41,11 @@ SuperMimic已在FIRST621后开始开发。原固定learner通过SHA引用，4环
 - 原active冻结代码、当前owner和once均未修改。修复用于下一完整保存边界候选；需要新的真实20k整轮测量。下一热点是尚未在direct Newton桥启用的400Hz融合验收、状态和D4队列。
 
 完整报告在`N/reports/NEWTON_SAMPLING_SPEED_DIAGNOSIS.json`。原始profiler TRACE约92MB各一份，只索引真实路径/字节/SHA；不复制进Git文字对象。
+
+2026-11-06 04:20 SuperMimic有限训练入口已完成：`supermimic_train.py`在原Newton任务上使用学习动力学/任务奖励/上下文H32 BPTT，PPO均值作冻结来源加零初始化残差。`supermimic_evaluate.py`复用相同80/400Hz验收与保存姿态协议。`newton_checkpoint.environment_state`保存7组件、DR/命令/生成器和累计counter；恢复后明确fresh物理episode，保留replay并封口旧stream、清观察history，不宣称恢复contact solver warmstart。
+
+真实本地4环境测试通过24WM+24aux、一次H32更新、完整4Adam/replay/RNG保存，恢复后第二次真实BPTT通过。专门注入的无效样本含巨大标签，已验证不会被aux/WM/归一化/想象起点采样；原数值异常终止仍记录，不用reset后的pose当terminal标签。原evaluator将80写死导致4环境测试失败的报告保留，后改为实际num_envs，真实80接口已过。
+
+有限CLI从新建的本地随机PPO来源运行34轮，136WM/136aux/2次验证BPTT/8critic，全保存并safeclose；从该full checkpoint再续一轮至35，140WM/140aux/3次BPTT/12critic，通过保存和退出。独立80接口0优化器，0起跳/越沿/落台；这是随机本地teacher的接口测试，不是生产模型技能结果。两张实际保存姿态图已当前模型原生审阅：spawn下降后倾斜接地，selected环境1.02–1.30秒结束。20k生产replay容量64controls、预计2,261,760,000字节；正式资源占用还需下一段实际检查。
+
+当前生产PPO原包不变。原sole35288继续负责04:31:23.539602保存及随后80/正式回传。准备脚本`prepare_supermimic_boundary.py`只在本轮完成回传及当前模型实际80/原生回放后生成下一冻结小overlay；小learner源码固定SHA传输一次，不复制资产/权重/producer树。训练owner与dispatcher支持SuperMimic fullsave后立即80，controller按真实H32梯度/fullsave验证并绑定唯一postround，不重放旧once。

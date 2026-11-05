@@ -18,7 +18,7 @@ def triangle_boxes():
     return np.asarray(vertices),np.asarray(faces)
 
 
-def main():
+def main(actor_loader=None):
     p=argparse.ArgumentParser()
     for key in ('package','components','reset-bank','checkpoint','checkpoint-SHA','job-root'):p.add_argument('--'+key,required=True)
     a=p.parse_args();out=Path(a.job_root);out.mkdir(exist_ok=False);env=None;error=None
@@ -26,12 +26,15 @@ def main():
         random.seed(9137);np.random.seed(9137);torch.manual_seed(9137);torch.cuda.manual_seed_all(9137)
         from rsl_rl.runners import OnPolicyRunner
         env=NewtonEnv(a.package,a.components,a.reset_bank,80,'cuda:0',9137)
-        runner=OnPolicyRunner(env,runner_config(),None,'cuda:0')
-        with Path(a.checkpoint).open('rb')as f:assert hashlib.file_digest(f,'sha256').hexdigest()==a.checkpoint_SHA
-        saved=torch.load(a.checkpoint,map_location='cpu',weights_only=False)
-        assert saved['reward_family']=='FUDAN_JUMP' and saved['actor_dim']==35 and saved['critic_dim']==78
-        runner.alg.actor.load_state_dict(saved['actor_state_dict'],strict=True)
-        actor=runner.alg.actor;actor.eval().requires_grad_(False);del saved
+        if actor_loader is None:
+            runner=OnPolicyRunner(env,runner_config(),None,'cuda:0')
+            with Path(a.checkpoint).open('rb')as f:assert hashlib.file_digest(f,'sha256').hexdigest()==a.checkpoint_SHA
+            saved=torch.load(a.checkpoint,map_location='cpu',weights_only=False)
+            assert saved['reward_family']=='FUDAN_JUMP' and saved['actor_dim']==35 and saved['critic_dim']==78
+            runner.alg.actor.load_state_dict(saved['actor_state_dict'],strict=True)
+            actor=runner.alg.actor;actor.eval().requires_grad_(False);del saved
+        else:
+            actor=actor_loader(env,a.checkpoint,a.checkpoint_SHA)
         active=torch.ones(80,dtype=torch.bool,device=env.device)
         rows=[None]*80;curves=[];ticks=[];poses=[];record=[0,1,40,41]
         put(out/'NATIVE_STARTUP.json',dict(epoch=time.time(),native=True,actual_Newton_MuJoCo_Warp=True,
@@ -82,6 +85,8 @@ def main():
         put(out/'RESULT.json',dict(epoch=time.time(),passed_execution=all(r is not None for r in rows),
             independent_first_episodes=80,seed=9137,actual_physics_hz=400,controls_max=400,
             actual_Newton_MuJoCo_Warp=True,optimizer_operations=0,source_SHA=a.checkpoint_SHA,
+            numerical_resets=int(env.numerical_reset_counts.sum()),
+            solver_overflow_world_masks=env.solver_overflow_summary(),
             jump200_success=sum(r['success']for r in rows),jump200_wholeclear=sum(r['wholeclear']for r in rows),
             jump200_landed_top=sum(r['landed_top']for r in rows),
             ground_validated_flight=sum(r['flight_id']>0 for r in rows),

@@ -13,6 +13,46 @@ FORMAT='MOD4V2_FUDAN_NEWTON_FULL_V1'
 SOURCE_FORMAT='MOD4V2_SCUT_HW300N60_FULL_V1'
 
 
+def environment_state(env):
+    """Checkpoint the task streams; physical warm starts are never restored."""
+    return dict(components={k:getattr(env,k).state_dict()for k in COMPONENTS},
+        command_fields={k:v.clone()for k,v in vars(env.command).items()if torch.is_tensor(v)},
+        physical_rng=dict(generator=env.rng.get_state(),cpu_generator=env.cpu_generator.get_state()),
+        physical_episode=dict(factor=env.mass_factor.clone(),nominal=env.nominal.clone(),
+            mu=env.friction.clone(),reset_count=env.reset_count.clone()),
+        motor_episode_gain=dict(legs=env.motor_gain[:,:4].clone(),wheels=env.motor_gain[:,4:].clone()),
+        source_global_counters={k:int(getattr(env.reward,k))for k in ('_value_debug_step','common_step_counter')},
+        physics_ticks=env.physics_ticks,common_step_counter=env.common_step_counter,
+        completed_episodes=env.completed_episodes,completed_strict=env.completed_strict,
+        numerical_reset_counts=env.numerical_reset_counts.clone(),
+        solver_overflow_latched=env.solver_overflow_latched.clone())
+
+
+def restore_environment_streams(env,data,iteration):
+    for name in COMPONENTS:getattr(env,name).load_state_dict(data['components'][name])
+    fields=data['command_fields']
+    for name,value in fields.items():
+        target=getattr(env.command,name)
+        assert target.shape==value.shape,(name,target.shape,value.shape)
+        target.copy_(value.to(target.device))
+    env.command.set_training_iteration(iteration)
+    streams=data['physical_rng']
+    env.rng.set_state(streams['generator'].cpu())
+    env.cpu_generator.set_state(streams['cpu_generator'].cpu())
+    for key,name in [('factor','mass_factor'),('nominal','nominal'),('mu','friction'),('reset_count','reset_count')]:
+        getattr(env,name).copy_(data['physical_episode'][key].to(env.device))
+    env.motor_gain.copy_(torch.cat([data['motor_episode_gain'][k]for k in ('legs','wheels')],-1).to(env.device))
+    for key,value in data['source_global_counters'].items():setattr(env.reward,key,int(value))
+    for key in ('physics_ticks','common_step_counter','completed_episodes','completed_strict'):
+        if key in data:setattr(env,key,int(data[key]))
+    for key in ('numerical_reset_counts','solver_overflow_latched'):
+        if key in data:getattr(env,key).copy_(data[key].to(env.device))
+    for group in env._physics_action_delay.groups.values():group['last_apply_tick'].fill_(-1)
+    env.reset(torch.arange(env.num_envs,device=env.device))
+    env._last_observations=None
+    return list(fields)
+
+
 def restore(runner,env,path,expected_sha):
     with Path(path).open('rb')as f:
         assert hashlib.file_digest(f,'sha256').hexdigest()==expected_sha
@@ -25,32 +65,16 @@ def restore(runner,env,path,expected_sha):
     runner.current_learning_iteration=data['iter']
     runner.alg.learning_rate=data['learning_rate']
     for group in runner.alg.optimizer.param_groups:group['lr']=data['learning_rate']
-    for name in COMPONENTS:getattr(env,name).load_state_dict(data['components'][name])
-    fields=data['command_fields']
-    for name,value in fields.items():
-        target=getattr(env.command,name)
-        assert target.shape==value.shape,(name,target.shape,value.shape)
-        target.copy_(value.to(target.device))
-    env.command.set_training_iteration(data['iter'])
-    streams=data['physical_rng']
-    env.rng.set_state(streams['generator'].cpu())
-    env.cpu_generator.set_state(streams['cpu_generator'].cpu())
-    for key,name in [('factor','mass_factor'),('nominal','nominal'),('mu','friction'),('reset_count','reset_count')]:
-        getattr(env,name).copy_(data['physical_episode'][key].to(env.device))
-    env.motor_gain.copy_(torch.cat([data['motor_episode_gain'][k]for k in ('legs','wheels')],-1).to(env.device))
     torch.set_rng_state(data['cpu_rng'].cpu())
     torch.cuda.set_rng_state_all([s.cpu()for s in data['cuda_rng']])
     random.setstate(data['python_rng']);np.random.set_state(data['numpy_rng'])
-    for key,value in data['source_global_counters'].items():setattr(env.reward,key,int(value))
-    for group in env._physics_action_delay.groups.values():group['last_apply_tick'].fill_(-1)
-    env.reset(torch.arange(env.num_envs,device=env.device))
-    env._last_observations=None
+    fields=restore_environment_streams(env,data,data['iter'])
     steps=[int(s['step'])for s in runner.alg.optimizer.state.values()]
     assert len(steps)==17 and min(steps)==max(steps)==data['iter']*20
     return dict(source_path=str(path),source_SHA=expected_sha,source_iteration=data['iter'],
         optimizer_entries=17,optimizer_steps=min(steps),learning_rate=data['learning_rate'],
         actor_critic_STD_Adam_LR_restored=True,all7_components_and_RNG_queues_restored=True,
-        command_fields_restored=list(fields),source_backend=data.get('physics_backend','PhysX_TGS32_4'),
+        command_fields_restored=fields,source_backend=data.get('physics_backend','PhysX_TGS32_4'),
         target_backend='Newton/SolverMuJoCo/MuJoCo-Warp',backend_changed=data['format']!=FORMAT,
         new_constructor_nominals_retained=True,fresh_physical_reset=True,physical_state_restored=False)
 

@@ -1,0 +1,30 @@
+"""Finite exact-worker status while20000 scene is initializing."""
+import json,sys,time
+from control import D,plan,put,query,RUNTIME
+from host_access import connect
+from dispatch86 import fresh
+p=plan();fresh();c=None;restore=lambda:None
+try:
+    c,restore,_=connect('86')
+    code="""import pathlib,json,psutil,subprocess,time
+J=pathlib.Path(__JOB__)
+identity=json.loads((J/'WORKER_IDENTITY.json').read_bytes())
+own=[]
+try:
+ w=psutil.Process(identity['pid']);assert abs(w.create_time()-identity['creation'])<.02
+ for q in [w,*w.children(recursive=True)]:
+  try:own.append(dict(pid=q.pid,creation=q.create_time(),status=q.status(),exe=q.exe(),argv=q.cmdline(),rss=q.memory_info().rss,cpu_times=list(q.cpu_times())))
+  except psutil.NoSuchProcess:pass
+except psutil.NoSuchProcess:pass
+logs={}
+for name in ['WORKER.log','AGENT_PRODUCTION_DIRECT.log']:
+ f=J/name
+ if f.exists():
+  with f.open('rb') as s:s.seek(max(0,f.stat().st_size-10000));tail=s.read(10000)
+  logs[name]=dict(bytes=f.stat().st_size,tail=tail.decode('utf-8','replace'))
+print(json.dumps(dict(epoch=time.time(),own_workers=own,ram_available=psutil.virtual_memory().available,gpu=subprocess.check_output(['nvidia-smi','-i','GPU-90a66ae2-f536-7033-79c0-487536ae36d3','--query-gpu=memory.used,memory.free,utilization.gpu','--format=csv,noheader,nounits'],text=True),logs=logs)))
+""".replace('__JOB__',repr(p['host86_root']))
+    v=query(c,RUNTIME,code);put('DIRECT86_INITIALIZATION_STATUS_'+str(time.time_ns()),v);print(json.dumps(v))
+finally:
+    if c:c.close()
+    restore()

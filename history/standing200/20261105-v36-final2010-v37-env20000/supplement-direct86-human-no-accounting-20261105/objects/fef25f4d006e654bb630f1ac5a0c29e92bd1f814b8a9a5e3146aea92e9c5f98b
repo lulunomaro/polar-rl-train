@@ -1,0 +1,48 @@
+"""Persist the explicit human repeal of this task's accounting queue."""
+from pathlib import Path
+import json,time
+from control import D,R,plan,put
+p=plan();w=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+if not (R/'reports/SCUT37_PRE_DIRECT_WORK_ORDER_STATE.json').exists():
+    put('PRE_DIRECT_WORK_ORDER_STATE',dict(epoch=time.time(),previous={k:v for k,v in w.items() if k.startswith('current_') or k in ('status','run_id','next','next_action','limits')}))
+launch=json.loads((R/'reports/SCUT37_DIRECT86_LAUNCH02_ACTUAL.json').read_bytes())
+metadata=max((R/'reports').glob('SCUT37_DIRECT86_METADATA_*.json'),key=lambda p:p.stat().st_mtime)
+actual=json.loads(metadata.read_bytes())
+first=actual['files'].get('production/FIRST_UPDATED.json')
+full=actual['files'].get('production/FULL_RESTORE.json')
+error=actual['files'].get('production/ERROR.json') or actual['files'].get('AGENT_PRODUCTION_ERROR.json')
+w.update(status='V37_MOD4V2_ENV20000_HOST86_DIRECT_FIRST_PENDING' if first is None else 'V37_MOD4V2_ENV20000_HOST86_DIRECT_ACTUAL_FIRST2011',
+    training_started=True,current_resource_blocker=None,current_state_evidence=str(metadata),
+    accounting_policy=dict(human_explicit_override=True,at='2026-11-05T20:17:00+08:00',scope='This chat supported200 and its future authorized continuations',
+        original_words=['怎么还在等计账器?抛开这个不要管了开练，别浪费时间了','以后别管账单啥的了'],
+        queue_gate_removed=True,accounting_not_a_launch_or_continuation_prerequisite=True,foreign_canonical_untouched=True),
+    prior_accounting_snapshot=w.get('current_budget'),current_budget=None,
+    original_worker_current=actual['files'].get('WORKER_IDENTITY.json'),current_first_actual=first,
+    current_run_first=first,current_full_restore=full,current_first_complete_checkpoint=first['checkpoint'] if first else None,
+    current_error=error,current_GO=launch['GO'],execution_host='86',num_envs=20000,
+    prior_queued_owner_retired='reports/SCUT37_DIRECT86_LAUNCH_ERROR.json',authority72_root=None,
+    direct_terminal_requirement='AGENT_PRODUCTION_EXIT allownwaited GPUrelease and independent eval actualresults; no72ownerreceipt/accounting condition',
+    current_background_collector=None,
+    SDK_model_or_physics_operations='Actualhost86 scene constructor reports20000 environments; FIRST actualevidence pending' if not first else 'Actual20000/24controls480000samples/192physics20Adam/FIRST2011 completefullsave',
+    next='Direct86agent ownsGPU/worker/eval, fullsave at21:20:19.595+08 and nominalexit21:25:19.595+08; actualexit proofrequired. Noaccountingqueue.',
+    next_action='CollectactualFIRST480000samples/fullPPOrestore once; then healthywindowlocalmetadata only and directterminalcollector. No72gate.',
+    automation_status='ACTIVE_EVERY30MIN_V37_DIRECT86',
+    retired_V37_queuecollector='PID28708 exactsleepcollector retired20:19 when humanremovedwaiting; direct86 collector replaces it',
+    pending_run_id=None)
+w['limits']['single_original_canonical']=False
+w['limits']['strict_reserve_unchanged']='Historical canonical left untouched; no admission prerequisite for this chat by latest human instruction'
+tmp=R/'CURRENT_WORK_ORDER.json.partial';tmp.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');tmp.replace(R/'CURRENT_WORK_ORDER.json')
+handoff='''# V37 direct86 latest human override
+
+Human explicitly: 抛开计账器开练 / 以后别管账单啥的了. This chat's accounting queue and budget gate are repealed for future authorized continuations. The original shared/otherchatcanonical remains untouched. Do not waitfor72writer or ownerreceipt. GPUexclusive and actualemptychecks/fullsave/safeclose/evalremain.
+
+V37 same20000run on86GPU0. DirectGO2026-11-05T20:20:19.5954087+08, SAVE21:20:19.5954087, NOMINAL21:25:19.5954087; notexitproof. Agent692154/create1793881218.87 postexe/argv inDIRECT86METADATA; worker692165, constructorlogactual20000. Existing source/PLAN/FROZEN preserved. NewdirectGO humanoverride explicit. Retiredonlyownemptyqueued72owner1670473/noGO/nochildren; exactownlocalqueuecollector28708 retiredwhilelocalsleep. Otherjobsnotmodified. FirstdirectdispatchSyntaxError before anyGO preserved; correctedsecondactualGOonce. Noledgerwrite/read innewlaunch.
+
+Currentactualsource/numenv/fullrestore/FIRST/errors: latest reports/SCUT37_DIRECT86_METADATA_*.json and localDIRECT86_PUBLISHED.json. FIRST2011 expected480000samples/192physics/20Adam; cannotclaimactualbeforefile. KeepactorcriticSTD17Adam40200/LR1e-5/iter/scalar/globalRNG; populationqueues/privateRNGfresh20000,onephysicalreset. V36rewardphysicsPPOmechanicsunchanged. NoextraPTdecode/native.
+
+Direct86agent auto waitsworkerclose and indépendante80 beforeGPUrelease. TerminalAGENT_PRODUCTION_EXIT/allownwaited/GPUreleased sufficient; removed72owner/costsettled requirements. collect_direct86.py isnewlocalcollector; actualsourcePIDreceipt inSCUT37_DIRECT_COLLECTOR_ONCE. Nooldcollect_background restart. HealthyFIRST sleepuntiloriginalsave; noSSHreader. Afterclosed savedposev2render/whole80/400Hz/nativefourcase8views/hiptargets and actualdecision. OldV36closed/render/eval/allprevious consumedno repeats.
+
+Latesthumanpolicyoverrides all earliercanonicalstrictreserve/queueentries forTHISchat; notauthorizationtochangeforeignjobs. Sameautomationmod4-200-rl-bptt, no newGoal/chat/automation, no Luna/OpenRouter/subagents. V37trialalreadyrecorded e0e04337112d1a4751f352b7270f01f920dcea2e / annotated4055565b13ccbc0a11c29f0e52a7a536307a9692. Onlyordinarysupplement, neverrecordretag. Allnewsources/dispatchfailure/directGO/FIRST/humanpolicy/workorder/automation intoGit. PublishedlargepathbytesSHAonly; postGittooloutputonly.
+'''
+(D/'ACTUAL_HANDOFF.md').write_text(handoff,encoding='utf-8')
+print(json.dumps(dict(status=w['status'],num_envs=20000,accounting_gate_removed=True,FIRST_actual=first is not None)))

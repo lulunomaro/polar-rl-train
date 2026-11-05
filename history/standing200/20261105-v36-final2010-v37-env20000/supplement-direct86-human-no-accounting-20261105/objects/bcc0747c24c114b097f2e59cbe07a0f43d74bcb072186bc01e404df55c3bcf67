@@ -1,0 +1,70 @@
+"""Own host86 FIRST and terminal collection; no accounting or crosshost gate."""
+from pathlib import Path
+import ast,hashlib,json,os,sys,time,traceback
+from control import D,R,plan,put
+from host_access import connect
+from dispatch86 import fresh
+from collect_background import read
+
+def local(value):
+    tmp=D/'DIRECT86_PUBLISHED.partial';tmp.write_text(json.dumps(value,indent=2),encoding='utf-8');tmp.replace(D/'DIRECT86_PUBLISHED.json')
+
+def close_transfer(p,agent):
+    # Reuse the actual bounded transfer; remove only superseded72-accounting
+    # preconditions/metadata. Own86 wait/GPUrelease and size/hash checks stay.
+    src=(D/'collect_background.py').read_text()
+    node=next(x for x in ast.parse(src).body if isinstance(x,ast.FunctionDef) and x.name=='close_transfer')
+    text=ast.get_source_segment(src,node)
+    text=text.replace("    assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']","    assert own['all_own_waited'] and own['GPU_lease_released']")
+    text=text.replace("for host in ['72','86']:","for host in ['86']:")
+    text=text.replace("a,b=streams;job=p['host86_root'];owner=p['authority72_root']","b=streams[0];job=p['host86_root']")
+    start=text.index("        for name in ['PRODUCTION_OWNER_STARTED.json'")
+    end=text.index("        for name in ['AGENT_PRODUCTION_STARTED.json'",start)
+    text=text[:start]+text[end:]
+    text=text.replace("owner_exit=own","agent_terminal=own")
+    # Failures may have no evaluation; transfer available error/terminal first.
+    text=text.replace("        size=b.stat(job+'/evaluation/CONTROL_CURVES.json').st_size", "        try:size=b.stat(job+'/evaluation/CONTROL_CURVES.json').st_size\n        except FileNotFoundError:size=0")
+    text=text.replace("        with b.open(job+'/evaluation/CONTROL_CURVES.json','rb') as src,target.open('xb') as out:", "        if size:\n            with b.open(job+'/evaluation/CONTROL_CURVES.json','rb') as src,target.open('xb') as out:")
+    text=text.replace("            while copied<size:\n                chunk=src.read(min(1024**2,size-copied));assert chunk;out.write(chunk);digest.update(chunk);copied+=len(chunk)","                while copied<size:\n                    chunk=src.read(min(1024**2,size-copied));assert chunk;out.write(chunk);digest.update(chunk);copied+=len(chunk)")
+    text=text.replace("        rows.append(dict(remote_path=job+'/evaluation/CONTROL_CURVES.json'", "        if size:rows.append(dict(remote_path=job+'/evaluation/CONTROL_CURVES.json'")
+    scope=dict(globals());exec(compile(text,'direct86_bounded_close_transfer','exec'),scope);scope['close_transfer'](p,agent)
+
+def main():
+    assert not (R/'reports/SCUT37_DIRECT_COLLECTOR_ONCE.json').exists()
+    p=plan();put('DIRECT_COLLECTOR_ONCE',dict(epoch=time.time(),pid=os.getpid(),run_id=p['run_id'],human_accounting_gate_removed=True))
+    value=dict(epoch=time.time(),pid=os.getpid());first_seen=(R/'reports/SCUT37_FIRST_COMPLETE_ACTUAL.json').exists()
+    # Caller has already collectedFIRST if present; healthywindow sleepslocal.
+    launch=json.loads((R/'reports/SCUT37_DIRECT86_LAUNCH02_ACTUAL.json').read_bytes())
+    go=launch['GO'];end=time.time()+3*3600;c=sf=None;restore=lambda:None
+    try:
+        if first_seen:
+            local(dict(epoch=time.time(),GO=go,FIRST_complete=True,SSH_open=False,state='healthy; local sleep until save'))
+            while time.time()<go['save_deadline']+30:time.sleep(min(30,go['save_deadline']+30-time.time()))
+        while time.time()<end:
+            fresh();c,restore,_=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(35)
+            try:
+                root=p['host86_root'];agent=read(sf,root,'AGENT_PRODUCTION_EXIT.json')
+                first=read(sf,root,'production/FIRST_UPDATED.json');full=read(sf,root,'production/FULL_RESTORE.json')
+                error=read(sf,root,'production/ERROR.json') or read(sf,root,'AGENT_PRODUCTION_ERROR.json')
+            finally:
+                sf.close();c.close();restore();sf=c=None;restore=lambda:None
+            state=dict(epoch=time.time(),GO=go,FIRST=first,full_restore=full,agent_exit=agent,error=error,SSH_open=False)
+            local(state)
+            if first and not first_seen:
+                assert first['actual_onpolicy_samples']==480000 and first['PPO_updates']==1 and first['full_save']
+                put('FIRST_COMPLETE_ACTUAL',dict(**state,FIRST_complete=True,num_envs=20000));first_seen=True
+            if agent:
+                close_transfer(p,agent);value['agent_exit']=agent;break
+            delay=go['save_deadline']+30-time.time() if first_seen and time.time()<go['save_deadline'] else 45
+            until=time.time()+max(15,delay)
+            while time.time()<until:time.sleep(min(30,until-time.time()))
+        else:value['error']='Finite localcollector limit reached before actualterminal'
+    except BaseException:
+        value['error']=traceback.format_exc()
+    finally:
+        if sf:sf.close()
+        if c:c.close()
+        restore();value.update(epoch=time.time(),local_collector_closed=True,SSHclosed=True,SESSION_restored=True)
+        put('DIRECT_COLLECTOR_CLOSED',value)
+
+if __name__=='__main__':main()

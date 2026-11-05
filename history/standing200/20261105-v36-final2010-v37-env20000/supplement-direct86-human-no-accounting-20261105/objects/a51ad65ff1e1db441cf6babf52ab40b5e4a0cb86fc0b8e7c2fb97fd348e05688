@@ -1,0 +1,99 @@
+"""Human-authorized host86 launch without the superseded accounting queue."""
+from pathlib import Path
+import hashlib,json,shlex,subprocess,sys,time,traceback
+from control import D,R,plan,put,query,RUNTIME
+from host_access import connect
+from dispatch86 import fresh
+
+def launch():
+    assert not (R/'reports/SCUT37_DIRECT86_LAUNCH_ONCE.json').exists()
+    p=plan();fresh();clients=[];streams=[];restores=[]
+    value=dict(epoch=time.time(),authorization=['怎么还在等计账器?抛开这个不要管了开练，别浪费时间了','以后别管账单啥的了'],
+        execution_host='86',num_envs=20000,accounting_gate_removed=True,foreign_canonical_write=False)
+    try:
+        for host in ['72','86']:
+            c,restore,py=connect(host);clients.append(c);restores.append(restore);s=c.open_sftp();streams.append(s);s.get_channel().settimeout(40)
+        c72,c86=clients;s72,s86=streams;job=p['host86_root'];owner=p['authority72_root']
+        code="""import json,pathlib,psutil,time
+J=pathlib.Path(REPLACE_OWNER)
+p=psutil.Process(1670473)
+assert abs(p.create_time()-1793878848.21)<.02
+assert p.exe()=='/home/lc01/Zonglin Li/zonglin2/compat/glibc240/ld-linux-x86-64.so.2'
+assert p.cmdline()[-2:]==[str(J/'owner86_bridge.py'),'train']
+assert not (J/'GO_PRODUCTION.json').exists()
+before=dict(pid=p.pid,creation=p.create_time(),exe=p.exe(),argv=p.cmdline(),children=[x.pid for x in p.children(recursive=True)])
+assert not before['children']
+p.terminate()
+for _ in range(50):
+ try:
+  if p.status()=='zombie':break
+ except psutil.NoSuchProcess:break
+ time.sleep(.1)
+assert not psutil.pid_exists(before['pid']) or psutil.Process(before['pid']).status()=='zombie'
+print(json.dumps(dict(before=before,own_queued_controller_retired=True,no_GO=True,no_training_child=True,ledger_untouched=True)))
+""".replace('REPLACE_OWNER',repr(owner))
+        value['queued_controller_retired']=query(c72,'/home/lc01/Zonglin Li/zonglin2/run-python.sh',code)
+        # Only our exact local sleeping collector is retired; no SSH is open.
+        collector=D/'collect_background.py'
+        expected='4cb12b615612454cad7970b82d4bfc74a76fdff90ac23def56f93c8ae00c5e60'
+        assert hashlib.sha256(collector.read_bytes()).hexdigest()==expected
+        cmd="""$p=Get-CimInstance Win32_Process -Filter 'ProcessId=28708'; if(-not $p){throw 'Own sleeper missing'}; if($p.ExecutablePath -ne 'C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe' -or $p.CommandLine -notlike '*scut_native_v37_env20000/collect_background.py' -or $p.CreationDate.ToString('yyyy-MM-ddTHH:mm:ss') -ne '2026-11-05T19:41:55'){throw 'Exact sleeper mismatch'}; $p | Select-Object ProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json; Stop-Process -Id 28708 -ErrorAction Stop"""
+        q=subprocess.run(['powershell','-NoProfile','-NonInteractive','-Command',cmd],capture_output=True,text=True,encoding='utf-8')
+        assert q.returncode==0,q.stderr[-1000:]
+        value['retired_local_sleeper']=json.loads(q.stdout)
+        with (D/'DIRECT_AUTHORIZATION.json').open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+        # Fresh selected-GPU check; no global accounting lock or ledger access.
+        code="""import sys,json,pathlib,subprocess,psutil,shutil,time
+J=pathlib.Path(REPLACE_JOB)
+assert not (J/'GO_PRODUCTION.json').exists() and not (J/'AGENT_PRODUCTION_STARTED.json').exists()
+uuid='GPU-90a66ae2-f536-7033-79c0-487536ae36d3'
+gpu=subprocess.check_output(['nvidia-smi','-i',uuid,'--query-gpu=uuid,name,memory.free','--format=csv,noheader,nounits'],text=True)
+apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader,nounits'],text=True)
+assert uuid not in apps and int(gpu.strip().split(',')[-1])>15669
+assert psutil.virtual_memory().available>64*1024**3 and shutil.disk_usage(J).free>50*1024**3
+print(json.dumps(dict(epoch=time.time(),gpu=gpu,compute_apps=apps,ram_available=psutil.virtual_memory().available,disk_free=shutil.disk_usage(J).free,compute_empty=True)))
+""".replace('REPLACE_JOB',repr(job))
+        value['resource']=query(c86,RUNTIME,code)
+        put('DIRECT86_LAUNCH_ONCE',dict(epoch=time.time(),run_id=p['run_id'],num_envs=20000,human_accounting_gate_override=True))
+        code="""import pathlib,subprocess,psutil,json,time,os
+J=pathlib.Path(REPLACE_JOB)
+now=time.time()
+go=dict(kind='MOD4V2_SUPPORTED200_ENV20000_DIRECT86',run_id=REPLACE_RUN,GPU_UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3',execution_host='86',learning_started_epoch=now,save_deadline=now+3600,nominal_end_epoch=now+3900,max_parent_seconds=3900,exit_headroom_seconds=300,num_envs=20000,human_accounting_gate_removed=True,canonical_untouched=True)
+with (J/'GO_PRODUCTION.json').open('x') as f:json.dump(go,f,indent=2)
+with (J/'AGENT_PRODUCTION_DIRECT.log').open('xb') as log:
+ p=subprocess.Popen([REPLACE_RUNTIME,'-u','-B',str(J/'agent86_20000.py'),'train'],cwd=J,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1'),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),GO=go,agent=dict(pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd()),ledger_operations=0)))
+""".replace('REPLACE_JOB',repr(job)).replace('REPLACE_RUN',repr(p['run_id'])).replace('REPLACE_RUNTIME',repr(RUNTIME))
+        value['actual']=query(c86,RUNTIME,code);value['passed_dispatch']=True
+        put('DIRECT86_LAUNCH_ACTUAL',value);print(json.dumps(value['actual']))
+    except BaseException:
+        value['error']=traceback.format_exc();put('DIRECT86_LAUNCH_ERROR',value);raise
+    finally:
+        for s in streams:s.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        put('DIRECT86_LAUNCH_SSH_CLOSED',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+def result():
+    p=plan();fresh();c=s=None;restore=lambda:None;value=dict(epoch=time.time(),files={},logs={})
+    try:
+        c,restore,_=connect('86');s=c.open_sftp();s.get_channel().settimeout(35);job=p['host86_root']
+        for name in ['GO_PRODUCTION.json','AGENT_PRODUCTION_STARTED.json','AGENT_PRODUCTION_EXIT.json','AGENT_PRODUCTION_ERROR.json','WORKER_IDENTITY.json','PRODUCTION_RESOURCE.json','production/RESIZED_LEARNING_RESTORE.json','production/FULL_RESTORE.json','production/STARTUP.json','production/FIRST_UPDATED.json','production/LATEST_PROGRESS.json','production/FINAL.json','production/ERROR.json','TRAIN_CLOSED.json','EVAL_WAITED.json','evaluation/RESULT.json','evaluation/ERROR.json']:
+            try:
+                with s.open(job+'/'+name,'rb') as f:value['files'][name]=json.loads(f.read(4*1024**2))
+            except FileNotFoundError:pass
+        for name in ['AGENT_PRODUCTION_DIRECT.log','WORKER.log','EVAL.log']:
+            try:
+                size=s.stat(job+'/'+name).st_size
+                with s.open(job+'/'+name,'rb') as f:f.seek(max(0,size-6000));tail=f.read(6000)
+                value['logs'][name]=dict(bytes=size,tail=tail.decode('utf-8','replace'))
+            except FileNotFoundError:pass
+    finally:
+        if s:s.close()
+        if c:c.close()
+        restore();value.update(SSHclosed=True,SESSION_restored=True)
+    label='DIRECT86_METADATA_'+str(time.time_ns());put(label,value)
+    print(json.dumps(dict(report=label,keys=list(value['files']),first=value['files'].get('production/FIRST_UPDATED.json'),error=value['files'].get('production/ERROR.json'),agent_error=value['files'].get('AGENT_PRODUCTION_ERROR.json'))))
+
+if __name__=='__main__':{'launch':launch,'result':result}[sys.argv[1]]()

@@ -29,12 +29,16 @@ def reward_config(profile='jump200'):
     takeoff['assist']['enabled'] = False
     takeoff['push']['reward_additions'] = {
         'scut_jump_push_height': dict(type='push_height_tracking_exp', sigma=.01),
-        'scut_jump_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.)}
+        'scut_jump_push_velocity': dict(type='push_vel_z_tracking_exp', sigma=1.),
+        # Final239 still has no verified takeoff: push mean vz=.064m/s.
+        # Select the pinned SCUT dense velocity term without new reward math.
+        'scut_jump_takeoff_velocity': dict(type='takeoff_vel_z', max=3.)}
     takeoff['tuck']['reward_additions'] = {
         'scut_jump_peak': dict(type='peak_height_tracking_exp', event='exit', sigma=.01)}
     takeoff['reward_scales'].update(lin_vel_z=0., track_height_square=0.,
                                    track_height_exp_tight=0.)
-    cfg.rewards.update(scut_jump_push_height=2., scut_jump_push_velocity=1., scut_jump_peak=2.)
+    cfg.rewards.update(scut_jump_push_height=2., scut_jump_push_velocity=1., scut_jump_peak=2.,
+                       scut_jump_takeoff_velocity=4.)
     # A current real step ray may request another unassisted source attempt.
     # This is task triggering, with no additional reward formula or reward gate.
     cfg.jump200_retry_visible_step = True

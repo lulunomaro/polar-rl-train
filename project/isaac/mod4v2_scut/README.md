@@ -8,6 +8,8 @@
 
 奖励采用固定SCUT commit `1a26356d6f591734d4f6f666f5cead1a6925da67` 的保存基础reward字典，启用源码可选的push-height、push-velocity和peak-height公式，权重2/1/2。单200mm场地、实际ray触发、MOD4轮半径及禁物理助推是明确任务适配，不声称公开训练的逐字复现；v1累加projection/bilateral/tuck等奖励修补不带入。
 
+final239独立80仍0验证起跳/越沿/落台，push阶段实测平均向上速度仅0.064225m/s。下一窗口额外选择同一固定华南虎源码的`takeoff_vel_z`奖励：仅push阶段计算`clamp(world_vz,0,3)`，权重4，dt仍在原reward tail乘一次。基础字典和原2/1/2保持，未引入新奖励公式或物理助推。3项源码速度奖励检查及6项既有v2检查通过；完整final239/17Adam4780接续，效果以新独立80和实际回放判定。
+
 20,000环境、原canonical/reserve、3600s保存+300s退出、完整actor/critic/STD/Adam/DR/RNG/queue/counter保存、退出后立即独立80/seed9137/400Hz评测保持。目标仍为地面主动向上离地、整轮腾空越沿、双轮真实台顶稳定0.5s。
 
 当前真实状态和所有失败见`history/reviews/20261105-mod4v2-scut-jump200/WORK_ORDER.json`与`EVIDENCE_INDEX.json`。原目录及once不清除、不重放。`BINDINGS.json`记录唯一共享依赖；新任务不整树复制旧生产目录。

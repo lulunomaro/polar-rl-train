@@ -24,7 +24,8 @@ class V2Tests(unittest.TestCase):
         cfg = reward_config()
         self.assertTrue(all(cfg.rewards[k] == value for k, value in base.rewards.items()))
         self.assertEqual(set(cfg.rewards) - set(base.rewards),
-            {'scut_jump_push_height', 'scut_jump_push_velocity', 'scut_jump_peak'})
+            {'scut_jump_push_height', 'scut_jump_push_velocity', 'scut_jump_peak',
+             'scut_jump_takeoff_velocity'})
         self.assertFalse(any(k.startswith('jump200_') for k in cfg.rewards))
         self.assertFalse(cfg.jump_takeoff_state_machine_cfg['assist']['enabled'])
 

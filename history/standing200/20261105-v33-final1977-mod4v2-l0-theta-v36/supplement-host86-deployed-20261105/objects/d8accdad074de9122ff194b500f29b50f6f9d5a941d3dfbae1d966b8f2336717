@@ -1,0 +1,36 @@
+"""One finite read of the frozen small source closure and original owner."""
+from pathlib import Path
+import hashlib
+import json
+import time
+from host_access import connect, load, R
+
+D=Path(__file__).resolve().parent
+
+def main():
+    marker=R/'reports/SCUT36_CROSSHOST_SOURCE_READ_ONCE.json'
+    assert not marker.exists()
+    load('v36_context_source_read',D/'control.py').admission()
+    frozen=json.loads((D/'FROZEN.json').read_bytes())
+    client=None;sf=None;restore=lambda:None
+    rows=[]
+    with marker.open('x') as f:json.dump(dict(epoch=time.time(),text_only=True,PT_decode=0),f)
+    try:
+        client,restore,_=connect('72');sf=client.open_sftp();sf.get_channel().settimeout(40)
+        dest=D/'crosshost_sources';dest.mkdir(exist_ok=False)
+        for row in frozen['shared_text']:
+            assert row['bytes']<2*1024**2
+            with sf.open(row['path'],'rb') as f:raw=f.read(row['bytes']+1)
+            assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA'],row['path']
+            p=dest/row['SHA']
+            if not p.exists():p.write_bytes(raw)
+            rows.append(dict(row,local=str(p)))
+        result=dict(epoch=time.time(),files=rows,bytes=sum(r['bytes'] for r in rows),SSHclosed=True,SESSION_restored=True,model_SDK_physics_operations=0)
+        with (R/'reports/SCUT36_CROSSHOST_SOURCE_READ_ACTUAL.json').open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)
+        print(json.dumps(dict(files=len(rows),bytes=result['bytes'],SSHclosed=True)))
+    finally:
+        if sf is not None:sf.close()
+        if client is not None:client.close()
+        restore()
+
+if __name__=='__main__':main()

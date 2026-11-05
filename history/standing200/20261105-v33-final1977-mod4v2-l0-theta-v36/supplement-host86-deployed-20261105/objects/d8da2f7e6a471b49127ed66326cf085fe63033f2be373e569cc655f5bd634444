@@ -1,0 +1,119 @@
+"""Deploy small pinned sources/assets to86; reuse its existing SDK environment."""
+from pathlib import Path, PurePosixPath
+import ast
+import hashlib
+import json
+import shlex
+import time
+import traceback
+from host_access import connect, load, R
+
+D=Path(__file__).resolve().parent
+PREFIX='/home/lc01/Zonglin Li/zonglin2'
+DEST='/data/robemo/polar-rl-train/supported200_v36'
+RUNTIME='/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh'
+
+
+def query(client,python,code):
+    i,o,e=client.exec_command(shlex.quote(python)+' -B -c '+shlex.quote(code),timeout=90)
+    i.close();raw=o.read().decode();error=e.read().decode();rc=o.channel.recv_exit_status()
+    if rc:raise RuntimeError(f'Read returned{rc}: '+error[-1600:])
+    return json.loads(raw)
+
+
+def main():
+    marker=R/'reports/SCUT36_HOST86_PREPARE_ONCE.json'
+    assert not marker.exists()
+    load('v36_host86_fresh_context',D/'control.py').admission()
+    result=dict(epoch=time.time(),host='86',SDK_copy=False,canonical_copy=False,training_started=False,files=[])
+    clients=[];streams=[];restores=[]
+    with marker.open('x') as f:json.dump(dict(epoch=time.time(),host='86'),f)
+    try:
+        c72,restore,py72=connect('72');clients.append(c72);restores.append(restore)
+        c86,restore,py86=connect('86');clients.append(c86);restores.append(restore)
+        s72=c72.open_sftp();s86=c86.open_sftp();streams.extend([s72,s86])
+        for s in streams:s.get_channel().settimeout(50)
+        # Full lock paths determine whether an actual private GPU lease exists.
+        code="import json,subprocess,pathlib; p=pathlib.Path('/data/robemo/polar-rl-train'); print(json.dumps(dict(locks=subprocess.check_output(['lslocks','--notruncate','--json','--output','PID,COMMAND,TYPE,MODE,PATH'],text=True),top=[str(x) for x in p.iterdir()])))"
+        result['host86_context']=query(c86,py86,code)
+        cpath=PREFIX+'/state/mod4_single_canonical_authority_20261026/TRAINING_BUDGET_10H.json'
+        code="import json,pathlib,time; p=pathlib.Path("+repr(cpath)+"); c=json.loads(p.read_bytes()); print(json.dumps(dict(epoch=time.time(),path=str(p),remaining=c['remaining_training_seconds'],active=c['active_segment'],generation=c['authority_generation'])))"
+        result['canonical_read_only']=query(c72,py72,code)
+        frozen=json.loads((D/'FROZEN.json').read_bytes())
+        preread=json.loads((R/'reports/SCUT36_CROSSHOST_SOURCE_READ_ACTUAL.json').read_bytes())
+        sources={r['path']:(Path(r['local']).read_bytes(),r['SHA']) for r in preread['files']}
+        rt=json.loads((D/'PLAN.json').read_bytes())['runtime']
+        # Resolve Python dependencies only within the pinned task's own text
+        # directories. Third-party packages stay in the existing86 environment.
+        roots=[rt,str(PurePosixPath(rt).parents[1]/'source'),str(PurePosixPath(rt).parents[2]/'source'),str(PurePosixPath(rt).parents[2]/'sm_deps'),str(PurePosixPath(rt).parents[2]/'runtime/isaac')]
+        roots=list(dict.fromkeys(roots+[PREFIX+'/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/source',PREFIX+'/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/sm_deps']))
+        pending=[(p,raw) for p,(raw,_) in sources.items() if p.endswith('.py') and (p.startswith(rt) or '/source/' in p)]
+        scanned=set();missing=[]
+        def remote_bytes(p):
+            try:
+                size=s72.stat(p).st_size
+                if size>2*1024**2:raise ValueError('Unexpected large source '+p)
+                with s72.open(p,'rb') as f:return f.read(size+1)
+            except FileNotFoundError:return None
+        while pending:
+            p,raw=pending.pop()
+            if p in scanned:continue
+            scanned.add(p)
+            try:tree=ast.parse(raw.decode('utf-8-sig'))
+            except SyntaxError:continue
+            modules=set()
+            for n in ast.walk(tree):
+                if isinstance(n,ast.Import):modules.update(a.name.split('.')[0] for a in n.names)
+                elif isinstance(n,ast.ImportFrom) and n.module and not n.level:modules.add(n.module.split('.')[0])
+            for name in sorted(modules):
+                if any(PurePosixPath(x).name==name+'.py' for x in sources):continue
+                for root in roots:
+                    candidate=root+'/'+name+'.py';data=remote_bytes(candidate)
+                    if data is not None:
+                        sources[candidate]=(data,hashlib.sha256(data).hexdigest());pending.append((candidate,data));break
+        # mod4_task reads the deployment contract adjacent to its runtime root.
+        contract=PREFIX+'/tasks/MOD4_STANDING200_RLBPTT_V6_1793639156617427400/runtime/train/deploy/contract_rm2025_later.json'
+        for p in [contract]:
+            if p not in sources:
+                data=remote_bytes(p)
+                if data is None:raise FileNotFoundError(p)
+                sources[p]=(data,hashlib.sha256(data).hexdigest())
+        cache=D/'crosshost_sources';cache.mkdir(exist_ok=True)
+        def mkdirs(path):
+            current=''
+            for part in PurePosixPath(path).parts[1:]:
+                current+='/'+part
+                try:s86.mkdir(current)
+                except OSError:s86.stat(current)
+        def upload(path,raw,sha=None,origin=None):
+            mkdirs(str(PurePosixPath(path).parent))
+            with s86.open(path,'wx') as f:f.write(raw)
+            row=dict(path=path,bytes=len(raw),SHA=sha or hashlib.sha256(raw).hexdigest(),source=origin)
+            result['files'].append(row)
+        for p,(raw,sha) in sources.items():
+            local=cache/sha
+            if not local.exists():local.write_bytes(raw)
+            upload(DEST+'/reference72'+p[len(PREFIX):],raw,sha,p)
+        job=DEST+'/tasks/'+frozen['run_id'];result['job']=job;result['python']=RUNTIME
+        for row in frozen['files']:
+            raw=Path(row['path']).read_bytes()
+            assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['SHA']
+            upload(job+'/'+row['relative'],raw,row['SHA'],row['path'])
+        source=json.loads((D/'PLAN.json').read_bytes())['source_checkpoint']
+        with s72.open(source['path'],'rb') as f:raw=f.read(source['bytes']+1)
+        assert len(raw)==source['bytes'] and hashlib.sha256(raw).hexdigest()==source['SHA']
+        upload(DEST+'/reference72'+source['path'][len(PREFIX):],raw,source['SHA'],source['path'])
+        result['source_checkpoint_transfer']=dict(source,decode_count=0)
+        result['shared_reference_files']=len(sources)
+    except BaseException:
+        result['error']=traceback.format_exc()
+        raise
+    finally:
+        for s in streams:s.close()
+        for c in clients:c.close()
+        for restore in reversed(restores):restore()
+        result.update(all_SSH_closed=True,SESSION_restored=True)
+        with (R/'reports/SCUT36_HOST86_PREPARE_ACTUAL.json').open('x',encoding='utf-8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+        print(json.dumps({k:v for k,v in result.items() if k!='files'}))
+
+if __name__=='__main__':main()

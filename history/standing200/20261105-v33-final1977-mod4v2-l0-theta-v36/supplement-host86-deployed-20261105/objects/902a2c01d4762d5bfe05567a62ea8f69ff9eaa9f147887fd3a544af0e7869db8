@@ -1,0 +1,65 @@
+"""Validate actual mapped reward installation before the first SDK worker."""
+from pathlib import Path
+import hashlib
+import json
+import sys
+import time
+import traceback
+from host_access import connect,load,R
+from host86_prepare import RUNTIME,query
+from dispatch86 import JOB86
+
+D=Path(__file__).resolve().parent
+
+def main():
+    attempt=sys.argv[1] if len(sys.argv)>1 else ''
+    report='SCUT36_MAPPING86_CPU'+('_'+attempt if attempt else '')+'_ACTUAL.json'
+    assert not (R/'reports'/report).exists()
+    load('v36_mapping_local_context',D/'control.py').admission()
+    c=sf=None;restore=lambda:None;result=dict(epoch=time.time(),PT_reads=0,new_physics=0)
+    try:
+        c,restore,py=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        try:sf.stat(JOB86+'/AGENT_NATIVE_STARTED.json')
+        except FileNotFoundError:pass
+        else:raise RuntimeError('Native already started; do not update deployment source')
+        raw=(D/'relocation86.py').read_bytes()
+        with sf.open(JOB86+'/relocation86.py','wb') as f:f.write(raw)
+        with sf.open(JOB86+'/INSTALL86_MANIFEST.json','rb') as f:manifest=json.loads(f.read())
+        for row in manifest['files']:
+            if row['path']==JOB86+'/relocation86.py':row.update(bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest())
+        with sf.open(JOB86+'/INSTALL86_MANIFEST.json','w') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+        code="""import sys,json
+sys.path.insert(0,JOB)
+from relocation86 import install
+receipt=install()
+import os
+os.environ['MOD4_SCUT_SOURCE_PATHS']=JOB+'/SOURCE_PATHS.json'
+task=json.loads(open(JOB+'/TASK.json').read())
+sys.path.insert(0,task['package_root'])
+import mod4v1_scut.sdk,mod4v1_scut.train,mod4v1_scut.checkpoint
+import importlib
+for name,row in task['shared_modules'].items():
+ m=sys.modules['mod4v1_scut.'+name];m.__dict__.update(__file__=row['path'],__package__='mod4v1_scut');exec(compile(open(row['path'],'rb').read(),row['path'],'exec'),m.__dict__)
+from backend86 import install as backend
+backend()
+import recipe
+r=recipe.install('eval200',source_stage='supported200')
+import mod4v1_scut.config as config
+c=config.reward_config()
+assert c.rewards['pen_theta_no0']==-2. and c.rewards['track_height_exp_tight']==1. and c.rewards['track_height_square']==-1.
+assert c.use_leg_length_as_height and not c.use_absolute_height
+assert c.rewards['track_height_exp_both_wheels_contact']==0.
+print(json.dumps(dict(passed=True,recipe=r,weights=c.rewards,relocation=receipt,SDK_scene_constructed=False,CUDA_initialized=__import__('torch').cuda.is_initialized(),PT_reads=0,physics=0)))
+""".replace('JOB',repr(JOB86))
+        result['actual']=query(c,RUNTIME,code);result['passed']=True
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        with (R/'reports'/report).open('x') as f:json.dump(result,f,indent=2)
+        print(json.dumps(result))
+
+if __name__=='__main__':main()

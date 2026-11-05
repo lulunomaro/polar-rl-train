@@ -1,0 +1,220 @@
+{
+  "captured": "2026-11-05T18:31:24.657168+08:00",
+  "hosts": {
+    "86": {
+      "passed": true,
+      "actual": {
+        "epoch": 1793874689.28208,
+        "gpu": {
+          "rc": 0,
+          "stdout": "0, GPU-90a66ae2-f536-7033-79c0-487536ae36d3, NVIDIA GeForce RTX 4090, 24564, 24080, 0\n",
+          "stderr": ""
+        },
+        "compute_apps": {
+          "rc": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "locks": {
+          "rc": 0,
+          "stdout": "{\n   \"locks\": [\n      {\n         \"pid\": 668713,\n         \"command\": \"multipathd\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run...\"\n      },{\n         \"pid\": 668676,\n         \"command\": \"cron\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run...\"\n      },{\n         \"pid\": 438939,\n         \"command\": \"python3\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/data...\"\n      },{\n         \"pid\": 150989,\n         \"command\": \"nvidia-persiste\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run...\"\n      }\n   ]\n}\n",
+          "stderr": ""
+        },
+        "model_SDK_GO_account_writes": 0,
+        "unknown_PID_identity_reads": 0,
+        "ram": {
+          "rc": 0,
+          "stdout": "               total        used        free      shared  buff/cache   available\nMem:     105454505984  2929844224 47860744192     1622016 55723270144 102524661760\nSwap:    25769799680     1323008 25768476672\n",
+          "stderr": ""
+        },
+        "disk": {
+          "total": 842245627904,
+          "used": 494736912384,
+          "free": 304649797632
+        },
+        "filesystems": {
+          "rc": 0,
+          "stdout": "Filesystem     Type       1-blocks         Used     Available Capacity Mounted on\ntmpfs          tmpfs   10545451008      1613824   10543837184       1% /run\n/dev/sda2      ext4   210241560576  26330963968  173156401152      14% /\ntmpfs          tmpfs   52727250944            0   52727250944       0% /dev/shm\ntmpfs          tmpfs       5242880            0       5242880       0% /run/lock\n/dev/sda3      ext4     2040373248    209481728    1706741760      11% /boot\n/dev/sda5      ext4   842245627904 494736912384  304649797632      62% /home\n/dev/sdb       xfs   1999022776320 118931218432 1880091557888       6% /data\ntmpfs          tmpfs   10545446912        20480   10545426432       1% /run/user/1001\ntmpfs          tmpfs   10545446912        20480   10545426432       1% /run/user/1004\ntmpfs          tmpfs   10545446912        20480   10545426432       1% /run/user/1003\n",
+          "stderr": ""
+        },
+        "paths": {
+          "/data": {
+            "exists": true,
+            "bytes": 32,
+            "directory": true,
+            "disk": {
+              "total": 1999022776320,
+              "used": 118931218432,
+              "free": 1880091557888
+            }
+          },
+          "/data/robemo/polar-rl-train": {
+            "exists": true,
+            "bytes": 267,
+            "directory": true,
+            "disk": {
+              "total": 1999022776320,
+              "used": 118931218432,
+              "free": 1880091557888
+            }
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1": {
+            "exists": true,
+            "bytes": 155,
+            "directory": true,
+            "disk": {
+              "total": 1999022776320,
+              "used": 118931218432,
+              "free": 1880091557888
+            }
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh": {
+            "exists": true,
+            "bytes": 131,
+            "directory": false,
+            "text": "#!/bin/bash\nset -euo pipefail\nROOT=\"$(cd -- \"$(dirname -- \"${BASH_SOURCE[0]}\")\" && pwd -P)\"\nexec \"$ROOT/run-python-compat.sh\" \"$@\"\n"
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python-compat.sh": {
+            "exists": true,
+            "bytes": 1105,
+            "directory": false,
+            "text": "#!/bin/bash\nset -euo pipefail\nulimit -c 0\nROOT=\"$(cd -- \"$(dirname -- \"${BASH_SOURCE[0]}\")\" && pwd -P)\"\nmkdir -p -- \"$ROOT/state/runtime\"\nchmod 700 -- \"$ROOT/state/runtime\"\nunset PYTHONPATH PYTHONHOME LD_LIBRARY_PATH\nexport HOME=\"$ROOT/home\"\nexport XDG_CACHE_HOME=\"$ROOT/cache\" XDG_CONFIG_HOME=\"$ROOT/config\"\nexport XDG_DATA_HOME=\"$ROOT/home/.local/share\" XDG_STATE_HOME=\"$ROOT/state\"\nexport XDG_RUNTIME_DIR=\"$ROOT/state/runtime\"\nexport TMPDIR=\"$ROOT/tmp\" TMP=\"$ROOT/tmp\" TEMP=\"$ROOT/tmp\"\nexport PIP_CACHE_DIR=\"$ROOT/cache/pip\" CONDA_PKGS_DIRS=\"$ROOT/cache/conda\"\nexport TORCH_HOME=\"$ROOT/cache/torch\" CUDA_CACHE_PATH=\"$ROOT/cache/cuda\"\nexport TRITON_CACHE_DIR=\"$ROOT/cache/triton\" WARP_CACHE_PATH=\"$ROOT/cache/warp\"\nexport NUMBA_CACHE_DIR=\"$ROOT/cache/numba\" MPLCONFIGDIR=\"$ROOT/cache/matplotlib\"\nexport PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1\nexport CONDA_PREFIX=\"$ROOT/envs/mod4\"\nexport PATH=\"$CONDA_PREFIX/bin:/usr/local/bin:/usr/bin:/bin\"\ncd -- \"$ROOT\"\nexec \"$ROOT/compat/glibc240/ld-linux-x86-64.so.2\" --library-path \"$ROOT/compat/glibc240:$CONDA_PREFIX/lib\" \"$CONDA_PREFIX/bin/python\" -B \"$@\"\n"
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/envs/mod4/bin/python": {
+            "exists": true,
+            "bytes": 31509696,
+            "directory": false
+          },
+          "/data/robemo/polar-rl-train/.MOD4_NEW_HOST_WORKSPACE_MANIFEST_V1.json": {
+            "exists": true,
+            "bytes": 442,
+            "directory": false,
+            "text": "{\n  \"schema\": \"mod4.robemo.frozen_experts.workspace.v1\",\n  \"host\": \"10.50.0.86\",\n  \"username\": \"robemo\",\n  \"authorized_root\": \"/data/robemo/polar-rl-train\",\n  \"project\": \"MOD4_frozen_experts_PPO50_gas400\",\n  \"first_payload_frozen_index_SHA\": \"8242c696e93883382f3dc9378ccf5fbee9a7f8d63ada08c5966aa44b9f0c9b4c\",\n  \"budget_writer_host\": \"72\",\n  \"canonical_copied\": false,\n  \"initial_probe_id\": \"MOD4_NEW_HOST_INITIAL_PROBE_1793110077908242700\"\n}"
+          },
+          "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python": {
+            "exists": false
+          }
+        }
+      }
+    },
+    "210": {
+      "passed": true,
+      "actual": {
+        "epoch": 1793874694.5984557,
+        "gpu": {
+          "rc": 0,
+          "stdout": "0, GPU-937bdb0b-0d8f-aa3d-a10e-1b24969a5d4e, NVIDIA GeForce RTX 4090, 24564, 23890, 0\n",
+          "stderr": ""
+        },
+        "compute_apps": {
+          "rc": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "locks": {
+          "rc": 0,
+          "stdout": "{\n   \"locks\": [\n      {\n         \"pid\": 4265,\n         \"command\": \"master\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/...\"\n      },{\n         \"pid\": 4265,\n         \"command\": \"master\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/...\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Audio.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Audio.db-shm\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23FileSystem.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23FileSystem.db-shm\"\n      },{\n         \"pid\": 2176,\n         \"command\": \"nvidia-persiste\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/snapd/ns...\"\n      },{\n         \"pid\": 2604,\n         \"command\": \"pipewire\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/user/1000/pipewire-0.lock\"\n      },{\n         \"pid\": 2604,\n         \"command\": \"pipewire\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/user/1000/pipewire-0-manager.lock\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/meta.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/meta.db-shm\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Software.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Software.db-shm\"\n      },{\n         \"pid\": 2174,\n         \"command\": \"snapd\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/...\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Documents.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Documents.db-shm\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Pictures.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Pictures.db-shm\"\n      },{\n         \"pid\": 4600,\n         \"command\": \"gnome-shell\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/home/egde/.cache/nvidia/GLCache/887d2fe1f51a85ee3a9e659d0118cd15/09b76f326c5e99b0/e57567e0cfb0bbeb.toc\"\n      },{\n         \"pid\": 6425,\n         \"command\": \"update-notifier\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/user/1000/update-notifier.pid\"\n      },{\n         \"pid\": 2178,\n         \"command\": \"cron\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/snapd/ns...\"\n      },{\n         \"pid\": 2182,\n         \"command\": \"thermald\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/run/snapd/ns...\"\n      },{\n         \"pid\": 4600,\n         \"command\": \"gnome-shell\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/home/egde/.cache/nvidia/GLCache/887d2fe1f51a85ee3a9e659d0118cd15/09b76f326c5e99b0/e57567e0cfb0bbeb.bin\"\n      },{\n         \"pid\": 4832,\n         \"command\": \"MathWorksServic\",\n         \"type\": \"POSIX\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/home/egde/.MATLABConnector/egde-Z790-AORUS-ELITE-AX/locks/companion@prod@production/mathworks/agents/2/egde-Z790-AORUS-ELITE-AX_OBmisa\"\n      },{\n         \"pid\": 4832,\n         \"command\": \"MathWorksServic\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/tmp/.mathworks-1000/c5b3-b7c6-a46f-f32f.lock\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Video.db\"\n      },{\n         \"pid\": 5088,\n         \"command\": \"tracker-miner-f\",\n         \"type\": \"POSIX\",\n         \"mode\": \"READ\",\n         \"path\": \"/home/egde/.cache/tracker3/files/http%3A%2F%2Ftracker.api.gnome.org%2Fontology%2Fv3%2Ftracker%23Video.db-shm\"\n      },{\n         \"pid\": 4832,\n         \"command\": \"MathWorksServic\",\n         \"type\": \"FLOCK\",\n         \"mode\": \"WRITE\",\n         \"path\": \"/tmp/.mathworks-1000/8012-db2c-7998-a7e4.lock\"\n      }\n   ]\n}\n",
+          "stderr": ""
+        },
+        "model_SDK_GO_account_writes": 0,
+        "unknown_PID_identity_reads": 0,
+        "ram": {
+          "rc": 0,
+          "stdout": "               total        used        free      shared  buff/cache   available\nMem:     65835966464 22582509568 17466351616    68055040 27195109376 43253456896\nSwap:     8589930496     2097152  8587833344\n",
+          "stderr": ""
+        },
+        "disk": {
+          "total": 632982503424,
+          "used": 602281693184,
+          "free": 0
+        },
+        "filesystems": {
+          "rc": 0,
+          "stdout": "Filesystem     Type          1-blocks         Used    Available Capacity Mounted on\ntmpfs          tmpfs       6583599104      4001792   6579597312       1% /run\n/dev/nvme0n1p6 ext4      632982503424 602281693184            0     100% /\ntmpfs          tmpfs      32917983232        53248  32917929984       1% /dev/shm\nefivarfs       efivarfs        262144       137030       119994      54% /sys/firmware/efi/efivars\ntmpfs          tmpfs          5242880        12288      5230592       1% /run/lock\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-journald.service\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-udev-load-credentials.service\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-tmpfiles-setup-dev-early.service\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-tmpfiles-setup-dev.service\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-sysctl.service\ntmpfs          tmpfs      32917983232      2785280  32915197952       1% /tmp\n/dev/nvme0n1p1 vfat         313942016     34709504    279232512      12% /boot/efi\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-tmpfiles-setup.service\ntmpfs          tmpfs          1048576            0      1048576       0% /run/credentials/systemd-resolved.service\ntmpfs          tmpfs       6583595008       139264   6583455744       1% /run/user/1000\n/dev/nvme0n1p5 ntfs3    1032813875200 337830670336 694983204864      33% /mnt/mod4_linux_durable_20261013\n/dev/nvme0n1p3 ntfs3     322122543104 300745191424  21377351680      94% /media/egde/B6682CFC682CBD4D\n",
+          "stderr": ""
+        },
+        "paths": {
+          "/data": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python-compat.sh": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/envs/mod4/bin/python": {
+            "exists": false
+          },
+          "/data/robemo/polar-rl-train/.MOD4_NEW_HOST_WORKSPACE_MANIFEST_V1.json": {
+            "exists": false
+          },
+          "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python": {
+            "exists": true,
+            "bytes": 31509696,
+            "directory": false
+          }
+        }
+      }
+    }
+  },
+  "local_context": {
+    "rows": [
+      {
+        "ProcessId": 41596,
+        "ParentProcessId": 16228,
+        "CreationDate": "2026-11-03T18:26:50.667612+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe",
+        "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\pythonw.exe\" C:\\Users\\lulu\\.cc-switch\\catalog-maxfix\\watcher.py"
+      },
+      {
+        "ProcessId": 19248,
+        "ParentProcessId": 53676,
+        "CreationDate": "2026-11-05T18:03:48.118609+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "CommandLine": "C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe -B -X utf8 F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\control.py collect --root F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\attempt03"
+      },
+      {
+        "ProcessId": 38156,
+        "ParentProcessId": 16772,
+        "CreationDate": "2026-11-05T18:31:22.780863+08:00",
+        "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+        "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n& 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 'F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103/scut_native_v36/host_inventory.py'\""
+      },
+      {
+        "ProcessId": 6964,
+        "ParentProcessId": 38156,
+        "CreationDate": "2026-11-05T18:31:23.04386+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103/scut_native_v36/host_inventory.py"
+      },
+      {
+        "ProcessId": 52752,
+        "ParentProcessId": 6964,
+        "CreationDate": "2026-11-05T18:31:23.224819+08:00",
+        "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+        "CommandLine": "pwsh -NoProfile -NonInteractive -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|powershell|pwsh|ssh|cmd' -and $_.CommandLine -match 'MOD4_H1|RMPOLAR|watch|run_once_after_resume|E1.*collect|prepare_archive|single_gpu|collect_nine|collect_generic|collect_actual|PAIR|stage_new|dispatch|retention' } | Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine | ConvertTo-Json -Depth 5\""
+      }
+    ],
+    "foreign": [
+      {
+        "ProcessId": 19248,
+        "ParentProcessId": 53676,
+        "CreationDate": "2026-11-05T18:03:48.118609+08:00",
+        "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "CommandLine": "C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe -B -X utf8 F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\control.py collect --root F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\attempt03"
+      }
+    ]
+  },
+  "global_foreign_collector_SSH_ban_superseded": true,
+  "all_clients_closed": true,
+  "SESSION_restored": true,
+  "training_started": false,
+  "model_SDK_physics_operations": 0
+}

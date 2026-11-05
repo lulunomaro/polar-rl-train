@@ -1,0 +1,34 @@
+"""Inspect/install only bridge SSH dependencies; preserve first import failure."""
+from pathlib import Path
+import json
+import shlex
+import time
+from host_access import connect,load,R
+from host86_prepare import query
+from dispatch86 import BRIDGE
+
+D=Path(__file__).resolve().parent
+
+def main():
+    load('v36_bridge_dependency_context',D/'control.py').admission()
+    c=None;restore=lambda:None;result=dict(epoch=time.time(),new_physics=0)
+    try:
+        c,restore,py=connect('72')
+        code="import json,importlib.util; print(json.dumps({k:bool(importlib.util.find_spec(k)) for k in ['paramiko','psutil','cryptography','pip']}))"
+        result['system']=query(c,'/usr/bin/python3',code)
+        result['runtime']=query(c,py,code)
+        if result['system']['paramiko'] and result['system']['psutil']:
+            result['selected_python']='/usr/bin/python3'
+        else:
+            i,o,e=c.exec_command(shlex.quote(py)+' -B -m pip install --disable-pip-version-check --no-input --target '+shlex.quote(BRIDGE+'/ssh_deps')+' paramiko',timeout=120)
+            i.close();result['install']=dict(stdout=o.read().decode(),stderr=e.read().decode(),rc=o.channel.recv_exit_status())
+            assert result['install']['rc']==0
+            result['selected_python']=py
+        result['passed']=True
+    finally:
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        with (R/'reports/SCUT36_BRIDGE_DEPENDENCY_ACTUAL.json').open('x') as f:json.dump(result,f,indent=2)
+        print(json.dumps(result))
+
+if __name__=='__main__':main()

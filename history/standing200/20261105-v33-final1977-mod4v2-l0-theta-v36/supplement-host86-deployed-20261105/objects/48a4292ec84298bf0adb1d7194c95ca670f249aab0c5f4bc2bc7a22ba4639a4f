@@ -1,0 +1,54 @@
+"""Finish task mapping and inspect the existing86 interpreter, without physics."""
+from pathlib import Path
+import hashlib
+import json
+import shlex
+import time
+import traceback
+from host_access import connect,load,R
+from host86_prepare import DEST,RUNTIME,query
+
+D=Path(__file__).resolve().parent
+
+def main():
+    assert not (R/'reports/SCUT36_HOST86_RUNTIME_ONCE.json').exists()
+    load('v36_runtime_local_context',D/'control.py').admission()
+    with (R/'reports/SCUT36_HOST86_RUNTIME_ONCE.json').open('x') as f:json.dump(dict(epoch=time.time()),f)
+    prepared=json.loads((R/'reports/SCUT36_HOST86_PREPARE_ACTUAL.json').read_bytes())
+    frozen=json.loads((D/'FROZEN.json').read_bytes());plan=json.loads((D/'PLAN.json').read_bytes())
+    job=prepared['job'];result=dict(epoch=time.time(),job=job,training_started=False,new_physics=0)
+    c=None;sf=None;restore=lambda:None
+    try:
+        c,restore,py=connect('86');sf=c.open_sftp();sf.get_channel().settimeout(45)
+        mapped=dict(plan,GPU_UUID='GPU-90a66ae2-f536-7033-79c0-487536ae36d3',GPU_preference='Selected86 GPU0 actual empty',execution_host='86')
+        # Frozen PLAN remains byte-identical. The worker maps its paths in memory.
+        # Only GPU selection is an explicit new deployment override.
+        deploy=dict(host='86',GPU_UUID=mapped['GPU_UUID'],job=job,python=RUNTIME,source_PLAN_SHA=hashlib.sha256((D/'PLAN.json').read_bytes()).hexdigest(),frozen_PLAN_unchanged=True,canonical_on_original72=True)
+        files=[]
+        for name in ['relocation86.py','worker86.py']:
+            raw=(D/name).read_bytes()
+            with sf.open(job+'/'+name,'wx') as f:f.write(raw)
+            files.append(dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        for name,value in [('DEPLOYMENT86.json',deploy),('TASK.json',plan)]:
+            raw=json.dumps(value,indent=2).encode()
+            with sf.open(job+'/'+name,'wx') as f:f.write(raw)
+            files.append(dict(path=job+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        result['uploaded']=files
+        checkrows=prepared['files']+files
+        code="import json,hashlib,pathlib; rows="+repr(checkrows)+"; out=[]\nfor r in rows:\n p=pathlib.Path(r['path']); assert p.stat().st_size==r['bytes'] and hashlib.sha256(p.read_bytes()).hexdigest()==r['SHA'],str(p); out.append(str(p))\nprint(json.dumps(dict(verified_files=len(out),bytes=sum(r['bytes'] for r in rows))))"
+        result['deployed_identity']=query(c,py,code)
+        # Metadata imports do not initialize CUDA, construct scenes or load PT.
+        code="import importlib.metadata as m,json,sys,pathlib; sys.path.insert(0,"+repr(job)+"); from relocation86 import install; r=install(); print(json.dumps(dict(python=sys.executable,versions={k:m.version(k) for k in ['torch','isaacsim','isaaclab','rsl-rl-lib']},relocation=r,physics=0)))"
+        result['runtime_metadata']=query(c,RUNTIME,code)
+        result['passed']=True
+        (D/'DEPLOYMENT86.json').write_text(json.dumps(deploy,indent=2)+'\n',encoding='utf-8')
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        if sf is not None:sf.close()
+        if c is not None:c.close()
+        restore();result.update(SSHclosed=True,SESSION_restored=True)
+        with (R/'reports/SCUT36_HOST86_RUNTIME_ACTUAL.json').open('x',encoding='utf-8') as f:json.dump(result,f,indent=2)
+        print(json.dumps(result))
+
+if __name__=='__main__':main()

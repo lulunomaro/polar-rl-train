@@ -1,0 +1,55 @@
+"""Fresh bounded 86/210 inventory, independently of other chats' collectors."""
+from pathlib import Path
+import datetime
+import json
+import shlex
+import time
+import traceback
+from host_access import connect, load, R
+
+LABEL = 'SCUT36C_OTHER_HOSTS'
+
+EXTRA = r'''
+result['filesystems']=cmd(['df','-PT','-B1'])
+paths=['/data','/data/robemo/polar-rl-train','/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1','/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python.sh','/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/run-python-compat.sh','/data/robemo/polar-rl-train/runtime_migrations/proven72_20261028_v1/runtime_copy_v1/envs/mod4/bin/python','/data/robemo/polar-rl-train/.MOD4_NEW_HOST_WORKSPACE_MANIFEST_V1.json','/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python']
+result['paths']={}
+for name in paths:
+ p=Path(name)
+ if not p.exists():result['paths'][name]={'exists':False};continue
+ s=p.stat();row={'exists':True,'bytes':s.st_size,'directory':p.is_dir()}
+ if p.is_dir():row['disk']=dict(zip(['total','used','free'],shutil.disk_usage(p)))
+ elif p.suffix=='.sh' or p.name=='.MOD4_NEW_HOST_WORKSPACE_MANIFEST_V1.json':row['text']=p.read_text()[:16000]
+ result['paths'][name]=row
+'''
+
+
+def main():
+    marker=R/'reports'/f'{LABEL}_ONCE.json'
+    assert not marker.exists()
+    original=load('v36_original_four_reader',R/'check_four4090_once.py')
+    control=load('v36_local_context_reader',R/'scut_native_v36/control.py')
+    rows, foreign=control.admission()
+    with marker.open('x',encoding='utf-8') as f:
+        json.dump(dict(epoch=time.time(),purpose='Human explicitly requests separate SSH to86/210; foreign collector does not prohibit independent host reads'),f)
+    result=dict(captured=datetime.datetime.now().astimezone().isoformat(),hosts={},local_context=dict(rows=rows,foreign=foreign),global_foreign_collector_SSH_ban_superseded=True)
+    code=original.READ.replace('print(json.dumps(result))',EXTRA+'\nprint(json.dumps(result))')
+    for host in ['86','210']:
+        client=None;restore=lambda:None
+        try:
+            client,restore,python=connect(host)
+            i,o,e=client.exec_command(shlex.quote(python)+' -B -c '+shlex.quote(code),timeout=70)
+            i.close();raw=o.read().decode();error=e.read().decode();rc=o.channel.recv_exit_status()
+            if rc:raise RuntimeError(f'Inventory exit{rc}: '+error[-1500:])
+            result['hosts'][host]=dict(passed=True,actual=json.loads(raw))
+        except BaseException:
+            result['hosts'][host]=dict(passed=False,error=traceback.format_exc())
+        finally:
+            if client is not None:client.close()
+            restore()
+    result.update(all_clients_closed=True,SESSION_restored=True,training_started=False,model_SDK_physics_operations=0)
+    p=R/'reports'/f'{LABEL}_ACTUAL.json'
+    with p.open('x',encoding='utf-8') as f:json.dump(result,f,ensure_ascii=False,indent=2)
+    print(json.dumps({host:dict(passed=row['passed'],actual=row.get('actual'),error=row.get('error')) for host,row in result['hosts'].items()}))
+
+
+if __name__=='__main__':main()

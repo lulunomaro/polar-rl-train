@@ -1,0 +1,20 @@
+"""Execute this frozen V36 entry on the selected86 runtime."""
+from pathlib import Path
+import json
+import runpy
+import sys
+from relocation86 import install
+
+J=Path(__file__).resolve().parent
+receipt=install()
+from backend86 import install as install_backend
+install_backend()
+with (J/(sys.argv[1].upper()+'_RELOCATION.json')).open('x') as f:json.dump(receipt,f,indent=2)
+mode=sys.argv[1]
+if mode=='native':
+    sys.argv=[str(J/'native_probe.py')]
+    runpy.run_path(str(J/'native_probe.py'),run_name='__main__')
+else:
+    assert mode in ('train','evaluate')
+    sys.argv=[str(J/'entry.py'),mode]
+    runpy.run_path(str(J/'entry.py'),run_name='__main__')

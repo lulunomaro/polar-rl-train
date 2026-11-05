@@ -1,0 +1,47 @@
+"""Update active task identity after actual independent host admission."""
+from pathlib import Path
+import datetime
+import json
+import time
+
+R=Path(__file__).resolve().parent.parent;D=R/'scut_native_v36'
+
+def main():
+    p=R/'CURRENT_WORK_ORDER.json';w=json.loads(p.read_bytes())
+    inventory=json.loads((R/'reports/SCUT36C_OTHER_HOSTS_ACTUAL.json').read_bytes())
+    dep=json.loads((D/'DEPLOYMENT86.json').read_bytes())
+    prepared=json.loads((R/'reports/SCUT36_HOST86_PREPARE_ACTUAL.json').read_bytes())
+    cpu=json.loads((R/'reports/SCUT36_MAPPING86_CPU_R2_ACTUAL.json').read_bytes())
+    correction=dict(epoch=time.time(),human='86和210主机都没有训练，还有为什么不能再开ssh？这又是什么门槛？',
+        actual='Both86 and210 compute-apps empty by independent original pinned SSH; old global foreign-collector ban was too broad and is superseded',
+        independent_SSH_allowed=True,foreign_jobs_not_modified=True,canonical_not_copied=True,
+        selected='86 GPU0 GPU-90a66ae2-f536-7033-79c0-487536ae36d3',
+        resources='86:24080MiB GPU free,102524661760B RAM available,/data1880091557888B free;210GPU23890MiB computeempty and durableNTFS694983204864B free though rootfull',
+        native_bridge='reports/SCUT36_NATIVE86_BRIDGE_R2_LAUNCH_ACTUAL.json',
+        initial_bridge_failure='Paramiko missing before STARTED/GO/PT/physics; isolatedssh_deps repair then uniqueR2start',
+        mapped_CPU_pass=cpu['passed'],new_task_wait='Original72 authority active segment from separatejump200; finite bridge waits original EXlocks and actualNone before GO; SSH itself allowed',
+        previous_source_paths_mapping_failure='First mapped CPU import failed missing11SCUTpinnedtext references; exactsources transferred andR2CPU install passed,0PT0CUDA0physics',
+        source_and_plan_frozen_unchanged=True,source_model_decode_count=0,native_complete=False,production_GO=False)
+    with (R/'reports/SCUT36_HOST86_SELECTION_SSH_SCOPE_CORRECTION_20261105.json').open('x',encoding='utf-8') as f:json.dump(correction,f,ensure_ascii=False,indent=2)
+    w.update(status='V36_HOST86_DEPLOYED_MAPPING_CPU_PASS_NATIVE_BRIDGE_R2_WAIT_ORIGINAL_AUTHORITY',
+        selected_GPU=dict(host='86',index=0,uuid=dep['GPU_UUID'],actual_compute_empty_at=inventory['captured']),
+        selected_GPU_is_preference_not_current_free=False,pending_remote_job=dep['job'],remote_job=dep['job'],
+        execution_host='86',budget_writer_host='72',training_started=False,training_completed=False,
+        current_resource_blocker='Original72 ledger active segment; bridgeR2 waits actual safe lockrelease, no global SSH ban',
+        fourGPU_latest_snapshot='reports/SCUT36C_OTHER_HOSTS_ACTUAL.json',fourGPU_check_deferred_reason=None,
+        automation_status='ACTIVE_EVERY30MIN_HOST86_REALDEPLOYED_NATIVE_PENDING',
+        current_CPU_admission='reports/SCUT36_MAPPING86_CPU_R2_ACTUAL.json',
+        crosshost_deployment=dep,SSH_scope_correction=correction,
+        next='Read actual86 native terminal; upon successfulmechanics/reward/native and settledoriginal72owner launch oneV36production on86; original3600save+300exit andfullrestoreFIRSTonce; do not repeatlegacyonce',
+        followup_commands=dict(native_result='scut_native_v36/dispatch86.py native_result',launch='scut_native_v36/dispatch86.py train',first='scut_native_v36/dispatch86.py first'),
+        current_run_final=None,evaluation_result=None)
+    p.write_text(json.dumps(w,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    with (D/'ACTUAL_HANDOFF.md').open('a',encoding='utf-8') as f:
+        f.write('\n\n2026-11-05 HOST86 实际接入补充\n\n')
+        f.write('人类已纠正全局 SSH 禁令：允许独立检查86/210。实测两卡均computeempty，选择86 GPU0 '+dep['GPU_UUID']+'。210根分区满但持久盘另有695GB，不再把旧homefree0当全机不可用。\n\n')
+        f.write('86任务已实际部署到 '+dep['job']+'，复用既有SDK，不复制账本/大SDK。原V36 PLAN/FROZEN及20files不改；路径映射与PhysX无限角等效表达为单独部署补充。160sharedtext+11exactSCUTpinned+V33fullcheckpoint原SHA已传输，0PTdecode。实际86 CPU reward安装R2通过0CUDA/0SDKscene/0physics。\n\n')
+        f.write('首次bridge在Paramiko import前退出，无GO/physics；依赖安装于72本job ssh_deps，R2owner已启动。当前等原72activeowner完整保存/等待/释放原两EX锁。独立SSH可用；canonical只由72原charge_values写入，86只持GPU锁并等待本worker。native尚未完成，生产未GO，不称训练已开始。\n\n')
+        f.write('后续使用dispatch86.py native_result/train/first。旧control.py native/launch/first已路由86；旧72closed不能用于86。实际native与production全部错误、报告和后续回放均ordinarysupplement，不重record/tag。\n')
+    print(json.dumps(dict(status=w['status'],host='86',independent_SSH_allowed=True)))
+
+if __name__=='__main__':main()

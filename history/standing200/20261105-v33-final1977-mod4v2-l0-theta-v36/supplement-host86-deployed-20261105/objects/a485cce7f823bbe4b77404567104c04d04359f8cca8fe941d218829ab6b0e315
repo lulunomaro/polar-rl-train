@@ -1,0 +1,160 @@
+"""Finite86 deploy/dispatch and task-only metadata; no global local-SSH ban."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import shlex
+import sys
+import time
+import traceback
+from host_access import connect,load,secret86,R
+from host86_prepare import DEST,RUNTIME,query
+
+D=Path(__file__).resolve().parent
+PREFIX='/home/lc01/Zonglin Li/zonglin2'
+FROZEN=json.loads((D/'FROZEN.json').read_bytes())
+JOB86=DEST+'/tasks/'+FROZEN['run_id']
+BRIDGE=PREFIX+'/tasks/'+FROZEN['run_id']+'_HOST86_BRIDGE'
+
+
+def put(name,value):
+    with (R/'reports'/name).open('x',encoding='utf-8') as f:json.dump(value,f,ensure_ascii=False,indent=2)
+
+
+def fresh():
+    load('v36_independent_local_context',D/'control.py').admission()
+
+
+def deploy():
+    assert not (R/'reports/SCUT36_HOST86_BRIDGE_DEPLOY_ACTUAL.json').exists()
+    fresh();c86=c72=s86=s72=None;r86=r72=lambda:None
+    result=dict(epoch=time.time(),bridge=BRIDGE,remote_job=JOB86,source_frozen_unchanged=True,uploaded=[])
+    try:
+        c86,r86,py86=connect('86');s86=c86.open_sftp();s86.get_channel().settimeout(45)
+        c72,r72,py72=connect('72');s72=c72.open_sftp();s72.get_channel().settimeout(45)
+        for name in ['relocation86.py','worker86.py','backend86.py','agent86.py','owner86_bridge.py']:
+            ast.parse((D/name).read_text())
+        layer=Path('F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v2_scut_jump200_20261105/physx_finite_representation.usda').read_text()
+        old='F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/assets/robot.usd'
+        assert layer.count(old)==1
+        layer=layer.replace(old,'robot.usd');raw=layer.encode()
+        local_layer=D/'physx_runtime.usda';local_layer.write_bytes(raw)
+        prepared=json.loads((R/'reports/SCUT36_HOST86_PREPARE_ACTUAL.json').read_bytes())
+        rows=list(prepared['files'])
+        for name in ['relocation86.py','worker86.py','backend86.py','agent86.py','physx_runtime.usda']:
+            raw=(D/name).read_bytes();target=JOB86+('/v2package/assets/' if name.endswith('.usda') else '/')+name
+            # Only deployment supplement files can be replaced before first
+            # actual worker. Original frozen20 files remain untouched.
+            if name in ('relocation86.py','worker86.py'):
+                with s86.open(target,'wb') as f:f.write(raw)
+            else:
+                with s86.open(target,'wx') as f:f.write(raw)
+            row=dict(path=target,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),source=str(D/name))
+            rows=[x for x in rows if x['path']!=target];rows.append(row);result['uploaded'].append(row)
+        manifest=dict(files=rows,source_frozen_SHA=hashlib.sha256((D/'FROZEN.json').read_bytes()).hexdigest(),no_sdk_clone=True,canonical_copied=False)
+        with s86.open(JOB86+'/INSTALL86_MANIFEST.json','wx') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+        s72.mkdir(BRIDGE)
+        for name,raw in [('owner86_bridge.py',(D/'owner86_bridge.py').read_bytes()),('PLAN.json',(D/'PLAN.json').read_bytes()),('DEPLOYMENT86.json',(D/'DEPLOYMENT86.json').read_bytes())]:
+            with s72.open(BRIDGE+'/'+name,'wx') as f:f.write(raw)
+        code="import json,socket,hashlib,pathlib; s=socket.create_connection(('10.50.0.86',22),timeout=10); s.close(); print(json.dumps(dict(direct72_to86_SSH_reachable=True,bridge_source_SHA=hashlib.sha256(pathlib.Path("+repr(BRIDGE+'/owner86_bridge.py')+").read_bytes()).hexdigest())))"
+        result['authority_to_worker_connectivity']=query(c72,py72,code)
+        # Compile/import only the local recipe with its real mapped sources.
+        code="import sys,json; sys.path.insert(0,"+repr(JOB86)+"); from relocation86 import install; receipt=install(); import recipe,backend86; print(json.dumps(dict(recipe_source_loaded=True,source_relocation=receipt,SDK_imported=False,physics=0)))"
+        result['mapped_recipe_import']=query(c86,RUNTIME,code)
+        result['passed']=True
+    except BaseException:
+        result['error']=traceback.format_exc();raise
+    finally:
+        for stream in [s86,s72]:
+            if stream is not None:stream.close()
+        for c in [c86,c72]:
+            if c is not None:c.close()
+        r86();r72();result.update(all_SSH_closed=True,SESSION_restored=True)
+        put('SCUT36_HOST86_BRIDGE_DEPLOY_ACTUAL.json',result)
+        print(json.dumps(result))
+
+
+def launch(mode,attempt=''):
+    assert mode in ('native','train')
+    key='NATIVE' if mode=='native' else 'PRODUCTION'
+    suffix=('_'+attempt) if attempt else ''
+    marker='SCUT36_'+key+'86_BRIDGE'+suffix+'_ONCE.json'
+    assert not (R/'reports'/marker).exists()
+    if mode=='train':
+        result=json.loads((R/'reports/SCUT36_NATIVE86_RESULT.json').read_bytes())
+        assert result['files']['native_validation/RESULT.json']['passed']
+        own=result['bridge']['NATIVE_OWNER_EXIT.json']
+        assert own['error'] is None and own['all_own_waited'] and own['original_cost_settled'] and own['original_leases_released']
+    fresh();client=None;restore=lambda:None;secret=None
+    try:
+        client,restore,py=connect('72');secret=secret86()
+        if attempt=='R2' or mode=='train':
+            sf=client.open_sftp()
+            try:
+                with sf.open(BRIDGE+'/owner86_bridge_r2.py','wx') as f:f.write((D/'owner86_bridge.py').read_bytes())
+            except OSError:
+                with sf.open(BRIDGE+'/owner86_bridge_r2.py','rb') as f:assert f.read()==(D/'owner86_bridge.py').read_bytes()
+            finally:sf.close()
+        put(marker,dict(epoch=time.time(),run=FROZEN['run_id'],host='86',mode=mode))
+        code="""import sys,subprocess,psutil,json,time
+from pathlib import Path
+secret=sys.stdin.readline().rstrip('\\r\\n')
+job=Path(JOB)
+with (job/LOG).open('xb') as log:
+ p=subprocess.Popen([PY,'-u','-B',str(job/'owner86_bridge.py'),MODE],cwd=job,stdin=subprocess.PIPE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,text=True)
+ p.stdin.write(secret+'\\n');p.stdin.close()
+q=psutil.Process(p.pid)
+print(json.dumps(dict(epoch=time.time(),pid=q.pid,creation=q.create_time(),exe=q.exe(),argv=q.cmdline(),root=q.cwd(),bridge=JOB,execution_host='86')))
+"""
+        if attempt=='R2' or mode=='train':code=code.replace("job/'owner86_bridge.py'","job/'owner86_bridge_r2.py'")
+        code=code.replace('JOB',repr(BRIDGE)).replace('LOG',repr(key+'_BRIDGE'+suffix+'.log')).replace('PY',repr(py)).replace('MODE',repr(mode))
+        i,o,e=client.exec_command(shlex.quote(py)+' -B -c '+shlex.quote(code),timeout=50)
+        i.write(secret['password']+'\n');i.flush();i.channel.shutdown_write();secret=None
+        raw=o.read().decode();err=e.read().decode();rc=o.channel.recv_exit_status()
+        if rc:raise RuntimeError(err[-2000:])
+        actual=json.loads(raw);put('SCUT36_'+key+'86_BRIDGE'+suffix+'_LAUNCH_ACTUAL.json',actual);print(json.dumps(actual))
+    finally:
+        secret=None
+        if client is not None:client.close()
+        restore();put('SCUT36_'+key+'86'+suffix+'_DISPATCH_CLOSED.json',dict(epoch=time.time(),SSHclosed=True,SESSION_restored=True))
+
+
+def collect(mode):
+    assert mode in ('native','train','first')
+    fresh();clients=[];streams=[];restores=[]
+    result=dict(epoch=time.time(),files={},bridge={},logs={},host='86',job=JOB86)
+    key='NATIVE' if mode=='native' else 'PRODUCTION'
+    try:
+        for host,root in [('72',BRIDGE),('86',JOB86)]:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();streams.append(sf);sf.get_channel().settimeout(30)
+            names=[key+'_OWNER_STARTED.json',key+'_WAIT_ORIGINAL_AUTHORITY.json',key+'_OWNER_CURRENT.json',key+'_OWNER_EXIT.json',key+'_OWNER_ERROR.json',key+'_REMOTE_WAITED.json','NATIVE_GO.json','GO_PRODUCTION.json'] if host=='72' else ['AGENT_'+key+'_STARTED.json','AGENT_'+key+'_EXIT.json','AGENT_'+key+'_ERROR.json','NATIVE_WORKER_IDENTITY.json','WORKER_IDENTITY.json','native_validation/RESULT.json','native_validation/ERROR.json','native_validation/V2_MECHANICS_REWARD.json','native_validation/ENV_CLOSED.json','native_validation/APP_CLOSE_INTENT.json','production/FULL_RESTORE.json','production/FIRST_UPDATED.json','production/STARTUP.json','production/FINAL.json','production/ERROR.json','production/ENV_CLOSED.json','production/APP_CLOSE_INTENT.json','TRAIN_CLOSED.json','EVAL_WAITED.json','evaluation/RESULT.json','evaluation/ERROR.json']
+            out=result['bridge'] if host=='72' else result['files']
+            for name in names:
+                try:
+                    with sf.open(root+'/'+name,'rb') as f:out[name]=json.loads(f.read(4*1024**2))
+                except FileNotFoundError:pass
+            logs=[key+'_BRIDGE.log',key+'_BRIDGE_R2.log'] if host=='72' else (['AGENT_NATIVE.log','NATIVE_WORKER.log'] if mode=='native' else ['AGENT_PRODUCTION.log','WORKER.log','EVAL.log'])
+            for name in logs:
+                try:
+                    size=sf.stat(root+'/'+name).st_size
+                    with sf.open(root+'/'+name,'rb') as f:f.seek(max(0,size-12000));raw=f.read(12000)
+                    result['logs'][host+'/'+name]=dict(bytes=size,tail=raw.decode('utf-8','replace'))
+                except FileNotFoundError:pass
+    finally:
+        for stream in streams:stream.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        result.update(all_SSH_closed=True,SESSION_restored=True)
+    terminal=key+'_OWNER_EXIT.json' in result['bridge']
+    name=('SCUT36_NATIVE86_RESULT.json' if terminal else 'SCUT36_NATIVE86_PENDING_'+str(time.time_ns())+'.json') if mode=='native' else ('SCUT36_FIRST86_ACTUAL.json' if mode=='first' else 'SCUT36_PRODUCTION86_METADATA_'+str(time.time_ns())+'.json')
+    put(name,result);print(json.dumps(result))
+
+
+if __name__=='__main__':
+    op=sys.argv[1]
+    if op=='deploy':deploy()
+    elif op in ('native','train'):launch(op)
+    elif op=='native_r2':launch('native','R2')
+    elif op in ('native_result','train_result','first'):collect({'native_result':'native','train_result':'train','first':'first'}[op])
+    else:raise ValueError(op)

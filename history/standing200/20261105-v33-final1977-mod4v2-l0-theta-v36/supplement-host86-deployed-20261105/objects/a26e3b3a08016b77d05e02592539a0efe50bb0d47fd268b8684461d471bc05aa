@@ -1,0 +1,50 @@
+"""Add only exact SCUT pinned sources referenced by SOURCE_PATHS.json."""
+from pathlib import Path
+import hashlib
+import json
+import time
+from host_access import connect,load,R
+from dispatch86 import JOB86
+from host86_prepare import DEST,PREFIX
+
+D=Path(__file__).resolve().parent
+
+def main():
+    load('v36_exact_pinned_context',D/'control.py').admission()
+    pointers=json.loads((R/'scut_recipe_v18/SOURCE_PATHS.json').read_bytes())
+    prepared=json.loads((R/'reports/SCUT36_HOST86_PREPARE_ACTUAL.json').read_bytes())
+    present={r['path'] for r in prepared['files']}
+    rows=[];clients=[];streams=[];restores=[]
+    try:
+        for host in ['72','86']:
+            c,restore,_=connect(host);clients.append(c);restores.append(restore);sf=c.open_sftp();sf.get_channel().settimeout(40);streams.append(sf)
+        a,b=streams
+        with b.open(JOB86+'/INSTALL86_MANIFEST.json','rb') as f:manifest=json.loads(f.read())
+        for key,p in pointers.items():
+            target=DEST+'/reference72'+p[len(PREFIX):]
+            if target in present:continue
+            size=a.stat(p).st_size;assert size<2*1024**2
+            with a.open(p,'rb') as f:raw=f.read(size+1)
+            assert len(raw)==size
+            sha=hashlib.sha256(raw).hexdigest()
+            if '/pinned_text/' in p:assert Path(p).stem==sha
+            local=D/'crosshost_sources'/sha
+            if not local.exists():local.write_bytes(raw)
+            current=''
+            for part in Path(target).as_posix().split('/')[1:-1]:
+                current+='/'+part
+                try:b.mkdir(current)
+                except OSError:b.stat(current)
+            with b.open(target,'wx') as f:f.write(raw)
+            row=dict(path=target,bytes=size,SHA=sha,source=p,key=key,local=str(local));rows.append(row);manifest['files'].append(row)
+        with b.open(JOB86+'/INSTALL86_MANIFEST.json','w') as f:f.write(json.dumps(manifest,indent=2))
+        (D/'INSTALL86_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    finally:
+        for sf in streams:sf.close()
+        for c in clients:c.close()
+        for restore in restores:restore()
+        result=dict(epoch=time.time(),files=rows,source_only=True,PT_SDK_physics=0,all_SSH_closed=True,SESSION_restored=True)
+        with (R/'reports/SCUT36_SOURCE_PATHS86_ACTUAL.json').open('x') as f:json.dump(result,f,indent=2)
+        print(json.dumps(dict(files=len(rows),bytes=sum(r['bytes'] for r in rows),all_SSH_closed=True)))
+
+if __name__=='__main__':main()

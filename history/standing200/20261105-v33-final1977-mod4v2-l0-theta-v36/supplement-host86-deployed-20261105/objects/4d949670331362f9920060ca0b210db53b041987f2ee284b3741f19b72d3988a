@@ -1,0 +1,39 @@
+"""Ordinary V36 supplement, indexed text only; never re-record or retag."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import sys
+import time
+
+R=Path(__file__).resolve().parent.parent;D=R/'scut_native_v36'
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261105-v33-final1977-mod4v2-l0-theta-v36'
+
+def main():
+    name=sys.argv[1];assert name.startswith('supplement-host86-') and '/' not in name and '\\' not in name
+    dest=BASE/name;assert not (dest/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('v36_supplement_redactor',REPO/'archive_tools/capture_history.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA') and row.get('archive_path'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*') if p.is_file() and p.suffix.lower() in {'.py','.json','.md','.txt','.log','.usda'} and '__pycache__' not in p.parts}
+    files.update((R/'reports').glob('SCUT36*.json'))
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    # Cross-host source objects are small text, stored by actual SHA locally.
+    files.update(p for p in (D/'crosshost_sources').iterdir() if p.is_file())
+    rows=[];(dest/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        raw=p.read_bytes();safe,count=module.redact(raw.decode('utf-8-sig'));content=raw if not count else safe.encode()
+        sha=hashlib.sha256(content).hexdigest();target=known.get(sha)
+        if target is None:
+            out=dest/'objects'/sha;out.write_bytes(content);target=out.relative_to(REPO).as_posix();known[sha]=target
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),archive_path=target,archive_SHA=sha,archive_bytes=len(content),redactions=count,mode='redacted_text' if count else 'complete_text'))
+    index=dict(epoch=time.time(),kind='V36_HOST86_DEPLOYMENT_AND_HUMAN_SSH_SCOPE_CORRECTION_SUPPLEMENT',rows=rows,trial_re_recorded=False,tags_modified=False,large_artifact_reads_for_Git=0,status=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())['status'])
+    (dest/'INDEX.json').write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (dest/'README.md').write_text('V36 普通补充：86/210实测空卡、取消过宽SSH禁令、86小包部署与原72计账接入。原V36 trial/PLAN/FROZEN和失败保留，未重record/tag。全部saved报告及源码按实际SHA索引。\n',encoding='utf-8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())))))
+
+if __name__=='__main__':main()

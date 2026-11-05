@@ -49,7 +49,11 @@ def consistent_reset_v2(env, env_ids):
 
 
 def configure(cfg, n, profile='jump200', contract=None):
+    global MESH
     _source.configure(cfg, n, profile, contract)
+    # The shared configure selects the actual course mesh after this module's
+    # initial export. Evaluation must read that selected path, not its default.
+    MESH = _source.MESH
     cfg.events.consistent_start.func = consistent_reset_v2
     # Installed SDK names this field physics; the release template's physx is stale.
     cfg.sim.physics.solver_type = 1

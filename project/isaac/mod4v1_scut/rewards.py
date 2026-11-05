@@ -269,6 +269,15 @@ class ScutRewards:
                 result[name] = result[name] * gate
             upward = self.robot.data.root_lin_vel_w[:, 2].clamp(0., 1.)
             result['jump200_bilateral_lift'] = active.float() * bilateral * upward
+        if self.profile == 'jump200' and self.cfg.rewards.get('jump200_tuck_retraction', 0.):
+            # The source term already selects tuck. Keep a dense signal before
+            # either wheel is clear, but never pay for stationary crouching,
+            # descent, spawn fall or a completed landing.
+            active = self.jump_takeoff_phase == 2
+            if hasattr(self, 'jump200_landed_top'):
+                active &= ~self.jump200_landed_top
+            upward = self.robot.data.root_lin_vel_w[:, 2].clamp(0., 1.)
+            result['jump200_tuck_retraction'] *= active.float() * upward
         self.state_terms = {key: value.clone() for key, value in result.items()}
         return result
 

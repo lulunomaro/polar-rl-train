@@ -239,6 +239,42 @@ class JumpTests(unittest.TestCase):
         torch.testing.assert_close(r._last_reward_terms['jump200_upward_velocity'],
                                    torch.full((2,), .004))
 
+    def test_tuck_retraction_is_dense_before_lift_and_has_one_dt(self):
+        r, robot, _ = fixture(2, profile='jump200')
+        r.jump_takeoff_phase.fill_(2)
+        robot.data.root_pos_w[:, 2] = torch.tensor([.2225, .3425])
+        robot.data.body_pos_w[:, r._wheel_link_idx, 0] = 0.
+        robot.data.body_pos_w[:, r._wheel_link_idx, 2] = .0625
+        robot.data.root_lin_vel_w[:, 2] = .5
+        r.compute()
+        expected = 4.*.02*.5*torch.exp(-torch.tensor([0., .12**2])/.005)
+        torch.testing.assert_close(r._last_reward_terms['jump200_tuck_retraction'], expected)
+        self.assertGreater(float(expected[0]), float(expected[1]))
+        self.assertEqual(float(r._last_reward_terms['jump200_bilateral_lift'].abs().max()), 0.)
+
+    def test_tuck_retraction_rejects_idle_push_descent_stationary_and_landing(self):
+        r, robot, _ = fixture(6, profile='jump200')
+        r.jump_takeoff_phase[:] = torch.tensor([0, 1, 2, 2, 2, 2])
+        r.jump200_landed_top = torch.tensor([False, False, False, False, True, False])
+        robot.data.root_lin_vel_w[:, 2] = torch.tensor([1., 1., -.2, 0., 1., 1.])
+        shaped = r._postprocess_reward_terms({k:torch.ones(6) for k in
+            ('flat_orientation_x_exp', 'flat_orientation_y_exp', 'track_lin_vel_xy',
+             'track_ang_vel_z', 'track_height_exp_tight')})
+        torch.testing.assert_close(shaped['jump200_tuck_retraction'][:5], torch.zeros(5))
+        self.assertGreater(float(shaped['jump200_tuck_retraction'][5]), 0.)
+
+    def test_tuck_retraction_uses_source_planar_per_leg_measure_and_caps_ascent(self):
+        r, robot, _ = fixture(1, profile='jump200')
+        r.jump_takeoff_phase.fill_(2)
+        robot.data.root_pos_w[:] = torch.tensor([0., 0., .3])
+        robot.data.body_pos_w[:, r._wheel_link_idx] = torch.tensor(
+            [[0., -.22, .14], [0., .22, .02]])
+        robot.data.root_lin_vel_w[:, 2] = 3.
+        r.compute()
+        expected = 4.*.02*(1.+torch.exp(torch.tensor(-.12**2/.005)))/2
+        self.assertAlmostEqual(float(r._last_reward_terms['jump200_tuck_retraction'][0]),
+                               float(expected), places=6)
+
     def test_visible_step_can_request_again_after_failed_attempt(self):
         r, _, _ = fixture(1, profile='jump200')
         r.jump200_requested = torch.zeros(1, dtype=torch.bool)

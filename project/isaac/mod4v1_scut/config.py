@@ -139,6 +139,12 @@ def reward_config(profile='trained_stair'):
         values['jump200_bilateral_lift_reward'] = dict(
             ground_margin_m=.005, full_clearance_m=.02, grounded_fraction=.1)
         values['rewards']['jump200_bilateral_lift'] = 4.
+        # Final705 has no flight and keeps extending through tuck. Reuse the
+        # source's planar leg-length term to guide retraction before lift;
+        # rewards.py restricts it to measured ascent, without clearance gating.
+        takeoff['tuck']['reward_additions']['jump200_tuck_retraction'] = dict(
+            type='leg_length_tracking_exp', target=.16, sigma=.005, per_leg=True)
+        values['rewards']['jump200_tuck_retraction'] = 4.
     return SimpleNamespace(**values)
 
 

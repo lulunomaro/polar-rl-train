@@ -11,6 +11,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import newton
+import mujoco_warp as mjw
 import numpy as np
 import warp as wp
 from newton.solvers import SolverMuJoCo
@@ -80,6 +81,11 @@ class NewtonPlant:
             nconmax=128, njmax=512, enable_multiccd=True)
         if not cpu and wp.get_cuda_driver_version() < (12,4):
             self.solver.mjw_model.opt.graph_conditional=False
+        if not cpu:
+            # Device printf in every overflowing world serializes the GPU.
+            # Keep LS_ITERATIONS in Data.overflow; the environment latches it
+            # and the learner reports world counts once per rollout.
+            self.solver.mjw_model.opt.warn_overflow &= ~mjw.OverflowType.LS_ITERATIONS
         self.state, self.next_state = self.model.state(), self.model.state()
         self.control = self.model.control()
         self.initial_q = self.state.joint_q.numpy().copy()
@@ -93,6 +99,7 @@ class NewtonPlant:
                             native_equality_count=self.solver.mj_model.neq,
                             native_nq=self.solver.mj_model.nq,
                             native_nv=self.solver.mj_model.nv,
+                            linesearch_warning_reporting='Device bits latched; rollout aggregate instead of per-world GPU printf',
                             actual_CPU_backend=cpu,
                             actual_Warp_backend=not cpu)
 

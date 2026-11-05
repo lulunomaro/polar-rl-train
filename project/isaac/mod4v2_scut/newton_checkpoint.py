@@ -78,6 +78,8 @@ def save(runner,env,path):
                              for key in ('_episode_sums','_last_reward_terms')},
         source_global_counters={k:int(getattr(env.reward,k))for k in ('_value_debug_step','common_step_counter')},
         physics_ticks=env.physics_ticks,newton_source=env.plant.receipt,
+        numerical_reset_counts=env.numerical_reset_counts.clone(),
+        solver_overflow_latched=env.solver_overflow_latched.clone(),
         resume_scope='Full PPO/DR/RNG/queue continuation, then one fresh physical episode')
     path=Path(path);tmp=path.with_name(path.name+'.partial')
     with tmp.open('wb')as f:torch.save(value,f);f.flush();os.fsync(f.fileno())

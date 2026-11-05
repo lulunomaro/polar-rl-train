@@ -79,6 +79,8 @@ def main():
             progress=dict(epoch=time.time(),iteration=iteration+1,physics_ticks=env.physics_ticks,
                 collection_seconds=collection,learning_seconds=learning,
                 samples_per_second=a.num_envs*24/(collection+learning),
+                numerical_resets=int(env.numerical_reset_counts.sum()),
+                solver_overflow_world_masks=env.solver_overflow_summary(),
                 gradient=grads.copy(),jump200_completed=env.completed_strict,
                 losses={k:float(v)for k,v in losses.items()})
             put(job/'LATEST_PROGRESS.json',progress)
@@ -92,6 +94,8 @@ def main():
         final=save(runner,env,job/'model_final.pt')
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=final,
             PPO_updates=runner.current_learning_iteration-first_iteration,
+            numerical_resets=int(env.numerical_reset_counts.sum()),
+            solver_overflow_world_masks=env.solver_overflow_summary(),
             jump200_completed=env.completed_strict,episodes_completed=env.completed_episodes))
         started=False
     except BaseException:

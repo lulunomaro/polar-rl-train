@@ -2,7 +2,9 @@
 
 2026-11-06最新要求实际使用Newton/MuJoCo-Warp；`newton_model.py`、`newton_env.py`、`newton_checkpoint.py`、`newton_train.py`与`newton_evaluate.py`实现Kit独立的Newton SolverMuJoCo桥接。明确更换物理解算器，保留原模型、6闭环/4mimic、300N60mm气缸、D0–D7组件、35/78观测、复旦16项公式和完整PPO状态。当前不是Isaac Lab3管理器全迁移。正式20k状态与速度以工作单真实FIRST为准，小批量PPO或局部测试不能冒称生产成功。
 
-用户要求先启动真实一小时PPO，再在训练中开发SuperMimic BPTT兼容。现有mod4-10已改为同聊天每30分钟ACTIVE：训练中做兼容，没训练优先评测/回放/续训；真200mm跳跃达标后换Isaac Lab台阶地图，SuperMimic实际梯度、更新和保存兼容通过后在保存边界切换。执行条件和原话见`NEWTON_MIGRATION_AND_SUPERMIMIC.md`与工作单；原mod4-200-rl-bptt保持PAUSED。
+用户要求先启动真实一小时PPO，再在训练中开发SuperMimic BPTT兼容。现有mod4-10已改为同聊天每30分钟ACTIVE：训练中做兼容，没训练优先评测/回放/续训；真200mm跳跃达标后换Isaac Lab台阶地图，SuperMimic实际梯度、更新和保存兼容通过后在保存边界切换。执行条件和原话见`NEWTON_MIGRATION_AND_SUPERMIMIC.md`与工作单。实际mod4-200-rl-bptt属于其它聊天的ACTIVE任务，不修改它。
+
+实际Newton FIRST621已通过，20k首轮23483.90控制step/s，采样20.17294s、学习0.266594s。小批量H32 SuperMimic真实梯度/更新及四优化器replay保存恢复已通过，正式worker/eval尚待完成。速度诊断修复了每control重复解析YAML与重建扫描网格，三组姿态输出零差，本地128环境8control总耗时2.45458→1.13243s；这不是20k生产提速结果。线搜索逐world GPU打印改为原native overflow位累积和每轮汇总，4环境实际PPO通过；求解配置保持。当前active冻结包不热改，下一保存边界应用候选并实测。
 
 2026-11-06最新人类要求先用复旦奖励学习压腿跳跃，并明确不再因账本等待，直接训练。当前选择复旦`yly-true/fudan_rl_wheel_leg`固定commit `8204e853dfd2ed06d85a322e1a998c3d20a3be2c` 的jump完整16项奖励及原逐项裁剪。`fudan_source.py`直接抽取18个原方法，`FUDAN_SOURCE.json`记录原字节SHA、行号、权重与来源；没有混入华南虎基础奖励或weight12速度项。MOD4v2实测body-frame hip锚点到轮心的矢状面长度/角度替代参考机器人连杆公式；保留原0.16m空中收腿、0.31m接地正vz伸腿、0.65m腾空高度目标及contact OR滤波。15项CPU检查已通过。
 

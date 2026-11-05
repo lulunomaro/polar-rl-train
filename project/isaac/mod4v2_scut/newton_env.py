@@ -234,6 +234,18 @@ class NewtonEnv:
         self.physics_observer = None
         self.physics_graphs = {}
         self.physics_eager_warmed = False
+        self.numerical_reset_counts=torch.zeros(n,dtype=torch.long,device=device)
+        self.numerical_reset_events=[]
+        self.solver_overflow_latched=torch.zeros(n,dtype=torch.int32,device=device)
+        # The footprint is fixed for this environment. Loading its source YAML
+        # and recreating its grid at50Hz dominated the local sampling profile.
+        scan = ground_scan_config()
+        sx, sy = scan['size']; res = scan['resolution']
+        x = torch.linspace(-sx/2, sx/2, int(sx/res)+1, device=device)
+        y = torch.linspace(-sy/2, sy/2, int(sy/res)+1, device=device)
+        xx, yy = torch.meshgrid(x, y, indexing='ij')
+        self.scan_offsets = torch.stack((xx.flatten(), yy.flatten(),
+                                        torch.zeros(xx.numel(), device=device)), -1)
         self._last_observations = None
         self.reset(torch.arange(n,device=device))
 
@@ -349,12 +361,7 @@ class NewtonEnv:
 
     def scans(self):
         d,r=self.data,self.reward
-        scan=ground_scan_config()
-        sx,sy=scan['size'];res=scan['resolution']
-        x=torch.linspace(-sx/2,sx/2,int(sx/res)+1,device=self.device)
-        y=torch.linspace(-sy/2,sy/2,int(sy/res)+1,device=self.device)
-        xx,yy=torch.meshgrid(x,y,indexing='ij')
-        offsets=torch.stack((xx.flatten(),yy.flatten(),torch.zeros(xx.numel(),device=self.device)),-1)
+        offsets=self.scan_offsets
         yaw=euler_xyz_from_quat(d.root_quat_w)[2]
         q=quat_from_euler_xyz(torch.zeros_like(yaw),torch.zeros_like(yaw),yaw)
         points=d.root_pos_w[:,None]+quat_apply(q[:,None].expand(-1,len(offsets),-1),offsets[None].expand(self.num_envs,-1,-1))
@@ -382,6 +389,7 @@ class NewtonEnv:
 
     def step(self,actions):
         p,d,r=self.plant,self.data,self.reward
+        numerical_latched=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)
         applied=actions.clamp(-6.,6.)
         self.pending_actions.copy_(applied)
         targets=applied[:,:4]*.5
@@ -431,7 +439,23 @@ class NewtonEnv:
                 self.physics_eager_warmed=True
             p.state,p.next_state=p.next_state,p.state
             self.physics_ticks+=1
+            self.solver_overflow_latched.bitwise_or_(wp.to_torch(p.solver.mjw_data.overflow))
             self.update_data()
+            finite=(torch.isfinite(d.joint_pos).all(-1)&torch.isfinite(d.joint_vel).all(-1)
+                    &torch.isfinite(d.body_pos_w).flatten(1).all(-1)
+                    &torch.isfinite(d.body_quat_w).flatten(1).all(-1)
+                    &torch.isfinite(d.body_lin_vel_w).flatten(1).all(-1))
+            badids=(~finite).nonzero().flatten()
+            if len(badids):
+                numerical_latched[badids]=True
+                self.numerical_reset_counts[badids]+=1
+                event=dict(physics_tick=self.physics_ticks,count=len(badids),envs=badids[:32].tolist())
+                if len(self.numerical_reset_events)<200:self.numerical_reset_events.append(event)
+                print('NEWTON_NUMERICAL_EPISODE_RESET '+json.dumps(event),flush=True)
+                # The task's numerical safety is a per-environment episode
+                # reset. Do it before the100Hz sensor rejects invalid state,
+                # clearing MuJoCo warm-start and both physical buffers.
+                self.reset(badids)
             self.sensor.update(p.state,self.contacts,observables=self.observables)
             self.net_force.copy_(wp.to_torch(self.sensor.total_force).reshape(self.num_envs,31,3))
             self.top_force.zero_();self.ground_force.zero_()
@@ -456,12 +480,13 @@ class NewtonEnv:
         ground,wheels,far,far_hits,near,near_hits=self.scans()
         finite=torch.isfinite(d.joint_pos).all(-1)&torch.isfinite(d.joint_vel).all(-1)
         closure,mimic=self.closure_errors()
-        hard=(closure>.01)|(mimic>.01)|~finite
-        r.begin(applied,r.command,r.height_cmd,hard,~finite,self.episode_length_buf,
+        hard=(closure>.01)|(mimic>.01)|~finite|numerical_latched
+        r.begin(applied,r.command,r.height_cmd,hard,~finite|numerical_latched,self.episode_length_buf,
                 self.contact_history,ground,wheels,far,far_hits,near,near_hits)
         terminated,timeout=r._get_dones()
         terminated|=hard;timeout&=~hard
         rewards=r.compute()
+        rewards[numerical_latched]=0.
         self.terminal_snapshot=dict(root_pos=d.root_pos_w.clone(),root_quat=d.root_quat_w.clone(),
             wheels=d.body_pos_w[:,self.wheel_bodies].clone(),top_force=self.top_force.clone(),
             ground_force=self.ground_force.clone(),flight_id=self.acceptance.flight_id.clone(),
@@ -475,6 +500,7 @@ class NewtonEnv:
             joint_target=d.joint_pos_target[:,self.legs].clone(),
             command=r.command.clone(),command_height=r.height_cmd.clone(),
             contact_force=self.net_force.clone())
+        self.terminal_snapshot['numerical_reset']=numerical_latched.clone()
         done=terminated|timeout;ids=done.nonzero().flatten()
         if len(ids):
             self.completed_episodes+=len(ids);self.completed_strict+=int(self.acceptance.success[ids].sum())
@@ -528,6 +554,11 @@ class NewtonEnv:
         if self._last_observations is None:
             self._last_observations=self.observations()
         return self._last_observations
+
+    def solver_overflow_summary(self):
+        """Cumulative world flags survive per-environment solver resets."""
+        values, counts = torch.unique(self.solver_overflow_latched, return_counts=True)
+        return {str(int(v)):int(c) for v,c in zip(values.cpu(),counts.cpu())}
 
     def close(self):
         wp.synchronize()

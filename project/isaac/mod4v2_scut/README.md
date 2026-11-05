@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 06:25最高实际：SuperMimic full1940已完整保存/安全退出/独立80/全部实际回放审阅，1908H32更新与四Adam/replay/RNG完整，但80/80在.68–1.04s导轮06接地终止、0真200mm成功。仅残差输出尺度1→.25候选实测平均5.534s、39/80满7.98s、仍0跳上台，完整恢复测试通过；新段从full1940全部学习状态续训，实际FIRST1941+1H32/fullsave通过，sole75124，SAVE07:23:33。物理、复旦奖励、DR不变。详见`FINAL1940_ALL80_AND_RESIDUAL025_CONTINUATION.md`与工作单。下文05时记录为历史。
+
 2026-11-06 05时更新：Newton上一完整小时实际final881/261新PPO，日志均37325.8控制step/s；独立80仍0真实200mm成功，约束异常原报告保留。新段将原10mm闭链/.01rad mimic重置落实到400Hz，异常control不进入SuperMimic标签。首个20k BPTT段因碰撞工作区显存不足而0更新退出；修复后2.26GB完整replay放内存，仅batch送GPU，保留20k/物理/奖励/H32。环形采样逐值比对、真实4环境H32及四优化器/replay完整恢复通过。正式20k新段实际FIRST/H32跨时间和WM路径梯度、参数变化及2.329GB完整首存均通过，原PPO来源保留；仍有数值/约束重置，技能与稳态速度待本轮独立80和完整日志。见`FINAL881_AND_SUPERMIMIC_MEMORY_REPAIR.md`。
 
 2026-11-06最新要求实际使用Newton/MuJoCo-Warp；`newton_model.py`、`newton_env.py`、`newton_checkpoint.py`、`newton_train.py`与`newton_evaluate.py`实现Kit独立的Newton SolverMuJoCo桥接。明确更换物理解算器，保留原模型、6闭环/4mimic、300N60mm气缸、D0–D7组件、35/78观测、复旦16项公式和完整PPO状态。当前不是Isaac Lab3管理器全迁移。正式20k状态与速度以工作单真实FIRST为准，小批量PPO或局部测试不能冒称生产成功。

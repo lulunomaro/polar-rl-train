@@ -31,7 +31,7 @@ def make_config(Config,small=False):
         log_every=1,seed=9138)
 
 
-def build(env,source,binding,log,small=False):
+def build(env,source,binding,log,small=False,residual_scale=None):
     from rsl_rl.runners import OnPolicyRunner
     Base,Config=load_sources(binding)
     from ctx_reward_learner import capture_rng,restore_rng
@@ -64,6 +64,8 @@ def build(env,source,binding,log,small=False):
         aux_hidden=aux_hidden,aux_batch=cfg.wm_batch)
     if source['format']==FORMAT:learner.restore_full(source)
     else:restore_rng(after_reset_rng)
+    learner.pi.residual_scale=float(source.get('policy_residual_scale',1.)if residual_scale is None else residual_scale)
+    if not 0<learner.pi.residual_scale<=1:raise ValueError('Invalid residual scale')
     gc.collect();torch.cuda.empty_cache()
     return learner,bridge
 
@@ -73,6 +75,7 @@ def save(learner,path,source):
     payload.update(format=FORMAT,reward_family='FUDAN_JUMP',contract_SHA=CONTRACT_SHA,
         actor_dim=35,critic_dim=78,physics_backend='Newton/SolverMuJoCo/MuJoCo-Warp',
         source_PPO=source,source_PPO_optimizers_preserved_at_original_checkpoint=True,
+        policy_residual_scale=learner.pi.residual_scale,
         new_BPTT_optimizers_not_PPO_resume=True)
     path=Path(path);tmp=path.with_name(path.name+'.partial')
     with tmp.open('wb')as stream:torch.save(payload,stream);stream.flush();os.fsync(stream.fileno())
@@ -90,6 +93,7 @@ def main():
     p.add_argument('--save-deadline',type=float,required=True)
     p.add_argument('--small-test',action='store_true')
     p.add_argument('--max-updates',type=int)
+    p.add_argument('--residual-scale',type=float)
     a=p.parse_args();job=Path(a.job_root);job.mkdir(exist_ok=False)
     env=bridge=learner=None;error=None;final_saved=False
     try:
@@ -98,13 +102,27 @@ def main():
         source_ref=source.get('source_PPO',dict(path=a.resume,SHA=a.resume_SHA,
             iteration=source.get('iter'),bytes=Path(a.resume).stat().st_size))
         env=NewtonEnv(a.package,a.components,a.reset_bank,a.num_envs,'cuda:0',9138)
-        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test)
-        initial=learner.iteration;del source
+        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test,a.residual_scale)
+        initial=learner.iteration;initial_counts=asdict(learner.counts)
+        if source['format']==FORMAT:
+            assert initial==source['iteration']
+            assert initial_counts==source['context_reward_extension']['counts']
+            put(job/'FULL_STATE_RESTORE.json',dict(epoch=time.time(),source_path=a.resume,
+                source_SHA=a.resume_SHA,source_iteration=initial,counts=initial_counts,
+                all4_optimizers_replay_RNG_7components_restored=True,
+                source_replay_shape=[learner.buffer.T,learner.buffer.N],
+                source_replay_size=learner.buffer.size,source_replay_ptr=learner.buffer.ptr,
+                teacher_actor_and_learned_models_restored=True,
+                source_policy_residual_scale=source.get('policy_residual_scale',1.),
+                target_policy_residual_scale=learner.pi.residual_scale,
+                fresh_physical_reset=True,exact_solver_state_restored=False))
+        del source
         memory=sum(x.numel()*x.element_size()for x in learner.buffer.data.values())
         put(job/'STARTUP.json',dict(epoch=time.time(),backend='Newton/MuJoCo-Warp',
             learner='SuperMimic learned dynamics/context/reward H32 BPTT',
             reward_family='FUDAN_JUMP',source_PPO=source_ref,model=env.plant.receipt,
             config=asdict(learner.cfg),replay_bytes=memory,
+            policy_residual_scale=learner.pi.residual_scale,
             replay_storage_device=str(learner.buffer.device),
             replay_sample_device=str(learner.buffer.sample_device),
             torch_allocated_bytes=torch.cuda.memory_allocated(),
@@ -133,11 +151,13 @@ def main():
                 controls=bridge.controls,sim_steps=learner.sim_steps,
                 collection_seconds=collection,iteration_seconds=seconds,
                 counts=asdict(learner.counts),wm_losses=losses,auxiliary=learner.last_aux,
+                new_verified_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-initial_counts['pi_bptt_optimizer_steps'],
                 bptt=learner.last_bptt_receipt,numerical_resets=int(env.numerical_reset_counts.sum()),
                 constraint_resets=int(env.constraint_reset_counts.sum()),
                 solver_overflow_world_masks=env.solver_overflow_summary())
             put(job/'LATEST_PROGRESS.json',progress)
-            if not first_saved and learner.last_bptt_receipt.get('verified_bptt_optimizer_step'):
+            if (not first_saved and learner.last_bptt_receipt.get('verified_bptt_optimizer_step')
+                    and learner.counts.pi_bptt_optimizer_steps>initial_counts['pi_bptt_optimizer_steps']):
                 ck=save(learner,job/'model_first_complete.pt',source_ref)
                 put(job/'FIRST_UPDATED.json',dict(**progress,full_save=True,checkpoint=ck,
                     actual_native=True,horizon=32,verified_BPTT=True))

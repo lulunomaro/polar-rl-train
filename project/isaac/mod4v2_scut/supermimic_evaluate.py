@@ -1,6 +1,6 @@
 """The same independent80 protocol, with a saved SuperMimic actor/history."""
 from pathlib import Path
-import argparse,sys
+import argparse,json,sys,time
 import torch
 
 from . import newton_evaluate as protocol
@@ -10,12 +10,13 @@ from .supermimic_newton import load_sources,FudanPPOResidualPolicy
 
 
 class SavedPolicy:
-    def __init__(self,teacher,payload,env):
+    def __init__(self,teacher,payload,env,residual_scale=None):
         from supermimic_vendor_v2.networks import Policy
         cfg=payload['args']
         policy=Policy(35,3*cfg['goal_frames'],hist=cfg['hist'],z_dim=cfg['z_dim'],
             num_joints=6,hidden=tuple(cfg['policy_hidden']))
-        self.actor=FudanPPOResidualPolicy(policy,teacher).to(env.device)
+        scale=payload.get('policy_residual_scale',1.)if residual_scale is None else residual_scale
+        self.actor=FudanPPOResidualPolicy(policy,teacher,scale).to(env.device)
         self.actor.load_state_dict(payload['pi'],strict=True)
         self.actor.eval().requires_grad_(False)
         self.env=env;self.cfg=cfg;self.hist=torch.zeros(env.num_envs,cfg['hist'],35,device=env.device)
@@ -32,17 +33,27 @@ class SavedPolicy:
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--binding',required=True)
+    p.add_argument('--residual-scale',type=float)
     a,remaining=p.parse_known_args();load_sources(a.binding)
     def load(env,path,sha):
         from rsl_rl.runners import OnPolicyRunner
         payload=decode(path,sha)
         if payload['format']!=FORMAT:raise ValueError('Complete SuperMimic checkpoint required')
         runner=OnPolicyRunner(env,runner_config(),None,env.device)
-        return SavedPolicy(runner.alg.actor,payload,env)
+        return SavedPolicy(runner.alg.actor,payload,env,a.residual_scale)
     argv=sys.argv
     try:
         sys.argv=[argv[0],*remaining]
         protocol.main(actor_loader=load)
+        directory=Path(remaining[remaining.index('--job-root')+1])
+        receipt=dict(epoch=time.time(),evaluation_residual_scale_override=a.residual_scale,
+            source_full_checkpoint_unchanged=True,raw_original_policy=a.residual_scale is None,
+            reward_physics_acceptance_changed=False)
+        if a.residual_scale is not None:
+            with(directory/'POLICY_ADAPTER.json').open('x',encoding='utf8')as stream:json.dump(receipt,stream,indent=2)
+            result=json.loads((directory/'RESULT.json').read_bytes())
+            result['policy_adapter']=receipt
+            (directory/'RESULT.json').write_text(json.dumps(result,indent=2),encoding='utf8')
     finally:
         sys.argv=argv
 

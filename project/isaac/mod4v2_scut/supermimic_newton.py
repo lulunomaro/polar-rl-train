@@ -58,9 +58,11 @@ class FudanJumpMdp:
 
 class FudanPPOResidualPolicy(torch.nn.Module):
     """Start from the exact saved PPO mean action, with zero new residual."""
-    def __init__(self,residual,teacher):
+    def __init__(self,residual,teacher,residual_scale=1.):
         super().__init__()
         self.residual,self.teacher=residual,teacher
+        self.residual_scale=float(residual_scale)
+        if not 0<self.residual_scale<=1:raise ValueError('Residual scale must be in(0,1]')
         teacher.eval().requires_grad_(False)
         torch.nn.init.zeros_(residual.dec[-1].weight)
         torch.nn.init.zeros_(residual.dec[-1].bias)
@@ -75,7 +77,7 @@ class FudanPPOResidualPolicy(torch.nn.Module):
         current=history[...,-1,:35]
         observation=TensorDict(dict(policy=current),batch_size=list(current.shape[:-1]))
         base=self.teacher(observation,stochastic_output=False)
-        return (base+self.residual(history,goal).tanh()).clamp(-6,6)
+        return (base+self.residual_scale*self.residual(history,goal).tanh()).clamp(-6,6)
 
 
 def warmstarted_learner(base_learner,teacher,replay_storage='cpu'):

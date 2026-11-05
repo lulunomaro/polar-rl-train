@@ -1,3 +1,7 @@
+## 2026-11-05 最新：停止旧版并改用MOD4v2重训跳跃
+
+人类明确：“全部停止，现在把模型换到mod4v2模型，然后重训跳跃，用华南虎奖励”。旧MOD4v1训练与两项旧自动接续已暂停；新任务使用已发布HW300N60 MOD4v2、华南虎固定源码奖励，从随机actor/critic/STD与新Adam重训单200mm跳跃。原canonical/strictreserve/逐小时完整保存退出后独立80和实际回放保持。实际OmniPhysics110不支持发布USD的无限角mimic与单侧角界，独立新任务使用开放端1e20deg数值哨兵的等效表达，真实CAD止挡/300N60mm不变；原资产及失败保留。当前执行见history/reviews/20261105-mod4v2-scut-jump200/WORK_ORDER.json，旧工作单只作历史。
+
 # MOD4 Git 记录必须遵守
 
 ## 200mm跳台阶持续训练授权（2026-11-05）

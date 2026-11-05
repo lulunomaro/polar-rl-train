@@ -1,0 +1,20 @@
+"""New native-implementation purpose after the actual A4 shared-stop failure and full release."""
+from pathlib import Path
+import json,ast
+D=Path(__file__).resolve().parent;truth=json.loads((D/'ADMISSION4_NATIVE_LIMIT_FAILURE_SUMMARY.json').read_bytes());assert truth['missing_finite_mechanical_endpoint_count']==10 and truth['source_weights_read_or_decode']==truth['new_PPO_updates']==0 and truth['other_eight_GO']is False and all(truth['original_owner_exit'][k]is True for k in('all_own_children_waited','original_cost_settled','original_private_finite_authority_leases_released'))and truth['outer_actual_wait']['original_owner_reaped']is True
+receipt=json.loads((D/'PHYSX_REPR2_BUILD_RECEIPT.json').read_text(encoding='utf-8-sig'));local=json.loads((D/'PHYSX_REPR2_LOCAL_VALIDATION.json').read_bytes());assert local['passed']is True and all(local['checks'].values())and local['native_PhysX_verified']is False;usd=receipt['output_bindings_sha256']['assets/robot.usd'];contract=receipt['output_bindings_sha256']['assets/import_contract.json'];assert usd!='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18'and contract!='00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e'
+outputs={};owner=(D/'source_owner_v2_native_gate/migration_nine_original_owner_v1.py').read_text(encoding='utf8');owner=owner.replace('2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18',usd).replace('00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e',contract);outputs[D/'source_owner_v3_physx_repr/migration_nine_original_owner_v1.py']=owner
+stager=(D/'stage_nine_nonpt_runtime_v2.py').read_text(encoding='utf8').replace('worker_mod4v2_expert_migration_v2.py','worker_mod4v2_expert_migration_v3.py').replace('stage_nine_nonpt_runtime_v2.py','stage_nine_nonpt_runtime_v3.py');outputs[D/'stage_nine_nonpt_runtime_v3.py']=stager
+for old,new in [('stage_nine_migration_admission4_once.py','stage_nine_migration_admission5_once.py'),('dispatch_nine_migration_admission4_once.py','dispatch_nine_migration_admission5_once.py'),('collect_nine_migration_admission4_once.py','collect_nine_migration_admission5_once.py')]:
+ s=(D/old).read_text(encoding='utf8').replace('ADMISSION4','ADMISSION5').replace('admission4','admission5')
+ if old.startswith('stage_'):
+  a="D=Path(__file__).resolve().parent;";assert s.count(a)==1;s=s.replace(a,a+"native4=json.loads((D/'ADMISSION4_NATIVE_LIMIT_FAILURE_SUMMARY.json').read_bytes());assert native4['missing_finite_mechanical_endpoint_count']==10 and native4['source_weights_read_or_decode']==native4['new_PPO_updates']==0 and native4['other_eight_GO']is False and native4['original_owner_exit']['all_own_children_waited']is native4['original_owner_exit']['original_cost_settled']is native4['original_owner_exit']['original_private_finite_authority_leases_released']is True;")
+  s=s.replace('source_owner_v2_native_gate/migration_nine_original_owner_v1.py','source_owner_v3_physx_repr/migration_nine_original_owner_v1.py').replace('worker_mod4v2_expert_migration_v2.py','worker_mod4v2_expert_migration_v3.py').replace('stage_nine_nonpt_runtime_v2.py','stage_nine_nonpt_runtime_v3.py').replace('candidates/HW300N60/package','candidates/HW300N60_PHYSX_REPR_V2/package')
+  a="(P.parent/'VALIDATION.json').read_bytes()";assert s.count(a)==1;s=s.replace(a,"(D/'PHYSX_REPR2_LOCAL_VALIDATION.json').read_bytes()")
+ outputs[D/new]=s
+for p,s in outputs.items():assert not p.exists();ast.parse(s);compile(s,str(p),'exec')
+a=ast.parse((D/'source_owner_v2_native_gate/migration_nine_original_owner_v1.py').read_text(encoding='utf8'));b=ast.parse(owner)
+for x in a.body:
+ if isinstance(x,ast.FunctionDef):assert ast.dump(x,include_attributes=False)==ast.dump(next(y for y in b.body if isinstance(y,ast.FunctionDef)and y.name==x.name),include_attributes=False),x.name
+for p,s in outputs.items():p.parent.mkdir(parents=True,exist_ok=True);p.write_text(s,encoding='utf8',newline='\n')
+print('A5 new target pins/worker3/nonPT entries prepared; owner functions incl resource/account/nativegate/actualwait exact; local24 not native pass; no remote/SDK/model execution')

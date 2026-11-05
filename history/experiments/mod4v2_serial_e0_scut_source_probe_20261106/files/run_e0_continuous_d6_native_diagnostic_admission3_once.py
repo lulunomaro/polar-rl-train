@@ -1,0 +1,6 @@
+"""New no-policy measurement purpose: independently serialize native pose comparison previously unavailable."""
+from pathlib import Path
+import json
+D=Path(__file__).resolve().parent;r=json.loads((D/'E0_D6_NATIVE_DIAGNOSTIC_ADMISSION2_CLOSED_RESULT.json').read_bytes());assert r['outer_actual_wait']['original_parent_reaped']is True and r['outer_actual_wait']['actual_wait_returncode']==0 and all(x['semantic_qualification']['qualified']is True for x in r['metadata']['TERMINAL_ROWS.json']);summary=json.loads((D/'E0_D6_NATIVE_DIAGNOSTIC_SUMMARY_V1.json').read_bytes());assert summary['cache_comparison_unknown']is True and summary['PT_IO']['physical_PT_opens']==summary['PPO_updates']==0
+s=(D/'run_e0_continuous_d6_native_diagnostic_admission2_once.py').read_text(encoding='utf8').replace('E0_D6_NATIVE_DIAGNOSTIC_ADMISSION2_','E0_D6_NATIVE_DIAGNOSTIC_ADMISSION3_').replace('MOD4V2_E0_CONTINUOUS_D6_NATIVE_DIAG_ADMISSION2_','MOD4V2_E0_CONTINUOUS_D6_NATIVE_DIAG_ADMISSION3_')
+a="s=(D/'run_e0_continuous_d6_native_diagnostic_once.py').read_text(encoding='utf8')";assert s.count(a)==1;s=s.replace(a,a+".replace('worker_e0_mimic_native_diagnostic_v1.py','worker_e0_mimic_native_diagnostic_v2.py')");exec(compile(s,str(Path(__file__)),'exec'),{'__name__':'__main__','__file__':str(Path(__file__))})

@@ -1,0 +1,4 @@
+"""Keep the actual E0 completed failure as readable lines, metadata only."""
+from pathlib import Path
+import json
+D=Path(__file__).resolve().parent;out=D/'E0_SINGLE_A2_ACTUAL_FAILURE.txt';assert not out.exists();p=json.loads((D/'E0_SINGLE_ADMISSION2_CLOSED_RESULT_PATH.json').read_bytes())['path'];v=json.loads(Path(p).read_bytes());e=v['metadata']['OWNER_EXIT_ACTUAL.json'];assert v['closed']is True and e['all_own_children_waited']is e['original_cost_settled']is e['original_private_finite_authority_leases_released']is True;f=v['cases']['E0']['V2_MIGRATION_FINAL.json'];out.write_text(f['error'],encoding='utf8');print(json.dumps(dict(path=str(out),last_error_lines=f['error'].splitlines()[-18:],source_weights_loaded=v['cases']['E0']['V2_LEARNER_LOADED.json']is not None,actual_new_updates=f.get('new_updates'),actual_wait=v['metadata']['OUTER_OWNER_WAIT_ACTUAL.json']),indent=2))

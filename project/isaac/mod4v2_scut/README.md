@@ -25,3 +25,14 @@ final239之后选择同一固定华南虎源码的`takeoff_vel_z`奖励：仅pus
 第二次0PPO失败来自旧motor_stop_terms对连续关节None端点的假设；新v2奖励适配器明确将4个无独立角界电机的限位辅助代价返回0，不修改SCUT奖励公式和权重。6CPU和3phase真实源reward调用的合成端点均有限；独立rewardapi03已启动，FIRST以实际回传为准。
 
 首轮实际完成60次PPO更新（28.8M样本），final60已完整保存并回传，训练和原owner安全退出。随后的独立80评测在导出场地时访问了旧scut_step270网格，实际场地为scut_jump200，因此RESULT/ALL80未生成，不能称评测通过。v2 configure现同步共享配置选出的MESH，单项CPU验证通过；旧冻结生产包和原始错误保留。补评测仅用同一final60、0优化器操作，在原canonical和锁释放后进行，不重训。
+# Warp sampling replacement (2026-11-06)
+
+Human authorized replacing the sampling flow using `basic_loco_lib`.
+`warp_train.py` enables GPU kernels and CUDA graphs for400Hz contact reduction
+and jump acceptance plus the50Hz16-term Fudan reward. `warp_tests.py` compares
+the existing equations and state transitions, including resets. The initial
+replacement keeps PhysX TGS32/4; full Newton backend migration is not claimed.
+The old active segment is frozen; switch only from its actual complete final
+after independent80 and native saved-pose review. Local component benchmarks
+are not an end-to-end throughput result. See `WARP_SAMPLING_REPLACEMENT.md` in
+the v2 review directory for actual timings, limits and retained failures.

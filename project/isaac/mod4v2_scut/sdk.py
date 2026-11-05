@@ -118,6 +118,10 @@ class ScutBridge(_source.ScutBridge):
             tuck_length_m=.16, extend_length_m=.31, flight_base_height_m=.65,
             original_contact_filter='vertical wheel force>1N OR previouscontrol contact',
             SCUT_reward_terms_active=False, physical_assists=False))
+        if os.environ.get('MOD4_WARP_SAMPLING') == '1':
+            from .warp_sampling import install
+            receipt = install(self)
+            put(Path(os.environ['MOD4V1_E0_JOB_ROOT']) / 'WARP_SAMPLING.json', receipt)
 
     def snapshot(self, terminated, timeout):
         value = super().snapshot(terminated, timeout)

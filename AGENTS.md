@@ -56,3 +56,12 @@
 2026-11-01人类明确更新：“还有闭链误差调整到10mm终止”。未来新MOD4训练和评测采用0.01m单环境episode重置，覆盖历史2mm数值；实体闭环、奖励、solver和mimic .01rad不因此修改。原2mm记录和冻结source/INDEX/once不可改写；旧未执行2mm任务需另建10mm版本和新准入。按[门槛范围与历史依据](docs/NUMERICAL_AUDIT_AND_TRAINING_GUARDS_20261021.md)的最新更新执行。
 
 人类2026-10-21核历史后明确“以后按照这个继续”。遵守[门槛范围与历史依据](docs/NUMERICAL_AUDIT_AND_TRAINING_GUARDS_20261021.md)：已选2.5ms/TGS32/4；闭链2mm是单环境重置，单峰不整批停训/回退1ms；查询1µm仅特定数值核验，不能升级成统一物理健康或毕业线。不要再用额外FP64、逐位相等、维度不符的三角边缘条件等新增审计规则反复阻断已授权工作。复用已过同源证据；原失败、实际任务所需检查与非有限/完整性/硬件/完整保存保护保留。
+## 2026-11-06 采样加速替换授权
+
+人类明确“用这套流程替换我们现在的，来加速我们训练”，参考
+PoplarCrystal/basic_loco_lib。当前适配Warp融合kernel/预分配GPU输出/
+CUDA Graph采样，保留MOD4v2/复旦奖励/原物理与完整学习状态。
+已运行的冻结segment不热改，原owner保存安全退出后独立80/实际回放，
+从实际final接续。局部synthetic kernel测速不称整轮提速；原PhysX未换
+Newton时如实标记，不冒称完整第三方框架迁移。执行见v2工作单和
+WARP_SAMPLING_REPLACEMENT.md。人类直接训练/noledger最高指令保持。

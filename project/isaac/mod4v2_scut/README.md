@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 11:41最高实际：原小时完整final3786/独立80/唯一全诊断/全4actualpose审完，0跳上200mm；原sole79388已退出。新`supermimic_final3786_sampling_1h`从全部学习状态恢复，实际FIRST3787新增1真H32+fullsave，sole78196，SAVE12:39:47.665763。11:41:03返回LATEST3792暖轮总40845.33step/s、采样80549.99；含冷首轮六轮平均22494.00，含初始化首存worker4304.94，非整小时均值。先读WORK_ORDER.sampling_optimization_current与`OFFICIAL_SAMPLING_OPTIMIZATION.md`，下文10时原小时为历史。
+
 2026-11-06采样优化：对照basic_loco_lib固定commit后，新增`--sampling-optimization`，融合400Hz闭链/验收和50Hz复旦16项，并保留四Adam状态启用fused执行、learned几何TorchScript图执行。真实本地128环境隔离ABBA总训练吞吐1.44394倍、采样1.78536倍；输出/梯度/完整恢复后H32通过。当前冻结小时不热改，2万环境生产收益待保存评测回放后接入实测。见`OFFICIAL_SAMPLING_OPTIMIZATION.md`与工作单sampling_optimization_20261106。
 
 2026-11-06 10:32最高实际：原服务器重启，旧窗无final；已完成幸存fullFIRST1941的独立80/唯一全状态诊断/全部4实际姿态图审阅，0成功。新增每300s原子完整保存已真实测试恢复后H32通过；新段supermimic_first1941_reboot_periodic_1h实际FIRST1942/fullsave和完整恢复有效，sole79388，SAVE11:30:26.533121。先读HOST_REBOOT_FIRST1941_RECOVERY.md及WORK_ORDER.reboot_recovery_and_periodic_continuation，下文网络故障/旧sole均为历史。

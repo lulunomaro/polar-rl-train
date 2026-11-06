@@ -1,0 +1,23 @@
+{
+  "epoch": 1793936382.975028,
+  "rows": [
+    {
+      "ProcessId": 78648,
+      "ParentProcessId": 20600,
+      "CreationDate": "2026-11-06T11:39:38.705635+08:00",
+      "ExecutablePath": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "CommandLine": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\n@'\nfrom pathlib import Path\nimport sys,json,shlex\nr=Path('F:/RMPOLAR-RL/mod4_standing_step200_rlbptt_20261103');d=r/'newton_standing42';sys.path.insert(0,str(r/'scut_native_v36'))\nfrom host_access import connect\nc,restore,py=connect('72')\ntry:\n root=json.loads((d/'PLAN.json').read_bytes())['remote_root']\n code=\\\"import mujoco_warp,pathlib,json;p=pathlib.Path(mujoco_warp.__file__).parent/'_src/collision_convex.py';t=p.read_text();start=t.index('# pre-initialize first 2 vertices');print(t[start-400:start+1400])\\\"\n i,o,e=c.exec_command(shlex.quote(root+'/run-newton.sh')+' -B -c '+shlex.quote(code));i.close();print(o.read().decode());print(e.read().decode()[-300:])\nfinally:c.close();restore()\n'@ | & 'C:/Users/lulu/AppData/Local/Programs/Python/Python314/python.exe' -B -X utf8 -\""
+    },
+    {
+      "ProcessId": 58916,
+      "ParentProcessId": 20484,
+      "CreationDate": "2026-11-06T11:39:41.109395+08:00",
+      "ExecutablePath": "C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "CommandLine": "\"C:\\Users\\lulu\\AppData\\Local\\Programs\\Python\\Python314\\python.exe\" -B -X utf8 F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v2_scut_jump200_20261105/newton_control.py launch --root F:/RMPOLAR-RL/mjcf_mod4_h1_archive_01a1967f_20261102/runs/mod4v2_scut_jump200_20261105/supermimic_final3786_sampling_1h"
+    }
+  ],
+  "local_controller_inventory_informational": true,
+  "global_local_serial_wait_removed": true,
+  "human_authorization": "不用等控制器释放，账本共用，直接开训别浪费时间",
+  "server_canonical_and_actual_GPU_leases_authoritative": true
+}

@@ -15,3 +15,11 @@
 production build完整恢复测试12已通过新H32；CLI13从fixture iteration1到2仍在原32轮warmup，0新BPTT，保留且不当策略更新证据。新CLI14只调整随机fixture调度到32，所有学习张量/Adam保留，真实运行到33新增1次H32/4WM4aux4critic并完整fullsave/safeclose，0数值/约束重置。不是生产检查点或技能测试。
 
 当前原小时冻结supermimic_first1941_reboot_periodic_1h及sole79388不改。原SAVE11:30:26.533121、soleSAVE+45开始正式回传；先fullsave/release/独立80/全4actualpose，再按证据用prepare_sampling_continuation.py从实际final接入。原400Hz重置、物理/DR/命令/复旦16、residual.25和300秒原子完整保存保持。2万环境生产总step/s待实际下一FIRST/窗口回执，不能直接把旧27315.87乘本地1.44宣称新速度。
+
+11:41实际接入更新：原小时完整final3786/source1941+1845H32、9226万新样本、owner3648.248223s含初始化/周期保存/80，实际总25288.85step/s；最后一轮60000/2.064444=29063.52，采样47267.77，均值与快照区分。完整四Adam步数pi3754/WMaux15144/critic15016、64x20kreplay1279964valid/36invalid且streamcut/7组件RNG完整；唯一final解码完成。周期最后3766完整2328856927B有真实回执。独立80平均4.8135s、36timeout44terminated，73upward、0wholeclear/topforce/landing/success；全4earlylate实际姿态当前模型原生审阅，后退短跳/倾倒，未过200mm。原日志全文errors0，但新增612numerical/760constraint，不能说训练数值无风险。
+
+正式supermimic_final3786_sampling_1h用9小文件/共享原件启动，sourcefull3786 SHA d260e491f820f92be587ba7fafd280df1adfaa720d925b347a1bfd514749ea12。实际FIRST3787新增1真H32并首存2328857439B SHA15fa5c7bf7e0dd2409c50187a748ff4160ef651f40cab6712766dc9bddd4daf8，四Adam/replay/RNG/teacher完整恢复且原residual.25。STARTUP确认Warp400Hz/50Hz、fused4Adam及TorchScript几何启用，0新FIRST数值/约束重置；大有限梯度和loss不当技能。原launch58916正常退出，sole78196/create11:41:03.350977负责本轮保存后正式回传。
+
+11:41:03.493781历史LATEST3792/6新H32快照：60000/1.468956=**40845.33总训练step/s**，采样**80549.99step/s**。相对上一最后轮约1.405倍仅两个快照，非同状态ABBA或小时均值。首轮含编译5970.72、六轮含冷首轮窗口22494.00、含初始化和首存worker4304.94，均原数保留，不能用暖轮覆盖冷启动。整小时平均待本轮真正返回。
+
+actualGO11:39:47.665763/SAVE12:39:47.665763/NOMINAL12:44:47.665763，北京时间2026-11-06；soleSAVE+45=12:40:32.665763。健康只查本地exact78196/children/reports，不二次SSH/reader/FIRST/PTdecode/hotpatch。新累计前67791.168398秒仍为原中断保守上界+已知实耗，非捏造实际GPU成本。下一小时据final/80/回放和真实吞吐再修，未进入台阶地图。

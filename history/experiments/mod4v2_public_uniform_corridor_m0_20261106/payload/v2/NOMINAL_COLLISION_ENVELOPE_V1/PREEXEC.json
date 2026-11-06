@@ -1,0 +1,14 @@
+{
+  "task": "NEW_NOMINAL_P0_ROOT_RELATIVE_ALL_ROBOT_GEOM_AABB_ONE_FORWARD",
+  "package": "F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package",
+  "nominal_gain": "F:/RMPOLAR-RL/mod4v2_lqr_mpc_robust_20261106/nominal_gain_v2.json",
+  "source_read_before_design": "P0 kinematics_v2.set_configuration245-266: absolutehip/crank, checks both legs and applies passive/drive values then exactly one mj_forward; root untouched. Do not call q_from.",
+  "qpos_plan": "One MjData from originalP0; floating_base translation0 and nominal yaw/pitch from gain.q; roll0; wheel spins0; set_configuration once with absolute hip=q[3/5],crank=hip+delta, check_limits=True. Setter consumes soleforward.",
+  "budgets": {"model_compile": 1, "new_MjData": 1, "mj_forward": 1, "integration": 0, "statics_DARE_oldQA_raw_Git_Goal_hardware_newagents": 0},
+  "geometry": "All geom_bodyid>0 expected311, excludingworld plane; separate collision(contype|conaffinity)!=0 and visual+collision all. Local box center=geom_aabb[:3],halfsize=geom_aabb[3:],8corners -> geom_xmat/xpos -> ROOT frame. No second mesh_pos/quat transform.",
+  "unknown_policy": "nonfinite/negative/allzero halfsize or unexpected shape/type/geom count preserved as unknown, incomplete group output null; no replacement/extra forward/run.",
+  "source_semantics": "installedmjmodel.h471 center,size; official MuJoCo BVH MakeBVH uses AABB0-3 and AABB0+3 and all8vertices. https://raw.githubusercontent.com/google-deepmind/mujoco/main/src/user/user_objects.cc ; main is not version-pinned. Numeric primitive halfsize cross-check uses same compiled arrays only.",
+  "not_qualification": "source geometry not measuredrobot; nominal fixedjoints only, no joint-domain sweep/dynamics/contact/stability/terrain passage/clearance certification",
+  "source_options": "original XML option/dynamics unchanged; only in-memory meshdir absolute resolution for compilation; no addedCAD",
+  "execution": "one new script once, exclusiveprefix/result, CPU affinity1 if available, OPENBLAS/OMP/MKL1; no rerun"
+}

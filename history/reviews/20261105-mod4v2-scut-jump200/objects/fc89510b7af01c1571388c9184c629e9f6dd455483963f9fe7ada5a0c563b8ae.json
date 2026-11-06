@@ -1,0 +1,144 @@
+{
+  "callback": "Unmodified Se3KeyboardMobile._trigger_manual_jump",
+  "env_has_trigger_manual_jump": false,
+  "env_has_request_jump_takeoff": true,
+  "stdout": "[WARNING] 当前环境不支持手动跳跃触发\n",
+  "original_saved_state_machines": false,
+  "original_saved_jump": {
+    "enabled": false,
+    "allowed_terrain_names": [],
+    "not_allowed_terrain_names": [],
+    "enter": {
+      "wheel_radius": 0.06
+    },
+    "trajectory": {
+      "enabled": false,
+      "peak_height": [
+        0.45,
+        0.65
+      ],
+      "peak_height_bins": {
+        "enabled": false,
+        "bins": [
+          {
+            "range": [
+              0.45,
+              0.5
+            ],
+            "prob": 1.0
+          },
+          {
+            "range": [
+              0.5,
+              0.6
+            ],
+            "prob": 1.0
+          },
+          {
+            "range": [
+              0.6,
+              0.65
+            ],
+            "prob": 1.0
+          }
+        ]
+      },
+      "push_start_height": 0.2,
+      "release_height": 0.38,
+      "gravity": 9.81,
+      "use_fixed_phase_duration": false,
+      "phase_duration_s": 0.5,
+      "exit_time_scale_after_peak": 1.3,
+      "min_duration_s": 0.2,
+      "tuck_start_height": 0.38,
+      "tuck_timing_mode": "dynamic_push_time",
+      "tuck_start_time_offset_s": 0.05,
+      "fixed_tuck_time_s": 0.14,
+      "max_release_height": 0.38,
+      "tuck_wheel_air_margin": 0.03
+    },
+    "extra_obs": {
+      "enabled": true,
+      "dim": 7,
+      "layout": [
+        "normal",
+        "stair",
+        "slope",
+        "recover",
+        "jump",
+        "height_target",
+        "state_time"
+      ]
+    },
+    "trigger": {
+      "mode": "flag",
+      "rate_per_s": 0.0,
+      "probability_per_step": null,
+      "min_episode_time_s": 1.0,
+      "cooldown_s": 1.0,
+      "require_tracking": true,
+      "height_error_max": 0.05,
+      "lin_vel_error_max": 0.5
+    },
+    "exit": {
+      "enter_airborne_on_exit": false
+    },
+    "push": {
+      "reward_additions": {}
+    },
+    "assist": {
+      "enabled": false,
+      "type": "force",
+      "decay_mode": "probability",
+      "probability_start": 1.0,
+      "probability_end": 0.0,
+      "iteration_start": 0,
+      "iteration_end": 3000,
+      "steps_per_iteration": 24,
+      "z_velocity": "ref_release",
+      "velocity_timing": "tuck_start",
+      "mode": "set",
+      "max_z_velocity": 5.0,
+      "force_z": 20.0,
+      "missing_velocity_force_gain": 60.0,
+      "force_scale_start": 1.0,
+      "force_scale_end": 0.0,
+      "max_force_z": 120.0,
+      "force_start_time_s": 0.0
+    },
+    "tuck": {
+      "reward_additions": {}
+    },
+    "reward_scales": {}
+  },
+  "original_saved_stair": {
+    "enabled": false,
+    "allowed_terrain_names": [],
+    "not_allowed_terrain_names": [],
+    "scan": {
+      "forward_offset": 0.2
+    },
+    "height_cmd": {
+      "range": [
+        0.4,
+        0.43
+      ]
+    },
+    "success": {
+      "height_error": 0.05,
+      "duration_s": 0.2,
+      "contact_force_threshold": 20.0
+    },
+    "failure": {
+      "drop_threshold": 0.1,
+      "terminate": false
+    },
+    "timeout": {
+      "duration_s": 5.0
+    }
+  },
+  "controller": "stair",
+  "detector": "200",
+  "author_checkpoint_trained_with_these_state_machines": false,
+  "physics_assistance_enabled": false
+}

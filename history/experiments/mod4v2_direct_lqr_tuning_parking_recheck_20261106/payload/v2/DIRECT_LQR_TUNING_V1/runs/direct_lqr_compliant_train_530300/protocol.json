@@ -1,0 +1,193 @@
+{
+  "id": "MOD4V2_HUMAN_DIRECT_LQR_TUNING_001",
+  "status": "fixed_before_any_new_draw",
+  "scope": "Human2026-11-06 requests actual LQR tuning after excessive audit loop. Old nominal FF3 failures retained;new bounded two feedback parameter alternatives,not grid/observer retuning.",
+  "scene": "latest_rm",
+  "zone_key": "t01_nominal_band_m0",
+  "controller": "coord_soft_MOD4v2_fresh_LQR_heading",
+  "pilot": null,
+  "formal_cases": [
+    {
+      "id": "baseline",
+      "seed": 530300,
+      "nominal": false,
+      "profile": "slow",
+      "tuning_name": "baseline",
+      "tuning": {}
+    },
+    {
+      "id": "lqr_damped",
+      "seed": 530300,
+      "nominal": false,
+      "profile": "slow",
+      "tuning_name": "lqr_damped",
+      "tuning": {
+        "pitchrate_weight": 4.0,
+        "velocity_weight": 2.25
+      }
+    },
+    {
+      "id": "lqr_compliant",
+      "seed": 530300,
+      "nominal": false,
+      "profile": "slow",
+      "tuning_name": "lqr_compliant",
+      "tuning": {
+        "pitchrate_weight": 4.0,
+        "velocity_weight": 2.25,
+        "leg_kp": 90.0,
+        "leg_kd": 6.0
+      }
+    }
+  ],
+  "formal_duration_s": 12.0,
+  "slow_command": {
+    "start_s": 2.0,
+    "stop_s": 8.0,
+    "forward_m_s": 0.3,
+    "yaw_rate_rad_s": 0.0
+  },
+  "windows": {
+    "attitude_contact_s": [
+      2.0,
+      12.0
+    ],
+    "steady_slow_s": [
+      3.0,
+      7.0
+    ],
+    "final_stop_s": [
+      9.0,
+      12.0
+    ]
+  },
+  "gates": {
+    "complete_finite_no_auto_reset": true,
+    "max_closure_m": 0.01,
+    "max_mimic_rad": 0.01,
+    "pitch_abs_peak_rad": 0.1,
+    "roll_abs_peak_rad": 0.1,
+    "pitch_rms_rad": 0.035,
+    "roll_rms_rad": 0.035,
+    "stand_xy_drift_m": 0.2,
+    "stand_body_vx_rms_m_s": 0.05,
+    "slow_vx_rmse_m_s": 0.1,
+    "slow_min_progress_m": 1.2,
+    "slow_max_lateral_m": 0.2,
+    "final_stop_body_vx_rms_m_s": 0.05,
+    "contact_normal_threshold_N": 1.0,
+    "each_mainwheel_support_duty_min": 0.95,
+    "guide_support_duty_max": 0.01,
+    "guide_support_longest_s_max": 0.02,
+    "hard_contact_ticks_max": 0,
+    "whole_body_unsupported_ticks_max": 0,
+    "contact_audit_rate_Hz": 2000
+  },
+  "invariants": [
+    "fresh_model_each_case",
+    "DR_once_per_case",
+    "all_world_collision_geoms_not_ground_alias_only",
+    "root_contact_truth_grading_only",
+    "original_robot_PD_D4_DC_and_limits",
+    "no_root_assist_or_teleport"
+  ],
+  "notes": [
+    "Missing contact audit is unavailable, never zero.",
+    "No holdout or old once is rerun or tuned.",
+    "Failed candidates and software prefixes stay preserved; protocol is not relaxed retrospectively.",
+    "New v2 model/controllers only; v1 evidence retained separately.",
+    "Original gas reference guard changed to .1706394410901294, not restored to 400N.",
+    "Fresh v2 Ad/Bd/trim and newly solved configured DARE; old pack.K_6x14 is never assigned.",
+    "An engineering screen on this cylinder-tire P0 is not USD faceted-tire/PhysX/hardware qualification.",
+    "New plan and initial location,not performance retuning or a pass on original flat_run path.",
+    "Same originalM0 controller/runtime;originalcase gates/windows remain,scope diagnostics separate;no additional control mechanism.",
+    "Publicsource floor has transverse tilt;uniform-plane corridor is not horizontal z0 proxy.",
+    "Actual new feedback tuning,not changing observer/gates/model or hiding oldFF failures.",
+    "Engineering score fixed before runs: pitchRMS/.035+rollRMS/.035+vRMSE/.1+stopRMS/.05+.5*lateral/.2. Original whole0 and source scope remain separately visible.",
+    "Any winner is a training recipe pending fresh independent validation;not T01/T36/95percent reliability."
+  ],
+  "robot_source": "mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/mjcf/scene.xml",
+  "robot_collision_representation": "P0 cylinder tires r=.0625 halfwidth=.01 / guides r=.015; NOT old v1 full faceted tire mesh",
+  "source_gates_unchanged_from": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\RM_ROBUSTNESS_V1\\T01_PROTOCOL_V1.json",
+  "direction_sign": 1.0,
+  "public_route": {
+    "source": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\PUBLIC_NOMINAL_BAND_EXPERIMENT_V1\\PLAN.json",
+    "id": "nominal_m0_center_of_existing_source_band_v1",
+    "start_ground_m": [
+      -9.0,
+      -1.353424328589362,
+      -0.03542065645570215
+    ],
+    "goal_ground_m": [
+      -5.5,
+      -1.353424328589362,
+      -0.03542065645625654
+    ],
+    "yaw_rad": 0.0,
+    "change": "New explicit source-audited path before physics;originalCAD/old failures/3of3 frozen unchanged"
+  },
+  "observer": {
+    "motor_2khz": true,
+    "source_time": true,
+    "public_signal_adapter": true,
+    "force_or_FSM_or_controller_connection": false,
+    "original_engine_tick": true,
+    "original_PD_D4_DC_order": true,
+    "old_raw_or_QA_reread": false
+  },
+  "scenario_plan": {
+    "x_full_corridor_m": [
+      -9.676199278318974,
+      -4.854648939210438
+    ],
+    "full_corridor_y_m": [
+      -1.6943287144861547,
+      -1.012519942692569
+    ],
+    "geometry_design_pose_bounds_rad": [
+      0.1,
+      0.1,
+      0.1
+    ],
+    "observed_all311_geometry_AABBs_private_100Hz": true,
+    "limits": "PRE cache age.5ms,not continuous swept volume;scope diagnostics separate from unchanged old score gates"
+  },
+  "old_failed_route_case_ids_retained": [
+    520111,
+    520121,
+    520130,
+    520141,
+    520151
+  ],
+  "controller_unchanged_from_M0": true,
+  "M1_M2_M3_frozen": true,
+  "settings": {
+    "baseline": {},
+    "lqr_damped": {
+      "pitchrate_weight": 4.0,
+      "velocity_weight": 2.25
+    },
+    "lqr_compliant": {
+      "pitchrate_weight": 4.0,
+      "velocity_weight": 2.25,
+      "leg_kp": 90.0,
+      "leg_kd": 6.0
+    }
+  },
+  "tuning_rationale": {
+    "lqr_damped": "Qpitchrate x4 and Qvelocity x2.25 halve allowed rate error and reduce allowed velocity error by1.5;DARE is re-solved on actualv2 Ad/Bd,not postmultiplying oldK.",
+    "lqr_compliant": "Same LQR plus differential Kp120->90 and Kd4->6 to reduce noise/bias stiffness and add damping;no new force FF or terrain oracle."
+  },
+  "execution_policy": {
+    "train_seed": 530300,
+    "independent_validation_seed": 530301,
+    "max_training_settings": 3,
+    "max_parallel_workers": 3,
+    "no_retry_seed_redraw_or_score_window_relax": true,
+    "observer_fixed_original": true,
+    "selection": "Lowest fixed engineering score among eligible;candidate must beat baseline by5percent before one new independent paired validation.",
+    "original_strict_gates_retained": true,
+    "engineering_score_not_skill_pass": true,
+    "oldcases_not_replayed": true
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "id": "MOD4V2_HW300N60_E1_FROZEN_NOMINAL_REGRESSION_NEW_PAIRED_TRAIN_001",
+  "status": "frozen_before_any_new_regression_or_DR_draw",
+  "scope": "Unchanged E1 formula,not E2/new torque/K mechanism. New nominal E1 stand regression;new same-seed baseline/E1 TRAIN pair only if nominal passes all original gates AND observed scope.",
+  "scene": "latest_rm",
+  "zone_key": "t01_nominal_band_m0",
+  "controller": "coord_soft_MOD4v2_fresh_LQR_heading",
+  "pilot": null,
+  "formal_cases": [
+    {
+      "id": "e1_nominal_stand",
+      "seed": 520210,
+      "nominal": true,
+      "profile": "stand",
+      "observer_variant": "E1"
+    },
+    {
+      "id": "fresh_dr_baseline",
+      "seed": 520211,
+      "nominal": false,
+      "profile": "slow",
+      "observer_variant": "baseline"
+    },
+    {
+      "id": "fresh_dr_e1",
+      "seed": 520211,
+      "nominal": false,
+      "profile": "slow",
+      "observer_variant": "E1"
+    }
+  ],
+  "formal_duration_s": 12.0,
+  "slow_command": {
+    "start_s": 2.0,
+    "stop_s": 8.0,
+    "forward_m_s": 0.3,
+    "yaw_rate_rad_s": 0.0
+  },
+  "windows": {
+    "attitude_contact_s": [
+      2.0,
+      12.0
+    ],
+    "steady_slow_s": [
+      3.0,
+      7.0
+    ],
+    "final_stop_s": [
+      9.0,
+      12.0
+    ]
+  },
+  "gates": {
+    "complete_finite_no_auto_reset": true,
+    "max_closure_m": 0.01,
+    "max_mimic_rad": 0.01,
+    "pitch_abs_peak_rad": 0.1,
+    "roll_abs_peak_rad": 0.1,
+    "pitch_rms_rad": 0.035,
+    "roll_rms_rad": 0.035,
+    "stand_xy_drift_m": 0.2,
+    "stand_body_vx_rms_m_s": 0.05,
+    "slow_vx_rmse_m_s": 0.1,
+    "slow_min_progress_m": 1.2,
+    "slow_max_lateral_m": 0.2,
+    "final_stop_body_vx_rms_m_s": 0.05,
+    "contact_normal_threshold_N": 1.0,
+    "each_mainwheel_support_duty_min": 0.95,
+    "guide_support_duty_max": 0.01,
+    "guide_support_longest_s_max": 0.02,
+    "hard_contact_ticks_max": 0,
+    "whole_body_unsupported_ticks_max": 0,
+    "contact_audit_rate_Hz": 2000
+  },
+  "invariants": [
+    "fresh_model_each_case",
+    "DR_once_per_case",
+    "all_world_collision_geoms_not_ground_alias_only",
+    "root_contact_truth_grading_only",
+    "original_robot_PD_D4_DC_and_limits",
+    "no_root_assist_or_teleport"
+  ],
+  "notes": [
+    "Missing contact audit is unavailable, never zero.",
+    "No holdout or old once is rerun or tuned.",
+    "Failed candidates and software prefixes stay preserved; protocol is not relaxed retrospectively.",
+    "New v2 model/controllers only; v1 evidence retained separately.",
+    "Original gas reference guard changed to .1706394410901294, not restored to 400N.",
+    "Fresh v2 Ad/Bd/trim and newly solved configured DARE; old pack.K_6x14 is never assigned.",
+    "An engineering screen on this cylinder-tire P0 is not USD faceted-tire/PhysX/hardware qualification.",
+    "New plan and initial location,not performance retuning or a pass on original flat_run path.",
+    "Same originalM0 controller/runtime;originalcase gates/windows remain,scope diagnostics separate;no additional control mechanism.",
+    "Publicsource floor has transverse tilt;uniform-plane corridor is not horizontal z0 proxy.",
+    "Five new fixed seeds selected without sampling or score search; FullDR draws once on fresh model per case.",
+    "D0-only 20% nominal branch leaves D1-D7 active; report actual drawn delays/gains rather than claiming all delay values were covered.",
+    "Original contact/attitude gates and the separate observed-scope diagnostic stay unchanged. No robustness certificate created.",
+    "Pause wave2 when wave1 fails; no gain changes or additional scenario changes during this frozen screen.",
+    "E1 is actor feedback change. Same-variant witness0 is not baseline-E1 equivalence. Controller torque policy/K/shaper/PD/D4/DC/scene/gates fixed.",
+    "Existing innovation_limit reused,only hard linear innovation multiplier replaced by bounded Cauchy. Norm gate and accel_correction1.5 retained.",
+    "No residual mean subtraction/root teacher/episode parameter inversion/forced D3/draw selection/score-window changes.",
+    "A paired result may worsen or still fail and does not prove gravity gate was unique cause;all outcomes retained.",
+    "R31 adds one new nominal stand regression and one new520211 paired setting,not replay of any completedcase/check/raw.",
+    "E1 formula and original innovation_limit/normgate/K/PD/gates/route unchanged;no E2 coefficient tuning or source-band widening.",
+    "If nominal E1 fails originalscreen OR actual100Hzscope,do not start pairedDR. Both failing scopes remain failures.",
+    "Same seed paired episodes are one independent DR setting,not N2 independent coverage;actual D3/D4 are not forced or preselected."
+  ],
+  "robot_source": "mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/mjcf/scene.xml",
+  "robot_collision_representation": "P0 cylinder tires r=.0625 halfwidth=.01 / guides r=.015; NOT old v1 full faceted tire mesh",
+  "source_gates_unchanged_from": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\RM_ROBUSTNESS_V1\\T01_PROTOCOL_V1.json",
+  "direction_sign": 1.0,
+  "public_route": {
+    "source": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\PUBLIC_NOMINAL_BAND_EXPERIMENT_V1\\PLAN.json",
+    "id": "nominal_m0_center_of_existing_source_band_v1",
+    "start_ground_m": [
+      -9.0,
+      -1.353424328589362,
+      -0.03542065645570215
+    ],
+    "goal_ground_m": [
+      -5.5,
+      -1.353424328589362,
+      -0.03542065645625654
+    ],
+    "yaw_rad": 0.0,
+    "change": "New explicit source-audited path before physics;originalCAD/old failures/3of3 frozen unchanged"
+  },
+  "observer": {
+    "motor_2khz": true,
+    "source_time": true,
+    "public_signal_adapter": true,
+    "force_or_FSM_or_controller_connection": false,
+    "original_engine_tick": true,
+    "original_PD_D4_DC_order": true,
+    "old_raw_or_QA_reread": false
+  },
+  "scenario_plan": {
+    "x_full_corridor_m": [
+      -9.676199278318974,
+      -4.854648939210438
+    ],
+    "full_corridor_y_m": [
+      -1.6943287144861547,
+      -1.012519942692569
+    ],
+    "geometry_design_pose_bounds_rad": [
+      0.1,
+      0.1,
+      0.1
+    ],
+    "observed_all311_geometry_AABBs_private_100Hz": true,
+    "limits": "PRE cache age.5ms,not continuous swept volume;scope diagnostics separate from unchanged old score gates"
+  },
+  "old_failed_route_case_ids_retained": [
+    520111,
+    520121,
+    520130,
+    520141,
+    520151
+  ],
+  "controller_unchanged_from_M0": false,
+  "M1_M2_M3_frozen": true,
+  "frozen_small_sources": [
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\runtime_v2.py",
+      "sha256": "e1e21c31c88e0a373dd73aa05f1c3b637e22bb05691bb0b94e8a5dc8fb043504",
+      "bytes": 3411
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\bridge_v2.py",
+      "sha256": "c273d095794337944ca9281c5ff0d575efba2eb67f2387ff6bf4367fd2f70cbb",
+      "bytes": 5091
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\dr_v2.py",
+      "sha256": "57f0659a9dbdc351130f24bf3f9558c1314319062981ce18859aa5f3ee6c3330",
+      "bytes": 19224
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\model_builder_v2.py",
+      "sha256": "bc98b84431fbaaad97c0f18df83cb19b08b180ba4fa0131156945116e260b2df",
+      "bytes": 3631
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\v2_linearization.py",
+      "sha256": "03faa9017659ffb5298ad311f0c140ca93bc280bea3daf08b53489854392b8aa",
+      "bytes": 5265
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\nominal_gain_v2.json",
+      "sha256": "a4f24e75f4f5c63b78b0e8c69dba8477befd52f235d34a58f0d8fe69c39e4558",
+      "bytes": 33058
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\controller_base_v2.py",
+      "sha256": "761a21908930cc69b86a0047e01180ca5ef3b42bb75404ae566fc339e5e453c3",
+      "bytes": 4267
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\controller_coord_v2.py",
+      "sha256": "b9d74493491614f0dfa8d4f40d9218436b9afc6ef4e6cc36cd90bb391a05db79",
+      "bytes": 2899
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\controller_roll_v2.py",
+      "sha256": "243ea22b1ef7b5f16f79a8b5c33618d6f7151c08182d99d3b064a09b7765e0d3",
+      "bytes": 5778
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\controller_heading_v2.py",
+      "sha256": "57628da183d9f9fd8578b95e5977166191c72b2984f483598900991412a1a3d4",
+      "bytes": 2914
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\observed_bridge_v1.py",
+      "sha256": "bb7909cc32b6b0df8a3d474962358879586f44f2c77621645345eefdbea627e7",
+      "bytes": 554
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\actuation_telemetry_v1.py",
+      "sha256": "8857cba91b3924fd8ec39daae01d241bc6d70b3783d15adad267c6fbb0806d33",
+      "bytes": 4261
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\public_signal_adapter_v1.py",
+      "sha256": "0947dc1628a2aaf940f532bd572e84b6abb34ae50ed77078f3968bfd06586b85",
+      "bytes": 4030
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\signal_alignment_v1.py",
+      "sha256": "eddbe301e4d85226065b80faaed22977947a5fced941487c64e6252bd0138091",
+      "bytes": 10566
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\diagnostic_stream_v1.py",
+      "sha256": "c7b4a3c9f922973ecd3a90bbe4a91b261e52f2391bb9a1aa114300d9027a4198",
+      "bytes": 5144
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\SENSOR_TIME_METADATA_V1\\publisher.py",
+      "sha256": "214a1a20ab4cff691a54c5c5ef2f2f7ca9c643bacb456a048c8b16cfab96055d",
+      "bytes": 10219
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\observer_audit_v1.py",
+      "bytes": 9913,
+      "sha256": "bd3c1c5dea3c33554983e1cfdb29ba87c44588ff9ffcfca54831ed5f9444f694"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v1_lqr_mpc_robust_20261102\\sensor_core_jump_v1.py",
+      "bytes": 10670,
+      "sha256": "c776b3115d465ee694e7474f19d7ecb3c27fa3f46186ffb31e84aecd12176511"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\estimator_cauchy_e1.py",
+      "bytes": 6227,
+      "sha256": "1acb2df2ece5e11b67eb69388c813c62b318aa462ff6694f7a8efc1759d5df09"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_lqr_mpc_robust_20261106\\T01_ESTIMATOR_E1_VALIDATION_V1\\run_e1_validation_case.py",
+      "bytes": 23957,
+      "sha256": "6f8558fdae92872bab977c0ecb80c1f1d2da28948d200b8a36385ed83795914e"
+    }
+  ],
+  "execution_policy": {
+    "first": "e1_nominal_stand",
+    "pair_only_if_nominal_original_screen_and_observed_scope_pass": true,
+    "on_nominal_failure": "NOT_EXECUTED both DR cases;do not redraw or change formula",
+    "max_parallel_physics_workers": 2,
+    "threads_per_worker": 1,
+    "no_native_retry_or_seed_selection_or_grid": true,
+    "formula_frozen_to_original_E1": true,
+    "paired_DR_has_one_independent_parameter_setting": true,
+    "retain_both_results_regardless_of_pass": true,
+    "previous_paused_seeds_remain_unexecuted": [
+      520184,
+      520185,
+      520112,
+      520113,
+      520114,
+      520115
+    ],
+    "no_default_adoption_or_T01_T36_qualification": true
+  },
+  "replay_of_old_case": false,
+  "training_only": true,
+  "diagnostic_only": false,
+  "control_sidecar_connections": 0,
+  "controller_torque_policy_unchanged": true,
+  "observer_candidate_index": 1,
+  "observer_candidate_limit": 3,
+  "old_torque_mechanisms_frozen_count": 3,
+  "paired_DR_seed": 520211
+}

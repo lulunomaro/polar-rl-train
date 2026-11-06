@@ -44,8 +44,9 @@ def leg_configuration(front1,rear1,*,side='left',check_limits=True):
 
 
 def set_configuration(model,data,*,left,right,check_limits=True):
-    """Set both legs in v3 native simulation coordinates; root remains untouched."""
+    """Check both legs before changing qpos, then update the kinematic cache."""
     api,_=_modules()
+    assignments=[]
     for side,pair in [('left',left),('right',right)]:
         values,_=leg_configuration(*pair,side=side,check_limits=check_limits)
         semantic=np.zeros(len(api.names))
@@ -54,6 +55,13 @@ def set_configuration(model,data,*,left,right,check_limits=True):
         native=api.native_positions(semantic)
         for i,n in enumerate(api.native_names):
             if n.startswith(side+'_') and '_guide_joint'not in n:
-                data.qpos[model.joint(n).qposadr[0]]=native[i]
+                joint=model.joint(n)
+                if check_limits and model.jnt_limited[joint.id]:
+                    lower,upper=model.jnt_range[joint.id]
+                    if not lower-1e-9<=native[i]<=upper+1e-9:
+                        raise ValueError(f"MJCF/v3 discrepancy: {n}={native[i]} outside [{lower}, {upper}]")
+                assignments.append((joint.qposadr[0],native[i]))
     import mujoco
+    for address,value in assignments:
+        data.qpos[address]=value
     mujoco.mj_forward(model,data)

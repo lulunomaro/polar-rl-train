@@ -327,8 +327,8 @@ def validate(package, report):
         ck('default_root_state_quaternion_converted',np.array_equal(shuffled_view.data.default_root_state,shuffled_view.data.root_state_w))
         ck('packed_state_source_unmodified',np.array_equal(shuffled.data.root_state_w,packed))
         unsupported=False
-        try:shuffled_view.data.joint_stiffness
-        except AttributeError:unsupported=True
+        try:getattr(shuffled_view.data,'joint_stiffness',None)
+        except NotImplementedError:unsupported=True
         ck('unsupported_physical_joint_parameters_explicit',unsupported)
         defaults=np.array([[runtime['initial_joint_positions'][n]for n in spec['control']['policy_action_order'][:4]]])
         zero_decoded=api.decode_actions(np.zeros((1,6)),defaults,leg_scale=.5,wheel_scale=10.,wheel_mode='torque',position_basis='newton_displacement')
@@ -345,6 +345,15 @@ def validate(package, report):
         publickin.set_configuration(m,d,left=pair,right=pair)
         actual=api.mujoco_joint_state(m,d)
         ck('portable_kinematics_uses_MOD4_geometry',all(abs(actual['joint_pos'][api.names.index(n)]-v)<1e-10 for n,v in kinvalues.items()))
+        before_qpos=d.qpos.copy();before_xpos=d.xpos.copy()
+        rejected=False
+        try:
+            publickin.set_configuration(m,d,left=(pair[0]+.4,pair[1]+.2),
+                                         right=(pair[0]+4.,pair[1]))
+        except ValueError:
+            rejected=True
+        ck('invalid_second_leg_preserves_pose',rejected and np.array_equal(d.qpos,before_qpos)
+           and np.array_equal(d.xpos,before_xpos))
         ck('rejected_scut_tree_not_release_asset',not(package/'mjcf/scene_scut_tree.xml').exists()and not(package/'assets/robot_scut_tree.usd').exists())
         compat=Usd.Stage.Open(str(package/'assets/robot_physx.usda'))
         ck('PhysX_wrapper_relative_dependency',compat.GetRootLayer().subLayerPaths==['robot.usd'])

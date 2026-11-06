@@ -54,8 +54,8 @@ def main():
         ck('native_tensor_unmodified', torch.equal(raw.data.root_state_w,packed))
         rejected = False
         try:
-            view.data.joint_armature
-        except AttributeError:
+            getattr(view.data,'joint_armature',None)
+        except NotImplementedError:
             rejected = True
         ck('unsupported_armature_rejected',rejected)
         runtime = json.loads((args.package/'runtime_config.json').read_bytes())

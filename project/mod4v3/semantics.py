@@ -284,8 +284,8 @@ class _ScutDataView:
         if name in ('joint_effort_limits', 'soft_joint_effort_limits'):
             return view.semantics.effort_limits(value[..., view._native_ids])
         if name.startswith(('joint_', 'default_joint_', 'soft_joint_')):
-            raise AttributeError(f"{name} has no scalar SCUT transform across the front3 cut; "
-                                 "use raw.data with raw.joint_names for physical parameters")
+            raise NotImplementedError(f"{name} has no scalar SCUT transform across the front3 cut; "
+                                      "use raw.data with raw.joint_names for physical parameters")
         if name.endswith(('quat_w','quat_b')) and view.quaternion_order=='xyzw':
             return value[...,[3,0,1,2]]
         if view.quaternion_order=='xyzw' and (name.endswith(('_state_w','_pose_w')) or name=='default_root_state'):

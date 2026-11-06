@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 16时最高实际：语义修复小时已fullfinal6845、安全退出、独立80、唯一完整诊断及全部4新原生姿态图审完，0当前训练/读者。源5936新增878真H32、46.72M samples；最后真实value目标1.717/value1.699/MAE.195，仍0跳上200mm。sole62016已退出，禁重复once/PT。人类追加华南虎教师验证及伸腿站高上阶：原公开策略在原机器人真实运行，高度命令.38/.42m、腿多数.30–.33m；纠正已知新增云台默认后的8组200mm均0整轮越沿，24组站稳前提测试均未触发主动前进。原生生成地形实际网格无竖直内表面，沿面升高不能当200mm跳台教师证据。原失败、混合配置探索与修正并列保留，未接入MOD4蒸馏。详见`FINAL6845_SEMANTIC_BOUNDARY_20261106.md`和`SCUT_TEACHER_NATIVE_AND_STANDING_EXTENDED_20261106.md`；下文14:24训练中为历史。
+
 2026-11-06 14:24最高实际：人类“修复完就开始训啊”后，已修命令/重复context/physical sensor语义、DR与地形条件、联合H32拟合、真实replay价值目标/PopArt完整恢复、有限终点、teacher饱和死区与worker异常事务。CPU及真实4env迁移/恢复通过；正式20k `supermimic_final5936_semantic_repair_1h`从完整final5936显式139→176迁移，FIRST5968新增1真H32/2.88M新samples及2.71GB首存，sole62016，原SAVE15:21:45.610874。首次value MAE.0664为早期buffer内校准，新增11numerical/2constraint和solver警告仍在，非技能或数值全健康。详见`SUPERMIMIC_SEMANTIC_REPAIR_AND_TRAINING_20261106.md`、WORK_ORDER.supermimic_semantic_repair；下文11:41和旧停止审计状态均为历史。
 
 2026-11-06 11:41最高实际：原小时完整final3786/独立80/唯一全诊断/全4actualpose审完，0跳上200mm；原sole79388已退出。新`supermimic_final3786_sampling_1h`从全部学习状态恢复，实际FIRST3787新增1真H32+fullsave，sole78196，SAVE12:39:47.665763。11:41:03返回LATEST3792暖轮总40845.33step/s、采样80549.99；含冷首轮六轮平均22494.00，含初始化首存worker4304.94，非整小时均值。先读WORK_ORDER.sampling_optimization_current与`OFFICIAL_SAMPLING_OPTIMIZATION.md`，下文10时原小时为历史。

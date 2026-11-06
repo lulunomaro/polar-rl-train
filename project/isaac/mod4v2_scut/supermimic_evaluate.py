@@ -17,6 +17,7 @@ class SavedPolicy:
             num_joints=6,hidden=tuple(cfg['policy_hidden']))
         scale=payload.get('policy_residual_scale',1.)if residual_scale is None else residual_scale
         self.actor=FudanPPOResidualPolicy(policy,teacher,scale).to(env.device)
+        self.actor.base_clip_before_residual=payload.get('semantic_repair',{}).get('policy_mode',False)
         self.actor.load_state_dict(payload['pi'],strict=True)
         self.actor.eval().requires_grad_(False)
         self.env=env;self.cfg=cfg;self.hist=torch.zeros(env.num_envs,cfg['hist'],35,device=env.device)

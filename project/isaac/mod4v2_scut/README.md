@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 14:24最高实际：人类“修复完就开始训啊”后，已修命令/重复context/physical sensor语义、DR与地形条件、联合H32拟合、真实replay价值目标/PopArt完整恢复、有限终点、teacher饱和死区与worker异常事务。CPU及真实4env迁移/恢复通过；正式20k `supermimic_final5936_semantic_repair_1h`从完整final5936显式139→176迁移，FIRST5968新增1真H32/2.88M新samples及2.71GB首存，sole62016，原SAVE15:21:45.610874。首次value MAE.0664为早期buffer内校准，新增11numerical/2constraint和solver警告仍在，非技能或数值全健康。详见`SUPERMIMIC_SEMANTIC_REPAIR_AND_TRAINING_20261106.md`、WORK_ORDER.supermimic_semantic_repair；下文11:41和旧停止审计状态均为历史。
+
 2026-11-06 11:41最高实际：原小时完整final3786/独立80/唯一全诊断/全4actualpose审完，0跳上200mm；原sole79388已退出。新`supermimic_final3786_sampling_1h`从全部学习状态恢复，实际FIRST3787新增1真H32+fullsave，sole78196，SAVE12:39:47.665763。11:41:03返回LATEST3792暖轮总40845.33step/s、采样80549.99；含冷首轮六轮平均22494.00，含初始化首存worker4304.94，非整小时均值。先读WORK_ORDER.sampling_optimization_current与`OFFICIAL_SAMPLING_OPTIMIZATION.md`，下文10时原小时为历史。
 
 2026-11-06采样优化：对照basic_loco_lib固定commit后，新增`--sampling-optimization`，融合400Hz闭链/验收和50Hz复旦16项，并保留四Adam状态启用fused执行、learned几何TorchScript图执行。真实本地128环境隔离ABBA总训练吞吐1.44394倍、采样1.78536倍；输出/梯度/完整恢复后H32通过。当前冻结小时不热改，2万环境生产收益待保存评测回放后接入实测。见`OFFICIAL_SAMPLING_OPTIMIZATION.md`与工作单sampling_optimization_20261106。

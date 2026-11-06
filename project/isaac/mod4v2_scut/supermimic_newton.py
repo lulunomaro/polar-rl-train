@@ -62,6 +62,7 @@ class FudanPPOResidualPolicy(torch.nn.Module):
         super().__init__()
         self.residual,self.teacher=residual,teacher
         self.residual_scale=float(residual_scale)
+        self.base_clip_before_residual=False
         if not 0<self.residual_scale<=1:raise ValueError('Residual scale must be in(0,1]')
         teacher.eval().requires_grad_(False)
         torch.nn.init.zeros_(residual.dec[-1].weight)
@@ -77,6 +78,7 @@ class FudanPPOResidualPolicy(torch.nn.Module):
         current=history[...,-1,:35]
         observation=TensorDict(dict(policy=current),batch_size=list(current.shape[:-1]))
         base=self.teacher(observation,stochastic_output=False)
+        if self.base_clip_before_residual:base=base.clamp(-6,6)
         return (base+self.residual_scale*self.residual(history,goal).tanh()).clamp(-6,6)
 
 
@@ -177,7 +179,8 @@ def valid_replay(original,sample_device=None):
             age,env=self._valid_draw(B,self.size-k+1)
             rows=self._row(age[:,None]+torch.arange(k,device=self.device))
             env=env[:,None].expand_as(rows)
-            out={key:self.data[key][rows,env]for key in ('s','s1','a','xi','done')}
+            out={key:self.data[key][rows,env]for key in (
+                's','s1','a','a_prev','xi','xi1','xi1_valid','r','f','done','term','trunc')}
             valid=self.data['sample_valid'][rows,env]
             cut=out['done']|self.data['stream_cut'][rows,env]|~valid
             out['mask']=valid.float()*torch.cumprod(torch.cat((torch.ones(B,1,device=self.device),

@@ -31,7 +31,8 @@ def make_config(Config,small=False):
         log_every=1,seed=9138)
 
 
-def build(env,source,binding,log,small=False,residual_scale=None,sampling_optimization=False):
+def build(env,source,binding,log,small=False,residual_scale=None,sampling_optimization=False,
+          semantic_repair=False):
     from rsl_rl.runners import OnPolicyRunner
     Base,Config=load_sources(binding)
     from ctx_reward_learner import capture_rng,restore_rng
@@ -57,13 +58,30 @@ def build(env,source,binding,log,small=False,residual_scale=None,sampling_optimi
     del runner
     gc.collect();torch.cuda.empty_cache()
     cfg=make_config(Config,small)if config is None else Config(**config)
-    bridge=NewtonSuperMimicBridge(env)
+    semantic_repair=semantic_repair or 'semantic_repair'in source
+    if semantic_repair:
+        from .supermimic_semantics import ClosedLoopBridge
+        from .supermimic_repaired import repaired_learner
+        cfg.wm_window=32
+        bridge=ClosedLoopBridge(env)
+    else:bridge=NewtonSuperMimicBridge(env)
     cls=warmstarted_learner(Base,teacher)
+    if semantic_repair:cls=repaired_learner(cls)
     aux_hidden=source['context_reward_extension']['contract']['aux_hidden']if config else((64,64)if small else(256,256))
     learner=cls(bridge,cfg,log,backend='Newton/MuJoCo-Warp',
         aux_hidden=aux_hidden,aux_batch=cfg.wm_batch)
-    if source['format']==FORMAT:learner.restore_full(source)
+    if source['format']==FORMAT:
+        if semantic_repair and 'semantic_repair'not in source:
+            from .supermimic_repaired import migrate_v1
+            migrated=migrate_v1(source,learner)
+            learner.restore_full(migrated)
+            learner.pi.base_clip_before_residual=True
+            del migrated
+        else:
+            learner.restore_full(source)
+            if semantic_repair:learner.restore_semantics(source)
     else:restore_rng(after_reset_rng)
+    if semantic_repair:learner.pi.base_clip_before_residual=True
     learner.pi.residual_scale=float(source.get('policy_residual_scale',1.)if residual_scale is None else residual_scale)
     if not 0<learner.pi.residual_scale<=1:raise ValueError('Invalid residual scale')
     if sampling_optimization or source.get('sampling_optimization',False):
@@ -102,6 +120,7 @@ def main():
     p.add_argument('--residual-scale',type=float)
     p.add_argument('--checkpoint-seconds',type=float,default=300.)
     p.add_argument('--sampling-optimization',action='store_true')
+    p.add_argument('--semantic-repair',action='store_true')
     a=p.parse_args();job=Path(a.job_root);job.mkdir(exist_ok=False)
     if a.checkpoint_seconds<=0:raise ValueError('Checkpoint interval must be positive')
     worker_start=time.time()
@@ -112,7 +131,8 @@ def main():
         source_ref=source.get('source_PPO',dict(path=a.resume,SHA=a.resume_SHA,
             iteration=source.get('iter'),bytes=Path(a.resume).stat().st_size))
         env=NewtonEnv(a.package,a.components,a.reset_bank,a.num_envs,'cuda:0',9138)
-        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test,a.residual_scale,a.sampling_optimization)
+        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test,a.residual_scale,a.sampling_optimization,
+                             a.semantic_repair)
         initial=learner.iteration;initial_counts=asdict(learner.counts);initial_sim_steps=learner.sim_steps
         if source['format']==FORMAT:
             assert initial==source['iteration']
@@ -125,6 +145,7 @@ def main():
                 teacher_actor_and_learned_models_restored=True,
                 source_policy_residual_scale=source.get('policy_residual_scale',1.),
                 target_policy_residual_scale=learner.pi.residual_scale,
+                semantic_migration=getattr(learner,'migration_receipt',None),
                 fresh_physical_reset=True,exact_solver_state_restored=False))
         del source
         memory=sum(x.numel()*x.element_size()for x in learner.buffer.data.values())
@@ -136,6 +157,7 @@ def main():
             replay_storage_device=str(learner.buffer.device),
             replay_sample_device=str(learner.buffer.sample_device),
             checkpoint_interval_seconds=a.checkpoint_seconds,
+            semantic_repair=semantic_repair_receipt(learner),
             sampling_execution=getattr(learner,'sampling_execution',None),
             torch_allocated_bytes=torch.cuda.memory_allocated(),
             torch_reserved_bytes=torch.cuda.memory_reserved(),
@@ -143,24 +165,40 @@ def main():
             original_PPO_complete_checkpoint_untouched=True,numerical_invalid_replay_excluded=True,
             physical_reset_resume=True,exact_solver_state_resume=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda*args:stop.__setitem__(0,True))
-        max_round=0.;first_saved=False;fraction=learner.collect_fraction
+        max_round=0.;first_saved=False
         window_samples=0;window_seconds=0.;window_collection_seconds=0.
         last_checkpoint=time.time()
         required=max(learner.cfg.hist,learner.cfg.wm_window,learner.cfg.warmup_steps)
         while learner.buffer.size<required and time.time()+30<a.save_deadline and not stop[0]:learner.collect(1)
+        # Old139-channel replay is preserved until a complete fresh ring has
+        # supplied the newly recorded conditions. Never fit invented zero DR.
+        if getattr(learner,'semantic_warmup_remaining',0):
+            while learner.semantic_warmup_remaining and time.time()+30<a.save_deadline and not stop[0]:
+                learner.collect(1);learner.semantic_warmup_remaining-=1
+            if learner.semantic_warmup_remaining:raise RuntimeError('Deadline before fresh semantic replay filled')
+            put(job/'SEMANTIC_REPLAY_FRESH.json',dict(epoch=time.time(),controls=learner.buffer.T,
+                unknown_old_conditions_not_used_as_labels=True,source_preserved=True))
         while learner.buffer.size>=required:
             if stop[0]or(job.parent/'STOP_AFTER_SAVE.json').exists()or time.time()+max(30.,2*max_round)>=a.save_deadline:break
             start=time.time()
             for optimizer in (learner.opt_wm,learner.opt_pi,learner.opt_v,learner.opt_aux):
                 for group in optimizer.param_groups:group['lr']=learner.lr_at(learner.iteration)
-            fraction+=1/learner.cfg.utd;steps=int(fraction);fraction-=steps
-            learner.collect(steps);torch.cuda.synchronize(learner.device);collection=time.time()-start
+            if learner.pending_iteration is not None:raise RuntimeError('Cannot resume an uncompleted optimizer round')
+            learner.collect_fraction+=1/learner.cfg.utd
+            steps=int(learner.collect_fraction);learner.collect_fraction-=steps
+            learner.pending_iteration=dict(phase='collect',collect_left=steps,wm_left=learner.cfg.wm_batches)
+            while learner.pending_iteration['collect_left']:
+                learner.collect(1);learner.pending_iteration['collect_left']-=1
+            torch.cuda.synchronize(learner.device);collection=time.time()-start
             losses=[]
-            for _ in range(learner.cfg.wm_batches):
+            learner.pending_iteration['phase']='wm'
+            while learner.pending_iteration['wm_left']:
                 loss,error8=learner.wm_update();losses.append((float(loss),float(error8)))
+                learner.pending_iteration['wm_left']-=1
+            learner.pending_iteration['phase']='policy'
             if learner.iteration>=learner.cfg.wm_only_iters:learner.policy_update()
             torch.cuda.synchronize(learner.device)
-            learner.iteration+=1;learner.collect_fraction=fraction
+            learner.iteration+=1;learner.pending_iteration=None
             seconds=time.time()-start;learner.wall_time+=seconds;max_round=max(max_round,seconds)
             window_samples+=steps*env.num_envs;window_seconds+=seconds;window_collection_seconds+=collection
             progress=dict(epoch=time.time(),iteration=learner.iteration,
@@ -178,6 +216,9 @@ def main():
                 counts=asdict(learner.counts),wm_losses=losses,auxiliary=learner.last_aux,
                 new_verified_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-initial_counts['pi_bptt_optimizer_steps'],
                 bptt=learner.last_bptt_receipt,numerical_resets=int(env.numerical_reset_counts.sum()),
+                semantic_repair=semantic_repair_receipt(learner),
+                value_calibration=getattr(learner,'last_value',None),
+                imagination=getattr(learner,'last_imagination',None),
                 constraint_resets=int(env.constraint_reset_counts.sum()),
                 solver_overflow_world_masks=env.solver_overflow_summary())
             put(job/'LATEST_PROGRESS.json',progress)
@@ -209,12 +250,31 @@ def main():
     except BaseException:
         error=traceback.format_exc();put(job/'ERROR.json',dict(epoch=time.time(),error=error));raise
     finally:
-        if learner is not None and not final_saved:
-            save(learner,job/'model_interrupted.pt',source_ref)
+        cleanup(learner,bridge,env,job,locals().get('source_ref'),final_saved,error)
+
+
+def semantic_repair_receipt(learner):
+    if not hasattr(learner,'calibration_updates'):return None
+    return dict(schema=learner.extension_contract['schema'],context_dim=learner.mdp.context_dim,
+        model_horizon=learner.cfg.wm_window,calibration_updates=learner.calibration_updates,
+        warmup_remaining=learner.semantic_warmup_remaining,migration=learner.migration_receipt,
+        four_Adam_steps=asdict(learner.counts))
+
+
+def cleanup(learner,bridge,env,job,source_ref,final_saved,error):
+    failures=[];closed=False
+    try:
+        if learner is not None and not final_saved:save(learner,job/'model_interrupted.pt',source_ref)
+    except BaseException:failures.append(dict(operation='interrupted_save',error=traceback.format_exc()))
+    try:
         if bridge is not None:bridge.close()
-        if env is not None:env.close()
-        put(job/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,
-            env_closed=env is not None,final_exists=final_saved))
+    except BaseException:failures.append(dict(operation='bridge_close',error=traceback.format_exc()))
+    try:
+        if env is not None:env.close();closed=True
+    except BaseException:failures.append(dict(operation='environment_close',error=traceback.format_exc()))
+    put(job/'APP_CLOSE_INTENT.json',dict(epoch=time.time(),error=error,cleanup_errors=failures,
+        env_closed=closed,final_exists=final_saved))
+    if failures and error is None:raise RuntimeError('Worker cleanup failed: '+str(failures))
 
 
 if __name__=='__main__':main()

@@ -80,3 +80,9 @@ full5936四Adam、teacher/WM/aux/pi/critic、64×20k replay、RNG/7组件/队列
 - run/reports/`SUPERMIMIC_CLOSED_LEARNER_AND_ALL80.json`、`FINAL5936_REWARD_VALUE_CALIBRATION.json`、`ACTUAL_NATIVE_REVIEW.json`、`FINAL5936_BOUNDARY_REVIEW.json`；生产PT仅本次1次诊断，校准共用同一已载入value。
 - open-loop诊断只用原replay/action，不生成新的真实动作；4新actualpose图全部当前模型原生查看，savedquat保持wxyz，0NN/physics/PT回放。
 - 当前累计100h保守上界71437.705711秒，明确非捏造的实际GPU成本；含历史中断未知成本的安全上界，原ownerelapsed本次3646.537313秒，无退款/延长。
+
+## 后续补充：想象命令固定未生效
+
+继续本地源码追查后确认：learner先预测next_context，再传给project_predicted_context；当前adapter把已预测的前三个命令槽复制回自身，没有恢复原命令，默认全1mask允许命令误差进入后续goal。CPU注入每步+.001命令误差的H1/H8/H32对照分别得到vx=.601/.608/.632；只屏蔽actor/critic两处命令delta的候选对照全保持.600，goal_x对该误差的梯度从1/8/32变为0，其他context槽相同。这是实现错误的合成复现，未测生产命令实际漂移，也未证明critic失真的唯一原因。
+
+本次0生产PT读取/0环境/0物理/0优化器/0SSH，生产源与共享vendor未修改。完整结果在A/reports/IMAGINED_COMMAND_HOLD_CPU_REPRO.json；当前模型平地对照方案和历史两代E0来源已具体化在[FLAT_BASELINE_AND_IMAGINATION_DIAGNOSTIC_PLAN.md](FLAT_BASELINE_AND_IMAGINATION_DIAGNOSTIC_PLAN.md)。仍不原样续H32，候选修复与平地训练尚未实施。

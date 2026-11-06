@@ -1,0 +1,15 @@
+{
+  "id": "20261106-mod4v3-current-integration-gaps",
+  "tag": "trial-20261106-mod4v3-current-integration-gaps",
+  "title": "Record remaining MOD4v3 runtime integration and validation gaps",
+  "kind": "diagnostic",
+  "recorded_at": "2026-11-06T06:14:04.391775+00:00",
+  "repair_or_experiment_note": "# MOD4v3 交付缺口核查（2026-11-06）\n\n用户继续要求检查，并询问还缺什么。本轮只核查当前R3资产、已交付代码及固定华南虎真实消费者，未修改模型/运行代码，未新建ZIP，未启动或修改其它训练。\n\n本轮未发现新的MJCF/USD本体错误。R3 ZIP 312个文件逐项核验无差异；固定机构delta可达区间内9姿态包含两端，最大闭链间隙7.38e-13m，等式Jacobian秩维持16（22行）。这仅支持静态闭链和现有语义读取，不替代GPU接触或任务验收。此前1707验证和R2 PyTorch证据不重跑，也不扩大其结论。\n\n现在实际缺少：\n\n1. **训练接入实现**：ScutRobotView是读视图，缺reset、关节位置/速度/力矩目标写入、关节/根状态reset接口；既有raw actuator选择顺序与包内显式policy顺序不同，需要消费者按名字绑定。原华南虎V14构造函数无条件查询gimbal_yaw_link，MOD4没有，真实选择器已复现ValueError；critic读取joint_stiffness则明确NotImplementedError。不能直接把视图塞进原环境并称零改动运行。front3树切口差异和缺失硬件均早已记录，不能靠假刚体或假零值“对齐”。\n2. **奖励接通验收**：weighted_rewards能检测缺项，但当前未接入已运行训练。原华南虎_get_rewards仍在env.py:4012附近使用rewards.get(k,_zero_rew)，存在项漏接时补零的机制。当前包只有86项需求清单，没有选定任务所有非零权重的实际逐项计算、状态机处理、dt和终止/reset顺序联调证据。资产名字和坐标正确不等于这些执行流程已经改变。\n3. **目标引擎运行验收**：本版USD的PhysX原生DOF顺序、闭链/mimic/气簧、轮子接触/驱动及落地回读尚未执行；本版Newton/MuJoCo-Warp GPU也无原生控制/接触/奖励/reset完整运行证据。已有Newton1.7证据仅CPU 20×2.5ms，不能算GPU验收。这些是我需要补的工作，不是要求用户重交资产。\n4. **实物标定数据（仅影响实物逼真度）**：实际300N气簧力-行程/回程阻尼、转子/传动惯量与电机完整扭矩-转速曲线未实测，目前按原HW300N60明确的工程等效值继承。不是本次语义包或继续仿真工作的准入门槛；不能把实测缺失说成几何缺失。\n\n已有材料：MOD4 CAD/STEP、机械止挡与300N/60mm/200mm已确认事实、不可变MOD4v2 MJCF/USD、固定华南虎USD/代码、既有主机访问及模拟器。继续做软件接入当前不需要用户提供任何新文件。\n\n固定华南虎仓库及本地已知参考中无原生华南虎MJCF。现包只能称由MOD4生成并与华南虎USD/代码语义对应的MJCF；若未来要声称和华南虎原始MJCF逐项比较，必须先拿到那份确实存在的原件。不能拿复旦MJCF冒充。\n\n本轮同时核对到站高任务本地固定代码仍使用旧v2名字，不能视为v3已经接入；未追踪或改变远端活跃任务状态。SHARED_REWARDS_PINNED.py还保留“没有rear2”的历史错误注释及替代逻辑，不能把本包映射改好当作旧消费者已修复。\n\n读者探索中查询shared.py/SHARED_BINDING.json不存在，随后按实际REFERENCES.json及固定文件读取；不存在路径不作来源。未产生新的运行失败或训练实验。\n\n结论：资产语义包已交付，完整训练接入尚未完成。下一步应在一个选定后端跑实际动作→物理→状态→奖励→终止→reset流程并逐项回读；不是再加声明或新审计框架。本报告保存实际缺口，未将未运行项目改写为PASS。\n",
+  "validation": "312 ZIP file hashes; 9 closed-linkage poses; pinned SCUT caller rejection reproduced; no model code or active training changes",
+  "source_and_evidence_sha256": {
+    "history/reviews/20261106-mod4v3-scut-semantics/review_gaps/EVIDENCE.json": "0764a006b2b81f7ffbb6905eff2930f9b987456948f705b9080a309bea0f0e37",
+    "history/reviews/20261106-mod4v3-scut-semantics/review_gaps/README.md": "512bd05acc13d7e01d64f4c7238a774fcf3df0439f6cf3ef20c9ffa805e6f71a",
+    "history/reviews/20261106-mod4v3-scut-semantics/review_gaps/SOURCE_INDEX.json": "a05c829d1affcdaa9f885903eb5d49e19b8d9ae7eadb02c7a89542b8ae702c1b"
+  },
+  "real_robot_certified": false
+}

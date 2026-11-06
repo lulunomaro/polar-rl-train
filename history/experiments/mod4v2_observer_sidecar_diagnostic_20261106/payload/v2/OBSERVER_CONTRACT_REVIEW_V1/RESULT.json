@@ -1,0 +1,62 @@
+{
+  "status": "SOURCE_CONTRACT_REVIEW_MIXED_EPOCH_VIEW_CONFIRMED_PERFORMANCE_CAUSALITY_UNRESOLVED",
+  "scope": "R29 read-only contract review, not a new observer/controller/candidate or replay",
+  "catalog_selection": "Current Office/ACL catalog has no robotics source-contract match; existing native file read/grep tools used, no custom execution",
+  "source_evidence": [
+    {"path": "F:/RMPOLAR-RL/mod4v1_lqr_mpc_robust_20261102/sensor_core_jump_v1.py", "lines": "102-108,126-133", "fact": "Source sample estimate cached before arrival view; only state14 indices0..6 extrapolated, returned view timestamp changes, roll and rates held"},
+    {"path": "F:/RMPOLAR-RL/mod4v2_lqr_mpc_robust_20261106/controller_roll_v2.py", "lines": "82-109", "fact": "nB combines held roll and predicted pitch; FK uses predicted absolute hip/crank coordinates"},
+    {"path": "F:/RMPOLAR-RL/mod4v2_lqr_mpc_robust_20261106/controller_heading_v2.py", "lines": "21-55", "fact": "Heading outer loop uses predicted yaw; inherits C1; diagnostics combine predicted positions with held rates"}
+  ],
+  "epoch_contract": {
+    "source_t_s": "packet.time_s logical source epoch, not proof all packet channels are simultaneous instants",
+    "view_t_a": "packet.arrival_s passed to _predict_view; returned estimated_time_s is view time",
+    "age": "max(0,t_a-t_s), stale >.05 raises; does not retimestamp source measurements",
+    "predicted_to_view_first_order": ["state14[0] distance", "state14[1] unwrapped yaw", "state14[2] pitch", "state14[3:7] hip and crank-minus-hip coordinates"],
+    "held_source_fields": ["roll", "state14[7:14] velocity/Euler heading and pitch rates/joint rates", "omega_body", "proper_acc_origin", "measured_wheel_forward2", "velocity_variance", "slip_innovation", "contact_confidence"],
+    "uniform_epoch_for_every_Estimate_field": false,
+    "explicit_per_field_epoch_metadata": false,
+    "duplicate_source_sample": "update calls view from cached source self.last, no fresh derivative/KF update; not recursive propagation of last returned view"
+  },
+  "classification": {
+    "definite_contract_fact": "Nonuniform source-held versus arrival-predicted state view exists in current source and is consumed by C1/C2",
+    "consumer_approximation": "Constructed nB remains unit length but hybrid roll_source/pitch_view has no same-epoch physical attitude guarantee; predicted joint positions and held rates add constant-rate approximations",
+    "not_demonstrated": ["new regression against an existing explicit all-fields-synchronous specification", "single cause of approximately.028rad whole-chain residual", "quantitative cause of whole0/support or parking failure", "hardware calibration/synchronization bound"],
+    "controller_or_K_change_recommended_in_this_task": false
+  },
+  "roll_prediction_math": {
+    "ZYX_roll_rate": "omega_x + tan(pitch)*(omega_y*sin(roll)+omega_z*cos(roll))",
+    "near_level_omega_x_only": "approximation, not general Euler identity",
+    "arrival_minus_source_roll_first_order": "age*roll_rate_source, with unbounded-here curvature/bias and measurement-aperture terms",
+    "scale_illustration_only": ".028rad over.010s corresponds to2.8rad/s; not an observed case rate or certified error bound",
+    "rate_acceleration_and_bias_bound": null
+  },
+  "saved_reduction_evidence": {
+    "path": "F:/RMPOLAR-RL/mod4v2_lqr_mpc_robust_20261106/T01_NOMINAL_BAND_TRAIN_V1/DR_OBSERVATION_REDUCTION001/RESULT.json",
+    "case": "v2_t01_band_slow_dr_520183_001",
+    "case_rows_already_reduced": 1200,
+    "arrival_command_truth_matches_already_reduced": 1199,
+    "held_roll_sensor_truth_matches_already_reduced": 1198,
+    "region_s": [9,12],
+    "region_n": 300,
+    "source_age_s_mean": 0.00999999999866496,
+    "used_pitch_minus_command_true_rad": {"mean": -0.027385018202943704, "rms": 0.027961191271064605},
+    "held_roll_minus_sensor_same_epoch_true_rad": {"mean": -0.026420879545455155, "rms": 0.026555738427466186},
+    "inference": "Reported held-roll residual already uses source-epoch truth alignment. Missing arrival roll extrapolation alone does not explain that reported residual. Mixed-epoch C1 consumption may add another effect, magnitude not established here.",
+    "whole_chain_not_independent_calibration": true,
+    "new_raw_reads_or_reduction_or_statistics": 0
+  },
+  "parent_audit_side_path_boundary": {
+    "same_original_packet": true,
+    "record_separate_source_arrival_view_epochs": true,
+    "separate_original_held_roll_from_audit_arrival_rotation": true,
+    "Euler_first_order_not_exact_SO3_or_truth": true,
+    "original_filter_state_and_actor_outputs_unchanged": true,
+    "no_residual_mean_subtraction_or_teacher_feedback": true,
+    "no_new_force_contact_permission": true,
+    "implementation_in_this_task": false
+  },
+  "read_scope": {"ledgers": 2, "necessary_source_files": 3, "necessary_saved_small_result_files": 1, "original_raw_or_oldQA": 0},
+  "actions": {"new_files": ["NOTE.md","RESULT.json"], "Python_or_project_execution": 0, "SDK_import": 0, "model_FK_forward_physics": 0, "DR_sampling_or_statistics_reduction": 0, "controller_K_M0_or_3of3_changes": 0, "Git_Goal_Mnemon_newagents": 0},
+  "paused_cases_unchanged": [520184,520185,520112,520113,520114,520115],
+  "completed_stop_no_new_case": true
+}

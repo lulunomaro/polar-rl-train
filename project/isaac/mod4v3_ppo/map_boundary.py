@@ -24,6 +24,8 @@ def main():
         if not Path('/proc/'+str(owner['pid'])).exists():
             raise RuntimeError('Source owner exited without its completion receipt')
         time.sleep(10)
+    # The waiting continuation can be amended by the user before it launches.
+    plan=json.loads(plan_path.read_bytes())
     final=json.loads((source/plan['map_source_job']/'FINAL.json').read_bytes())
     checkpoint=final['checkpoint'];path=Path(checkpoint['path'])
     if hashlib.sha256(path.read_bytes()).hexdigest()!=checkpoint['SHA']:
@@ -33,7 +35,8 @@ def main():
     put(plan_path,plan)
     put(root/'MAP_SWITCH_BOUNDARY.json',dict(epoch=time.time(),source_final=checkpoint,
         source_owner_complete=json.loads((source/'OWNER_COMPLETE.json').read_bytes()),
-        requested_change='Isaac Lab installed ROUGH_TERRAINS_CFG.copy() only'))
+        requested_change='Isaac Lab installed ROUGH_TERRAINS_CFG.copy()',
+        source_envs=4096,target_envs=plan['num_envs']))
     bootstrap='import runpy,sys;sys.path.insert(0,'+repr(str(root/'code'))+');sys.argv=["owner",'+repr(str(plan_path))+'];runpy.run_module("mod4v3_ppo.owner",run_name="__main__")'
     env=dict(os.environ)
     # Wait only for the old owner's already-completed lease to be released.

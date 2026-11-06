@@ -66,7 +66,7 @@ def configuration(meta,bank,n,seed,terrain_selection='easy_mixed'):
         terrain_generator = generator()
     else:
         raise ValueError('Unknown terrain selection: '+terrain_selection)
-    # Distribute isolated envs within the existing 80 tiles before physics loads.
+    # Distribute isolated envs within the selected tiles before physics loads.
     # The earlier V41 overlap caused huge broadphase allocations.
     from isaaclab.terrains import TerrainImporter
     original_origins=TerrainImporter._compute_env_origins_curriculum
@@ -75,8 +75,15 @@ def configuration(meta,bank,n,seed,terrain_selection='easy_mixed'):
         tile=self.terrain_levels*terrain_origins.shape[1]+self.terrain_types
         for value in tile.unique():
             ids=(tile==value).nonzero().flatten();k=torch.arange(len(ids),device=self.device)
-            result[ids,0]+=-2.7+(k%10)*.6
-            result[ids,1]+=-2.7+torch.div(k,10,rounding_mode='floor')*.6
+            if num_envs <= 4096:
+                result[ids,0]+=-2.7+(k%10)*.6
+                result[ids,1]+=-2.7+torch.div(k,10,rounding_mode='floor')*.6
+            else:
+                columns=math.ceil(math.sqrt(len(ids)))
+                rows=math.ceil(len(ids)/columns)
+                width,length=terrain_generator.size
+                result[ids,0]+=(k%columns-(columns-1)/2.)*((width-1.)/columns)
+                result[ids,1]+=(torch.div(k,columns,rounding_mode='floor')-(rows-1)/2.)*((length-1.)/rows)
         return result
     TerrainImporter._compute_env_origins_curriculum=origins
     if terrain_selection == 'easy_mixed':

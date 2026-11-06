@@ -119,7 +119,9 @@ def main():
                 actor_critic_STD_Adam_restored=True,optimizer_entries=len(algorithm.optimizer.state),
                 all_saved_learning_tensors_equal=True,
                 reset_rng_restored=True,physics_resume='one fresh episode',
-                saved_envs=data['num_envs'],new_envs=env.num_envs)
+                saved_envs=data['num_envs'],new_envs=env.num_envs,
+                population_resized=data['num_envs']!=env.num_envs,
+                per_environment_state='fresh physical episodes; DR disabled')
             put(job/'RESTORE.json',restored)
         def save(name):
             data=algorithm.save()

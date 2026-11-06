@@ -1,0 +1,22 @@
+{
+  "id": "20261106-mod4v3-ppo-population20000",
+  "tag": "trial-20261106-mod4v3-ppo-population20000",
+  "title": "Prepare MOD4v3 PPO continuation with 20000 environments",
+  "kind": "repair",
+  "recorded_at": "2026-11-06T07:23:48.631377+00:00",
+  "repair_or_experiment_note": "# User-requested population increase to 20,000\n\nUser: “换成20000环境吧”. This amends the already authorized official rough\ncontinuation from 4,096 to 20,000 environments. The currently running 4,096\nsegment is not hot-patched or terminated. Its full save, safe close and\nindependent80/actual-pose recording remain the transition boundary.\n\nThe next task retains MOD4v3 R3, installed official ROUGH_TERRAINS_CFG defaults,\nPhysX TGS32/4, Warp fused closure/mimic sampling with preallocated outputs and\nCUDA Graphs, PPO settings, reward weights, motor parameters, DR off and the\nstanding-forward targets. Actor/critic/STD, all 17 Adam states, learning rate and\nRNG are restored from the source final. The 20,000 physical episodes are fresh;\nthis is not a claim of restored 4,096-instance physics in a larger population.\n\nThe selected terrain's shared-tile spawn grid is bounded by each actual 8 m\ntile for the larger population. The previous fixed 10-column grid could put\n20,000-env offsets outside their tiles. The changed grid keeps the source\n4,096 layout intact and derives columns/rows from actual tile occupancy for\nlarger populations. GRID_VALIDATION.json records deterministic grid formula\nchecks; the real 20,000 GPU startup remains the required population check.\n\nOnly the task's idle CPU map-boundary waiter was stopped and relaunched to load\nthe amended plan. The source training child and other chats were untouched.\nThe waiting code reloads its plan at the actual boundary, and the restore\nreceipt explicitly distinguishes resized populations from physical state.\n\nPOPULATION_CHANGE_DISPATCH.json and DISPATCH_READBACK.json record the real\nremote plan with num_envs=20000. The readback captured source iteration196 and\nfull checkpoint iteration196, plus the active waiting PID22662. It does not\nclaim that 20,000 environments were already running at that time.\n\nAn inspection for a presumed PhysX config filename under the source directory\nreturned no files and caused a reader IndexError. A second read under the env\nsite-packages also found no matching file. Neither attempted a simulator or\nconfiguration mutation. No GPU buffer settings were changed from these reads.\n\nPrior 4,096 rough plan, amended plan, current work order and dispatch evidence\nare preserved alongside this note. Append actual startup/update or failure\nreceipts after the population transition; do not rewrite the pending evidence\nas a completed GPU test.\n",
+  "validation": "Remote official rough plan readback num_envs20000; source4096 complete checkpoint196; bounded spawn grid checks passed; actual20000 GPU startup pending safe boundary.",
+  "source_and_evidence_sha256": {
+    "project/isaac/mod4v3_ppo/env.py": "e0922ee5ce5eda7fd69ad84052fb437aef18c3878eee28271b9f28dc36b9e8d7",
+    "project/isaac/mod4v3_ppo/train.py": "ba29d8daaa64ae21efbbdece65bbd55c48891d9170ca7d64842643ce5add80b9",
+    "project/isaac/mod4v3_ppo/map_boundary.py": "73bb94cfb213311578b9eecc738d125b09c1c20eb065ee3f01f32269edea9e41",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/CURRENT_WORK_ORDER.json": "84e7140e2711c1f9d978c450ab23d9f6532c4e23e402726274560aebf74b125c",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/DISPATCH_READBACK.json": "dd3d18a190f749451126eb93ae3dac12f1774da6e0d7c18b89207101a7db24c4",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/GRID_VALIDATION.json": "d0478708b8d3bfb32fcf4e7b0e452cab1b26645968f79ce6aec12a2ce9f497bf",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/PLAN_20000.json": "a7554540ab2ef78e95bf2ea5249147dd68c99e699612309f8673ec57af7de2a1",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/POPULATION_CHANGE_DISPATCH.json": "d8597c45b2a4cfb17a2b67fef359016828281b8ead4d407521eba996b5022e52",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/PRIOR_4096_ROUGH_PLAN.json": "80e85f2ebce00a94dacf96bfefbaf892c4a9ac51cf0689e40c806f9492d00bc4",
+    "history/reviews/20261106-mod4v3-accelerated-ppo/population20000/README.md": "ec001dbfd07e4e119668ea40bfae1896edad4731bd711978ed3cfafc706265d3"
+  },
+  "real_robot_certified": false
+}

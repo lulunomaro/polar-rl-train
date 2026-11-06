@@ -4408,7 +4408,8 @@
     "next_unchanged_hour_ready": false,
     "original_H32_plan_history_preserved": true,
     "flat_baseline_plan": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\history\\reviews\\20261105-mod4v2-scut-jump200\\FLAT_BASELINE_AND_IMAGINATION_DIAGNOSTIC_PLAN.md",
-    "command_hold_diagnostic": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\supermimic_final3786_sampling_1h\\reports\\IMAGINED_COMMAND_HOLD_CPU_REPRO.json"
+    "command_hold_diagnostic": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\supermimic_final3786_sampling_1h\\reports\\IMAGINED_COMMAND_HOLD_CPU_REPRO.json",
+    "full_abstraction_review": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\history\\reviews\\20261105-mod4v2-scut-jump200\\SUPERMIMIC_FULL_ABSTRACTION_REVIEW_20261106.md"
   },
   "imagination_command_hold_review": {
     "epoch": 1793941889.2360437,
@@ -4427,5 +4428,46 @@
     "H32_current_injected_vx": 0.6319996118545532,
     "H32_proposed_mask_vx": 0.6000000238418579,
     "next": "Isolate command/goal semantics in a candidate before any same-source real-policy comparison. Current-plant flat baseline is proposed, not run."
+  },
+  "supermimic_full_abstraction_review": {
+    "epoch": 1793944249.5802119,
+    "human_quote": "全面检查当前supermimic训练是否还有别的抽象问题；还有你是照着开源抄的吗？开源有这个问题吗？",
+    "status": "REVIEW_COMPLETE_CURRENT_SUPERMIMIC_ABSTRACTION_GAPS_REPRODUCED_NO_REPAIR",
+    "report": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\history\\reviews\\20261105-mod4v2-scut-jump200\\SUPERMIMIC_FULL_ABSTRACTION_REVIEW_20261106.md",
+    "cpu_evidence": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\supermimic_abstraction_audit_cpu\\ABSTRACTION_CPU_REPROS.json",
+    "upstream_source_comparison": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\supermimic_audit_sources\\SOURCE_COMPARISON.json",
+    "fixed_public_commit": "ac19b73a4f919fb2ea37dbad860b012315497139",
+    "source_attribution": "Independent downstream public reproduction plus local fixed vendor and substantial MOD4/Fudan/Newton adaptation; not paper-author official full port.",
+    "local_binding_lacks_complete_upstream_patch_provenance": true,
+    "confirmed": [
+      "command projector does not hold original command",
+      "duplicated actor/critic deterministic context fields diverge",
+      "critic scale failure retained from existing final5936 measurements",
+      "partial-round interrupted save falsely marked update_boundary_safe",
+      "save failure skips worker close finally suffix"
+    ],
+    "structural_gaps": [
+      "step terrain lost by translation-invariant inputs",
+      "some per-episode DR fields omitted from context",
+      "real-context k8 fit versus predicted-context H32",
+      "noisy raw35 one-step head recurrently used as observation",
+      "finite episode terminal boundary excluded from imagined start pool",
+      "conditional teacher saturation deadzone; actual production frequency unmeasured"
+    ],
+    "upstream_fixed_version_issue": "Value normalization running mean/std/init ordinary attributes used in forward but omitted from save/load; local implementation has no such normalization, so not the explanation of local restore.",
+    "rejected": [
+      "numerical-reset history-crossing hypothesis: actual hard endpoint reset returns frame0; original false fixture preserved"
+    ],
+    "production_source_changes": 0,
+    "production_PT_reads": 0,
+    "real_physics_steps": 0,
+    "optimizer_updates": 0,
+    "SSH": 0,
+    "training_restarts": 0,
+    "next_unchanged_hour_ready": false,
+    "repairs_implemented": false,
+    "final5936_unchanged_and_closed": true,
+    "cumulative_upper_seconds_unchanged": 71437.70571112633,
+    "next": "Repair explicit state/context/DR/terrain and value semantics in an isolated candidate, finite-worker transactions/cleanup, then same-plant baseline and real comparison. Do not resume unchanged H32 or decode old production PT for this review."
   }
 }

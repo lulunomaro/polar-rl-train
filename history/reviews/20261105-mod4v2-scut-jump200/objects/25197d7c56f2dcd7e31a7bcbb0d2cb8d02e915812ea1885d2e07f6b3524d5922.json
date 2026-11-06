@@ -1,0 +1,209 @@
+{
+  "epoch": 1793943449.2558925,
+  "mode": "Review only; production source untouched",
+  "sources": [
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\project\\isaac\\mod4v2_scut\\supermimic_newton.py",
+      "bytes": 14517,
+      "SHA": "f692c1e76e94345c1fa25786e7edb1354aa9a4039d24ace79312e5861d7aa569"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\project\\isaac\\mod4v2_scut\\supermimic_train.py",
+      "bytes": 13780,
+      "SHA": "aa313527997464bd04d52c7198f557cac8a3f8aa85b5caf3bcb45911ddcf002e"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\project\\isaac\\mod4v2_scut\\supermimic_evaluate.py",
+      "bytes": 2808,
+      "SHA": "46692a0b11ba6b59f14101280088ccbc4cc1cb5f1356ddad7e40a26ce8880306"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\project\\isaac\\mod4v2_scut\\newton_env.py",
+      "bytes": 34173,
+      "SHA": "d5680684e9593708a4513bcf6973be4522c8e7f660478889febcb3f9d8b6606f"
+    },
+    {
+      "path": "C:\\Users\\lulu\\Desktop\\claude\\mjcf\\polar-rl-train\\project\\isaac\\mod4v2_scut\\newton_checkpoint.py",
+      "bytes": 7373,
+      "SHA": "0707e5effcaacf8607f0c1fb6c4b854947a39a5397f2fc1af9b2f5f964152b6b"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\source\\ctx_reward_learner.py",
+      "bytes": 36886,
+      "SHA": "8116ea358dfe32e0efd568d00661ab1e13b602d267ea4b580ced04ec39e898ac"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\source\\supermimic_vendor_v2\\learner.py",
+      "bytes": 34095,
+      "SHA": "b8e3124f4201da991a46009e9f27b785c1bf325fef9f8176899d0d348c21b511"
+    },
+    {
+      "path": "F:\\RMPOLAR-RL\\mod4_standing_step200_rlbptt_20261103\\source\\supermimic_vendor_v2\\networks.py",
+      "bytes": 8609,
+      "SHA": "c7829e6a1bb9166d724a931858b76424439f371669dfb4bb534b9e76c5c74706"
+    }
+  ],
+  "findings": {
+    "context_projection": {
+      "scope": "Deliberately injected +.01 context error, not final5936 measurements.",
+      "actor_action_history_matches_action": true,
+      "duplicate_critic_action_history_matches_action": false,
+      "duplicate_critic_wheel_position_placeholders": [
+        0.009999999776482582,
+        0.009999999776482582
+      ],
+      "actor_wheel_position_placeholders": [
+        0.0,
+        0.0
+      ],
+      "before_mass_scale": 1.0,
+      "after_mass_scale": 1.0099999904632568,
+      "before_material": 0.8999999761581421,
+      "after_material": 0.9099999666213989,
+      "before_action_lag": 2.0,
+      "after_action_lag": 2.009999990463257,
+      "finding": "Known duplicated fields are inconsistent; per-episode physical parameters are allowed to drift."
+    },
+    "terrain_translation_alias": {
+      "translation_x_m": 0.8,
+      "WM_input_max_difference": 0.0,
+      "critic_input_max_difference": 0.0,
+      "source_terrain_edge_x_m": 0.8,
+      "scope": "Input-identifiability counterexample. No contact simulation or claim that these paired states occurred in production.",
+      "finding": "At equal context, translation towards the finite step is invisible to WM and critic."
+    },
+    "observation_state_decoupling": {
+      "physical_joint_change_rad": 0.5,
+      "observation_max_difference": 0.0,
+      "observation_gradient_to_physical_joint_is_None": true,
+      "imagination_noise_is_identity": true,
+      "finding": "Actor observation is independently predicted context[:35], not reconstructed from predicted physical state. Other WM/reward gradient paths still exist."
+    },
+    "training_imagination_context_mismatch": {
+      "actual_WM_rollout_context_calls": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          1.0
+        ],
+        [
+          2.0,
+          2.0
+        ]
+      ],
+      "auxiliary_samples_individual_transitions": true,
+      "auxiliary_recurrent_training_loop": false,
+      "finding": "WM gets true context at every training step; aux is one-step real-endpoint supervised. H32 policy uses recurrent predicted state AND predicted context."
+    },
+    "finite_episode_timeout_exclusion": {
+      "last_valid_start_frame": 366,
+      "latest_end_frame": 398,
+      "actual_timeout_at_frame": 399,
+      "any_valid_rollout_reaches_timeout": false,
+      "excluded_start_frames": [
+        367,
+        368,
+        369,
+        370,
+        371,
+        372,
+        373,
+        374,
+        375,
+        376,
+        377,
+        378,
+        379,
+        380,
+        381,
+        382,
+        383,
+        384,
+        385,
+        386,
+        387,
+        388,
+        389,
+        390,
+        391,
+        392,
+        393,
+        394,
+        395,
+        396,
+        397,
+        398
+      ],
+      "finding": "All exact time-limit endings are excluded by motion-style start filtering. This removes a known zero-terminal boundary; not proof of the sole critic failure cause."
+    },
+    "residual_saturation_condition": {
+      "scope": "Synthetic teacher output7 in first channel; production saturation fraction unknown.",
+      "teacher_raw_first": 7.0,
+      "residual_range": [
+        -0.25,
+        0.25
+      ],
+      "executed_first": 6.0,
+      "residual_bias_gradients": [
+        0.0,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "finding": "If teacher exceeds clip6 by more than residual scale, that channel cannot escape saturation and its direct residual gradient is zero."
+    },
+    "partial_round_save": {
+      "saved_metadata": [
+        {
+          "path": "F:\\RMPOLAR-RL\\mjcf_mod4_h1_archive_01a1967f_20261102\\runs\\mod4v2_scut_jump200_20261105\\supermimic_abstraction_audit_cpu\\failed_worker_main03\\model_interrupted.pt",
+          "iteration": 0,
+          "simulated_WM_count": 1,
+          "pending_iteration": null,
+          "collect_fraction": 0.0,
+          "update_boundary_safe": true
+        }
+      ],
+      "configured_WM_updates_per_round": 4,
+      "collected_controls": 2,
+      "env_closed": true,
+      "finding": "Finite main bypasses the learner transaction tracker. Its interrupted save is labelled safe after only part of a round; strict restore cannot identify which phases remain.",
+      "scope": "Injected worker exception, simulated WM count only. No optimizer step, PT write/read or simulator; normal final5936 save is not declared corrupt."
+    },
+    "public_ac19_value_stats_resume": {
+      "fixed_commit": "ac19b73a4f919fb2ea37dbad860b012315497139",
+      "constructor_has_statistics": true,
+      "statistics_missing_in_save_and_load": [
+        "_v_mean",
+        "_v_std",
+        "_v_init"
+      ],
+      "illustrative_network_output": 3.0,
+      "illustrative_before_mean": -10.0,
+      "illustrative_before_std": 2.0,
+      "illustrative_before_return": -4.0,
+      "illustrative_after_default_return": 3.0,
+      "scope": "Source omission plus scalar illustration. Does not say latest upstream is unchanged or local final5936 contains such stats.",
+      "finding": "This fixed public implementation also has a value-normalization resume omission. Local implementation lacks this normalization entirely."
+    },
+    "boundary_and_model_limits": {
+      "production_checkpoint_reads": 0,
+      "simulator_constructions": 0,
+      "real_physics_steps": 0,
+      "optimizer_updates": 0,
+      "network_download_code_executed": false,
+      "current_final_checkpoint_reused_only_via_existing_JSON_diagnosis": true,
+      "conclusions_not_proven_by_fixtures": [
+        "actual production command drift size",
+        "actual teacher saturation fraction",
+        "unique cause of critic failure",
+        "new policy benefit or jump skill",
+        "hardware jump infeasibility"
+      ]
+    }
+  }
+}

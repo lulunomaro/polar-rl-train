@@ -1,5 +1,7 @@
 # 官方采样对照与总训练吞吐优化
 
+2026-11-06来源称谓补充：本文对basic_loco_lib的“官方”仅指所对照公开仓库的原实现，不代表SuperMimic论文作者官方训练代码。当前learner还有本地vendor及任务适配，不能把采样优化来源当完整算法谱系。与Uni-SuperMimic固定版的逐项差别见SUPERMIMIC_FULL_ABSTRACTION_REVIEW_20261106.md；该仓库自称独立下游复现。
+
 2026-11-06人类要求“怎么速度这么慢?优化采样，看看官方采样流程”，明确速度指采样和全部学习更新合计的控制样本step/s。固定查阅PoplarCrystal/basic_loco_lib commit e4181af587330d0b70ca72e0d36b49be32e12a65的MimicWM learner/replay/bridge/Warp环境，源码和SHA保留。其replay留训练设备、CUDA启用fused Adam，Warp环境合并热路径。MOD4的Fudan learned reward/context并非官方analytic mimic任务，不替换任务公式或引入人形参考。
 
 实际本地128环境、生产网络宽度和原4WM/4aux/H32/4critic剖析，一轮记录73281次Torch CUDA kernel launch、2670次stream synchronize。闭链检查与跳跃验收占采样约30%；replay add和batch搬运合计约18ms，非当前本地主要瓶颈。此前20k完整GPU replay已真实OOM，因此保持完整CPU replay和CUDA batch，不盲目搬回2.26GB整库。小批次剖析比例不可套远端20k。

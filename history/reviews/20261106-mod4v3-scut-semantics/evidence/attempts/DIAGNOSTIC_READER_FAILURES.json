@@ -1,0 +1,30 @@
+{
+  "schema": "mod4v3.reader_and_runtime_failures.v1",
+  "attempts": [
+    {
+      "id": "READER01_MASS_TENDON_DATA",
+      "action": "Read tendon Jacobian sparse row metadata from MjData",
+      "result": "AttributeError: metadata fields live on MjModel; corrected reader; no physical model changed"
+    },
+    {
+      "id": "READER02_TENDON_DENSE_ASSUMPTION",
+      "action": "Reshape fixed tendon Jacobian as dense 2x36",
+      "result": "ValueError: sparse fixed-tendon Jacobian; corrected using model rowadr/rownnz/colind"
+    },
+    {
+      "id": "REFERENCE_SEARCH01",
+      "action": "Search .gitmodules and v2 SOURCES file",
+      "result": "No file at the guessed path; used actual reference repo asset/source, never fabricated missing reference MJCF"
+    },
+    {
+      "id": "NEWTON_CPU04",
+      "action": "Use anatomical absolute qpos as Newton displacement",
+      "result": "Failed closure10mm: max62.819mm; correctly convert Newton joint_q=q_MJCF-ref; CPU05 max.138331mm"
+    },
+    {
+      "id": "NEWTON_CPU02",
+      "action": "Default system Newton1.2.1 CPU import",
+      "result": "Finite output with qacc instability warning; not a pass. Continued with actual pinned Newton1.7 runner and explicit metric checks"
+    }
+  ]
+}

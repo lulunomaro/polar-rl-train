@@ -1,0 +1,88 @@
+"""Independent80 first episodes: actual standing height, speed and progress."""
+from pathlib import Path
+import hashlib,json,os,sys,time,traceback
+import numpy as np
+import torch
+from .newton_env import NewtonEnv
+from .config import runner_config
+from .supermimic_newton import load_sources,StandingPPOResidualPolicy
+from .supermimic_train import decode,FORMAT,put
+from .math_ops import euler_xyz_from_quat,wrap_to_pi
+from .terrain import LANES,heights
+J=Path(os.environ.get('STANDING_JOB_ROOT',str(Path(__file__).resolve().parent)))
+
+def main():
+    p=json.loads((J/'PLAN.json').read_bytes());job=J/'evaluation';job.mkdir(exist_ok=False)
+    ck=json.loads((J/'production/FINAL.json').read_bytes())['checkpoint']
+    env=None;error=None
+    try:
+        load_sources(J/'SUPERMIMIC_BINDINGS.json')
+        from rsl_rl.runners import OnPolicyRunner
+        from supermimic_vendor_v2.networks import Policy
+        payload=decode(ck['path'],ck['SHA']);assert payload['format']==FORMAT
+        cfg=payload['args']
+        env=NewtonEnv(p['hardware_remote'],p['runtime'],p['reset_bank'],80,'cuda:0',9137)
+        runner=OnPolicyRunner(env,runner_config(),None,env.device)
+        residual=Policy(35,3*cfg['goal_frames'],hist=cfg['hist'],z_dim=cfg['z_dim'],num_joints=6,hidden=tuple(cfg['policy_hidden']))
+        actor=StandingPPOResidualPolicy(residual,runner.alg.actor,payload['policy_residual_scale']).to(env.device)
+        actor.load_state_dict(payload['pi'],strict=True);actor.eval().requires_grad_(False)
+        del payload,runner
+        history=torch.zeros(80,cfg['hist'],35,device=env.device)
+        live=torch.ones(80,dtype=torch.bool,device=env.device)
+        selected=[0,20,36,48,60];records=[];poses=[]
+        initial=env.data.root_pos_w[:,0].clone()
+        done_first=torch.zeros_like(live);term_first=live.clone()&False
+        valid_count=torch.zeros(80,device=env.device);good_count=valid_count.clone()
+        controls=torch.zeros(80,dtype=torch.long,device=env.device)
+        progress=torch.zeros(80,device=env.device)
+        def observe(e):
+            d=e.data;length,theta=e.reward.virtual_legs()
+            roll,pitch,yaw=euler_xyz_from_quat(d.root_quat_w);yaw=wrap_to_pi(yaw)
+            delta=d.body_pos_w[:,e.wheel_bodies[0]]-d.body_pos_w[:,e.wheel_bodies[1]]
+            span=-yaw.sin()*delta[:,0]+yaw.cos()*delta[:,1]
+            values=torch.cat((length,theta,d.root_pos_w,d.root_lin_vel_b,
+                torch.stack((roll,pitch,yaw,span),-1),live[:,None].float(),e.physics_transition_valid[:,None].float()),-1)
+            records.append(values.detach().cpu().numpy())
+            poses.append(torch.cat((d.body_pos_w[selected],d.body_quat_w[selected]),-1).detach().cpu().numpy())
+            if e.physics_ticks*.0025>=1.:
+                active=live&e.physics_transition_valid
+                good=(length.amin(-1)>=.28)&(roll.abs()<np.deg2rad(10))&(pitch.abs()<np.deg2rad(10))&(yaw.abs()<.2)&((d.root_lin_vel_b[:,0]-.35).abs()<=.12)
+                valid_count.add_(live.float());good_count.add_((active&good).float())
+        env.physics_observer=observe
+        with torch.no_grad():
+            for _ in range(500):
+                obs=env.get_observations();x=obs['policy'];fresh=env.episode_length_buf==0
+                shifted=torch.cat((history[:,1:],x[:,None]),1)
+                history=torch.where(fresh[:,None,None],x[:,None].expand_as(history),shifted)
+                action=actor(history,x[:,:3].repeat(1,cfg['goal_frames']))
+                _,reward,done,extras=env.step(action)
+                s=env.terminal_snapshot
+                controls[live]+=1;progress[live]=s['root_pos'][live,0]-initial[live]
+                terminal=live&done
+                term_first[terminal]=s['terminated'][terminal];done_first|=terminal
+                live&=~terminal
+                if not bool(live.any()):break
+        fraction=good_count/valid_count.clamp_min(1)
+        passed=(~term_first)&done_first&(fraction>=.8)&(progress>2.)
+        npz=job/'actual_first80_400Hz.npz'
+        np.savez_compressed(npz,metrics=np.stack(records),body_poses=np.stack(poses),
+            selected_cases=selected,terrain_grid=heights(),terrain_lanes=env.terrain_lane.cpu().numpy(),
+            controls=controls.cpu().numpy(),progress_m=progress.cpu().numpy(),good_fraction=fraction.cpu().numpy(),
+            pass_mask=passed.cpu().numpy(),term_first=term_first.cpu().numpy())
+        with npz.open('rb')as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+        result=dict(epoch=time.time(),passed_execution=True,skill_complete=bool(passed.all()),
+            task='standing_forward_easy_mixed',checkpoint=ck,seed=9137,cases=80,
+            pass_count=int(passed.sum()),terminated_count=int(term_first.sum()),
+            protocol='First episodes only; after1s >=80% actual400Hz: bilateralL0>=.28m/rp<10deg/yaw<.2/vx.35+-.12; survive,xprogress>2m',
+            by_terrain={name:dict(cases=int((env.terrain_lane==i).sum()),passed=int(passed[env.terrain_lane==i].sum()))for i,name in enumerate(['flat','rough','boxes','small_stairs','slope'])},
+            controls=controls.tolist(),progress_m=progress.tolist(),good_fraction=fraction.tolist(),
+            artifacts=[dict(path=str(npz),bytes=npz.stat().st_size,SHA=sha)],
+            numerical_reset_counts=int(env.numerical_reset_counts.sum()),constraint_reset_counts=int(env.constraint_reset_counts.sum()),
+            actual_model_body_names=env.body_names,physics_dt=.0025,policy_dt=.02)
+        put(job/'RESULT.json',result)
+    except BaseException:
+        error=traceback.format_exc();put(job/'ERROR.json',dict(epoch=time.time(),error=error));raise
+    finally:
+        if env is not None:env.close()
+        put(job/'APP_CLOSED.json',dict(epoch=time.time(),error=error,closed=env is not None))
+if __name__=='__main__':main()

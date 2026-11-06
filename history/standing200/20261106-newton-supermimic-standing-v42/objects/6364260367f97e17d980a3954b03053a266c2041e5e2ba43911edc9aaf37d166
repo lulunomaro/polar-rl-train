@@ -1,0 +1,43 @@
+"""Deploy changed small sources, preserve prior revisions, own task only."""
+from pathlib import Path
+import ast,hashlib,json,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+from host86_prepare import query
+
+def main():
+    mode=sys.argv[1];p=json.loads((D/'PLAN.json').read_bytes());root=p['remote_root']
+    c,restore,py=connect('72')
+    try:
+        sf=c.open_sftp();old=json.loads(sf.open(root+'/INSTALL_MANIFEST.json').read())
+        revisions=D/'prior_revisions';revisions.mkdir(exist_ok=True)
+        files=[]
+        present={row['relative']for row in old['files']}
+        for path in [D/'standing_evaluate.py']:
+            if path.name not in present:
+                raw=path.read_bytes();ast.parse(raw.decode())
+                with sf.open(root+'/'+path.name,'wx')as f:f.write(raw)
+                files.append(dict(relative=path.name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        for row in old['files']:
+            name=row['relative'];path=D/name
+            if path.exists():
+                raw=path.read_bytes()
+                if name.endswith('.py'):ast.parse(raw.decode())
+                sha=hashlib.sha256(raw).hexdigest()
+                if sha!=row['SHA']:
+                    with sf.open(root+'/'+name,'rb')as f:previous=f.read()
+                    assert hashlib.sha256(previous).hexdigest()==row['SHA']
+                    (revisions/row['SHA']).write_bytes(previous)
+                    with sf.open(root+'/'+name,'wb')as f:f.write(raw)
+                    row=dict(relative=name,bytes=len(raw),SHA=sha)
+            files.append(row)
+        manifest=json.dumps(dict(files=files),indent=2).encode()
+        with sf.open(root+'/INSTALL_MANIFEST.json','wb')as f:f.write(manifest)
+        (D/'INSTALL_MANIFEST.json').write_bytes(manifest)
+        sf.close()
+        code="import subprocess,json,pathlib; j=pathlib.Path("+repr(root)+"); f=(j/"+repr('OWNER_'+mode.upper()+'.log')+").open('xb'); p=subprocess.Popen(["+repr(py)+",'-u','-B',str(j/'owner.py'),"+repr(mode)+"],cwd=j,stdout=f,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,start_new_session=True); f.close(); print(json.dumps(dict(pid=p.pid,job=str(j),mode="+repr(mode)+")))"
+        result=query(c,py,code);(D/(mode.upper()+'_LAUNCHED.json')).write_text(json.dumps(result,indent=2));print(json.dumps(result))
+    finally:c.close();restore()
+
+if __name__=='__main__':main()

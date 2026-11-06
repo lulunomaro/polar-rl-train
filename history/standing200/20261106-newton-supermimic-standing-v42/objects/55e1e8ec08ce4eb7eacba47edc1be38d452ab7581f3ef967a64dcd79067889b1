@@ -1,0 +1,51 @@
+"""Saved-boundary corrected continuation; reference all unchanged sources."""
+from pathlib import Path
+import hashlib,json,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+from host86_prepare import query
+def main():
+    child=D/'rayfix_final355_1h';child.mkdir(exist_ok=False)
+    p=json.loads((D/'PLAN.json').read_bytes());prior=p['remote_root']
+    final=json.loads((D/'actual_closed/production/FINAL.json').read_bytes())['checkpoint']
+    root=prior+'/rayfix_final355_1h'
+    p.update(remote_root=root,run_id=p['run_id']+'_RAYFIX_FINAL355',task_source_root=prior,
+        source_checkpoint=final,source_iteration=355,learner='SuperMimic',
+        specific_repair='MeasuredMuJoCocelldiagonalheightquery5.2378mm mismatch corrected to4.49e-9m; exact full355 continuation',
+        source_BPTT_counts=final['counts'],new_BPTT_optimizers_not_PPO_resume=False,
+        full_SuperMimic_resume=True,original_source_checkpoint=p['original_source'])
+    (child/'PLAN.json').write_text(json.dumps(p,indent=2))
+    c,restore,py=connect('72')
+    try:
+        sf=c.open_sftp()
+        terminal=json.loads(sf.open(prior+'/OWNER_TRAIN_EXIT.json').read())
+        assert terminal['error']is None and terminal['all_own_waited']and terminal['GPU_private_lock_released']
+        sf.mkdir(root);manifest=[]
+        # Change original task-local terrain only after every own worker exited.
+        # Oldsource bytes/reports already preserved in prior_revisions/actual_closed.
+        for name in ['terrain.py','standing_evaluate.py']:
+            raw=(D/name).read_bytes()
+            with sf.open(prior+'/'+name,'wb')as f:f.write(raw)
+        for name in ['entry.py','owner.py','run-newton.sh','SUPERMIMIC_BINDINGS.json','REFERENCES.json']:
+            path=D/name
+            if not path.exists():
+                with sf.open(prior+'/'+name,'rb')as f:raw=f.read()
+            else:raw=path.read_bytes()
+            with sf.open(root+'/'+name,'wx')as f:f.write(raw)
+            manifest.append(dict(relative=name,path=root+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        raw=(child/'PLAN.json').read_bytes()
+        with sf.open(root+'/PLAN.json','wx')as f:f.write(raw)
+        manifest.append(dict(relative='PLAN.json',path=root+'/PLAN.json',bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        # Bind every small taskdelta, including shared originals by exact hash.
+        for name in ['standing_config.py','standing_rewards.py','terrain.py','reference.py','newton_model.py','newton_env.py','supermimic_newton.py','supermimic_train.py','standing_evaluate.py']:
+            raw=(D/name).read_bytes()
+            manifest.append(dict(relative=name,path=prior+'/'+name,bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest()))
+        raw=json.dumps(dict(files=manifest),indent=2).encode()
+        with sf.open(root+'/INSTALL_MANIFEST.json','wx')as f:f.write(raw)
+        (child/'INSTALL_MANIFEST.json').write_bytes(raw)
+        sf.chmod(root+'/run-newton.sh',0o755);sf.close()
+        code="import subprocess,json,pathlib; j=pathlib.Path("+repr(root)+"); f=(j/'OWNER_TRAIN.log').open('xb'); p=subprocess.Popen(["+repr(py)+",'-u','-B',str(j/'owner.py'),'train'],cwd=j,stdout=f,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,start_new_session=True);f.close();print(json.dumps(dict(pid=p.pid,job=str(j))))"
+        result=query(c,py,code);(child/'LAUNCHED.json').write_text(json.dumps(result,indent=2));print(json.dumps(result))
+    finally:c.close();restore()
+if __name__=='__main__':main()

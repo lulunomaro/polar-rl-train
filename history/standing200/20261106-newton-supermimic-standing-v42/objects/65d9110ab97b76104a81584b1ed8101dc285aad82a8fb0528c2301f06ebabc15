@@ -1,0 +1,49 @@
+"""Deterministic Newton heightfield counterpart of the easy mixed curriculum.
+
+Five lateral lanes sample flat/rough/boxes/centimetre stairs/gentle slope with
+the original 25/20/15/15/25 proportions. Collision and observation rays share
+one 0.1m height grid. This is a Newton course, not an Isaac Lab manager export.
+"""
+import numpy as np
+import torch
+SIZE=8.
+RES=.1
+LANES=np.array([-3.2,-1.6,0.,1.6,3.2],dtype=np.float32)
+PROPORTIONS=[.25,.20,.15,.15,.25]
+
+def heights():
+    x=np.linspace(-4,4,81,dtype=np.float32)
+    y=x.copy();xx,yy=np.meshgrid(x,y)
+    out=np.zeros_like(xx);rng=np.random.default_rng(9137)
+    for i in range(5):
+        use=(yy>=-4+i*1.6)&(yy<(-4+(i+1)*1.6) if i<4 else yy<=4)
+        if i==0:v=np.zeros_like(xx)
+        elif i==1:
+            cell=rng.integers(-2,3,size=(41,41)).astype(np.float32)*.005
+            ix=np.minimum(((xx+4)/.2).astype(int),40);iy=np.minimum(((yy+4)/.2).astype(int),40)
+            v=cell[iy,ix]
+        elif i==2:
+            cell=rng.uniform(.01,.025,size=(19,19)).astype(np.float32)
+            ix=np.minimum(((xx+4)/.45).astype(int),18);iy=np.minimum(((yy+4)/.45).astype(int),18)
+            v=cell[iy,ix];v=np.where(np.abs(xx+2)<.5,0.,v)
+        elif i==3:
+            # Small up/down pyramid steps, .5m treads, not a jumping test.
+            v=np.floor(np.maximum(0,3-np.abs(xx))/.5)*.01225
+        else:v=np.maximum(0,3-np.abs(xx))*.04
+        out[use]=v[use]
+    return out
+
+def spawn(n,device):
+    # The first80 retain exact20/16/12/12/20 case proportions.
+    ids=np.arange(n)%80
+    lane=np.select([ids<20,ids<36,ids<48,ids<60],[0,1,2,3],default=4)
+    xy=np.column_stack((np.full(n,-2.5),LANES[lane]))
+    return torch.as_tensor(xy,dtype=torch.float32,device=device),torch.as_tensor(lane,device=device)
+
+def sample(grid,points):
+    xy=((points[...,:2]+4.)/RES).clamp(0.,79.99999)
+    ij=xy.floor().long();f=xy-ij
+    ix,iy=ij.unbind(-1);fx,fy=f.unbind(-1)
+    a=grid[iy,ix];b=grid[iy,ix+1];c=grid[iy+1,ix];d=grid[iy+1,ix+1]
+    # MuJoCo/MuJoCo-Warp use the a-d diagonal, not the b-c diagonal.
+    return torch.where(fx>=fy,a+fx*(b-a)+fy*(d-b),a+fx*(d-c)+fy*(c-a))

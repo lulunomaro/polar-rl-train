@@ -1,0 +1,62 @@
+"""One own-run collector: close SSH between polls, transfer final once, render."""
+from pathlib import Path
+import hashlib,json,os,subprocess,sys,time,traceback
+S=Path(__file__).resolve().parent;R=S.parent
+D=Path(sys.argv[1])if len(sys.argv)>1 else S
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+def put(name,value):
+    path=D/name;tmp=path.with_name(path.name+'.partial');tmp.write_text(json.dumps(value,indent=2));tmp.replace(path)
+def read(sf,root,name):
+    try:
+        size=sf.stat(root+'/'+name).st_size;assert size<2*1024**2
+        with sf.open(root+'/'+name,'rb')as f:return json.loads(f.read(size+1))
+    except FileNotFoundError:return None
+def main():
+    with(D/'COLLECTOR_ONCE.json').open('x')as f:json.dump(dict(epoch=time.time(),pid=os.getpid()),f)
+    p=json.loads((D/'PLAN.json').read_bytes());root=p['remote_root'];error=None;end=time.time()+3*3600
+    try:
+        while time.time()<end:
+            c=sf=None;restore=lambda:None
+            try:
+                c,restore,py=connect('72');sf=c.open_sftp();sf.get_channel().settimeout(60)
+                names=['GO_TRAIN.json','OWNER_CURRENT.json','OWNER_TRAIN_EXIT.json','OWNER_TRAIN_ERROR.json',
+                    'production/STARTUP.json','production/FIRST_UPDATED.json','production/PERIODIC_FULL.json','production/LATEST_PROGRESS.json',
+                    'production/FULL_STATE_RESTORE.json','production/FINAL.json','production/ERROR.json','evaluation/RESULT.json','evaluation/ERROR.json']
+                reports={n:read(sf,root,n)for n in names};put('PUBLISHED.json',dict(epoch=time.time(),reports=reports))
+                terminal=reports['OWNER_TRAIN_EXIT.json']
+                if terminal:
+                    assert terminal['all_own_waited']and terminal['GPU_private_lock_released']
+                    dest=D/'actual_closed';dest.mkdir(exist_ok=False);files=[]
+                    targets=['PLAN.json','REFERENCES.json','INSTALL_MANIFEST.json','SUPERMIMIC_BINDINGS.json',*names,
+                        'TRAIN_TRAIN_WAITED.json','TRAIN_EVALUATE_WAITED.json','production/APP_CLOSE_INTENT.json','evaluation/APP_CLOSED.json']
+                    result=reports['evaluation/RESULT.json']
+                    if result:targets += ['evaluation/'+Path(row['path']).name for row in result['artifacts']]
+                    for name in dict.fromkeys(targets):
+                        try:size=sf.stat(root+'/'+name).st_size
+                        except FileNotFoundError:continue
+                        assert size<=64*1024**2
+                        path=dest/name;path.parent.mkdir(parents=True,exist_ok=True);sha=hashlib.sha256()
+                        with sf.open(root+'/'+name,'rb')as src,path.open('xb')as out:
+                            count=0
+                            while count<size:
+                                raw=src.read(min(1024**2,size-count));assert raw;out.write(raw);sha.update(raw);count+=len(raw)
+                        files.append(dict(path=str(path),remote_path=root+'/'+name,bytes=size,SHA=sha.hexdigest()))
+                    put('TERMINAL_TRANSFER.json',dict(epoch=time.time(),files=files,terminal=terminal))
+            finally:
+                if sf:sf.close()
+                if c:c.close()
+                restore()
+            if terminal:
+                if result:
+                    with(D/'RENDER.log').open('xb')as log:
+                        done=subprocess.run([sys.executable,'-B','-X','utf8',str(S/'render_actual.py'),'--evaluation',str(dest/'evaluation')],stdout=log,stderr=subprocess.STDOUT)
+                    put('REPLAY_EXECUTION.json',dict(epoch=time.time(),returncode=done.returncode,
+                        output=str(dest/'evaluation/rendered_actual'),current_model_native_visual_review_pending=True))
+                break
+            time.sleep(30)
+        else:raise TimeoutError('Own finite collector expired')
+    except BaseException:
+        error=traceback.format_exc();put('COLLECTOR_ERROR.json',dict(epoch=time.time(),error=error))
+    finally:put('COLLECTOR_CLOSED.json',dict(epoch=time.time(),error=error,SSHclosed=True,SESSION_restored=True))
+if __name__=='__main__':main()

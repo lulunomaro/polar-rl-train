@@ -1,0 +1,64 @@
+"""Standing-forward delta: nominal real mechanics, raw actions, mixed terrain."""
+from .reference import source,replace,module
+text=source('newton_env')
+# Warp inspects real source files. Reuse its unchanged kernels from the frozen
+# module rather than evaluating their decorators from a generated string.
+_pinned=module('newton_env')
+ground_rays,contact_reduction=_pinned.ground_rays,_pinned.contact_reduction
+text=text[:text.index('@wp.kernel')]+text[text.index('class NewtonEnv:'):]
+text=text.replace('= .6','= .35').replace('[.6, 0., 0.]','[.35, 0., 0.]')
+text=replace(text,'self.max_episode_length, self.max_episode_length_s = 400, 8.','self.max_episode_length, self.max_episode_length_s = 500, 10.')
+text=text.replace('episode_length_s=8.','episode_length_s=10.')
+text=replace(text,"'noise_bias_mild_v1'","'off'")
+for key in ['feedback','action','spring','gas','com','pd']:
+    text=replace(text,"c['"+key+"'](n, device, seed, True)","c['"+key+"'](n, device, seed, False)")
+text=replace(text,"if x.rsplit('/',1)[-1] in ('ground','jump200_platform')","if x.rsplit('/',1)[-1]=='standing_mixed_terrain'")
+text=replace(text,'assert len(terrain)==2','assert len(terrain)==1')
+text=replace(text,'self.nominal = torch.ones(n,dtype=torch.bool,device=device)',
+'''self.nominal = torch.ones(n,dtype=torch.bool,device=device)
+        from .terrain import spawn
+        self.spawn_xy,self.terrain_lane=spawn(n,device)
+        self.terrain_grid=torch.as_tensor(plant.terrain_grid,device=device)''')
+start=text.index('        nominal = torch.rand(len(ids)')
+end=text.index('        wp.to_torch(p.model.body_mass)',start)
+text=text[:start]+'''        nominal = torch.ones(len(ids),dtype=torch.bool,device=self.device)
+        factor = torch.ones(len(ids),device=self.device)
+        self.mass_factor[ids],self.nominal[ids] = factor,nominal
+        self.motor_gain[ids]=1.
+        self.friction[ids]=.9
+'''+text[end:]
+text=replace(text,'root = torch.empty(len(ids),3,device=self.device).uniform_(-.05,.05)',
+             'root = torch.zeros(len(ids),3,device=self.device)')
+text=replace(text,'q[ids,:3] = q.new_tensor([0.,0.,.38])',
+'''q[ids,:2] = self.spawn_xy[ids]
+            from .terrain import sample
+            q[ids,2] = .38+sample(self.terrain_grid,self.spawn_xy[ids])''')
+text=replace(text,'applied=actions.clamp(-6.,6.)','applied=actions.clone()')
+exec(compile(text,__file__,'exec'),globals())
+
+def raycast(self,points):
+    from .terrain import sample
+    hits=points.clone();hits[...,2]=sample(self.terrain_grid,points)
+    starts=points.clone();starts[...,2]+=5.
+    return starts,hits
+NewtonEnv.raycast=raycast
+
+def nominal_receipt(self):
+    pd=self._explicit_pd.component.coefficients()
+    r=self.reward
+    lengths,theta=r.virtual_legs()
+    return dict(task='standing_forward',num_envs=self.num_envs,
+        command=self.command.command[0].tolist(),height_target=.334,
+        theta_coefficient=r.cfg.rewards['pen_theta_no0'],raw_actions_no_clip=True,
+        full_DR=False,mass_factor_minmax=[float(self.mass_factor.min()),float(self.mass_factor.max())],
+        motor_gain_minmax=[float(self.motor_gain.min()),float(self.motor_gain.max())],
+        friction_minmax=[float(self.friction.min()),float(self.friction.max())],
+        sensor_profile=self._sensor_mild.profile,
+        nominal_all=bool(self.nominal.all()),
+        components_enabled={k:bool(getattr(self,k).component.enabled)for k in
+            ('_spring_pressure','_gas_damping','_chassis_com','_explicit_pd')},
+        pd={k:[float(v.min()),float(v.max())]for k,v in pd.items()},
+        terrain_lane_counts=[int((self.terrain_lane==i).sum())for i in range(5)],
+        actual_L0_minmax=[float(lengths.min()),float(lengths.max())],
+        actual_theta_minmax=[float(theta.min()),float(theta.max())])
+NewtonEnv.nominal_receipt=nominal_receipt

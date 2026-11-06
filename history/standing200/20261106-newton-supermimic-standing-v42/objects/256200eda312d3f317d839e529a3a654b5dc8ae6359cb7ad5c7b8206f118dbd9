@@ -1,0 +1,49 @@
+"""Git archive of task deltas and every saved report; large artifacts indexed."""
+from pathlib import Path
+import hashlib,importlib.util,json,sys,time
+D=Path(__file__).resolve().parent;R=D.parent
+REPO=Path('C:/Users/lulu/Desktop/claude/mjcf/polar-rl-train')
+BASE=REPO/'history/standing200/20261106-newton-supermimic-standing-v42'
+def main():
+    name=sys.argv[1]if len(sys.argv)>1 else'initial'
+    dest=BASE if name=='initial'else BASE/name
+    assert not(dest/'INDEX.json').exists()
+    if name!='initial':assert name.startswith('supplement-')and '/'not in name and(BASE/'INDEX.json').exists()
+    spec=importlib.util.spec_from_file_location('redact42',REPO/'archive_tools/capture_history.py')
+    red=importlib.util.module_from_spec(spec);spec.loader.exec_module(red)
+    known={}
+    for p in (REPO/'history/standing200').rglob('INDEX.json'):
+        for row in json.loads(p.read_bytes()).get('rows',[]):
+            if row.get('archive_SHA'):known[row['archive_SHA']]=row['archive_path']
+    files={p for p in D.rglob('*')if p.is_file()and '__pycache__'not in p.parts and
+        (p.suffix in('.py','.json','.md','.txt','.log')or p.parent.name=='prior_revisions')}
+    files.update([R/'CURRENT_WORK_ORDER.json',Path('C:/Users/lulu/.codex/automations/mod4-200-rl-bptt/automation.toml')])
+    rows=[];large=[];(dest/'objects').mkdir(parents=True,exist_ok=True)
+    for p in sorted(files,key=str):
+        if not p.exists():continue
+        raw=p.read_bytes()
+        try:text=raw.decode('utf-8-sig')
+        except UnicodeDecodeError:continue
+        safe,count=red.redact(text);content=safe.encode()if count else raw;sha=hashlib.sha256(content).hexdigest()
+        archive=known.get(sha)
+        if archive is None:
+            target=dest/'objects'/sha;target.write_bytes(content);archive=target.relative_to(REPO).as_posix();known[sha]=archive
+        rows.append(dict(source_path=str(p),bytes=len(raw),SHA=hashlib.sha256(raw).hexdigest(),
+            archive_path=archive,archive_SHA=sha,redactions=count))
+        if p.name in('RESULT.json','RENDER_REPORT.json','RENDER_ASSET.json','FIRST_UPDATED.json','FINAL.json'):
+            try:
+                value=json.loads(raw)
+                large+=value.get('artifacts',[])+value.get('media',[])
+                if'checkpoint'in value:large.append(value['checkpoint'])
+                if p.name=='RENDER_ASSET.json':large.append(value)
+            except (ValueError,TypeError):pass
+    work=json.loads((R/'CURRENT_WORK_ORDER.json').read_bytes())
+    value=dict(epoch=time.time(),kind='NEWTON_SUPERMIMIC_STANDING_V42',rows=rows,
+        large_artifacts_published_only=large,actual_status=work['status'],
+        current_workorder_path=str(R/'CURRENT_WORK_ORDER.json'),PT_decodes_for_archive=0,
+        NPZ_USD_media_reads_for_archive=0,old_trial_tags_unchanged=True)
+    (dest/'INDEX.json').write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n')
+    note=(D/'STAGE_NOTE.md').read_text()
+    (dest/'README.md').write_text(note,encoding='utf8')
+    print(json.dumps(dict(path=str(dest),rows=len(rows),new_objects=len(list((dest/'objects').iterdir())))))
+if __name__=='__main__':main()

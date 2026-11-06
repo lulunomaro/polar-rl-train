@@ -1,0 +1,77 @@
+"""Render actual Newton saved body poses on the exact collision heightfield."""
+from pathlib import Path
+import argparse,hashlib,json,sys,xml.etree.ElementTree as ET
+import numpy as np
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R))
+
+def main():
+    p=argparse.ArgumentParser();p.add_argument('--evaluation',type=Path,required=True)
+    a=p.parse_args();result=json.loads((a.evaluation/'RESULT.json').read_bytes())
+    row=result['artifacts'][0];path=a.evaluation/Path(row['path']).name
+    with path.open('rb')as f:assert hashlib.file_digest(f,'sha256').hexdigest()==row['SHA']
+    with np.load(path,allow_pickle=False)as z:packet={k:z[k].copy()for k in z.files}
+    usd=Path('F:/RMPOLAR-RL/mod4v2_p0_mechanical_limits_20261105/candidates/HW300N60/package/assets/robot.usd')
+    usdsha=hashlib.sha256(usd.read_bytes()).hexdigest()
+    # The remote finite-limit layer97e8 sublayers this released geometry2237.
+    # Joint-limit opinions do not alter this mocap-only saved-pose rendering.
+    assert usdsha=='2237070ddc0a4e33f0c28e23fe5bb3db1f12bb619fddcdd89f9a74d5ac875f18'
+    from render_standing_recorded_v2 import mesh_visuals
+    names=result['actual_model_body_names'];elements,vfs=mesh_visuals(usd,names)
+    root=ET.Element('mujoco',model='actual saved Newton standing-forward poses')
+    ET.SubElement(root,'compiler',angle='radian')
+    visual=ET.SubElement(root,'visual');ET.SubElement(visual,'global',offwidth='640',offheight='400')
+    ET.SubElement(visual,'headlight',ambient='.6 .6 .6',diffuse='.6 .6 .6')
+    assets=ET.SubElement(root,'asset');world=ET.SubElement(root,'worldbody')
+    for name,file in elements:ET.SubElement(assets,'mesh',name=name,file=file)
+    grid=packet['terrain_grid'];lo=float(grid.min());hi=float(grid.max());assert hi>lo
+    ET.SubElement(assets,'hfield',name='actual_terrain',nrow='81',ncol='81',size='4 4 '+str(hi-lo)+' .0001',
+                  elevation=' '.join('%.8g'%x for x in ((grid-lo)/(hi-lo))[::-1].flatten()))
+    ET.SubElement(world,'geom',type='hfield',hfield='actual_terrain',pos='0 0 '+str(lo),rgba='.25 .32 .35 1',contype='0',conaffinity='0')
+    ET.SubElement(world,'light',pos='0 -1 3',dir='0 0 -1')
+    for name,_ in elements:
+        body=ET.SubElement(world,'body',name='actual_'+name,mocap='true',pos='0 0 -10')
+        ET.SubElement(body,'geom',type='mesh',mesh=name,contype='0',conaffinity='0',density='0',rgba='.73 .77 .82 1')
+    import mujoco
+    from PIL import Image,ImageDraw
+    model=mujoco.MjModel.from_xml_string(ET.tostring(root,encoding='unicode'),vfs)
+    data=mujoco.MjData(model);assert model.nq==0 and model.nmocap==len(names)
+    ids=np.array([model.body_mocapid[mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,'actual_'+n)]for n in names])
+    renderer=mujoco.Renderer(model,height=400,width=640);cam=mujoco.MjvCamera();mujoco.mjv_defaultCamera(cam)
+    output=a.evaluation/'rendered_actual';output.mkdir(exist_ok=False)
+    selected=packet['selected_cases'];metrics=packet['metrics'];poses=packet['body_poses'];media=[]
+    try:
+        for j,case in enumerate(selected):
+            active=metrics[:,case,14]>0
+            length=int(active.sum());indices=np.linspace(0,max(0,length-1),12).round().astype(int)
+            for top in [False,True]:
+                sheet=Image.new('RGB',(1920,1600))
+                for k,t in enumerate(indices):
+                    pose=poses[t,j]
+                    data.mocap_pos[ids]=pose[:,:3];data.mocap_quat[ids]=pose[:,3:]
+                    mujoco.mj_forward(model,data)
+                    cam.lookat[:]=pose[names.index('chassis'),:3];cam.distance=1.8
+                    cam.azimuth=90;cam.elevation=-89 if top else -18
+                    renderer.update_scene(data,cam);tile=Image.fromarray(renderer.render());draw=ImageDraw.Draw(tile)
+                    draw.rectangle((0,0,640,25),fill='black')
+                    draw.text((6,7),'Actual Newton case%d %.3fs L0=%.3f/%.3f vx=%.3f'%(case,(t+1)*.0025,*metrics[t,case,:2],metrics[t,case,7]),fill='white')
+                    sheet.paste(tile,((k%3)*640,(k//3)*400))
+                target=output/('case%d_%s.png'%(case,'top'if top else'side'));sheet.save(target);media.append(target)
+    finally:renderer.close()
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig,axes=plt.subplots(5,3,figsize=(15,15))
+    for j,case in enumerate(selected):
+        active=metrics[:,case,14]>0;t=(np.arange(len(metrics))+1)[active]*.0025;m=metrics[active,case]
+        for side in range(2):
+            axes[j,0].plot(t,m[:,side],label='L0 '+str(side));axes[j,1].plot(t,m[:,2+side],label='theta '+str(side))
+        axes[j,2].plot(t,m[:,7],label='vx');axes[j,0].axhline(.334,color='k',linestyle='--')
+        axes[j,1].axhline(0,color='k',linestyle='--');axes[j,2].axhline(.35,color='k',linestyle='--')
+        for ax in axes[j]:ax.legend();ax.set_ylabel('case%d'%case)
+    fig.tight_layout();target=output/'ACTUAL400Hz_L0_THETA_FORWARD.png';fig.savefig(target,dpi=130);plt.close(fig);media.append(target)
+    report=dict(checkpoint=result['checkpoint'],source='actual first80 400Hz Newton body poses',
+        zero_policy_reads=True,zero_new_physics_steps=True,render_forward_only=True,USD_SHA=usdsha,
+        media=[dict(path=str(x),bytes=x.stat().st_size,SHA=hashlib.sha256(x.read_bytes()).hexdigest())for x in media])
+    (output/'RENDER_REPORT.json').write_text(json.dumps(report,indent=2));print(json.dumps(dict(output=str(output),media=len(media))))
+if __name__=='__main__':main()

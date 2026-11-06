@@ -1,0 +1,20 @@
+"""Task-local terrain delta to the already running Newton physical backend."""
+from .reference import source,replace
+text=source('newton_model')
+start=text.index('    for geom in world.findall(\'geom\'):')
+end=text.index('    return ET.tostring',start)
+text=text[:start]+'''    for geom in list(world.findall('geom')):
+        if geom.get('name')=='ground':world.remove(geom)
+'''+text[end:]
+text=replace(text,"        # Allocate solver buffers from one valid authored reset pose.",'''        from .terrain import heights
+        grid=heights()
+        one.add_shape_heightfield(heightfield=newton.Heightfield(grid,81,81,hx=4.,hy=4.),
+            cfg=newton.ModelBuilder.ShapeConfig(mu=.9,mu_torsional=.003,mu_rolling=.0001,
+                gap=0.,margin=0.,collision_group=1),label='standing_mixed_terrain')
+        self.terrain_grid=grid
+        # Allocate solver buffers from one valid authored reset pose.''')
+text=replace(text,"        self.receipt.update(body_count=self.model.body_count,",'''        self.receipt.update(task='standing_forward',terrain='Newton easy mixed heightfield',
+                            step_height_m=None,edge_x_m=None,top_end_x_m=None,
+                            terrain_resolution_m=.1,terrain_size_m=[8.,8.],DR=False,
+                            body_count=self.model.body_count,''')
+exec(compile(text,__file__,'exec'),globals())

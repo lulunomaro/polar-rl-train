@@ -1,0 +1,23 @@
+"""Compact own-run status, no checkpoint decoding."""
+from pathlib import Path
+import json,sys
+D=Path(__file__).resolve().parent;R=D.parent
+sys.path.insert(0,str(R/'scut_native_v36'))
+from host_access import connect
+from host86_prepare import query
+def main():
+    p=json.loads((D/'PLAN.json').read_bytes());mode=sys.argv[1]
+    c,restore,py=connect('72')
+    try:
+        names=['OWNER_'+mode.upper()+'_ERROR.json','OWNER_'+mode.upper()+'_EXIT.json','OWNER_CURRENT.json',
+            mode+'/STARTUP.json',mode+'/ERROR.json',mode+'/FIRST_UPDATED.json',mode+'/LATEST_PROGRESS.json',mode+'/FINAL.json',mode.upper()+'_FULL_RESTORE.json']
+        if mode=='train':names=[x.replace('train/','production/')for x in names]+['evaluation/RESULT.json']
+        logfile=mode.upper()+'_'+('TRAIN'if mode=='train'else'PROBE')+'.log'
+        code="import json,pathlib; j=pathlib.Path("+repr(p['remote_root'])+"); print(json.dumps(dict(reports={name:json.loads((j/name).read_bytes())for name in "+repr(names)+"if(j/name).exists()},log=(j/"+repr(logfile)+").read_text(errors='replace')[-4200:]if(j/"+repr(logfile)+").exists()else'')))"
+        result=query(c,py,code)
+        if '--save'in sys.argv:
+            target=D/'reports';target.mkdir(exist_ok=True)
+            (target/(mode+'_'+str(__import__('time').time_ns())+'.json')).write_text(json.dumps(result,indent=2))
+        print(json.dumps(result))
+    finally:c.close();restore()
+if __name__=='__main__':main()

@@ -1,0 +1,55 @@
+"""Own the actual free GPU through train safeclose and independent80."""
+from pathlib import Path
+import fcntl,hashlib,json,os,psutil,subprocess,sys,time,traceback
+J=Path(__file__).resolve().parent
+read=lambda p:json.loads(Path(p).read_bytes())
+def put(path,value):
+    path=Path(path);tmp=path.with_name(path.name+'.partial')
+    with tmp.open('w')as f:json.dump(value,f,indent=2);f.flush();os.fsync(f.fileno())
+    os.replace(tmp,path)
+def main():
+    p=read(J/'PLAN.json');mode=sys.argv[1];lock=None;proc=None;error=None;start=None
+    marker=J/('OWNER_'+mode.upper()+'_ONCE.json')
+    with marker.open('x')as f:json.dump(dict(epoch=time.time(),pid=os.getpid()),f)
+    try:
+        uuid=p['GPU_UUID']
+        lock=(Path('/home/lc01/Zonglin Li/zonglin2/state')/('three_expert_v2_'+uuid+'.lock')).open('a+b')
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        apps=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_gpu_memory','--format=csv,noheader'],text=True)
+        gpu=subprocess.check_output(['nvidia-smi','-i',uuid,'--query-gpu=uuid,memory.free','--format=csv,noheader,nounits'],text=True)
+        assert uuid not in apps and int(gpu.split(',')[1])>18000,(gpu,apps)
+        for row in read(J/'INSTALL_MANIFEST.json')['files']:
+            raw=Path(row.get('path',str(J/row['relative']))).read_bytes()
+            assert len(raw)==row['bytes']and hashlib.sha256(raw).hexdigest()==row['SHA']
+        e=dict(os.environ,CUDA_VISIBLE_DEVICES=uuid,PYTHONDONTWRITEBYTECODE='1',PYTHONUNBUFFERED='1',PYTHONNOUSERSITE='1')
+        for key in ['PYTHONHOME','PYTHONPATH','LD_PRELOAD','RANK','LOCAL_RANK','WORLD_SIZE']:e.pop(key,None)
+        cache=Path('/tmp')/('standing42_'+hashlib.sha256(str(J).encode()).hexdigest()[:10])
+        for key,part in [('TMPDIR','tmp'),('XDG_CACHE_HOME','cache'),('CUDA_CACHE_PATH','cuda')]:
+            target=cache/part;target.mkdir(parents=True,exist_ok=True);e[key]=str(target)
+        e['WARP_CACHE_PATH']=p['warp_cache_reference']
+        e['STANDING_MODE']=mode;e['STANDING_ATTEMPT']=mode if mode!='train'else 'production'
+        start=time.time();duration=3600 if mode=='train'else 1200
+        put(J/('GO_'+mode.upper()+'.json'),dict(epoch=start,mode=mode,save_deadline=start+duration,nominal_end_epoch=start+duration+300,
+            GPU_UUID=uuid,gpu=gpu,apps=apps,private_GPU_EX=True,canonical_reads=0,canonical_writes=0))
+        sequence=[mode,'evaluate']if mode=='train'else['probe','restore']
+        for stage in sequence:
+            with(J/(mode.upper()+'_'+stage.upper()+'.log')).open('xb')as log:
+                proc=subprocess.Popen([str(J/'run-newton.sh'),'-u','-B',str(J/'entry.py'),stage],cwd=J,env=e,
+                    stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,pass_fds=(lock.fileno(),),start_new_session=True)
+            identity=dict(pid=proc.pid,creation=psutil.Process(proc.pid).create_time(),stage=stage)
+            put(J/(mode.upper()+'_'+stage.upper()+'_IDENTITY.json'),identity)
+            while proc.poll()is None:
+                put(J/'OWNER_CURRENT.json',dict(epoch=time.time(),owner=os.getpid(),identity=identity,elapsed=time.time()-start,mode=mode))
+                time.sleep(5)
+            rc=proc.wait();put(J/(mode.upper()+'_'+stage.upper()+'_WAITED.json'),dict(epoch=time.time(),returncode=rc,own_waited=True))
+            assert rc==0,(stage,rc)
+    except BaseException:
+        error=traceback.format_exc();put(J/('OWNER_'+mode.upper()+'_ERROR.json'),dict(epoch=time.time(),error=error))
+        if proc is not None and proc.poll()is None:
+            put(J/'STOP_AFTER_SAVE.json',dict(epoch=time.time(),reason='Own exception safe save'));proc.wait()
+    finally:
+        if lock is not None:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()
+        put(J/('OWNER_'+mode.upper()+'_EXIT.json'),dict(epoch=time.time(),error=error,all_own_waited=proc is None or proc.poll()is not None,
+            GPU_private_lock_released=True,actual_elapsed_seconds=None if start is None else time.time()-start))
+    if error:raise RuntimeError(error)
+if __name__=='__main__':main()

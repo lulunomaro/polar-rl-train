@@ -1,0 +1,39 @@
+"""Standing-forward context and unbounded action delta to pinned SuperMimic."""
+from .reference import source,replace
+text=source('supermimic_newton')
+text=text.replace('FudanJumpMdp','StandingMdp').replace('FudanPPOResidualPolicy','StandingPPOResidualPolicy')
+text=replace(text,'frames[...,None].float()/400','frames[...,None].float()/500')
+text=text.replace('399','499')
+text=text.replace('action.clamp(-6,6)','action')
+text=replace(text,'return (base+self.residual_scale*self.residual(history,goal).tanh()).clamp(-6,6)',
+             'return base+self.residual_scale*self.residual(history,goal).tanh()')
+text=replace(text,"action=(self.pi(self.obs_hist,goal)+self.cfg.action_noise*torch.randn_like(info['a_prev'])).clamp(-6,6)",
+             "action=self.pi(self.obs_hist,goal)+self.cfg.action_noise*torch.randn_like(info['a_prev'])")
+text=replace(text,"action=action.detach().clamp(-6,6);self.pre=None","action=action.detach();self.pre=None")
+text=replace(text,"('fudan_last_contacts','fudan_contact_filt','fudan_was_in_flight',\n                     'fudan_base_air_time','fudan_leg_length','fudan_leg_theta')",
+             "('fudan_leg_length','fudan_leg_theta')")
+exec(compile(text,__file__,'exec'),globals())
+
+def context(self,obs):
+    e=self.real;r=e.reward
+    length,theta=r.virtual_legs()
+    values=[obs['policy'],obs['critic'],length,theta]
+    for key in ('legs','wheels'):
+        g=e._physics_action_delay.groups[key]
+        for name in ('lag_steps','applied','pending','pending_valid'):
+            values.append(g[name].reshape(e.num_envs,-1).float())
+    return torch.cat(values,-1).detach().clone()
+NewtonSuperMimicBridge.context=context
+
+_load_sources=load_sources
+def load_sources(binding):
+    import inspect,textwrap
+    Base,Config=_load_sources(binding)
+    raw=textwrap.dedent(inspect.getsource(Base.policy_update))
+    old='action = self.pi(obs_hist, goal).clamp(-6, 6)'
+    assert raw.count(old)==1
+    raw=raw.replace(old,'action = self.pi(obs_hist, goal)')
+    scope=dict(Base.policy_update.__globals__)
+    exec(compile(raw,__file__,'exec'),scope)
+    StandingBase=type('StandingContextRewardLearner',(Base,),dict(policy_update=scope['policy_update']))
+    return StandingBase,Config

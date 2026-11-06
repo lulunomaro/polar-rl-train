@@ -1,0 +1,52 @@
+"""Task-local dispatcher with immutable shared sources; no foreign hotpatch."""
+from pathlib import Path
+import importlib.util,json,os,runpy,sys,time
+J=Path(__file__).resolve().parent
+p=json.loads((J/'PLAN.json').read_bytes())
+sys.path.insert(0,p['package_root'])
+import mod4v2_scut
+mod4v2_scut.__path__[:]=[str(J),*p['previous_overlay_paths'],*mod4v2_scut.__path__]
+os.environ['MOD4_SCUT_SOURCE_PATHS']=p['scut_source_paths']
+os.environ['MOD4V2_NEWTON_MJCF']=p['mjcf_remote']
+
+def alias(name,filename):
+    key='mod4v2_scut.'+name
+    spec=importlib.util.spec_from_file_location(key,J/filename)
+    m=importlib.util.module_from_spec(spec);sys.modules[key]=m;spec.loader.exec_module(m)
+alias('config','standing_config.py')
+alias('rewards','standing_rewards.py')
+mode=sys.argv[1]
+common=['--package',p['hardware_remote'],'--components',p['runtime'],'--reset-bank',p['reset_bank']]
+if mode in ('train','probe'):
+    module='mod4v2_scut.supermimic_train'
+    go=json.loads((J/'GO_PRODUCTION.json').read_bytes())
+    s=p['source_checkpoint']
+    sys.argv=[module,*common,'--job-root',str(J/('production'if mode=='train'else'probe01')),
+        '--num-envs',str(p['num_envs']if mode=='train'else 16),
+        '--resume',s['path'],'--resume-SHA',s['SHA'],'--binding',str(J/'SUPERMIMIC_BINDINGS.json'),
+        '--save-deadline',str(go['save_deadline']),'--residual-scale','.25',
+        '--checkpoint-seconds','300']
+    if mode=='probe':sys.argv+=['--small-test','--max-updates','33']
+    runpy.run_module(module,run_name='__main__')
+elif mode=='restore':
+    import torch
+    from mod4v2_scut.newton_env import NewtonEnv
+    from mod4v2_scut.supermimic_train import decode,build,save,put
+    d=J/'probe01';ck=json.loads((d/'FINAL.json').read_bytes())['checkpoint']
+    payload=decode(ck['path'],ck['SHA'])
+    env=NewtonEnv(p['hardware_remote'],p['runtime'],p['reset_bank'],16,'cuda:0',9138)
+    learner,bridge=build(env,payload,J/'SUPERMIMIC_BINDINGS.json',d/'restore_learner',True)
+    from dataclasses import asdict
+    assert learner.iteration==payload['iteration']
+    assert asdict(learner.counts)==payload['context_reward_extension']['counts']
+    optimizer_entries=[len(x.state)for x in (learner.opt_wm,learner.opt_pi,learner.opt_v,learner.opt_aux)]
+    assert all(optimizer_entries)
+    put(J/'PROBE_FULL_RESTORE.json',dict(epoch=time.time(),source=ck,iteration=learner.iteration,
+        counts=asdict(learner.counts),all4_Adam_entries=optimizer_entries,
+        replay_size=learner.buffer.size,replay_ptr=learner.buffer.ptr,
+        all4_Adam_replay_RNG_teacher_models_restored=True,fresh_physical_episode=True,
+        nominal=env.nominal_receipt()))
+    bridge.close();env.close()
+elif mode=='evaluate':
+    runpy.run_module('mod4v2_scut.standing_evaluate',run_name='__main__')
+else:raise ValueError(mode)

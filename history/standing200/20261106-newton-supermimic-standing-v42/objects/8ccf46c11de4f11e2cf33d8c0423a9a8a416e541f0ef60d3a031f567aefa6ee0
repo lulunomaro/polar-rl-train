@@ -1,0 +1,14 @@
+"""Read immutable shared implementations by their recorded path and SHA."""
+from pathlib import Path
+import hashlib,json
+ROOT=Path(__file__).resolve().parent
+
+def source(name):
+    row=json.loads((ROOT/'REFERENCES.json').read_bytes())['modules'][name]
+    raw=Path(row['path']).read_bytes()
+    assert hashlib.sha256(raw).hexdigest()==row['SHA'],name
+    return raw.decode()
+
+def replace(text,before,after):
+    assert text.count(before)==1,before
+    return text.replace(before,after)

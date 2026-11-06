@@ -1,0 +1,26 @@
+{
+  "heightfield": "(data: collections.abc.Sequence[collections.abc.Sequence[float]] | numpy.ndarray, nrow: int, ncol: int, hx: float = 1.0, hy: float = 1.0, min_z: float | None = None, max_z: float | None = None)",
+  "hfdoc": "\n    Represents a heightfield (2D elevation grid) for terrain and large static surfaces.\n\n    Heightfields are efficient representations of terrain using a 2D grid of elevation values.\n    They are always static (zero mass, zero inertia) and more memory-efficient than equivalent\n    triangle meshes.\n\n    The elevation data is always normalized to [0, 1] internally. World-space heights are\n    computed as: ``z = min_z + data[r, c] * (max_z - min_z)``.\n\n    Example:\n        Create a heightfield from raw elevation data (auto-normalizes):\n\n        .. code-block:: python\n\n            import numpy as np\n            import newton\n\n            nrow, ncol = 10, 10\n            elevation = np.random.rand(nrow, ncol).astype(np.float32) * 5.0  # 0-5 meters\n\n            hfield = newton.Heightfield(\n                data=elevation,\n                nrow=nrow,\n                ncol=ncol,\n                hx=5.0,  # half-extent X (field spans [-5, +5] meters)\n                hy=5.0,  # half-extent Y\n            )\n            # min_z and max_z are auto-derived from the data (0.0 and 5.0)\n\n        Create with explicit height range:\n\n        .. code-block:: python\n\n            hfield = newton.Heightfield(\n                data=normalized_data,  # any values, will be normalized\n                nrow=nrow,\n                ncol=ncol,\n                hx=5.0,\n                hy=5.0,\n                min_z=-1.0,\n                max_z=3.0,\n            )\n    ",
+  "raynames": [
+    "_make_ray_intersect_mesh",
+    "_make_ray_intersect_shape",
+    "intersect_ray",
+    "map_ray_to_local",
+    "ray_intersect_box",
+    "ray_intersect_capsule",
+    "ray_intersect_cone",
+    "ray_intersect_cylinder",
+    "ray_intersect_ellipsoid",
+    "ray_intersect_mesh",
+    "ray_intersect_mesh_anyhit",
+    "ray_intersect_mesh_no_normal",
+    "ray_intersect_particle_sphere",
+    "ray_intersect_plane",
+    "ray_intersect_shape",
+    "ray_intersect_shape_no_normal",
+    "ray_intersect_sphere",
+    "raycast_kernel"
+  ],
+  "builder": "    def add_shape_heightfield(\n        self,\n        *,\n        xform: Transform | None = None,\n        heightfield: Heightfield | None = None,\n        scale: Vec3 | None = None,\n        cfg: ShapeConfig | None = None,\n        color: Vec3 | None = None,\n        opacity: float | None = None,\n        label: str | None = None,\n        custom_attributes: dict[str, Any] | None = None,\n    ) -> int:\n        \"\"\"Adds a heightfield (2D elevation grid) collision shape to the model.\n\n        Heightfields are efficient representations of terrain using a 2D grid of elevation values.\n        They are always static (``body=-1``) and more memory-efficient than\n        equivalent triangle meshes.\n\n        Args:\n            xform: The transform of the heightfield in world frame. If `None`, the identity transform `wp.transform()` is used. Defaults to `None`.\n            heightfield: The :class:`Heightfield` object containing the elevation grid data. Defaults to `None`.\n            scale: Per-instance scale applied to the heightfield extents (``hx``, ``hy``, ``min_z``, ``max_z``). Lets the same :class:`Heightfield` asset be reused at different sizes across shapes. Defaults to ``None``, which is treated as ``(1.0, 1.0, 1.0)``.\n            cfg: The configuration for the shape's physical and collision properties. If `None`, :attr:`default_shape_cfg` is used. Defaults to `None`.\n            color: Optional display RGB color with values in [0, 1]. If ``None``, uses the per-shape palette color.\n            opacity: Optional display opacity with value in [0, 1]. If `None`, uses full opacity.\n            label: An optional label for identifying the shape. If `None`, a default label is automatically generated. Defaults to `None`.\n            custom_attributes: Dictionary of custom attribute values for SHAPE frequency attributes.\n\n        Returns:\n            The index of the newly added shape.\n        \"\"\"\n        if heightfield is None:\n            raise ValueError(\"add_shape_heightfield() requires a Heightfield instance.\")\n        if cfg is None:\n            cfg = self.default_shape_cfg\n\n        return self.add_shape(\n            body=-1,\n            type=GeoType.HFIELD,\n            xform=xform,\n            cfg=cfg,\n            scale=scale,\n            src=heightfield,\n            is_static=True,\n            label=label,\n            custom_attributes=custom_attributes,\n            color=color,\n            opacity=opacity,\n        )\n",
+  "solver_file": "/home/lc01/Zonglin Li/zonglin2/toolchains/mod4v2_newton17/venv/lib/python3.12/site-packages/newton/_src/solvers/mujoco/solver_mujoco.py"
+}

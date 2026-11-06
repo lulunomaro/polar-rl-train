@@ -1,0 +1,55 @@
+"""Actual hip-anchor L0/theta with the unchanged saved SCUT stair rewards."""
+import inspect,textwrap
+import torch
+from .shared import load
+from .config import reward_config
+from .math_ops import quat_apply_inverse,euler_xyz_from_quat,wrap_to_pi
+Base=load('rewards').ScutRewards
+
+class ScutRewards(Base):
+    def __init__(self,robot,contract,n,device,profile=None,quaternion_order='wxyz'):
+        super().__init__(robot,contract,n,device,profile='trained_stair',
+                         cfg=reward_config(),quaternion_order=quaternion_order)
+        neutral=contract['bodies']
+        self.nominal_span=abs(neutral['left_wheel']['neutral_position_m'][1]-neutral['right_wheel']['neutral_position_m'][1])
+        self.fudan_leg_length=torch.zeros(n,2,device=device)
+        self.fudan_leg_theta=torch.zeros_like(self.fudan_leg_length)
+
+    def virtual_legs(self):
+        d=self.robot.data
+        wheel=d.body_pos_w[:,self._wheel_link_idx]-d.root_pos_w[:,None]
+        anchors=wheel.new_tensor([self.contract['joints'][s+'_hip']['local_pos0'] for s in ('left','right')])
+        v=quat_apply_inverse(d.root_quat_w[:,None].expand(-1,2,-1),wheel)-anchors[None]
+        return v.norm(dim=-1),torch.atan2(v[...,0],-v[...,2])
+
+    def _get_observed_height(self,*args):return self.virtual_legs()[0].mean(-1)
+    def _get_height_reward_reference_height(self,*args):return self._get_observed_height()
+    def _get_height_reward_target_height(self):return self.height_cmd.new_full((self.num_envs,),.334)
+    def motor_stop_terms(self,airborne=False):
+        z=self.height_cmd.new_zeros(self.num_envs)
+        return z,z.clone(),z.clone()
+
+    def _postprocess_reward_terms(self,terms):
+        values=super()._postprocess_reward_terms(terms)
+        d=self.robot.data
+        yaw=wrap_to_pi(euler_xyz_from_quat(d.root_quat_w)[2])
+        delta=d.body_pos_w[:,self._wheel_link_idx[0]]-d.body_pos_w[:,self._wheel_link_idx[1]]
+        span=-yaw.sin()*delta[:,0]+yaw.cos()*delta[:,1]
+        length,theta=self.virtual_legs()
+        self.fudan_leg_length=length.detach();self.fudan_leg_theta=theta.detach()
+        err=(torch.abs(span-self.nominal_span)-.02).clamp_min(0.)
+        values.update(pen_theta_no0=theta.square().sum(-1),
+                      stand32_heading=-(yaw/.35).square(),
+                      stand32_wheel_distance=-(err/.05).square().clamp_max(4.))
+        structural=[i for i in self._undesired_contact_link_idx if i not in self._reset_contact_link_idx]
+        values['undesired_contact']=(self.contact_sensor.data.net_forces_w[:,structural].norm(dim=-1)>1.).any(-1).float()
+        return values
+
+# Retain upstream numerical, observation and orientation reset predicates.
+source=textwrap.dedent(inspect.getsource(Base._get_dones))
+old='terminate = torch.any(reset_contact_force > 1.0, dim=-1)'
+assert source.count(old)==1
+source=source.replace(old,'terminate = torch.zeros(self.num_envs,dtype=torch.bool,device=self.device)')
+scope=dict(Base._get_dones.__globals__)
+exec(compile(source,__file__,'exec'),scope)
+ScutRewards._get_dones=scope['_get_dones']

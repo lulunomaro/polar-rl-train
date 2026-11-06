@@ -1,0 +1,20 @@
+"""CPU-only parity of observation heights and MuJoCo collision surface."""
+import hashlib,json
+import numpy as np,mujoco,torch
+from terrain import heights,sample
+z=heights();lo=float(z.min());hi=float(z.max())
+vals=' '.join(map(str,((z-lo)/(hi-lo)).flatten()))
+xml='<mujoco><asset><hfield name="h" nrow="81" ncol="81" size="4 4 '+str(hi-lo)+' .0001" elevation="'+vals+'"/></asset><worldbody><geom type="hfield" hfield="h" pos="0 0 '+str(lo)+'"/></worldbody></mujoco>'
+m=mujoco.MjModel.from_xml_string(xml)
+# Newton's spec userdata writes rows directly; XML elevation flips rows.
+m.hfield_data[:]=((z-lo)/(hi-lo)).flatten()
+d=mujoco.MjData(m);mujoco.mj_forward(m,d)
+pts=np.random.default_rng(45).uniform(-3.99,3.99,(500,2));errors=[]
+expected=sample(torch.tensor(z),torch.tensor(pts)).numpy()
+for point,h in zip(pts,expected):
+    hit=np.array([-1],dtype=np.int32)
+    distance=mujoco.mj_ray(m,d,np.r_[point,5.],np.array([0.,0.,-1.]),None,1,-1,hit)
+    errors.append(abs(5-distance-h))
+print(json.dumps(dict(protocol='500 deterministic CPU mj_ray queries, zero physics steps',
+    max_error_m=float(max(errors)),mean_error_m=float(np.mean(errors)),
+    grid_SHA=hashlib.sha256(z.tobytes()).hexdigest(),passed=bool(max(errors)<1e-6))))

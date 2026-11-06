@@ -1,0 +1,21 @@
+"""Actual nominal standing SuperMimic; exact PPO actor source, four new Adams."""
+from .reference import source,replace
+text=source('supermimic_train')
+text=text.replace("FORMAT='MOD4V2_FUDAN_NEWTON_SUPERMIMIC_FULL_V1'","FORMAT='MOD4V2_STANDING_NEWTON_SUPERMIMIC_FULL_V42'")
+text=text.replace("from .newton_checkpoint import FORMAT as PPO_FORMAT,restore_environment_streams",
+                  "PPO_FORMAT='MOD4V2_SCUT_EASY_MIXED_FORWARD_V40_NOMINAL'")
+start=text.index("        if source['reward_family']!='FUDAN_JUMP'")
+end=text.index('        after_reset_rng=capture_rng()',start)
+text=text[:start]+'''        if source['actor_dim']!=35 or source['critic_dim']!=78:
+            raise ValueError('Standing source observation contract changed')
+        teacher=runner.alg.actor
+        teacher.load_state_dict(source['actor_state_dict'],strict=True)
+        torch.set_rng_state(source['cpu_rng'].cpu())
+        torch.cuda.set_rng_state_all([x.cpu()for x in source['cuda_rng']])
+        random.setstate(source['python_rng']);np.random.set_state(source['numpy_rng'])
+        # New nominal Newton physical population; original PPO state is preserved
+        # at its source. No claim of resuming the PhysX solver or PPO Adam.
+'''+text[end:]
+text=text.replace("reward_family='FUDAN_JUMP'","reward_family='SCUT_STANDING_FORWARD_NOMINAL'")
+text=replace(text,"model=env.plant.receipt,","model=env.plant.receipt,nominal=env.nominal_receipt(),")
+exec(compile(text,__file__,'exec'),globals())

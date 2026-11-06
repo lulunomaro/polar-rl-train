@@ -1,0 +1,27 @@
+"""Standing-forward task delta; use frozen SCUT observations and coefficients."""
+from .shared import load, export
+_source = load('config')
+export(_source, globals())
+USD_SHA='97e845c8dcc2485d91081949a8531d67771893731e31d04316b4e67d7ec9dbaa'
+CONTRACT_SHA='00199c26533a9adaca6a35a49d30e8b8b27182230772674bd936d8b527169f4e'
+ACTION_INTERFACE='raw_policy_actions_without_clip_before_mechanical_delta_PD'
+TARGET_INTERFACE='HW300N60_continuous_common_turn_mechanical_delta'
+
+def reward_config(profile='standing_forward'):
+    cfg=_source.reward_config('trained_stair')
+    cfg.use_absolute_height=False
+    cfg.use_leg_length_as_height=True
+    cfg.vel_height_gate_enabled=False
+    cfg.height_upright_gate_enabled=False
+    cfg.enable_state_machines=False
+    for key in ('airborne_state_machine_cfg','jump_takeoff_state_machine_cfg','stair_state_machine_cfg','wheel_forward_scan_cfg'):
+        getattr(cfg,key)['enabled']=False
+    cfg.height_range=(.334,.334)
+    cfg.episode_length_s=10.
+    cfg.rewards.update(pen_theta_no0=-2.,stand32_heading=1.,stand32_wheel_distance=1.)
+    return cfg
+
+def runner_config():
+    value=_source.runner_config()
+    value['clip_actions']=None
+    return value

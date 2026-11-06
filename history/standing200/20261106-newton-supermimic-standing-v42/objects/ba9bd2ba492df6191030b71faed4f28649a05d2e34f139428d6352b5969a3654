@@ -1,0 +1,590 @@
+def _get_rewards(self) -> torch.Tensor:
+        self._update_ground_height_estimate()
+        # prepare
+        root_quat_inv, wheel_pos_b, wheel_pos_heading_b, wheel_lin_vel_b, wheel_lin_vel_heading_b = (
+            self._get_root_quat_inv_and_wheel_pos_b()
+        )
+        left_leg_length = torch.norm(wheel_pos_heading_b[:,0],dim=-1)
+        right_leg_length = torch.norm(wheel_pos_heading_b[:,1],dim=-1)
+        left_leg_angle = torch.atan2(-wheel_pos_heading_b[:,0,0],-wheel_pos_heading_b[:,0,2])
+        right_leg_angle = torch.atan2(-wheel_pos_heading_b[:,1,0],-wheel_pos_heading_b[:,1,2])
+        left_wheel_pos_b_normal = wheel_pos_heading_b[:,0]/left_leg_length.unsqueeze(-1)
+        right_wheel_pos_b_normal = wheel_pos_heading_b[:,1]/right_leg_length.unsqueeze(-1)
+        left_leg_length_dot = torch.sum(wheel_lin_vel_heading_b[:,0]*left_wheel_pos_b_normal,dim=-1)
+        right_leg_length_dot = torch.sum(wheel_lin_vel_heading_b[:,1]*right_wheel_pos_b_normal,dim=-1)
+        # leg_ang_vel = self.joint_vel[:,self._front1_joint_idx] - self.joint_vel[:,self._rear1_joint_idx]
+
+        wheel_power = self.robot.data.applied_torque[:,self._wheel_idx]*self.joint_vel[:,self._wheel_idx]
+        comsume_wheel_power = torch.clamp(wheel_power,min=0)
+
+        # both_height_cmd = self.height_cmd.unsqueeze(-1).repeat((1,2))
+        # deviation_joints = self._inverse_kinematics(both_height_cmd,torch.zeros_like(both_height_cmd,dtype=torch.float,device=self.device)).transpose(-2,-1).reshape(self.num_envs,-1)[:,:len(self._deviation_joint_idx)]
+
+        # 起身训练：整个落地+起身阶段速度命令和角速度命令强制为0（reward 计算用）
+        # if getattr(self.cfg, 'enable_standup_training', False):
+        #     in_standup_phase = (self._standup_phase == 0) | (self._standup_phase == 1)
+        #     self.command[in_standup_phase, :3] = 0.0
+
+        # alive
+        rew_termination = self.reset_terminated
+        rew_epi_len = self.episode_length_buf
+
+        # regularization
+        joint_acc = self.robot.data.joint_acc
+        rew_joint_acc = torch.sum(torch.square(joint_acc[:,self._actuate_idx]), dim=1)
+        rew_leg_joint_acc = torch.sum(torch.square(joint_acc[:,self._legs_act_idx]), dim=1)
+        rew_leg_joint_com_acc = torch.sum(torch.square(0.5*(joint_acc[:,self._legs_front_idx]+joint_acc[:,self._legs_rear_idx])), dim=1)
+        rew_leg_joint_diff_acc = torch.sum(torch.square(0.5*(joint_acc[:,self._legs_front_idx]-joint_acc[:,self._legs_rear_idx])), dim=1)
+        rew_wheel_acc = torch.sum(torch.square(joint_acc[:,self._wheel_idx]), dim=1)
+        rew_wheel_com_acc = torch.square(0.5*(joint_acc[:,self._wheel_idx[0]]+joint_acc[:,self._wheel_idx[1]]))
+        rew_wheel_diff_acc = torch.square(0.5*(joint_acc[:,self._wheel_idx[0]]-joint_acc[:,self._wheel_idx[1]]))
+        rew_joint_vel = torch.sum(torch.square(self.joint_vel[:,self._actuate_idx]), dim=1)
+        rew_leg_joint_vel = torch.sum(torch.square(self.joint_vel[:,self._legs_act_idx]), dim=1)
+        rew_leg_joint_com_vel = torch.sum(torch.square(0.5*(self.joint_vel[:,self._legs_front_idx]+self.joint_vel[:,self._legs_rear_idx])), dim=1)
+        rew_leg_joint_diff_vel = torch.sum(torch.square(0.5*(self.joint_vel[:,self._legs_front_idx]-self.joint_vel[:,self._legs_rear_idx])), dim=1)
+        left_leg_pair_idx, right_leg_pair_idx = self._left_right_leg_joint_pair_idx
+        if left_leg_pair_idx and right_leg_pair_idx:
+            leg_pair_pos_diff = wrap_to_pi(self.joint_pos[:, left_leg_pair_idx] - self.joint_pos[:, right_leg_pair_idx])
+            rew_leg_joint_pair_pos_diff = torch.sum(torch.square(leg_pair_pos_diff), dim=-1)
+        else:
+            rew_leg_joint_pair_pos_diff = torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
+        rew_wheel_vel = torch.sum(torch.square(self.joint_vel[:,self._wheel_idx]), dim=-1)
+        rew_wheel_com_vel = torch.square(0.5*(self.joint_vel[:,self._wheel_idx[0]]+self.joint_vel[:,self._wheel_idx[1]]))
+        rew_wheel_diff_vel = torch.square(0.5*(self.joint_vel[:,self._wheel_idx[0]]-self.joint_vel[:,self._wheel_idx[1]]))
+        applied_torque = self.robot.data.applied_torque
+        rew_joint_torque = torch.sum(torch.square(applied_torque[:,self._actuate_idx]), dim=1)
+        torque_rate = applied_torque - self._previous_applied_torque
+        torque_second_diff = (
+            applied_torque
+            - 2.0 * self._previous_applied_torque
+            + self._before_previous_applied_torque
+        )
+        rew_torque_rate = torch.sum(torch.square(torque_rate[:, self._actuate_idx]), dim=-1)
+        rew_torque_smoothness_leg = torch.sum(
+            torch.square(torque_second_diff[:, self._legs_act_idx]), dim=-1
+        )
+        rew_torque_smoothness_wheel = torch.sum(
+            torch.square(torque_second_diff[:, self._wheel_idx]), dim=-1
+        )
+        self._before_previous_applied_torque.copy_(self._previous_applied_torque)
+        self._previous_applied_torque.copy_(applied_torque)
+        wheel_power = applied_torque[:,self._wheel_idx]*self.joint_vel[:,self._wheel_idx]
+        comsume_wheel_power = torch.clamp(wheel_power,min=0)
+        rew_wheel_power = torch.sum(comsume_wheel_power, dim=-1)
+        # if self.cfg.use_leg_length_as_height:
+        #     rew_lin_vel_z = torch.square(left_leg_length_dot+right_leg_length_dot)
+        # else:
+        rew_leg_len_vel = torch.square(left_leg_length_dot) + torch.square(right_leg_length_dot)
+        rew_lin_vel_z = torch.square(self.robot.data.root_lin_vel_b[:, 2])
+        rew_lin_vel_z_exp = torch.exp(-rew_lin_vel_z / self.cfg.lin_vel_z_sigma)
+        rew_ang_vel_xy = torch.sum(torch.square(self.robot.data.root_ang_vel_b[:, :2]), dim=1)
+        rew_action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
+        action_second_diff = self._actions - 2 * self._previous_actions + self._before_previous_actions
+        rew_action_smoothness = torch.sum(torch.square(action_second_diff), dim=-1)
+        leg_action_slice, wheel_action_slice = self._get_policy_action_slices()
+        rew_action_rate_leg = torch.sum(torch.square(self._actions[:, leg_action_slice] - self._previous_actions[:, leg_action_slice]), dim=1)
+        rew_action_rate_wheel = torch.sum(torch.square(self._actions[:, wheel_action_slice] - self._previous_actions[:, wheel_action_slice]), dim=1)
+        rew_action_smoothness_leg = torch.sum(torch.square(action_second_diff[:, leg_action_slice]), dim=-1)
+        rew_action_smoothness_wheel = torch.sum(torch.square(action_second_diff[:, wheel_action_slice]), dim=-1)
+        # rew_joint_deviation_l2 = torch.sum(torch.square(self.joint_pos[:,self._deviation_joint_idx]-deviation_joints),dim=-1)
+        # rew_joint_deviation_l1 = torch.sum(torch.abs(self.joint_pos[:,self._deviation_joint_idx]-deviation_joints),dim=-1)
+
+        # print(self.robot.data.root_lin_vel_b[:, 0])
+        # print(self.robot.data.applied_torque[:,self._wheel_idx])
+
+        # tasks
+        reward_command = self.command
+        tracking_command = reward_command
+        stand_still_lin_mask = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
+        stand_still_yaw_mask = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
+        if bool(getattr(self.cfg, "stand_still_deadzone_enabled", False)):
+            stand_still_threshold = max(
+                float(getattr(self.cfg, "stand_still_deadzone_threshold", 0.2)),
+                0.0,
+            )
+            stand_still_lin_mask = torch.abs(reward_command[:, 0]) < stand_still_threshold
+            stand_still_yaw_mask = torch.abs(reward_command[:, 2]) < stand_still_threshold
+            tracking_command = reward_command.clone()
+            tracking_command[stand_still_lin_mask, 0] = 0.0
+            tracking_command[stand_still_yaw_mask, 2] = 0.0
+
+        pgb = self.robot.data.projected_gravity_b[:, :2]
+        # pgb[:,0] = pgb[:,0]-0.02
+        # rew_flat_orientation = torch.sum(torch.square(self.robot.data.projected_gravity_b[:, :2]), dim=1)
+        rew_flat_orientation = torch.sum(torch.square(pgb), dim=-1)
+        rew_flat_orientation_y = torch.square(self.cfg.orientation_y_square_sigma*pgb[:,0])
+        rew_flat_orientation_x = torch.square(self.cfg.orientation_x_square_sigma*pgb[:,1])
+        rew_flat_orientation_y_exp = torch.exp(-torch.square(pgb[:,0]) / self.cfg.orientation_y_exp_sigma)
+        rew_flat_orientation_x_exp = torch.exp(-torch.square(pgb[:,1]) / self.cfg.orientation_x_exp_sigma)
+        lin_vel_x_cmd = torch.square(reward_command[:,0])
+        rew_flat_orientation_y_v = torch.square(
+            (
+                self.cfg.orientation_y_A * torch.exp(-lin_vel_x_cmd / self.cfg.orientation_y_sigma)
+                + self.cfg.orientation_y_bias
+            )
+            * pgb[:, 0]
+        )
+        rew_flat_orientation_x_v = torch.square((self.cfg.orientation_x_A * torch.exp(-lin_vel_x_cmd/self.cfg.orientation_x_sigma) + self.cfg.orientation_x_bias)*pgb[:,1])
+        # rew_flat_orientation = torch.square(self.robot.data.projected_gravity_b[:, 1])
+
+        # ========== 姿态门控：只有接近水平时速度/角速度 tracking 奖励才高 ==========
+        # upright_err: projected_gravity_b 的水平分量平方和，越小越水平
+        upright_err = rew_flat_orientation
+        if bool(getattr(self.cfg, "vel_upright_gate_enabled", False)):
+            sigma = float(getattr(self.cfg, "vel_upright_gate_sigma", 0.02))
+            sigma = max(sigma, 1e-6)
+            vel_upright_gate = torch.exp(-upright_err / sigma)
+        else:
+            vel_upright_gate = 1.0
+
+        vel_orientation_x_gate_enabled = self._get_vel_orientation_x_gate_enabled()
+        if torch.is_tensor(vel_orientation_x_gate_enabled) or bool(vel_orientation_x_gate_enabled):
+            orientation_x_angle = torch.asin(torch.clamp(torch.abs(pgb[:, 1]), max=1.0))
+            full_angle_deg = torch.clamp(
+                self._as_reward_gate_tensor(self._get_vel_orientation_x_gate_full_deg(), orientation_x_angle),
+                min=0.0,
+            )
+            zero_angle_deg = torch.maximum(
+                torch.clamp(
+                    self._as_reward_gate_tensor(self._get_vel_orientation_x_gate_zero_deg(), orientation_x_angle),
+                    min=0.0,
+                ),
+                full_angle_deg,
+            )
+            full_angle = torch.deg2rad(full_angle_deg)
+            zero_angle = torch.deg2rad(zero_angle_deg)
+            angle_band = zero_angle - full_angle
+            vel_orientation_x_gate = torch.where(
+                angle_band <= 0.0,
+                (orientation_x_angle <= full_angle).float(),
+                torch.clamp(
+                    (zero_angle - orientation_x_angle) / torch.clamp(angle_band, min=1.0e-6),
+                    min=0.0,
+                    max=1.0,
+                ),
+            )
+            if torch.is_tensor(vel_orientation_x_gate_enabled):
+                vel_orientation_x_gate = torch.where(
+                    self._as_reward_gate_bool_tensor(vel_orientation_x_gate_enabled, orientation_x_angle),
+                    vel_orientation_x_gate,
+                    torch.ones_like(vel_orientation_x_gate),
+                )
+        else:
+            vel_orientation_x_gate = 1.0
+
+        vel_orientation_y_gate_enabled = self._get_vel_orientation_y_gate_enabled()
+        if torch.is_tensor(vel_orientation_y_gate_enabled) or bool(vel_orientation_y_gate_enabled):
+            orientation_y_angle = torch.asin(torch.clamp(torch.abs(pgb[:, 0]), max=1.0))
+            full_angle_deg = torch.clamp(
+                self._as_reward_gate_tensor(self._get_vel_orientation_y_gate_full_deg(), orientation_y_angle),
+                min=0.0,
+            )
+            zero_angle_deg = torch.maximum(
+                torch.clamp(
+                    self._as_reward_gate_tensor(self._get_vel_orientation_y_gate_zero_deg(), orientation_y_angle),
+                    min=0.0,
+                ),
+                full_angle_deg,
+            )
+            full_angle = torch.deg2rad(full_angle_deg)
+            zero_angle = torch.deg2rad(zero_angle_deg)
+            angle_band = zero_angle - full_angle
+            vel_orientation_y_gate = torch.where(
+                angle_band <= 0.0,
+                (orientation_y_angle <= full_angle).float(),
+                torch.clamp(
+                    (zero_angle - orientation_y_angle) / torch.clamp(angle_band, min=1.0e-6),
+                    min=0.0,
+                    max=1.0,
+                ),
+            )
+            if torch.is_tensor(vel_orientation_y_gate_enabled):
+                vel_orientation_y_gate = torch.where(
+                    self._as_reward_gate_bool_tensor(vel_orientation_y_gate_enabled, orientation_y_angle),
+                    vel_orientation_y_gate,
+                    torch.ones_like(vel_orientation_y_gate),
+                )
+        else:
+            vel_orientation_y_gate = 1.0
+
+        if bool(getattr(self.cfg, "height_upright_gate_enabled", False)):
+            height_sigma = float(getattr(self.cfg, "height_upright_gate_sigma", 0.02))
+            height_sigma = max(height_sigma, 1e-6)
+            height_upright_gate = torch.exp(-upright_err / height_sigma)
+        else:
+            height_upright_gate = 1.0
+
+        # 相对地面高度（默认模式）/ 绝对或腿长高度模式（按当前 cfg 保持原定义）
+        obs_height = self._get_observed_height(wheel_pos_b)
+        if self._use_absolute_height() or self._use_leg_length_height():
+            relative_obs_height = obs_height
+        else:
+            relative_obs_height = obs_height - self.ground_z_est
+        wheel_relative_ground_heights = self._get_wheel_relative_ground_heights_raw()
+        self.wheel_relative_ground_heights = wheel_relative_ground_heights
+        wheel_height_w = self.robot.data.body_pos_w[:, self._wheel_link_idx, 2]
+        height_reward_ref = self._get_height_reward_reference_height(relative_obs_height, wheel_height_w)
+        # print(height_reward_ref)
+        # 普通速度 tracking 仍按“水平前进速度”计算：
+        # 使用机体系前向 x 速度，再通过机身 pitch 投影到水平面，避免直接拿机体系 x 导致冲坡时高估水平速度。
+        root_rpy = euler_xyz_from_quat(self.robot.data.root_quat_w)
+        pitch = wrap_to_pi(root_rpy[1])
+        roll = wrap_to_pi(root_rpy[0])
+        rew_flat_pitch_l1 = torch.abs(pitch*self.cfg.flat_pitch_l1_sigma)
+        rew_flat_pitch_tanh = 1 - torch.tanh(torch.abs(pitch)/self.cfg.flat_pitch_tanh_sigma)
+        rew_flat_roll_l1 = torch.abs(roll*self.cfg.flat_roll_l1_sigma)
+        rew_flat_roll_tanh = 1 - torch.tanh(torch.abs(roll)/self.cfg.flat_roll_tanh_sigma)
+
+        forward_lin_vel_horizontal = self.robot.data.root_lin_vel_b[:, 0] * torch.cos(pitch)
+        lin_vel_err = tracking_command[:, 0] - forward_lin_vel_horizontal
+        if self.cfg.lin_vel_err_constraint is not None:
+            track_lin_vel_err = torch.square(torch.clamp(lin_vel_err,
+                                                         min=-self.cfg.lin_vel_err_constraint,
+                                                         max=self.cfg.lin_vel_err_constraint))
+        else:
+            track_lin_vel_err = torch.square(lin_vel_err)
+        rew_track_lin_vel_xy = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_sigma)
+        rew_track_lin_vel_xy_soft = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_soft_sigma)
+        rew_track_lin_vel_xy_tight = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_tight_sigma)
+        rew_track_lin_vel_xy_huge_gap = track_lin_vel_err>self.cfg.lin_vel_xy_torlarance_gap
+        rew_track_lin_vel_xy_square = torch.square(
+            lin_vel_err * self.cfg.lin_vel_xy_square_sigma
+        )
+        lin_vel_abs_err = torch.abs(tracking_command[:, 0]) - torch.abs(forward_lin_vel_horizontal)
+        rew_pen_high_speed = torch.square(torch.clamp(lin_vel_abs_err, max=0.)*self.cfg.high_speed_pen_sigma)
+
+        ang_vel_err = tracking_command[:, 2] - self.robot.data.root_ang_vel_b[:, 2]
+        if self.cfg.ang_vel_err_constraint is not None:
+            track_yaw_rate_err = torch.square(torch.clamp(ang_vel_err,
+                                                         min=-self.cfg.ang_vel_err_constraint,
+                                                         max=self.cfg.ang_vel_err_constraint))
+        else:
+            track_yaw_rate_err = torch.square(ang_vel_err)
+        rew_track_ang_vel_z = torch.exp(-track_yaw_rate_err / self.cfg.ang_vel_z_sigma)
+        rew_track_ang_vel_z_soft = torch.exp(-track_yaw_rate_err / self.cfg.amg_vel_z_soft_sigma)
+        rew_track_ang_vel_z_huge_gap = track_yaw_rate_err>self.cfg.ang_vel_z_torlarance_gap
+        rew_track_ang_vel_z_square = torch.square(ang_vel_err*self.cfg.ang_vel_z_square_sigma)
+        ang_vel_abs_err = torch.abs(tracking_command[:, 2]) - torch.abs(self.robot.data.root_ang_vel_b[:, 2])
+        rew_pen_high_angVel = torch.square(torch.clamp(ang_vel_abs_err, max=0.)*self.cfg.high_angVel_pen_sigma)
+        
+        rew_stand_still = (
+            torch.sum(torch.square(self.robot.data.root_lin_vel_b[:, :2]), dim=1)
+            * stand_still_lin_mask.float()
+            + torch.square(self.robot.data.root_ang_vel_b[:, 2]) * stand_still_yaw_mask.float()
+        )
+        rew_stand_still_lin_vel = (
+            torch.sum(torch.abs(self.robot.data.root_lin_vel_b[:, :2]), dim=1)
+            * stand_still_lin_mask.float()
+        )
+
+        # 约束加减速足端位置
+        # foot_bound_square = torch.square(wheel_pos_heading_b[:,:,0])
+        # rew_foot_bound = torch.sum(torch.abs(wheel_pos_heading_b[:,:,0])>self.cfg.foot_bound_dist,dim=1)
+        # rew_foot_bound_square = torch.sum(torch.square(wheel_pos_heading_b[:,:,0]*self.cfg.foot_bound_square_sigma),dim=1)
+        # rew_foot_bound_exp_pen = torch.sum(1-torch.exp(-foot_bound_square/self.cfg.foot_bound_exp_pen_sigma),dim=1)
+        # rew_foot_bound_exp = torch.sum(torch.exp(-foot_bound_square/self.cfg.foot_bound_sigma),dim=1)
+        # rew_foot_bound_ssquare = torch.sum(torch.square(foot_bound_square*self.cfg.foot_bound_ssquare_sigma),dim=1)
+
+        rew_stand_nice = torch.sum(torch.square(wheel_pos_heading_b[:,:,0]),dim=-1)
+        rew_no_fork_raw = torch.abs(wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0])>self.cfg.no_fork_distance
+        rew_no_fork = rew_no_fork_raw.float()
+        # exp 平滑的 no_fork 约束：仅在超过阈值后逐渐加大惩罚（与 no_fork 的硬阈值互补）
+        no_fork_dist = torch.abs(wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0])
+        no_fork_over = torch.clamp(no_fork_dist - self.cfg.no_fork_distance, min=0.0)
+        rew_no_fork_exp = 1.0 - torch.exp(-no_fork_over / self.cfg.no_fork_exp_sigma)
+        no_fork_z_distance = float(getattr(self.cfg, "no_fork_z_distance", self.cfg.no_fork_distance))
+        rew_no_fork_z_raw = torch.abs(wheel_pos_b[:,0,2]-wheel_pos_b[:,1,2]) > no_fork_z_distance
+        rew_no_fork_z = rew_no_fork_z_raw.float()
+        no_fork_z_dist = torch.abs(wheel_pos_b[:,0,2]-wheel_pos_b[:,1,2])
+        no_fork_z_over = torch.clamp(no_fork_z_dist - no_fork_z_distance, min=0.0)
+        no_fork_z_exp_sigma = float(getattr(self.cfg, "no_fork_z_exp_sigma", self.cfg.no_fork_exp_sigma))
+        rew_no_fork_z_exp = 1.0 - torch.exp(-no_fork_z_over / no_fork_z_exp_sigma)
+        # 起身训练：落地阶段 no_fork 惩罚缩小
+        # if getattr(self.cfg, 'enable_standup_training', False):
+        #     landing_mask = (self._standup_phase == 0).float()
+        #     no_fork_landing_scale = getattr(self.cfg, 'no_fork_landing_scale', 0.1)
+        #     rew_no_fork = rew_no_fork_raw.float() * (1.0 - landing_mask * (1.0 - no_fork_landing_scale))
+        # else:
+        #     rew_no_fork = rew_no_fork_raw
+        rew_no_fork_square = torch.square((wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0])*self.cfg.no_fork_square_sigma)
+        no_fork_z_square_sigma = float(getattr(self.cfg, "no_fork_z_square_sigma", self.cfg.no_fork_square_sigma))
+        rew_no_fork_z_square = torch.square((wheel_pos_b[:,0,2]-wheel_pos_b[:,1,2]) * no_fork_z_square_sigma)
+        # 兼容旧 reward key 名称：实际约束的是左右腿向量与世界重力方向对齐。
+        wheel_motor_z_axis_align_err_sq = self._get_wheel_motor_z_axis_align_error_sq()
+        wheel_motor_z_axis_align_sigma = max(
+            float(
+                getattr(
+                    self.cfg,
+                    "wheel_motor_z_axis_align_sigma",
+                    getattr(self.cfg, "wheel_body_x_zero_sigma", 0.02),
+                )
+            ),
+            1e-6,
+        )
+        wheel_motor_z_axis_align_tight_sigma = max(
+            float(
+                getattr(
+                    self.cfg,
+                    "wheel_motor_z_axis_align_tight_sigma",
+                    getattr(self.cfg, "wheel_body_x_zero_tight_sigma", 0.002),
+                )
+            ),
+            1e-6,
+        )
+        rew_wheel_motor_z_axis_align_exp = torch.exp(
+            -wheel_motor_z_axis_align_err_sq / wheel_motor_z_axis_align_sigma
+        )
+        rew_wheel_motor_z_axis_align_exp_tight = torch.exp(
+            -wheel_motor_z_axis_align_err_sq / wheel_motor_z_axis_align_tight_sigma
+        )
+        # rew_leg_end_vel = torch.sum(torch.square(wheel_lin_vel_b[:,:,0]),dim=-1)
+        # rew_leg_angle_l2 = torch.sum(torch.square(torch.stack([left_leg_angle,right_leg_angle],dim=-1)),dim=-1)
+        # rew_leg_angle_l1 = torch.sum(torch.abs(torch.stack([left_leg_angle,right_leg_angle],dim=-1)),dim=-1)
+        # rew_leg_ang_vel_l2 = torch.sum(torch.square(leg_ang_vel),dim=-1)
+        # rew_leg_ang_vel_l1 = torch.sum(torch.abs(leg_ang_vel),dim=-1)
+        rew_l_leg_ang_exp = torch.exp(-torch.square(left_leg_angle)/self.cfg.l_leg_ang_exp_sigma)
+        rew_r_leg_ang_exp = torch.exp(-torch.square(right_leg_angle)/self.cfg.r_leg_ang_exp_sigma)
+
+        height_reward_target = self._get_height_reward_target_height()
+        height_err = height_reward_ref - height_reward_target
+        if self.cfg.height_err_constraint is not None:
+            track_height_err = torch.square(torch.clamp(height_err,
+                                                         min=-self.cfg.height_err_constraint,
+                                                         max=self.cfg.height_err_constraint))
+        else:
+            track_height_err = torch.square(height_err)
+        rew_track_height_square = torch.square(self.cfg.height_square_sigma * (height_err))
+        rew_track_height_l1 = torch.abs(self.cfg.height_l1_sigma * (height_err))
+        rew_track_height_exp = torch.exp(-track_height_err / self.cfg.height_sigma)
+        rew_track_height_exp_soft = torch.exp(-track_height_err / self.cfg.height_soft_sigma)
+        rew_track_height_exp_tight = torch.exp(-track_height_err / self.cfg.height_tight_sigma)
+        rew_track_height_tanh = 1 - torch.tanh(torch.abs(height_err)/self.cfg.height_tanh_sigma)
+        rew_pen_base_too_low = torch.square(torch.clamp((self.cfg.base_height_bound-height_reward_ref), min=0.)*self.cfg.pen_base_too_low_sigma)
+
+        # 速度高度门控：高度没跟住时降低速度/角速度 tracking 奖励，避免 policy 为了追速度牺牲高度。
+        vel_height_gate_enabled = self._get_vel_height_gate_enabled()
+        # enabled 可以是全局 bool，也可以是 per-env bool tensor；tensor 用于不同任务/状态单独开关。
+        if torch.is_tensor(vel_height_gate_enabled) or bool(vel_height_gate_enabled):
+            vel_height_gate_mode = str(getattr(self.cfg, "vel_height_gate_mode", "exp")).lower()
+            if vel_height_gate_mode in ("linear_band", "band", "piecewise_linear"):
+                height_abs_err = torch.abs(height_reward_ref - height_reward_target)
+                # full_error 内门控为 1；zero_error 外门控为 0；中间线性衰减。
+                full_error = torch.clamp(
+                    self._as_reward_gate_tensor(self._get_vel_height_gate_full_error(), height_abs_err),
+                    min=0.0,
+                )
+                zero_error = torch.maximum(
+                    torch.clamp(
+                        self._as_reward_gate_tensor(self._get_vel_height_gate_zero_error(), height_abs_err),
+                        min=0.0,
+                    ),
+                    full_error,
+                )
+                height_band = zero_error - full_error
+                vel_height_gate = torch.where(
+                    # 若 full_error == zero_error，则退化为硬阈值，避免除以 0。
+                    height_band <= 0.0,
+                    (height_abs_err <= full_error).float(),
+                    torch.clamp(
+                        (zero_error - height_abs_err) / torch.clamp(height_band, min=1.0e-6),
+                        min=0.0,
+                        max=1.0,
+                    ),
+                )
+            else:
+                # 指数模式：默认复用高度 tracking reward，也可单独配置 tracker sigma。
+                vel_gate_sigma_cfg = getattr(self.cfg, "vel_height_gate_tracker_sigma", None)
+                if vel_gate_sigma_cfg is None:
+                    vel_height_gate = rew_track_height_exp
+                else:
+                    vel_gate_sigma = max(float(vel_gate_sigma_cfg), 1e-6)
+                    vel_height_gate = torch.exp(-track_height_err / vel_gate_sigma)
+            if torch.is_tensor(vel_height_gate_enabled):
+                # 对未启用高度门控的 env，门控置 1，相当于不影响速度 tracking 奖励。
+                vel_height_gate = torch.where(
+                    self._as_reward_gate_bool_tensor(vel_height_gate_enabled, height_reward_ref),
+                    vel_height_gate,
+                    torch.ones_like(vel_height_gate),
+                )
+        else:
+            vel_height_gate = 1.0
+
+        # 叠加门控
+        vel_reward_gate = vel_upright_gate * vel_orientation_x_gate * vel_orientation_y_gate * vel_height_gate
+        rew_track_lin_vel_xy = rew_track_lin_vel_xy * vel_reward_gate
+        rew_track_lin_vel_xy_soft = rew_track_lin_vel_xy_soft * vel_reward_gate
+        rew_track_lin_vel_xy_tight = rew_track_lin_vel_xy_tight * vel_reward_gate
+        rew_track_lin_vel_xy_square = rew_track_lin_vel_xy_square * vel_reward_gate
+        rew_track_ang_vel_z = rew_track_ang_vel_z * vel_reward_gate
+        rew_track_ang_vel_z_soft = rew_track_ang_vel_z_soft * vel_reward_gate
+        rew_track_ang_vel_z_square = rew_track_ang_vel_z_square * vel_reward_gate
+        rew_track_lin_vel_xy_huge_gap = rew_track_lin_vel_xy_huge_gap.float()
+        rew_track_ang_vel_z_huge_gap = rew_track_ang_vel_z_huge_gap.float()
+
+        rew_track_height_exp = rew_track_height_exp * height_upright_gate
+        rew_track_height_exp_soft = rew_track_height_exp_soft * height_upright_gate
+        rew_track_height_exp_tight = rew_track_height_exp_tight * height_upright_gate
+        rew_track_height_huge_gap = height_reward_target - obs_height > self.cfg.height_torlarance_gap
+        # print(torch.abs(wheel_pos_b[:,0,0]-wheel_pos_b[:,1,0]))
+        # print('tar',self.height_cmd)
+        # print('cur',obs_height)
+
+        # undesired contacts
+        net_contact_forces = self.contact_sensor.data.net_forces_w_history
+        undesired_contact_force_threshold = float(
+            getattr(self.cfg, "undesired_contact_force_threshold", 5.0)
+        )
+        desired_contact_force_threshold = float(
+            getattr(self.cfg, "desired_contact_force_threshold", 1.0)
+        )
+        wheel_contact_force_peaks = self._get_wheel_contact_force_peaks(net_contact_forces)
+        if wheel_contact_force_peaks.shape[1] >= 2:
+            both_wheels_contact = torch.all(
+                wheel_contact_force_peaks > desired_contact_force_threshold, dim=1
+            )
+        else:
+            both_wheels_contact = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
+        rew_wheel_air_spin = self._get_wheel_air_spin_reward(
+            wheel_contact_force_peaks,
+            desired_contact_force_threshold,
+        )
+        rew_track_height_exp_both_wheels_contact = (
+            rew_track_height_exp_soft * both_wheels_contact.float()
+        )
+
+        # 计算总的有害接触奖励 (用于训练)
+        if net_contact_forces is not None:
+            harmful_contact_mask = (
+                torch.norm(net_contact_forces[:, :, self._undesired_contact_link_idx], dim=-1)
+                > undesired_contact_force_threshold
+            )
+            is_contact = torch.max(torch.max(harmful_contact_mask, dim=1)[0], dim=1)[0]
+            rew_undesired_contact = is_contact.float()
+        else:
+            rew_undesired_contact = torch.zeros(self.num_envs, device=self.device)
+
+        self._debug_print_undesired_contacts(net_contact_forces)
+
+        # [内置] 实时终端打印 (已移除)
+
+        # desired contacts (车轮触地奖励/惩罚)
+        if wheel_contact_force_peaks.shape[1] > 0:
+            # 检查车轮是否在历史窗口内有接触
+            is_not_contact = wheel_contact_force_peaks < desired_contact_force_threshold
+            rew_desired_contact = torch.sum(is_not_contact.float(), dim=1)
+        else:
+            rew_desired_contact = torch.zeros(self.num_envs, device=self.device)
+
+        # dof limits
+        if bool(getattr(self.cfg, "front_rear_joint_limit_rewards_enabled", True)):
+            limits_actions_joint_error = [(self.leg_actions[:,0]-self.leg_actions[:,1]).unsqueeze(-1),
+                                  (self.leg_actions[:,2]-self.leg_actions[:,3]).unsqueeze(-1)]
+            limits_actions_joint_error = torch.cat(limits_actions_joint_error,dim=-1)
+            upper_error = limits_actions_joint_error > self.cfg.leg_front_rear_range[1]
+            lower_error = limits_actions_joint_error < self.cfg.leg_front_rear_range[0]
+            rew_actions_joint_limits = torch.sum(upper_error+lower_error,dim=-1)
+
+            limits_joint_error = self.joint_pos[:,self._legs_front_idx] - self.joint_pos[:,self._legs_rear_idx]
+            soft_range = [0.,0.]
+            scale_range = abs(self.cfg.leg_front_rear_range[1]-self.cfg.leg_front_rear_range[0])*(1-self.cfg.soft_range_scale)
+            soft_range[0] = self.cfg.leg_front_rear_range[0] + scale_range
+            soft_range[1] = self.cfg.leg_front_rear_range[1] - scale_range
+            upper_error = limits_joint_error > soft_range[1]
+            lower_error = limits_joint_error < soft_range[0]
+            rew_current_joint_limits = torch.sum(upper_error+lower_error,dim=-1)
+        else:
+            rew_actions_joint_limits = torch.zeros(self.num_envs, device=self.device)
+            rew_current_joint_limits = torch.zeros(self.num_envs, device=self.device)
+
+        (
+            rew_rear2_rear1_joint_pos_limits,
+            rew_rear2_rear1_joint_pos_limits_torque,
+            rew_rear2_rear1_joint_pos_limits_vel,
+        ) = self._get_rear2_rear1_joint_limit_terms()
+
+        # 起身训练奖励（仅 phase=1 起身阶段非零）
+        # in_standup = (self._standup_phase == 1) if getattr(self.cfg, 'enable_standup_training', False) else False
+        # if getattr(self.cfg, 'enable_standup_training', False):
+        #     standup_mask = in_standup.float()
+        #     rew_standup_height = obs_height * standup_mask
+        #     rew_standup_vel_z = torch.clamp(self.robot.data.root_lin_vel_b[:, 2], min=0.0) * standup_mask
+        #     rew_standup_smoothness = rew_action_smoothness * standup_mask
+        #     rew_standup_joint_torque = rew_joint_torque * standup_mask
+        #     rew_standup_wheel_power = rew_wheel_power * standup_mask
+        #     rew_standup_leg_joint_acc = rew_leg_joint_acc * standup_mask
+        #     rew_standup_wheel_vel = rew_wheel_vel * standup_mask
+        # else:
+        #     rew_standup_height = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_vel_z = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_smoothness = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_joint_torque = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_wheel_power = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_leg_joint_acc = torch.zeros(self.num_envs, device=self.device)
+        #     rew_standup_wheel_vel = torch.zeros(self.num_envs, device=self.device)
+
+        reward_terms = {k[4:]: v for k, v in locals().items() if k.startswith("rew_")}
+        reward_terms = self._postprocess_reward_terms(reward_terms)
+
+        # gather rewards
+        rewards = {k: v * self.step_dt for k, v in reward_terms.items()}
+        # 用 .get() 防止 cfg.rewards 里存在但对应 rew_* 变量被注释掉的键（如 standup 相关）
+        _zero_rew = torch.zeros(self.num_envs, device=self.device)
+        rewards = {k: w * rewards.get(k, _zero_rew) for k, w in self.cfg.rewards.items()}
+
+        # 数值保护：
+        # 1. 将每个 reward term 内部产生的 NaN/Inf 直接归零，防止污染 rollout。
+        # 2. 对本 step 已判定物理爆炸的 env，整条 reward 置零，避免坏状态参与 PPO 更新。
+        bad_reward_envs = self._numerical_safety_reset_buf
+        if bad_reward_envs.any():
+            bad_reward_envs_f = bad_reward_envs.float()
+            keep_reward_envs_f = (~bad_reward_envs).float()
+        for key, value in rewards.items():
+            sanitized_value = torch.nan_to_num(value, nan=0.0, posinf=0.0, neginf=0.0)
+            if bad_reward_envs.any():
+                sanitized_value = sanitized_value * keep_reward_envs_f
+            rewards[key] = sanitized_value
+        self._last_reward_terms = {key: value.detach() for key, value in rewards.items()}
+
+        if bool(getattr(self.cfg, "reward_groups_enabled", False)):
+            group_names = tuple(getattr(self.cfg, "reward_group_names", ("task", "safety", "energy")))
+            group_index = {name: idx for idx, name in enumerate(group_names)}
+            term_groups = dict(getattr(self.cfg, "reward_term_groups", {}))
+            reward_groups = torch.zeros(
+                self.num_envs,
+                len(group_names),
+                dtype=torch.float,
+                device=self.device,
+            )
+            default_group = group_index.get("task", 0)
+            for key, value in rewards.items():
+                group_name = term_groups.get(key, "task")
+                group_id = group_index.get(group_name, default_group)
+                reward_groups[:, group_id] += value
+            self.extras["reward_groups"] = torch.nan_to_num(
+                reward_groups,
+                nan=0.0,
+                posinf=0.0,
+                neginf=0.0,
+            )
+
+        # Stepping command
+        sync_cmd_iteration = getattr(self, "_sync_command_generator_training_iteration", None)
+        if sync_cmd_iteration is not None:
+            sync_cmd_iteration()
+        self.command_generator.compute(self.step_dt)
+        self._resample_custom_cmd(self.command_generator.command_counter)
+        self.command = self.command_generator.command.clone()
+        self._on_command_updated()
+        self._apply_predefined_reset_air_command_limits()
+
+        # Logging rewards
+        for key, value in rewards.items():
+            if key not in self._episode_sums:
+                self._episode_sums[key] = torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
+            self._episode_sums[key] += value
+        rewards_tensor = torch.stack([rewards[k] for k in self.cfg.rewards.keys()], dim=-1)
+        total_reward = torch.sum(rewards_tensor, dim=-1)
+        total_reward = torch.nan_to_num(total_reward, nan=0.0, posinf=0.0, neginf=0.0)
+        self._last_total_reward = total_reward.detach()
+        self._debug_print_reward_and_state_stats(rewards, total_reward)
+        return total_reward

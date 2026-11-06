@@ -187,6 +187,7 @@ def validate(package, report):
         ck("USD_physical_transforms_preserved",usd_point<2e-7 and usd_inertia<2e-7,
             dict(max_transform_or_COM_error=usd_point,max_world_inertia_error=usd_inertia))
         ck("USD_anchors_still_closed",usd_joint_gap<1e-5,dict(max_anchor_gap_m=usd_joint_gap))
+        usd_coordinates={}
         for n,row in contract["joints"].items():
             prim=stage.GetPrimAtPath('/Robot/joints/'+n)
             is_hinge=row["type"]=='hinge'
@@ -197,6 +198,33 @@ def validate(package, report):
             values=[math.radians(x) if is_hinge else x for x in raw]
             expected=row['limits_si']
             ck("USD_MJCF_physical_limits_"+n,all((not math.isfinite(a) and b is None) or (b is not None and abs(a-b)<3e-7) for a,b in zip(values,expected)))
+            # Independently measure effective q from the authored body and
+            # joint frames, rather than accepting the metadata's offset.
+            joint=UsdPhysics.Joint(prim);frames=[];points=[]
+            for i in (0,1):
+                body=getattr(joint,f'GetBody{i}Rel')().GetTargets()[0]
+                world=cache.GetLocalToWorldTransform(stage.GetPrimAtPath(body))
+                frames.append(rotation(quat_array(world.ExtractRotationQuat()))@
+                              rotation(quat_array(getattr(joint,f'GetLocalRot{i}Attr')().Get())))
+                points.append(np.array(world.Transform(Gf.Vec3d(*getattr(joint,f'GetLocalPos{i}Attr')().Get()))))
+            axis='XYZ'.index(prim.GetAttribute('physics:axis').Get())
+            relative=frames[0].T@frames[1]
+            coordinate=(math.atan2(relative[0,2],relative[0,0]) if is_hinge else
+                        float(np.dot(points[1]-points[0],frames[0][:,axis])))
+            usd_coordinates[n]=coordinate
+            reference=float(m.qpos0[m.joint(n).qposadr[0]])
+            ck('USD_effective_coordinate_matches_MJCF_ref_'+n,abs(coordinate-reference)<1e-7)
+        for prim in stage.Traverse():
+            for token in ('rotX','rotY','rotZ'):
+                prefix='physxMimicJoint:'+token+':'
+                rel=prim.GetRelationship(prefix+'referenceJoint')
+                if not rel or not rel.GetTargets():
+                    continue
+                leader=rel.GetTargets()[0].name
+                gearing=prim.GetAttribute(prefix+'gearing').Get()
+                offset=prim.GetAttribute(prefix+'offset').Get()
+                residual=usd_coordinates[prim.GetName()]+gearing*usd_coordinates[leader]+math.radians(offset)
+                ck('USD_mimic_authored_pose_equation_'+prim.GetName(),abs(residual)<1e-7)
         for side in ("left","right"):
             n=side+'_spring2_joint';j=m.joint(n);lo,hi=m.jnt_range[j.id]
             k=float(m.jnt_stiffness[j.id]);ref=float(m.qpos_spring[j.qposadr[0]])
@@ -252,7 +280,7 @@ def validate(package, report):
         ids,names=view.find_joints(spec['control']['policy_action_order'],preserve_order=True)
         ck('SCUT_view_explicit_action_order',names==spec['control']['policy_action_order'])
         ck('SCUT_view_front3_is_derived',all(n in view.joint_names for n in ['left_front3_joint','right_front3_joint']) and 'left_f3r1_joint'not in view.joint_names)
-        decoded=api.decode_actions(np.ones((1,6)),np.zeros((1,4)),leg_scale=.5,wheel_scale=10.,wheel_mode='velocity')
+        decoded=api.decode_actions(np.ones((1,6)),np.zeros((1,4)),leg_scale=.5,wheel_scale=10.,wheel_mode='velocity',position_basis='mjcf_absolute')
         ck('SCUT_raw_action_formula',[float(x[0])for x in decoded['leg_position_targets'].values()]==[.5]*4 and all(float(x[0])==10 for x in decoded['wheel_targets'].values()))
         ck('force_roundtrip',np.allclose(api.native_forces(semantic_tau),torque,rtol=0,atol=1e-12))
         displacements=api.to_newton_displacement(native)
@@ -263,6 +291,51 @@ def validate(package, report):
         ck('Newton_reward_view_same_absolute_anatomy',np.allclose(nview.data.joint_pos,view.data.joint_pos,atol=1e-12))
         runtime=json.loads((package/'runtime_config.json').read_bytes())
         ck('anatomical_defaults_not_silently_zero',abs(runtime['initial_joint_positions']['left_front1_joint'])>.1)
+        # A runtime is free to reorder physical coordinates. Every exposed
+        # joint-indexed field must follow the semantic table, including limits.
+        permutation=random.permutation(len(api.native_names))
+        count=len(api.native_names)
+        lower=-np.arange(1,count+1,dtype=float)
+        upper=np.arange(1,count+1,dtype=float)*2
+        limits=np.stack([lower,upper],axis=-1)
+        speed=np.arange(1,count+1,dtype=float)
+        packed=np.array([[1.,2.,3.,.1,.2,.3,.9,4.,5.,6.,7.,8.,9.]])
+        shuffled=SimpleNamespace(joint_names=[api.native_names[i] for i in permutation],body_names=raw.body_names,
+            data=SimpleNamespace(joint_pos=native[None,permutation],
+                computed_torque=torque[:,permutation],joint_pos_limits=limits[None,permutation],
+                joint_vel_limits=speed[None,permutation],joint_effort_limits=speed[None,permutation],
+                joint_stiffness=speed[None,permutation],root_state_w=packed.copy(),
+                body_state_w=packed[:,None].copy(),default_root_state=packed.copy()))
+        shuffled_view=ScutRobotView(shuffled,package,quaternion_order='xyzw',position_basis='mjcf_absolute')
+        ck('shuffled_positions_still_semantic',np.allclose(shuffled_view.data.joint_pos,api.positions(native)[None]))
+        ck('shuffled_computed_torque_power_map',np.allclose(shuffled_view.data.computed_torque,semantic_tau))
+        expected_bounds=[];expected_speeds=[]
+        for expression in api._expressions.values():
+            lo=hi=vlim=0.
+            for name,coefficient in expression.items():
+                i=api.native_names.index(name)
+                lo+=coefficient*(lower[i] if coefficient>0 else upper[i])
+                hi+=coefficient*(upper[i] if coefficient>0 else lower[i])
+                vlim+=abs(coefficient)*speed[i]
+            expected_bounds.append([lo,hi]);expected_speeds.append(vlim)
+        ck('shuffled_position_interval_limits',np.allclose(shuffled_view.data.joint_pos_limits,[expected_bounds]))
+        ck('shuffled_speed_limits',np.allclose(shuffled_view.data.joint_vel_limits,[expected_speeds]))
+        signed_corners=random.choice([-1.,1.],size=(80,count))*speed
+        ck('effort_bounds_contain_power_mapped_forces',np.all(np.abs(api.generalized_forces(signed_corners))<=shuffled_view.data.joint_effort_limits+1e-12))
+        ck('packed_root_state_quaternion_converted',np.array_equal(shuffled_view.data.root_state_w,packed[:,[0,1,2,6,3,4,5,7,8,9,10,11,12]]))
+        ck('packed_body_state_quaternion_converted',np.array_equal(shuffled_view.data.body_state_w,shuffled_view.data.root_state_w[:,None]))
+        ck('default_root_state_quaternion_converted',np.array_equal(shuffled_view.data.default_root_state,shuffled_view.data.root_state_w))
+        ck('packed_state_source_unmodified',np.array_equal(shuffled.data.root_state_w,packed))
+        unsupported=False
+        try:shuffled_view.data.joint_stiffness
+        except AttributeError:unsupported=True
+        ck('unsupported_physical_joint_parameters_explicit',unsupported)
+        defaults=np.array([[runtime['initial_joint_positions'][n]for n in spec['control']['policy_action_order'][:4]]])
+        zero_decoded=api.decode_actions(np.zeros((1,6)),defaults,leg_scale=.5,wheel_scale=10.,wheel_mode='torque',position_basis='newton_displacement')
+        ck('Newton_zero_action_uses_zero_displacement_target',all(np.array_equal(x,[0.])for x in zero_decoded['leg_position_targets'].values()))
+        ck('Newton_wheel_targets_no_reference_offset',all(np.array_equal(x,[0.])for x in zero_decoded['wheel_targets'].values()))
+        nlimits=api._stack([api.to_newton_displacement(lower),api.to_newton_displacement(upper)],lower)
+        ck('Newton_position_limit_offsets_once',np.allclose(api.position_limits(nlimits,position_basis='newton_displacement'),expected_bounds))
         import importlib.util as import_util
         sys.path.insert(0,str(package))
         kspec=import_util.spec_from_file_location('_mod4v3_portable_kinematics',package/'kinematics.py')

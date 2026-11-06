@@ -536,7 +536,7 @@ def build(args):
     from physx_compat import build_wrapper
     build_wrapper(out)
     toolsdir=out/'tools';toolsdir.mkdir()
-    for name in ['build.py','validate.py','reference_inventory.py','probe_newton.py','physx_compat.py']:
+    for name in ['build.py','validate.py','reference_inventory.py','probe_newton.py','physx_compat.py','probe_torch.py']:
         shutil.copy2(Path(__file__).with_name(name),toolsdir/name)
     readme = source_file("README.md").read_text(encoding="utf8")
     (out/"README.md").write_text(readme,encoding="utf8")

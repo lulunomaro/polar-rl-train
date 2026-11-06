@@ -112,35 +112,87 @@ class Semantics:
             values[side + "_front2_joint"] = values[side + "_front2_joint"] + loop
         return self._stack([values[n] for n in self.names], native_tau)
 
+    def position_limits(self, native_limits, *, position_basis):
+        """Image of native interval bounds; front3 is a box bound, not a stop.
+
+        Closed-chain correlations can make the reachable range narrower. Infinite
+        endpoints remain infinite, and Newton offsets apply to positions only.
+        """
+        lower, upper = native_limits[..., 0], native_limits[..., 1]
+        if position_basis == 'newton_displacement':
+            lower = self.from_newton_displacement(lower)
+            upper = self.from_newton_displacement(upper)
+        elif position_basis not in ('mjcf_absolute', 'usd_absolute'):
+            raise ValueError("Explicit native position basis required")
+        index = {n: i for i, n in enumerate(self.native_names)}
+        bounds = []
+        for expression in self._expressions.values():
+            lo = sum(c * (lower if c > 0 else upper)[..., index[n]]
+                     for n, c in expression.items())
+            hi = sum(c * (upper if c > 0 else lower)[..., index[n]]
+                     for n, c in expression.items())
+            bounds.append(self._stack([lo, hi], native_limits))
+        # _stack joins the final axis; transpose it to (..., joint, endpoint).
+        values = self._stack(bounds, native_limits)
+        return values.swapaxes(-1, -2)
+
+    def velocity_limits(self, native_limits):
+        """Conservative speed bounds from qdot_sem=A qdot_native."""
+        index = {n: i for i, n in enumerate(self.native_names)}
+        return self._stack([
+            sum(abs(c) * native_limits[..., index[n]] for n, c in expression.items())
+            for expression in self._expressions.values()
+        ], native_limits)
+
+    def effort_limits(self, native_limits):
+        """Conservative effort bounds from tau_sem=A^(-T) tau_native."""
+        index = {n: i for i, n in enumerate(self.native_names)}
+        values = {n: native_limits[..., i] for n, i in index.items()}
+        for side in ('left', 'right'):
+            loop = values[side + '_f3r1_joint']
+            values[side + '_front3_joint'] = loop
+            for short in ('rear1', 'front1', 'front2'):
+                n = side + '_' + short + '_joint'
+                values[n] = values[n] + loop
+        return self._stack([values[n] for n in self.names], native_limits)
+
     def action_to_native(self, actions, native_names=None):
-        """SCUT's four ordered leg targets and two wheel velocities -> name bindings.
+        """Four absolute leg targets and two wheel targets -> name bindings.
 
         This returns targets; the package's MOD4 motor limits and PD/envelope
         remain the controller's responsibility. No SCUT hardware limits are copied.
         """
         expected = self.spec["control"]["policy_action_order"]
         if actions.shape[-1] != len(expected):
-            raise ValueError("Expected four SCUT leg targets followed by two wheel velocities")
+            raise ValueError("Expected four leg targets followed by two wheel targets")
         requested = tuple(native_names or self.native_names)
         self._ordered(requested, expected)
         return {n: actions[..., i] for i, n in enumerate(expected)}
 
     def decode_actions(self, raw_actions, default_leg_positions, *, leg_scale,
-                       wheel_scale, wheel_mode):
+                       wheel_scale, wheel_mode, position_basis):
         """Decode the SCUT raw-action formula with explicit controller settings.
 
         Upstream uses default_joint_pos+leg_action_scale*raw_leg_action; wheel
         control can be velocity or torque. No mode or action scale is guessed.
+        Defaults are anatomical absolute angles. The explicit output basis
+        converts Newton leg targets to displacement exactly once.
         """
         if wheel_mode not in ("velocity", "torque"):
             raise ValueError("Explicit wheel mode: velocity or torque")
+        if position_basis not in ('mjcf_absolute', 'usd_absolute', 'newton_displacement'):
+            raise ValueError("Explicit target position basis required")
         if raw_actions.shape[-1] != 6 or default_leg_positions.shape[-1] != 4:
             raise ValueError("Expected six raw actions and four default leg angles")
         targets = {n: default_leg_positions[..., i] + leg_scale * raw_actions[..., i]
                    for i,n in enumerate(self.spec["control"]["policy_action_order"][:4])}
+        if position_basis == 'newton_displacement':
+            refs = self.spec['coordinates']['native_from_v2']
+            targets = {n: value - refs[n]['offset_si'] for n, value in targets.items()}
         wheels = {n: wheel_scale * raw_actions[..., 4+i]
                   for i,n in enumerate(self.spec["control"]["policy_action_order"][4:])}
-        return dict(leg_position_targets=targets, wheel_targets=wheels, wheel_mode=wheel_mode)
+        return dict(leg_position_targets=targets, wheel_targets=wheels,
+                    wheel_mode=wheel_mode, position_basis=position_basis)
 
     def mujoco_joint_state(self, model, data):
         """Actual compiled-state reader returning anatomical SCUT coordinates."""
@@ -218,14 +270,29 @@ class _ScutDataView:
     def __getattr__(self, name):
         view=self.view
         value=getattr(view.raw.data,name)
-        if name in ("joint_pos","default_joint_pos","joint_vel","joint_acc","default_joint_vel","applied_torque"):
+        if name in ("joint_pos","default_joint_pos","joint_vel","joint_acc","default_joint_vel","applied_torque","computed_torque"):
             value=value[...,view._native_ids]
             if name in ('joint_pos','default_joint_pos') and view.position_basis=='newton_displacement':
                 value=view.semantics.from_newton_displacement(value)
-            return (view.semantics.generalized_forces(value) if name=='applied_torque'
+            return (view.semantics.generalized_forces(value) if name in ('applied_torque','computed_torque')
                     else view.semantics.positions(value))
-        if name.endswith('quat_w') and view.quaternion_order=='xyzw':
+        if name in ('joint_pos_limits', 'soft_joint_pos_limits'):
+            return view.semantics.position_limits(value[..., view._native_ids, :],
+                                                 position_basis=view.position_basis)
+        if name in ('joint_vel_limits', 'soft_joint_vel_limits'):
+            return view.semantics.velocity_limits(value[..., view._native_ids])
+        if name in ('joint_effort_limits', 'soft_joint_effort_limits'):
+            return view.semantics.effort_limits(value[..., view._native_ids])
+        if name.startswith(('joint_', 'default_joint_', 'soft_joint_')):
+            raise AttributeError(f"{name} has no scalar SCUT transform across the front3 cut; "
+                                 "use raw.data with raw.joint_names for physical parameters")
+        if name.endswith(('quat_w','quat_b')) and view.quaternion_order=='xyzw':
             return value[...,[3,0,1,2]]
+        if view.quaternion_order=='xyzw' and (name.endswith(('_state_w','_pose_w')) or name=='default_root_state'):
+            # Packed states/poses contain position[0:3], quaternion[3:7], then
+            # optional velocities. Preserve the native storage and gradients.
+            indices = [0,1,2,6,3,4,5] + list(range(7,value.shape[-1]))
+            return value[...,indices]
         return value
 
 

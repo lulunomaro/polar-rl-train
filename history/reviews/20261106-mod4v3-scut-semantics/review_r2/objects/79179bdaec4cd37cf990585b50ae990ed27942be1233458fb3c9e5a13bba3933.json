@@ -1,0 +1,10 @@
+{
+  "id": "MOD4V3_R2_INSTALLED_COORDINATE_SOURCE",
+  "rows": [
+    {
+      "path": "/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/site-packages/isaacsim/extscache/omni.physx.asset_validator-110.1.13+110.1.2.lx64.r.cp312.u7f4/omni/physxassetvalidator/scripts/newtonMigrationChecker.py",
+      "excerpt": "class NewtonMimicMigrationChecker(BaseRuleChecker):\n    __doc__ = \"\"\"\n    Check for PhysxMimicJointAPI applied to single-DOF joints that can be migrated\n    to the single-apply NewtonMimicAPI schema.\n\n    Migration is only offered for joints that meet all of these criteria:\n      - exactly one PhysxMimicJointAPI instance applied (Newton is single-apply),\n      - follower joint is a PhysicsRevoluteJoint or PhysicsPrismaticJoint,\n      - leader joint (``referenceJoint``) is also a PhysicsRevoluteJoint or\n        PhysicsPrismaticJoint.\n\n    The sign-flipped mapping preserves the original constraint:\n      jointPos + gearing*refPos + offset = 0  ⇔  jointPos = (-offset) + (-gearing)*refPos\n    so newton:mimicCoef1 = -gearing and newton:mimicCoef0 = -offset.\n    \"\"\"\n\n    DEPRECATED_MIMIC_API_CODE = \"NewtonMimicMigrationChecker:DeprecatedMimicAPI\"\n\n    def _fix_prim(self, stage: Usd.Stage, prim: Usd.Prim):\n        _migrate_mimic_joint(stage, prim)\n\n    def CheckPrim(self, prim: Usd.Prim):\n        ok, instance = _can_migrate_mimic(prim)\n        if not ok:\n            return\n\n        self._AddFailedCheck(\n            message=f\"PhysxMimicJointAPI:{instance} on '{prim.GetPath()}' can be migrated to \"\n                    f\"NewtonMimicAPI (single-DOF follower and leader).\",\n            at=prim,\n            suggestion=Suggestion(\n                message=f\"Migrate PhysxMimicJointAPI:{instance} to NewtonMimicAPI\",\n                callable=self._fix_prim,\n                at=[prim.GetStage().GetRootLayer()],\n            ),\n            code=self.DEPRECATED_MIMIC_API_CODE,\n        )\n"
+    }
+  ],
+  "stderr": ""
+}

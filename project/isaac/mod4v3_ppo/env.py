@@ -135,6 +135,10 @@ def configuration(meta,bank,n,seed,terrain_selection='easy_mixed'):
             physics=PhysxCfg(solver_type=1))
         scene = None
     cfg = Cfg();cfg.scene=scene;cfg.seed=seed
+    # 20k official rough measured up to 696124 patches; the SDK default
+    # 163840 overflowed. Keep the other PhysX capacities unchanged.
+    if n >= 20000:
+        cfg.sim.physics.gpu_max_rigid_patch_count = 2**20
     return cfg
 
 

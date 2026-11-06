@@ -78,10 +78,24 @@ def main():
         put(job/'STARTUP.json',dict(epoch=time.time(),mode=args.mode,num_envs=args.num_envs,
             terrain=terrain_config,
             backend='PhysX TGS32/4',physics_dt_s=.0025,control_dt_s=.02,feedback_dt_s=.01,
+            gpu_max_rigid_patch_count=env.cfg.sim.physics.gpu_max_rigid_patch_count,
             nominal=True,DR=False,supermimic=False,newton=False,warp=parity,
+            native_body_names=list(env.robot.body_names),
             policy_action_order=env.order,root_quaternion_native=env.qorder,native_limits=native,
             total_mass_kg=float(mass[0].sum()),reward_weights=env.reward.cfg.rewards,
             command=[.35,0.,0.],L0_target_m=.334,theta_coefficient=-2.,raw_actions=True))
+        if args.mode=='evaluate':
+            terrain=env.scene['terrain']
+            mesh=getattr(terrain,'_standing_terrain_mesh',None)
+            mesh_path=None
+            if mesh is not None:
+                mesh_path=job/'actual_terrain.npz'
+                np.savez_compressed(mesh_path,vertices=mesh.vertices,faces=mesh.faces)
+            put(job/'REPLAY_METADATA.json',dict(body_names=list(env.robot.body_names),
+                origins=env.scene.env_origins.cpu().tolist(),quaternion_order='wxyz',
+                control_dt_s=.02,source_checkpoint=args.resume,
+                terrain_mesh=str(mesh_path) if mesh_path else None,
+                source_USD=plan['package']+'/assets/robot.usd'))
         current=env._get_observations()
         class Vec:
             def __init__(self):

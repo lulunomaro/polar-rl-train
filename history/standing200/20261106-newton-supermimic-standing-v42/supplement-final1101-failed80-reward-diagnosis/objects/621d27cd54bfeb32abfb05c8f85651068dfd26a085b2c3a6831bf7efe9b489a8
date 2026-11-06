@@ -1,0 +1,113 @@
+{
+  "epoch": 1793938872.6650987,
+  "checkpoint": {
+    "path": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V2_STANDING_NEWTON_SM42_1793935314315756600/rayfix_final355_1h/production/model_final.pt",
+    "SHA": "ebde5d36de041832c95c1843b2f88a95d0864fe51795ac9e2a9488f1361397df",
+    "iteration": 1101
+  },
+  "configuration": {
+    "lin_vel_xy_sigma": 0.5,
+    "lin_vel_err_constraint": 1.0,
+    "lin_vel_xy_square_sigma": 0.25,
+    "height_tight_sigma": 0.001,
+    "height_err_constraint": 0.15,
+    "height_square_sigma": 10.0,
+    "orientation_x_A": 2.0,
+    "orientation_y_A": 2.0,
+    "orientation_x_sigma": 3.0,
+    "orientation_y_sigma": 3.0,
+    "orientation_x_bias": 2.0,
+    "orientation_y_bias": 2.0,
+    "ang_vel_z_square_sigma": 0.5
+  },
+  "real_reward_quantiles": [
+    -26.195079803466797,
+    -0.3812960982322693,
+    -0.17507463693618774,
+    -0.12034740298986435,
+    0.028923075646162033
+  ],
+  "real_terminal_rewards": [
+    -5.486994743347168,
+    -2.2382349967956543,
+    -1.0399222373962402,
+    -0.6389578580856323,
+    -0.540621280670166
+  ],
+  "physical_positive_reward_upper_bound_per_control": 0.1,
+  "last_BPTT_receipt": {
+    "iteration": 1100,
+    "pi_optimizer_steps": 1069,
+    "horizon": 32,
+    "policy_dt_s": 0.02,
+    "cross_time_finite": true,
+    "cross_time_grad_norm": 39.5947380065918,
+    "wm_path_finite": true,
+    "wm_path_grad_norm": 1.9254188537597656,
+    "parameter_grad_norm": 33.771846771240234,
+    "loss": 3221.203125,
+    "wm_weights_frozen": true,
+    "auxiliary_weights_frozen": true,
+    "imagined_reward_source": "original_real_reward_supervised_head",
+    "probe_parameter_delta_l2": 0.0003864009049721062,
+    "verified_bptt_optimizer_step": true,
+    "pi_bptt_optimizer_steps": 1069,
+    "policy_attempts": 1069
+  },
+  "learned_reward_on512real_samples": {
+    "mean_prediction": -0.2524167001247406,
+    "mean_actual": -0.25258100032806396,
+    "MSE": 0.0031262212432920933
+  },
+  "saved_reward_normalization": {
+    "mean": [
+      -0.3256869614124298
+    ],
+    "std": [
+      0.544279932975769
+    ]
+  },
+  "CPU_no_update_imagined_rollout_diagnostic": [
+    {
+      "horizon": 1,
+      "reward_mean": -0.20806726813316345,
+      "reward_min": -0.4329335689544678,
+      "reward_max": -0.0706324577331543,
+      "context_abs_max": 79.86563110351562,
+      "state_abs_max": 225.76063537597656,
+      "done_mean": 6.753773362788706e-08
+    },
+    {
+      "horizon": 8,
+      "reward_mean": -0.20883257687091827,
+      "reward_min": -0.6209298372268677,
+      "reward_max": -0.08827969431877136,
+      "context_abs_max": 76.17071533203125,
+      "state_abs_max": 239.77444458007812,
+      "done_mean": 1.712927257813135e-07
+    },
+    {
+      "horizon": 16,
+      "reward_mean": -0.19802698493003845,
+      "reward_min": -0.5247297883033752,
+      "reward_max": -0.10352273285388947,
+      "context_abs_max": 72.06981658935547,
+      "state_abs_max": 254.69810485839844,
+      "done_mean": 4.353710392024368e-05
+    },
+    {
+      "horizon": 32,
+      "reward_mean": -0.2218896746635437,
+      "reward_min": -0.7145296931266785,
+      "reward_max": -0.09980760514736176,
+      "context_abs_max": 176.1007843017578,
+      "state_abs_max": 288.42523193359375,
+      "done_mean": 0.01203133538365364
+    }
+  ],
+  "actual_termination_wiring": "        r.begin(applied,r.command,r.height_cmd,hard,~finite|numerical_latched,self.episode_length_buf,\n                self.contact_history,ground,wheels,far,far_hits,near,near_hits)\n        terminated,timeout=r._get_dones()\n        terminated|=hard;timeout&=~hard\n        rewards=r.compute()\n        rewards[numerical_latched|constraint_latched]=0.\n",
+  "termination_bug": "r.begin(reset_terminated=hard) precedes _get_dones; orientation terminated is never assigned to r.reset_terminated before compute. hard reset rewards then zeroed; configured -200 termination does not charge orientation falls.",
+  "no_new_simulation": true,
+  "no_training_changes": true,
+  "no_GPU": true
+}

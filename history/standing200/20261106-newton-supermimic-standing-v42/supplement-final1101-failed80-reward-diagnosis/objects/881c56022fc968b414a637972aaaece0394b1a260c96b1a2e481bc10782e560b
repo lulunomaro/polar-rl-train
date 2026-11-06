@@ -1,0 +1,14 @@
+当前奖励和不收敛诊断，2026-11-06（实际代码、CPU检查点诊断与独立80，未启动新训练）。
+
+站高前进用固定SCUT trained_stair系数，加pen_theta_no0=-2、uncapped heading与signed轮距。所有项最终乘控制dt=.02。设e_v=.35-vx水平、e_L=(L左+L右)/2-.334。
+速度：+exp(-clip(e_v,-1,1)^2/.5)-.1*(.25e_v)^2。2.27m/s时仍合计+.0022459/控制步；超过1m/s误差指数项饱和，速度平方增量代价弱。角速度跟踪+exp(-clip(e_w,-.8,.8)^2/.25)-.1*(.5e_w)^2。
+站高：+exp(-clip(e_L,-.15,.15)^2/.001)-(10e_L)^2。L平均.18时正项1.69e-10、负项-2.3716/秒；高度仍有二次负信号，不能说完全没有高度梯度。高度奖励用双腿平均，验收要求两腿分别达标，平均值不能保证双边对称伸展。
+轮心对髋：-2*(theta左²+theta右²)，theta atan2(bodydx,-bodydz)，不受接触gate。机身水平正指数项各+1，随指令速度缩放的roll/pitch平方项各-2；yaw -(yaw/.35)²；signed横轮距超2cm后-(error/.05)^2、cap4。另有力矩-1e-5、腿速度-.005、腿加速度-5e-7、动作平滑等原SCUT项。轮/底盘/导轮接触不罚，其它结构contact-2；接触reset关闭。
+
+明确实现错误：NewtonEnv调用r.begin(...reset_terminated=hard...)，再_get_dones算姿态摔倒，随后compute却未把terminated写回r.reset_terminated。因此表中termination=-200未罚姿态跌倒；按dt应在该步扣4。数值/闭链hard又把整条reward清零。这是迁移接线错误，不能用奖励表中的-200声称已实际执行。
+
+SuperMimic当前是学习状态/上下文/奖励的H32 BPTT，不是直接对MuJoCo-Warp求导；4Adam/gradient/parameterdelta证明执行，不证明策略改善。最终真实replay reward中位-.1751；512真实样本aux预测均值-.25242vs实际-.25258。CPU64样本H32预测reward均值约-.21，无证据把loss3221单独解释成奖励头爆正。critic真实起点median20.9567,max26.8969,min-3228.33，而现有正奖励上界.1/控制步、gamma.99、无限时域正回报上界10。由此确认value估计失真；想象state/context自回归与仅用想象目标训练critic有反馈问题，尚不能单凭此定唯一根因。BPTT非零梯度不能称技能收敛。
+
+已安全保存final1101 SHAebde5d36de041832c95c1843b2f88a95d0864fe51795ac9e2a9488f1361397df，累计1069BPTT。独立80seed9137全部提前终止，0通过；episode2.44-6.34s，中位4.59s。400Hz双腿较短侧L0median.13548m、vxmedian2.27425m/s、absrollmedian19.6595deg。实际原生视觉回放5种地形均见不对称屈腿/超速，到地形边缘后翻落。比final355的44提前终止更差。全ownwait/GPUrelease/collectorclosed/actualrender0physics0policy与nativeview已完成；不继续原样小时。
+
+下一步修复终止惩罚接线并解决critic/想象目标失真，再决定密集高度和超速信号的定向调整；本次状态问答未擅自更改奖励权重或重启训练。原false、source、fullcheckpoint和所有诊断失败保存Git。CPU诊断失败01缺policy_dt、03teacher架构假设错误，04/05修正并复用真实full1101；未增加GPU试验。

@@ -1,0 +1,48 @@
+"""CPU-only inspect real reward labels and trained learned reward output scale."""
+from pathlib import Path
+import ast,hashlib,json,os,sys,time
+import numpy as np
+import torch
+torch.set_num_threads(8)
+D=Path(__file__).resolve().parent
+p=json.loads((D/'rayfix_final355_1h/PLAN.json').read_bytes())
+sys.path.insert(0,p['package_root'])
+import mod4v2_scut
+mod4v2_scut.__path__.insert(0,str(D))
+os.environ['MOD4_SCUT_SOURCE_PATHS']=p['scut_source_paths']
+spec=__import__('importlib.util',fromlist=['']).spec_from_file_location('mod4v2_scut.config',D/'standing_config.py')
+config=__import__('importlib.util',fromlist=['']).module_from_spec(spec);sys.modules['mod4v2_scut.config']=config;spec.loader.exec_module(config)
+cfg=config.reward_config()
+path=Path(p['remote_root'])/'production/model_final.pt'
+with path.open('rb')as stream:
+    sha=hashlib.file_digest(stream,'sha256').hexdigest();stream.seek(0)
+    payload=torch.load(stream,map_location='cpu',weights_only=False)
+ext=payload['context_reward_extension'];replay=ext['replay'];data=replay['data']
+rows=(torch.arange(replay['size'])+replay['ptr']-replay['size'])%replay['T']
+valid=data['sample_valid'][rows]
+def quant(x,mask=valid):
+    x=x[mask].float()
+    return torch.quantile(x,torch.tensor([0.,.1,.5,.9,1.])).tolist()if x.numel()else None
+binding=json.loads((D/'SUPERMIMIC_BINDINGS.json').read_bytes());sys.path.insert(0,binding['root'])
+from ctx_reward_learner import TaskAuxiliaryModel
+from supermimic_vendor_v2.geometry import unflatten_state
+aux=TaskAuxiliaryModel(30,6,ext['contract']['context_dim'],tuple(ext['contract']['aux_hidden']))
+aux.load_state_dict(ext['aux'],strict=True);aux.eval()
+r0=rows[-1];ids=torch.arange(512)%replay['N']
+sample={k:v[r0,ids]for k,v in data.items()}
+features=aux.features(unflatten_state(sample['s']),unflatten_state(sample['s1']),sample['a'],sample['a_prev'],sample['xi'],sample['f'])
+with torch.no_grad():prediction,_,_=aux(features)
+source=__import__('mod4v2_scut.reference',fromlist=['source']).source('newton_env')
+start=source.index('        r.begin(');end=source.index('        self.terminal_snapshot=',start)
+termination_wiring=source[start:end]
+actual_cfg={k:getattr(cfg,k,None)for k in ['lin_vel_xy_sigma','lin_vel_err_constraint','lin_vel_xy_square_sigma','height_tight_sigma','height_err_constraint','height_square_sigma','orientation_x_A','orientation_y_A','orientation_x_sigma','orientation_y_sigma','orientation_x_bias','orientation_y_bias','ang_vel_z_square_sigma']}
+bound=sum(max(0.,x)for k,x in cfg.rewards.items()if k in ['track_lin_vel_xy','track_ang_vel_z','flat_orientation_x_exp','flat_orientation_y_exp','track_height_exp_tight'])*.02
+print(json.dumps(dict(epoch=time.time(),checkpoint=dict(path=str(path),SHA=sha,iteration=payload['iteration']),
+    configuration=actual_cfg,real_reward_quantiles=quant(data['r'][rows]),
+    real_terminal_rewards=quant(data['r'][rows],valid&data['term'][rows]),
+    physical_positive_reward_upper_bound_per_control=bound,last_BPTT_receipt=ext['last_bptt_receipt'],
+    learned_reward_on512real_samples=dict(mean_prediction=float(prediction.mean()),mean_actual=float(sample['r'].mean()),MSE=float((prediction-sample['r']).square().mean())),
+    saved_reward_normalization=dict(mean=aux.reward_norm.mean.tolist(),std=aux.reward_norm.std().tolist()),
+    actual_termination_wiring=termination_wiring,
+    termination_bug='r.begin(reset_terminated=hard) precedes _get_dones; orientation terminated is never assigned to r.reset_terminated before compute. hard reset rewards then zeroed; configured -200 termination does not charge orientation falls.',
+    no_new_simulation=True,no_training_changes=True,no_GPU=True)))

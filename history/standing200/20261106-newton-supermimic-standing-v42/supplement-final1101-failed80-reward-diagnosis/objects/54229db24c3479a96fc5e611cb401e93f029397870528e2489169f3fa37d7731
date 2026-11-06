@@ -1,0 +1,52 @@
+"""Read-only CPU statistics of recent real training transitions, no simulation."""
+from pathlib import Path
+import hashlib,json,os,time
+import torch
+torch.set_num_threads(8)
+J=Path(__file__).resolve().parent
+plan=json.loads((J/'rayfix_final355_1h/PLAN.json').read_bytes())
+checkpoint=Path(plan['remote_root'])/'production/model_periodic_complete.pt'
+with checkpoint.open('rb')as stream:
+    sha=hashlib.file_digest(stream,'sha256').hexdigest();size=os.fstat(stream.fileno()).st_size
+    stream.seek(0);payload=torch.load(stream,map_location='cpu',weights_only=False)
+ext=payload['context_reward_extension'];buffer=ext['replay'];data=buffer['data']
+rows=(torch.arange(buffer['size'])+buffer['ptr']-buffer['size'])%buffer['T']
+s=data['s'][rows];xi=data['xi'][rows]
+valid=data['sample_valid'][rows]&(data['ep_step'][rows]>=50)
+q=s[...,3:7];v=s[...,7:10]
+qv=-q[...,1:];qw=q[...,:1]
+t=2*torch.cross(qv,v,dim=-1);vb=v+qw*t+torch.cross(qv,t,dim=-1)
+w,x,y,z=q.unbind(-1)
+roll=torch.atan2(2*(w*x+y*z),1-2*(x*x+y*y))
+pitch=torch.asin((2*(w*y-z*x)).clamp(-1,1))
+yaw=torch.atan2(2*(w*z+x*y),1-2*(y*y+z*z))
+L0=xi[...,113:115];theta=xi[...,115:117]
+height=L0.amin(-1)>=.28
+level=(roll.abs()<torch.pi/18)&(pitch.abs()<torch.pi/18)
+heading=yaw.abs()<.2
+speed=(vb[...,0]-.35).abs()<=.12
+good=height&level&heading&speed
+def quant(value,mask=valid):
+    a=value[mask]
+    return torch.quantile(a.float(),torch.tensor([.1,.5,.9])).tolist()if a.numel()else None
+def fraction(mask):return float(mask[valid].float().mean())if bool(valid.any())else None
+ids=torch.arange(buffer['N'])%80
+lane=torch.where(ids<20,0,torch.where(ids<36,1,torch.where(ids<48,2,torch.where(ids<60,3,4))))
+out=dict(epoch=time.time(),checkpoint=dict(path=str(checkpoint),bytes=size,SHA=sha,iteration=payload['iteration']),
+    source='Actual saved training replay, not imagination; no new policy/physics or GPU execution',
+    sample_window_s=buffer['size']*.02,num_envs=buffer['N'],valid_after1s_samples=int(valid.sum()),
+    protocol='Recent real training samples only; not independent80 firstepisodes, no skill completion claim',
+    quantile_levels=[.1,.5,.9],bilateral_min_L0_m=quant(L0.amin(-1)),
+    forward_velocity_m_s=quant(vb[...,0]),abs_theta_max_rad=quant(theta.abs().amax(-1)),
+    abs_roll_deg=quant(torch.rad2deg(roll.abs())),abs_pitch_deg=quant(torch.rad2deg(pitch.abs())),
+    actual_good_fraction=fraction(good),L0_ge_28cm_fraction=fraction(height),
+    level10deg_fraction=fraction(level),heading02rad_fraction=fraction(heading),speed035pm012_fraction=fraction(speed),
+    term_fraction=float(data['term'][rows].float().mean()),trunc_fraction=float(data['trunc'][rows].float().mean()),
+    per_terrain={})
+for i,name in enumerate(['flat','rough','boxes','small_stairs','slope']):
+    use=valid&(lane[None]==i)
+    def mean(mask):return float(mask[use].float().mean())if bool(use.any())else None
+    out['per_terrain'][name]=dict(valid_samples=int(use.sum()),good_fraction=mean(good),
+        L0_ge_28cm_fraction=mean(height),level10deg_fraction=mean(level),speed035pm012_fraction=mean(speed),
+        bilateral_L0_m=quant(L0.amin(-1),use),velocity_m_s=quant(vb[...,0],use))
+print(json.dumps(out))

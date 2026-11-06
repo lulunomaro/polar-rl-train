@@ -1,0 +1,96 @@
+"""CPU-only inspect real reward labels and trained learned reward output scale."""
+from pathlib import Path
+import ast,hashlib,json,os,sys,time
+import numpy as np
+import torch
+torch.set_num_threads(8)
+D=Path(__file__).resolve().parent
+p=json.loads((D/'rayfix_final355_1h/PLAN.json').read_bytes())
+sys.path.insert(0,p['package_root'])
+import mod4v2_scut
+mod4v2_scut.__path__.insert(0,str(D))
+os.environ['MOD4_SCUT_SOURCE_PATHS']=p['scut_source_paths']
+spec=__import__('importlib.util',fromlist=['']).spec_from_file_location('mod4v2_scut.config',D/'standing_config.py')
+config=__import__('importlib.util',fromlist=['']).module_from_spec(spec);sys.modules['mod4v2_scut.config']=config;spec.loader.exec_module(config)
+cfg=config.reward_config()
+path=Path(p['remote_root'])/'production/model_final.pt'
+with path.open('rb')as stream:
+    sha=hashlib.file_digest(stream,'sha256').hexdigest();stream.seek(0)
+    payload=torch.load(stream,map_location='cpu',weights_only=False)
+ext=payload['context_reward_extension'];replay=ext['replay'];data=replay['data']
+rows=(torch.arange(replay['size'])+replay['ptr']-replay['size'])%replay['T']
+valid=data['sample_valid'][rows]
+def quant(x,mask=valid):
+    x=x[mask].float()
+    return torch.quantile(x,torch.tensor([0.,.1,.5,.9,1.])).tolist()if x.numel()else None
+binding=json.loads((D/'SUPERMIMIC_BINDINGS.json').read_bytes());sys.path.insert(0,binding['root'])
+from ctx_reward_learner import TaskAuxiliaryModel
+from supermimic_vendor_v2.geometry import unflatten_state
+from supermimic_vendor_v2.geometry import invariant_features
+from supermimic_vendor_v2.networks import WorldModel,Policy,Critic
+aux=TaskAuxiliaryModel(30,6,ext['contract']['context_dim'],tuple(ext['contract']['aux_hidden']),.02)
+aux.load_state_dict(ext['aux'],strict=True);aux.eval()
+r0=rows[-1];ids=torch.arange(512)%replay['N']
+sample={k:v[r0,ids]for k,v in data.items()}
+features=aux.features(unflatten_state(sample['s']),unflatten_state(sample['s1']),sample['a'],sample['a_prev'],sample['xi'],sample['f'])
+with torch.no_grad():prediction,_,_=aux(features)
+source=__import__('mod4v2_scut.reference',fromlist=['source']).source('newton_env')
+start=source.index('        r.begin(');end=source.index('        self.terminal_snapshot=',start)
+termination_wiring=source[start:end]
+actual_cfg={k:getattr(cfg,k,None)for k in ['lin_vel_xy_sigma','lin_vel_err_constraint','lin_vel_xy_square_sigma','height_tight_sigma','height_err_constraint','height_square_sigma','orientation_x_A','orientation_y_A','orientation_x_sigma','orientation_y_sigma','orientation_x_bias','orientation_y_bias','ang_vel_z_square_sigma']}
+learner_cfg=payload['args'];context_dim=ext['contract']['context_dim']
+wm=WorldModel(hidden=tuple(learner_cfg['wm_hidden']),num_joints=30,context_dim=context_dim,action_dim=6)
+wm.load_state_dict(payload['wm'],strict=True);wm.eval()
+residual=Policy(35,30,hist=learner_cfg['hist'],z_dim=learner_cfg['z_dim'],num_joints=6,hidden=tuple(learner_cfg['policy_hidden']))
+pi_state=payload['pi'];residual.load_state_dict({k[len('residual.'):]:v for k,v in pi_state.items()if k.startswith('residual.')},strict=True);residual.eval()
+teacher=torch.nn.Sequential(torch.nn.Linear(35,256),torch.nn.ELU(),torch.nn.Linear(256,128),torch.nn.ELU(),torch.nn.Linear(128,64),torch.nn.ELU(),torch.nn.Linear(64,6))
+teacher_state={k[len('teacher.mlp.'):]:v for k,v in pi_state.items()if k.startswith('teacher.mlp.')}
+critic=Critic(payload['critic']['norm.mean'].numel(),hidden=tuple(learner_cfg['critic_hidden']))
+critic.load_state_dict(payload['critic'],strict=True);critic.eval()
+def value(st,xi,fr):
+    return critic(torch.cat((invariant_features(st),xi,fr[...,None].float()/500,xi[:,:3].repeat(1,10)),-1))
+if teacher_state:
+    teacher.load_state_dict(teacher_state,strict=True)
+    # Real-start imagined rollout diagnostic. Does not update or run the simulator.
+    B=64;envs=torch.arange(B);ages=torch.full((B,),replay['size']-1,dtype=torch.long)
+    rr=(replay['ptr']-replay['size']+ages)%replay['T']
+    frame=data['f'][rr,envs];context=data['xi'][rr,envs].clone();state=unflatten_state(data['s'][rr,envs])
+    previous=data['a_prev'][rr,envs]
+    real_start_value=value(state,context,frame).detach()
+    continuation=torch.ones(B);discounted_rewards=torch.zeros(B)
+    back=torch.minimum(torch.arange(learner_cfg['hist']-1,-1,-1)[None],data['ep_step'][rr,envs,None].long())
+    back=torch.minimum(back,ages[:,None]);histrows=(rr[:,None]-back)%replay['T']
+    history=data['xi'][histrows,envs[:,None],:35].clone();imagined=[]
+    with torch.no_grad():
+        for h in range(32):
+            goal=context[:,:3].repeat(1,10)
+            action=teacher(history[:,-1])+payload['policy_residual_scale']*residual(history,goal).tanh()
+            state1=wm.step(state,action,context)
+            reward,delta,done_logit=aux(aux.features(state,state1,action,previous,context,frame))
+            done=1-(1-torch.sigmoid(done_logit))*(1-(frame+1>=499).float())
+            discounted_rewards+=learner_cfg['gamma']**h*continuation*reward
+            continuation*=1-done
+            command=context[:,:3].clone()
+            context=context+delta;context[:,:3]=command;context[:,14:16]=0;context[:,22:28]=action
+            history=torch.cat((history[:,1:],context[:,:35,None].transpose(1,2)),1)
+            if h in[0,7,15,31]:imagined.append(dict(horizon=h+1,reward_mean=float(reward.mean()),reward_min=float(reward.min()),reward_max=float(reward.max()),context_abs_max=float(context.abs().max()),state_abs_max=float(invariant_features(state1).abs().max()),done_mean=float(torch.sigmoid(done_logit).mean())))
+            state,previous,frame=state1,action,frame+1
+        bootstrap=learner_cfg['gamma']**32*continuation*value(state,context,frame)
+        critic_diagnostic=dict(real_start_values_quantiles=torch.quantile(real_start_value,torch.tensor([0.,.5,1.])).tolist(),
+            imagined32_discounted_rewards_mean=float(discounted_rewards.mean()),
+            imagined32_bootstrap_mean=float(bootstrap.mean()),
+            imagined32_total_objective_mean=float((discounted_rewards+bootstrap).mean()),
+            true_infinitehorizon_positive_upperbound=bound if 'bound'in globals()else .1/(1-learner_cfg['gamma']))
+else:imagined=dict(teacher_keys=[k for k in pi_state if k.startswith('teacher.')][:12])
+bound=sum(max(0.,x)for k,x in cfg.rewards.items()if k in ['track_lin_vel_xy','track_ang_vel_z','flat_orientation_x_exp','flat_orientation_y_exp','track_height_exp_tight'])*.02
+print(json.dumps(dict(epoch=time.time(),checkpoint=dict(path=str(path),SHA=sha,iteration=payload['iteration']),
+    configuration=actual_cfg,real_reward_quantiles=quant(data['r'][rows]),
+    real_terminal_rewards=quant(data['r'][rows],valid&data['term'][rows]),
+    physical_positive_reward_upper_bound_per_control=bound,last_BPTT_receipt=ext['last_bptt_receipt'],
+    learned_reward_on512real_samples=dict(mean_prediction=float(prediction.mean()),mean_actual=float(sample['r'].mean()),MSE=float((prediction-sample['r']).square().mean())),
+    saved_reward_normalization=dict(mean=aux.reward_norm.mean.tolist(),std=aux.reward_norm.std().tolist()),
+    CPU_no_update_imagined_rollout_diagnostic=imagined,
+    CPU_critic_bootstrap_diagnostic=critic_diagnostic if teacher_state else None,
+    actual_termination_wiring=termination_wiring,
+    termination_bug='r.begin(reset_terminated=hard) precedes _get_dones; orientation terminated is never assigned to r.reset_terminated before compute. hard reset rewards then zeroed; configured -200 termination does not charge orientation falls.',
+    no_new_simulation=True,no_training_changes=True,no_GPU=True)))

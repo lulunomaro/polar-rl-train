@@ -31,7 +31,7 @@ def make_config(Config,small=False):
         log_every=1,seed=9138)
 
 
-def build(env,source,binding,log,small=False,residual_scale=None):
+def build(env,source,binding,log,small=False,residual_scale=None,sampling_optimization=False):
     from rsl_rl.runners import OnPolicyRunner
     Base,Config=load_sources(binding)
     from ctx_reward_learner import capture_rng,restore_rng
@@ -66,6 +66,11 @@ def build(env,source,binding,log,small=False,residual_scale=None):
     else:restore_rng(after_reset_rng)
     learner.pi.residual_scale=float(source.get('policy_residual_scale',1.)if residual_scale is None else residual_scale)
     if not 0<learner.pi.residual_scale<=1:raise ValueError('Invalid residual scale')
+    if sampling_optimization or source.get('sampling_optimization',False):
+        from .newton_sampling import install_sampling
+        from .supermimic_speed import enable_fused_adam,enable_scripted_geometry
+        learner.sampling_execution=dict(sampling=install_sampling(env),optimizers=enable_fused_adam(learner),
+            geometry=enable_scripted_geometry())
     gc.collect();torch.cuda.empty_cache()
     return learner,bridge
 
@@ -76,6 +81,7 @@ def save(learner,path,source):
         actor_dim=35,critic_dim=78,physics_backend='Newton/SolverMuJoCo/MuJoCo-Warp',
         source_PPO=source,source_PPO_optimizers_preserved_at_original_checkpoint=True,
         policy_residual_scale=learner.pi.residual_scale,
+        sampling_optimization=hasattr(learner,'sampling_execution'),
         new_BPTT_optimizers_not_PPO_resume=True)
     path=Path(path);tmp=path.with_name(path.name+'.partial')
     with tmp.open('wb')as stream:torch.save(payload,stream);stream.flush();os.fsync(stream.fileno())
@@ -95,8 +101,10 @@ def main():
     p.add_argument('--max-updates',type=int)
     p.add_argument('--residual-scale',type=float)
     p.add_argument('--checkpoint-seconds',type=float,default=300.)
+    p.add_argument('--sampling-optimization',action='store_true')
     a=p.parse_args();job=Path(a.job_root);job.mkdir(exist_ok=False)
     if a.checkpoint_seconds<=0:raise ValueError('Checkpoint interval must be positive')
+    worker_start=time.time()
     env=bridge=learner=None;error=None;final_saved=False
     try:
         random.seed(9138);np.random.seed(9138);torch.manual_seed(9138);torch.cuda.manual_seed_all(9138)
@@ -104,8 +112,8 @@ def main():
         source_ref=source.get('source_PPO',dict(path=a.resume,SHA=a.resume_SHA,
             iteration=source.get('iter'),bytes=Path(a.resume).stat().st_size))
         env=NewtonEnv(a.package,a.components,a.reset_bank,a.num_envs,'cuda:0',9138)
-        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test,a.residual_scale)
-        initial=learner.iteration;initial_counts=asdict(learner.counts)
+        learner,bridge=build(env,source,a.binding,job/'learner',a.small_test,a.residual_scale,a.sampling_optimization)
+        initial=learner.iteration;initial_counts=asdict(learner.counts);initial_sim_steps=learner.sim_steps
         if source['format']==FORMAT:
             assert initial==source['iteration']
             assert initial_counts==source['context_reward_extension']['counts']
@@ -128,6 +136,7 @@ def main():
             replay_storage_device=str(learner.buffer.device),
             replay_sample_device=str(learner.buffer.sample_device),
             checkpoint_interval_seconds=a.checkpoint_seconds,
+            sampling_execution=getattr(learner,'sampling_execution',None),
             torch_allocated_bytes=torch.cuda.memory_allocated(),
             torch_reserved_bytes=torch.cuda.memory_reserved(),
             CUDA_memory_free_total=list(torch.cuda.mem_get_info()),
@@ -135,6 +144,7 @@ def main():
             physical_reset_resume=True,exact_solver_state_resume=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda*args:stop.__setitem__(0,True))
         max_round=0.;first_saved=False;fraction=learner.collect_fraction
+        window_samples=0;window_seconds=0.;window_collection_seconds=0.
         last_checkpoint=time.time()
         required=max(learner.cfg.hist,learner.cfg.wm_window,learner.cfg.warmup_steps)
         while learner.buffer.size<required and time.time()+30<a.save_deadline and not stop[0]:learner.collect(1)
@@ -144,16 +154,27 @@ def main():
             for optimizer in (learner.opt_wm,learner.opt_pi,learner.opt_v,learner.opt_aux):
                 for group in optimizer.param_groups:group['lr']=learner.lr_at(learner.iteration)
             fraction+=1/learner.cfg.utd;steps=int(fraction);fraction-=steps
-            learner.collect(steps);collection=time.time()-start
+            learner.collect(steps);torch.cuda.synchronize(learner.device);collection=time.time()-start
             losses=[]
             for _ in range(learner.cfg.wm_batches):
                 loss,error8=learner.wm_update();losses.append((float(loss),float(error8)))
             if learner.iteration>=learner.cfg.wm_only_iters:learner.policy_update()
+            torch.cuda.synchronize(learner.device)
             learner.iteration+=1;learner.collect_fraction=fraction
             seconds=time.time()-start;learner.wall_time+=seconds;max_round=max(max_round,seconds)
+            window_samples+=steps*env.num_envs;window_seconds+=seconds;window_collection_seconds+=collection
             progress=dict(epoch=time.time(),iteration=learner.iteration,
                 controls=bridge.controls,sim_steps=learner.sim_steps,
                 collection_seconds=collection,iteration_seconds=seconds,
+                new_round_control_samples=steps*env.num_envs,
+                total_training_control_steps_per_second=steps*env.num_envs/seconds,
+                collection_control_steps_per_second=steps*env.num_envs/collection,
+                window_training_control_samples=window_samples,window_round_seconds=window_seconds,
+                window_collection_seconds=window_collection_seconds,
+                window_training_control_steps_per_second=window_samples/window_seconds,
+                worker_new_control_samples=learner.sim_steps-initial_sim_steps,
+                worker_elapsed_seconds=time.time()-worker_start,
+                worker_control_steps_per_second=(learner.sim_steps-initial_sim_steps)/(time.time()-worker_start),
                 counts=asdict(learner.counts),wm_losses=losses,auxiliary=learner.last_aux,
                 new_verified_BPTT_steps=learner.counts.pi_bptt_optimizer_steps-initial_counts['pi_bptt_optimizer_steps'],
                 bptt=learner.last_bptt_receipt,numerical_resets=int(env.numerical_reset_counts.sum()),
@@ -178,6 +199,10 @@ def main():
         ck=save(learner,job/'model_final.pt',source_ref);final_saved=True
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=ck,
             verified_BPTT_steps=learner.counts.pi_bptt_optimizer_steps,
+            worker_new_control_samples=learner.sim_steps-initial_sim_steps,
+            worker_elapsed_seconds=time.time()-worker_start,
+            worker_control_steps_per_second=(learner.sim_steps-initial_sim_steps)/(time.time()-worker_start),
+            window_training_control_steps_per_second=window_samples/window_seconds if window_seconds else None,
             numerical_resets=int(env.numerical_reset_counts.sum()),
             constraint_resets=int(env.constraint_reset_counts.sum()),
             jump200_completed=env.completed_strict))

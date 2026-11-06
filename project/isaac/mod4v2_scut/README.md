@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06采样优化：对照basic_loco_lib固定commit后，新增`--sampling-optimization`，融合400Hz闭链/验收和50Hz复旦16项，并保留四Adam状态启用fused执行、learned几何TorchScript图执行。真实本地128环境隔离ABBA总训练吞吐1.44394倍、采样1.78536倍；输出/梯度/完整恢复后H32通过。当前冻结小时不热改，2万环境生产收益待保存评测回放后接入实测。见`OFFICIAL_SAMPLING_OPTIMIZATION.md`与工作单sampling_optimization_20261106。
+
 2026-11-06 10:32最高实际：原服务器重启，旧窗无final；已完成幸存fullFIRST1941的独立80/唯一全状态诊断/全部4实际姿态图审阅，0成功。新增每300s原子完整保存已真实测试恢复后H32通过；新段supermimic_first1941_reboot_periodic_1h实际FIRST1942/fullsave和完整恢复有效，sole79388，SAVE11:30:26.533121。先读HOST_REBOOT_FIRST1941_RECOVERY.md及WORK_ORDER.reboot_recovery_and_periodic_continuation，下文网络故障/旧sole均为历史。
 
 2026-11-06 07:44最高实际覆盖：原collector75124于07:24:39因SSH TCP超时退出；缺失回传恢复也超时。到原服务器不可达而普通外网可达，最终保存/退出/80状态Unknown；当前0收集器。先读`POSTROUND_NETWORK_RECOVERY_PENDING.md`，仅有限恢复同一窗结果，禁止重launch/evalonce或把下文历史FIRST/healthy描述当当前状态。

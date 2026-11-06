@@ -71,7 +71,7 @@ def acceptance(body_pos: wp.array3d(dtype=float), body_quat: wp.array3d(dtype=fl
                landed_top: wp.array(dtype=wp.bool), flight_id: wp.array(dtype=wp.int64),
                stable_ticks: wp.array(dtype=wp.int64), stable_peak: wp.array(dtype=wp.int64),
                support_ticks: wp.array(dtype=wp.int64), support_peak: wp.array(dtype=wp.int64),
-               initial_yaw: wp.array(dtype=float)):
+               initial_yaw: wp.array(dtype=float), active: wp.array(dtype=wp.bool)):
     i = wp.tid()
     supported_ground, air, high = bool(True), bool(True), bool(True)
     front, rear, inside, returned = bool(True), bool(True), bool(True), bool(False)
@@ -105,7 +105,8 @@ def acceptance(body_pos: wp.array3d(dtype=float), body_quat: wp.array3d(dtype=fl
         inside = inside and low[0] >= 0.8 and upper[0] <= 3.5 and low[1] >= -3.5 and upper[1] <= 3.5
         returned = returned or ground[i, k] > 1.0 or low[0] < 0.78
         top_supported = top_supported and top[i, k] > 1.0
-    seen = ground_seen[i] or supported_ground
+    air = air and active[i]
+    seen = ground_seen[i] or (supported_ground and active[i])
     launch = air and not previous_air[i] and seen
     if launch:
         flight_id[i] += wp.int64(1)
@@ -118,8 +119,8 @@ def acceptance(body_pos: wp.array3d(dtype=float), body_quat: wp.array3d(dtype=fl
     leading[i] = leading[i] or (air and up[i] and high and front)
     current_clear[i] = current_clear[i] or (air and up[i] and high and rear)
     wholeclear[i] = wholeclear[i] or current_clear[i]
-    failed_return[i] = failed_return[i] or (current_clear[i] and returned)
-    supported = current_clear[i] and not failed_return[i] and inside and top_supported
+    failed_return[i] = failed_return[i] or (current_clear[i] and returned and active[i])
+    supported = current_clear[i] and not failed_return[i] and inside and top_supported and active[i]
     landed_top[i] = landed_top[i] or supported
     st = wp.int64(0)
     if supported:
@@ -148,7 +149,7 @@ def acceptance(body_pos: wp.array3d(dtype=float), body_quat: wp.array3d(dtype=fl
         ticks = stable_ticks[i] + wp.int64(1)
     stable_ticks[i] = ticks
     stable_peak[i] = wp.max(stable_peak[i], ticks)
-    success[i] = success[i] or ticks >= wp.int64(200)
+    success[i] = success[i] or (ticks >= wp.int64(200) and active[i])
     ground_seen[i] = seen
     previous_air[i] = air
 

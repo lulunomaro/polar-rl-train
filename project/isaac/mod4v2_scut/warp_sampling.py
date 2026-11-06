@@ -132,6 +132,7 @@ class PhysicsEndpoints:
         self.body_quat = torch.empty_like(r.robot.data.body_quat_w)
         self.root_quat = torch.empty_like(r.robot.data.root_quat_w)
         self.velocity = torch.empty_like(r.robot.data.root_lin_vel_w)
+        self.active = torch.ones(bridge.n,dtype=torch.bool,device=device)
 
     def read_manifold(self):
         b = self.bridge
@@ -160,7 +161,7 @@ class PhysicsEndpoints:
                 self.offsets, self.radii, self.widths, b.top_force, b.ground_force,
                 a.success, a.wholeclear, a.leading, a.ground_seen, a.previous_air, a.up,
                 a.current_clear, a.failed_return, a.landed_top, a.flight_id,
-                a.stable_ticks, a.stable_peak, a.support_ticks, a.support_peak, a.initial_yaw]
+                a.stable_ticks, a.stable_peak, a.support_ticks, a.support_peak, a.initial_yaw,self.active]
         calls = [*self.calls, (kernels.acceptance, [array(v) for v in args])]
         self.dispatch.run('physics_endpoint', calls, b.n)
 

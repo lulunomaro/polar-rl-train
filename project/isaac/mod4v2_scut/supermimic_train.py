@@ -94,7 +94,9 @@ def main():
     p.add_argument('--small-test',action='store_true')
     p.add_argument('--max-updates',type=int)
     p.add_argument('--residual-scale',type=float)
+    p.add_argument('--checkpoint-seconds',type=float,default=300.)
     a=p.parse_args();job=Path(a.job_root);job.mkdir(exist_ok=False)
+    if a.checkpoint_seconds<=0:raise ValueError('Checkpoint interval must be positive')
     env=bridge=learner=None;error=None;final_saved=False
     try:
         random.seed(9138);np.random.seed(9138);torch.manual_seed(9138);torch.cuda.manual_seed_all(9138)
@@ -125,6 +127,7 @@ def main():
             policy_residual_scale=learner.pi.residual_scale,
             replay_storage_device=str(learner.buffer.device),
             replay_sample_device=str(learner.buffer.sample_device),
+            checkpoint_interval_seconds=a.checkpoint_seconds,
             torch_allocated_bytes=torch.cuda.memory_allocated(),
             torch_reserved_bytes=torch.cuda.memory_reserved(),
             CUDA_memory_free_total=list(torch.cuda.mem_get_info()),
@@ -132,6 +135,7 @@ def main():
             physical_reset_resume=True,exact_solver_state_resume=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda*args:stop.__setitem__(0,True))
         max_round=0.;first_saved=False;fraction=learner.collect_fraction
+        last_checkpoint=time.time()
         required=max(learner.cfg.hist,learner.cfg.wm_window,learner.cfg.warmup_steps)
         while learner.buffer.size<required and time.time()+30<a.save_deadline and not stop[0]:learner.collect(1)
         while learner.buffer.size>=required:
@@ -162,6 +166,14 @@ def main():
                 put(job/'FIRST_UPDATED.json',dict(**progress,full_save=True,checkpoint=ck,
                     actual_native=True,horizon=32,verified_BPTT=True))
                 first_saved=True
+                last_checkpoint=time.time()
+            elif first_saved and time.time()-last_checkpoint>=a.checkpoint_seconds:
+                ck=save(learner,job/'model_periodic_complete.pt',source_ref)
+                put(job/'PERIODIC_FULL.json',dict(epoch=time.time(),checkpoint=ck,
+                    full_save=True,update_boundary_safe=True,
+                    checkpoint_interval_seconds=a.checkpoint_seconds,
+                    original_save_deadline=a.save_deadline))
+                last_checkpoint=time.time()
             if a.max_updates and learner.iteration-initial>=a.max_updates:break
         ck=save(learner,job/'model_final.pt',source_ref);final_saved=True
         put(job/'FINAL.json',dict(epoch=time.time(),passed_execution=True,checkpoint=ck,

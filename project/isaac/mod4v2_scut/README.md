@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-06 10:32最高实际：原服务器重启，旧窗无final；已完成幸存fullFIRST1941的独立80/唯一全状态诊断/全部4实际姿态图审阅，0成功。新增每300s原子完整保存已真实测试恢复后H32通过；新段supermimic_first1941_reboot_periodic_1h实际FIRST1942/fullsave和完整恢复有效，sole79388，SAVE11:30:26.533121。先读HOST_REBOOT_FIRST1941_RECOVERY.md及WORK_ORDER.reboot_recovery_and_periodic_continuation，下文网络故障/旧sole均为历史。
+
 2026-11-06 07:44最高实际覆盖：原collector75124于07:24:39因SSH TCP超时退出；缺失回传恢复也超时。到原服务器不可达而普通外网可达，最终保存/退出/80状态Unknown；当前0收集器。先读`POSTROUND_NETWORK_RECOVERY_PENDING.md`，仅有限恢复同一窗结果，禁止重launch/evalonce或把下文历史FIRST/healthy描述当当前状态。
 
 2026-11-06 06:25最高实际：SuperMimic full1940已完整保存/安全退出/独立80/全部实际回放审阅，1908H32更新与四Adam/replay/RNG完整，但80/80在.68–1.04s导轮06接地终止、0真200mm成功。仅残差输出尺度1→.25候选实测平均5.534s、39/80满7.98s、仍0跳上台，完整恢复测试通过；新段从full1940全部学习状态续训，实际FIRST1941+1H32/fullsave通过，sole75124，SAVE07:23:33。物理、复旦奖励、DR不变。详见`FINAL1940_ALL80_AND_RESIDUAL025_CONTINUATION.md`与工作单。下文05时记录为历史。

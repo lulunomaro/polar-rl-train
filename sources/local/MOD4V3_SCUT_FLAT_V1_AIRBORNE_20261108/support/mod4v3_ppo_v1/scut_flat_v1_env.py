@@ -7,6 +7,7 @@ from .scut_flat_rewards import make_reward_class_v1
 
 
 class ScutFlatV1Env(ScutFlatEnv):
+    enforce_closure_reset = False
     """Flat-v1 with 30% airborne resets and SCUT state-machine observations."""
 
     air_reset_fraction = 0.30

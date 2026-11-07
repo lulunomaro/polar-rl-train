@@ -142,6 +142,8 @@ def configuration(meta,bank,n,seed,terrain_selection='flat'):
 
 
 class ScutFlatEnv(DirectRLEnv):
+    # V30 keeps the project closure gate; Flat-v1 overrides this to match SCUT.
+    enforce_closure_reset = True
     def __init__(self,cfg,meta,bank):
         self.meta,self.bank = meta,bank
         self.reward = None
@@ -282,6 +284,10 @@ class ScutFlatEnv(DirectRLEnv):
         r._numerical_safety_reset_buf.copy_(self.numeric)
         terminated,timeout = r._get_dones()
         self.closure_reset.copy_(self.closure_error>.002)
+        if not self.enforce_closure_reset:
+            # SCUT's V14 _get_dones has no closed-chain threshold. Keep the
+            # measured value for diagnostics only; do not terminate or reset.
+            self.closure_reset.zero_()
         self.mimic_reset.copy_(self.mimic_error>.01)
         terminated |= self.closure_reset|self.mimic_reset|self.numeric
         timeout &= ~terminated

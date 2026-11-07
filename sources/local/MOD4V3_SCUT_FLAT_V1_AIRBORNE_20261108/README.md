@@ -24,3 +24,11 @@ This is the Flat-v1 overlay for the MOD4v3 PPO task:
 The checkpoint from the 3-hour run is not committed here. `evidence/` contains
 only the startup, restore, and first progress receipts. The launch is recorded
 for reproducibility; this snapshot does not claim a completed Flat-v1 acceptance.
+
+## Closure-policy correction
+
+SCUT V14 source has no closed-chain 2 mm termination threshold. The Flat-v1
+subclass now keeps `max_closure_m` only as a diagnostic and sets
+`enforce_closure_reset=False`; closure is not added to `terminated`. The resumed
+run `scut_flat_v1_airborne_3h_20261108_r2` starts from `model_periodic.pt` of the
+first run for the remaining 7900 seconds.

@@ -32,3 +32,10 @@ subclass now keeps `max_closure_m` only as a diagnostic and sets
 `enforce_closure_reset=False`; closure is not added to `terminated`. The resumed
 run `scut_flat_v1_airborne_3h_20261108_r2` starts from `model_periodic.pt` of the
 first run for the remaining 7900 seconds.
+
+## 8-hour overnight cap
+
+The run `scut_flat_v1_airborne_8h_20261108_r1` resumes from the r2 periodic
+checkpoint and uses an 8-hour wall-clock cap. Periodic full checkpoints remain
+every five minutes. The final checkpoint will be evaluated after the cap; the
+cap is not a claim that eight hours of optimization are all useful.

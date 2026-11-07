@@ -133,3 +133,31 @@ SHA-256=1e7a0285dfe30ee2f1fee3d1059cdf607dce5683af24e4bdf3eb5568a8a79ce0
 本目录保存实际训练源码快照和只读回执。没有提交检查点、日志、USD、
 rollout、tar 包或凭据。若后续生成第二小时 `FINAL.json`，应另立试验记录
 或追加证据，不覆盖本快照。
+
+## 第二小时最终回执（已正常结束）
+
+第二小时窗口于 `elapsed_seconds=7200.82` 正常结束，进程退出后写入
+`FINAL.json` 与 `SAFE_CLOSED.json`。最终 `iteration=4772`，平均奖励
+`+0.085682`，timeout `216436/217254`（约 99.62%），closure
+`184/217254`（约 0.0847%），最大 closure `0.6105 mm`，mimic/numerical
+均为 0，`L0_mean=0.25271 m`，`theta_abs_mean=0.14956`，`vx_mean=0.08964`。
+
+最终 checkpoint：
+
+```text
+model_final.pt
+iteration=4772
+SHA-256=ea9bb5517ef173fca19f0657bfef788eb007b8066ac3a7c7e305b4e9ae5b2b1d
+```
+
+最后周期 checkpoint：
+
+```text
+model_periodic.pt
+iteration=4689
+SHA-256=d820724822bd453b02966d44312c8d9749369bc1ab08bc487aeb781d87b6d8af
+```
+
+`SAFE_CLOSED.json` 为 `scene_closed=true`。这次是自然跑完 2 小时窗口，
+不是人工停训；奖励已在约 `0.085–0.086` 平台，不能把“跑完”直接等同于
+独立能力毕业。

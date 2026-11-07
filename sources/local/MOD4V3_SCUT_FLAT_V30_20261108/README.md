@@ -33,3 +33,5 @@ It does not claim the independent 200 mm skill acceptance test, real-robot
 deployment, or a final flat-policy graduation. See
 `../../../docs/SCUT_V30_FLAT_V3_ALIGNMENT_20261108.md`.
 
+
+The 2-hour window completed normally; final and safe-close receipts are in vidence/2H_FINAL.json, vidence/2H_SAFE_CLOSED.json, and vidence/2H_FINAL_PERIODIC_FULL.json.

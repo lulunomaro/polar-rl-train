@@ -1,5 +1,7 @@
 # MOD4v2 复旦奖励压腿跳跃
 
+2026-11-08最新方向：人类已要求放弃旧工作、取消定时任务，改研究MorphMimic及华南虎到MOD4迁移。原mod4-10已不存在，本聊天当前无本地运行进程；旧训练与教师评测已收尾，不自动接续下文历史任务。论文验证的是参与联合训练的G1/X2/T2共享权重，公开代码固定29关节位置动作，轮腿适配仍需共同状态/动作、目标机构可行的参考与MOD4动力学数据。本次仅研究，无训练/物理运行。完整结论见history/reviews/20261105-mod4v2-scut-jump200/MORPHMIMIC_SCUT_TRANSFER_ASSESSMENT_20261108.md。
+
 2026-11-06 16时最高实际：语义修复小时已fullfinal6845、安全退出、独立80、唯一完整诊断及全部4新原生姿态图审完，0当前训练/读者。源5936新增878真H32、46.72M samples；最后真实value目标1.717/value1.699/MAE.195，仍0跳上200mm。sole62016已退出，禁重复once/PT。人类追加华南虎教师验证及伸腿站高上阶：原公开策略在原机器人真实运行，高度命令.38/.42m、腿多数.30–.33m；纠正已知新增云台默认后的8组200mm均0整轮越沿，24组站稳前提测试均未触发主动前进。原生生成地形实际网格无竖直内表面，沿面升高不能当200mm跳台教师证据。原失败、混合配置探索与修正并列保留，未接入MOD4蒸馏。详见`FINAL6845_SEMANTIC_BOUNDARY_20261106.md`和`SCUT_TEACHER_NATIVE_AND_STANDING_EXTENDED_20261106.md`；下文14:24训练中为历史。
 
 2026-11-06 14:24最高实际：人类“修复完就开始训啊”后，已修命令/重复context/physical sensor语义、DR与地形条件、联合H32拟合、真实replay价值目标/PopArt完整恢复、有限终点、teacher饱和死区与worker异常事务。CPU及真实4env迁移/恢复通过；正式20k `supermimic_final5936_semantic_repair_1h`从完整final5936显式139→176迁移，FIRST5968新增1真H32/2.88M新samples及2.71GB首存，sole62016，原SAVE15:21:45.610874。首次value MAE.0664为早期buffer内校准，新增11numerical/2constraint和solver警告仍在，非技能或数值全健康。详见`SUPERMIMIC_SEMANTIC_REPAIR_AND_TRAINING_20261106.md`、WORK_ORDER.supermimic_semantic_repair；下文11:41和旧停止审计状态均为历史。

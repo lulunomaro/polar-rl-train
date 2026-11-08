@@ -1,4 +1,8 @@
-## 2026-11-06 SuperMimic修复后直接训练
+## 2026-11-08 最新：取消旧任务，转向 MorphMimic 研究
+
+人类明确：“先放弃之前的工作，取消定时任务，现在开始看这个项目”，项目为 https://lzyang2000.github.io/morphmimic/ 。本聊天停止旧MOD4v2跳跃训练、自动接续与重复教师评测；原mod4-10已不存在，不重建。当前范围是研究MorphMimic跨机器人共享策略及华南虎到MOD4的适用性，不按下文历史100小时或“修复完直接训练”授权自动恢复旧工作。旧权重、失败和Git证据保留，其它聊天任务与进程不动。评估见history/reviews/20261105-mod4v2-scut-jump200/MORPHMIMIC_SCUT_TRANSFER_ASSESSMENT_20261108.md。
+
+## 2026-11-06 历史：SuperMimic修复后直接训练
 
 人类明确“修复完就开始训啊”。本聊天已获授权修复审计确认的状态/context/DR/地形/价值/有限worker保存清理错误，必要的显式契约迁移与真实验证后直接在空闲GPU开训，不停在建议或反复待批。保留旧full5936、四Adam/RNG来源及全部失败，新条件缺历史真实值不得补造；每小时完整保存/安全退出/独立80/实际回放、100h/noledger/foreign隔离保持。最新实际见v2 WORK_ORDER.supermimic_semantic_repair与SUPERMIMIC_SEMANTIC_REPAIR_AND_TRAINING_20261106.md。
 

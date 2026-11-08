@@ -189,7 +189,7 @@ def main():
                 if not changed:raise ValueError('Actor did not update')
                 last['actor_changed']=changed;last['checkpoint']=save('model_first_complete.pt')
                 put(job/'FIRST_UPDATE.json',last)
-            if time.time()-last_save>=300:
+            if time.time()-last_save>=1200:
                 put(job/'PERIODIC_FULL.json',save('model_periodic.pt'));last_save=time.time()
             if args.mode=='probe':break
         receipt=save('model_final.pt')

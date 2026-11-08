@@ -39,3 +39,11 @@ The run `scut_flat_v1_airborne_8h_20261108_r1` resumes from the r2 periodic
 checkpoint and uses an 8-hour wall-clock cap. Periodic full checkpoints remain
 every five minutes. The final checkpoint will be evaluated after the cap; the
 cap is not a claim that eight hours of optimization are all useful.
+
+## 20-minute checkpoint interval
+
+The training loop now saves periodic full checkpoints every 1200 seconds instead
+of 300 seconds. The 8-hour r1 run hit a nonfinite observation at iteration 10015;
+the last valid checkpoint was iteration 9970. A 16-env probe passed, and the
+recovery run `scut_flat_v1_airborne_8h_20261108_recover_20m_r1` continues the
+remaining 13200 seconds from that checkpoint.

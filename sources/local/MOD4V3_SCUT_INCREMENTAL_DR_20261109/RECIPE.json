@@ -1,0 +1,139 @@
+{
+  "snapshot": "MOD4V3_SCUT_INCREMENTAL_DR_20261109",
+  "purpose": "Record the partial-DR base, stage-1 joint friction, and stage-2 spring damping experiments; preserve every model/eval receipt.",
+  "training": {
+    "num_envs": 4096,
+    "seed": 66,
+    "policy_hz": 50,
+    "physics_dt_s": 0.0025,
+    "decimation": 8,
+    "backend": "PhysX TGS32/4",
+    "episode_length_s": 20.0,
+    "action_dim": 6,
+    "observation_dim": 35,
+    "command_vx_range": [
+      -2.2,
+      2.2
+    ],
+    "height_range_m": [
+      0.2,
+      0.42
+    ],
+    "action_clip": 6.0,
+    "ppo_value_loss_coef": 4.0,
+    "stage_duration_s": {
+      "stage1": 3600,
+      "stage2_initial": 3600,
+      "stage2_cont10m": 600,
+      "stage2_cont20m": 1200
+    }
+  },
+  "already_in_75m_partial_base": {
+    "mass_inertia_scale": [
+      0.9,
+      1.1
+    ],
+    "leg_wheel_motor_gain_scale": [
+      0.9,
+      1.1
+    ],
+    "wheel_friction": [
+      0.7,
+      1.0
+    ],
+    "base_com_delta_m": [
+      -0.01,
+      0.01
+    ],
+    "all_shape_material_friction": [
+      0.75,
+      1.0
+    ],
+    "torque_noise_nm": [
+      0.0,
+      0.025
+    ],
+    "ground_reset_fraction": 0.2,
+    "zero_torque_control_steps": 10,
+    "reset_root_velocity": {
+      "x": [
+        -0.3,
+        0.3
+      ],
+      "y": [
+        -0.15,
+        0.15
+      ],
+      "yaw_rate": [
+        -0.25,
+        0.25
+      ]
+    }
+  },
+  "stage1_joint_friction": {
+    "fraction_of_scut_range": 0.5,
+    "active_leg": {
+      "static": [
+        0.125,
+        0.5
+      ],
+      "dynamic": [
+        0.125,
+        0.5
+      ],
+      "viscous": [
+        0.025,
+        0.1
+      ]
+    },
+    "wheel": {
+      "static": [
+        0.025,
+        0.125
+      ],
+      "dynamic": [
+        0.025,
+        0.125
+      ],
+      "viscous": [
+        0.0,
+        0.005
+      ]
+    },
+    "passive": {
+      "static": [
+        0.025,
+        0.05
+      ],
+      "dynamic": [
+        0.025,
+        0.05
+      ],
+      "viscous": [
+        0.005,
+        0.0125
+      ]
+    }
+  },
+  "stage2_spring_damping": {
+    "fraction_of_scut_damping_range": 0.25,
+    "nominal_damping": 3.0,
+    "scale_range": [
+      0.875,
+      1.125
+    ],
+    "implementation": "extra gas-spring damping torque = (scale-1)*3.0*joint_vel, clipped +/-10 Nm"
+  },
+  "not_yet_added": [
+    "observation_noise",
+    "observation_delay",
+    "action_delay",
+    "external_force_torque",
+    "full_SCUT_mass_COM_material_ranges"
+  ],
+  "boundaries": [
+    "This is an incremental warm-start curriculum, not strict SCUT full-DR from scratch.",
+    "The 1m drop evaluator still uses a conservative termination harness; drop counts are secondary evidence.",
+    "Weight binaries are indexed by SHA/path, not committed to Git."
+  ]
+}

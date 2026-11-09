@@ -1,5 +1,5 @@
 # MOD4v3 SCUT Incremental DR (2026-11-09)
-This snapshot records the partial-DR base, stage-1 joint-friction run, and stage-2 spring-damping continuations.
+This snapshot records the partial-DR base, stage-1 joint-friction run, and stage-2 spring-damping/speed-preserve continuations.
 
 ## Stage order
 
@@ -13,10 +13,11 @@ This snapshot records the partial-DR base, stage-1 joint-friction run, and stage
 | joint friction 50% + spring damping 25% | `stage2_spring_damping_cont10m_final` | 0.054 | 0.048 | 0.277 | 0.191 | 0.496 | 0.807 | 2/3 |
 | joint friction 50% + spring damping 25% | `stage2_spring_damping_cont20m_final` | 0.042 | 0.012 | 0.276 | 0.123 | 0.020 | 0.820 | 2/3 |
 | joint friction 50% + spring damping 25% | `stage2_spring_damping_cont30m_final` | 0.172 | 0.203 | 0.275 | 0.157 | 0.013 | 0.854 | 2/3 |
+| joint friction 50% + spring damping 25% + speed preserve | `stage2b_speed_preserve_10m_final` | 0.247 | 0.248 | 0.280 | 0.121 | 0.017 | 0.925 | 2/3 |
 
 ## Current best
 
-`stage2_spring_damping_cont20m_final` remains the best speed-tracking candidate. `cont30m_final` improves jitter and yaw but regresses 2.0/2.2 tracking, so it is retained as evidence, not promoted.
+`stage2_spring_damping_cont20m_final` remains the best speed-tracking candidate. The speed-preserving 10-minute continuation improved low-speed tracking but overshot 2.0/2.2, so it is retained as evidence, not promoted.
 
 ## Weights and Git
 

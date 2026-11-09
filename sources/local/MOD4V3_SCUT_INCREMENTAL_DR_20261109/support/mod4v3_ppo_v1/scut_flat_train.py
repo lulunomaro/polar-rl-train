@@ -21,7 +21,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--plan',required=True)
     parser.add_argument('--mode',choices=['probe','train','evaluate'],default='probe')
-    parser.add_argument('--profile',choices=['flat_v30','flat_v1','flat_v2','flat_robust','flat_robust_full','flat_joint_friction','flat_spring_damping','rough_v0'],default='flat_v30')
+    parser.add_argument('--profile',choices=['flat_v30','flat_v1','flat_v2','flat_robust','flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','rough_v0'],default='flat_v30')
     parser.add_argument('--job',required=True)
     parser.add_argument('--num-envs',type=int,default=16)
     parser.add_argument('--seconds',type=int,default=3600)
@@ -61,6 +61,12 @@ def main():
             from .scut_flat_env import configuration as env_configuration,tensor
         elif args.profile=='flat_spring_damping':
             from .scut_flat_spring_damping_env import ScutFlatSpringDampingEnv as EnvClass
+            from .scut_flat_env import configuration as env_configuration,tensor
+        elif args.profile=='flat_speed_preserve':
+            from .scut_flat_speed_preserve_env import ScutFlatSpeedPreserveEnv as EnvClass
+            from .scut_flat_env import configuration as env_configuration,tensor
+        elif args.profile=='flat_external_dr':
+            from .scut_flat_external_dr_env import ScutFlatExternalDREnv as EnvClass
             from .scut_flat_env import configuration as env_configuration,tensor
         elif args.profile=='rough_v0':
             from .scut_rough_v0_env import ScutRoughV0Env as EnvClass
@@ -116,7 +122,7 @@ def main():
             @property
             def episode_length_buf(self):return env.episode_length_buf
             def get_observations(self):return TensorDict(current,batch_size=[env.num_envs])
-        cfg=runner_config();cfg['clip_actions']=6.0 if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping') else None;cfg['algorithm']['value_loss_coef']=2.0 if args.profile=='rough_v0' else 4.0
+        cfg=runner_config();cfg['clip_actions']=6.0 if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr') else None;cfg['algorithm']['value_loss_coef']=2.0 if args.profile=='rough_v0' else 4.0
         if args.profile=='rough_v0': cfg['algorithm']['learning_rate']=1.0e-4
         runner=OnPolicyRunner(Vec(),cfg,log_dir=None,device=env.device)
         algorithm=runner.alg;iteration=0;physics_ticks=0
@@ -155,7 +161,7 @@ def main():
                     reset_rng_restored=reset_rng_restored,physics_resume='one fresh episode',
                     saved_envs=data['num_envs'],new_envs=env.num_envs)
             put(job/'RESTORE.json',restored)
-        checkpoint_format=('MOD4V3_SCUT_FLAT_V1_AIRBORNE_PPO_V1' if args.profile=='flat_v1' else ('MOD4V3_SCUT_FLAT_V2_PPO_V1' if args.profile=='flat_v2' else ('MOD4V3_SCUT_FLAT_ROBUST_PPO_V1' if args.profile=='flat_robust' else ('MOD4V3_SCUT_FLAT_ROBUST_FULL_PPO_V1' if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping') else ('MOD4V3_SCUT_ROUGH_V0_PPO_V1' if args.profile=='rough_v0' else 'MOD4V3_SCUT_FLAT_HEIGHT_PPO_V1')))))
+        checkpoint_format=('MOD4V3_SCUT_FLAT_V1_AIRBORNE_PPO_V1' if args.profile=='flat_v1' else ('MOD4V3_SCUT_FLAT_V2_PPO_V1' if args.profile=='flat_v2' else ('MOD4V3_SCUT_FLAT_ROBUST_PPO_V1' if args.profile=='flat_robust' else ('MOD4V3_SCUT_FLAT_ROBUST_FULL_PPO_V1' if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr') else ('MOD4V3_SCUT_ROUGH_V0_PPO_V1' if args.profile=='rough_v0' else 'MOD4V3_SCUT_FLAT_HEIGHT_PPO_V1')))))
         def save(name):
             data=algorithm.save()
             data.update(format=checkpoint_format,iter=iteration,

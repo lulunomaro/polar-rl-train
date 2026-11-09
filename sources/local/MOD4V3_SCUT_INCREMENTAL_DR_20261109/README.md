@@ -1,5 +1,5 @@
 # MOD4v3 SCUT Incremental DR (2026-11-09)
-This snapshot records the partial-DR base, stage-1 joint-friction run, and stage-2 spring-damping/speed-preserve continuations.
+This snapshot records the partial-DR base and incremental joint-friction, spring-damping, speed-preserve, and external-wrench stages.
 
 ## Stage order
 
@@ -14,10 +14,11 @@ This snapshot records the partial-DR base, stage-1 joint-friction run, and stage
 | joint friction 50% + spring damping 25% | `stage2_spring_damping_cont20m_final` | 0.042 | 0.012 | 0.276 | 0.123 | 0.020 | 0.820 | 2/3 |
 | joint friction 50% + spring damping 25% | `stage2_spring_damping_cont30m_final` | 0.172 | 0.203 | 0.275 | 0.157 | 0.013 | 0.854 | 2/3 |
 | joint friction 50% + spring damping 25% + speed preserve | `stage2b_speed_preserve_10m_final` | 0.247 | 0.248 | 0.280 | 0.121 | 0.017 | 0.925 | 2/3 |
+| joint friction 50% + spring damping 25% + external force/torque 25% | `stage3_external_dr_20m_final` | 0.012 | 0.071 | 0.278 | 0.247 | 0.012 | 0.827 | 2/3 |
 
 ## Current best
 
-`stage2_spring_damping_cont20m_final` remains the best speed-tracking candidate. The speed-preserving 10-minute continuation improved low-speed tracking but overshot 2.0/2.2, so it is retained as evidence, not promoted.
+`stage2_spring_damping_cont20m_final` remains the best all-round speed/backward candidate. Stage 3 external force/torque 25% passes forward/height/yaw but regresses reverse tracking, so it is retained as evidence, not promoted.
 
 ## Weights and Git
 
@@ -25,4 +26,4 @@ Per repository policy, `.pt` binaries are not committed. `MODEL_INDEX.json` reco
 
 ## Not yet added
 
-Observation noise/delay, action delay, external force/torque, and full SCUT mass/COM/material ranges remain off. This is an incremental warm-start curriculum, not a strict SCUT full-DR-from-scratch claim.
+Observation noise/delay, action delay, and full SCUT mass/COM/material ranges remain off. This is an incremental warm-start curriculum, not a strict SCUT full-DR-from-scratch claim.

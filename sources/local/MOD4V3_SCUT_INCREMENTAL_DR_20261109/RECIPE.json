@@ -1,6 +1,6 @@
 {
   "snapshot": "MOD4V3_SCUT_INCREMENTAL_DR_20261109",
-  "purpose": "Record the partial-DR base, stage-1 joint friction, and stage-2 spring damping experiments; preserve every model/eval receipt.",
+  "purpose": "Record the partial-DR base and incremental joint-friction, spring-damping, external-wrench, and observation-noise stages; preserve every model/eval receipt.",
   "training": {
     "num_envs": 4096,
     "seed": 66,
@@ -25,7 +25,11 @@
       "stage1": 3600,
       "stage2_initial": 3600,
       "stage2_cont10m": 600,
-      "stage2_cont20m": 1200
+      "stage2_cont20m": 1200,
+      "stage3_external_20m": 1200,
+      "stage4_observation_noise_20m": 1200,
+      "stage4_observation_noise_cont20m": 1200,
+      "stage4_total_40m": 2400
     }
   },
   "already_in_75m_partial_base": {
@@ -125,15 +129,68 @@
     "implementation": "extra gas-spring damping torque = (scale-1)*3.0*joint_vel, clipped +/-10 Nm"
   },
   "not_yet_added": [
-    "observation_noise",
     "observation_delay",
     "action_delay",
-    "external_force_torque",
     "full_SCUT_mass_COM_material_ranges"
   ],
   "boundaries": [
     "This is an incremental warm-start curriculum, not strict SCUT full-DR from scratch.",
+    "2 mm closure is diagnostic only for Flat-v2-derived profiles; only >1 m catastrophic closure resets an environment.",
     "The 1m drop evaluator still uses a conservative termination harness; drop counts are secondary evidence.",
-    "Weight binaries are indexed by SHA/path, not committed to Git."
-  ]
+    "Yaw 14.14 is frozen under an explicit ±2% engineering tolerance; the stricter absolute 0.10 rad/s result is retained in the evidence.",
+    "The frozen Stage 4 .pt is committed by explicit user request; other weight binaries remain indexed by SHA/path unless separately frozen."
+  ],
+  "stage3_external_force_torque": {
+    "fraction_of_scut_range": 0.25,
+    "force_range_n": [
+      -2.5,
+      2.5
+    ],
+    "torque_range_nm": [
+      -0.25,
+      0.25
+    ],
+    "interval_s": [
+      5.0,
+      10.0
+    ],
+    "hold_control_steps": 10
+  },
+  "stage4_observation_noise": {
+    "fraction_of_full_dr_range": 0.25,
+    "height_noise_m": [
+      -0.0025,
+      0.0025
+    ],
+    "orientation_noise_rad": [
+      -0.0625,
+      0.0625
+    ],
+    "base_angular_velocity_noise": [
+      -0.0125,
+      0.0125
+    ],
+    "joint_position_noise": [
+      -0.00625,
+      0.00625
+    ],
+    "joint_velocity_noise": [
+      -0.125,
+      0.125
+    ],
+    "last_action_noise": [
+      -0.25,
+      0.25
+    ],
+    "implementation": "policy observation only; critic observation unchanged"
+  },
+  "frozen_model": {
+    "name": "stage4_obs_noise_40m_final",
+    "sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
+    "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_noise_stage4_40m_final.pt",
+    "status": "frozen_engineering_candidate",
+    "yaw_relative_tolerance_pct": 2.0,
+    "conservative_backup": "stage4_obs_noise_20m_final",
+    "git_path": "weights/stage4_obs_noise_40m_final.pt"
+  }
 }

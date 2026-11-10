@@ -1,0 +1,171 @@
+--- baseline/support/mod4v3_ppo_v1/scut_flat_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_env.py
+@@ -275,10 +275,22 @@
+             upper = (stall*(1-v/no_load)).clamp_min(0).minimum(peak)
+             lower = (-stall*(1+v/no_load)).clamp_max(0).maximum(-peak)
+             self.torque.copy_(raw.minimum(upper).maximum(lower))
++        applied = self.torque
+         if getattr(self, 'full_dr_torque_noise_enabled', False):
+-            noise = torch.randn_like(self.torque) * self.full_dr.torque_noise_scale
+-            self.torque.add_(noise)
+-        self.robot.set_joint_effort_target(self.torque,joint_ids=self.active_ids)
++            # Perturb the held PD torque independently; do not random-walk it.
++            applied = self.torque + torch.randn_like(self.torque) * self.full_dr.torque_noise_scale
++            v = tensor(self.robot.data.joint_vel)[:,self.active_ids]
++            stall = v.new_tensor([53.333333333333336]*4+[28.18525375641699]*2)
++            no_load = v.new_tensor([16.755160819145562]*4+[55.35573187814664]*2)
++            peak = v.new_tensor([40.]*4+[5.775909774436091]*2)
++            upper = (stall*(1-v/no_load)).clamp_min(0).minimum(peak)
++            lower = (-stall*(1+v/no_load)).clamp_max(0).maximum(-peak)
++            applied = applied.minimum(upper).maximum(lower)
++        release = getattr(self, "zero_torque_remaining", None)
++        if release is not None:
++            applied = applied.masked_fill((release > 0)[:, None], 0.0)
++        self.applied_motor_torque = applied
++        self.robot.set_joint_effort_target(applied,joint_ids=self.active_ids)
+         self.robot.set_joint_position_target(self.gas_targets,joint_ids=self.gas_ids)
+ 
+     def prepare_endpoint(self):
+@@ -306,7 +318,9 @@
+         r = self.reward; d = self.view.data
+         self.numeric.copy_(~torch.isfinite(d.joint_pos).all(-1)|~torch.isfinite(d.joint_vel).all(-1)|
+             ~torch.isfinite(d.root_state_w).all(-1))
+-        joint_vel_abs=torch.amax(torch.abs(d.joint_vel[:,self.active_ids]),dim=-1)
++        # active_ids belongs to robot.data; view.data has a different joint order.
++        native_joint_vel=tensor(self.robot.data.joint_vel)[:,self.active_ids]
++        joint_vel_abs=torch.amax(torch.abs(native_joint_vel),dim=-1)
+         root_ang_abs=torch.amax(torch.abs(d.root_ang_vel_b),dim=-1)
+         root_lin_abs=torch.amax(torch.abs(d.root_lin_vel_b),dim=-1)
+         self.numeric |= (joint_vel_abs>500.0)|(root_ang_abs>200.0)|(root_lin_abs>100.0)
+--- baseline/support/mod4v3_ppo_v1/scut_flat_external_dr_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_external_dr_env.py
+@@ -52,7 +52,7 @@
+     def _update_external_wrench(self):
+         n = int(self.num_envs)
+         self._external_timer -= self._control_dt
+-        self._external_hold.clamp_(min=0)
++        self._external_hold.sub_(1).clamp_(min=0)
+         event = self._external_timer <= 0.0
+         if bool(event.any()):
+             ids = event.nonzero().flatten()
+--- baseline/support/mod4v3_ppo_v1/scut_flat_joint_friction_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_joint_friction_env.py
+@@ -74,6 +74,7 @@
+             ))
+         )
+         self.joint_ids = torch.arange(len(names), dtype=torch.int32, device=self.device)
++        self.com_nominal = tensor(self.robot.root_view.get_coms()).to(self.device).clone()
+ 
+     def _scaled(self, low, high):
+         return (low * self.joint_friction_scale, high * self.joint_friction_scale)
+@@ -107,10 +108,10 @@
+         viscous.clamp_(min=0.0)
+         dynamic = torch.minimum(dynamic, static)
+         self.robot.write_joint_friction_coefficient_to_sim(
+-            joint_friction_coeff=static,
+-            joint_dynamic_friction_coeff=dynamic,
+-            joint_viscous_friction_coeff=viscous,
+-            joint_ids=self.joint_ids,
++            joint_friction_coeff=static[:, j],
++            joint_dynamic_friction_coeff=dynamic[:, j],
++            joint_viscous_friction_coeff=viscous[:, j],
++            joint_ids=j.to(dtype=torch.int32),
+             env_ids=ids,
+         )
+ 
+@@ -123,7 +124,8 @@
+         super().__call__(env, ids)
+ 
+         # Old partial full-DR extras: small COM, all-shape friction, torque noise.
+-        coms = tensor(self.robot.root_view.get_coms()).to(env.device).clone()
++        # Every episode samples around the asset COM, never around the last draw.
++        coms = self.com_nominal.clone()
+         delta = torch.empty((len(ids), 3), device=env.device).uniform_(
+             -0.01, 0.01, generator=self.generator
+         )
+--- baseline/support/mod4v3_ppo_v1/scut_flat_obs_noise_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_obs_noise_env.py
+@@ -27,11 +27,11 @@
+             obs_noise_fraction=f,
+             obs_noise_ranges={
+                 "height": [-0.01 * f, 0.01 * f],
+-                "orientation": [-0.25 * f, 0.25 * f],
+-                "base_ang_vel": [-0.05 * f, 0.05 * f],
++                "base_ang_vel_observation": [-0.25 * f, 0.25 * f],
++                "projected_gravity_observation": [-0.05 * f, 0.05 * f],
+                 "joint_pos": [-0.025 * f, 0.025 * f],
+-                "joint_vel": [-0.5 * f, 0.5 * f],
+-                "last_action": [-1.0 * f, 1.0 * f],
++                "leg_joint_vel_observation": [-0.5 * f, 0.5 * f],
++                "wheel_joint_vel_observation": [-1.0 * f, 1.0 * f],
+             },
+             missing_dr=[
+                 "observation_delay",
+--- baseline/support/mod4v3_ppo_v1/scut_flat_physical_delay_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_physical_delay_env.py
+@@ -26,6 +26,9 @@
+ 
+ 
+ class ScutFlatPhysicalDelayEnv(ScutFlatObsNoiseEnv):
++    # The repair entry point follows the current workspace closure contract.
++    enforce_closure_reset = True
++
+     def __init__(self, cfg, meta, bank):
+         self._delay_ready = False
+         self._delay_trace = []
+@@ -142,10 +145,40 @@
+         frame=self._sample_sensors(int(self._sim_step_counter))
+         sensor=torch.cat([self._gather(self._sensor_history,self._sensor_delay_ticks[:,i],a,b)
+                           for i,(a,b) in enumerate([(0,3),(3,6),(6,12),(12,18)])],-1)
+-        # Noise stays after the physical history read; the critic remains unchanged.
++        # Noise stays after the physical history read; critic sensors stay current.
+         policy=obs["policy"].clone()
+         policy[:,4:22]=sensor+(policy[:,4:22]-frame)
+         obs["policy"]=policy
++        return obs
++
++    def _encode(self):
++        obs = super()._encode()
++        if not self._delay_ready:
++            return obs
++        # Preserve the 78-D critic layout, but report the DR that is applied.
++        # The actor's 35-D input is unchanged.
++        r = self.reward
++        extra = obs["critic"][:, 39:].clone()
++        gains = self.full_dr
++        values = {
++            "joint_stiffness": (slice(0, 6), torch.cat((60.0 * gains.leg_gain_scale,
++                                                        torch.zeros_like(gains.wheel_gain_scale)), -1)),
++            "joint_damping": (slice(6, 12), torch.cat((torch.full_like(gains.leg_gain_scale, 2.0),
++                                                       0.6 * gains.wheel_gain_scale), -1)),
++            "obs_delay_steps": (slice(18, 22), self._sensor_delay_ticks *
++                                  (self._delay_dt / 0.005)),
++            "act_delay_steps": (slice(22, 24), self._action_delay_ticks *
++                                  (self._delay_dt / 0.005)),
++            "body_mass_scale": (slice(32, 33), gains.factor[:, None]),
++            "body_material": (slice(33, 39), torch.stack((gains.material_mu,
++                gains.material_mu, torch.zeros_like(gains.material_mu),
++                gains.material_mu, gains.material_mu, torch.zeros_like(gains.material_mu)), -1)),
++        }
++        for name, (slots, value) in values.items():
++            extra[:, slots] = observation_component(r.cfg, name, value, "critic")
++        obs["critic"] = torch.cat((obs["critic"][:, :39], extra), -1)
++        r.cache_raw_observations(dict(policy=obs["policy"]),
++                                dict(critic=obs["critic"][:, :39], extra=extra))
+         return obs
+ 
+     def _reset_idx(self,ids):
+--- baseline/support/mod4v3_ppo_v1/scut_flat_robust_env.py
++++ repaired/support/mod4v3_ppo_v1/scut_flat_robust_env.py
+@@ -32,11 +32,6 @@
+             self.zero_torque_remaining - 1, min=0
+         )
+ 
+-    def _apply_action(self):
+-        if bool((self.zero_torque_remaining > 0).any()):
+-            self.torque[self.zero_torque_remaining > 0] = 0.0
+-        super()._apply_action()
+-
+     def _reset_idx(self, ids):
+         ids = torch.as_tensor(ids, device=self.device, dtype=torch.long).flatten()
+         super()._reset_idx(ids)

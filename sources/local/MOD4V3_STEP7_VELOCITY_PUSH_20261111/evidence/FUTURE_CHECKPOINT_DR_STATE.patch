@@ -1,0 +1,16 @@
+--- support/mod4v3_ppo_v1/scut_flat_train.py
++++ support/mod4v3_ppo_v1/scut_flat_train.py
+@@ -228,6 +228,13 @@
+                  effort_last_sample_step=getattr(env.full_dr,'effort_last_sample_step',None),
+                  effort_sample_count=getattr(env.full_dr,'effort_sample_count',None),
+                  effort_generator_rng=env.full_dr.effort_generator.get_state() if hasattr(env.full_dr,'effort_generator') else None,
++                contact_material_samples=getattr(env.full_dr,'startup_materials',None),
++                contact_material_bucket_ids=getattr(env.full_dr,'material_bucket_ids',None),
++                contact_material_buckets=getattr(env.full_dr,'material_buckets',None),
++                velocity_push_count=getattr(env,'velocity_push_count',None),
++                velocity_push_time_left=getattr(env,'velocity_push_time_left',None),
++                velocity_push_last_delta=getattr(env,'velocity_push_last_delta',None),
++                velocity_push_last_tick=getattr(env,'velocity_push_last_tick',None),
+                 resume_scope=('policy-only actor; fresh critic/optimizer/RNG' if args.profile=='rough_v0' else 'complete PPO actor/critic/STD/Adam/LR/RNG; one fresh physical episode'))
+             output=job/name;tmp=output.with_name(output.name+'.partial')
+             with tmp.open('wb') as f:torch.save(data,f);f.flush();os.fsync(f.fileno())

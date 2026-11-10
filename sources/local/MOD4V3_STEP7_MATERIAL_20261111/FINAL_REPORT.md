@@ -23,3 +23,5 @@
 三组材质按参考范围和64/64/8bucket，每env/shape独立startup分配、dynamic≤static、跨reset固定；未选中形状继承Step7轻量材质reset。critic78D只用现有6材质槽表示实际左右轮三元组，没有额外机身/导向件专属槽。startup摘要继承的旧wheel_friction_range字段仍显示旧父0.7–1.0，真实新材质以 contact_material.groups及物理回读为准；不热改运行历史。
 
 D10已从010m候选创建独立目录，原生推扰探针准备/运行中。目标机原函数实际是世界XY速度加性增量±.25m/s，而非覆写速度；README已根据实际源码更正。
+
+完整检查点的精确范围补充：PPO actor/critic/std/Adam/globalRNG以及质量/输出倍率完整保存；新增材质采样的附加kwargs没有写入.pt，详见 evidence/CHECKPOINT_STATE_SCOPE.json。已有配方从fresh物理episode恢复；D10实际完整PPO恢复已验证，不声称从原物理瞬时状态恢复。

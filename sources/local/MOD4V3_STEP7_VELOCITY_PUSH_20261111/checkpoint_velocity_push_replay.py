@@ -146,23 +146,24 @@ try:
   finally:math_utils.sample_uniform=original_sample
   environment.velocity_push_time_left[env_ids]=10000.
  cfg_event.func=paired_native_push
- trajectory=[];action_error=0.;start=time.time()
+ trajectory=[];action_error=0.;start=time.time();pre_push_term_count=None
  with torch.inference_mode():
   obs=env._get_observations()
   for step in range(600):
    actions=torch.cat([actor(obs['policy'][i*len(variants)*small:(i+1)*len(variants)*small]) for i,actor in enumerate(actors.values())],0).clamp(-6,6);raw,reward,term,timeout,_=env.step(actions);command();obs=raw
    action_error=max(action_error,float((raw['policy'][:,22:28]-env._encode()['policy'][:,22:28]).abs().max()))
+   if step==298:pre_push_term_count=term_count.clone()
    d=env.view.data;trajectory.append(torch.cat((d.root_lin_vel_b[:,:1],d.root_ang_vel_b[:,2:3],env._height_observation()[:,None]),-1).clone())
    if step%40==0:(out/'PROGRESS.json').write_text(json.dumps(dict(step=step,elapsed=time.time()-start,numerical=int(reason_counts['numerical'].sum()))))
   values=torch.stack(trajectory)[180:299].mean(0);post_values=torch.stack(trajectory)[400:600].mean(0);rows=[];recovery_rows=[]
   for mi,model in enumerate(models):
    for vi,var in enumerate(variants):
     for ti,(name,vx,wz,h,vlimit,wlimit) in enumerate(TASKS):
-     begin=mi*len(variants)*small+vi*small+ti*per;sl=slice(begin,begin+per);vals=values[sl];err=(vals-vals.new_tensor([vx,wz,h])).abs();passed=term_count[sl]==0
+     begin=mi*len(variants)*small+vi*small+ti*per;sl=slice(begin,begin+per);vals=values[sl];err=(vals-vals.new_tensor([vx,wz,h])).abs();passed=pre_push_term_count[sl]==0
      if vlimit is not None:passed&=err[:,0]<=vlimit
      if wlimit is not None:passed&=err[:,1]<=abs(wz)*wlimit
      if name.startswith('height'):passed&=err[:,2]<=.02
-     rows.append(dict(model=model,variant=var,task=name,mean=vals.mean(0).tolist(),capability_gate=name not in ('combo_0.9_1.2','forward_2.7_diagnostic'),passed=int(passed.sum()) if name not in ('combo_0.9_1.2','forward_2.7_diagnostic') else None,requested=per,resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},per_env=vals.tolist(),max_closure_m=float(peak_closure[sl].max())))
+     rows.append(dict(model=model,variant=var,task=name,mean=vals.mean(0).tolist(),pre_push_resets=int(pre_push_term_count[sl].sum()),capability_gate=name not in ('combo_0.9_1.2','forward_2.7_diagnostic'),passed=int(passed.sum()) if name not in ('combo_0.9_1.2','forward_2.7_diagnostic') else None,requested=per,resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},per_env=vals.tolist(),max_closure_m=float(peak_closure[sl].max())))
   # Post-push report: stable 8-12s window, recovery time, transient peak error, resets.
   traj=torch.stack(trajectory)
   for mi,model in enumerate(models):

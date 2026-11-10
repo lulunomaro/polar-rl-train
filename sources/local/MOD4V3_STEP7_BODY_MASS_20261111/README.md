@@ -4,8 +4,12 @@
 
 机身质量倍率 U(0.9,1.3)；匹配 front1–4、rear1–2、spring1–2 的左右16个腿部连杆及左右轮各 U(0.9,1.1)，每环境/刚体独立 startup 抽样。未选导向和传动刚体质量为名义值，每刚体惯量按自身质量同比缩放；base COM 仍 XYZ±.01m。保留修正版 Step7 延迟、原控制频率、电机包络、-.5e²奖励和 PPO 参数。
 
-父权重为完整 Step7 015m，iteration21234，SHA `74c25dd19708148808d1928fc4d6eb1278239fcdc6ab97598d866cf477dc561f`，原始谱系884cd07b。见 evidence/PARENT_SELECTION.json。该权重真实 DR 前进改善但未毕业，名义MuJoCo已有过冲。不得把本次质量适应当作Step7已通过。
+父权重为完整 Step7 015m，iteration21234，SHA `74c25dd19708148808d1928fc4d6eb1278239fcdc6ab97598d866cf477dc561f`，原始谱系884cd07b。见 evidence/PARENT_SELECTION.json。这是本轮开始时选定的父权重；当时真实 DR 前进改善、名义 MuJoCo 已有过冲。本轮最终结果见下文，历史父权重结果保持原记录。
 
-当前状态（2026-11-11约01:17）：r1/r2 reset 惯量回读失败保留，已把同一startup质量/惯量写入放到原COMsetter之后；r3的64env×80steps探针通过，8reset质量/惯量变化均0、numerical0、closuremax0.719mm。4096环境40分钟主训练已启动，首更新完整checkpoint保存SHA `3b9447ef22470358224011f194418a0f0654bc2e8aaed7a2c2731b6a54ad0054`，actor/critic/std/Adam/RNG均从选定父恢复，每5分钟保存检查。训练中不自动晋升。
+当前状态（2026-11-11）：4096 环境 40 分钟适应训练正常完成，8 个五分钟完整检查点均保存、核对 SHA 并检查。最终 iteration 21754，040m/final 字节相同，SHA `23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772`。r1/r2 的 reset 惯量回读失败及 r3 修复证据继续保留。
 
-实施、失败和后续运行结果见 [REPORT.md](REPORT.md) 与 evidence；大型权重只路径/SHA索引。
+最终权重在实际 Step7＋独立质量 DR 下：2.0 m/s 指令→1.903（8/10），2.2→2.155（9/10），2.7 诊断→2.611；每项 10 初态均无重置，后退、旋转、两高度各 10/10。前进能力已恢复，少数初态跟踪偏差保留；跨引擎过冲单独处理。
+
+后续优先 D4 输出比例误差 → D5 分部位材质 → D10 速度推扰，再补齐其余计划 DR，累计保留已有项。Flat 全部既定 DR 适应后从最终 actor 续训 Rough，沿用已有地形课程；每轮 40 分钟、每 5 分钟保存检查。
+
+实施及初始失败见 [REPORT.md](REPORT.md)；完整训练/2.7 诊断见 [FINAL_REPORT.md](FINAL_REPORT.md) 与 [最终摘要](evidence/FINAL_SUMMARY.json)。大型权重只路径/SHA 索引。

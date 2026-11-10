@@ -1,0 +1,39 @@
+{
+  "checked_epoch": 1794332210.5461242,
+  "runtime_configuration": {
+    "profile": "flat_body_mass",
+    "square_weight": -0.5,
+    "sigma": 1.0,
+    "effective_square_coefficient": -0.5
+  },
+  "source": "dependencies/pinned_text/9959c7fae6eff8591d655a18c29986f2c184c13f4905361b6c722efefbad12bc.py:3711-3725",
+  "error_formula": "command_vx - root_lin_vel_b_x*cos(pitch)",
+  "square_formula": "torch.square(lin_vel_err*cfg.lin_vel_xy_square_sigma)",
+  "one_sided_error_clip": false,
+  "separate_overspeed_only_term_enabled": false,
+  "existing_exponential_reward_weight": 1.2,
+  "examples": [
+    {
+      "command_vx": 2.2,
+      "projected_actual_vx": 1.6,
+      "error": 0.6000000000000001,
+      "square_rate": -0.18000000000000005,
+      "square_per20ms_step": -0.003600000000000001
+    },
+    {
+      "command_vx": 2.2,
+      "projected_actual_vx": 2.2,
+      "error": 0.0,
+      "square_rate": -0.0,
+      "square_per20ms_step": -0.0
+    },
+    {
+      "command_vx": 2.2,
+      "projected_actual_vx": 2.8,
+      "error": -0.5999999999999996,
+      "square_rate": -0.1799999999999998,
+      "square_per20ms_step": -0.003599999999999996
+    }
+  ],
+  "interpretation": "symmetric underspeed/overspeed square penalty; observed crossengine overshoot does not prove missing negativeerror penalty; no reward behavior changed in live run"
+}

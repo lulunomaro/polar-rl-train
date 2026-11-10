@@ -32,7 +32,10 @@ class ScutVelocityPushDR(ScutMaterialDR):
         row = super().summary()
         env = self.env
         counts = getattr(env, "velocity_push_count", None)
-        row.update(profile="step7_mass_effort_material_velocity_push_v1", velocity_push={
+        row.update(profile="step7_mass_effort_material_velocity_push_v1",
+            wheel_friction_range=[float(self.wheel_material_values[:,[0,3]].min()), float(self.wheel_material_values[:,[0,3]].max())],
+            nominal_fraction_target="inherited gain mixture only; independent mass and selected startup materials have no nominal mixture",
+            velocity_push={
             "world_xy_velocity_delta_range_m_s": [-0.25, 0.25], "interval_s": [5.0, 10.0],
             "per_environment": True, "is_global_time": False,
             "sampling": "native EventManager interval; timer resampled on reset",

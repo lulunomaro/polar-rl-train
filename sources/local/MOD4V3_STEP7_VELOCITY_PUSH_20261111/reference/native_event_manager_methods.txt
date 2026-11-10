@@ -1,0 +1,164 @@
+    def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
+        # call all terms that are classes
+        for mode_cfg in self._mode_class_term_cfgs.values():
+            for term_cfg in mode_cfg:
+                term_cfg.func.reset(env_ids=env_ids)
+
+        # resolve number of environments
+        if env_ids is None:
+            num_envs = self._env.num_envs
+        else:
+            num_envs = len(env_ids)
+        # if we are doing interval based events then we need to reset the time left
+        # when the episode starts. otherwise the counter will start from the last time
+        # for that environment
+        if "interval" in self._mode_term_cfgs:
+            for index, term_cfg in enumerate(self._mode_term_cfgs["interval"]):
+                # sample a new interval and set that as time left
+                # note: global time events are based on simulation time and not episode time
+                #   so we do not reset them
+                if not term_cfg.is_global_time:
+                    lower, upper = term_cfg.interval_range_s
+                    sampled_interval = torch.rand(num_envs, device=self.device) * (upper - lower) + lower
+                    self._interval_term_time_left[index][env_ids] = sampled_interval
+
+        # nothing to log here
+        return {}
+
+    def apply(
+        self,
+        mode: str,
+        env_ids: Sequence[int] | None = None,
+        dt: float | None = None,
+        global_env_step_count: int | None = None,
+    ):
+        """Calls each event term in the specified mode.
+
+        This function iterates over all the event terms in the specified mode and calls the function
+        corresponding to the term. The function is called with the environment instance and the environment
+        indices to apply the event to.
+
+        For the "interval" mode, the function is called when the time interval has passed. This requires
+        specifying the time step of the environment.
+
+        For the "reset" mode, the function is called when the mode is "reset" and the total number of environment
+        steps that have happened since the last trigger of the function is equal to its configured parameter for
+        the number of environment steps between resets.
+
+        Args:
+            mode: The mode of event.
+            env_ids: The indices of the environments to apply the event to.
+                Defaults to None, in which case the event is applied to all environments when applicable.
+            dt: The time step of the environment. This is only used for the "interval" mode.
+                Defaults to None to simplify the call for other modes.
+            global_env_step_count: The total number of environment steps that have happened. This is only used
+                for the "reset" mode. Defaults to None to simplify the call for other modes.
+
+        Raises:
+            ValueError: If the mode is ``"interval"`` and the time step is not provided.
+            ValueError: If the mode is ``"interval"`` and the environment indices are provided. This is an undefined
+                behavior as the environment indices are computed based on the time left for each environment.
+            ValueError: If the mode is ``"reset"`` and the total number of environment steps that have happened
+                is not provided.
+        """
+        # check if mode is valid
+        if mode not in self._mode_term_names:
+            logger.warning(f"Event mode '{mode}' is not defined. Skipping event.")
+            return
+
+        # ensure class-based terms are resolved before applying
+        # the timeline PLAY callback may not have fired yet, so we resolve synchronously
+        # note: skip for "prestartup" mode as those terms are handled in _prepare_terms
+        # and scene entities don't exist yet
+        if mode != "prestartup" and not self._is_scene_entities_resolved:
+            self._resolve_terms_callback(None)
+
+        # check if mode is interval and dt is not provided
+        if mode == "interval" and dt is None:
+            raise ValueError(f"Event mode '{mode}' requires the time-step of the environment.")
+        if mode == "interval" and env_ids is not None:
+            raise ValueError(
+                f"Event mode '{mode}' does not require environment indices. This is an undefined behavior"
+                " as the environment indices are computed based on the time left for each environment."
+            )
+        # check if mode is reset and env step count is not provided
+        if mode == "reset" and global_env_step_count is None:
+            raise ValueError(f"Event mode '{mode}' requires the total number of environment steps to be provided.")
+
+        # iterate over all the event terms
+        for index, term_cfg in enumerate(self._mode_term_cfgs[mode]):
+            # initialize class-based terms if not already initialized (for non-prestartup modes)
+            if inspect.isclass(term_cfg.func):
+                logger.info(
+                    f"Initializing term '{self._mode_term_names[mode][index]}' with class '{term_cfg.func.__name__}'."
+                )
+                term_cfg.func = term_cfg.func(cfg=term_cfg, env=self._env)
+            if mode == "interval":
+                # extract time left for this term
+                time_left = self._interval_term_time_left[index]
+                # update the time left for each environment
+                time_left -= dt
+
+                # check if the interval has passed and sample a new interval
+                # note: we compare with a small value to handle floating point errors
+                if term_cfg.is_global_time:
+                    if time_left < 1e-6:
+                        lower, upper = term_cfg.interval_range_s
+                        sampled_interval = torch.rand(1) * (upper - lower) + lower
+                        self._interval_term_time_left[index][:] = sampled_interval
+
+                        # call the event term (with None for env_ids)
+                        term_cfg.func(self._env, None, **term_cfg.params)
+                else:
+                    valid_env_ids = (time_left < 1e-6).nonzero().flatten()
+                    if len(valid_env_ids) > 0:
+                        lower, upper = term_cfg.interval_range_s
+                        sampled_time = torch.rand(len(valid_env_ids), device=self.device) * (upper - lower) + lower
+                        self._interval_term_time_left[index][valid_env_ids] = sampled_time
+
+                        # call the event term
+                        term_cfg.func(self._env, valid_env_ids, **term_cfg.params)
+            elif mode == "reset":
+                # obtain the minimum step count between resets
+                min_step_count = term_cfg.min_step_count_between_reset
+                # resolve the environment indices
+                if env_ids is None:
+                    env_ids = slice(None)
+
+                # We bypass the trigger mechanism if min_step_count is zero, i.e. apply term on every reset call.
+                # This should avoid the overhead of checking the trigger condition.
+                if min_step_count == 0:
+                    self._reset_term_last_triggered_step_id[index][env_ids] = global_env_step_count
+                    self._reset_term_last_triggered_once[index][env_ids] = True
+
+                    # call the event term with the environment indices
+                    term_cfg.func(self._env, env_ids, **term_cfg.params)
+                else:
+                    # extract last reset step for this term
+                    last_triggered_step = self._reset_term_last_triggered_step_id[index][env_ids]
+                    triggered_at_least_once = self._reset_term_last_triggered_once[index][env_ids]
+                    # compute the steps since last reset
+                    steps_since_triggered = global_env_step_count - last_triggered_step
+
+                    # check if the term can be applied after the minimum step count between triggers has passed
+                    valid_trigger = steps_since_triggered >= min_step_count
+                    # check if the term has not been triggered yet (in that case, we trigger it at least once)
+                    # this is usually only needed at the start of the environment
+                    valid_trigger |= (last_triggered_step == 0) & ~triggered_at_least_once
+
+                    # select the valid environment indices based on the trigger
+                    if env_ids == slice(None):
+                        valid_env_ids = valid_trigger.nonzero().flatten()
+                    else:
+                        valid_env_ids = env_ids[valid_trigger]
+
+                    # reset the last reset step for each environment to the current env step count
+                    if len(valid_env_ids) > 0:
+                        self._reset_term_last_triggered_once[index][valid_env_ids] = True
+                        self._reset_term_last_triggered_step_id[index][valid_env_ids] = global_env_step_count
+
+                        # call the event term
+                        term_cfg.func(self._env, valid_env_ids, **term_cfg.params)
+            else:
+                # call the event term
+                term_cfg.func(self._env, env_ids, **term_cfg.params)

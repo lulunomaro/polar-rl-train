@@ -346,6 +346,8 @@ def main():
                 joint_vel_max=float(getattr(env,'numeric_joint_vel_peak',torch.tensor(0.0)).max()),
                 root_ang_max=float(getattr(env,'numeric_root_ang_peak',torch.tensor(0.0)).max()),
                 root_lin_max=float(getattr(env,'numeric_root_lin_peak',torch.tensor(0.0)).max()))
+            if hasattr(env,'velocity_push_count'):
+                last['velocity_push']=dict(total_events=int(env.velocity_push_count.sum()),envs_pushed=int((env.velocity_push_count>0).sum()),last_delta_xy_abs_max=float(env.velocity_push_last_delta[:,:2].abs().max()),time_left_range_s=[float(env.velocity_push_time_left.min()),float(env.velocity_push_time_left.max())])
             put(job/'LATEST_PROGRESS.json',last)
             if iteration==start_iteration+1:
                 changed=any(not torch.equal(v,algorithm.actor.state_dict()[k]) for k,v in before.items())

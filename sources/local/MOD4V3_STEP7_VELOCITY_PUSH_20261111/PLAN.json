@@ -13,8 +13,8 @@
     "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
     "local": "copied_to_210"
   },
-  "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_20261111_mass_final/model_final.pt",
-  "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+  "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_material_010m_candidate_20261111/model_010m.pt",
+  "parent_sha256": "49a2bb7b53d3d88b7d47dfc3d5eb15999c5fd8fcfd3a1cf3f0a67d96030c71a1",
   "legacy_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/support",
   "baseline_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_dr_repair_20261110_r1/support",
   "reward": {
@@ -43,7 +43,7 @@
     "clip_param": 0.1,
     "num_learning_epochs": 3,
     "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
-    "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+    "parent_sha256": "49a2bb7b53d3d88b7d47dfc3d5eb15999c5fd8fcfd3a1cf3f0a67d96030c71a1",
     "reward_effective_vx_squared_coefficient": -0.5,
     "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
     "budget": "one of two new40min rounds authorized by user"
@@ -69,7 +69,7 @@
     "other_DR": "existing Step7 lightweight mass/inertia/gain/material plus repaired reset/torque semantics; not unrelated SCUT fullrange DR",
     "mass": "SCUT startup independent rigid-body scale:base.9–1.3, selectedlegs/wheels.9–1.1; othersnominal; inertia scales perbody; same COM±.01m"
   },
-  "selected_parent_reason": "Frozen mass040/final:Step7+bodymass2.0=1.9031(8/10),2.2=2.1555(9/10),2.7diagnostic=2.6106,no resets; forward capability recovered.",
+  "selected_parent_reason": "same18/20 total forward passes as original parent; smaller forward2m bias; other4tasks40/40; 40m trained candidate forward8/20 and slower; early trained checkpoint retained for next adaptation",
   "effort_output_scale": {
     "leg": [
       0.8,
@@ -142,7 +142,7 @@
     "unselected": "retain inherited Step7 mild material resets",
     "critic": "existing six material slots actual left/right wheel triple (shape mean if multi-shape); base/guide absent from existing78Dlayout"
   },
-  "parent_selection_status": "pending material final paired evaluation before upload or launch",
+  "parent_selection_status": "selected material010m after completed nine-model paired evaluation",
   "velocity_push": {
     "velocity_delta_world_xy_m_s": [
       -0.25,
@@ -156,6 +156,23 @@
     "is_global_time": false,
     "reset": "resample timer on episode reset per reference EventManager.reset",
     "implementation": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity adds uniform random world velocity delta; retains z and angular; use function directly",
-    "event_phase": "native DirectRLEnv post-step interval before observations"
-  }
+    "event_phase": "native DirectRLEnv post-step interval before observations",
+    "evidence": "runtime counts and native pre/post/delta/tick saved in full checkpoints; progress reports counts;64env interval/reset probe before training",
+    "paired_evaluation": {
+      "steps": 600,
+      "policy_dt_s": 0.02,
+      "scheduled_push_s": 6.0,
+      "pre_stable_s": [
+        3.6,
+        5.98
+      ],
+      "post_stable_s": [
+        8.0,
+        12.0
+      ],
+      "recovery": "first0.5s continuously within existing task tolerance",
+      "pairing": "same initial pose/DR/material/XYdelta/torquenoise for each model; nominal condition disables push"
+    }
+  },
+  "baseline_main_frozen_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772"
 }

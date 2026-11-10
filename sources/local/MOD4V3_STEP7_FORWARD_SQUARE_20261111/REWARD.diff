@@ -1,0 +1,152 @@
+--- baseline/support/mod4v3_ppo_v1/scut_flat_train.py
++++ squared/support/mod4v3_ppo_v1/scut_flat_train.py
+@@ -21,7 +21,7 @@
+     parser=argparse.ArgumentParser()
+     parser.add_argument('--plan',required=True)
+     parser.add_argument('--mode',choices=['probe','train','evaluate'],default='probe')
+-    parser.add_argument('--profile',choices=['flat_v30','flat_v1','flat_v2','flat_robust','flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay','rough_v0'],default='flat_v30')
++    parser.add_argument('--profile',choices=['flat_v30','flat_v1','flat_v2','flat_robust','flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay','flat_forward_square','rough_v0'],default='flat_v30')
+     parser.add_argument('--job',required=True)
+     parser.add_argument('--num-envs',type=int,default=16)
+     parser.add_argument('--seconds',type=int,default=3600)
+@@ -90,6 +90,9 @@
+             from .scut_flat_env import configuration as env_configuration,tensor
+         elif args.profile=='flat_physical_delay':
+             from .scut_flat_physical_delay_env import ScutFlatPhysicalDelayEnv as EnvClass
++            from .scut_flat_env import configuration as env_configuration,tensor
++        elif args.profile=='flat_forward_square':
++            from .scut_flat_forward_square_env import ScutFlatForwardSquareEnv as EnvClass
+             from .scut_flat_env import configuration as env_configuration,tensor
+         elif args.profile=='rough_v0':
+             from .scut_rough_v0_env import ScutRoughV0Env as EnvClass
+@@ -128,7 +131,7 @@
+             policy_action_order=env.order,root_quaternion_native=env.qorder,native_limits=native,
+             total_mass_kg=float(mass[0].sum()),reward_weights=env.reward.cfg.rewards,
+             command_vx=env.command_vx,command_vy=getattr(env,'command_vy',None),command_wz=env.command_wz,heading_range=env.heading_range,heading_fraction=env.heading_fraction,standing_fraction=env.standing_fraction,command_resample=env.command_resample,height_range=env.height_range,height_cmd_mean=float(env.height.mean()),height_semantics='root_relative_to_ground',use_absolute_height=False,use_leg_length_as_height=False,mild_dr=env.mild_dr.summary(),ppo_value_loss_coef=2.0 if args.profile=='rough_v0' else 4.0,
+-            lin_vel_err_constraint=float(getattr(env.reward.cfg,'lin_vel_err_constraint',0.0)),
++            lin_vel_err_constraint=float(getattr(env.reward.cfg,'lin_vel_err_constraint',0.0)),lin_vel_xy_square_sigma=env.reward.cfg.lin_vel_xy_square_sigma,velocity_square_effective_coefficient=env.reward.cfg.rewards['track_lin_vel_xy_square']*env.reward.cfg.lin_vel_xy_square_sigma**2,
+             height_tight_sigma=float(getattr(env.reward.cfg,'height_tight_sigma',0.0)),
+             wrong_direction_command_threshold=float(getattr(env.reward.cfg,'wrong_direction_command_threshold',0.0)),
+             theta_coefficient=0.,raw_actions=True,
+@@ -145,7 +148,7 @@
+             @property
+             def episode_length_buf(self):return env.episode_length_buf
+             def get_observations(self):return TensorDict(current,batch_size=[env.num_envs])
+-        cfg=runner_config();cfg['clip_actions']=6.0 if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay') else None;cfg['algorithm']['value_loss_coef']=2.0 if args.profile=='rough_v0' else 4.0
++        cfg=runner_config();cfg['clip_actions']=6.0 if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay','flat_forward_square') else None;cfg['algorithm']['value_loss_coef']=2.0 if args.profile=='rough_v0' else 4.0
+         if args.profile=='rough_v0': cfg['algorithm']['learning_rate']=1.0e-4
+         for key,value in [('learning_rate',args.learning_rate),('schedule',args.lr_schedule),('clip_param',args.clip_param),('num_learning_epochs',args.learning_epochs)]:
+             if value is not None:cfg['algorithm'][key]=value
+@@ -197,11 +200,12 @@
+             schedule=algorithm.schedule,clip_param=algorithm.clip_param,num_learning_epochs=algorithm.num_learning_epochs,
+             optimizer_lrs=[g['lr'] for g in algorithm.optimizer.param_groups],
+             parent_lr=data['learning_rate'] if args.resume else None))
+-        checkpoint_format=('MOD4V3_SCUT_FLAT_V1_AIRBORNE_PPO_V1' if args.profile=='flat_v1' else ('MOD4V3_SCUT_FLAT_V2_PPO_V1' if args.profile=='flat_v2' else ('MOD4V3_SCUT_FLAT_ROBUST_PPO_V1' if args.profile=='flat_robust' else ('MOD4V3_SCUT_FLAT_ROBUST_FULL_PPO_V1' if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay') else ('MOD4V3_SCUT_ROUGH_V0_PPO_V1' if args.profile=='rough_v0' else 'MOD4V3_SCUT_FLAT_HEIGHT_PPO_V1')))))
++        checkpoint_format=('MOD4V3_SCUT_FLAT_V1_AIRBORNE_PPO_V1' if args.profile=='flat_v1' else ('MOD4V3_SCUT_FLAT_V2_PPO_V1' if args.profile=='flat_v2' else ('MOD4V3_SCUT_FLAT_ROBUST_PPO_V1' if args.profile=='flat_robust' else ('MOD4V3_SCUT_FLAT_ROBUST_FULL_PPO_V1' if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay','flat_forward_square') else ('MOD4V3_SCUT_ROUGH_V0_PPO_V1' if args.profile=='rough_v0' else 'MOD4V3_SCUT_FLAT_HEIGHT_PPO_V1')))))
+         def save(name):
+             data=algorithm.save()
+             data.update(format=checkpoint_format,iter=iteration,
+                 action_order=env.order,num_envs=env.num_envs,learning_rate=algorithm.learning_rate,
++                reward_recipe=dict(profile=args.profile,weights=dict(env.reward.cfg.rewards),lin_vel_xy_square_sigma=env.reward.cfg.lin_vel_xy_square_sigma,lin_vel_err_constraint=env.reward.cfg.lin_vel_err_constraint),
+                 physics_ticks=physics_ticks,cpu_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all(),
+                 python_rng=random.getstate(),numpy_rng=np.random.get_state(),reset_rng=env.reset_generator.get_state(),
+                 reward_tensors={k:v for k,v in vars(env.reward).items() if torch.is_tensor(v)},
+@@ -258,11 +262,12 @@
+                 requested=env.num_envs,steps=steps,episode_results=episodes,done_totals=env.done_totals,
+                 final_stable_count=int(stable.sum()),replay=str(job/'actual_replay.npz'),restore=restored))
+             return
+-        algorithm.train_mode();start=time.time();last_save=start;last=None
++        algorithm.train_mode();start=time.time();last_save=start;last=None;next_checkpoint=300.0
+         before={k:v.detach().clone() for k,v in algorithm.actor.state_dict().items()}
+         start_iteration=iteration
+         while iteration<args.iterations and time.time()-start<args.seconds:
+             tick=time.time();reward_mean=0.;max_closure=0.;reward_min=float('inf');reward_max=float('-inf');reward_absmax=0.;top_reward_term=None;reward_debug=None
++            forward_tracking=torch.zeros(4,device=env.device)
+             with torch.inference_mode():
+                 for _ in range(cfg['num_steps_per_env']):
+                     action=algorithm.act(obs)
+@@ -282,6 +287,10 @@
+                     if not bool(torch.isfinite(reward).all()):raise ValueError('Nonfinite reward')
+                     algorithm.process_env_step(obs,reward,term|timeout,{})
+                     physics_ticks+=8;reward_mean+=float(reward.mean())
++                    measured=env.snapshots
++                    straight=(measured['command'][:,0]>=1.5)&(measured['command'][:,2].abs()<=1.0)&(~(term|timeout))
++                    speed=measured['velocity'][:,0];target=measured['command'][:,0];error=speed-target
++                    forward_tracking+=torch.stack((straight.sum(),speed[straight].sum(),target[straight].sum(),error[straight].abs().sum()))
+                     max_closure=max(max_closure,float(env.closure_error.max()))
+                     rmin=float(reward.min());rmax=float(reward.max());reward_min=min(reward_min,rmin);reward_max=max(reward_max,rmax)
+                     if abs(rmin)>reward_absmax or abs(rmax)>reward_absmax:
+@@ -313,6 +322,9 @@
+                 L0_mean=float(env.reward.length.mean()),theta_abs_mean=float(env.reward.theta.abs().mean()),
+                 vx_mean=float(env.view.data.root_lin_vel_b[:,0].mean()),learning_rate=algorithm.learning_rate,
+                 actor_drift_l2=float(torch.sqrt(sum((v-before[k]).square().sum() for k,v in algorithm.actor.state_dict().items()))))
++            last['training_elapsed_seconds']=time.time()-start
++            samples,actual,command,abs_error=forward_tracking.tolist()
++            last['forward_tracking']=dict(env_step_samples=int(samples),mean_actual_vx=actual/samples if samples else None,mean_command_vx=command/samples if samples else None,mean_abs_error=abs_error/samples if samples else None,selection='cmd_vx>=1.5 and abs(cmd_wz)<=1; varying heights and transients; rollout24steps; not fixed-task pass')
+             last['numeric_peaks']=dict(
+                 joint_vel_max=float(getattr(env,'numeric_joint_vel_peak',torch.tensor(0.0)).max()),
+                 root_ang_max=float(getattr(env,'numeric_root_ang_peak',torch.tensor(0.0)).max()),
+@@ -323,14 +335,16 @@
+                 if not changed:raise ValueError('Actor did not update')
+                 last['actor_changed']=changed;last['checkpoint']=save('model_first_complete.pt')
+                 put(job/'FIRST_UPDATE.json',last)
+-            if time.time()-last_save>=300:
+-                elapsed_minutes=max(1,int(round((time.time()-start)/60.0)))
++            if time.time()-start>=next_checkpoint:
++                elapsed_minutes=int(next_checkpoint//60)
++                next_checkpoint+=300.0
+                 periodic_name=f'model_{elapsed_minutes:03d}m.pt'
+                 suffix=1
+                 while (job/periodic_name).exists():
+                     periodic_name=f'model_{elapsed_minutes:03d}m_{suffix:02d}.pt'
+                     suffix+=1
+                 receipt=save(periodic_name)
++                receipt['training_elapsed_seconds']=time.time()-start
+                 put(job/f'PERIODIC_{elapsed_minutes:03d}M.json',receipt)
+                 put(job/'PERIODIC_FULL.json',receipt)
+                 last_save=time.time()
+--- baseline/launch.py
++++ squared/launch.py
+@@ -1,8 +1,8 @@
+-"""Finite original-framework launcher for the isolated Step7 DR repair."""
++"""Finite original-framework launcher for the isolated Step7 forward squared-error trial."""
+ import argparse,os,json,subprocess,hashlib,time
+ from pathlib import Path
+ p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--kind',choices=['timing','evaluate','parallel','train','probe'],required=True)
+-p.add_argument('--checkpoint');p.add_argument('--seconds',type=int,default=1200);p.add_argument('--num-envs',type=int)
++p.add_argument('--checkpoint');p.add_argument('--seconds',type=int,default=2400);p.add_argument('--num-envs',type=int)
+ p.add_argument('--learning-rate',type=float,default=3e-5)
+ a=p.parse_args()
+ base=Path(__file__).resolve().parent
+@@ -24,7 +24,7 @@
+     PHYSICAL_SENSOR_DELAY_MIN_MS='0',PHYSICAL_SENSOR_DELAY_MAX_MS='5',PHYSICAL_DELAY_TRACE='1' if a.kind=='timing' else '0')
+ mode='evaluate' if a.kind in ('evaluate','parallel') else ('train' if a.kind=='train' else 'probe')
+ n=a.num_envs or (4096 if a.kind=='train' else 70 if a.kind=='parallel' else 10 if a.kind=='evaluate' else 4)
+-cmd=[plan['python'],'-B','-u','-m','mod4v3_ppo_v1.scut_flat_train','--plan',str(base/'PLAN.json'),'--profile','flat_physical_delay',
++cmd=[plan['python'],'-B','-u','-m','mod4v3_ppo_v1.scut_flat_train','--plan',str(base/'PLAN.json'),'--profile','flat_forward_square',
+     '--mode',mode,'--job',str(job),'--num-envs',str(n),'--seconds',str(a.seconds),'--iterations','100000',
+     '--resume',str(parent),'--expected-parent-sha',sha,'--learning-rate',str(a.learning_rate),'--lr-schedule','fixed','--clip-param','0.1','--learning-epochs','3']
+ if a.kind=='timing':cmd+=['--timing-probe']
+--- /dev/null
++++ support/mod4v3_ppo_v1/scut_flat_forward_square_env.py
+@@ -0,0 +1,20 @@
++"""One reward change on the repaired Step7 environment: raw squared vx error."""
++from .scut_flat_physical_delay_env import ScutFlatPhysicalDelayEnv
++from .scut_flat_rewards import configuration_v2, make_reward_class
++
++
++def configuration_forward_square():
++    cfg = configuration_v2()
++    # The source term squares sigma * error, so use SI error without attenuation.
++    cfg.lin_vel_xy_square_sigma = 1.0
++    cfg.rewards["track_lin_vel_xy_square"] = -0.5
++    return cfg
++
++
++class ScutFlatForwardSquareEnv(ScutFlatPhysicalDelayEnv):
++    """Keep the repaired DR/plant/controller and strengthen velocity tracking."""
++
++    def _make_reward(self, meta):
++        return make_reward_class(meta, cfg_factory=configuration_forward_square)(
++            self.view, self.num_envs, self.device
++        )

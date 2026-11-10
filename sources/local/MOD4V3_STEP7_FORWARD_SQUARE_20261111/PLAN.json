@@ -1,0 +1,50 @@
+{
+  "root": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107",
+  "code": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/code",
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "runtime": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/runtime",
+  "shared_package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/shared",
+  "package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/package",
+  "support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_20261111_r1/support",
+  "source_paths": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/SOURCE_PATHS_LOCAL.json",
+  "reset_bank": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/reset_bank.json",
+  "seed": 66,
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210"
+  },
+  "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+  "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+  "legacy_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/support",
+  "baseline_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_dr_repair_20261110_r1/support",
+  "reward": {
+    "profile": "flat_forward_square",
+    "term": "track_lin_vel_xy_square",
+    "weight": -0.5,
+    "sigma": 1.0,
+    "effective_coefficient": -0.5,
+    "baseline_weight": -0.1,
+    "baseline_sigma": 0.25,
+    "baseline_effective_coefficient": -0.00625,
+    "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+    "time_scaling": "reward rate multiplied by step_dt=.02 once",
+    "policy_input": 35,
+    "critic_input": 78
+  },
+  "execution_scope": "User authorized 2026-11-11: train original parent with repaired DR and squared tracking penalty for one40-minute round; complete checkpoint and review every5 minutes.",
+  "training_round": {
+    "job": "train040m_r1",
+    "seconds": 2400,
+    "num_envs": 4096,
+    "checkpoint_interval_seconds": 300,
+    "inspection_interval_seconds": 300,
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
+    "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+    "reward_effective_vx_squared_coefficient": -0.5,
+    "post_training": "existing fixed tasks nominal and training DR; do not promote automatically"
+  }
+}

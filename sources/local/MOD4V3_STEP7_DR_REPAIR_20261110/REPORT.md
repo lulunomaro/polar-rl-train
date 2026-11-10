@@ -102,3 +102,5 @@ nominal2.2：1.68308→1.66414m/s；DR5的2.2：1.60513→1.71076m/s。均0/10�
 ## 归档
 
 `BASELINE_SOURCES.json` 保存来源文件SHA；`REPAIR.diff` 给出六文件实际差异；`PLAN.json`与`launch.py`绑定起点/入口。`evidence/`保存每次真实尝试、失败与成功的日志、LAUNCH、ERROR/RESULT、初始DR、时序结果及版本区别。`REMOTE_FINAL_READBACK.json`保存远端最终源码、父权重SHA和大型轨迹索引；权重和NPZ不提交实体。`FILE_INDEX.json`索引本阶段全部文件，原始记录不覆盖。
+
+补充采集说明：SFTP缺失文件下载会先创建本地0字节目标；`evidence/COLLECTION_NOTE.json`逐一列明这些空占位文件。空的RESULT/ERROR/INITIAL_DR不代表远端存在该报告，不用于判定成功。真实成功只认非空RESULT及SAFE_CLOSED，失败记录按非空ERROR/日志读取。旧提交中的空字节保留，未改写历史。

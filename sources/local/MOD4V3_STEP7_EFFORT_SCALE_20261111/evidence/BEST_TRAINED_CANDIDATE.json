@@ -1,0 +1,240 @@
+{
+  "status": "best trained checkpoint candidate in this round; frozen original Step7 remains primary baseline",
+  "checkpoint": {
+    "path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_020m.pt",
+    "bytes": 5746209,
+    "SHA": "0a1a8ccb5d1f5cec1582e071798597baa55e43dfb13e4eba6472a7fd82f3b22c",
+    "iteration": 22017,
+    "optimizer_entries": 17,
+    "training_elapsed_seconds": 1202.058650970459
+  },
+  "local_checkpoint": "D:\\claude2\\fangzhen\\frozen_models\\step7_effort_020m_candidate_20261111\\model_020m.pt",
+  "remote_candidate": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_effort_020m_candidate_20261111",
+  "training_plan": {
+    "root": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107",
+    "code": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/code",
+    "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+    "runtime": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/runtime",
+    "shared_package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/shared",
+    "package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/package",
+    "support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/support",
+    "source_paths": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/SOURCE_PATHS_LOCAL.json",
+    "reset_bank": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/reset_bank.json",
+    "seed": 66,
+    "asset_identity": {
+      "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+      "local": "copied_to_210"
+    },
+    "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_20261111_mass_final/model_final.pt",
+    "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+    "legacy_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/support",
+    "baseline_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_dr_repair_20261110_r1/support",
+    "reward": {
+      "profile": "flat_effort_scale",
+      "term": "track_lin_vel_xy_square",
+      "weight": -0.5,
+      "sigma": 1.0,
+      "effective_coefficient": -0.5,
+      "baseline_weight": -0.1,
+      "baseline_sigma": 0.25,
+      "baseline_effective_coefficient": -0.00625,
+      "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+      "time_scaling": "reward rate multiplied by step_dt=.02 once",
+      "policy_input": 35,
+      "critic_input": 78
+    },
+    "execution_scope": "User2026-11-11 requested advancing next DR and freezing Step7 model/recipe; add only independent explicit motor effort output scale on completed mass final,40min/5min.",
+    "training_round": {
+      "job": "train040m_effort_r1",
+      "seconds": 2400,
+      "num_envs": 4096,
+      "checkpoint_interval_seconds": 300,
+      "inspection_interval_seconds": 300,
+      "learning_rate": 3e-05,
+      "schedule": "fixed",
+      "clip_param": 0.1,
+      "num_learning_epochs": 3,
+      "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
+      "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+      "reward_effective_vx_squared_coefficient": -0.5,
+      "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+      "budget": "one new40min round authorized by user start next DR"
+    },
+    "original_parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+    "original_parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+    "step7_dr": {
+      "reference": "trained_env.yaml act_delay_cfg=[1,3], obs_delay_cfg=[1,4]; base_env.py torch.randint(low,high), high exclusive; delay quantum5ms",
+      "action_options_ms": [
+        5,
+        10
+      ],
+      "sensor_options_ms": [
+        5,
+        10,
+        15
+      ],
+      "sampling": "independent per env/group at reset; episode fixed",
+      "joint_friction_scale": 0.5,
+      "spring_damping_fraction": 0.25,
+      "external_dr_fraction": 0.25,
+      "obs_noise_fraction": 0.25,
+      "other_DR": "existing Step7 lightweight mass/inertia/gain/material plus repaired reset/torque semantics; not unrelated SCUT fullrange DR",
+      "mass": "SCUT startup independent rigid-body scale:base.9–1.3, selectedlegs/wheels.9–1.1; othersnominal; inertia scales perbody; same COM±.01m"
+    },
+    "selected_parent_reason": "Frozen mass040/final:Step7+bodymass2.0=1.9031(8/10),2.2=2.1555(9/10),2.7diagnostic=2.6106,no resets; forward capability recovered.",
+    "effort_output_scale": {
+      "leg": [
+        0.8,
+        1.1
+      ],
+      "wheel": [
+        0.9,
+        1.1
+      ],
+      "independent": "per env and active motor",
+      "sampling": "on reset at first call and when global policy steps since last sampling >=720; fixed otherwise",
+      "min_step_count_between_reset": 720,
+      "mapping": "raw full PD effort * scale -> original torque-speed envelope -> inherited additive torque noise and final envelope; no change to motor constants",
+      "new_bias": 0.0,
+      "new_noise_std": 0.0,
+      "critic": "existing 78D stiffness/damping slots report effective gains after multiplication; actual applied torque retained; no new dimension or dedicated multiplier slot"
+    },
+    "frozen_baseline": "../MOD4V3_STEP7_FROZEN_20261111/RECIPE.json"
+  },
+  "training_source_commit": "cbac398724ab8aa8e36a65e66de8b0ce2c0e3bf8",
+  "training_source_manifest": {
+    "support/easy_terrain.py": {
+      "sha256": "45928c27b00283f425ed9ca76d1baf073cb80aa5d5b1723fa781583299b93723",
+      "bytes": 3207
+    },
+    "support/eval_rough_skills.py": {
+      "sha256": "8957d940b762c3f688ee7e7af8006a272bb928bbb9d32171d8f80c7fc5d43a28",
+      "bytes": 4728
+    },
+    "support/flat_terrain.py": {
+      "sha256": "62b11dd2fd6de41251f14c3ba7c0eecbec0cb8e821c3ef10b8bc46c7556770fa",
+      "bytes": 463
+    },
+    "support/mod4v3_ppo_v1/__init__.py": {
+      "sha256": "d354f958e598c7a09e7d31af1fea7a61eadbaaaa3c9a1face724c6716ed6f48e",
+      "bytes": 74
+    },
+    "support/mod4v3_ppo_v1/env.py": {
+      "sha256": "a57b602c00400a909dd0a89d023e4fbf8576fcf343245425312f3e75f83e39c3",
+      "bytes": 17412
+    },
+    "support/mod4v3_ppo_v1/model.py": {
+      "sha256": "1fe8a15690d1a8b2be08f33f2f2a6cf0afd6f082fe3209b5c09e71a0d42ca2b3",
+      "bytes": 2766
+    },
+    "support/mod4v3_ppo_v1/physical_delay_checks.py": {
+      "sha256": "b798dbc0ea734a3020f1ddd97efe4426d109c7ebb6caee2bc655bc12c119aef3",
+      "bytes": 10410
+    },
+    "support/mod4v3_ppo_v1/rewards.py": {
+      "sha256": "df95a839936d44674e1964e40dd0fd162ca47fe5b088e02776b0ac74c4d625d8",
+      "bytes": 6051
+    },
+    "support/mod4v3_ppo_v1/sampling.py": {
+      "sha256": "d12928c1074849a436d70da805d015228e1f178cefaa8f2d4cf4519d1b879489",
+      "bytes": 4252
+    },
+    "support/mod4v3_ppo_v1/scut_flat_action_delay_env.py": {
+      "sha256": "63da389dbd59ed5ca9fbac139f82e5299eb70c912c883baffa744bc9288c0043",
+      "bytes": 3444
+    },
+    "support/mod4v3_ppo_v1/scut_flat_body_mass_env.py": {
+      "sha256": "373926488c4c53cbd1afb162f0e86734b14ee2243bb11dafeaba1ba2c049c1fe",
+      "bytes": 4511
+    },
+    "support/mod4v3_ppo_v1/scut_flat_effort_scale_env.py": {
+      "sha256": "114345ebaba27110b47b11553a19775f552047910e7770ce3859f4286559a968",
+      "bytes": 4528
+    },
+    "support/mod4v3_ppo_v1/scut_flat_env.py": {
+      "sha256": "7fda97eff35440d828fd81eb224e604cec500a2dcead9115e610e27a12798b80",
+      "bytes": 25068
+    },
+    "support/mod4v3_ppo_v1/scut_flat_external_dr_env.py": {
+      "sha256": "d230770fd394d0019f035edf1bf6fee984c413954bfddbcb0d02323dd1cc0286",
+      "bytes": 3807
+    },
+    "support/mod4v3_ppo_v1/scut_flat_forward_square_env.py": {
+      "sha256": "d2056e60cf88d13695d802f88c72382a71a51b4636ef718becfde8fce112f777",
+      "bytes": 806
+    },
+    "support/mod4v3_ppo_v1/scut_flat_full_dr_env.py": {
+      "sha256": "b2d3b9becc16db292d58d3ddca657c9e9a3cf73e3fd353e8f312e0ede071d63d",
+      "bytes": 20806
+    },
+    "support/mod4v3_ppo_v1/scut_flat_joint_friction_env.py": {
+      "sha256": "7b7a772ada2768ea6f3075c6728c1cf16320f9ef012076fc1e6495e620ab43c6",
+      "bytes": 9061
+    },
+    "support/mod4v3_ppo_v1/scut_flat_obs_delay_env.py": {
+      "sha256": "db3fc08105261ef303f5555c950feeef8b700994b9d1d40a7f06f0d331de140f",
+      "bytes": 2811
+    },
+    "support/mod4v3_ppo_v1/scut_flat_obs_noise_env.py": {
+      "sha256": "802fd55e5ad9f76c68f55ae50a31750bf50d94f905f000036a1d406963d97533",
+      "bytes": 2600
+    },
+    "support/mod4v3_ppo_v1/scut_flat_physical_delay_env.py": {
+      "sha256": "501441b31a8a3082c90e1d78250470545cfcae95cc8b485aa2459b57814467e0",
+      "bytes": 9945
+    },
+    "support/mod4v3_ppo_v1/scut_flat_rewards.py": {
+      "sha256": "adf42ffa5fba0c469e1ed713328ea2599f312656f7ca061a558b783016b01464",
+      "bytes": 22186
+    },
+    "support/mod4v3_ppo_v1/scut_flat_robust_env.py": {
+      "sha256": "72d749a7e9d56d6be464c442385f2404e214d136cf988328374c45737cbd1f64",
+      "bytes": 2706
+    },
+    "support/mod4v3_ppo_v1/scut_flat_scut_delay_env.py": {
+      "sha256": "5e96f980e773f6065afc5798388fca8ec172594db33323da9316ea0b0d6cd8ae",
+      "bytes": 6557
+    },
+    "support/mod4v3_ppo_v1/scut_flat_speed_preserve_env.py": {
+      "sha256": "20d3d64c357d7847e2ff6e0e567e9f80cf2ce9f768b8f7817f8b974673bba27b",
+      "bytes": 1179
+    },
+    "support/mod4v3_ppo_v1/scut_flat_spring_damping_env.py": {
+      "sha256": "e4c172534527304c37cd1a8f4f00ea2d06427159672ecb44b589c22bee16cec2",
+      "bytes": 2493
+    },
+    "support/mod4v3_ppo_v1/scut_flat_train.py": {
+      "sha256": "b639fabfdddd3c6b97c1147e202b35a63030d5c06881ebdc0113807846d9f09a",
+      "bytes": 28237
+    },
+    "support/mod4v3_ppo_v1/scut_flat_v1_env.py": {
+      "sha256": "7997bac0f9731364efa782c1bd7097264ed1fade5c2b08ebf50130fdc20dc316",
+      "bytes": 3172
+    },
+    "support/mod4v3_ppo_v1/scut_flat_v2_env.py": {
+      "sha256": "6c0524a57a1c9c884108fdf4dc5463a016bafaa9d5ee655c071f2c74bcbd29de",
+      "bytes": 3756
+    },
+    "support/mod4v3_ppo_v1/scut_mild_dr.py": {
+      "sha256": "6492f8a01bfc9b14504bb35516f580a60da2536de711f511c652ba6ef0f9e3ed",
+      "bytes": 5157
+    },
+    "support/mod4v3_ppo_v1/scut_rough_v0_env.py": {
+      "sha256": "fbf42139e00de6ef72117ace2bc92581eb6cb8e6ecb7fad48e115bca8f634d14",
+      "bytes": 774
+    },
+    "support/probe_reward_compare.py": {
+      "sha256": "6d898b37cde836878a46c55d105cc0558ea6276fde36afc48f09738cb2cb23a5",
+      "bytes": 3184
+    },
+    "support/rough_terrain.py": {
+      "sha256": "c6ab8958f2a8bcbfb920769281e8e6a5ddc61125ac9f7beebb0273aed21238b3",
+      "bytes": 10325
+    }
+  },
+  "effective_ppo": "PPO_EFFECTIVE.json",
+  "source_parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+  "compared_in": "paired_final_r1_RESULT.json",
+  "selection_basis": "among trained checkpoints, most passes for actual-DR forward2.0/2.2 combined (16/20); original parent also16/20 with smaller mean speed bias and stronger nominal tracking",
+  "do_not_auto_promote_final": true
+}

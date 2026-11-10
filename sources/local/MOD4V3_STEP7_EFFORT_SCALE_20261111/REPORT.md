@@ -19,3 +19,7 @@
 北京时间 2026-11-11 02:34:36 启动4096env、2400s训练，按原框架完整恢复actor/critic/std/Adam/RNG，fixed LR3e-5、clip0.1、3epochs，40分钟/5分钟检查点。恢复17个Adam条目，首更新iteration21755完整保存SHA `4e3e3e263230381beeb37a0d29dde7781c9c2b72c8859b53417b95e001f5c2b4`，actor已改变，numerical0。启动首rollout有1次单env闭链重置，原始计数保留，未提高2mm阈值。后续检查点和真实任务结果由当前chat持续检查，完成后补记。
 
 D5分部位材质与D10速度推扰尚未接入本轮；其余后续DR及Flat→Rough按仓库README执行。
+
+## 2026-11-11 完成补记
+
+4096环境训练正常完成2401.976s，8个五分钟检查点均保存检查；最终iteration22274，SHA `e56f6d4888ab1fcb02523c89d435732a3c77a78bdf750b35e77ea3e1f03495a1`。1440env配对回放reset0/numerical0。20m为本轮训练后最佳候选（DR2.2→2.14561，9/10），原冻结Step7主基线DR2.2→2.18992（8/10）；040m下降至2.01433（3/10），不选作下一轮默认起点。后退、旋转和两高度均保持。完整结果见 [FINAL_REPORT.md](FINAL_REPORT.md)，旧启动/探针记录保留。

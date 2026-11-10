@@ -49,3 +49,7 @@ COM每reset累积还可能形成“失败→更多reset→COM漂移→更易失�
 REMOTE_SNAPSHOT.json保存8个实际job现存JSON、启动收据、4份源文件文本及原始SHA。动态job按captured_utc冻结，不称final。HISTORICAL_PROGRESS_EXTRACT.json仅从已存在原聊天function_call_output提取被覆盖的1539与769两条数值，未重建原始文件。其他失败试验由原owner继续保存，本补充不宣称拥有其完整轨迹。
 
 源码副本采集时发生过Windows换行再序列化错误；已从REMOTE_SNAPSHOT恢复原始字节，4份源码SHA与原路径读回一致，语法解析通过。详见COLLECTION_NOTE.json，不把本地采集错误归到训练程序。
+
+## 上游资料与版本范围
+
+安装元数据读回：IsaacSim6.0.1.0、IsaacLab6.1.14、omni.physx110.1.13。官方PhysX配置说明确认external-every-iteration用于改善TGS速度积分，scene min/max是actor次数的夹取范围。官方仓库issue553另报告在部分GPU版本开启此选项、发生articulation睡眠/移除后，active-index映射可能串用别的articulation的关节力和重力；公开复现版本为IsaacSim6.1.0/omni.physx110.3.2及PhysX5.11源码，不与本机版本相同。此条只作为有条件的上游线索；本轮未读取sleep事件/核验GPU二进制，不宣称本机命中，不因此自动关闭开关或升级。

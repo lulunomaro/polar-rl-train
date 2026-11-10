@@ -1,0 +1,87 @@
+{
+  "id": "20261110-step7-physical-dr-adapt-r1",
+  "authorization": "User requested adapting 7a parent to DR and meeting existing task goals; implementation resumed after scope review.",
+  "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+  "framework": "existing mod4v3_ppo_v1 PhysX/PPO with separate trial support directory",
+  "phase": "physical-delay adaptation on existing parent DR; not full SCUT DR parity",
+  "delay": {
+    "physics_dt_ms": 2.5,
+    "policy_dt_ms": 20,
+    "pd_dt_ms": 10,
+    "quantum_ms": 5,
+    "action_options_ms": [
+      0,
+      5
+    ],
+    "sensor_options_ms": [
+      0,
+      5
+    ],
+    "sampling": "reset per environment group; fixed per episode",
+    "sensor_slots": [
+      4,
+      22
+    ],
+    "raw_action_slots": [
+      22,
+      28
+    ]
+  },
+  "preserved": [
+    "plant asset",
+    "motor envelope",
+    "policy interface",
+    "PD clock",
+    "reward weights",
+    "command composition",
+    "existing termination behavior"
+  ],
+  "dr": {
+    "joint_friction_scale": 0.5,
+    "spring_damping_fraction": 0.25,
+    "external_dr_fraction": 0.25,
+    "observation_noise_fraction": 0.25,
+    "other_DR": "inherited unchanged from parent family"
+  },
+  "ppo": {
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "state": "restore actor/critic/std/Adam/RNG, then override learning rate",
+    "reward_changes": false
+  },
+  "execution": {
+    "probe_envs": 4,
+    "training_envs": 4096,
+    "first_training_seconds": 300,
+    "evaluation_envs": 10,
+    "checkpoint_seconds": 300
+  },
+  "existing_goals": {
+    "forward_2.0_and_2.2_abs_error_mps": 0.15,
+    "backward_1.5_abs_error_mps": 0.2,
+    "yaw_14.137_relative_error": 0.02,
+    "height_0.20_and_0.40_abs_error_m": 0.02,
+    "no_termination_in_fixed_tasks": true,
+    "combined_0.9_1.2": "report measurements; no invented threshold"
+  },
+  "status": "Completed 300.48s pilot; nominal MuJoCo replay passed existing tasks, paired active-DR PhysX forward tasks failed for both parent and adapted model. No further training; forward-regression diagnosis completed.",
+  "failed_attempts": [
+    {
+      "id": "timing_probe_r1",
+      "reason": "independent support path omitted flat_terrain; fixed by copying existing support helper"
+    },
+    {
+      "id": "parent_fixed10_r1",
+      "reason": "reward inference tensor reset outside inference_mode; fixed suite wrapped in inference_mode"
+    },
+    {
+      "id": "parent_fixed10_r2",
+      "reason": "Evaluation start used helper wxyz quaternion in native xyzw state; all task stats invalid as capability evidence. Corrected to isaaclab.utils.math.quat_from_euler_xyz."
+    }
+  ],
+  "result_checkpoint_sha256": "bc22ea7a34c7310f56baeb676ca40bdc0a26da00cf1f0f21a7b124f0a490698f",
+  "promoted": false,
+  "training_windows_executed": 1
+}

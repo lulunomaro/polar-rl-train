@@ -1,0 +1,86 @@
+# Full DR 4096 探针复核：暂不支持从零重训结论
+
+记录日期：2026-11-10。原始快照采集于 2026-11-10T15:20:10.979485+00:00（北京时间 23:20:10）。后续聊天确认另加说明，不回写原始结果。
+
+## 当前结论与范围
+
+当前没有证据证明必须丢弃旧权重、从零重训。已确认 numerical guard 和新日志混用了两套关节索引：原生 SDK 索引被用于已重排的 `ScutRobotView` 数据。旧探针所谓“右主轮爆炸”实际主要记录右前导向关节。这个错误还会直接参与 episode 终止，必须先纠正测量和判断。
+
+本审查只读远端源码、配置、结果与日志并做本地索引核对；没有启动模拟、训练或优化器更新，没有修改共享训练源或停止进程。保存本报告及证据并按项目规则归档 Git。另一个 AI 已收到先前用户授权范围内的技术消息，并在最新回复中确认索引错误、表示只修隔离探针的 guard/log 再做固定权重复测；修正探针结果尚未纳入本报告。
+
+Step6 的晋升/冻结状态按用户确认保留。此处两个探针 solver 条件叫 base/scut，是物理参数对照，不能据此重命名已有阶段或判定父权重失效。
+
+## 四组既有探针实际做了什么
+
+同一已有策略，4096 环境，seed=66，确定性均值动作，300 个策略步，约 6 秒模拟时间；不是新的 PPO 训练。虽恢复了 actor/critic/STD/Adam，`scut_flat_train.py` 在 evaluate 分支直接 return，未进入 `algorithm.update()`。
+
+来源权重：
+- 远端路径：`/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_flat_v2_22cap_1h_20261108_r3/job/model_periodic.pt`
+- SHA256：`0a5d4e43176e6c6cf5484777511e668e4155c2491db26a8070043f757a9575f5`
+- 恢复 iteration=15279；从 fresh physical episode 开始。
+
+| articulation 设置 | 外力 | numerical 事件计数 | 已记录日志条目 | 最大值落在旧日志 right_wheel 列 |
+|---|---|---:|---:|---:|
+| base 32/4 | on | 844 | 807 | 805 |
+| base 32/4 | off | 855 | 820 | 820 |
+| scut 12/6 | on | 752 | 704 | 701 |
+| scut 12/6 | off | 727 | 690 | 688 |
+
+这些是带错误 guard 的原始计数，保留原样。numerical 事件、已记录首发条目、唯一 env 数和每步发生率不能混为同一指标。日志每步最多输出 16 个候选并标记全体，条目数并不覆盖全部事件。全部 3021 个已记录条目中 3014 个最大值在旧 right_wheel 列；该列实际是 right_front_guide_joint。
+
+外力 on/off 相近且最早共同事件发生时 wrench=0、hold=0，足以否定“外力是所有早期事件的必要触发条件”。12/6 只有有限改善。这不能单独证明延迟为根因，也不能代表修正 guard 后的结果。
+
+## 已证实的索引错误
+
+证据源是探针实际使用的 `package/semantics.py`，并通过实际 plan 的模块解析核对：
+- module SHA256：`44c7ac7b3b5f6b423484b72eebc831c1a53fd6aef58318c1879632113a9d1656`
+- semantics.json SHA256：`47761f0ea904b2009c988e345743085988aa42ed61f9fd5cfcf28c5c3f058bd8`
+
+`self.active_ids` 根据 `self.robot.joint_names` 构造，是原生 SDK 顺序 `[0,1,4,5,25,28]`。`self.view.data.joint_vel` 则先按 `_native_ids` 收集，再通过 `Semantics.positions` 转成 semantic_order；它的同名六主动关节索引应为 `[7,0,18,11,4,15]`。
+
+| 意图读取/日志标签 | 错用索引 | 实际 view 字段 | 正确 view 索引 |
+|---|---:|---|---:|
+| left_front1_joint | 0 | left_rear1_joint | 7 |
+| left_rear1_joint | 1 | left_front3_joint（推导坐标） | 0 |
+| right_front1_joint | 4 | left_wheel_joint | 18 |
+| right_rear1_joint | 5 | left_spring1_joint | 11 |
+| left_wheel_joint | 25 | right_bottom3_guide_joint | 4 |
+| right_wheel_joint | 28 | right_front_guide_joint | 15 |
+
+具体调用链：
+1. `scut_flat_env.py:166` 构造 native active_ids。
+2. `semantics.py:270-278` 为 view 数据重排、变换关节坐标。
+3. `scut_flat_env.py:309` 对 `d=self.view.data` 使用 `d.joint_vel[:,self.active_ids]`，并用 >500 阈值写入 `self.numeric`。
+4. 同文件 `:326,336` 用 native names 给上述 view 数值命名，所以日志也错。
+5. 同文件 `:374` 将 `self.numeric` OR 入最终 terminated。故这不只是显示错误。
+
+SCUT 奖励类另有 `self.joint_vel[:,self._actuate_idx]` 检查，其中索引按 semantic names 解析；即使它检查正确，外层的错误 self.numeric 仍会终止 episode。`_encode` 的主动关节观测和 `_apply_action` 的原生读写多数用了正确索引空间。修复不能全局替换 active_ids，更不能调整既有策略动作顺序。
+
+示例：12/6、外力 on/off 的首个共同记录都是 env2946、episode_step18；旧日志写 right_wheel=878.9086 rad/s，实际读的是 right_front_guide_joint。这份日志没有记录真正右主轮的原生速度，不能事后推断其值。
+
+## 正确的最小下一步
+
+1. 只在隔离副本内修 guard 和日志的关节选择：用 `tensor(self.robot.data.joint_vel)[:, self.active_ids]`，或对 `view.joint_names` 重新解析主动关节索引。保留全部非有限、root 状态等检查及原阈值；不靠提高阈值修复。额外单列导向关节速度。
+2. 固定同一父权重 SHA、seed、DR、solver、时长和动作推理方式做配对复测，不进行优化器更新。记录真正六主动关节、各终止原因、导向关节速度及必要的 root/闭链数据。
+3. 若 numerical 显著减少，先说明误判贡献，再检查真正剩余事件。若原生驱动速度仍异常，依据 PD target、实际 torque、接触及物理子步前后状态修物理/控制实现。
+4. 在上述固定权重结果可信后，纠正已知 DR 行为差异并检验。随后若需要策略适应，优先沿用现有可用 actor 权重；是否刷新 critic/Adam 应作为训练设置选择，不能说探针已证明必须刷新。没有证据要求重跑整个从零任务链。
+
+## 仍需处理但不能冒充本次已证明根因的事项
+
+当前旧 FullDREnv 在策略步推进 action/整帧观测 history，20ms 策略步下动作 1–3 为 20–60ms、观测 1–4 为 20–80ms；父类还接收 delayed 动作并将其用作 actions 槽。这和此前核对的 SCUT 物理子步延迟、分传感器组延迟、原始 actions 记忆不同。这是实现层面的差异，尚未通过本次四条件因果实验定量归因。
+
+代码还存在 COM 基于当前值反复 +=delta、摩擦分组写入相互覆盖、external_hold 只 clamp 没有递减等已有审查发现。它们需要在正确的固定权重对照里排查，但不要与索引错误一起打包改后宣称某一项是唯一根因。
+
+导向关节高速不自动等于健康：仍需按真实关节类型、尺寸、接触与有限性判断。现有错误日志不能区分多少终止是误判、多少是其他真实原因；不能把 numerical 全部改记为误报，也不能承诺修索引即可毕业。
+
+此前沿用旧日志解释为“主轮数值爆炸”的说法在此更正；原始日志和旧报告不覆盖。冻结权重也不因这一发现自动作废。训练是否继续、从何父权重开始，待修正后证据判断，当前不开训练。
+
+## 证据清单
+
+- `SNAPSHOT.json`：四组运行回执、原始数值记录、支持源全文、配置及原路径/字节数/SHA。
+- `NUMERIC_LOG_ANALYSIS.json`：全部可见日志统计、按记录顺序的首条及最小 episode_step 示例。
+- `INDEX_SPACE_READBACK.json`：实际模块解析路径/全文/SHA、两套名字表、六关节完整映射。
+- `evidence_sources/`：从快照提取、逐个核对原 SHA 相等的源码和配置；用于精确行号阅读，不是修改后的生产源。
+- `FILE_INDEX.json`：本阶段落盘文件的路径、字节数和 SHA；权重与大型 replay 仅在上列快照中保存外部路径/已有 SHA 索引。
+
+本地校验：核对六条 native/name/semantic 映射；合计 3021/3014 日志；八份源码与配置提取字节均与快照 SHA 一致。无新 GPU 结果，修正探针完成后应另存追加证据。

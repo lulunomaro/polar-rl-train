@@ -3,7 +3,7 @@
   "created_at": "2026-11-09T23:35:00+08:00",
   "source_host": "egde@10.24.3.125:22",
   "remote_data_root": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2",
-  "policy": "Frozen Stage 4 weights are committed by explicit user request; all other .pt/.pth binaries remain ignored unless explicitly frozen.",
+  "policy": "Frozen Stage 4 and Stage 5 weights are committed by explicit user request; all other .pt/.pth binaries remain ignored unless explicitly frozen.",
   "models": [
     {
       "name": "base_partial_75m",
@@ -416,21 +416,144 @@
       "committed_to_git": true,
       "git_policy": "frozen Stage 4 .pt is committed by explicit user request",
       "git_path": "weights/stage4_obs_noise_40m_final.pt"
+    },
+    {
+      "name": "stage5_obs_delay_40m_final",
+      "stage": "joint friction 50% + spring damping 25% + external force/torque 25% + observation noise 25% + observation delay 1 step",
+      "role": "frozen Stage 5 engineering candidate; not a full SCUT DR claim",
+      "parent_model": "stage4_obs_noise_40m_final",
+      "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_delay_stage5_40m_final.pt",
+      "remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+      "eval": "evidence/EVAL_FLAT_OBS_DELAY_STAGE5_40M_FINAL.json",
+      "multi_env_eval": "evidence/EVAL_FLAT_OBS_DELAY_STAGE5_40M_MULTIENV.json",
+      "parallel_env_eval": "evidence/EVAL_FLAT_OBS_DELAY_STAGE5_40M_4096ENV.json",
+      "exists": true,
+      "bytes": 5072171,
+      "sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "frozen": true,
+      "frozen_at": "2026-11-10T10:54:02+08:00",
+      "training": {
+        "total_seconds": 2400,
+        "checkpoint_interval_s": 300,
+        "periodic_checkpoints": [
+          "005m",
+          "010m",
+          "015m",
+          "020m",
+          "025m",
+          "030m",
+          "035m"
+        ],
+        "num_envs": 4096,
+        "final_iteration": 20838,
+        "episodes": 53445,
+        "numerical": 26,
+        "fall": 46,
+        "max_closure_m": 0.0011277466546744108,
+        "closure_catastrophic": 0,
+        "joint_vel_max": 84.96977233886719,
+        "mean_reward": 0.07781645593543847
+      },
+      "eval_summary": {
+        "forward_2_0_actual": 1.9735003828908166,
+        "forward_2_0_err": 0.02649961710918336,
+        "forward_2_0_height": 0.27844293824052013,
+        "forward_2_2_actual": 2.1374343934479314,
+        "forward_2_2_err": 0.06256560655206878,
+        "backward_1_5_actual": -1.3458705946105156,
+        "backward_1_5_err": 0.1541294053894844,
+        "yaw_6_28": 6.325201392173767,
+        "yaw_10_21": 10.208601919809977,
+        "yaw_14_14": 14.010065468152364,
+        "yaw_14_14_err": 0.12710153184763584,
+        "height_0_20": 0.20500158708515925,
+        "height_0_40": 0.40341149848252494,
+        "jitter_vx": 0.8450342930422257,
+        "jitter_wz": 1.2214861150582632,
+        "drop_successes": 2,
+        "drop_failures": 1,
+        "drop_total": 3
+      },
+      "multi_env_eval_summary": {
+        "seeds": 10,
+        "pass_counts": {
+          "forward_2.0": 10,
+          "forward_2.2": 10,
+          "backward_1.5": 10,
+          "yaw_14.14_at_1pct": 10,
+          "yaw_14.14_at_2pct": 10,
+          "jitter_0.9_1.2": 10,
+          "height_0.20": 10,
+          "height_0.40": 10
+        },
+        "yaw_14_14": {
+          "mean_abs_err_rad_s": 0.08163358849716147,
+          "max_abs_err_rad_s": 0.1361910017573038,
+          "mean_relative_error_pct": 0.5774395145587619,
+          "max_relative_error_pct": 0.9633542686261244,
+          "pass_1pct": "10/10",
+          "pass_2pct": "10/10"
+        },
+        "drop_recoveries": "7/10"
+      },
+      "parallel_env_eval_summary": {
+        "num_envs": 4096,
+        "steps": 501,
+        "episodes": 4,
+        "final_stable_count": 782,
+        "numerical": 0,
+        "fall": 0,
+        "closure_catastrophic": 0,
+        "note": "4096-env smoke is retained as evidence but is not the routine acceptance test."
+      },
+      "acceptance": {
+        "decision": "frozen_engineering_candidate",
+        "yaw_relative_tolerance_pct": 2.0,
+        "yaw_14_14_pass_1pct": "10/10",
+        "yaw_14_14_pass_2pct": "10/10",
+        "reason": "All 10 fixed-command environments pass yaw 14.14 at both 1% and 2%; all fixed speed/height/jitter cases pass without terminations."
+      },
+      "committed_to_git": true,
+      "git_path": "weights/stage5_obs_delay_40m_final.pt",
+      "git_policy": "frozen Stage 5 .pt is committed by explicit user request"
     }
   ],
-  "updated_at": "2026-11-10T08:22:08+08:00",
+  "updated_at": "2026-11-10T10:54:02+08:00",
   "frozen_model": {
-    "name": "stage4_obs_noise_40m_final",
-    "sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
-    "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_noise_stage4_40m_final.pt",
-    "remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_noise_stage4_cont20m_20261110_r1/model_final.pt",
-    "status": "frozen_engineering_candidate",
-    "yaw_relative_tolerance_pct": 2.0,
-    "conservative_backup": "stage4_obs_noise_20m_final",
-    "git_path": "weights/stage4_obs_noise_40m_final.pt"
+    "name": "stage5_obs_delay_40m_final",
+    "sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+    "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_delay_stage5_40m_final.pt",
+    "remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+    "role": "frozen Stage 5 engineering candidate; not a full SCUT DR claim",
+    "acceptance": {
+      "decision": "frozen_engineering_candidate",
+      "yaw_relative_tolerance_pct": 2.0,
+      "yaw_14_14_pass_1pct": "10/10",
+      "yaw_14_14_pass_2pct": "10/10",
+      "reason": "All 10 fixed-command environments pass yaw 14.14 at both 1% and 2%; all fixed speed/height/jitter cases pass without terminations."
+    },
+    "git_path": "weights/stage5_obs_delay_40m_final.pt"
   },
   "comparison_models_not_frozen": [
     "stage3_external_dr_cont10m_r2_final",
     "stage4_obs_noise_20m_final"
+  ],
+  "frozen_models": [
+    {
+      "name": "stage4_obs_noise_40m_final",
+      "sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
+      "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_noise_stage4_40m_final.pt",
+      "remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_noise_stage4_cont20m_20261110_r1/model_final.pt",
+      "status": "frozen_engineering_candidate",
+      "git_path": "weights/stage4_obs_noise_40m_final.pt"
+    },
+    {
+      "name": "stage5_obs_delay_40m_final",
+      "sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_delay_stage5_40m_final.pt",
+      "remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+      "role": "frozen Stage 5 engineering candidate; not a full SCUT DR claim",
+      "git_path": "weights/stage5_obs_delay_40m_final.pt"
+    }
   ]
 }

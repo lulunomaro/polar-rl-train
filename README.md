@@ -6,7 +6,7 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 ## 从这里看
 
-- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0首轮已启动，结果待检查。
+- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0首轮及评测完成，20m候选/5m备用，R1未启动。
 - **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：19个阶段/分支、79份检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
 - [按阶段看修了什么](docs/REPAIR_TIMELINE.md)：人工整理的修复主线、重要纠正和未完成事项。
 - [完整试验/修复标签表](history/INDEX.md)：每条记录的标签、类别和证据链接。
@@ -58,7 +58,7 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 4. 当前质量最终权重的实际 PhysX DR：2.0→1.9031（8/10），2.2→2.1555（9/10），2.7 指令诊断→2.6106；各 10 初态均无重置，后退/旋转/两高度各 10/10。前进能力已恢复，可保留为后续适应基线；原跟踪误差未全通过的样本照实保留，不能笼统写成前进退化。名义 MuJoCo 2.2→2.7442、2.7→3.3678 的跨引擎过冲另列，不等同于当前 PhysX DR 失败，也不宣称部署已通过。2.7 仅是固定权重诊断，训练指令仍为 `[-2.2,2.2]` m/s。
 5. MOD4 资产、35D actor/6D action、导出顺序、电机包络、闭链约束与冻结证据按项目合同执行。本计划不更换资产、不放宽现有门槛、不改变奖励或 solver 来凑通过。不加入华南虎参考未启用的独立惯量项、腿部质心项等额外科目。
 6. 每项实际成功、失败、中止和回退都保留源码、配置、父子 SHA 和报告，依仓库既有工作流提交唯一 trial 记录。Git 推送使用 `127.0.0.1:7897` 代理；旧标签、失败报告和冻结权重不覆盖。
-7. **下一步按 [Rough 课程计划](docs/ROUGH_CURRICULUM_README_20261111.md) 接入低难度地形。** 2026-11-11 已核实当前完整 DR 项目全开；建议以 square1_030m（iter22618、SHA `d5e17640…`）作为 R0 父候选，20m 备用，原冻结保留。保留全部 DR、当前奖励与 2.5/10/20ms 时序，初期20%平地与20%名义参数交叉分配，不要求先把Flat每项刷到10/10；名义欠速与跨引擎偏差继续列回归。旧 `rough_v0` 继承早期环境、只恢复actor，还会切换物理步长/solver并关闭闭链reset，不能直接换profile开训。新R0需从当前fullDR实现接地形、最低等级出生和实际升降级。详细华南虎Rough v0/v1、Flat v1/v2、rough_dash/rotation_translation对照及后续阶段见计划；R0已实现并于2026-11-11启动首轮40分钟；其余阶段未运行。
+7. **下一步按 [Rough 课程计划](docs/ROUGH_CURRICULUM_README_20261111.md) 接入低难度地形。** 2026-11-11 已核实当前完整 DR 项目全开；建议以 square1_030m（iter22618、SHA `d5e17640…`）作为 R0 父候选，20m 备用，原冻结保留。保留全部 DR、当前奖励与 2.5/10/20ms 时序，初期20%平地与20%名义参数交叉分配，不要求先把Flat每项刷到10/10；名义欠速与跨引擎偏差继续列回归。旧 `rough_v0` 继承早期环境、只恢复actor，还会切换物理步长/solver并关闭闭链reset，不能直接换profile开训。新R0需从当前fullDR实现接地形、最低等级出生和实际升降级。详细华南虎Rough v0/v1、Flat v1/v2、rough_dash/rotation_translation对照及后续阶段见计划；R0首轮已完成2405.700s及配对评测，20m候选/5m备用；原Flat父保留，R1未运行，详见计划末节。
 
 ## Git 标签是什么
 
@@ -100,3 +100,6 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 
 双侧平方惩罚加倍实验已完成2400.870s，−1.0e²，其余同第二轮。保留square1_030m（iter22618，SHA`d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851`）供检查；原始结果见`sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/FINAL_REPORT.md`，全部PT实体归档。总20阶段/分支、88完整PT；不自动覆盖原冻结或开下一轮。
+
+
+2026-11-11 R0首轮完成：2405.700s，保留rough_r0_020m（iter22785，SHA`64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6`）为R0实验候选；完整DR level0浅地形越障119→120/120，Flat正式44→40/60。此为同批诊断，不代表Rough全课程毕业；原Flat主冻结保留，R1未启动。报告与全PT见`sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md`，当前总21阶段/分支、97完整PT。

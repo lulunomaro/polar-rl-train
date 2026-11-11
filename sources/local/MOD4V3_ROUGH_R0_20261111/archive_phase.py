@@ -8,7 +8,7 @@ sys.path.insert(0,r'D:/claude2/fangzhen/tmp/step7_archive_helper')
 import record_experiment as rec
 original=rec.git
 notes=TRIAL/'REPORT.md'
-files=['README.md','docs/ROUGH_CURRICULUM_README_20261111.md']+[f.relative_to(ROOT).as_posix() for f in TRIAL.rglob('*') if f.is_file() and '__pycache__' not in f.parts and f.suffix!='.pyc']
+files=['README.md','docs/ROUGH_CURRICULUM_README_20261111.md','docs/DR_TRAINING_INDEX_20261111.md','docs/DR_TRAINING_RESUME_20261111.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json']+[f.relative_to(ROOT).as_posix() for f in TRIAL.rglob('*') if f.is_file() and '__pycache__' not in f.parts and f.suffix!='.pyc']
 pts=[f for f in files if f.endswith('.pt')];text=[f for f in files if not f.endswith('.pt')]
 record=ROOT/'history/experiments'/('20261111-mod4-rough-r0-'+a.phase+'-01.json')
 def git(*args):

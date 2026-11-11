@@ -124,3 +124,18 @@
 | [square1_030m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_030m.pt) | 22618 | 11,048,951 | `d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851` |
 | [square1_035m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_035m.pt) | 22676 | 11,048,951 | `67a87a00faf53eed4dae0877832e8f72128b82c810aee342fd8dab0ddf66e801` |
 | [square1_040m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_040m.pt) | 22732 | 11,048,951 | `d86f21e2aa730e77d687ecf009a915a485a67b3bfd6c2d3be489bfee2556a52a` |
+
+
+## MOD4 R0浅地形：完整40分钟检查点
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [rough_r0_005m](../MOD4V3_ROUGH_R0_20261111/weights/model_005m.pt) | 22660 | 11,324,633 | `b914bd2a29898b6270350d20ec3ec6e9086c31795ab12f3c93e41c64a84e3531` |
+| [rough_r0_010m](../MOD4V3_ROUGH_R0_20261111/weights/model_010m.pt) | 22702 | 11,324,633 | `87925dd405b84c2a54aecc927f25bbc2db8247a2769fcaa43f5768f9f1db6b43` |
+| [rough_r0_015m](../MOD4V3_ROUGH_R0_20261111/weights/model_015m.pt) | 22743 | 11,324,633 | `21af8bd84d57e22db1e7ccf5ca0eb721989432b71bfaa721f5bec2792621e095` |
+| [rough_r0_020m](../MOD4V3_ROUGH_R0_20261111/weights/model_020m.pt) | 22785 | 11,324,633 | `64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6` |
+| [rough_r0_025m](../MOD4V3_ROUGH_R0_20261111/weights/model_025m.pt) | 22826 | 11,324,633 | `3ad4a74b5df670bc2828e13d8b4ca2e73fcee53d0cf1087c979df61e9654601c` |
+| [rough_r0_030m](../MOD4V3_ROUGH_R0_20261111/weights/model_030m.pt) | 22868 | 11,324,633 | `9316106bb24142475aaf3566bf836001d347a1077e7f2566c9377a0fa6231d4f` |
+| [rough_r0_035m](../MOD4V3_ROUGH_R0_20261111/weights/model_035m.pt) | 22910 | 11,324,633 | `0cbe8edc81986f3d5bd40bb00dd6423f284d8151e2af95847eb0fd64a2464ce8` |
+| [rough_r0_040m](../MOD4V3_ROUGH_R0_20261111/weights/model_040m.pt) | 22952 | 11,324,633 | `501fc89f254937527beaa893ffab2f0e8f2e15862b22ef963a683ed1f170483a` |
+| [rough_r0_first](../MOD4V3_ROUGH_R0_20261111/weights/model_first_complete.pt) | 22619 | 11,324,633 | `e8235ef8443de1a7b49904e1676039c6a7f02c267105388313fb49c1ed1a4374` |

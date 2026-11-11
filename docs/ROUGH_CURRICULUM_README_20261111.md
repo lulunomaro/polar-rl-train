@@ -1,6 +1,6 @@
 # MOD4 Rough 课程计划：对照华南虎配置与预训练记录
 
-更新：2026-11-11。状态：**用户已授权 R0；实现与两档无优化探针完成，首轮40分钟已启动，结果待检查。**
+更新：2026-11-11。状态：**R0 首轮40分钟及配对评测已完成；20m候选、5m备用与原Flat父保留，R1未启动。**
 
 下一步从当前 full DR Flat 候选进入低难度 Rough。先保持现有策略、DR、奖励与控制时序，把变化集中在地形；保留平地样本和原有技能检查，再逐步增加台阶、腾空落地及旋转平移组合。
 
@@ -68,7 +68,7 @@
 
 | 阶段 | 对照华南虎 | 本阶段新增内容 | 起步与范围 | 主要看什么 | 当前状态 |
 |---|---|---|---|---|---|
-| **MOD4-R0：浅地形接入** | Rough v0 / 保存的 rough_rotation_stair | 在当前 full DR 环境接入平地、小栅格、缓坡、浅正反阶梯、随机起伏 | 先最低地形等级 0；栅格从 1 cm、坡度从 0.05、浅阶梯从 5 mm、随机起伏从低幅值开始；先不加入中级阶梯 | 正负指令方向正确、能实际跨障、无持续站住刷分；原 Flat 能力可用 | 首轮训练中 |
+| **MOD4-R0：浅地形接入** | Rough v0 / 保存的 rough_rotation_stair | 在当前 full DR 环境接入平地、小栅格、缓坡、浅正反阶梯、随机起伏 | 先最低地形等级 0；栅格从 1 cm、坡度从 0.05、浅阶梯从 5 mm、随机起伏从低幅值开始；先不加入中级阶梯 | 正负指令方向正确、能实际跨障、无持续站住刷分；原 Flat 能力可用 | 首轮完成，见最终报告 |
 | **MOD4-R1：粗糙地形旋转与浅阶梯** | 同一保存的旋转地形族 | 加入中级正/反阶梯，扩大浅地形难度；维持旋转、前后行进与高度控制 | 栅格 1～3 cm；坡度 0.05～0.15；浅阶梯 5～15 mm，中级 25～40 mm；随机起伏 0～3 cm；按课程升降级 | 分地形通过率与进度；旋转不倒、扰动后恢复；Flat 回归 | 待 R0 结果 |
 | **MOD4-R2：腾空落地预训练** | Flat v1 → Rough v1 的准备内容 | 在平地/已适应浅地形增加可行 air reset，分开评估离地、落地与恢复；接入所需 airborne 奖励 | MOD4 建议先从局部地面上方额外 5～10 cm 落高起步，再到参考 Flat v1 的 12～42 cm 范围；这是落高/参考 pose z，需按模型根高度语义换算，不能当绝对世界 z | 落地后能恢复姿态和指令运动；冲击、闭链事件与动作饱和；不是只看空中回报 | 待 R1 结果 |
 | **MOD4-R3：台阶、冲坡与上下落差** | Rough v1 / 保存的 rough_dash | 按地形配指令，增加较陡坡、宽台阶与下台阶；复用 R2 的落地能力 | 坡度 0.15～0.35；宽台阶 MOD4 先从 5 cm 递增到 15 cm，再依据能力向保存配置 15～35 cm（high-speed 最高 40 cm）推进；参考落差 30～40 cm 是后续目标，不是开局参数 | 双方向真实越障，避免绕平地、卡边或反向；过障后继续跟踪；保留浅地形样本 | 待 R2 结果 |
@@ -184,3 +184,12 @@ R2 加落地后姿态和速度恢复、触地冲击；R3 加上下台阶和平�
 - [当前完整 DR＋名义混合环境](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/mod4v3_ppo_v1/scut_flat_mixed_dr_env.py)、[完整 DR reset 实现](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/mod4v3_ppo_v1/scut_flat_remaining_dr_env.py)。
 - [现存旋转地形生成器](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/rough_terrain.py)、[旧 Rough 环境](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/mod4v3_ppo_v1/scut_rough_v0_env.py)、[训练恢复分支](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/mod4v3_ppo_v1/scut_flat_train.py)、[地形/时序入口](../sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/support/mod4v3_ppo_v1/scut_flat_env.py)。
 - [DR 阶段总索引](DR_TRAINING_INDEX_20261111.md)、[既有续训与保存方法](DR_TRAINING_RESUME_20261111.md)。本页为后续 Rough 规划补充，不改写旧轮的状态与结果。
+
+
+## 11. R0首轮实际结果与接续判断
+
+[完整报告](../sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md)：实际2405.700s，完整DR范围/奖励/时序保持。浅level0父119/120、本轮各检查点120/120；补评本轮实际训练level3正反1.5m/s，父与全部检查点均120/120。因此R0浅地形已有能力，本轮没有测出显著新增越障收益，不应继续原样堆R0时间。
+
+同批PhysX fullDR Flat父44/60，R0保留20m为40/60、正式reset0；其前进1.8953/2.2262、MAE0.16101。5m前进1.9555/2.2516更近父，正式41/60但2.2任务1fall，另存备用。35/40m名义MuJoCo60/60而同源fullDR欠速更大，不默认续末权重。原Flat父与既有冻结继续保留，不由R0候选覆盖。
+
+下一步建议进入本页R1的小中级阶梯/较宽地形范围，先对原Flat父、R0的20m/5m做同任务比较再确定接续；这是下一阶段建议，本轮没有开R1。训练numerical0、closure7093；level0评测30m后续episode出现1次numerical，level3评测numerical0，原始失败均保留。

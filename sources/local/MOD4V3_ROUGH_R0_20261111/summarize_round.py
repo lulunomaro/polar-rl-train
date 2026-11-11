@@ -32,11 +32,21 @@ for model,sha in flat['input_sha256'].items():
   r=[x for x in rough['rows'] if x['model']==model and x['variant']==variant]
   modelrow[variant]=dict(flat_passed=sum(x['post_push_passed'] for x in formalpost),flat_requested=sum(x['requested'] for x in formalpost),flat_resets=sum(x['resets'] for x in formal),flat_diagnostic_resets=sum(x['resets'] for x in f if not x['capability_gate']),flat_forward_MAE=sum(error)/len(error),flat_post_rows=post,rough_crossed=sum(x['crossed_count'] for x in r),rough_requested=sum(x['requested'] for x in r),rough_resets=sum(x['resets'] for x in r),rough_first_episode_failures=sum(x.get('first_episode_terminal_failures',0) for x in r),rough_rows=r)
  candidates.append(modelrow)
+level3_path=E/'paired_rough_level3_r1_RESULT.json'
+if level3_path.exists():
+ level3=read(level3_path)
+ for modelrow in candidates:
+  for variant in ('nominal0','Step7_all_remaining_DR'):
+   r=[x for x in level3['rows'] if x['model']==modelrow['model'] and x['variant']==variant]
+   modelrow[variant].update(rough_level3_crossed=sum(x['crossed_count'] for x in r),rough_level3_first_episode_failures=sum(x['first_episode_terminal_failures'] for x in r),rough_level3_resets=sum(x['resets'] for x in r),rough_level3_rows=r)
 summary=dict(training=final,models=candidates,flat_num_envs=flat['num_envs'],rough_num_envs=rough['num_envs'],flat_numerical=sum(x['reasons']['numerical'] for x in flat['rows']),rough_numerical=sum(x['reasons']['numerical'] for x in rough['rows']),flat_action_error=flat['action_slot_max_error'],rough_action_error=rough['action_slot_max_error'],flat_envelope=flat['motor_envelope_violation_nm'],rough_envelope=rough['motor_envelope_violation_nm'])
 put(E/'ROUND_SUMMARY.json',summary)
 print('MODEL | fullDR Flat passed/reset/forwardMAE | fullDR Rough crossed/reset | nominal Rough crossed')
 for m in candidates:
  f=m['Step7_all_remaining_DR'];n=m['nominal0']
  print(m['model'],f['flat_passed'],f['flat_resets'],round(f['flat_forward_MAE'],4),f['rough_crossed'],f['rough_resets'],n['rough_crossed'])
+if level3_path.exists():
+ print('LEVEL3 MODEL FULLDR crossed firstfail nominal crossed')
+ for x in candidates:print(x['model'],x['Step7_all_remaining_DR']['rough_level3_crossed'],x['Step7_all_remaining_DR']['rough_level3_first_episode_failures'],x['nominal0']['rough_level3_crossed'])
 print('training',final['elapsed_seconds'],final['last_progress']['done_totals'])
 print('unique PT',len(rows),'total bytes',sum(x['bytes'] for x in rows))

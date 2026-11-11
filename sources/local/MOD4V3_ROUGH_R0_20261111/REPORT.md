@@ -42,3 +42,17 @@ model_005m / iter22660 / SHA b914bd2a29898b6270350d20ec3ec6e9086c31795ab12f3c93e
 ## 25/30分钟补充
 
 25m前进MuJoCo名义2.17705/2.48537；30m2.13395（10/10）/2.41392（0/10），原精度不改。后退/旋转/两高度在两个检查点均各10/10，无reset。30m完整PT / iter22868 / SHA9316106bb24142475aaf3566bf836001d347a1077e7f2566c9377a0fa6231d4f，权重和课程状态已取回。训练numerical仍0，最终R0和Flat配对未完成。
+
+## 训练完成与配对进展
+
+训练2405.700s、末iter22952、numerical0、mimic0；episodes55519、closure7093、timeout43254（含terrain_boundary23261），fall0。八份5min权重和首完整共9份不同字节全PPO PT、共101921697bytes；final与040m字节相同。
+
+35/40m名义MuJoCo正式六项均60/60，但同批PhysX fullDR较父欠速扩大，不能靠名义回放选末权重。最低R0level0正反1m/s诊断父119/120、全部训练检查点120/120，区分度饱和；为比较本轮真正适应效果补做R0已训练level3正反1.5m/s，未增加训练时间。R0level0评测30m倒车浅台阶后续episode有1numerical事件，首次crossed10/10且firstepisodefailures0；原raw和解释另存。
+
+## 补充评测边界
+
+level0 crossed父119/120、各检查点120/120，说明父本来就有最浅地形能力，本轮并未证明巨大提升。补做的level3仍在R0 difficulty[0,.35]既有训练范围内，正反1.5m/s、20s、同父及8检查点配对，只诊断权重、不更新优化器、不改变40分钟预算。level0 raw保留，新增协议在运行前保存。
+
+## 最终结论
+
+level3补评测父与全部检查点均120/120、首次episode终止失败0；该评测numerical0。level0的1次numerical raw保留。R0地形可用，但本轮尚未证明比原父更强的地形能力。优先保留20m零正式Flatreset候选、5m近父速度备用；原父仍是更好的Flat精度对照，R1接续前同时比较这几份。35/40m不因MuJoCo60/60而晋升。完整数据与选择见FINAL_REPORT.md；没有额外训练或启动R1。

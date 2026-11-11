@@ -835,6 +835,119 @@
       "alternate_model_id": "square1_020m",
       "alternate_model_sha256": "6aafe9ed4b88e0d27d0380bbc83b2f6d1b31a471ef284f74bb758f83467740fc",
       "conclusion": "本轮−1.0e²相比旧−0.5e²，在同批30m对照中完整DR前进10/20→14/20、正式39/60→45/60，formalreset均0；20m和40m也有有限收益，不能认为所有时间点均改善。名义PhysX前进仍0/20，MuJoCo仍偏超速；加权确有本次收益但未完成跨分布适应。保留30m作为任务通过数较高的诊断候选，其额外2.7任务1reset明示；20m误差最低且全部reset0另存。40m不自动作接续默认；下一步固定候选排查名义/DR物理执行偏差，不再盲目加权或延长训练。"
+    },
+    {
+      "id": "rough_r0",
+      "title": "MOD4 R0浅地形首轮40分钟",
+      "profile": "rough_r0",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "source_directories": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train040m_rough_r0_r1",
+        "seconds": 2400,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "complete actor/critic/STD/Adam/RNG restored; fresh physics and local terrain curriculum level0",
+        "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+        "reward_effective_vx_squared_coefficient": -1.0,
+        "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+        "budget": "One40min R0 round explicitly authorized by user; no automatic R1 or extra40min",
+        "actual_seconds": 2405.70006275177
+      },
+      "terrain": {
+        "terrain_rows": 4,
+        "terrain_cols": 70,
+        "tile_size_m": [
+          9,
+          9
+        ],
+        "difficulty_range": [
+          0,
+          0.35
+        ],
+        "max_init_level": 0,
+        "flat_fraction": 0.2,
+        "nominal_fraction": 0.2,
+        "groups_4096": {
+          "nominal_flat": 164,
+          "nominal_rough": 655,
+          "DR_flat": 655,
+          "DR_rough": 2622
+        },
+        "families": [
+          "tiny_step_rot",
+          "slope_for_rm_low",
+          "inv_slope_for_rm_low",
+          "stair_slope_for_rm_low",
+          "inv_stair_slope_for_rm_low",
+          "random_uniform_for_rm",
+          "plane_for_rm_rot"
+        ],
+        "excluded": [
+          "mid_stairs",
+          "air_reset",
+          "high_stairs",
+          "new_rewards"
+        ],
+        "progression": "episode-reset boundary; net displacement >=2m along first valid straight command plus >=3mm observed ground variation, no termination => up one; failure => down; pure spin/low command cannot initialize progress; tile boundary timeout separately counted",
+        "restored_ppo_iteration": 22618,
+        "local_curriculum_initial_iteration": 0,
+        "source_plan": "docs/ROUGH_CURRICULUM_README_20261111.md",
+        "columns_reason": "70 columns disperse 4096 envs initially at level0, preserving ~0.8m spawn separation within9m tile; copied old all-level spawn grid was not suitable",
+        "noise": "native random_uniform ignores difficulty; wrapper quantizes maximum height max5mm, round(.03*difficulty/5mm)*5mm",
+        "train_from_parent_fullPPO": true
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "assignment": "fixed env IDs modulo5==4;819of4096",
+        "remaining_fraction": "3277of4096 keep identical fullDR ranges",
+        "nominal_parameters": "asset nominal mass/inertia/COM/material/jointfriction/damping; gains/effort1; no sensor/torquenoise/delay/wrench/push",
+        "reset": "same MOD4 feasible random reset distribution in both groups; not easier standreset",
+        "PPO": "single shared actor/critic same unweighted combinedrollout; no auxiliary loss",
+        "reward_and_solver": "unchanged"
+      },
+      "reward": {
+        "profile": "rough_r0",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.0,
+        "sigma": 1.0,
+        "effective_coefficient": -1.0,
+        "baseline_weight": -0.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -0.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78
+      },
+      "retained_model_id": "rough_r0_020m",
+      "retained_model_sha256": "64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6",
+      "other_model_ids": [
+        "rough_r0_005m",
+        "rough_r0_010m",
+        "rough_r0_015m",
+        "rough_r0_025m",
+        "rough_r0_030m",
+        "rough_r0_035m",
+        "rough_r0_040m",
+        "rough_r0_first"
+      ],
+      "status": "authorized40min completed; experimental candidate retained, no automaticR1",
+      "original_tag": "trial-20261111-mod4-rough-r0-start-01",
+      "final_tag": "trial-20261111-mod4-rough-r0-final-01",
+      "final_report": "sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md",
+      "selection_basis": "R0level0and3crossings saturated for alltrainedweights; prioritize zero formalFlatreset, then Flatpassedcount, thenforwardMAE. Retain20m primary,5m nearparentvelocityalternate with1formalreset; originalFlatparent remains mainreference"
     }
   ],
   "models": [
@@ -2720,12 +2833,491 @@
       ],
       "git_storage": "ordinary Git full PT bytes; no LFS pointer",
       "role": "complete PPO checkpoint of speed-square double experiment"
+    },
+    {
+      "file": "model_005m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_005m.pt",
+      "bytes": 11324633,
+      "sha256": "b914bd2a29898b6270350d20ec3ec6e9086c31795ab12f3c93e41c64a84e3531",
+      "iteration": 22660,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 1008,
+      "level_counts": [
+        3324,
+        682,
+        85,
+        5
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_005m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_005m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_010m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_010m.pt",
+      "bytes": 11324633,
+      "sha256": "87925dd405b84c2a54aecc927f25bbc2db8247a2769fcaa43f5768f9f1db6b43",
+      "iteration": 22702,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 2016,
+      "level_counts": [
+        2817,
+        987,
+        239,
+        53
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_010m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_010m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_015m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_015m.pt",
+      "bytes": 11324633,
+      "sha256": "21af8bd84d57e22db1e7ccf5ca0eb721989432b71bfaa721f5bec2792621e095",
+      "iteration": 22743,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 3000,
+      "level_counts": [
+        2450,
+        1110,
+        393,
+        143
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_015m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_015m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_020m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_020m.pt",
+      "bytes": 11324633,
+      "sha256": "64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6",
+      "iteration": 22785,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 4008,
+      "level_counts": [
+        2166,
+        1130,
+        530,
+        270
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_020m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_020m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "retained R0 experimental candidate",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_025m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_025m.pt",
+      "bytes": 11324633,
+      "sha256": "3ad4a74b5df670bc2828e13d8b4ca2e73fcee53d0cf1087c979df61e9654601c",
+      "iteration": 22826,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 4992,
+      "level_counts": [
+        1963,
+        1080,
+        667,
+        386
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_025m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_025m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_030m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_030m.pt",
+      "bytes": 11324633,
+      "sha256": "9316106bb24142475aaf3566bf836001d347a1077e7f2566c9377a0fa6231d4f",
+      "iteration": 22868,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 6000,
+      "level_counts": [
+        1786,
+        1053,
+        736,
+        521
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_030m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_030m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_035m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_035m.pt",
+      "bytes": 11324633,
+      "sha256": "0cbe8edc81986f3d5bd40bb00dd6423f284d8151e2af95847eb0fd64a2464ce8",
+      "iteration": 22910,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 7008,
+      "level_counts": [
+        1646,
+        992,
+        771,
+        687
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_035m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_035m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_040m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_040m.pt",
+      "bytes": 11324633,
+      "sha256": "501fc89f254937527beaa893ffab2f0e8f2e15862b22ef963a683ed1f170483a",
+      "iteration": 22952,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 8016,
+      "level_counts": [
+        1562,
+        914,
+        787,
+        833
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [
+        "model_final.pt"
+      ],
+      "id": "rough_r0_040m",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_040m.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
+    },
+    {
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_20261111/weights/model_first_complete.pt",
+      "bytes": 11324633,
+      "sha256": "e8235ef8443de1a7b49904e1676039c6a7f02c267105388313fb49c1ed1a4374",
+      "iteration": 22619,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "terrain_state_fields": [
+        "terrain_levels",
+        "terrain_types",
+        "offsets",
+        "flat_mask",
+        "local_policy_steps",
+        "attempts",
+        "success",
+        "failures",
+        "boundary_counts",
+        "level_up",
+        "level_down",
+        "signed_distance",
+        "progress_origin",
+        "progress_direction",
+        "progress_initialized",
+        "ground_min",
+        "ground_max"
+      ],
+      "local_policy_steps": 24,
+      "level_counts": [
+        4096,
+        0,
+        0,
+        0
+      ],
+      "groups": {
+        "nominal_flat": 164,
+        "nominal_rough": 655,
+        "DR_flat": 655,
+        "DR_rough": 2622
+      },
+      "aliases": [],
+      "id": "rough_r0_first",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_20261111_r1/train040m_rough_r0_r1/model_first_complete.pt",
+      "actor_input": 35,
+      "critic_input": 78,
+      "git_storage": "ordinary Git full PPO PT bytes, including terrain state",
+      "role": "R0 complete PPO checkpoint",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
+      ]
     }
   ],
   "weights_summary": {
-    "models": 88,
-    "unique_sha256": 88,
-    "total_bytes": 627955740,
+    "models": 97,
+    "unique_sha256": 97,
+    "total_bytes": 729877437,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -2744,7 +3336,8 @@
   "remaining_dr": "All planned flatDR ranges implemented and two40minute rounds completed; fullDR tracking and nominal forward retention still incomplete. Latest mixed20m diagnostic; original push020 accepted scope retained; rough notstarted.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-step7-square-double-final-01",
+  "last_update_tag": "trial-20261111-mod4-rough-r0-final-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
-  "latest_speed_square_diagnostic_model_id": "square1_030m"
+  "latest_speed_square_diagnostic_model_id": "square1_030m",
+  "latest_rough_r0_candidate_model_id": "rough_r0_020m"
 }

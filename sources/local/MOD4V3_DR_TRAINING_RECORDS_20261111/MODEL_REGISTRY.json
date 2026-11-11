@@ -1744,6 +1744,162 @@
         "new_midstairs": 1047,
         "flat": 819
       }
+    },
+    {
+      "id": "rough_r2",
+      "title": "RoughR2低落高腾空落地40分钟",
+      "profile": "rough_r2",
+      "parent_model_id": "r1round2_005m",
+      "parent_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+      "source_directories": [
+        "sources/local/MOD4V3_ROUGH_R2_20261112"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R2_20261112/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train040m_rough_r2_r1",
+        "seconds": 2400,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "Complete PPO actor/critic/STD/Adam/RNG plus R1 levels/types/offsets/cumulative counters; one fresh physical episode",
+        "parent_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+        "reward_effective_vx_squared_coefficient": -1.5,
+        "post_training": "paired low-drop landing/recovery plus frozen-weight flat/R1 regressions; no automatic promotion",
+        "budget": "One new authorized2400s round; complete PT and inspect each300s; no automatic next round."
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "assignment": "fixed env IDs modulo5==4;819of4096",
+        "remaining_fraction": "3277of4096 keep identical fullDR ranges",
+        "nominal_parameters": "asset nominal mass/inertia/COM/material/jointfriction/damping; gains/effort1; no sensor/torquenoise/delay/wrench/push",
+        "reset": "same R2 feasible low-air overlay and retained normal/ground distribution in both parameter groups",
+        "PPO": "single shared actor/critic same unweighted combinedrollout; no auxiliary loss",
+        "reward_and_solver": "Original R1 -1.5e² plus exponent weight1.2; TGS32/4"
+      },
+      "reward": {
+        "profile": "rough_r2",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.5,
+        "sigma": 1.0,
+        "effective_coefficient": -1.5,
+        "baseline_weight": -1.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -1.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78,
+        "formula": "-1.5*e**2",
+        "track_lin_vel_xy_weight": 1.2
+      },
+      "model_ids": [
+        "r2_first"
+      ],
+      "status": "R2 first low-drop40min running from r1round2_005m; fullDR and original -1.5e²",
+      "original_tag": "trial-20261112-mod4-rough-r2-start-01",
+      "final_tag": null,
+      "terrain": {
+        "terrain_rows": 4,
+        "terrain_cols": 70,
+        "tile_size_m": [
+          9,
+          9
+        ],
+        "difficulty_range": [
+          0.0,
+          1.0
+        ],
+        "max_init_level": 0,
+        "flat_fraction": 0.2,
+        "nominal_fraction": 0.2,
+        "groups_4096": {
+          "nominal_flat": 164,
+          "nominal_rough": 655,
+          "DR_flat": 655,
+          "DR_rough": 2622
+        },
+        "families": [
+          "tiny_step_rot",
+          "slope_for_rm_low",
+          "inv_slope_for_rm_low",
+          "stair_slope_for_rm_low",
+          "stair_slope_for_rm_mid",
+          "inv_stair_slope_for_rm_low",
+          "inv_stair_slope_for_rm_mid",
+          "random_uniform_for_rm",
+          "plane_for_rm_rot"
+        ],
+        "excluded": [
+          "high_stairs"
+        ],
+        "progression": "Existing R1 curriculum unchanged; resume parent levels/types/offsets/flat mask/cumulative counters; fresh episodes",
+        "restored_ppo_iteration": 22959,
+        "local_curriculum_initial_iteration": "restored from parent terrain_curriculum_state.local_policy_steps",
+        "source_plan": "docs/ROUGH_CURRICULUM_README_20261111.md",
+        "columns_reason": "70 columns disperse 4096 envs initially at level0, preserving ~0.8m spawn separation within9m tile; copied old all-level spawn grid was not suitable",
+        "noise": "native random_uniform ignores difficulty; wrapper quantizes maximum height max5mm, round(.03*difficulty/5mm)*5mm",
+        "train_from_parent_fullPPO": true,
+        "family_columns": [
+          8,
+          6,
+          6,
+          6,
+          9,
+          6,
+          9,
+          6,
+          14
+        ],
+        "command_curriculum": {
+          "rough_abs_vx_caps_by_level": [
+            1.0,
+            1.25,
+            1.5,
+            2.2
+          ],
+          "mid_stair_start_abs_vx": [
+            0.5,
+            1.0
+          ],
+          "straight_fraction": 0.6,
+          "turn_fraction": 0.2,
+          "spin_fraction": 0.2,
+          "rough_yaw_turn_cap": 1.0,
+          "rough_spin_abs_range": [
+            1.2,
+            3.0
+          ],
+          "flat": "OriginalFlat sampling retained including2.2m/s and4.5pi gyro",
+          "ground_reset": "Existinginitial1.5s±1m/s recovery commands retained"
+        },
+        "actual_terrain_definition": "reference SCUT archived rotation families;4rows/70cols9m;R1 midstairs25–40mm; other ranges per savedreference"
+      },
+      "landing": {
+        "reference": "docs/ROUGH_CURRICULUM_README_20261111.md rowR2; SCUT Flatv1 airborne prepare for Roughv1; project numbering not upstream Roughv2",
+        "extra_drop_height_m": [
+          0.05,
+          0.1
+        ],
+        "height_semantics": "standing feasible bank root height above local raycast ground PLUS sampled drop; not absolute worldz",
+        "air_probability_on_eligible_reset": 0.3,
+        "eligible_terrain": "flat OR oldR0 family level0–1; middle stairs excluded; original terrain mixture retained",
+        "other_resets": "unchanged normal/ground distribution conditional on not replaced by air; left/right ground selection independent",
+        "initial_pose": "closed-chain feasible standing bank, roll/pitch+-0.03rad,yaw+-pi; initial rootxyvelocity+-0.1m/s;zero jointvel;no ground torque-release interval for air",
+        "airborne_reward": "reuse pinned SCUT airborne machine and Flatv1 airborne coefficients; existing normal velocity/height/smoothness weights retained; internal state only, actor7ctrl slots fixednormal",
+        "statistics": "air starts, genuine both-wheel clearance, first contact,posture recovery,command recovery,failed episodes; impact/closure/saturation",
+        "physical_state_restore": "fresh episode; saved cumulative R1 terrain and R2 counters; no half-episode solver state"
+      },
+      "budget": {
+        "total_authorized_seconds": 2400,
+        "prior_round_budget_separate": true,
+        "rule": "Training walltime for this authorized R2 round only; startup/evaluation/archive separately reported; no automatic extra round or R3"
+      }
     }
   ],
   "models": [
@@ -4769,12 +4925,33 @@
       "role": "Completed40min endpoint; fullDR Flat speed MAE improved but nominal regression; not promoted",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "r2_first",
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R2_20261112/weights/model_first_complete.pt",
+      "bytes": 11626993,
+      "sha256": "32ded960cf1a2aee2b5d50d5de4f1c23439b70946028be635117088a01917a91",
+      "iteration": 22960,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "r1round2_005m",
+      "parent_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r2_20261112_r1/train040m_rough_r2_r1/model_first_complete.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R2_20261112/PLAN.json"
+      ],
+      "role": "RoughR2 low-drop complete PPO checkpoint; experimental",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 128,
-    "unique_sha256": 127,
-    "total_bytes": 1079569178,
+    "models": 129,
+    "unique_sha256": 128,
+    "total_bytes": 1091196171,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -4793,16 +4970,16 @@
   "remaining_dr": "All plannedFlat DR ranges implemented. R0/R1 rounds completed; fullDR speedtracking and nominal crossengine retention still incomplete. R1 square/abscubic adaptation not promoted. See exact paired results and DECISION.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-mod4-rough-r1-round2-final-01",
+  "last_update_tag": "trial-20261112-mod4-rough-r2-start-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m",
   "latest_speed_square15_diagnostic_model_id": "flat15_020m",
   "latest_rough_square15_diagnostic_model_id": "rough15_010m",
   "current_full_dr_flat_reference_model_id": "flat15_020m",
-  "latest_rough_r1_candidate_model_id": "r1_010m",
+  "latest_rough_r1_candidate_model_id": "r1round2_005m",
   "latest_nominal_tracking_alternate_model_id": "r1cubic_005m",
-  "rough_r1_decision_file": "sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md",
-  "current_training_status": "No active training; authorized40min R1 three-segment round and all paired evaluations complete; no R2 or additional40min started",
+  "rough_r1_decision_file": "sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md",
+  "current_training_status": "R2 first low-drop40min running from r1round2_005m; fullDR and original -1.5e²",
   "current_round_actual_PPO_seconds": 2400.030925512314
 }

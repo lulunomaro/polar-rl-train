@@ -206,3 +206,10 @@
 | [r1round2_040m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_040m.pt) | 23197 | 11,324,953 | `28300a51e237011bf7c455143d684351723f6b769e807d14f69341fa4b21bd9a` |
 | [r1round2_final](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_final.pt) | 23197 | 11,324,953 | `28300a51e237011bf7c455143d684351723f6b769e807d14f69341fa4b21bd9a` |
 | [r1round2_first](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_first_complete.pt) | 22926 | 11,324,953 | `ac5f022954f844e8fff6dffbd0177f5bda51585a06ca268ff115f52718e7bb7c` |
+
+
+## RoughR2低落高腾空落地40分钟
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [r2_first](../MOD4V3_ROUGH_R2_20261112/weights/model_first_complete.pt) | 22960 | 11,626,993 | `32ded960cf1a2aee2b5d50d5de4f1c23439b70946028be635117088a01917a91` |

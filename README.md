@@ -1,5 +1,8 @@
 # polar-rl-train
 
+2026-11-12 当前进展：**R2低落高腾空落地40分钟已启动**，从R1第二轮005m/iter22959/SHA0dcc15f5…完整接续。平地及已有浅地形上额外5–10cm落高；完整DR、R1地形与−1.5e²保留，每5分钟完整PT保存和检查。[R2配方与进度](sources/local/MOD4V3_ROUGH_R2_20261112/README.md)。
+
+
 2026-11-11 当前进展：**R1第二轮及同批评测已完成**，实际2404.901s，8个5分钟保存点和完整PT已保留。优先保留本轮005m作较均衡实验候选（iter22959，SHA0dcc15f5…），010m作L3穿越对照；40m非全面最优。旧六类低档首次穿越均120/120。[本轮选择](sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md) · [全部地形图](sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。主冻结保持，未开R2。
 
 R1本轮已完成40min三段训练及同批评测：[最终报告与模型选择](sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。名义PhysX跟踪改善，fullDR偏速未解决；Flat1.5_020m保留回退，总26阶段/118完整PT实体。
@@ -13,7 +16,7 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 ## 从这里看
 
-- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0/R1首轮及配对评测已完成；R1本轮未晋升，R2未启动。
+- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0/R1首轮及配对评测已完成；R1第二轮已完成，R2首轮已启动。
 - **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：26个阶段/分支、118份完整检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
 - [按阶段看修了什么](docs/REPAIR_TIMELINE.md)：人工整理的修复主线、重要纠正和未完成事项。
 - [完整试验/修复标签表](history/INDEX.md)：每条记录的标签、类别和证据链接。

@@ -1,5 +1,7 @@
 # 从 Git 取回模型并继续 DR 训练
 
+2026-11-12最新：R2首轮低落高腾空落地40分钟已启动，父r1round2_005m/iter22959/SHA0dcc15f5…。[本轮配方与实际证据](../sources/local/MOD4V3_ROUGH_R2_20261112/README.md)，每5分钟完整保存、固定权重回放；主冻结保持。下方为既有阶段历史。
+
 当前R1第二轮及全部同批评测已完成；本轮较均衡候选r1round2_005m，10m为最高实测L3穿越对照。最新结果见文末更新与MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md；旧阶段记录保留。
 
 日期2026-11-11。先看 [阶段总表](DR_TRAINING_INDEX_20261111.md) 和 [精确索引](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)。本页是后续操作说明；本次整理没有执行下面的训练命令。

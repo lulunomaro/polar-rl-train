@@ -2,10 +2,10 @@
 
 记录日期：2026-11-11，Asia/Shanghai。首次入口覆盖17个阶段/分支、61份检查点；追加本轮后共18个阶段/分支、70份完整检查点；原始试错、失败、提前停止和后续修复并列保留。首次总档案只整理已有成果；其后用户明确开训，新增剩余DR合并轮的实时状态与最终结果另行追加，旧原始记录保持。
 
-**当前最新完整DR诊断候选为第二轮 `mixed2_020m`，实际父是第一轮 `remaining_010m`；此前已接受范围接训/回退仍为`push_020m`，原 Step7 `mass_040m` 主冻结保持。诊断候选未晋升，完整PT实体均在Git。**
+**当前最新完整DR诊断候选为双侧平方项加倍实验 `square1_030m`，实际父是第一轮 `remaining_010m`；备用`square1_020m`。同批30m完整DR前进14/20、正式45/60，PhysX名义仍欠速0/20，2.7诊断有1reset；不是已毕业。此前已接受范围接训/回退仍为`push_020m`，原 Step7 `mass_040m` 主冻结保持。全部完整PT实体在Git。**
 
 - [逐份模型完整索引（SHA、iteration、父子关系、配方、原始两端路径）](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)
-- [全部 61 份模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
+- [全部 88 份模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
 - [取回模型、准备新运行目录、续训与检查方法](DR_TRAINING_RESUME_20261111.md)
 - [原始报告、补收证据和源码入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md)
 
@@ -168,3 +168,6 @@ partial-base 075m → Stage1 final
 
 
 2026-11-11新授权：从与第二轮相同的remaining_010m父检查点（iter22265，978994b2…）单开40分钟，将超速/欠速对称平方惩罚−0.5e²→−1.0e²。其余沿用20%名义/80%完整DR，5分钟保存并检查。独立源与计划：`sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/README.md`，不覆盖旧轮或冻结模型。
+
+
+双侧平方惩罚加倍实验已完成2400.870s，−1.0e²，其余同第二轮。保留square1_030m（iter22618，SHA`d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851`）供检查；原始结果见`sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/FINAL_REPORT.md`，全部PT实体归档。总20阶段/分支、88完整PT；不自动覆盖原冻结或开下一轮。

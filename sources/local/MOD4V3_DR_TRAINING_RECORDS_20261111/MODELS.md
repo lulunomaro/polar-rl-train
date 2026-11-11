@@ -109,3 +109,18 @@
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
 | [square1_first](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_first_complete.pt) | 22266 | 11,048,951 | `f8384096a14d2942c688abfa8090b14ce09e6189f03786b671dfe861c39ce384` |
+
+
+## 双侧平方惩罚加倍：完整40分钟检查点
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [square1_first](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_first_complete.pt) | 22266 | 11,048,951 | `f8384096a14d2942c688abfa8090b14ce09e6189f03786b671dfe861c39ce384` |
+| [square1_005m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_005m.pt) | 22327 | 11,048,951 | `32313574de5b11b136529bda6d055286bad0558db0df271ec1f4b1a1d0e06e6e` |
+| [square1_010m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_010m.pt) | 22386 | 11,048,951 | `3c07572a3c7fef8325486d33ff1c99fa5aa2331769f5c8669d3af37ea9573bb8` |
+| [square1_015m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_015m.pt) | 22445 | 11,048,951 | `ab8f268f5352c747a06d73404415dd53ca13f6839b37bc1a3bebf834384b2914` |
+| [square1_020m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_020m.pt) | 22503 | 11,048,951 | `6aafe9ed4b88e0d27d0380bbc83b2f6d1b31a471ef284f74bb758f83467740fc` |
+| [square1_025m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_025m.pt) | 22561 | 11,048,951 | `d5027e61196517f2e88e7b91a80fb56639d0baeb7b123355438396abfbc5dc16` |
+| [square1_030m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_030m.pt) | 22618 | 11,048,951 | `d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851` |
+| [square1_035m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_035m.pt) | 22676 | 11,048,951 | `67a87a00faf53eed4dae0877832e8f72128b82c810aee342fd8dab0ddf66e801` |
+| [square1_040m](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_040m.pt) | 22732 | 11,048,951 | `d86f21e2aa730e77d687ecf009a915a485a67b3bfd6c2d3be489bfee2556a52a` |

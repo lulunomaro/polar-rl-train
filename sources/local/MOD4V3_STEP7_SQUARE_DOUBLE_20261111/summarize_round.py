@@ -43,7 +43,7 @@ def main():
         actor_input=int(data["actor_state_dict"]["mlp.0.weight"].shape[1])
         critic_input=int(data["critic_state_dict"]["mlp.0.weight"].shape[1])
         assert (actor_input,critic_input)==(35,78)
-        row=dict(id="square1_"+label,iteration=data["iter"],bytes=src.stat().st_size,sha256=digest,git_path=dst.relative_to(REPO).as_posix(),original_local_path=str(src),original_remote_path=receipt.get("remote",receipt.get("path")),identity_evidence=(E/"FIRST_CHECKPOINT_READBACK.json" if label=="first" else M/f"PERIODIC_{label.upper()}.json").relative_to(REPO).as_posix(),complete_PPO=True,optimizer_entries=len(data["optimizer_state_dict"]["state"]),actor_input=actor_input,critic_input=critic_input,domain_randomization_state_fields=list(data["domain_randomization_state"]),resume_scope=data["resume_scope"],aliases=[])
+        row=dict(id="square1_"+label,iteration=data["iter"],bytes=src.stat().st_size,sha256=digest,git_path=dst.relative_to(REPO).as_posix(),original_local_path=str(src),original_remote_path=(plan["support"].rsplit("/support",1)[0]+"/train040m_square_double_r1/model_first_complete.pt" if label=="first" else receipt.get("remote",receipt.get("path"))),identity_evidence=(E/"FIRST_CHECKPOINT_READBACK.json" if label=="first" else M/f"PERIODIC_{label.upper()}.json").relative_to(REPO).as_posix(),complete_PPO=True,optimizer_entries=len(data["optimizer_state_dict"]["state"]),actor_input=actor_input,critic_input=critic_input,domain_randomization_state_fields=list(data["domain_randomization_state"]),resume_scope=data["resume_scope"],aliases=[])
         model_rows.append(row);known[digest]=row
     final_src=LOCAL/"model_final.pt";digest=sha(final_src)
     assert digest==final["checkpoint"]["SHA"]

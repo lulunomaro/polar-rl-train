@@ -1,5 +1,9 @@
 # polar-rl-train
 
+## 最新训练记录：2026-11-12统一Rough-v0两小时
+
+7206.137秒PPO与8组PhysX对照已完成，26份完整PT本体保存；综合接续仍选R1第二轮005m，新100m/120m未晋升。见[当前报告与全PT入口](sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/README.md)，当前无训练在运行。原R0～R4表保留为历史规划，本轮按用户统一科目新指令执行。
+
 2026-11-12 当前：**R2首轮40分钟及配对评测已完成**。5–10cm低落高能力已具备；综合保留r1round2_005m（iter22959/SHA0dcc15f5…），本轮R2新权重未晋升，005m保留实验备选；40m不作默认接续。28阶段/138完整PT文件索引，R2的10个PT实体均保留。[结果与选择](sources/local/MOD4V3_ROUGH_R2_20261112/DECISION.md)。
 
 
@@ -147,3 +151,10 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 参考的top-level curriculum为空、height-offset curriculum关闭，所有地形行从启动一起采样；不再要求独立15cm落高探针作为此科目前置门槛。当前MOD435/78/6、2.5/10/20ms、TGS32/4、2mm单env保护、完整DR、20%名义/20%平地、−1.5e²和指数1.2保留；沿用2.2m/s上限和机身坐标语义，无云台观测。为4096env分散出生点，参考14列复制为70列，所有地形族仍在同一科目覆盖。
 
 新目录：[统一科目README](sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/README.md)。原阶段历史、冻结及实车包保留；本轮新检查点未经比较不自动晋升。
+
+
+## 2026-11-12：统一SCUT Rough-v0两小时已完成
+
+按用户新指令，统一全部9地形族/10难度行和行进/小陀螺/组合指令，一次连续PPO7206.137秒，848更新；每5分钟保存，26份完整训练PT/25种不同字节，8组同批固定权重PhysX对照全部完成。完整DR最高代表档±1m/s穿越：父/100m/120m为134/133/131（各160），±2.2指令为145/148/144；旋转角速MAE为1.7066/1.8705/1.8548rad/s；PhysX名义Flat58/36/30（各60）。综合继续R1第二轮005m/iter22959/0dcc15f5…，本轮100m仅实验候选、120m未晋升。原冻结/实车包未替换，没有自动下一轮，也未重新引入拆分课准入。
+
+[最终报告](sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/FINAL_REPORT.md) · [配方/全PT入口](sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/README.md)。本轮当前总索引29阶段、164个完整训练PT记录；短探针原件另保留。

@@ -20,3 +20,10 @@ PPO：4096env，LR3e-5 fixed，clip0.1，3epochs，rollout24，seed66。训练�
 
 
 主训练实际首次更新：北京时间2026-11-12T02:57:38.481482+08:00，iter22960；完整PT已下载核SHA并实际读回检查35/78/6、actor/critic/Adam/RNG及9×10地形状态，全部参数有限。父PPO恢复17个optimizer条目，LR3e-5 fixed、clip0.1、epochs3。启动实际2.5/10/20ms、TGS32/4、完整DR、−1.5e²，airborne/air reset关闭。本轮正在运行7200秒预算，尚无最终成绩。
+
+配方读取说明：`EFFECTIVE_RECIPE.json`整理实际启动值；原始`PLAN.json`按启动原件保留。后者有两个继承的描述字段仍写rough_r2/air overlay，实际入口CLI始终是rough_scut_v0，STARTUP确认air_reset_fraction=0、airborne=false，环境源码也没有R2继承。这里修正配方描述，不改训练进程、奖励或分布。
+
+
+## 已完成与后续定位
+
+实际7206.137秒/848更新；26份完整PT/25种字节，全部PPO/STD/Adam/RNG/DR/9×10状态真实读回。最终选择见DECISION，综合接续R1父，本轮100m/120m未晋升。此配方冻结用于复现，不自动开启下一预算。原始启动PLAN不改；EFFECTIVE_RECIPE整理实际CLI与STARTUP。后续复制源码/配方建独立试验，再显式指定parent/checkpoint；同env数可恢复完整十级状态，新物理episode。

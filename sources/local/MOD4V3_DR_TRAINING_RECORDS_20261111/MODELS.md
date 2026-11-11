@@ -224,3 +224,38 @@
 | [r2_040m](../MOD4V3_ROUGH_R2_20261112/weights/model_040m.pt) | 23230 | 11,626,993 | `76325bb137e4e15acb2930dc543e5bf0c9893913b8598cf938ca1b45f50eddfa` |
 | [r2_final](../MOD4V3_ROUGH_R2_20261112/weights/model_final.pt) | 23230 | 11,626,993 | `76325bb137e4e15acb2930dc543e5bf0c9893913b8598cf938ca1b45f50eddfa` |
 | [r2_first](../MOD4V3_ROUGH_R2_20261112/weights/model_first_complete.pt) | 22960 | 11,626,993 | `32ded960cf1a2aee2b5d50d5de4f1c23439b70946028be635117088a01917a91` |
+
+
+## SCUT Rough-v0统一科目2小时
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [roughv0_005m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_005m.pt) | 22994 | 11,327,321 | `3a3fc98861c827a01812cdc9d3bf375362a6400c39d3bded48123dc0bc2e168c` |
+| [roughv0_010m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_010m.pt) | 23029 | 11,327,321 | `8cde6b9d685ef9e6aeb4b1dc67d106058dc052e80347f82ae52406f908fd7feb` |
+| [roughv0_015m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_015m.pt) | 23065 | 11,327,321 | `2583cde4e30b73bedfa08b7ca5afc8fa7565a82d4a6a3985aad81e3638ecddcb` |
+| [roughv0_020m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_020m.pt) | 23100 | 11,327,321 | `599e26c2dd6c0570fab75f3506e7105dd4e6110be5435c902eca84942b465e39` |
+| [roughv0_025m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_025m.pt) | 23135 | 11,327,321 | `544846b94eb3c2b6c64c3aaa66538c8ecf6e7876e5d30423a434cf4c6aed71b1` |
+| [roughv0_030m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_030m.pt) | 23170 | 11,327,321 | `e82d7f38ef0c777820d864a02383177cd99a3537c26d753379231d227fc0c1c8` |
+| [roughv0_035m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_035m.pt) | 23206 | 11,327,321 | `d4f00fff74bacb04f3036cd7e44515e0c736d25025f79e0a314ecfa6de7e0c68` |
+| [roughv0_040m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_040m.pt) | 23241 | 11,327,321 | `7be48994088536eb250d3e6a9acd09011fd6d8a1db895a2cc8811f40aa84febb` |
+| [roughv0_045m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_045m.pt) | 23276 | 11,327,321 | `a4aa4537a60be2b4231c73084dd8fce7084f070b5e6e85585831e47af1439610` |
+| [roughv0_050m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_050m.pt) | 23311 | 11,327,321 | `e79c923635201c6cbed0bcb4662d56c3c2ea1055de14c39ea044575b1b2dbc0a` |
+| [roughv0_055m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_055m.pt) | 23347 | 11,327,385 | `3b3c5f5657bbab948809f642f1b9e77f0384a05dcfd93a66fc2cbe214435d097` |
+| [roughv0_060m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_060m.pt) | 23382 | 11,327,385 | `924f773003e1ed812fa58128c7b72b2322bd1146fd12ffb28f43eaffafc0d216` |
+| [roughv0_065m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_065m.pt) | 23417 | 11,327,385 | `a88276df262fd956db8b6bf260f9d949096f3cb954ddccc2c69089fb4a82257b` |
+| [roughv0_070m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_070m.pt) | 23453 | 11,327,385 | `116af7f85b8016aa59c52629de3e3854f1050310cf2d1e94e66dfe2928f685c0` |
+| [roughv0_075m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_075m.pt) | 23488 | 11,327,385 | `28d0e3aedbaccc96e5925b2314585b1ff2f69f2285d04fa5501ce570433c8bf4` |
+| [roughv0_080m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_080m.pt) | 23523 | 11,327,385 | `85085978eaff334a6702d1ecb251cdb4a69cfff00eb891558dcd70cc11caac5e` |
+| [roughv0_085m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_085m.pt) | 23559 | 11,327,385 | `701bd5c8e7cf9c80854a869871c449c59b2c3a792561d7de0fe30aba98d608ea` |
+| [roughv0_090m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_090m.pt) | 23594 | 11,327,385 | `89db8bf19041a7954f12cf43dc58caded32c8562a0f088f763d4be0baf5ae1a1` |
+| [roughv0_095m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_095m.pt) | 23629 | 11,327,385 | `3914c8b59401aa2ee5e3447ed60fc0e1eb788fe477859da94d8a9a22f6c01cf8` |
+| [roughv0_100m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_100m.pt) | 23665 | 11,327,385 | `001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9` |
+| [roughv0_105m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_105m.pt) | 23700 | 11,327,385 | `719a28b8c751dacf82539b6316e4394658ab740ba7bea9a40131ee6a65ae9cf5` |
+| [roughv0_110m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_110m.pt) | 23736 | 11,327,385 | `16a338f1400171121877dabbd50e7367e2edff792fadbf150b89ec7eb4698724` |
+| [roughv0_115m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_115m.pt) | 23771 | 11,327,385 | `d03510eb7dbc933db59a4e6399ff0ab4be7d4d94a519dc29dc8a3c85d618a2f8` |
+| [roughv0_120m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_120m.pt) | 23807 | 11,327,385 | `87537baddfbecef424db219e7b86ea140ec4e767c67668b8c7a2cc0849995c09` |
+| [roughv0_final](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_final.pt) | 23807 | 11,327,385 | `87537baddfbecef424db219e7b86ea140ec4e767c67668b8c7a2cc0849995c09` |
+| [roughv0_first](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_first_complete.pt) | 22960 | 11,327,321 | `c550caacc364882302376bcc15679589c0df72d97e08441a1c661bfddf5d4674` |
+
+
+统一SCUT Rough-v0两小时与8组验收已完成；本轮26份完整PT均归档，综合接续保留r1round2_005m，100m/120m未晋升。[本轮模型选择](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/DECISION.md)。当前29阶段/164完整训练PT记录。

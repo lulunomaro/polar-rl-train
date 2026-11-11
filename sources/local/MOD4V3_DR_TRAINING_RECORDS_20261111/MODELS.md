@@ -190,3 +190,10 @@
 | [r1cubic_010m](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_010m.pt) | 23095 | 11,325,017 | `581870601676c62f250057fcfc33c8498c0355c9109bc1e7d1997d9384c34b94` |
 | [r1cubic_final](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_final.pt) | 23110 | 11,325,017 | `ab079de2569a7acef19fa0fa31d557fa0ee2669bb1c4fab69172ea3de230d2b6` |
 | [r1cubic_first](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_first_complete.pt) | 23028 | 11,325,017 | `34bb4a5b8566b22496811df586bfe1fb9e263b7e9c11592ef24b80f1f548af39` |
+
+
+## RoughR1原奖励第二轮40分钟
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [r1round2_first](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_first_complete.pt) | 22926 | 11,324,953 | `ac5f022954f844e8fff6dffbd0177f5bda51585a06ca268ff115f52718e7bb7c` |

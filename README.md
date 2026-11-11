@@ -1,5 +1,7 @@
 # polar-rl-train
 
+2026-11-11 当前进展：**R1第二轮40分钟正在训练**。从R1_010m/iter22925/959dc6a5…完整恢复PPO和课程进度，原−1.5e²/指数1.2、完整DR、20%名义/20%平地保留，5分钟完整PT与检查；[本轮记录](sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/README.md)。R2为后续腾空落地课程，待本轮结果判断。
+
 R1本轮已完成40min三段训练及同批评测：[最终报告与模型选择](sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。名义PhysX跟踪改善，fullDR偏速未解决；Flat1.5_020m保留回退，总26阶段/118完整PT实体。
 
 本轮切段历史：同一40min轮在010m完整PT后切段，速度平方项−1.5e²→−2.0e²，原R1课程等级/计数保留，接续1643s。见[sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md](sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md)。

@@ -207,3 +207,8 @@ partial-base 075m → Stage1 final
 两组固定权重配对回放已完成，每组2880环境×5s，numerical均0。原0.5–3s窗口含坡面零速起步/爬阶/重新加速，不能直接当稳态退化。相同R1 level3中级正阶、+1m/s、10初态下，仅恢复轮胎静/动摩擦到0.9，Flat1.5_020m均速−0.2055→+0.4627m/s，R1三次005m−0.0609→+0.7426m/s；其它初始DR输入和未目标材质通道差均0。仅去轮胎恢复系数没有同量级改善。这是在该条件下定位的主要影响因素，不是全部地形的唯一根因，也未证明DR实现错误或低摩擦不可学习。
 
 完整报告、原始NPZ、失败、输入数组、执行源码和MuJoCo名义回放记录见[原因归档](../sources/local/MOD4V3_ROUGH_START_DIAG_20261111/README.md)。后续建议恢复R1原−1.5e²、指数速度奖励权重1.2，从R1_010m/iter22925/SHA959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022接着推进R1，完整DR、20%名义/20%平地保留；Flat1.5_020m继续作对照。精确建议见[下一轮配方](../sources/local/MOD4V3_ROUGH_START_DIAG_20261111/NEXT_ROUND_RECOMMENDATION.json)，40分钟/每5分钟完整保存和检查；当前状态为建议未启动。按越障进度、通过耗时、重置与有实际恢复机会的跟踪段评判，不增加新毕业门槛，不依据这一窗口继续加罚。
+
+
+## 2026-11-11：R1第二轮已授权并启动
+
+用户授权新40分钟，从R1_010m（iter22925，SHA959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022）接续。启动收据确认原速度项−1.5e²、指数1.2、4096env/LR3e-5 fixed/clip0.1/epochs3，完整PPO与R1课程levels/types/offsets/累计计数恢复；新物理episode。完整DR、20%名义/20%平地、MOD4接口/时序/solver/2mm单env重置保持，每5min完整PT和检查。原因诊断中的recommendation_not_launched是历史当时状态，本轮已获新授权。详见[本轮README](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/README.md)与PLAN。仍推进R1，R2腾空落地待本轮判断。

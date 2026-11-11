@@ -133,3 +133,6 @@ D5/D10历史checkpoint缺少额外材质样本及推扰timer/count/delta字段�
 
 
 2026-11-11 R0首轮完成：2405.700s，保留rough_r0_020m（iter22785，SHA`64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6`）为R0实验候选；完整DR level0浅地形越障119→120/120，Flat正式44→40/60。此为同批诊断，不代表Rough全课程毕业；原Flat主冻结保留，R1未启动。报告与全PT见`sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md`，当前总21阶段/分支、97完整PT。
+
+
+Flat1.5实验从square1_030m恢复，配套新目录`MOD4V3_FLAT_SQUARE15_20261111/support`、PLAN和实际STARTUP/RESTORE使用。新奖励−1.5e²，当前训练中；R0候选不作为此轮父。新权重未经同批评测不作默认晋升。

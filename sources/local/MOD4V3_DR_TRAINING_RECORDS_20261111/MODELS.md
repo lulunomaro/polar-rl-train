@@ -139,3 +139,10 @@
 | [rough_r0_035m](../MOD4V3_ROUGH_R0_20261111/weights/model_035m.pt) | 22910 | 11,324,633 | `0cbe8edc81986f3d5bd40bb00dd6423f284d8151e2af95847eb0fd64a2464ce8` |
 | [rough_r0_040m](../MOD4V3_ROUGH_R0_20261111/weights/model_040m.pt) | 22952 | 11,324,633 | `501fc89f254937527beaa893ffab2f0e8f2e15862b22ef963a683ed1f170483a` |
 | [rough_r0_first](../MOD4V3_ROUGH_R0_20261111/weights/model_first_complete.pt) | 22619 | 11,324,633 | `e8235ef8443de1a7b49904e1676039c6a7f02c267105388313fb49c1ed1a4374` |
+
+
+## Flat速度平方项1.5实验
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [flat15_first](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_first_complete.pt) | 22619 | 11,048,951 | `865cd88a45a41c64904e69350f38176bdf3ae5aded1185dac0924b96e3190a58` |

@@ -948,6 +948,64 @@
       "final_tag": "trial-20261111-mod4-rough-r0-final-01",
       "final_report": "sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md",
       "selection_basis": "R0level0and3crossings saturated for alltrainedweights; prioritize zero formalFlatreset, then Flatpassedcount, thenforwardMAE. Retain20m primary,5m nearparentvelocityalternate with1formalreset; originalFlatparent remains mainreference"
+    },
+    {
+      "id": "flat_square15",
+      "title": "Flat完整DR速度平方项1.5",
+      "profile": "flat_remaining_mixed_dr",
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "source_directories": [
+        "sources/local/MOD4V3_FLAT_SQUARE15_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_FLAT_SQUARE15_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train040m_flat_square15_r1",
+        "seconds": 2400,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
+        "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+        "reward_effective_vx_squared_coefficient": -1.5,
+        "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+        "budget": "User2026-11-11 authorized adjustment and another Flat40min trial; 5min checkpoints/checks"
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "assignment": "fixed env IDs modulo5==4;819of4096",
+        "remaining_fraction": "3277of4096 keep identical fullDR ranges",
+        "nominal_parameters": "asset nominal mass/inertia/COM/material/jointfriction/damping; gains/effort1; no sensor/torquenoise/delay/wrench/push",
+        "reset": "same MOD4 feasible random reset distribution in both groups; not easier standreset",
+        "PPO": "single shared actor/critic same unweighted combinedrollout; no auxiliary loss",
+        "reward_and_solver": "square coefficient -1.5; solver retained TGS32/4"
+      },
+      "reward": {
+        "profile": "flat_remaining_mixed_dr",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.5,
+        "sigma": 1.0,
+        "effective_coefficient": -1.5,
+        "baseline_weight": -1.0,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -1.0,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78
+      },
+      "model_ids": [
+        "flat15_first"
+      ],
+      "status": "40min experiment in progress; no promotion",
+      "original_tag": "trial-20261111-mod4-flat-square15-start-01",
+      "final_tag": null
     }
   ],
   "models": [
@@ -3312,12 +3370,33 @@
       "recipe_files": [
         "sources/local/MOD4V3_ROUGH_R0_20261111/PLAN.json"
       ]
+    },
+    {
+      "id": "flat15_first",
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_FLAT_SQUARE15_20261111/weights/model_first_complete.pt",
+      "bytes": 11048951,
+      "sha256": "865cd88a45a41c64904e69350f38176bdf3ae5aded1185dac0924b96e3190a58",
+      "iteration": 22619,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "square1_030m",
+      "parent_sha256": "d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/flat_square15_20261111_r1/train040m_flat_square15_r1/model_first_complete.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_FLAT_SQUARE15_20261111/PLAN.json"
+      ],
+      "role": "Flat1.5 experimental checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 97,
-    "unique_sha256": 97,
-    "total_bytes": 729877437,
+    "models": 98,
+    "unique_sha256": 98,
+    "total_bytes": 740926388,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -3336,7 +3415,7 @@
   "remaining_dr": "All planned flatDR ranges implemented and two40minute rounds completed; fullDR tracking and nominal forward retention still incomplete. Latest mixed20m diagnostic; original push020 accepted scope retained; rough notstarted.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-mod4-rough-r0-final-01",
+  "last_update_tag": "trial-20261111-mod4-flat-square15-start-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m"

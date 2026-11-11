@@ -174,3 +174,8 @@ partial-base 075m → Stage1 final
 
 
 2026-11-11 R0首轮完成：2405.700s，保留rough_r0_020m（iter22785，SHA`64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6`）为R0实验候选；完整DR level0浅地形越障119→120/120，Flat正式44→40/60。此为同批诊断，不代表Rough全课程毕业；原Flat主冻结保留，R1未启动。报告与全PT见`sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md`，当前总21阶段/分支、97完整PT。
+
+
+## Flat速度平方项1.5独立实验（2026-11-11）
+
+用户授权继续Flat。父square1_030m，iter22618，SHA`d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851`；只将平方项−1.0改−1.5，sigma1，完整DR与20%名义参数保留。4096env、40min、每5min完整保存/检查。已启动，尚未完成评测，不晋升。见[本轮配方](../sources/local/MOD4V3_FLAT_SQUARE15_20261111/PLAN.json)及[报告](../sources/local/MOD4V3_FLAT_SQUARE15_20261111/REPORT.md)。

@@ -103,3 +103,6 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 
 2026-11-11 R0首轮完成：2405.700s，保留rough_r0_020m（iter22785，SHA`64affb5794f5518f2b84611ab7d3904aef95b7e1ea660e1efd87820102cc14d6`）为R0实验候选；完整DR level0浅地形越障119→120/120，Flat正式44→40/60。此为同批诊断，不代表Rough全课程毕业；原Flat主冻结保留，R1未启动。报告与全PT见`sources/local/MOD4V3_ROUGH_R0_20261111/FINAL_REPORT.md`，当前总21阶段/分支、97完整PT。
+
+
+2026-11-11 Flat速度平方项1.5独立实验已启动：从冻结square1_030m恢复，完整DR+20%名义参数，40分钟/5分钟完整保存；[配方和状态](sources/local/MOD4V3_FLAT_SQUARE15_20261111/README.md)。此次不接R0后期权重，不推进R1。

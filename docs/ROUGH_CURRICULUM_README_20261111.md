@@ -280,3 +280,12 @@ R2本轮的“腾空”采用air reset，是抬高后的下落和着地恢复；
 综合接续继续选R1父模型0dcc15f5…；R2_005m仅实验备选，不晋升40m。当前已完成R2低落高这一档验证，不等于主动起跳或所有参考空中初态通关。下一步先从父模型做额外15cm固定权重探针，按真实薄弱区间确定后续R2训练，停止原样堆当前低难度时间；没有自动下一轮或R3。
 
 [最终报告](../sources/local/MOD4V3_ROUGH_R2_20261112/FINAL_REPORT.md) · [模型选择](../sources/local/MOD4V3_ROUGH_R2_20261112/DECISION.md) · [完整PT](../sources/local/MOD4V3_ROUGH_R2_20261112/evidence/MODEL_ARCHIVE_INDEX.json)。
+
+
+## 2026-11-12：按用户新指令统一推进 SCUT Rough-v0，2小时
+
+用户明确要求直接训练华南虎Rough-v0科目，不再分R0/R1/R2逐个短轮。本次从综合接续父R1第二轮005m（iter22959，SHA0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f）恢复完整PPO/RNG，统一使用保存rough_rotation_stair的全部9地形族与10级难度，同时训练行进、小陀螺与组合指令。7200秒PPO，每300秒完整PT保存、下载核验和检查；本条是授权与执行计划，尚非训练成绩。
+
+参考的top-level curriculum为空、height-offset curriculum关闭，所有地形行从启动一起采样；不再要求独立15cm落高探针作为此科目前置门槛。当前MOD435/78/6、2.5/10/20ms、TGS32/4、2mm单env保护、完整DR、20%名义/20%平地、−1.5e²和指数1.2保留；沿用2.2m/s上限和机身坐标语义，无云台观测。为4096env分散出生点，参考14列复制为70列，所有地形族仍在同一科目覆盖。
+
+新目录：[统一科目README](../sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/README.md)。原阶段历史、冻结及实车包保留；本轮新检查点未经比较不自动晋升。

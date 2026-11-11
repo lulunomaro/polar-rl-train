@@ -138,3 +138,12 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 [完整ZIP](deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112.zip) / [包内说明](deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112/README.md)。主模型是R1第二轮005m/iter22959/SHA0dcc15f5…，完整PT、ONNX、TorchScript、纯C推理/观测编码/动作映射/PD/包络、Windows与Linux示例、实际训练plant及subLayer、中文电控说明、硬件标定模板均随包。800份原环境接口样本及4096组网络输入对齐，8项独立ONNX回放无安全终止，干净目录解压运行通过。
 
 实体电机方向/零偏/IMU安装及电流换算尚无实测标定，真实使能检查按预期阻断未填模板；高速超速和起摆未完整适应的原结果保留。本包是当前综合均衡候选的电控调试交付，不是实车验收或原主冻结晋升。没有训练、没有驱动实车，也没有修改旧部署plant来强行过门。
+
+
+## 2026-11-12：按用户新指令统一推进 SCUT Rough-v0，2小时
+
+用户明确要求直接训练华南虎Rough-v0科目，不再分R0/R1/R2逐个短轮。本次从综合接续父R1第二轮005m（iter22959，SHA0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f）恢复完整PPO/RNG，统一使用保存rough_rotation_stair的全部9地形族与10级难度，同时训练行进、小陀螺与组合指令。7200秒PPO，每300秒完整PT保存、下载核验和检查；本条是授权与执行计划，尚非训练成绩。
+
+参考的top-level curriculum为空、height-offset curriculum关闭，所有地形行从启动一起采样；不再要求独立15cm落高探针作为此科目前置门槛。当前MOD435/78/6、2.5/10/20ms、TGS32/4、2mm单env保护、完整DR、20%名义/20%平地、−1.5e²和指数1.2保留；沿用2.2m/s上限和机身坐标语义，无云台观测。为4096env分散出生点，参考14列复制为70列，所有地形族仍在同一科目覆盖。
+
+新目录：[统一科目README](sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/README.md)。原阶段历史、冻结及实车包保留；本轮新检查点未经比较不自动晋升。

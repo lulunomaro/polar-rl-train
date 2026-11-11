@@ -1,4 +1,4 @@
-"""Paired frozen-weight MOD4 combined remaining-DR adaptation check. No optimizer."""
+"""Paired frozen-weight R0 shallow-terrain crossing diagnostic. No optimizer."""
 from pathlib import Path
 import argparse,base64,hashlib,json,os,sys,time,traceback
 p=argparse.ArgumentParser();p.add_argument('--plan',required=True);p.add_argument('--out',required=True);p.add_argument('--support',required=True);p.add_argument('--version',required=True);p.add_argument('--models',required=True);a=p.parse_args()
@@ -186,13 +186,15 @@ try:
   environment.velocity_push_time_left[env_ids]=10000.
  cfg_event.func=paired_native_push
  trajectory=[];action_error=0.;start=time.time();pre_push_term_count=None
- alive=torch.ones(n,device=dev,dtype=torch.bool);success=torch.zeros_like(alive);net_progress=torch.zeros(n,device=dev);peak_signed=torch.zeros(n,device=dev);signed_direction=commands[:,0].sign()
+ alive=torch.ones(n,device=dev,dtype=torch.bool);success=torch.zeros_like(alive);first_terminal_failure=torch.zeros_like(alive);first_boundary_timeout=torch.zeros_like(alive);net_progress=torch.zeros(n,device=dev);peak_signed=torch.zeros(n,device=dev);signed_direction=commands[:,0].sign()
  rough_trace=[]
  with torch.inference_mode():
   obs=env._get_observations()
   for step in range(1000):
    actions=torch.cat([actor(obs['policy'][i*len(variants)*small:(i+1)*len(variants)*small]) for i,actor in enumerate(actors.values())],0).clamp(-6,6);raw,reward,term,timeout,_=env.step(actions);command();obs=raw
    action_error=max(action_error,float((raw['policy'][:,22:28]-env._encode()['policy'][:,22:28]).abs().max()))
+   first_terminal_failure|=alive&term
+   first_boundary_timeout|=alive&timeout
    alive&=~(term|timeout)
    delta_x=(env.view.data.root_pos_w[:,0]-initial_positions[:,0])*signed_direction
    net_progress=torch.where(alive,delta_x,net_progress)
@@ -211,7 +213,7 @@ try:
    for vi,var in enumerate(variants):
     for ti,(name,vx,wz,h,_,_) in enumerate(TASKS):
      begin=mi*len(variants)*small+vi*small+ti*per;sl=slice(begin,begin+per)
-     rows.append(dict(model=model,variant=var,task=name,family=FAMILIES[ti//2],direction=vx,requested=per,crossed_count=int(success[sl].sum()),completed_without_termination=int((term_count[sl]==0).sum()),net_progress_mean=float(net_progress[sl].mean()),peak_signed_progress_mean=float(peak_signed[sl].mean()),per_env_crossed=success[sl].cpu().tolist(),per_env_net_progress=net_progress[sl].cpu().tolist(),per_env_ground_variation=(ground_max-ground_min)[sl].cpu().tolist(),pre_push_mean_velocity_yaw_height=values[sl].mean(0).tolist(),resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},max_closure_m=float(peak_closure[sl].max())))
+     rows.append(dict(model=model,variant=var,task=name,family=FAMILIES[ti//2],direction=vx,requested=per,crossed_count=int(success[sl].sum()),completed_without_termination=int((term_count[sl]==0).sum()),net_progress_mean=float(net_progress[sl].mean()),peak_signed_progress_mean=float(peak_signed[sl].mean()),first_episode_terminal_failures=int(first_terminal_failure[sl].sum()),first_episode_timeouts=int(first_boundary_timeout[sl].sum()),per_env_crossed=success[sl].cpu().tolist(),per_env_net_progress=net_progress[sl].cpu().tolist(),per_env_ground_variation=(ground_max-ground_min)[sl].cpu().tolist(),pre_push_mean_velocity_yaw_height=values[sl].mean(0).tolist(),resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},max_closure_m=float(peak_closure[sl].max())))
   torch.randn_like=original_randn_like
  result=dict(version=a.version,protocol='R0 level0; six terrain families x +/-1m/s x10initialstates; paired exact initialpose/DR/noise/wrench/push across models;20s; crossing2m with >=3mm observedgroundvariation beforefirstreset; no optimizer',input_sha256=hashes,parent_sha256=plan['parent_sha256'],num_envs=n,rows=rows,first_failures=first_fail,physics_dt=float(env.cfg.sim.dt),delay=env.physical_delay_summary(),motor_envelope_violation_nm=envelope_violation.tolist(),action_slot_max_error=action_error,no_optimizer_constructed=True,wall_seconds=time.time()-start)
  (out/'RESULT.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'INITIAL_DR.json').write_text(json.dumps(inputdr))

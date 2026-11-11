@@ -1,0 +1,1429 @@
+{
+  "schema_version": 1,
+  "as_of_date": "2026-11-11",
+  "timezone": "Asia/Shanghai",
+  "catalog_tag": "trial-20261111-dr-training-catalog-pt-01",
+  "scope": "MOD4 current incremental DR lineage and directly related failed/repaired branches; no new training",
+  "git_binary_authorization": "User2026-11-11 explicitly requested full.pt weights inGit, overriding historical path-only policy for this archive",
+  "main_frozen_model_id": "mass_040m",
+  "current_cumulative_continuation_model_id": "push_020m",
+  "human_confirmed_step6_status": "promoted/frozen retained unchanged; legacy stage6 filename comparisons do not reassign it",
+  "stages": [
+    {
+      "id": "partial-base",
+      "title": "早期轻量DR基座",
+      "profile": "flat_robust_full",
+      "parent_model_id": null,
+      "parent_sha256": null,
+      "retained_model_id": "base_partial_75m",
+      "retained_model_sha256": "1c65583ca187837cc48dd389041afb25ce1f94b0897bd6d1aa4e56f8fb253047",
+      "other_model_ids": [
+        "base_partial_101m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode"
+      },
+      "status": "historical selected base",
+      "selection_basis": "Stage1 RESTORE confirms actual use of 075m; 101m also retained, not its parent",
+      "original_tag": "mod4v3-incremental-dr-20261109",
+      "source_commit": "326bd391902650bf8c79925260c8e11ff8591d88"
+    },
+    {
+      "id": "stage1",
+      "title": "Stage1 关节摩擦50%",
+      "profile": "flat_joint_friction",
+      "parent_model_id": "base_partial_75m",
+      "parent_sha256": "1c65583ca187837cc48dd389041afb25ce1f94b0897bd6d1aa4e56f8fb253047",
+      "retained_model_id": "stage1_joint_friction_final",
+      "retained_model_sha256": "c2b5299d132e41c6c02bb1a4713286640c8c79b3f4dd94272734a2bb797683e4",
+      "other_model_ids": [
+        "stage1_joint_friction_25m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode",
+        "actual_seconds": 3600.94
+      },
+      "status": "historical retained parent",
+      "selection_basis": "Final was actual Stage2 parent; not retrospectively claimed best over every checkpoint",
+      "original_tag": "mod4v3-incremental-dr-20261109",
+      "source_commit": "326bd391902650bf8c79925260c8e11ff8591d88"
+    },
+    {
+      "id": "stage2",
+      "title": "Stage2 弹簧阻尼25%",
+      "profile": "flat_spring_damping",
+      "parent_model_id": "stage1_joint_friction_final",
+      "parent_sha256": "c2b5299d132e41c6c02bb1a4713286640c8c79b3f4dd94272734a2bb797683e4",
+      "retained_model_id": "stage2_spring_damping_cont20m_final",
+      "retained_model_sha256": "ffbabfe51ca9656d5807d667c4a94065d2cdeefd833b366b97c213c00c779d80",
+      "other_model_ids": [
+        "stage2_spring_damping_25m",
+        "stage2_spring_damping_cont10m_final",
+        "stage2_spring_damping_cont30m_final"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode"
+      },
+      "status": "historical retained parent",
+      "selection_basis": "Actual chain rolls back from initial 025m into cont10m, then cont20m; cont30m speed overshoots and is not Stage3 parent",
+      "original_tag": "mod4v3-incremental-dr-20261109-cont30m",
+      "source_commit": "3a47f9853eb799d25dd0690e3385cea6f126ec54"
+    },
+    {
+      "id": "stage2b",
+      "title": "Stage2b 速度奖励试验",
+      "profile": "flat_speed_preserve",
+      "parent_model_id": "stage2_spring_damping_cont20m_final",
+      "parent_sha256": "ffbabfe51ca9656d5807d667c4a94065d2cdeefd833b366b97c213c00c779d80",
+      "retained_model_id": "stage2b_speed_preserve_10m_final",
+      "retained_model_sha256": "a58f8923826288413b1b9197333aa3ecb2ab66f81b684ba60c66098b6d966c70",
+      "other_model_ids": [],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode",
+        "actual_seconds": 602.778
+      },
+      "status": "historical branch not continued",
+      "selection_basis": "Several tracking reward terms changed; 2.2 command produced2.44793 in nominal MuJoCo; Stage3 did not use this checkpoint",
+      "original_tag": "mod4v3-incremental-dr-20261110-speed-preserve",
+      "source_commit": "7ee470864f2e46cfb8aa06aa0e6bb195cd3a00ec"
+    },
+    {
+      "id": "stage3",
+      "title": "Stage3 外力/力矩25%",
+      "profile": "flat_external_dr",
+      "parent_model_id": "stage2_spring_damping_cont20m_final",
+      "parent_sha256": "ffbabfe51ca9656d5807d667c4a94065d2cdeefd833b366b97c213c00c779d80",
+      "retained_model_id": "stage3_external_cont10m_r2",
+      "retained_model_sha256": "f25cc7a71bb56576abdab7def87a91a67b3c8cc7ba369f15b4bf2b5b81acebe4",
+      "other_model_ids": [
+        "stage3_external_dr_20m_final",
+        "stage3_external_cont10m_r1"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109",
+        "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode"
+      },
+      "status": "historical actual next-stage parent",
+      "selection_basis": "20m→cont10m_r1→cont10m_r2; final r2 is actual Stage4 parent by RESTORE; new copied evidence preserves both continuations",
+      "original_tag": "mod4v3-incremental-dr-20261110-stage3",
+      "source_commit": "7e2047e3d867bf4d1480d50034c0896a71664108"
+    },
+    {
+      "id": "stage4",
+      "title": "Stage4 观测噪声25%",
+      "profile": "flat_obs_noise",
+      "parent_model_id": "stage3_external_cont10m_r2",
+      "parent_sha256": "f25cc7a71bb56576abdab7def87a91a67b3c8cc7ba369f15b4bf2b5b81acebe4",
+      "retained_model_id": "stage4_obs_noise_40m_final",
+      "retained_model_sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
+      "other_model_ids": [
+        "stage4_obs_noise_first_segment"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode"
+      },
+      "status": "historically frozen",
+      "selection_basis": "First process reached iteration20000 at1162.965s; continuation1202.981s. Named40m recipe had2365.946s actual updates; fixed-task multi-env evidence kept",
+      "original_tag": "mod4v3-stage4-obs-noise-40m-20261110",
+      "source_commit": "7cd85aaed4d5f4bdfe6661645c5b243c20de9de8"
+    },
+    {
+      "id": "stage5",
+      "title": "Stage5 旧20ms观测延迟",
+      "profile": "flat_obs_delay",
+      "parent_model_id": "stage4_obs_noise_40m_final",
+      "parent_sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
+      "retained_model_id": "stage5_obs_delay_40m_final",
+      "retained_model_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "other_model_ids": [],
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/RECIPE.json",
+        "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode",
+        "actual_seconds": 2401.595
+      },
+      "status": "frozen original parent baseline",
+      "selection_basis": "Original7a RESTORE actual parent884cd07b; fixed-task ten-initial evidence kept; old policy-step input definition is distinct from repairedStep7",
+      "original_tag": "mod4v3-stage5-obs-delay-40m-20261110",
+      "source_commit": "f124715254ce4264f9f8f348c54192b625adf41e"
+    },
+    {
+      "id": "step6-history",
+      "title": "旧动作延迟6/6b/6c对照文件",
+      "profile": "flat_action_delay",
+      "parent_model_id": "stage5_obs_delay_40m_final",
+      "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "retained_model_id": null,
+      "retained_model_sha256": null,
+      "other_model_ids": [
+        "flat_action_delay_stage6_40m",
+        "flat_action_delay50_stage6b_60m",
+        "flat_action_delay25_stage6c_40m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111",
+        "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_launchers/launch_action_delay_stage6_40m.py",
+        "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110/original_delay_snapshot/scut_flat_action_delay_env.py"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode"
+      },
+      "status": "historical comparisons; user-confirmed Step6 freeze unchanged",
+      "selection_basis": "These namedfiles are individual old trials with20ms actiondelay probabilities1/.5/.25; no filename-based reassignment of the human-confirmed Step6 frozen model",
+      "original_tag": null,
+      "source_commit": "see catalog tag; early copied evidence newly archived"
+    },
+    {
+      "id": "legacy7a",
+      "title": "旧7/7a延迟退化分支",
+      "profile": "flat_scut_delay",
+      "parent_model_id": "stage5_obs_delay_40m_final",
+      "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "retained_model_id": null,
+      "retained_model_sha256": null,
+      "other_model_ids": [
+        "flat_scut_delay_stage7a_20m",
+        "legacy7a_005m",
+        "legacy7a_010m",
+        "legacy7a_015m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110",
+        "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_launchers/launch_scut_delay_stage7a_20m.py"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "lr_schedule": "adaptive",
+        "clip_param": 0.2,
+        "epochs": 5,
+        "learning_rate": "restored from parent checkpoint then adaptive; per-artifact saved LR in LOCAL_MODEL_READBACK.json",
+        "value_loss_coef": 4.0,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/RNG, one fresh physical episode",
+        "actual_seconds": 1203.81
+      },
+      "status": "failed branch preserved",
+      "selection_basis": "7a fixed20ms groups/raw-vs-applied memory mismatch; final nominal2.0=.4974/2.2=.2360; original7 wide-delay trial has no FINAL and no new final fabricated",
+      "original_tag": null,
+      "source_commit": "see catalog tag; early copied evidence newly archived"
+    },
+    {
+      "id": "physical-delay-5m",
+      "title": "物理时钟5分钟适应",
+      "profile": "flat_physical_delay",
+      "parent_model_id": "stage5_obs_delay_40m_final",
+      "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "retained_model_id": "physical_delay_adapt_005m",
+      "retained_model_sha256": "bc22ea7a34c7310f56baeb676ca40bdc0a26da00cf1f0f21a7b124f0a490698f",
+      "other_model_ids": [],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_PHYSICAL_DR_ADAPT_20261110"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_PHYSICAL_DR_ADAPT_20261110/EXPERIMENT_PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_seconds": 300.478
+      },
+      "status": "not promoted",
+      "selection_basis": "Reset group0/5ms; earlyCOM/friction/holdbugs still present; PhysXDR2.2 parent1.619→new1.371, despite nominalMuJoCo passing",
+      "original_tag": "trial-20261110-step7-adapt-forward-audit-01",
+      "source_commit": "5fa142e55a867b7cd2e118f174a24b3a6c0a9da1"
+    },
+    {
+      "id": "dr-repair",
+      "title": "集中修复DR实现，无PPO",
+      "profile": "flat_physical_delay",
+      "parent_model_id": "stage5_obs_delay_40m_final",
+      "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "retained_model_id": "stage5_obs_delay_40m_final",
+      "retained_model_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "other_model_ids": [],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_DR_REPAIR_20261110"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_DR_REPAIR_20261110/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "ppo_updates": 0
+      },
+      "status": "fixed-weight verified",
+      "selection_basis": "Fix COM accumulation, grouped friction, hold decrement, torque noise/envelope/resetmask, native-index guard and actualcriticDR;4096×300numerical0, fixedforwardstill deficient",
+      "original_tag": "trial-20261111-step7-parent-dr-repair-01",
+      "source_commit": "f1a18c7344d898cffaa8b9256bfb70b1936f8733"
+    },
+    {
+      "id": "square-repair",
+      "title": "速度平方项与过渡延迟训练",
+      "profile": "flat_forward_square",
+      "parent_model_id": "stage5_obs_delay_40m_final",
+      "parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "retained_model_id": "square_015m",
+      "retained_model_sha256": "f4960781490a4de9e45fc97a477d890ab4b3a717edbd39c43581fa059278e483",
+      "other_model_ids": [
+        "square_005m",
+        "square_010m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_checkpoint_seconds": 903.1805753707886,
+        "charged_segment_seconds": 949.0013501644135
+      },
+      "status": "interrupted continuation parent",
+      "selection_basis": "Effective square penalty-.00625e²→-.5e², symmetric over/under-speed; original40min budget was not completed in this segment",
+      "original_tag": "trial-20261111-step7-forward-square40m-01",
+      "source_commit": "ad5d5a8be84d3a86263e61be54b2cfe07dc076d3"
+    },
+    {
+      "id": "rangefix",
+      "title": "Step7物理延迟完整范围",
+      "profile": "flat_forward_square",
+      "parent_model_id": "square_015m",
+      "parent_sha256": "f4960781490a4de9e45fc97a477d890ab4b3a717edbd39c43581fa059278e483",
+      "retained_model_id": "rangefix_015m",
+      "retained_model_sha256": "74c25dd19708148808d1928fc4d6eb1278239fcdc6ab97598d866cf477dc561f",
+      "other_model_ids": [
+        "rangefix_005m",
+        "rangefix_010m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_RANGEFIX_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_RANGEFIX_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_checkpoint_seconds": 904.4509191513062
+      },
+      "status": "interrupted for authorized mass DR",
+      "selection_basis": "Action5/10ms;sensors5/10/15ms. Selected015 actualDRforward1.86193(6/10),2.03808(4/10); formal700env noreset; no fabricatedFINAL/SAFE_CLOSED",
+      "original_tag": "trial-20261111-step7-body-mass40m-01",
+      "source_commit": "8b6283508c10632203f8155877daeb209a09140d"
+    },
+    {
+      "id": "mass",
+      "title": "D1 独立刚体质量",
+      "profile": "flat_body_mass",
+      "parent_model_id": "rangefix_015m",
+      "parent_sha256": "74c25dd19708148808d1928fc4d6eb1278239fcdc6ab97598d866cf477dc561f",
+      "retained_model_id": "mass_040m",
+      "retained_model_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+      "other_model_ids": [
+        "mass_005m",
+        "mass_010m",
+        "mass_015m",
+        "mass_020m",
+        "mass_025m",
+        "mass_030m",
+        "mass_035m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_BODY_MASS_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_seconds": 2400.1465356349945,
+        "requested_seconds": 2400
+      },
+      "status": "main frozen",
+      "selection_basis": "40m/final selected: actualDRforward1.90307(8/10),2.15548(9/10);2.7diagnostic2.61062. frozenmain retained.",
+      "original_tag": "trial-20261111-step7-mass-final-command27-01",
+      "source_commit": "bbe8e4507533b01e0cc9dd97bacfdb4b181342dc",
+      "final_report": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/FINAL_REPORT.md",
+      "final_checkpoint_id": "mass_040m"
+    },
+    {
+      "id": "effort",
+      "title": "D4 电机输出倍率",
+      "profile": "flat_effort_scale",
+      "parent_model_id": "mass_040m",
+      "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+      "retained_model_id": "effort_020m",
+      "retained_model_sha256": "0a1a8ccb5d1f5cec1582e071798597baa55e43dfb13e4eba6472a7fd82f3b22c",
+      "other_model_ids": [
+        "effort_005m",
+        "effort_010m",
+        "effort_015m",
+        "effort_025m",
+        "effort_030m",
+        "effort_035m",
+        "effort_040m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_seconds": 2401.9756824970245,
+        "requested_seconds": 2400
+      },
+      "status": "retained trained candidate",
+      "selection_basis": "020m best trained16/20forward; final4/20regresses. Mainmassbaseline retained and used forD5 parent.",
+      "original_tag": "trial-20261111-step7-effort-final-eval-01",
+      "source_commit": "cea8e6da24e475e2dd89c8f723bbedbfebd9e366",
+      "final_report": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/FINAL_REPORT.md",
+      "final_checkpoint_id": "effort_040m"
+    },
+    {
+      "id": "material",
+      "title": "D5 分部位接触材质",
+      "profile": "flat_material",
+      "parent_model_id": "mass_040m",
+      "parent_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+      "retained_model_id": "material_010m",
+      "retained_model_sha256": "49a2bb7b53d3d88b7d47dfc3d5eb15999c5fd8fcfd3a1cf3f0a67d96030c71a1",
+      "other_model_ids": [
+        "material_005m",
+        "material_015m",
+        "material_020m",
+        "material_025m",
+        "material_030m",
+        "material_035m",
+        "material_040m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_MATERIAL_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_MATERIAL_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_seconds": 2400.734309196472,
+        "requested_seconds": 2400
+      },
+      "status": "retained trained candidate",
+      "selection_basis": "010m selected:1.96108(10/10),2.25097(8/10);otherfour40/40;noreset. Actualparentmass040,whileD4randomization enabled cumulatively.",
+      "original_tag": "trial-20261111-step7-material-final-push-start-01",
+      "source_commit": "4c9f7553275b3543eace0e142050e25a266db152",
+      "final_report": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/FINAL_REPORT.md",
+      "final_checkpoint_id": "material_040m",
+      "cumulative_dr_includes_effort_scale": true,
+      "effort_020m_is_not_weight_parent": true
+    },
+    {
+      "id": "push",
+      "title": "D10 世界XY速度推扰",
+      "profile": "flat_velocity_push",
+      "parent_model_id": "material_010m",
+      "parent_sha256": "49a2bb7b53d3d88b7d47dfc3d5eb15999c5fd8fcfd3a1cf3f0a67d96030c71a1",
+      "retained_model_id": "push_020m",
+      "retained_model_sha256": "b3eec7bae3045b24a95ea7cd2940a3e1f0b062841cc47ab1785a627bea36408a",
+      "other_model_ids": [
+        "push_005m",
+        "push_010m",
+        "push_015m",
+        "push_025m",
+        "push_030m",
+        "push_035m",
+        "push_040m"
+      ],
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "num_envs": 4096,
+        "seed": 66,
+        "rollout_steps": 24,
+        "learning_rate": 3e-05,
+        "lr_schedule": "fixed",
+        "clip_param": 0.1,
+        "epochs": 3,
+        "mini_batches": 4,
+        "checkpoint_seconds": 300,
+        "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode",
+        "actual_seconds": 2404.03298330307,
+        "requested_seconds": 2400
+      },
+      "status": "usable cumulative continuation candidate",
+      "selection_basis": "020m selected:postpush1.93406(8/10),2.19139(7/10),otherfour40/40,formalreset0. Stage usable for cumulative continuation; originalmain preserved; finalnotselected.",
+      "original_tag": "trial-20261111-step7-two-dr-final-01",
+      "source_commit": "12240524faa6c3c81e16f0c9be02010bdd5aed35",
+      "final_report": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/FINAL_REPORT.md",
+      "final_checkpoint_id": "push_040m"
+    }
+  ],
+  "models": [
+    {
+      "id": "base_partial_75m",
+      "iteration": 17133,
+      "sha256": "1c65583ca187837cc48dd389041afb25ce1f94b0897bd6d1aa4e56f8fb253047",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/base_partial_75m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_robust_full_75m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_robust_full_v1_2h_20261109_r2/model_075m.pt",
+      "role": "historical retained/actual next-stage parent; no uniform all-checkpoint best claim",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "base_partial_101m",
+      "iteration": 17556,
+      "sha256": "6528b190d686ad4f82c78fb37e30ba1b417754d20fdca55fc032fa878c915f31",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/base_partial_101m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_robust_full_101m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_robust_full_v1_2h_20261109_r2/model_101m.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage1_joint_friction_25m",
+      "iteration": 17575,
+      "sha256": "54fa91096ca62ea9bfdb1d64082b7b8b8a2c72d04f746bec9ae4798430b83712",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage1_joint_friction_25m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_joint_friction_stage1_25m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_joint_friction_stage1_1h_20261109_r1/model_025m.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage1_joint_friction_final",
+      "iteration": 18166,
+      "sha256": "c2b5299d132e41c6c02bb1a4713286640c8c79b3f4dd94272734a2bb797683e4",
+      "bytes": 5072235,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage1_joint_friction_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_joint_friction_stage1_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_joint_friction_stage1_1h_20261109_r1/model_final.pt",
+      "role": "historical retained/actual next-stage parent; no uniform all-checkpoint best claim",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage2_spring_damping_25m",
+      "iteration": 18607,
+      "sha256": "a4e5b2330a81cbbf087efc5df5cdc9dd79e2a6044872039fea347047dbebf06d",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage2_spring_damping_25m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_spring_damping_stage2_25m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_spring_damping_stage2_1h_20261109_r1/model_025m.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage2_spring_damping_cont10m_final",
+      "iteration": 18784,
+      "sha256": "d10729cc6f86908a9b0b388c9df3ddfb8066bb52005a553290f482b34f116ebf",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage2_spring_damping_cont10m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_spring_damping_stage2_cont10m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_spring_damping_stage2_cont10m_20261109_r1/model_final.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage2_spring_damping_cont20m_final",
+      "iteration": 19152,
+      "sha256": "ffbabfe51ca9656d5807d667c4a94065d2cdeefd833b366b97c213c00c779d80",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage2_spring_damping_cont20m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_spring_damping_stage2_cont20m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_spring_damping_stage2_cont20m_20261109_r1/model_final.pt",
+      "role": "historical retained/actual next-stage parent; no uniform all-checkpoint best claim",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage2_spring_damping_cont30m_final",
+      "iteration": 19338,
+      "sha256": "4343848b7bbb85f37f64c7bc2563f357ffa6b8ff7e5251bcbdf693bda9e001a8",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage2_spring_damping_cont30m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_spring_damping_stage2_cont30m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_spring_damping_stage2_cont30m_20261109_r1/model_final.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage2b_speed_preserve_10m_final",
+      "iteration": 19336,
+      "sha256": "a58f8923826288413b1b9197333aa3ecb2ab66f81b684ba60c66098b6d966c70",
+      "bytes": 5088873,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage2b_speed_preserve_10m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_speed_preserve_stage2b_10m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_speed_preserve_stage2b_10m_20261110_r1/model_final.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage3_external_dr_20m_final",
+      "iteration": 19438,
+      "sha256": "6ccdfebc0b1ec0c171d007164feeb4c3215276fe16f938531879e12835bc5314",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage3_external_dr_20m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_external_dr_stage3_20m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_external_dr_stage3_20m_20261110_r1/model_final.pt",
+      "role": "historical comparison checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage4_obs_noise_40m_final",
+      "iteration": 20285,
+      "sha256": "74d65e189cb496f0298d08d966329da902147f440b01c78209fda1a9c1136ca8",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/weights/stage4_obs_noise_40m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_noise_stage4_40m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_noise_stage4_cont20m_20261110_r1/model_final.pt",
+      "role": "previous frozen engineering candidate",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage5_obs_delay_40m_final",
+      "iteration": 20838,
+      "sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/weights/stage5_obs_delay_40m_final.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_obs_delay_stage5_40m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+      "role": "original 7a parent, preserved baseline of current Step7 lineage",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/MODEL_INDEX.json"
+    },
+    {
+      "id": "stage3_external_cont10m_r1",
+      "iteration": 19581,
+      "sha256": "5d1b4013189ef93ebb27284ee478cc0f609f75997a29185185b4e128c1f8eea9",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage3_external_cont10m_r1.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\dr_training_archive_20261111\\stage3_external_cont10m_r1.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_external_dr_stage3_cont10m_20261110_r1/model_final.pt",
+      "role": "historical actual parent checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_external_dr_stage3_cont10m_20261110_r1/FINAL.json"
+    },
+    {
+      "id": "stage3_external_cont10m_r2",
+      "iteration": 19724,
+      "sha256": "f25cc7a71bb56576abdab7def87a91a67b3c8cc7ba369f15b4bf2b5b81acebe4",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage3_external_cont10m_r2.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\dr_training_archive_20261111\\stage3_external_cont10m_r2.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_external_dr_stage3_cont10m_20261110_r2/model_final.pt",
+      "role": "historical actual parent checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_external_dr_stage3_cont10m_20261110_r2/FINAL.json"
+    },
+    {
+      "id": "stage4_obs_noise_first_segment",
+      "iteration": 20000,
+      "sha256": "845bf1cba9e89772da0710375317619a657174c2d8911700d5b01d43e291c403",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/stage4_obs_noise_first_segment.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\dr_training_archive_20261111\\stage4_obs_noise_first_segment.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_noise_stage4_40m_20261110_r1/model_final.pt",
+      "role": "historical actual parent checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_SCUT_INCREMENTAL_DR_20261109/evidence/FLAT_OBS_NOISE_STAGE4_20M_FINAL.json"
+    },
+    {
+      "id": "flat_action_delay_stage6_40m",
+      "iteration": 21361,
+      "sha256": "c3345a4e71be1e533c89b7073bd977bcc5dcc5fc51710e8147dff49f74ccdf0c",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/flat_action_delay_stage6_40m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_action_delay_stage6_40m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_action_delay_stage6_40m_20261110_r1/model_final.pt",
+      "role": "historical failed forward-adaptation comparison; does not reassign user-confirmed Step6 freeze",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_action_delay_stage6_40m_20261110_r1/FINAL.json"
+    },
+    {
+      "id": "flat_action_delay50_stage6b_60m",
+      "iteration": 21642,
+      "sha256": "04e07949750eace05ed1100db7418775e3bd0cd721563c2e85a4ff5998ebdad0",
+      "bytes": 5072235,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/flat_action_delay50_stage6b_60m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_action_delay50_stage6b_60m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_action_delay50_stage6b_60m_20261110_r1/model_final.pt",
+      "role": "historical failed forward-adaptation comparison; does not reassign user-confirmed Step6 freeze",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_action_delay50_stage6b_60m_20261110_r1/FINAL.json"
+    },
+    {
+      "id": "flat_action_delay25_stage6c_40m",
+      "iteration": 21390,
+      "sha256": "6505500c1d2c0c158bf60236e2c9ccc251ee3b4d4f7c347b61df089a8e930a77",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/flat_action_delay25_stage6c_40m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_action_delay25_stage6c_40m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_action_delay25_stage6c_40m_20261110_r1/model_final.pt",
+      "role": "historical failed forward-adaptation comparison; does not reassign user-confirmed Step6 freeze",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_action_delay25_stage6c_40m_20261110_r1/FINAL.json"
+    },
+    {
+      "id": "flat_scut_delay_stage7a_20m",
+      "iteration": 21103,
+      "sha256": "0da8f78e30cae952a9712234bd32f75d0093b3e43344007b7fa1b0395fb37fb2",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/flat_scut_delay_stage7a_20m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_flat_scut_delay_stage7a_20m_final.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_scut_delay_stage7a_20m_20261110_r1/model_final.pt",
+      "role": "historical failed forward-adaptation comparison; does not reassign user-confirmed Step6 freeze",
+      "identity_evidence": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/early_evidence/flat_scut_delay_stage7a_20m_20261110_r1/FINAL.json"
+    },
+    {
+      "id": "legacy7a_005m",
+      "iteration": 20904,
+      "sha256": "cf5a89affea2ef8b1ebd0887e9c8276243455a56809e9cdf20a00182c6d77b7d",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/legacy7a_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_diag_step7a_model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_scut_delay_stage7a_20m_20261110_r1/model_005m.pt",
+      "role": "historical failed adaptation timeline checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110/REMOTE_7A_PERIODIC_005M.json"
+    },
+    {
+      "id": "legacy7a_010m",
+      "iteration": 20971,
+      "sha256": "c2c29d7b940a0198d30e67295cb482c8bd1260effa3d0f2c6ec5b7bc8fd09533",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/legacy7a_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_diag_step7a_model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_scut_delay_stage7a_20m_20261110_r1/model_010m.pt",
+      "role": "historical failed adaptation timeline checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110/REMOTE_7A_PERIODIC_010M.json"
+    },
+    {
+      "id": "legacy7a_015m",
+      "iteration": 21038,
+      "sha256": "a52746b64afe0502a5ec8d93a1db3ff6b116f53eac5b68472854515b03832f3d",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/legacy7a_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_diag_step7a_model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_scut_delay_stage7a_20m_20261110_r1/model_015m.pt",
+      "role": "historical failed adaptation timeline checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_DELAY_DIAG_20261110/REMOTE_7A_PERIODIC_015M.json"
+    },
+    {
+      "id": "physical_delay_adapt_005m",
+      "iteration": 20905,
+      "sha256": "bc22ea7a34c7310f56baeb676ca40bdc0a26da00cf1f0f21a7b124f0a490698f",
+      "bytes": 5072171,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/physical_delay_adapt_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\runs3060\\mod4v3_play_20261107\\ckpt_step7_physical_dr_r1_model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/adapt_005m_r1/model_final.pt",
+      "role": "5-minute experiment retained, not selected for main continuation",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_PHYSICAL_DR_ADAPT_20261110/evidence/adapt_005m_r1/FINAL.json"
+    },
+    {
+      "id": "square_005m",
+      "iteration": 20904,
+      "sha256": "5099d622531430bddf0f63f6f450177111952fe15f4923136823eb525e8de475",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/square_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_20261111_r1/train040m_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "square_010m",
+      "iteration": 20970,
+      "sha256": "cdfcfe6da10642de58149952e7c88326a65f5ac835ee39b0c61bc480e1b78048",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/square_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_20261111_r1/train040m_r1/model_010m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_20261111/evidence/training_round/PERIODIC_010M.json"
+    },
+    {
+      "id": "square_015m",
+      "iteration": 21036,
+      "sha256": "f4960781490a4de9e45fc97a477d890ab4b3a717edbd39c43581fa059278e483",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/square_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_20261111_r1/train040m_r1/model_015m.pt",
+      "role": "actual continuation parent",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "rangefix_005m",
+      "iteration": 21102,
+      "sha256": "b30d3fbab1adc1d14d68a9d551034899137380c5f7ee7d049e4a5f50653541eb",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/rangefix_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_rangefix_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_rangefix_20261111_r1/continue_step7_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_RANGEFIX_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "rangefix_010m",
+      "iteration": 21168,
+      "sha256": "3dab58d00d5044e4e46fafd3c339c7c81c962240c2f8a5203f42421e020a1630",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/rangefix_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_rangefix_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_rangefix_20261111_r1/continue_step7_r1/model_010m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_RANGEFIX_20261111/evidence/training_round/PERIODIC_010M.json"
+    },
+    {
+      "id": "rangefix_015m",
+      "iteration": 21234,
+      "sha256": "74c25dd19708148808d1928fc4d6eb1278239fcdc6ab97598d866cf477dc561f",
+      "bytes": 5072939,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/rangefix_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_forward_square_rangefix_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_forward_square_rangefix_20261111_r1/continue_step7_r1/model_015m.pt",
+      "role": "actual continuation parent",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_FORWARD_SQUARE_RANGEFIX_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "mass_005m",
+      "iteration": 21301,
+      "sha256": "a1133ccf49af5c975f2f2fbe1e0db983815f7cde78c349ae9e2e8ab8c4d60cd1",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "mass_010m",
+      "iteration": 21366,
+      "sha256": "c0f312a91997e6859e58477d05cba6cfc8d068d45eb372cb06f2d4b1f5fef5c7",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_010m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_010M.json"
+    },
+    {
+      "id": "mass_015m",
+      "iteration": 21431,
+      "sha256": "94d8baa1671538170283d427852dccd426c7d281f6ab24e212d7187c84f644f3",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_015m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "mass_020m",
+      "iteration": 21497,
+      "sha256": "e9e6480dd18d397632d3b5c6552d3053436afb7dba326c7b58cd3c8e689c3e11",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_020m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_020m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_020m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_020M.json"
+    },
+    {
+      "id": "mass_025m",
+      "iteration": 21561,
+      "sha256": "8d3b110dcb0fc336706fa5991113bfc446292490a36c3c69c05c154a7bdbb436",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_025m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_025m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_025m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_025M.json"
+    },
+    {
+      "id": "mass_030m",
+      "iteration": 21626,
+      "sha256": "7fb235249b899bb177c398cd8594b952fd1edae690fddc47f60790d329d9692e",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_030m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_030m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_030m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_030M.json"
+    },
+    {
+      "id": "mass_035m",
+      "iteration": 21690,
+      "sha256": "8bcdd0b4fb13dd241108d10ed73bb302bcf8ed7f132ea5b7912aa9c0ba6210c3",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_035m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_035m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_035m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_035M.json"
+    },
+    {
+      "id": "mass_040m",
+      "iteration": 21754,
+      "sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+      "bytes": 5581161,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/mass_040m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_body_mass_20261111_r1\\model_040m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_body_mass_20261111_r1/train040m_mass_r1/model_040m.pt",
+      "role": "frozen Step7 main baseline",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_BODY_MASS_20261111/evidence/training_round/PERIODIC_040M.json",
+      "aliases": [
+        "model_final.pt (byte-identical to model_040m.pt)"
+      ],
+      "preserved_local_path": "D:\\claude2\\fangzhen\\frozen_models\\step7_20261111_mass_final\\model_final.pt",
+      "preserved_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_20261111_mass_final/model_final.pt"
+    },
+    {
+      "id": "effort_005m",
+      "iteration": 21821,
+      "sha256": "82b5e1e84ae425c693585629080a8fbbbd291993214ddffaf0485d9bba1aa17d",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "effort_010m",
+      "iteration": 21886,
+      "sha256": "5808839cabee9c9350aa36f74497bb2e0f8c733591d2216537b429ccf27d6f75",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_010m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_010M.json"
+    },
+    {
+      "id": "effort_015m",
+      "iteration": 21952,
+      "sha256": "01cbebc04852710ea3a287f9f454ec74fbf4a065ac063d941f1e7d6615debc13",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_015m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "effort_020m",
+      "iteration": 22017,
+      "sha256": "0a1a8ccb5d1f5cec1582e071798597baa55e43dfb13e4eba6472a7fd82f3b22c",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_020m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_020m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_020m.pt",
+      "role": "best trained checkpoint selected within this round",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_020M.json",
+      "preserved_local_path": "D:\\claude2\\fangzhen\\frozen_models\\step7_effort_020m_candidate_20261111\\model_020m.pt",
+      "preserved_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_effort_020m_candidate_20261111/model_020m.pt"
+    },
+    {
+      "id": "effort_025m",
+      "iteration": 22082,
+      "sha256": "891278fde7face8b2d21145c6d7fa32c78a76847b82dba440c15880269e515d0",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_025m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_025m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_025m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_025M.json"
+    },
+    {
+      "id": "effort_030m",
+      "iteration": 22146,
+      "sha256": "16750c67f32db5e6d3a9b0825eb269bfafe6a6511395c7908599d2611603eb7b",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_030m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_030m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_030m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_030M.json"
+    },
+    {
+      "id": "effort_035m",
+      "iteration": 22210,
+      "sha256": "5c9582742713e7551e8e8b3ab16ea0f67b1a8e6b6d88e2d795d7a0d33741cc91",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_035m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_035m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_035m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_035M.json"
+    },
+    {
+      "id": "effort_040m",
+      "iteration": 22274,
+      "sha256": "e56f6d4888ab1fcb02523c89d435732a3c77a78bdf750b35e77ea3e1f03495a1",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/effort_040m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_effort_scale_20261111_r1\\model_040m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_effort_scale_20261111_r1/train040m_effort_r1/model_040m.pt",
+      "role": "final checkpoint retained for regression evidence; not selected",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_EFFORT_SCALE_20261111/evidence/training_round/PERIODIC_040M.json",
+      "aliases": [
+        "model_final.pt (byte-identical to model_040m.pt)"
+      ]
+    },
+    {
+      "id": "material_005m",
+      "iteration": 21818,
+      "sha256": "0262be5af09410397b08ba330e98f6f1462ce93206952fa452cf7a3f9b496fe8",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "material_010m",
+      "iteration": 21882,
+      "sha256": "49a2bb7b53d3d88b7d47dfc3d5eb15999c5fd8fcfd3a1cf3f0a67d96030c71a1",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_010m.pt",
+      "role": "best trained checkpoint selected within this round",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_010M.json",
+      "preserved_local_path": "D:\\claude2\\fangzhen\\frozen_models\\step7_material_010m_candidate_20261111\\model_010m.pt",
+      "preserved_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_material_010m_candidate_20261111/model_010m.pt"
+    },
+    {
+      "id": "material_015m",
+      "iteration": 21946,
+      "sha256": "ed6809ea6d1be0d2aee36e0817d4481f6462c6dec7a1e2321880e2e202e86c5e",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_015m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "material_020m",
+      "iteration": 22010,
+      "sha256": "f095b9ad437ee732fb1053fcfedae150a33fe7b32b3f564923cb50b477f7818f",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_020m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_020m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_020m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_020M.json"
+    },
+    {
+      "id": "material_025m",
+      "iteration": 22073,
+      "sha256": "c9f104505eca73dd593093092d861749dc82fbb8d27caf96b58ffa1a4851a268",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_025m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_025m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_025m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_025M.json"
+    },
+    {
+      "id": "material_030m",
+      "iteration": 22136,
+      "sha256": "d89bdbf5f8e57d77e13d824a3eba32d717fe00464903b8a67b54806324e72941",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_030m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_030m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_030m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_030M.json"
+    },
+    {
+      "id": "material_035m",
+      "iteration": 22198,
+      "sha256": "d10ebb4b7b2f3ff9aa6bf226fec35de434654d6cf81b828ea3730ae0bc08b1fa",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_035m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_035m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_035m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_035M.json"
+    },
+    {
+      "id": "material_040m",
+      "iteration": 22260,
+      "sha256": "6f9a95802f235fd15c647b0979323ad5b79ee28f6c5609976703b5764a983104",
+      "bytes": 5746209,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/material_040m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_material_20261111_r1\\model_040m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_material_20261111_r1/train040m_material_r1/model_040m.pt",
+      "role": "final checkpoint retained for regression evidence; not selected",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_MATERIAL_20261111/evidence/training_round/PERIODIC_040M.json",
+      "aliases": [
+        "model_final.pt (byte-identical to model_040m.pt)"
+      ]
+    },
+    {
+      "id": "push_005m",
+      "iteration": 21948,
+      "sha256": "02c169b6de583846ae47bfbf5a3546aae1a408649617131842cac649d88a4d28",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_005m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_005m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_005m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_005M.json"
+    },
+    {
+      "id": "push_010m",
+      "iteration": 22013,
+      "sha256": "c998a8de29d70974ad826cc2de1d54451a6428f495ebe94091710a20a9a64de6",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_010m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_010m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_010m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_010M.json"
+    },
+    {
+      "id": "push_015m",
+      "iteration": 22077,
+      "sha256": "96fedcccdf905e41e29aa00f37592d5f9fe47eb87f3ddd55494220bbb27e73c1",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_015m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_015m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_015m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_015M.json"
+    },
+    {
+      "id": "push_020m",
+      "iteration": 22141,
+      "sha256": "b3eec7bae3045b24a95ea7cd2940a3e1f0b062841cc47ab1785a627bea36408a",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_020m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_020m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_020m.pt",
+      "role": "best trained checkpoint selected within this round",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_020M.json",
+      "preserved_local_path": "D:\\claude2\\fangzhen\\frozen_models\\step7_velocity_push_020m_candidate_20261111\\model_020m.pt",
+      "preserved_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_velocity_push_020m_candidate_20261111/model_020m.pt"
+    },
+    {
+      "id": "push_025m",
+      "iteration": 22205,
+      "sha256": "28131a35c9d5c3320f2b4e4475187ee2916672d6e38c2befdebc8f042771ec02",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_025m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_025m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_025m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_025M.json"
+    },
+    {
+      "id": "push_030m",
+      "iteration": 22269,
+      "sha256": "1cbe4ae5e34423aa2ca298db06ee57904b3c18bfa39758da361bbd0cbdc9b805",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_030m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_030m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_030m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_030M.json"
+    },
+    {
+      "id": "push_035m",
+      "iteration": 22332,
+      "sha256": "93485c8fc9881513f177db76930f05a56b220e1bd8c5519cee700b67c7e466cc",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_035m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_035m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_035m.pt",
+      "role": "five-minute checkpoint",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_035M.json"
+    },
+    {
+      "id": "push_040m",
+      "iteration": 22395,
+      "sha256": "46fa51e6b8ccaf1ad49c4263c189a1be7c394ff1300b8af264083831af6e8d3f",
+      "bytes": 5746273,
+      "git_path": "sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/weights/push_040m.pt",
+      "git_storage": "ordinary Git blob, full .pt bytes; no LFS pointer",
+      "original_local_path": "D:\\claude2\\fangzhen\\tmp\\step7_velocity_push_20261111_r1\\model_040m.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_velocity_push_20261111_r1/train040m_velocity_push_r1/model_040m.pt",
+      "role": "final checkpoint retained for regression evidence; not selected",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/training_round/PERIODIC_040M.json",
+      "aliases": [
+        "model_final.pt (byte-identical to model_040m.pt)"
+      ]
+    }
+  ],
+  "weights_summary": {
+    "models": 61,
+    "unique_sha256": 61,
+    "total_bytes": 329673213,
+    "already_tracked_stage4_stage5_reused": true
+  },
+  "current_ppo": {
+    "num_envs": 4096,
+    "seed": 66,
+    "rollout_steps": 24,
+    "learning_rate": 3e-05,
+    "lr_schedule": "fixed",
+    "clip_param": 0.1,
+    "epochs": 3,
+    "mini_batches": 4,
+    "checkpoint_seconds": 300,
+    "restore": "actor/critic/std/Adam/global RNG; one fresh physical episode"
+  },
+  "checkpoint_resume_scope": "Complete PPO/globalRNG with fresh physical episode. Material/push extra physical snapshot kwargs absent; see archived CHECKPOINT_STATE_SCOPE; no exact instantaneous physics replay claim.",
+  "remaining_dr": "D2baseCOMfullrange,D3PDfullrange,D6jointfrictionfullrange,D7springdampingfullrange,D8externalfullrange,D9noise fullrange;rough notstarted"
+}

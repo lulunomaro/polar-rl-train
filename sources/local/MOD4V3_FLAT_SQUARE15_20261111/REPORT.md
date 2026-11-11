@@ -15,3 +15,7 @@ Flat4096env，819名义参数＋3277完整DR；原MOD4、35/78/6、2.5/10/20ms�
 已于 2026-11-11 16:58:13 Asia/Shanghai 启动，PID1199368。实际STARTUP系数−1.5；RESTORE确认actor/critic/STD/Adam/globalRNG恢复，父iter22618。首完整PPO iter22619，SHA`865cd88a45a41c64904e69350f38176bdf3ae5aded1185dac0924b96e3190a58`，11,048,951bytes，已拉回weights/。短奖励探针无optimizer，24步，无重置，闭链峰0.287970mm，公式误差1.49e-8。首PPO有567次闭链单env reset、numerical0；因此不能把短探针健康写成整轮没有物理终止。
 
 准备读取记录：一次本地JSON读取报空内容，随后重新读取原LAUNCH成功；远端训练与保存未受影响。
+
+配置范围核对：support仅scut_flat_forward_square_env.py与上一Flat轮不同，实际训练owner及其他DR/接口/solver源相同。本轮未开同父同seed−1.0控制组，结束同批评测衡量接训效果，不把全部变化单独归因于加权。
+
+10分钟检查完成：MuJoCo名义2.0→2.159249、2.2→2.421463；仍超原±.15。后退/旋转/高低身各10/10，全部回放reset0。首及5m/10m完整PT已本地保存。训练numerical0；训练随机指令与起身瞬态统计不作为固定任务通过。

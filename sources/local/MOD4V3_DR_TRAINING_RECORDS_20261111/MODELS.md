@@ -145,4 +145,6 @@
 
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [flat15_005m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_005m.pt) | 22679 | 11,048,951 | `7605ead60c65004a41a29f0b2c8ce4bb8f22ecd9326b737708a29d454b978632` |
+| [flat15_010m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_010m.pt) | 22739 | 11,048,951 | `e5999df2b04d93db31f26c3ef1570286c6b769ae32346f98ce59bf64375125e7` |
 | [flat15_first](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_first_complete.pt) | 22619 | 11,048,951 | `865cd88a45a41c64904e69350f38176bdf3ae5aded1185dac0924b96e3190a58` |

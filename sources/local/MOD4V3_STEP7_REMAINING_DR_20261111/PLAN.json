@@ -1,0 +1,224 @@
+{
+  "root": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107",
+  "code": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/code",
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "runtime": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/runtime",
+  "shared_package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/shared",
+  "package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/package",
+  "support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_remaining_dr_20261111_r1/support",
+  "source_paths": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/SOURCE_PATHS_LOCAL.json",
+  "reset_bank": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/reset_bank.json",
+  "seed": 66,
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210"
+  },
+  "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/frozen/step7_velocity_push_020m_candidate_20261111/model_020m.pt",
+  "parent_sha256": "b3eec7bae3045b24a95ea7cd2940a3e1f0b062841cc47ab1785a627bea36408a",
+  "legacy_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/support",
+  "baseline_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_dr_repair_20261110_r1/support",
+  "reward": {
+    "profile": "flat_remaining_dr",
+    "term": "track_lin_vel_xy_square",
+    "weight": -0.5,
+    "sigma": 1.0,
+    "effective_coefficient": -0.5,
+    "baseline_weight": -0.1,
+    "baseline_sigma": 0.25,
+    "baseline_effective_coefficient": -0.00625,
+    "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+    "time_scaling": "reward rate multiplied by step_dt=.02 once",
+    "policy_input": 35,
+    "critic_input": 78
+  },
+  "execution_scope": "Combined remainingDR ranges and MOD4closedchain reset adaptation; not SCUTplant-identical; no rough",
+  "training_round": {
+    "job": "train040m_remaining_r1",
+    "seconds": 2400,
+    "num_envs": 4096,
+    "checkpoint_interval_seconds": 300,
+    "inspection_interval_seconds": 300,
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
+    "parent_sha256": "b3eec7bae3045b24a95ea7cd2940a3e1f0b062841cc47ab1785a627bea36408a",
+    "reward_effective_vx_squared_coefficient": -0.5,
+    "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+    "budget": "one combined40minute round explicitly authorized by user2026-11-11"
+  },
+  "original_parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+  "original_parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+  "step7_dr": {
+    "reference": "trained_env.yaml act_delay_cfg=[1,3], obs_delay_cfg=[1,4]; base_env.py torch.randint(low,high), high exclusive; delay quantum5ms",
+    "action_options_ms": [
+      5,
+      10
+    ],
+    "sensor_options_ms": [
+      5,
+      10,
+      15
+    ],
+    "sampling": "independent per env/group at reset; episode fixed",
+    "joint_friction_scale": 0.5,
+    "spring_damping_fraction": 0.25,
+    "external_dr_fraction": 0.25,
+    "obs_noise_fraction": 0.25,
+    "other_DR": "existing Step7 lightweight mass/inertia/gain/material plus repaired reset/torque semantics; not unrelated SCUT fullrange DR",
+    "mass": "SCUT startup independent rigid-body scale:base.9–1.3, selectedlegs/wheels.9–1.1; othersnominal; inertia scales perbody; same COM±.01m"
+  },
+  "selected_parent_reason": "current usable cumulative mass+effort+material+push020m candidate; originalmass040 frozen retained as control",
+  "effort_output_scale": {
+    "leg": [
+      0.8,
+      1.1
+    ],
+    "wheel": [
+      0.9,
+      1.1
+    ],
+    "independent": "per env and active motor",
+    "sampling": "on reset at first call and when global policy steps since last sampling >=720; fixed otherwise",
+    "min_step_count_between_reset": 720,
+    "mapping": "raw full PD effort * scale -> original torque-speed envelope -> inherited additive torque noise and final envelope; no change to motor constants",
+    "new_bias": 0.0,
+    "new_noise_std": 0.0,
+    "critic": "existing 78D stiffness/damping slots report effective gains after multiplication; actual applied torque retained; no new dimension or dedicated multiplier slot"
+  },
+  "frozen_baseline": "../MOD4V3_STEP7_FROZEN_20261111/RECIPE.json",
+  "contact_material": {
+    "sampling": "startup, independent bucket index per env and collider; fixed selected collider properties across episode resets",
+    "make_consistent": true,
+    "wheel": {
+      "pattern": ".*_wheel_link",
+      "static": [
+        0.5,
+        1.2
+      ],
+      "dynamic": [
+        0.4,
+        1.0
+      ],
+      "restitution": [
+        0.02,
+        0.2
+      ],
+      "buckets": 64
+    },
+    "base": {
+      "pattern": "base_link",
+      "static": [
+        0.01,
+        0.1
+      ],
+      "dynamic": [
+        0.01,
+        0.1
+      ],
+      "restitution": [
+        0.02,
+        0.2
+      ],
+      "buckets": 64
+    },
+    "guide": {
+      "pattern": ".*_guide_link",
+      "static": [
+        0.1,
+        0.7
+      ],
+      "dynamic": [
+        0.1,
+        0.7
+      ],
+      "restitution": [
+        0.01,
+        0.1
+      ],
+      "buckets": 8
+    },
+    "unselected": "retain inherited Step7 mild material resets",
+    "critic": "existing six material slots actual left/right wheel triple (shape mean if multi-shape); base/guide absent from existing78Dlayout"
+  },
+  "parent_selection_status": "selected material010m after completed nine-model paired evaluation",
+  "velocity_push": {
+    "velocity_delta_world_xy_m_s": [
+      -0.25,
+      0.25
+    ],
+    "interval_s": [
+      5.0,
+      10.0
+    ],
+    "per_environment": true,
+    "is_global_time": false,
+    "reset": "resample timer on episode reset per reference EventManager.reset",
+    "implementation": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity adds uniform random world velocity delta; retains z and angular; use function directly",
+    "event_phase": "native DirectRLEnv post-step interval before observations",
+    "evidence": "runtime counts and native pre/post/delta/tick saved in full checkpoints; progress reports counts;64env interval/reset probe before training",
+    "paired_evaluation": {
+      "steps": 600,
+      "policy_dt_s": 0.02,
+      "scheduled_push_s": 6.0,
+      "pre_stable_s": [
+        3.6,
+        5.98
+      ],
+      "post_stable_s": [
+        8.0,
+        12.0
+      ],
+      "recovery": "first0.5s continuously within existing task tolerance",
+      "pairing": "same initial pose/DR/material/XYdelta/torquenoise for each model; nominal condition disables push"
+    }
+  },
+  "baseline_main_frozen_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+  "profile": "flat_remaining_dr",
+  "combined_changes": {
+    "base_com": {
+      "x": [
+        -0.04,
+        0.04
+      ],
+      "y": [
+        -0.02,
+        0.02
+      ],
+      "z": [
+        -0.02,
+        0.02
+      ],
+      "sampling": "startup immutable"
+    },
+    "pd_scales": [
+      0.75,
+      1.25
+    ],
+    "gain_reset_cooldown_global_steps": 720,
+    "joint_friction_fraction": 1.0,
+    "joint_friction_sampling": "startup; activelegstatic/dynamic+viscous; wheel/passive static+viscous only per savedYAML",
+    "spring_damping_scale": [
+      0.5,
+      1.5
+    ],
+    "spring_stiffness": "retain plant2000; no reference.01 stiffness transplant",
+    "external_fraction": 1.0,
+    "observation_noise_fraction": 1.0,
+    "reset": "reference normal/ground modes+MOD4 feasible linkage bank; wheelangle+-2pi,legvel+-pi/2,wheelvel+-50",
+    "reset_ground_probability": 0.5,
+    "ground_mode_per_leg": {
+      "positive": 0.6,
+      "negative": 0.4
+    },
+    "ground_root_height_m": 0.25,
+    "airmode": false,
+    "solver": "retained TGS32/4;notchanged",
+    "checkpoint": "completePPO and DRsample/timer dictionary;freshphysicalepisode restore",
+    "reset_ground_length_mod4_effective_m": [
+      0.14,
+      0.3466992613455914
+    ]
+  }
+}

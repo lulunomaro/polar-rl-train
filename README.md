@@ -25,6 +25,8 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 原Step7质量适应模型与训练配方继续[冻结](sources/local/MOD4V3_STEP7_FROZEN_20261111/README.md)，iteration21754、SHA `23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772`，保留为主对照。输出倍率020m备用、材质010m实际接续到推扰020m；材质轮实际权重父仍是质量040m，不能按目录顺序接错。**这些模型的完整`.pt`已经收进本次Git档案**，见[阶段总索引](docs/DR_TRAINING_INDEX_20261111.md)和[61份模型表](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)。
 
+**2026-11-11 合并轮已开训：** 用户明确授权剩余DR一次接入。当前从推扰020m启动 [剩余DR合并40分钟适应](sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/README.md)，4096env，每5min完整保存检查；COM、PD、摩擦、阻尼、外力、噪声全范围及MOD4闭链可行reset一起开启。此授权覆盖本轮“每次只改一项”的旧推进方式；此前已完成项和冻结不覆盖，剩余项此刻为运行中，不能记为已适应。具体实现差异和实际状态见该轮PLAN/REPORT。
+
 参考范围以 [保存的华南虎 trained_env.yaml](sources/local/MOD4V3_FORWARD_REGRESSION_AUDIT_20261110/reference/trained_env.yaml) 及对应实际事件实现为准。D 编号用于追踪项目。当前优先顺序为 **D4 电机输出比例误差 → D5 分部位接触材质 → D10 速度推扰**，每轮保留前面已适应的 DR；随后补齐 D2/D3/D6–D9 的目标范围。先做这三项是为了接续当前已恢复的前进能力，依次验证输出误差、接触差异和受扰恢复。具体范围和采样方式见表；计划状态不等于已经开训。
 
 | 编号 | DR 项目 | 已有实现 / 当前状态 | 后续目标及采样方式 |

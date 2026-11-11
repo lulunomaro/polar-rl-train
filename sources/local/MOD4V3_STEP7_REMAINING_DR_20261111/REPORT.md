@@ -13,3 +13,9 @@
 STARTUP实际profile flat_remaining_dr，父push020m SHA与iter22141一致。RESTORE完整actor/critic/std/Adam及RNG、fresh物理episode；PPO fixedLR3e-5、clip.1、epochs3回读一致。首update iter22142、actor_changed=true，完整model_first_complete.pt存在并SHA核对；新增DR字典实际包含COM/friction/Kp/Kd/gas damping/material/push timer等字段。没有沿用上一轮新增字段未落盘的问题，仍不承诺精确物理瞬时状态续接。
 
 主训练中的刚开始closure重置主要集中首个update，后续按原单环境重置继续记录；numerical保持0。运行源码对照上传快照SHA一致，不热改。五分钟本机监测已启动，训练结束后用相同新DR样本配对父、主冻结与本轮检查点。尚未有本轮固定任务成绩，不能据rollout均值宣布适应完成。
+
+## 首个5分钟检查点
+
+model005m iter22203、实际301.465s，SHA71df98c5d5c50f1407175cd60b7c4760618287cf5477a760884061494ec71594，完整11,044,601bytes已下载并核对。名义MuJoCo固定回放：前进2.0→2.10064（10/10）、2.2→2.33392（10/10），后退/旋转/高度.20/.40各10/10，全部无reset。不是fullDR同源成绩。训练继续numerical0；新增分布的闭链单envreset保留，原2mm阈值和原权重不变。
+
+准备轮末配对脚本时，原字符串缩进替换未命中，读代码发现native damping镜像/名义中和和ground命令清除遗漏；在该脚本首次执行前已修正，见EVALUATOR_PREPARATION_FIX。此更正仅改尚未运行的评测脚本，不改训练中support，没有无效评测结果冒充通过。

@@ -1337,9 +1337,12 @@
         "critic_input": 78
       },
       "model_ids": [
+        "r1sq2_005m",
+        "r1sq2_010m",
+        "r1sq2_015m",
         "r1sq2_first"
       ],
-      "status": "R1 continuation1643s in same authorized40min running; no promotion",
+      "status": "Userrequested nextcheckpoint cubic augmentation; cut after015m/iter23027;actual903.074s;no FINAL/SAFE_CLOSED;continues rough_r1_abscubic within same40min",
       "original_tag": "trial-20261111-mod4-rough-r1-square2-start-01",
       "final_tag": null,
       "terrain": {
@@ -1380,7 +1383,150 @@
         ],
         "progression": "Same reset-boundary net2m and groundvariation>=3mm nofailure progression;failedlevel down; locallevel0; per-family counted; fixed eval measures specified stair transitions separately",
         "restored_ppo_iteration": 22925,
-        "local_curriculum_initial_iteration": "restored from R1_010m, local steps1656 expected from checkpoint",
+        "local_curriculum_initial_iteration": 1656,
+        "source_plan": "docs/ROUGH_CURRICULUM_README_20261111.md",
+        "columns_reason": "70 columns disperse 4096 envs initially at level0, preserving ~0.8m spawn separation within9m tile; copied old all-level spawn grid was not suitable",
+        "noise": "native random_uniform ignores difficulty; wrapper quantizes maximum height max5mm, round(.03*difficulty/5mm)*5mm",
+        "train_from_parent_fullPPO": true,
+        "family_columns": [
+          8,
+          6,
+          6,
+          6,
+          9,
+          6,
+          9,
+          6,
+          14
+        ],
+        "command_curriculum": {
+          "rough_abs_vx_caps_by_level": [
+            1.0,
+            1.25,
+            1.5,
+            2.2
+          ],
+          "mid_stair_start_abs_vx": [
+            0.5,
+            1.0
+          ],
+          "straight_fraction": 0.6,
+          "turn_fraction": 0.2,
+          "spin_fraction": 0.2,
+          "rough_yaw_turn_cap": 1.0,
+          "rough_spin_abs_range": [
+            1.2,
+            3.0
+          ],
+          "flat": "OriginalFlat sampling retained including2.2m/s and4.5pi gyro",
+          "ground_reset": "Existinginitial1.5s±1m/s recovery commands retained"
+        },
+        "actual_terrain_definition": "reference SCUT archived rotation families;4rows/70cols9m;R1 midstairs25–40mm; other ranges per savedreference"
+      },
+      "budget": "Continuation within same40min; see budget_accounting",
+      "continuation_stage_id": "rough_r1_abscubic"
+    },
+    {
+      "id": "rough_r1_abscubic",
+      "title": "RoughR1平方加绝对三次项接续",
+      "profile": "rough_r1",
+      "parent_model_id": "r1sq2_015m",
+      "parent_sha256": "22513a6e935f1c2ab6204561ef2c81ab6ae0d8974436c7438cbfd8f5ba764c7a",
+      "source_directories": [
+        "sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train_remaining_rough_r1_abscubic_r1",
+        "seconds": 740,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "CompletePPO/RNG and R1curriculum resume;freshphysicalepisodes",
+        "parent_sha256": "22513a6e935f1c2ab6204561ef2c81ab6ae0d8974436c7438cbfd8f5ba764c7a",
+        "reward_effective_vx_squared_coefficient": "-2.0 with multiplier(1+abs(e)/1m_s)",
+        "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+        "budget": "Same40min;first756.803s+square2segment903.074s+remaining740s"
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "assignment": "fixed env IDs modulo5==4;819of4096",
+        "remaining_fraction": "3277of4096 keep identical fullDR ranges",
+        "nominal_parameters": "asset nominal mass/inertia/COM/material/jointfriction/damping; gains/effort1; no sensor/torquenoise/delay/wrench/push",
+        "reset": "same MOD4 feasible random reset distribution in both groups; not easier standreset",
+        "PPO": "single shared actor/critic same unweighted combinedrollout; no auxiliary loss",
+        "reward_and_solver": "square plus absolute cubic userrequested; originalTGS32/4"
+      },
+      "reward": {
+        "profile": "rough_r1",
+        "term": "track_lin_vel_xy_square",
+        "weight": -2.0,
+        "sigma": 1.0,
+        "effective_coefficient": -2.0,
+        "baseline_weight": -1.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -1.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78,
+        "formula": "-2*e**2*(1+abs(e)/v_ref)",
+        "v_ref_m_s": 1.0,
+        "square_coefficient": -2.0,
+        "absolute_cubic_coefficient": -2.0,
+        "unit_note": "v_ref keeps dimensionless multiplier; use abs(e)^3 to penalize both signs"
+      },
+      "model_ids": [
+        "r1cubic_first"
+      ],
+      "status": "R1 cubic continuation740s in same authorized40min running; no promotion",
+      "original_tag": "trial-20261111-mod4-rough-r1-abscubic-start-01",
+      "final_tag": null,
+      "terrain": {
+        "terrain_rows": 4,
+        "terrain_cols": 70,
+        "tile_size_m": [
+          9,
+          9
+        ],
+        "difficulty_range": [
+          0.0,
+          1.0
+        ],
+        "max_init_level": 0,
+        "flat_fraction": 0.2,
+        "nominal_fraction": 0.2,
+        "groups_4096": {
+          "nominal_flat": 164,
+          "nominal_rough": 655,
+          "DR_flat": 655,
+          "DR_rough": 2622
+        },
+        "families": [
+          "tiny_step_rot",
+          "slope_for_rm_low",
+          "inv_slope_for_rm_low",
+          "stair_slope_for_rm_low",
+          "stair_slope_for_rm_mid",
+          "inv_stair_slope_for_rm_low",
+          "inv_stair_slope_for_rm_mid",
+          "random_uniform_for_rm",
+          "plane_for_rm_rot"
+        ],
+        "excluded": [
+          "air_reset",
+          "high_stairs",
+          "new_rewards"
+        ],
+        "progression": "Same reset-boundary net2m and groundvariation>=3mm nofailure progression;failedlevel down; locallevel0; per-family counted; fixed eval measures specified stair transitions separately",
+        "restored_ppo_iteration": 23027,
+        "local_curriculum_initial_iteration": 4104,
         "source_plan": "docs/ROUGH_CURRICULUM_README_20261111.md",
         "columns_reason": "70 columns disperse 4096 envs initially at level0, preserving ~0.8m spawn separation within9m tile; copied old all-level spawn grid was not suitable",
         "noise": "native random_uniform ignores difficulty; wrapper quantizes maximum height max5mm, round(.03*difficulty/5mm)*5mm",
@@ -4081,12 +4227,96 @@
       "role": "RoughR1 complete PPO checkpoint",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "r1sq2_005m",
+      "file": "model_005m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_005m.pt",
+      "bytes": 11324889,
+      "sha256": "fb7ed1f7c46990b15b7a258c4318f6587430568f4ce9ef57bccd98dfefb4b90d",
+      "iteration": 22959,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "r1_010m",
+      "parent_sha256": "959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_square2_20261111_r1/train_remaining_rough_r1_square2_r1/model_005m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/PLAN.json"
+      ],
+      "role": "RoughR1 complete PPO checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "r1sq2_010m",
+      "file": "model_010m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_010m.pt",
+      "bytes": 11324889,
+      "sha256": "53256d1d09e6b6e0244591820bff455557021968e4937f31921005bb5ac764e4",
+      "iteration": 22993,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "r1_010m",
+      "parent_sha256": "959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_square2_20261111_r1/train_remaining_rough_r1_square2_r1/model_010m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/PLAN.json"
+      ],
+      "role": "RoughR1 complete PPO checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "r1sq2_015m",
+      "file": "model_015m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_015m.pt",
+      "bytes": 11324889,
+      "sha256": "22513a6e935f1c2ab6204561ef2c81ab6ae0d8974436c7438cbfd8f5ba764c7a",
+      "iteration": 23027,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "r1_010m",
+      "parent_sha256": "959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_square2_20261111_r1/train_remaining_rough_r1_square2_r1/model_015m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/PLAN.json"
+      ],
+      "role": "RoughR1 complete PPO checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "r1cubic_first",
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_first_complete.pt",
+      "bytes": 11325017,
+      "sha256": "34bb4a5b8566b22496811df586bfe1fb9e263b7e9c11592ef24b80f1f548af39",
+      "iteration": 23028,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "r1sq2_015m",
+      "parent_sha256": "22513a6e935f1c2ab6204561ef2c81ab6ae0d8974436c7438cbfd8f5ba764c7a",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_abscubic_20261111_r1/train_remaining_rough_r1_abscubic_r1/model_first_complete.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/PLAN.json"
+      ],
+      "role": "RoughR1 complete PPO checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 111,
-    "unique_sha256": 111,
-    "total_bytes": 887044913,
+    "models": 115,
+    "unique_sha256": 115,
+    "total_bytes": 932344597,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -4105,7 +4335,7 @@
   "remaining_dr": "All planned flatDR ranges implemented and two40minute rounds completed; fullDR tracking and nominal forward retention still incomplete. Latest mixed20m diagnostic; original push020 accepted scope retained; rough notstarted.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-mod4-rough-r1-square2-start-01",
+  "last_update_tag": "trial-20261111-mod4-rough-r1-abscubic-start-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m",

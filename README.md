@@ -1,5 +1,7 @@
 # polar-rl-train
 
+R1速度项当前接续为[二次＋绝对三次项](sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/README.md)，仍同一40min预算，剩740s；结果待评测。
+
 2026-11-11 R1偏速处理：同一40min轮在010m完整PT后切段，速度平方项−1.5e²→−2.0e²，原R1课程等级/计数保留，接续1643s。见[sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md](sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md)。
 
 

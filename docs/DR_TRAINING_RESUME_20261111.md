@@ -1,5 +1,7 @@
 # 从 Git 取回模型并继续 DR 训练
 
+当前R1接续：二次项＋绝对三次项，余740s计入本轮40min；[当前配方](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/README.md)，实际父square2_015m/22513a6e…，结果待评测。
+
 日期2026-11-11。先看 [阶段总表](DR_TRAINING_INDEX_20261111.md) 和 [精确索引](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)。本页是后续操作说明；本次整理没有执行下面的训练命令。
 
 追加更新：剩余DR合并轮已完成，查本轮完整DR配方与前进诊断候选，从 **remaining_010m** 查起，Git路径`sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_010m.pt`，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；配套使用`MOD4V3_STEP7_REMAINING_DR_20261111/support`、PLAN、实际STARTUP/PPO_EFFECTIVE/RESTORE和RECIPE_CLARIFICATION。完整记录见[本轮报告](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)，原push020仍作确切父与回退。本页下方旧示例绑定初次目录，不能直接作为新合并DR运行命令。新父路径和profile必须一起更新。
@@ -149,3 +151,6 @@ Flat1.5实验从square1_030m恢复，配套新目录`MOD4V3_FLAT_SQUARE15_202611
 
 2026-11-11偏速处理切段：用户要求加强速度平方惩罚。010m完整检查点iter22925/SHA959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022已核验保存，旧训练SIGINT退出，无FINAL/SAFE_CLOSED，不能写成正常40分钟完成。原段总消耗756.803s（010m后未保存更新也计入），接续−2.0e²用1643s，仍为同一轮40min；新目录MOD4V3_ROUGH_R1_SQUARE2_20261111。保存R1等级、地形分组、偏移和累计计数，重新物理episode。
 [接续配方](../sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/PLAN.json)
+
+
+2026-11-11用户进一步要求下一检查点试三次项：平方2.0段在015m/iter23027/SHA22513a6e…完整保存后结束。实际903.074s，无FINAL/SAFE_CLOSED；原R1段756.803s＋本段903.074s已计入同一40min。新接续MOD4V3_ROUGH_R1_ABSCUBIC_20261111，余740s，奖励−2e²(1+|e|/1m/s)，二次基础保留、加绝对三次项，超/欠速对称；其余配方保留。直接有符号e³会奖励一侧，纯|e|³在误差小于1m/s时同系数更轻，不如此改。

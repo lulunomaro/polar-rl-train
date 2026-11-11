@@ -176,4 +176,14 @@
 
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [r1sq2_005m](../MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_005m.pt) | 22959 | 11,324,889 | `fb7ed1f7c46990b15b7a258c4318f6587430568f4ce9ef57bccd98dfefb4b90d` |
+| [r1sq2_010m](../MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_010m.pt) | 22993 | 11,324,889 | `53256d1d09e6b6e0244591820bff455557021968e4937f31921005bb5ac764e4` |
+| [r1sq2_015m](../MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_015m.pt) | 23027 | 11,324,889 | `22513a6e935f1c2ab6204561ef2c81ab6ae0d8974436c7438cbfd8f5ba764c7a` |
 | [r1sq2_first](../MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_first_complete.pt) | 22926 | 11,324,889 | `e32e17ad887417025cc4834b9d850d455ce6e0ee69de5a619394593c6b19308e` |
+
+
+## RoughR1平方加绝对三次项接续
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [r1cubic_first](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_first_complete.pt) | 23028 | 11,325,017 | `34bb4a5b8566b22496811df586bfe1fb9e263b7e9c11592ef24b80f1f548af39` |

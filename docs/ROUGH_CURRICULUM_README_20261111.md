@@ -193,3 +193,6 @@ R2 加落地后姿态和速度恢复、触地冲击；R3 加上下台阶和平�
 同批PhysX fullDR Flat父44/60，R0保留20m为40/60、正式reset0；其前进1.8953/2.2262、MAE0.16101。5m前进1.9555/2.2516更近父，正式41/60但2.2任务1fall，另存备用。35/40m名义MuJoCo60/60而同源fullDR欠速更大，不默认续末权重。原Flat父与既有冻结继续保留，不由R0候选覆盖。
 
 下一步建议进入本页R1的小中级阶梯/较宽地形范围，先对原Flat父、R0的20m/5m做同任务比较再确定接续；这是下一阶段建议，本轮没有开R1。训练numerical0、closure7093；level0评测30m后续episode出现1次numerical，level3评测numerical0，原始失败均保留。
+
+
+2026-11-11用户中途要求下个检查点切Rough：Flat平方项1.5段在020m/iter22856完整保存后结束，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`，已接续`MOD4V3_ROUGH_R0_SQUARE15_20261111`的R0余下20min。保留−1.5e²/fullDR/20%名义/20%平地；本轮预算按Flat20＋Rough20分配。新结果待同批PhysX配对，原冻结保持。

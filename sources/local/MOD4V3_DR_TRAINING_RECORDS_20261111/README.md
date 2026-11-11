@@ -37,3 +37,6 @@
 
 
 追加Flat平方项1.5实验：父square1_030m，完整DR及20%名义参数，40min/5min检查点。本轮完整PT保存在`../MOD4V3_FLAT_SQUARE15_20261111/weights/`；结果待评测，原冻结与R0候选保留。
+
+
+2026-11-11用户中途要求下个检查点切Rough：Flat平方项1.5段在020m/iter22856完整保存后结束，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`，已接续`MOD4V3_ROUGH_R0_SQUARE15_20261111`的R0余下20min。保留−1.5e²/fullDR/20%名义/20%平地；本轮预算按Flat20＋Rough20分配。新结果待同批PhysX配对，原冻结保持。

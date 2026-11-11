@@ -136,3 +136,6 @@ D5/D10历史checkpoint缺少额外材质样本及推扰timer/count/delta字段�
 
 
 Flat1.5实验从square1_030m恢复，配套新目录`MOD4V3_FLAT_SQUARE15_20261111/support`、PLAN和实际STARTUP/RESTORE使用。新奖励−1.5e²，当前训练中；R0候选不作为此轮父。新权重未经同批评测不作默认晋升。
+
+
+2026-11-11用户中途要求下个检查点切Rough：Flat平方项1.5段在020m/iter22856完整保存后结束，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`，已接续`MOD4V3_ROUGH_R0_SQUARE15_20261111`的R0余下20min。保留−1.5e²/fullDR/20%名义/20%平地；本轮预算按Flat20＋Rough20分配。新结果待同批PhysX配对，原冻结保持。

@@ -147,4 +147,13 @@
 |---|---:|---:|---|
 | [flat15_005m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_005m.pt) | 22679 | 11,048,951 | `7605ead60c65004a41a29f0b2c8ce4bb8f22ecd9326b737708a29d454b978632` |
 | [flat15_010m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_010m.pt) | 22739 | 11,048,951 | `e5999df2b04d93db31f26c3ef1570286c6b769ae32346f98ce59bf64375125e7` |
+| [flat15_015m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_015m.pt) | 22797 | 11,048,951 | `99038325c169217e92289ce7feec3c43f629f145097eea356eb1d956161a186e` |
+| [flat15_020m](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_020m.pt) | 22856 | 11,048,951 | `a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87` |
 | [flat15_first](../MOD4V3_FLAT_SQUARE15_20261111/weights/model_first_complete.pt) | 22619 | 11,048,951 | `865cd88a45a41c64904e69350f38176bdf3ae5aded1185dac0924b96e3190a58` |
+
+
+## RoughR0接续速度平方项1.5实验
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [rough15_first](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_first_complete.pt) | 22857 | 11,324,633 | `d46d5b7a4a4e6c8fb087dfdcdd1000daa080f4f8c36ec381663e2acd4ebbba41` |

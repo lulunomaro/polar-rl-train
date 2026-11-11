@@ -106,3 +106,6 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 
 2026-11-11 Flat速度平方项1.5独立实验已启动：从冻结square1_030m恢复，完整DR+20%名义参数，40分钟/5分钟完整保存；[配方和状态](sources/local/MOD4V3_FLAT_SQUARE15_20261111/README.md)。此次不接R0后期权重，不推进R1。
+
+
+2026-11-11用户中途要求下个检查点切Rough：Flat平方项1.5段在020m/iter22856完整保存后结束，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`，已接续`MOD4V3_ROUGH_R0_SQUARE15_20261111`的R0余下20min。保留−1.5e²/fullDR/20%名义/20%平地；本轮预算按Flat20＋Rough20分配。新结果待同批PhysX配对，原冻结保持。

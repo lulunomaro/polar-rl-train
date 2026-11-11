@@ -17,6 +17,8 @@ for path in sorted((T/'weights').glob('*.pt')):
  else:reg['models'].append(row)
  ids.append(mid)
 stage=dict(id='flat_square15',title='Flat完整DR速度平方项1.5',profile=plan['profile'],parent_model_id='square1_030m',parent_sha256=plan['parent_sha256'],source_directories=[T.relative_to(R).as_posix()],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],training_method=plan['training_round'],sampling_mixture=plan['sampling_mixture'],reward=plan['reward'],model_ids=ids,status='40min training complete; see paired report' if a.final else '40min experiment in progress; no promotion',original_tag='trial-20261111-mod4-flat-square15-start-01',final_tag='trial-20261111-mod4-flat-square15-final-01' if a.final else None)
+if (T/'evidence/SEGMENT_COMPLETED_FOR_ROUGH.json').exists():
+ stage['status']='User switched after complete020m; process exited; no FINAL/SAFE_CLOSED observed; Rough continuation in separate stage';stage['actual_segment']=read(T/'evidence/SEGMENT_COMPLETED_FOR_ROUGH.json')
 reg['stages']=[m for m in reg['stages'] if m['id']!='flat_square15']+[stage]
 reg['weights_summary'].update(models=len(reg['models']),unique_sha256=len({x['sha256'] for x in reg['models']}),total_bytes=sum(x['bytes'] for x in reg['models']))
 reg['last_update_tag']=stage['final_tag'] or stage['original_tag'];put(CAT/'MODEL_REGISTRY.json',reg)

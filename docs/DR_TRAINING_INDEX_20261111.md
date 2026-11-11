@@ -179,3 +179,6 @@ partial-base 075m → Stage1 final
 ## Flat速度平方项1.5独立实验（2026-11-11）
 
 用户授权继续Flat。父square1_030m，iter22618，SHA`d5e176401c20dd1b88a74003f7d4993aadc9a9cda301f042953de08fb6108851`；只将平方项−1.0改−1.5，sigma1，完整DR与20%名义参数保留。4096env、40min、每5min完整保存/检查。已启动，尚未完成评测，不晋升。见[本轮配方](../sources/local/MOD4V3_FLAT_SQUARE15_20261111/PLAN.json)及[报告](../sources/local/MOD4V3_FLAT_SQUARE15_20261111/REPORT.md)。
+
+
+2026-11-11用户中途要求下个检查点切Rough：Flat平方项1.5段在020m/iter22856完整保存后结束，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`，已接续`MOD4V3_ROUGH_R0_SQUARE15_20261111`的R0余下20min。保留−1.5e²/fullDR/20%名义/20%平地；本轮预算按Flat20＋Rough20分配。新结果待同批PhysX配对，原冻结保持。

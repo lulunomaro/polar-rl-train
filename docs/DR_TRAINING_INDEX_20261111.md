@@ -2,7 +2,7 @@
 
 记录日期：2026-11-11，Asia/Shanghai。首次入口覆盖17个阶段/分支、61份检查点；追加本轮后共18个阶段/分支、70份完整检查点；原始试错、失败、提前停止和后续修复并列保留。首次总档案只整理已有成果；其后用户明确开训，新增剩余DR合并轮的实时状态与最终结果另行追加，旧原始记录保持。
 
-**本轮全范围DR诊断候选为 `remaining_010m`；其实际父为 `push_020m`，原 Step7 `mass_040m` 继续作为主冻结对照；此前已接受范围的接训/回退仍为`push_020m`。本轮候选未晋升，完整PT实体均在Git。**
+**当前最新完整DR诊断候选为第二轮 `mixed2_020m`，实际父是第一轮 `remaining_010m`；此前已接受范围接训/回退仍为`push_020m`，原 Step7 `mass_040m` 主冻结保持。诊断候选未晋升，完整PT实体均在Git。**
 
 - [逐份模型完整索引（SHA、iteration、父子关系、配方、原始两端路径）](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)
 - [全部 61 份模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
@@ -12,6 +12,8 @@
 2026-11-11追加：[剩余DR合并轮](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/README.md)已从push020m完整恢复，4096env/40min/5min保存；COM、PD、摩擦、阻尼、外力、噪声full范围与MOD4可行reset一起开启，这是启动时状态；现已完成一轮，适应尚未完成，实际结果见下面最终报告。
 
 本轮已完成：[合并DR最终报告](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)。本轮完整DR前进诊断候选为 **remaining_010m**，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；2.0→1.90988（4/10）、2.2→2.18903（6/10）；正式任务39/60、reset=0。原61份初次档案与下面历史阶段成绩保持，新增完整PT见[模型表末节](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)。
+
+最新第二轮结论：**20%名义采样只带来有限改善，名义前进尚未恢复。** 本轮保留mixed2_020m，iter22502，SHA`15775671f430cda69b1f268a230d85c5d1a74878760d26625afefb759e792c20`；同批完整DR前进11/20、正式41/60、reset0，PhysX名义前进0/20。25m综合43/60但1reset单独备用；40m不选。见[第二轮报告](../sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/FINAL_REPORT.md)，当前总索引19阶段/分支、79份完整PT；此前已接受范围的接续仍是push020m，原主冻结不变。
 
 ## 1. 首次归档时的候选与冻结模型
 
@@ -157,3 +159,9 @@ partial-base 075m → Stage1 final
 ## 8. 接下来仍有什么DR
 
 当前速度推扰阶段可以累计保留继续。用户随后明确授权D2全范围机身COM、D3全Kp/Kd、D6摩擦、D7弹簧阻尼、D8外力、D9噪声与MOD4可行reset合并40分钟训练，覆盖本轮每次只改一项的旧安排；实现范围见[本轮PLAN](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/PLAN.json)，本轮现已完成，配对已看到完整DR部分改善和PhysX名义前进回归，适应未完成。Rough尚未启动；进入时保留已适应DR并接低难度课程，旧rough_v0只载actor且不自动继承当前修复链，不能直接把profile字符串换成rough就当全部接好了。
+
+
+第二轮更新：fixed20%名义/80%完整DR的40分钟轮已完成，同源配对与全部完整PT已归档。保留mixed2_020m（iter22502，SHA`15775671f430cda69b1f268a230d85c5d1a74878760d26625afefb759e792c20`）供检查；结果与使用范围见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/FINAL_REPORT.md`，原已接受候选/主冻结未自动替换。总索引现为19阶段/分支、79份检查点。
+
+
+2026-11-11回放复核：同一mixed2_020m在MuJoCo名义超速、PhysX名义欠速；0/5ms复测保留方向，原训练actor观测与paired包装逐帧最大差0。尚无新确认的输入回放bug，物理/执行差异未定位，不能只凭跨引擎差异定为策略退化。完整DR同时有欠速和超速样本。详见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/replay_environment_check/REPORT.md`；未启动第三轮训练。

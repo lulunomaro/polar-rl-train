@@ -82,3 +82,21 @@
 | [remaining_030m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_030m.pt) | 22501 | 11,044,601 | `0c0941adee768f54b3a6ee48ca08f266d06a9109553bee4c03f864bdb2e797ca` | 检查点/原始回归证据 |
 | [remaining_035m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_035m.pt) | 22560 | 11,044,601 | `cb5ac70c5d6f65fc2a02e76695f32e6dfaa13d62791dbf5eb12bffec1637082f` | 检查点/原始回归证据 |
 | [remaining_040m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_040m.pt) | 22618 | 11,044,601 | `957653bfaf2c699ef888225ee747fb48563ffaad62bc0f46276e995ba708dfb7` | 检查点/原始回归证据 |
+
+
+## 第二轮混合采样：完整PT
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [mixed2_first](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_first_complete.pt) | 22266 | 11,048,951 | `dc3809423e707ff665c285590112a73b39854a487c9e0a8d0a439c9bee896516` |
+| [mixed2_005m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_005m.pt) | 22326 | 11,048,951 | `627c1d9f5458b78655034a8ddb457548d3fe37c100bbec604d17bb7861ce749c` |
+| [mixed2_010m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_010m.pt) | 22386 | 11,048,951 | `dcbc1421061a73a8a1c4b2d936737178d58eb4d999239938c40653f5ac76a05e` |
+| [mixed2_015m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_015m.pt) | 22444 | 11,048,951 | `3dd0aac8b562b4c2a93ac7fd4afb1af53c5a83daad7681ea44ebce9e47ff4532` |
+| [mixed2_020m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_020m.pt) | 22502 | 11,048,951 | `15775671f430cda69b1f268a230d85c5d1a74878760d26625afefb759e792c20` |
+| [mixed2_025m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_025m.pt) | 22560 | 11,048,951 | `709cac39846c0eb61225cdf967d56aa145e1e6957ccdf9faab43cb7aeeae87b9` |
+| [mixed2_030m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_030m.pt) | 22617 | 11,048,951 | `87eb672cfee8885eaae2ef51b0698efb12919a14042555ce98dfec98dee26908` |
+| [mixed2_035m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_035m.pt) | 22674 | 11,048,951 | `d303f044e99119d8753f13dc47df2eb0a8ecbb8c8ce3a35b14bfbc0380e07f80` |
+| [mixed2_040m](../MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_040m.pt) | 22731 | 11,048,951 | `81ed3fbb27152f68c2c5f19a1c2f0c74197f12a957ae5be6f33333f63ef3d0a0` |
+
+
+2026-11-11回放复核：同一mixed2_020m在MuJoCo名义超速、PhysX名义欠速；0/5ms复测保留方向，原训练actor观测与paired包装逐帧最大差0。尚无新确认的输入回放bug，物理/执行差异未定位，不能只凭跨引擎差异定为策略退化。完整DR同时有欠速和超速样本。详见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/replay_environment_check/REPORT.md`；未启动第三轮训练。

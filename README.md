@@ -6,7 +6,7 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 ## 从这里看
 
-- **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：18个阶段/分支、70份检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
+- **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：19个阶段/分支、79份检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
 - [按阶段看修了什么](docs/REPAIR_TIMELINE.md)：人工整理的修复主线、重要纠正和未完成事项。
 - [完整试验/修复标签表](history/INDEX.md)：每条记录的标签、类别和证据链接。
 - [全部版本目录](history/VERSIONS.md)：83 个目录各自的来源、源码和交接说明。
@@ -27,7 +27,9 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 **2026-11-11 剩余DR合并轮完成：** 4096env、2403.405s、8次完整5min检查点与同源配对已完成。[最终报告](sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)。保留[remaining_010m](sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_010m.pt)，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；完整DR受扰后2.0→1.90988（4/10）、2.2→2.18903（6/10）；正式任务39/60、reset=0。COM/PD/摩擦/阻尼/外力/噪声full范围和MOD4可行reset已实际训练；各任务与随机reset适应限制按报告记录，原Step7主冻结保持，Rough未启动。完整PT及配方也入Git。
 
-**第二轮40分钟已启动：** 从第一轮前进误差最小的10m权重完整恢复，采用[固定20%名义＋80%完整DR采样](sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/README.md)。实际819/3277环境，DR端点、奖励、PPO和随机复位分布保持；本轮只检验补回名义样本的效果，不把第一轮末权重自动接成父，不记为已解决。每5min完整保存并检查，轮末原fullDR测试类配对。
+**第二轮40分钟完成：** fixed819名义/3277完整DR，从首轮10m完整PPO接续，实际2401.101s，8检查点及同源配对。[第二轮结果](sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/FINAL_REPORT.md)。保留[mixed2_020m](sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/weights/model_020m.pt)，iter22502；名义/DR具体追踪及失败见报告，不自动替换已接受候选/主冻结，Rough未启动。
+
+第二轮实际结论：完整DR20m前进5/10、6/10（均值1.93541/2.21671m/s），总41/60、reset0；PhysX名义前进仍0/20（1.76473/1.92687m/s），未解决。原样继续堆时间收益有限；最新诊断候选mixed2_020m，25m综合备用，不覆盖原主冻结/已接受push020范围。
 
 参考范围以 [保存的华南虎 trained_env.yaml](sources/local/MOD4V3_FORWARD_REGRESSION_AUDIT_20261110/reference/trained_env.yaml) 及对应实际事件实现为准。D 编号用于追踪项目。已先完成 **D4 输出倍率 → D5 分部位材质 → D10 速度推扰**，随后按用户授权合并实训 D2/D3/D6–D9 与MOD4可行reset。下表保留目标范围并更新本轮实训状态；实际适应成绩按最终报告，不凭范围已开宣布全过。
 
@@ -88,3 +90,6 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 这是用法示例，需替换为真实文件。脚本拒绝覆盖标签、夹带已暂存的无关改动或提交权重/明文凭据。历史批量构建脚本仅用于本次首次归档，不应重跑来改写既有标签。
 
 仓库只记录项目，不会启动训练、变更目标机预算或停止现有任务。上游代码与资产的原许可证/来源保留，[第三方说明](docs/THIRD_PARTY.md) 不替代原许可。
+
+
+2026-11-11回放复核：同一mixed2_020m在MuJoCo名义超速、PhysX名义欠速；0/5ms复测保留方向，原训练actor观测与paired包装逐帧最大差0。尚无新确认的输入回放bug，物理/执行差异未定位，不能只凭跨引擎差异定为策略退化。完整DR同时有欠速和超速样本。详见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/replay_environment_check/REPORT.md`；未启动第三轮训练。

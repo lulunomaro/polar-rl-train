@@ -1,0 +1,85 @@
+{
+  "model_id": "mixed2_020m",
+  "model_sha256": "15775671f430cda69b1f268a230d85c5d1a74878760d26625afefb759e792c20",
+  "no_optimizer": true,
+  "physx_envs": 160,
+  "physx_steps": 600,
+  "physx_observation_max_difference": 0.0,
+  "physx_actor_action_max_difference": 0.0,
+  "physx_done_totals": {
+    "episodes": 0,
+    "closure": 0,
+    "mimic": 0,
+    "numerical": 0,
+    "timeout": 0,
+    "fall": 0,
+    "closure_catastrophic": 0
+  },
+  "physx_wall_seconds": 59.378223180770874,
+  "prior_2080env_forward": [
+    {
+      "variant": "nominal0",
+      "task": "forward_2.0",
+      "command_vx": 2.0,
+      "mean_vx": 1.7647312879562378,
+      "passed": 0,
+      "too_slow": 10,
+      "too_fast": 0,
+      "minimum": 1.7402005195617676,
+      "maximum": 1.7995542287826538,
+      "existing_tolerance": 0.15
+    },
+    {
+      "variant": "nominal0",
+      "task": "forward_2.2",
+      "command_vx": 2.2,
+      "mean_vx": 1.9268673658370972,
+      "passed": 0,
+      "too_slow": 10,
+      "too_fast": 0,
+      "minimum": 1.8554519414901733,
+      "maximum": 1.965873122215271,
+      "existing_tolerance": 0.15
+    },
+    {
+      "variant": "Step7_all_remaining_DR",
+      "task": "forward_2.0",
+      "command_vx": 2.0,
+      "mean_vx": 1.9354116916656494,
+      "passed": 5,
+      "too_slow": 4,
+      "too_fast": 1,
+      "minimum": 1.7395254373550415,
+      "maximum": 2.2502682209014893,
+      "existing_tolerance": 0.15
+    },
+    {
+      "variant": "Step7_all_remaining_DR",
+      "task": "forward_2.2",
+      "command_vx": 2.2,
+      "mean_vx": 2.216712474822998,
+      "passed": 6,
+      "too_slow": 2,
+      "too_fast": 2,
+      "minimum": 1.9550122022628784,
+      "maximum": 2.4807519912719727,
+      "existing_tolerance": 0.15
+    }
+  ],
+  "asset_source_identity": {
+    "local_mujoco_xml": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f",
+    "remote_physx_package_source_xml": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f",
+    "runtime_config": "b48b12d9185dcf420ec536c5f8176ef86c7e33d1fb0557acdf41fb0fd930c881",
+    "semantics": "47761f0ea904b2009c988e345743085988aa42ed61f9fd5cfcf28c5c3f058bd8",
+    "scope": "same MOD4v3 R3 package source; matching source files does not make two engines physically equivalent; no plant change"
+  },
+  "findings": [
+    "Local MuJoCo overspeed remains at0ms and5ms delay",
+    "PhysX nominal underspeed remains at0ms and5ms delay",
+    "Existing paired observation wrapper and original mixed training observation path match on tested nominal/5ms trajectories",
+    "Horizontal/body velocity statistic differences do not explain0.25-0.56m/s discrepancy",
+    "FullDR cohort contains both underspeed and overspeed; good cohort mean is not every sample passing",
+    "No newly confirmed replay observation bug; physics/control equivalence remains unresolved; do not label cross-engine mismatch alone as pure policy regression"
+  ],
+  "next": "Fixed actor controlled execution/plant comparison, then one targeted fix; no third training round started"
+}

@@ -118,3 +118,9 @@ D5/D10历史checkpoint缺少额外材质样本及推扰timer/count/delta字段�
 跟踪/高度沿用原任务误差判据；闭链2mm是单环境episode reset，不是单次峰值整批停训。保持原MOD4闭链与电机包络：腿40/53.333/16.755；轮5.7759/28.185/55.3557。导出动作顺序仍为left_crank、left_hip、right_crank、right_hip、left_wheel_spin、right_wheel_spin。
 
 新一轮结束后保留实际父SHA、每5min的完整PT、STARTUP/RESTORE/PPO_EFFECTIVE/FINAL/SAFE_CLOSED、名义与实际DR报告和选择依据，再在新trial提交；归档不占额外训练预算。Git网络操作走7897代理。凭据不写入仓库。
+
+
+第二轮更新：fixed20%名义/80%完整DR的40分钟轮已完成，同源配对与全部完整PT已归档。保留mixed2_020m（iter22502，SHA`15775671f430cda69b1f268a230d85c5d1a74878760d26625afefb759e792c20`）供检查；结果与使用范围见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/FINAL_REPORT.md`，原已接受候选/主冻结未自动替换。总索引现为19阶段/分支、79份检查点。
+
+
+2026-11-11回放复核：同一mixed2_020m在MuJoCo名义超速、PhysX名义欠速；0/5ms复测保留方向，原训练actor观测与paired包装逐帧最大差0。尚无新确认的输入回放bug，物理/执行差异未定位，不能只凭跨引擎差异定为策略退化。完整DR同时有欠速和超速样本。详见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/replay_environment_check/REPORT.md`；未启动第三轮训练。

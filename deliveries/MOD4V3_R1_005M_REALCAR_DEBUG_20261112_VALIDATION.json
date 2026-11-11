@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "archive": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\deliveries\\MOD4V3_R1_005M_REALCAR_DEBUG_20261112.zip",
+  "archive_sha256": "8609c024006bcc4bceba91681415b367ecc01a0e4d9d13c007010006a8014730",
+  "archive_bytes": 27958811,
+  "file_count": 364,
+  "extracted_to": "D:\\claude2\\fangzhen\\tmp\\mod4_realcar_debug_n2awh4q1\\MOD4V3_R1_005M_REALCAR_DEBUG_20261112",
+  "independent_of_training_repository": true,
+  "checks": [
+    {
+      "command": [
+        "D:/claude2/fangzhen/.venv/Scripts/python.exe",
+        "-B",
+        "tools/preflight.py"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "{\"offline_package\": \"PASS\", \"model\": \"r1round2_005m\", \"actor_golden_max_abs\": 2.86102294921875e-06, \"actual_hardware_tested\": false}\nHARDWARE_CALIBRATION_REQUIRED: copy the template and fill measured values; offline package is ready.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:/claude2/fangzhen/.venv/Scripts/python.exe",
+        "-B",
+        "runtime/infer.py",
+        "--state",
+        "examples/bench_input.json"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "{\"observation\": [0.0, 0.0, 0.0, 1.399999976158142, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], \"action\": [-0.4387003183364868, 0.43396976590156555, -0.33992651104927063, 0.5193608999252319, 0.15496715903282166, -0.07030985504388809], \"target\": [0.5589880347251892, -0.2636483907699585, 0.6083749532699585, -0.2209528088569641, 1.5496716499328613, -0.7030985355377197], \"torque_Nm\": [-13.161009788513184, 13.019092559814453, -10.197793960571289, 15.580826759338379, 0.9298030138015747, -0.42185914516448975]}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:/claude2/fangzhen/.venv/Scripts/python.exe",
+        "-B",
+        "runtime/replay_mujoco.py",
+        "--vx",
+        ".3",
+        "--seconds",
+        "2",
+        "--out",
+        "D:\\claude2\\fangzhen\\tmp\\mod4_realcar_debug_n2awh4q1\\portable_replay.json"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "{\n  \"checkpoint_sha256\": \"0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f\",\n  \"engine\": \"MuJoCo, delivered ONNX+codec, nominal parameters, no artificial delay; no actual hardware\",\n  \"no_automatic_reset\": true,\n  \"results\": [\n    {\n      \"case\": \"manual\",\n      \"command\": [\n        0.3,\n        0,\n        0.0,\n        0.28\n      ],\n      \"steps\": 100,\n      \"safety_failure\": null,\n      \"closure_max_m\": 0.0001237071334984767,\n      \"vx_tail_mean\": 0.2693878848519418,\n      \"wz_tail_mean\": 0.006531996847188745,\n      \"height_tail_mean\": 0.28975405306929486,\n      \"tilt_cos_tail_min\": 0.9965547041534047\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:/claude2/fangzhen/.venv/Scripts/python.exe",
+        "-B",
+        "tools/preflight.py",
+        "--real-enable",
+        "--hardware-calibration",
+        "config/hardware_calibration.template.json"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "{\"offline_package\": \"PASS\", \"model\": \"r1round2_005m\", \"actor_golden_max_abs\": 2.86102294921875e-06, \"actual_hardware_tested\": false}\n{\"hardware_calibration\": \"BLOCKED\", \"reasons\": [\"verified must reflect actual physical calibration\", \"measured IMU rotation missing or invalid\", \"left_front1_joint:sign\", \"left_front1_joint:raw_zero\", \"left_front1_joint:raw_position_units_per_model_rad\", \"left_front1_joint:raw_effort_units_per_model_Nm\", \"left_front1_joint:CAN mapping\", \"left_rear1_joint:sign\", \"left_rear1_joint:raw_zero\", \"left_rear1_joint:raw_position_units_per_model_rad\", \"left_rear1_joint:raw_effort_units_per_model_Nm\", \"left_rear1_joint:CAN mapping\", \"right_front1_joint:sign\", \"right_front1_joint:raw_zero\", \"right_front1_joint:raw_position_units_per_model_rad\", \"right_front1_joint:raw_effort_units_per_model_Nm\", \"right_front1_joint:CAN mapping\", \"right_rear1_joint:sign\", \"right_rear1_joint:raw_zero\", \"right_rear1_joint:raw_position_units_per_model_rad\", \"right_rear1_joint:raw_effort_units_per_model_Nm\", \"right_rear1_joint:CAN mapping\", \"left_wheel_joint:sign\", \"left_wheel_joint:raw_zero\", \"left_wheel_joint:raw_position_units_per_model_rad\", \"left_wheel_joint:raw_effort_units_per_model_Nm\", \"left_wheel_joint:CAN mapping\", \"right_wheel_joint:sign\", \"right_wheel_joint:raw_zero\", \"right_wheel_joint:raw_position_units_per_model_rad\", \"right_wheel_joint:raw_effort_units_per_model_Nm\", \"right_wheel_joint:CAN mapping\"]}\n",
+      "stderr": ""
+    }
+  ],
+  "portable_low_speed_result": {
+    "checkpoint_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+    "engine": "MuJoCo, delivered ONNX+codec, nominal parameters, no artificial delay; no actual hardware",
+    "no_automatic_reset": true,
+    "results": [
+      {
+        "case": "manual",
+        "command": [
+          0.3,
+          0,
+          0.0,
+          0.28
+        ],
+        "steps": 100,
+        "safety_failure": null,
+        "closure_max_m": 0.0001237071334984767,
+        "vx_tail_mean": 0.2693878848519418,
+        "wz_tail_mean": 0.006531996847188745,
+        "height_tail_mean": 0.28975405306929486,
+        "tilt_cos_tail_min": 0.9965547041534047
+      }
+    ]
+  },
+  "real_hardware_status": "calibration required, no physical actuation or acceptance run",
+  "user_copy": "D:\\claude2\\fangzhen\\deliverables\\MOD4V3_R1_005M_REALCAR_DEBUG_20261112.zip",
+  "user_copy_sha256": "8609c024006bcc4bceba91681415b367ecc01a0e4d9d13c007010006a8014730"
+}

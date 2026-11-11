@@ -127,3 +127,10 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 ## 2026-11-11 起摆站立实测
 
 当前R1第二轮005m已经能从部分底盘落地随机腿姿态站起，但未达到随意摆腿可靠起身。固定权重同源PhysX：名义6/8、完整DR25/32达到高度/姿态保持；原逐帧接触严格统计另列。真实失败、准备期闭链中止及正常站姿5/5对照均保留。未训练。[报告、回放视频与逐份证据](sources/local/MOD4V3_GROUND_STAND_PROBE_20261111/README.md)。
+
+
+## 2026-11-12 实车电控调试完整交付
+
+[完整ZIP](deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112.zip) / [包内说明](deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112/README.md)。主模型是R1第二轮005m/iter22959/SHA0dcc15f5…，完整PT、ONNX、TorchScript、纯C推理/观测编码/动作映射/PD/包络、Windows与Linux示例、实际训练plant及subLayer、中文电控说明、硬件标定模板均随包。800份原环境接口样本及4096组网络输入对齐，8项独立ONNX回放无安全终止，干净目录解压运行通过。
+
+实体电机方向/零偏/IMU安装及电流换算尚无实测标定，真实使能检查按预期阻断未填模板；高速超速和起摆未完整适应的原结果保留。本包是当前综合均衡候选的电控调试交付，不是实车验收或原主冻结晋升。没有训练、没有驱动实车，也没有修改旧部署plant来强行过门。

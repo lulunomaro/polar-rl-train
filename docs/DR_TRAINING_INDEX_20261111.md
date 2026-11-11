@@ -219,3 +219,10 @@ partial-base 075m → Stage1 final
 实际2404.901s，8个5分钟保存点、9份不同字节完整PT及final同字节别名保留。较均衡实验候选r1round2_005m/iter22959/SHA0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f；10m是本批L3最高142/160对照，40m非全面最优。原父/5m/10m/40m的L3穿越139/140/142/139，fullDR平地前进MAE0.22453/0.21035/0.27251/0.16980；名义原六项57/60、60/60、57/60、21/60。5m名义及fullDR整段正式任务均有1reset，不能把窗口通过写成全段稳定。旧六类低档首次穿越均120/120，最高档仍有中阶与反坡未完成样本。
 
 [最终结果](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/FINAL_REPORT.md)、[选择与边界](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md)、[完整PT](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/evidence/MODEL_ARCHIVE_INDEX.json)、[全部实际地形图](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。主冻结未覆盖；没有继续训练或自动R2。
+
+
+## 2026-11-12 实车电控调试完整交付
+
+[完整ZIP](../deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112.zip) / [包内说明](../deliveries/MOD4V3_R1_005M_REALCAR_DEBUG_20261112/README.md)。主模型是R1第二轮005m/iter22959/SHA0dcc15f5…，完整PT、ONNX、TorchScript、纯C推理/观测编码/动作映射/PD/包络、Windows与Linux示例、实际训练plant及subLayer、中文电控说明、硬件标定模板均随包。800份原环境接口样本及4096组网络输入对齐，8项独立ONNX回放无安全终止，干净目录解压运行通过。
+
+实体电机方向/零偏/IMU安装及电流换算尚无实测标定，真实使能检查按预期阻断未填模板；高速超速和起摆未完整适应的原结果保留。本包是当前综合均衡候选的电控调试交付，不是实车验收或原主冻结晋升。没有训练、没有驱动实车，也没有修改旧部署plant来强行过门。

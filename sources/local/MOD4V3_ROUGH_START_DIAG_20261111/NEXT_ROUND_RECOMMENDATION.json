@@ -1,0 +1,58 @@
+{
+  "status": "recommendation_not_launched",
+  "date": "2026-11-11",
+  "reason": "Preserve original R1 objective and learn the fullDR rough distribution; measured startup/material dependence does not justify continuously increasing speed penalty.",
+  "stage": "R1",
+  "parent": {
+    "label": "r1_010m",
+    "git_path": "sources/local/MOD4V3_ROUGH_R1_20261111/weights/model_010m.pt",
+    "iteration": 22925,
+    "sha256": "959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022"
+  },
+  "reward": {
+    "error": "command_vx-root_lin_vel_b_x*cos(pitch)",
+    "square_weight": -1.5,
+    "square_sigma": 1.0,
+    "effective_formula": "-1.5*e**2",
+    "track_lin_vel_xy_weight": 1.2,
+    "reference": "Original R1 startup, before square2 and abs-cubic segments",
+    "time_scaling": "rate multiplied by policy dt .02 once"
+  },
+  "training": {
+    "wall_seconds": 2400,
+    "full_checkpoint_and_inspection_every_seconds": 300,
+    "environment_count": 4096,
+    "learning_rate": 3e-05,
+    "lr_schedule": "fixed",
+    "clip_param": 0.1,
+    "epochs": 3,
+    "full_PPO_restore": true,
+    "terrain_resume": "Carry over the already implemented R1 terrain-state restoration into a new immutable snapshot; do not rerun or edit archived source",
+    "fresh_physics_episode": true
+  },
+  "preserve": {
+    "full_DR": true,
+    "nominal_fraction": 0.2,
+    "flat_fraction": 0.2,
+    "actor_dim": 35,
+    "critic_dim": 78,
+    "action_dim": 6,
+    "physics_ms": 2.5,
+    "PD_ms": 10.0,
+    "policy_ms": 20.0,
+    "solver": "PhysX TGS32/4",
+    "single_env_closure_reset_m": 0.002,
+    "motor_envelope": true
+  },
+  "evaluation": {
+    "primary": "Terrain progress, safe completion, resets and return-to-speed when physically given an exit/recovery interval",
+    "speed": "Retain whole-episode MAE; stratify start/climbing/recovery/clear flat segment when that segment exists",
+    "same_conditions_compare": [
+      "r1_010m parent",
+      "Flat1.5_020m retained baseline",
+      "new checkpoints"
+    ],
+    "no_new_graduation_threshold": true
+  },
+  "scope": "Next round proposal only; latest user asked to archive causes and evaluate continuing original reward. No new training budget consumed by this diagnostic."
+}

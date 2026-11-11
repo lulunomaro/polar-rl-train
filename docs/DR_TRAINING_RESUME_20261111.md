@@ -1,6 +1,6 @@
 # 从 Git 取回模型并继续 DR 训练
 
-当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
+当前R1第二轮及全部同批评测已完成；本轮较均衡候选r1round2_005m，10m为最高实测L3穿越对照。最新结果见文末更新与MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md；旧阶段记录保留。
 
 日期2026-11-11。先看 [阶段总表](DR_TRAINING_INDEX_20261111.md) 和 [精确索引](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)。本页是后续操作说明；本次整理没有执行下面的训练命令。
 
@@ -169,3 +169,10 @@ Flat1.5实验从square1_030m恢复，配套新目录`MOD4V3_FLAT_SQUARE15_202611
 ## 2026-11-11：R1第二轮已授权并启动
 
 用户授权新40分钟，从R1_010m（iter22925，SHA959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022）接续。启动收据确认原速度项−1.5e²、指数1.2、4096env/LR3e-5 fixed/clip0.1/epochs3，完整PPO与R1课程levels/types/offsets/累计计数恢复；新物理episode。完整DR、20%名义/20%平地、MOD4接口/时序/solver/2mm单env重置保持，每5min完整PT和检查。原因诊断中的recommendation_not_launched是历史当时状态，本轮已获新授权。详见[本轮README](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/README.md)与PLAN。仍推进R1，R2腾空落地待本轮判断。
+
+
+## 2026-11-11：R1第二轮训练与同批评测完成
+
+实际2404.901s，8个5分钟保存点、9份不同字节完整PT及final同字节别名保留。较均衡实验候选r1round2_005m/iter22959/SHA0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f；10m是本批L3最高142/160对照，40m非全面最优。原父/5m/10m/40m的L3穿越139/140/142/139，fullDR平地前进MAE0.22453/0.21035/0.27251/0.16980；名义原六项57/60、60/60、57/60、21/60。5m名义及fullDR整段正式任务均有1reset，不能把窗口通过写成全段稳定。旧六类低档首次穿越均120/120，最高档仍有中阶与反坡未完成样本。
+
+[最终结果](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/FINAL_REPORT.md)、[选择与边界](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md)、[完整PT](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/evidence/MODEL_ARCHIVE_INDEX.json)、[全部实际地形图](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。主冻结未覆盖；没有继续训练或自动R2。

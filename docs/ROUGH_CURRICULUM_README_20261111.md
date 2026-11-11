@@ -1,6 +1,6 @@
 # MOD4 Rough 课程计划：对照华南虎配置与预训练记录
 
-当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
+当前R1第二轮及全部同批评测已完成；本轮较均衡候选r1round2_005m，10m为最高实测L3穿越对照。最新结果见文末更新与MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md；旧阶段记录保留。
 
 更新：2026-11-11。状态：**R0和R1首轮已完成；R1奖励加强实验未解决fullDR偏速，原Flat回退保留，R2尚未启动。**
 
@@ -233,3 +233,19 @@ R2 加落地后姿态和速度恢复、触地冲击；R3 加上下台阶和平�
 ## 2026-11-11：R1第二轮已授权并启动
 
 用户授权新40分钟，从R1_010m（iter22925，SHA959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022）接续。启动收据确认原速度项−1.5e²、指数1.2、4096env/LR3e-5 fixed/clip0.1/epochs3，完整PPO与R1课程levels/types/offsets/累计计数恢复；新物理episode。完整DR、20%名义/20%平地、MOD4接口/时序/solver/2mm单env重置保持，每5min完整PT和检查。原因诊断中的recommendation_not_launched是历史当时状态，本轮已获新授权。详见[本轮README](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/README.md)与PLAN。仍推进R1，R2腾空落地待本轮判断。
+
+
+## 2026-11-11：R0能力、父权重与地形混合口径
+
+R1首轮父为Flat1.5_020m，当前第二轮父为R1_010m；未直接选择R0检查点不代表没有R0浅地形能力。Flat1.5_020m在当时R0浅地形原首次穿越判据已120/120，R1再混合训练这些类型并增加中级正反阶梯。类型在各自level0–3升降级，随机起伏不会变成坡面。
+
+4096环境实际地形分配：R0已有六类型2230（54.4%）、R1新增中级正反阶1047（25.6%）、平地819（20.0%）；只看3277个Rough环境，约68.05%旧类型/31.95%新中阶。两轮R1相同，不是30%旧R0。20%名义/80%完整DR是独立的参数分配，与地形比例交叉。
+
+[全部地形截图与分类型/等级大图](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)：每类每级代表块的真实Isaac Lab网格顶点/面，在本地MuJoCo渲染，无高度夸张。R0/R1标签只表示类型引入阶段，不表示已完成该级；平地组固定level0。
+
+
+## 2026-11-11：R1第二轮训练与同批评测完成
+
+实际2404.901s，8个5分钟保存点、9份不同字节完整PT及final同字节别名保留。较均衡实验候选r1round2_005m/iter22959/SHA0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f；10m是本批L3最高142/160对照，40m非全面最优。原父/5m/10m/40m的L3穿越139/140/142/139，fullDR平地前进MAE0.22453/0.21035/0.27251/0.16980；名义原六项57/60、60/60、57/60、21/60。5m名义及fullDR整段正式任务均有1reset，不能把窗口通过写成全段稳定。旧六类低档首次穿越均120/120，最高档仍有中阶与反坡未完成样本。
+
+[最终结果](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/FINAL_REPORT.md)、[选择与边界](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md)、[完整PT](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/evidence/MODEL_ARCHIVE_INDEX.json)、[全部实际地形图](../sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。主冻结未覆盖；没有继续训练或自动R2。

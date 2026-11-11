@@ -1,5 +1,7 @@
 # MOD4 DR 阶段配方与模型归档（2026-11-11）
 
+最新：R1第二轮及同批评测已完成，现27阶段、128个完整PT文件索引；本轮9种不同字节＋40m/final同字节别名。较均衡实验候选r1round2_005m，10m为最高实测L3穿越对照，未替换主冻结。[结果与选择](../MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md) · [全地形图](../MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。
+
 当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
 
 长期入口：[阶段总表](../../../docs/DR_TRAINING_INDEX_20261111.md)；[取回与续训方法](../../../docs/DR_TRAINING_RESUME_20261111.md)。

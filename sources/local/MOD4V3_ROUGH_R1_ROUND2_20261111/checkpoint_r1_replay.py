@@ -35,6 +35,25 @@ try:
  meta=metadata(plan['package']);bank=reset_bank(plan['package'],plan['reset_bank'])
  env=ScutFlatPhysicalDelayEnv(configuration(meta,bank,n,66,terrain_selection='rough_r1'),meta,bank);env.render_enabled=False
  env.enforce_closure_reset=True
+ # Read-only export for requested terrain screenshots; no simulation step or parameter change.
+ if a.level==0:
+  terrain_export=env.scene['terrain'];mesh_export=terrain_export._r1_mesh
+  verts_export=np.asarray(mesh_export.vertices);faces_export=np.asarray(mesh_export.faces,dtype=np.int32)
+  face_xy=(verts_export[faces_export[:,0],:2]+verts_export[faces_export[:,1],:2]+verts_export[faces_export[:,2],:2])/3.
+  exported={};tile_records=[];family_columns=np.cumsum((0,)+COUNTS[:-1]).tolist()
+  for level_export in range(4):
+   for family_export,col_export in zip(FAMILIES,family_columns):
+    center_export=terrain_export.terrain_origins[level_export,col_export].detach().cpu().numpy()
+    candidate_export=faces_export[(np.abs(face_xy-center_export[:2])<4.50001).all(-1)]
+    inside_export=(np.abs(verts_export[candidate_export,:2]-center_export[:2])<=4.5001).all((1,2))
+    selected_export=candidate_export[inside_export]
+    used_export,inverse_export=np.unique(selected_export.reshape(-1),return_inverse=True)
+    key_export=f'level{level_export}__{family_export}'
+    exported[key_export+'__vertices']=(verts_export[used_export]-center_export).astype(np.float32)
+    exported[key_export+'__faces']=inverse_export.reshape(-1,3).astype(np.int32)
+    tile_records.append(dict(key=key_export,family=family_export,level=level_export,column=col_export,vertices=len(used_export),triangles=len(selected_export),origin=center_export.tolist()))
+  np.savez_compressed(out/'TERRAIN_MESHES_ALL_LEVELS.npz',**exported)
+  (out/'TERRAIN_MESHES_MANIFEST.json').write_text(json.dumps(dict(scope='Exact collision mesh tiles from current IsaacLab R1 generator; one representative column per family at all4levels; read-only before evaluation',tiles=tile_records),indent=2))
  dr=env.full_dr;nominal_com=dr.com_nominal.clone()
  # Fixed type/level/offset/initial states are paired across every model and condition.
  family_id=torch.arange(small,device=dev)//(2*per)

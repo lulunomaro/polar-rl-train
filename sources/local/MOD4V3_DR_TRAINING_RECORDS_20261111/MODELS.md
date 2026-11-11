@@ -196,4 +196,13 @@
 
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [r1round2_005m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_005m.pt) | 22959 | 11,324,953 | `0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f` |
+| [r1round2_010m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_010m.pt) | 22993 | 11,324,953 | `c25f95867ada903e59ab0289c857d1038900e1e1f962783bbb536a24faaac9b5` |
+| [r1round2_015m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_015m.pt) | 23027 | 11,324,953 | `9b0af25593b7b4399af470c91ec6f2e0e7d83bba3a025379493aa17c0d40fbef` |
+| [r1round2_020m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_020m.pt) | 23061 | 11,324,953 | `5e40cc62d26aa6c6c3a6cddeec81a01b9086e98d0a1d9045febedafaae9bc826` |
+| [r1round2_025m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_025m.pt) | 23095 | 11,324,953 | `493501ca0d651431fadaec833a34868505034bd2656c6f25cbed91f486a77f1e` |
+| [r1round2_030m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_030m.pt) | 23129 | 11,324,953 | `81d214520c97b004b94bef8abf4b4bde041ff1573e3a6f99192fc6c3137c1c20` |
+| [r1round2_035m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_035m.pt) | 23163 | 11,324,953 | `94ed1094ea63816bd0a80cde78ce3dc63844513735a0893873245ccdcbeff992` |
+| [r1round2_040m](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_040m.pt) | 23197 | 11,324,953 | `28300a51e237011bf7c455143d684351723f6b769e807d14f69341fa4b21bd9a` |
+| [r1round2_final](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_final.pt) | 23197 | 11,324,953 | `28300a51e237011bf7c455143d684351723f6b769e807d14f69341fa4b21bd9a` |
 | [r1round2_first](../MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_first_complete.pt) | 22926 | 11,324,953 | `ac5f022954f844e8fff6dffbd0177f5bda51585a06ca268ff115f52718e7bb7c` |

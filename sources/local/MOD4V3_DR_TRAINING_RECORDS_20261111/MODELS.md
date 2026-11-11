@@ -161,3 +161,10 @@
 | [rough15_015m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_015m.pt) | 22983 | 11,324,633 | `081a5f96e029075ea27f462d8d123d84edaca49643b94dffa9d5e11d40b9d280` |
 | [rough15_020m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_020m.pt) | 23025 | 11,324,633 | `44ef796fdc92b37ccefa024c688b856df2a178e2d350e79cd2cb4ec94518c9a0` |
 | [rough15_first](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_first_complete.pt) | 22857 | 11,324,633 | `d46d5b7a4a4e6c8fb087dfdcdd1000daa080f4f8c36ec381663e2acd4ebbba41` |
+
+
+## RoughR1首轮40分钟
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [r1_first](../MOD4V3_ROUGH_R1_20261111/weights/model_first_complete.pt) | 22857 | 11,324,889 | `1c318faf8f9cca8a7884333603b9a98855dc96e05bb738b9b28fee5e4c68e4c5` |

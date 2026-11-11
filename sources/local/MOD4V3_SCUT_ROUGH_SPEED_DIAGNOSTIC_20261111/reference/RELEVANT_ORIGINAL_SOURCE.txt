@@ -1,0 +1,87 @@
+
+Original env.py lines 2027..2046
+
+2027:         self.leg_action_scale = self.cfg.leg_action_scale
+2028:         # 轮速控制模式开关
+2029:         self.use_wheel_vel_control = getattr(self.cfg, 'use_wheel_vel_control', False)
+2030:         if self.use_wheel_vel_control:
+2031:             self.wheel_action_scale = getattr(self.cfg, 'wheel_vel_action_scale', 10.0)
+2032:             self.max_wheel_vel = getattr(self.cfg, 'max_wheel_vel', 60.0)*1.5
+2033:             print(f'[WheelCtrl] 轮速控制模式已启用: scale={self.wheel_action_scale}, max_vel={self.max_wheel_vel} rad/s')
+2034:         else:
+2035:             self.wheel_action_scale = self.cfg.wheel_action_scale
+2036:             print(f'[WheelCtrl] 力矩控制模式（默认）: scale={self.wheel_action_scale}')
+2037:         self.leg_actions = None
+2038:         # self.leg_actions = torch.zeros(self.num_envs,4,dtype=torch.float,device=self.device)
+2039:         self.wheel_actions = None
+2040: 
+2041:         # initial joint idx
+2042:         self._legs_act_idx, self._legs_act_idx_name = self.robot.find_joints(self.cfg.legs_act_name)
+2043:         self._legs_inact_idx, _ = self.robot.find_joints(self.cfg.legs_inact_name)
+2044:         self._wheel_idx, _ =  self.robot.find_joints(self.cfg.wheel_name)
+2045:         self._actuate_idx = self._legs_act_idx + self._wheel_idx
+2046:         self._legs_front_idx, _ = self.robot.find_joints(".*_front1_joint")
+
+Original env.py lines 2775..2780
+
+2775:         '''解析腿部动作编码，返回实际的腿部关节位置命令'''
+2776:         encoding = str(getattr(self.cfg, "leg_action_encoding", "raw")).lower()
+2777:         default_leg_pos = self.robot.data.default_joint_pos[:, self._legs_act_idx]
+2778:         if encoding in ("raw", "none", ""):
+2779:             return self.leg_action_scale * leg_policy_actions + default_leg_pos
+2780:         if encoding == "sincos_abs":
+
+Original env.py lines 3699..3726
+
+3699:         height_reward_ref = self._get_height_reward_reference_height(relative_obs_height, wheel_height_w)
+3700:         # print(height_reward_ref)
+3701:         # 普通速度 tracking 仍按“水平前进速度”计算：
+3702:         # 使用机体系前向 x 速度，再通过机身 pitch 投影到水平面，避免直接拿机体系 x 导致冲坡时高估水平速度。
+3703:         root_rpy = euler_xyz_from_quat(self.robot.data.root_quat_w)
+3704:         pitch = wrap_to_pi(root_rpy[1])
+3705:         roll = wrap_to_pi(root_rpy[0])
+3706:         rew_flat_pitch_l1 = torch.abs(pitch*self.cfg.flat_pitch_l1_sigma)
+3707:         rew_flat_pitch_tanh = 1 - torch.tanh(torch.abs(pitch)/self.cfg.flat_pitch_tanh_sigma)
+3708:         rew_flat_roll_l1 = torch.abs(roll*self.cfg.flat_roll_l1_sigma)
+3709:         rew_flat_roll_tanh = 1 - torch.tanh(torch.abs(roll)/self.cfg.flat_roll_tanh_sigma)
+3710: 
+3711:         forward_lin_vel_horizontal = self.robot.data.root_lin_vel_b[:, 0] * torch.cos(pitch)
+3712:         lin_vel_err = tracking_command[:, 0] - forward_lin_vel_horizontal
+3713:         if self.cfg.lin_vel_err_constraint is not None:
+3714:             track_lin_vel_err = torch.square(torch.clamp(lin_vel_err,
+3715:                                                          min=-self.cfg.lin_vel_err_constraint,
+3716:                                                          max=self.cfg.lin_vel_err_constraint))
+3717:         else:
+3718:             track_lin_vel_err = torch.square(lin_vel_err)
+3719:         rew_track_lin_vel_xy = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_sigma)
+3720:         rew_track_lin_vel_xy_soft = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_soft_sigma)
+3721:         rew_track_lin_vel_xy_tight = torch.exp(-track_lin_vel_err / self.cfg.lin_vel_xy_tight_sigma)
+3722:         rew_track_lin_vel_xy_huge_gap = track_lin_vel_err>self.cfg.lin_vel_xy_torlarance_gap
+3723:         rew_track_lin_vel_xy_square = torch.square(
+3724:             lin_vel_err * self.cfg.lin_vel_xy_square_sigma
+3725:         )
+3726:         lin_vel_abs_err = torch.abs(tracking_command[:, 0]) - torch.abs(forward_lin_vel_horizontal)
+
+Original env.py lines 3997..4006
+
+3997: 
+3998:         reward_terms = {k[4:]: v for k, v in locals().items() if k.startswith("rew_")}
+3999:         reward_terms = self._postprocess_reward_terms(reward_terms)
+4000: 
+4001:         # gather rewards
+4002:         rewards = {k: v * self.step_dt for k, v in reward_terms.items()}
+4003:         # 用 .get() 防止 cfg.rewards 里存在但对应 rew_* 变量被注释掉的键（如 standup 相关）
+4004:         _zero_rew = torch.zeros(self.num_envs, device=self.device)
+4005:         rewards = {k: w * rewards.get(k, _zero_rew) for k, w in self.cfg.rewards.items()}
+4006: 
+
+Original env.py lines 5109..5116
+
+5109:         # Logging
+5110:         extras = dict()
+5111:         for key in self._episode_sums.keys():
+5112:             episodic_sum_avg = torch.mean(self._episode_sums[key][env_ids])
+5113:             extras["Episode/Reward/" + key] = episodic_sum_avg / self.max_episode_length_s
+5114:             self._episode_sums[key][env_ids] = 0.0
+5115:         self.extras["log"] = dict()
+5116:         self.extras["log"].update(extras)

@@ -214,3 +214,10 @@ R2 加落地后姿态和速度恢复、触地冲击；R3 加上下台阶和平�
 
 
 2026-11-11 R1本轮最终记录：当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
+
+
+## 2026-11-11：华南虎固定权重比较与速度误差口径
+
+已完成5份固定权重、R1 level0/3、nominal/fullDR配对回放；未追加训练。实际速度、pitch、首次episode掩码、原始参考PT与失败均保留于[诊断档案](../sources/local/MOD4V3_SCUT_ROUGH_SPEED_DIAGNOSTIC_20261111/README.md)，数值见[报告](../sources/local/MOD4V3_SCUT_ROUGH_SPEED_DIAGNOSTIC_20261111/REPORT.md)。原华南虎权重直接转到MOD4的结果仅是迁移表现，不能代表原机器人性能。
+
+用户指出起步、爬阶与越障后重新加速需要时间。现有0.5–3s统计混合这些过程；进度标记不代表整段障碍出口。因此这些窗口误差不足以认定R1退化或OOD，不能据此继续加大惩罚或更换父权重。原先“fullDR偏速未解决”的阶段解释需结合[本次修正](../sources/local/MOD4V3_SCUT_ROUGH_SPEED_DIAGNOSTIC_20261111/TRANSIENT_INTERPRETATION.md)理解；原测量与历史结论保留，不改写成通过。后续评判先区分完成进度、正常瞬态和有充分恢复机会后的持续偏差，不新增毕业门槛。

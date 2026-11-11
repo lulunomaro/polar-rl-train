@@ -1,0 +1,30 @@
+{
+  "scut_rough_stair": {
+    "reference_run": "rough_rotation_stair/2026-07-30_09-16-27",
+    "weights": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_SCUT_ROUGH_SPEED_DIAGNOSTIC_20261111\\weights\\scut_rough_stair.pt",
+    "sha256": "4a46713f133a63ade7bd249c1aba8e1b7cb135e8fd7296219837dc1c7042315b"
+  },
+  "scut_rough_dash": {
+    "reference_run": "rough_dash/2026-07-19_19-15-07",
+    "weights": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_SCUT_ROUGH_SPEED_DIAGNOSTIC_20261111\\weights\\scut_rough_dash.pt",
+    "sha256": "5de7edf6467fb38825d04fc719bcec36b953dd4cfa52807b9cc20a49b0943121"
+  },
+  "mapping": {
+    "observed_order": [
+      "left_front1_joint",
+      "left_rear1_joint",
+      "right_front1_joint",
+      "right_rear1_joint",
+      "left_wheel_joint",
+      "right_wheel_joint"
+    ],
+    "policy_observation_dimension": 35,
+    "actions": 6,
+    "same_relative_joint_displacement": "joint_pos minus each robot default; leg target default plus 0.5*a",
+    "wheel_target": "10*a rad/s with MOD4 torque-speed envelope",
+    "previous_action": "raw issued policy output after common +/-6 safety clip; unchanged action observation",
+    "transfer_limit": "original SCUT weights run on MOD4 geometry, no gimbal, MOD4 motor controller and fullDR; not an original-robot SCUT benchmark",
+    "error": "velocity_actual-command; horizontal velocity=root_lin_vel_b_x*cos(pitch)",
+    "original_policy_action_clip": "null; count common evaluation +/-6 clip activations explicitly"
+  }
+}

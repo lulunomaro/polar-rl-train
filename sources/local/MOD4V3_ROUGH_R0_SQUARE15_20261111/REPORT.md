@@ -7,3 +7,24 @@
 Rough005m：完整PPO含terrain_curriculum_state已保存；MuJoCo名义前进2.280636/2.563200偏超速，其他四项10/10，回放reset0。训练numerical0；完整DR/地形实际能力待同批PhysX验证，原指标不回写pass。
 
 Rough010m名义回放2.259898/2.541289偏超，其他四项10/10、回放reset0；随后约654s训练numerical累计1。现有numeric条件为非有限状态或joint_vel>500rad/s、root_ang>200rad/s、root_lin>100m/s。当前周期只保存峰值和累计，没有该瞬间逐env状态，不能指定是哪项触发或冒称根因。按原单env重置保留，无整批失败，未改任何门槛。一次本地读取不存在LATEST_PROGRESS路径失败，使用monitor已有实际周期记录；训练未受影响。
+
+Rough015m名义MuJoCo：2.0→2.136189（10/10），2.2→2.380482（0/10）；后退−1.381385（10/10）、旋转14.137393（10/10）、高低身各10/10、reset0。训练数值累计1，仍按原配方至20min结束。
+
+Rough段已正常完成1201.085188s，末iter23025，SAFE_CLOSED.scene_closed=true；numerical1/fall0/closure3849/timeout21401，其中terrain_boundary12045为timeout子集。末020m与final相同SHA`44ef796fdc92b37ccefa024c688b856df2a178e2d350e79cd2cb4ec94518c9a0`，不重复提交别名PT。最终配对GPU评测进行中。
+
+同批PhysX Flat完成1440env，numerical0、action槽0、六电机包络全0。fullDR前进MAE：原square1_030m=.129366；Flat1.5/005=.115345但正式reset1＋2.7诊断reset2；Flat020m=.121645、全部任务reset0；Rough010=.138655、正式reset0但2.7诊断3reset；Rough015=.124053、正式1reset；Rough020=.143488、正式1reset。原始逐env保留，不单看均值或末权重。
+
+
+## 本轮保留与结论
+
+- Flat回退/接续候选：`flat15_020m`，iter22856，SHA`a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87`。同批fullDR前进MAE0.12165，六项44/60，全部正式与诊断任务reset0；浅地形120/120。相较原父MAE0.12937改善约6%，同批44/60保持，原父正式reset1。
+- Rough实验候选：`rough15_010m`，iter22941，SHA`ece8c41163da29b37a3d1072f942427196db596b22b2813ae7c93b21b34bee89`。fullDR2.0→1.97813（6/10）、2.2→2.29978（7/10），MAE0.13866，正式41/60/reset0；后退−1.50391（7/10）、旋转13.47908（1/10，均值欠速约4.66%）、高低身各10/10。组合0.90419m/s、1.22288rad/s。额外2.7诊断有3reset，不能称所有任务无reset。
+- Rough020m未默认选：fullDR前进MAE0.14349、正式42/60并有1reset，名义PhysX后退也有部分精度损失。Rough015m的前进MAE0.12405更低，但正式2.2有1reset，故另作已保存对照。
+
+本轮完成用户要求的下一检查点切课，并保留后退、高低身等主要技能；完整DR旋转与个别样本的精度变化保留实测，不能概括为所有旧技能无退化。R0首次穿越对Flat020m与所有Rough点均120/120，无法据此证明浅地形训练新增能力；全20s后续episode仍存在reset，原数值记录保留。现有结果不支持原样继续堆R0时间或再加大平方项。后续若推进，按既有计划用更有区分度的R1地形先固定父/候选对比，再决定训练；本轮未启动R1。
+
+本轮实际PT为Flat5份＋Rough5份，共10份不同字节；Roughfinal与020m同字节作别名。两份候选及RECIPE在本机frozen_models和目标机frozen只读保存，未替换原主冻结。
+
+最终文档生成首次因f-string语法错误未运行；改正后完成。无训练或已有评测重跑。
+
+远端不存在ERROR时，SFTP get在本地先生成了空JSON；最终核对SAFE_CLOSED.error=false后移除这类零字节读取残留，未删除真实ERROR。实际Flat段仍无FINAL/SAFE_CLOSED，Rough训练1次数值重置原始计数保留。

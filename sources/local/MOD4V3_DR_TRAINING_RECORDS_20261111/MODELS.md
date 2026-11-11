@@ -158,4 +158,6 @@
 |---|---:|---:|---|
 | [rough15_005m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_005m.pt) | 22899 | 11,324,633 | `457f604a9bb140a0957d59ad2649f6aa1693e3b0783ba89ccb5b8b1d3b14e51c` |
 | [rough15_010m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_010m.pt) | 22941 | 11,324,633 | `ece8c41163da29b37a3d1072f942427196db596b22b2813ae7c93b21b34bee89` |
+| [rough15_015m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_015m.pt) | 22983 | 11,324,633 | `081a5f96e029075ea27f462d8d123d84edaca49643b94dffa9d5e11d40b9d280` |
+| [rough15_020m](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_020m.pt) | 23025 | 11,324,633 | `44ef796fdc92b37ccefa024c688b856df2a178e2d350e79cd2cb4ec94518c9a0` |
 | [rough15_first](../MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_first_complete.pt) | 22857 | 11,324,633 | `d46d5b7a4a4e6c8fb087dfdcdd1000daa080f4f8c36ec381663e2acd4ebbba41` |

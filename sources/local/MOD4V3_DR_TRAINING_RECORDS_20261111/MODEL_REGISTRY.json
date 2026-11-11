@@ -1007,9 +1007,9 @@
         "flat15_020m",
         "flat15_first"
       ],
-      "status": "User switched after complete020m; process exited; no FINAL/SAFE_CLOSED observed; Rough continuation in separate stage",
+      "status": "User switched after complete020m; paired evaluation completed in subsequentRough stage; no fabricatedFINAL",
       "original_tag": "trial-20261111-mod4-flat-square15-start-01",
-      "final_tag": null,
+      "final_tag": "trial-20261111-mod4-rough-r0-square15-final-01",
       "actual_segment": {
         "status": "user_requested_switch_after_next_complete_checkpoint",
         "actual_checkpoint_seconds": 1204.9230072498322,
@@ -1027,7 +1027,11 @@
         "original_FINAL_present": false,
         "continuation_trial": "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111",
         "continuation_seconds": 1200
-      }
+      },
+      "retained_model_id": "flat15_020m",
+      "retained_model_sha256": "a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87",
+      "final_report": "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/FINAL_REPORT.md",
+      "selection_basis": "Flat020m fullDR forwardMAE.121645, formal44/60, allreset0, R0shallow120/120; diagnostic fallback retained, originalacceptedfreeze unchanged"
     },
     {
       "id": "rough_r0_square15",
@@ -1055,7 +1059,8 @@
         "parent_sha256": "a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87",
         "reward_effective_vx_squared_coefficient": -1.5,
         "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
-        "budget": "Existing40min round split at user request: Flat20min then Rough20min; no extra40min added"
+        "budget": "Existing40min round split at user request: Flat20min then Rough20min; no extra40min added",
+        "actual_seconds": 1201.0851883888245
       },
       "sampling_mixture": {
         "nominal_fraction": 0.2,
@@ -1083,11 +1088,13 @@
       "model_ids": [
         "rough15_005m",
         "rough15_010m",
+        "rough15_015m",
+        "rough15_020m",
         "rough15_first"
       ],
-      "status": "20min Rough segment in progress after Flat020m; no promotion",
+      "status": "20min Rough continuation complete, paired Flat/R0 evaluated; experimental candidate retained; no automatic promotion",
       "original_tag": "trial-20261111-mod4-rough-r0-square15-start-01",
-      "final_tag": null,
+      "final_tag": "trial-20261111-mod4-rough-r0-square15-final-01",
       "terrain": {
         "terrain_rows": 4,
         "terrain_cols": 70,
@@ -1132,7 +1139,11 @@
         "train_from_parent_fullPPO": true
       },
       "continuation_of": "flat_square15",
-      "budget": "Flat20min + Rough20min within original40min round"
+      "budget": "Flat20min + Rough20min within original40min round",
+      "retained_model_id": "rough15_010m",
+      "retained_model_sha256": "ece8c41163da29b37a3d1072f942427196db596b22b2813ae7c93b21b34bee89",
+      "final_report": "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/FINAL_REPORT.md",
+      "selection_basis": "Rough010m balances forward MAE.138655 and no formalreset versus5m worseMAE and15/20 formalreset; extra2.7diagnostic3reset retained. Flat020m betterMAE.121645 and shallow120/120 already, so no proved newR0 crossing gain; original freezes retained."
     }
   ],
   "models": [
@@ -3599,7 +3610,7 @@
       "recipe_files": [
         "sources/local/MOD4V3_FLAT_SQUARE15_20261111/PLAN.json"
       ],
-      "role": "Flat1.5 experimental checkpoint",
+      "role": "Retained Flat1.5 fallback/continuation candidate; not promoted",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
     },
@@ -3662,15 +3673,59 @@
       "recipe_files": [
         "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/PLAN.json"
       ],
+      "role": "Retained RoughR0-1.5 experimental candidate; not promoted",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "rough15_015m",
+      "file": "model_015m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_015m.pt",
+      "bytes": 11324633,
+      "sha256": "081a5f96e029075ea27f462d8d123d84edaca49643b94dffa9d5e11d40b9d280",
+      "iteration": 22983,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "flat15_020m",
+      "parent_sha256": "a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_square15_20261111_r1/train020m_rough_r0_square15_r1/model_015m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/PLAN.json"
+      ],
       "role": "RoughR0 square1.5 complete PPO checkpoint",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "rough15_020m",
+      "file": "model_020m.pt",
+      "git_path": "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/weights/model_020m.pt",
+      "bytes": 11324633,
+      "sha256": "44ef796fdc92b37ccefa024c688b856df2a178e2d350e79cd2cb4ec94518c9a0",
+      "iteration": 23025,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "flat15_020m",
+      "parent_sha256": "a5102af62938f6bf472855edba34c5f10efce061eecaeb3aebee34815fe7cf87",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r0_square15_20261111_r1/train020m_rough_r0_square15_r1/model_020m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_ROUGH_R0_SQUARE15_20261111/PLAN.json"
+      ],
+      "role": "RoughR0 square1.5 complete PPO checkpoint",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": [
+        "model_final.pt (byte-identical)"
+      ]
     }
   ],
   "weights_summary": {
-    "models": 105,
-    "unique_sha256": 105,
-    "total_bytes": 819096091,
+    "models": 107,
+    "unique_sha256": 107,
+    "total_bytes": 841745357,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -3689,8 +3744,10 @@
   "remaining_dr": "All planned flatDR ranges implemented and two40minute rounds completed; fullDR tracking and nominal forward retention still incomplete. Latest mixed20m diagnostic; original push020 accepted scope retained; rough notstarted.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-mod4-rough-r0-square15-start-01",
+  "last_update_tag": "trial-20261111-mod4-rough-r0-square15-final-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
-  "latest_rough_r0_candidate_model_id": "rough_r0_020m"
+  "latest_rough_r0_candidate_model_id": "rough_r0_020m",
+  "latest_speed_square15_diagnostic_model_id": "flat15_020m",
+  "latest_rough_square15_diagnostic_model_id": "rough15_010m"
 }

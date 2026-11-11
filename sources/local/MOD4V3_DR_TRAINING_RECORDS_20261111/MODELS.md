@@ -167,4 +167,13 @@
 
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [r1_005m](../MOD4V3_ROUGH_R1_20261111/weights/model_005m.pt) | 22891 | 11,324,889 | `71af95ae3c3282d6dd8bbacbb59d3972d2db0ea623ff7290cd2b004aa94fcaf8` |
+| [r1_010m](../MOD4V3_ROUGH_R1_20261111/weights/model_010m.pt) | 22925 | 11,324,889 | `959dc6a5a0ce1b221f8f7c489437b81da3149a712a96d2b8c319a1b3c496e022` |
 | [r1_first](../MOD4V3_ROUGH_R1_20261111/weights/model_first_complete.pt) | 22857 | 11,324,889 | `1c318faf8f9cca8a7884333603b9a98855dc96e05bb738b9b28fee5e4c68e4c5` |
+
+
+## RoughR1平方惩罚2.0接续
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [r1sq2_first](../MOD4V3_ROUGH_R1_SQUARE2_20261111/weights/model_first_complete.pt) | 22926 | 11,324,889 | `e32e17ad887417025cc4834b9d850d455ce6e0ee69de5a619394593c6b19308e` |

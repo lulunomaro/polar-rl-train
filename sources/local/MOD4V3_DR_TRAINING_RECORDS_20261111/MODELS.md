@@ -210,6 +210,17 @@
 
 ## RoughR2低落高腾空落地40分钟
 
+本轮新权重未综合晋升，继续保留r1round2_005m；r2_005m仅实验备选。[选择与同批结果](../MOD4V3_ROUGH_R2_20261112/DECISION.md)。
+
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [r2_005m](../MOD4V3_ROUGH_R2_20261112/weights/model_005m.pt) | 22993 | 11,626,993 | `2fec0707f53e3f1b65440b3e27c59fe958dffbcb951cc0bc588593d715ef4680` |
+| [r2_010m](../MOD4V3_ROUGH_R2_20261112/weights/model_010m.pt) | 23027 | 11,626,993 | `fc77def49d310477ae59af77bf74a51f87d584ad0534e9f36fc23a4818a8cc54` |
+| [r2_015m](../MOD4V3_ROUGH_R2_20261112/weights/model_015m.pt) | 23061 | 11,626,993 | `9dd06c35a612f23b38160b1c5dae42f8411d718a24704271f7cb6c77f563d746` |
+| [r2_020m](../MOD4V3_ROUGH_R2_20261112/weights/model_020m.pt) | 23095 | 11,626,993 | `293c8604a36440958ffba555412defea00496cfc0fc70e68e146185fcb194b7d` |
+| [r2_025m](../MOD4V3_ROUGH_R2_20261112/weights/model_025m.pt) | 23129 | 11,626,993 | `0a6ff95e80e7d626b7c7196d9bd33325c063fb3a956c333404d01ae2de538fff` |
+| [r2_030m](../MOD4V3_ROUGH_R2_20261112/weights/model_030m.pt) | 23162 | 11,626,993 | `dcb9fd7a6f11b3915c93bc5275741665d949bd5da27306c5106029e68931d71a` |
+| [r2_035m](../MOD4V3_ROUGH_R2_20261112/weights/model_035m.pt) | 23196 | 11,626,993 | `fb398a04c2c0b42c5a8d3abc00f93d3738a1402c6936e8b3b7616f79ce220171` |
+| [r2_040m](../MOD4V3_ROUGH_R2_20261112/weights/model_040m.pt) | 23230 | 11,626,993 | `76325bb137e4e15acb2930dc543e5bf0c9893913b8598cf938ca1b45f50eddfa` |
+| [r2_final](../MOD4V3_ROUGH_R2_20261112/weights/model_final.pt) | 23230 | 11,626,993 | `76325bb137e4e15acb2930dc543e5bf0c9893913b8598cf938ca1b45f50eddfa` |
 | [r2_first](../MOD4V3_ROUGH_R2_20261112/weights/model_first_complete.pt) | 22960 | 11,626,993 | `32ded960cf1a2aee2b5d50d5de4f1c23439b70946028be635117088a01917a91` |

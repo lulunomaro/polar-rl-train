@@ -10,7 +10,9 @@ for path in sorted((T/'weights').glob('*.pt')):
  suffix='first' if path.stem=='model_first_complete' else path.stem.removeprefix('model_');mid='r2_'+suffix
  sha=hashlib.sha256(path.read_bytes()).hexdigest();data=torch.load(path,map_location='cpu',weights_only=False)
  assert (data['actor_state_dict']['mlp.0.weight'].shape[1],data['critic_state_dict']['mlp.0.weight'].shape[1])==(35,78)
- assert all(k in data for k in ['optimizer_state_dict','cpu_rng','cuda_rng','domain_randomization_state'])
+ assert all(k in data for k in ['optimizer_state_dict','cpu_rng','cuda_rng','python_rng','numpy_rng','reset_rng','domain_randomization_state','terrain_curriculum_state','r2_curriculum_state'])
+ assert data['reward_recipe']['profile']=='rough_r2'
+ assert data['source_asset']['actual_training_assets']['robot.usd']['sha256']==plan['asset_identity']['actual_training_assets']['robot.usd']['sha256']
  row=dict(id=mid,file=path.name,git_path=path.relative_to(R).as_posix(),bytes=path.stat().st_size,sha256=sha,iteration=data['iter'],optimizer_entries=len(data['optimizer_state_dict']['state']),complete_PPO=True,actor_input=35,critic_input=78,parent_model_id='r1round2_005m',parent_sha256=plan['parent_sha256'],original_remote_path=plan['support'].rsplit('/support',1)[0]+'/'+plan['training_round']['job']+'/'+path.name,recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],role='RoughR2 low-drop complete PPO checkpoint; experimental',git_storage='ordinary Git full PPO PT bytes',aliases=[])
  same=[m for m in reg['models'] if m['id']==mid]
  if same:assert same[0]['sha256']==sha
@@ -19,7 +21,11 @@ for path in sorted((T/'weights').glob('*.pt')):
 stage=dict(id='rough_r2',title='RoughR2低落高腾空落地40分钟',profile=plan['profile'],parent_model_id='r1round2_005m',parent_sha256=plan['parent_sha256'],source_directories=[T.relative_to(R).as_posix()],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],training_method=plan['training_round'],sampling_mixture=plan['sampling_mixture'],reward=plan['reward'],model_ids=ids,status='R2 first low-drop round completed; see paired landing/flat/R1 report' if a.final else 'R2 first low-drop40min running from r1round2_005m; fullDR and original -1.5e²',original_tag='trial-20261112-mod4-rough-r2-start-01',final_tag='trial-20261112-mod4-rough-r2-final-01' if a.final else None)
 stage['terrain']=plan['rough_r1'];stage['landing']=plan['rough_r2'];stage['budget']=plan['budget_accounting']
 reg['stages']=[m for m in reg['stages'] if m['id']!='rough_r2']+[stage]
+if a.final:
+ final=json.loads((T/'evidence/training_round/FINAL.json').read_text(encoding='utf8'))
+ reg['current_round_actual_PPO_seconds']=final['elapsed_seconds']
 reg['weights_summary'].update(models=len(reg['models']),unique_sha256=len({x['sha256'] for x in reg['models']}),total_bytes=sum(x['bytes'] for x in reg['models']))
+put(T/'evidence/MODEL_ARCHIVE_INDEX.json',dict(stage=stage['id'],models=[m for m in reg['models'] if m['id'] in ids],unique_sha256=len({m['sha256'] for m in reg['models'] if m['id'] in ids}),storage='full PPO PT bytes in ordinary Git blobs'))
 reg['current_training_status']=stage['status'];reg['latest_rough_r1_candidate_model_id']='r1round2_005m';reg['rough_r1_decision_file']='sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md';reg['last_update_tag']=stage['final_tag'] or stage['original_tag'];put(CAT/'MODEL_REGISTRY.json',reg)
 path=CAT/'MODELS.md';content=path.read_text(encoding='utf8');marker='\n\n## RoughR2低落高腾空落地40分钟'
 if marker in content:content=content.split(marker)[0]

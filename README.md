@@ -1,6 +1,7 @@
 # polar-rl-train
 
-2026-11-12 当前进展：**R2低落高腾空落地40分钟已启动**，从R1第二轮005m/iter22959/SHA0dcc15f5…完整接续。平地及已有浅地形上额外5–10cm落高；完整DR、R1地形与−1.5e²保留，每5分钟完整PT保存和检查。[R2配方与进度](sources/local/MOD4V3_ROUGH_R2_20261112/README.md)。
+2026-11-12 当前：**R2首轮40分钟及配对评测已完成**。5–10cm低落高能力已具备；综合保留r1round2_005m（iter22959/SHA0dcc15f5…），本轮R2新权重未晋升，005m保留实验备选；40m不作默认接续。28阶段/138完整PT文件索引，R2的10个PT实体均保留。[结果与选择](sources/local/MOD4V3_ROUGH_R2_20261112/DECISION.md)。
+
 
 
 2026-11-11 当前进展：**R1第二轮及同批评测已完成**，实际2404.901s，8个5分钟保存点和完整PT已保留。优先保留本轮005m作较均衡实验候选（iter22959，SHA0dcc15f5…），010m作L3穿越对照；40m非全面最优。旧六类低档首次穿越均120/120。[本轮选择](sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md) · [全部地形图](sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/terrain_all/README.md)。主冻结保持，未开R2。

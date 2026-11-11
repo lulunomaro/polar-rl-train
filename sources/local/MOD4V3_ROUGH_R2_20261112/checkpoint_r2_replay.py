@@ -1,7 +1,7 @@
 """Paired frozen-weight R2 landing: plane/tiny grid,5/10cm,4commands,10starts. No optimizer."""
 from pathlib import Path
 import argparse,base64,hashlib,json,os,sys,time,traceback
-p=argparse.ArgumentParser();p.add_argument('--plan',required=True);p.add_argument('--out',required=True);p.add_argument('--support',required=True);p.add_argument('--version',required=True);p.add_argument('--models',required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--plan',required=True);p.add_argument('--out',required=True);p.add_argument('--support',required=True);p.add_argument('--version',required=True);p.add_argument('--models',required=True);p.add_argument('--model-ids',required=True);a=p.parse_args()
 plan=json.loads(Path(a.plan).read_text());out=Path(a.out);out.mkdir(exist_ok=False)
 storage=out/'kit_isolation';(storage/'data').mkdir(parents=True);(storage/'DerivedDataCache').mkdir();(storage/'data/user.config.json').write_text('{}')
 os.environ.update(MOD4V1_E0_JOB_ROOT=str(out),MOD4V1_E0_KIT_STORAGE_ROOT=str(storage),MOD4_SCUT_SOURCE_PATHS=plan['source_paths'],PHYSICAL_DELAY_QUANTUM_MS='5',PHYSICAL_ACTION_DELAY_MIN_MS='5',PHYSICAL_ACTION_DELAY_MAX_MS='10',PHYSICAL_SENSOR_DELAY_MIN_MS='5',PHYSICAL_SENSOR_DELAY_MAX_MS='15',JOINT_FRICTION_SCALE='1',SPRING_DAMPING_FRACTION='1',EXTERNAL_DR_FRACTION='1',OBS_NOISE_FRACTION='1')
@@ -30,7 +30,7 @@ try:
  from isaaclab.utils.math import quat_from_euler_xyz
  from tensordict import TensorDict
  torch.manual_seed(66);torch.cuda.manual_seed_all(66)
- models=json.loads(Path(a.models).read_text());variants=['nominal0','Step7_all_remaining_DR'];per=10;small=len(TASKS)*per;n=small*len(variants)*len(models);dev='cuda:0'
+ all_models=json.loads(Path(a.models).read_text());models={key:all_models[key] for key in a.model_ids.split(',')};assert len(models)==3,'Fixed3model batches keep identical startup DR draws';variants=['nominal0','Step7_all_remaining_DR'];per=10;small=len(TASKS)*per;n=small*len(variants)*len(models);dev='cuda:0'
  ids=torch.arange(n,device=dev);base_ids=torch.arange(small,device=dev).repeat(len(variants)*len(models));nominal=(ids//small)%len(variants)==0
  meta=metadata(plan['package']);bank=reset_bank(plan['package'],plan['reset_bank'])
  env=ScutFlatPhysicalDelayEnv(configuration(meta,bank,n,66,terrain_selection='rough_r1'),meta,bank);env.render_enabled=False
@@ -137,11 +137,13 @@ try:
    layers.append(torch.nn.Linear(dims[i],dims[i+1]));
    if i<3:layers.append(torch.nn.ELU())
   actor=torch.nn.Sequential(*layers).to(dev);actor.load_state_dict({k[4:]:v for k,v in state.items() if k.startswith('mlp.')});actor.eval();actors[label]=actor;hashes[label]=digest
- assert hashes['parent']==plan['parent_sha256']
+ assert hashlib.sha256(Path(plan['parent']).read_bytes()).hexdigest()==plan['parent_sha256']
  mass_read=tensor(env.robot.root_view.get_masses()).to(dev);inertia_read=tensor(env.robot.root_view.get_inertias()).to(dev)
  material_write_read_error=float((tensor(env.robot.root_view.get_material_properties()).cpu()-materials).abs().max())
  mass_readback=dict(mass_write_read_error_kg=float((mass_read-masses).abs().max()),inertia_write_read_error=float((inertia_read-inertias).abs().max()))
  inputdr=dict(materials=materials.tolist(),material_shapes=dr.material_shapes,material_buckets={k:v.tolist() for k,v in dr.material_buckets.items()},effort_scale=dr.effort_scale.cpu().tolist(),body_names=list(env.robot.body_names),body_mass_scale=dr.body_mass_scale.cpu().tolist(),total_mass_scale=dr.total_mass_scale.cpu().tolist(),mass=masses.cpu().tolist(),com=coms[:,dr.base_id,:3].cpu().tolist(),friction=fr.cpu().tolist(),leg_gain=dr.leg_gain_scale.cpu().tolist(),wheel_gain=dr.wheel_gain_scale.cpu().tolist(),kp_scale=dr.kp_scale.cpu().tolist(),kd_scale=dr.kd_scale.cpu().tolist(),native_damping=native_damping.cpu().tolist(),action_delay_ticks=env._action_delay_ticks.cpu().tolist(),sensor_delay_ticks=env._sensor_delay_ticks.cpu().tolist())
+ relative_root=root[:len(variants)*small].clone();relative_root[:,:3]-=env.scene.env_origins[:len(variants)*small]
+ inputdr.update(initial_root_relative=relative_root.cpu().tolist(),initial_joint_position=q[:len(variants)*small].cpu().tolist(),initial_commands=commands[:len(variants)*small].cpu().tolist(),models=list(models),batch_envs=n)
  damping_readback=float((tensor(env.robot.root_view.get_dof_dampings()).to(dev)-native_damping).abs().max())
  readfr=tensor(env.robot.root_view.get_dof_friction_properties()).to(dev);friction_readback=dict(max_write_read_error=float((readfr-fr).abs().max()),leg_static_mean=float(readfr[~nominal][:,dr.leg_active_joint_ids,0].mean()),wheel_static_mean=float(readfr[~nominal][:,dr.wheel_joint_ids,0].mean()),passive_static_mean=float(readfr[~nominal][:,dr.passive_joint_ids,0].mean()))
  # Use common random numbers for physics torque noise and the scheduled 5.5s wrench.
@@ -212,7 +214,8 @@ try:
   tracking_run.copy_(torch.where(tracking,tracking_run+1,0))
   new=~tracked&(tracking_run>=25);tracking_tick[new]=tick-24;tracked.logical_or_(new)
   first_closure.copy_(torch.maximum(first_closure,env.closure_error*alive))
-  landing_trace.append(torch.stack((gaps[:,0],gaps[:,1],force[:,0],force[:,1],roll,pitch,alive.float(),landed.float()),-1).clone())
+  landing_trace.append(torch.stack((gaps[:,0],gaps[:,1],force[:,0],force[:,1],roll,pitch,(alive&~(term|timeout)).float(),landed.float()),-1).clone())
+  trajectory.append(torch.cat((d.root_lin_vel_b[:,:1],d.root_ang_vel_b[:,2:3],env._height_observation()[:,None]),-1).clone())
   alive.logical_and_(~(term|timeout))
   return term,timeout
  env._get_dones=landing_done
@@ -223,7 +226,6 @@ try:
    actions=torch.cat([actor(obs['policy'][i*len(variants)*small:(i+1)*len(variants)*small]) for i,actor in enumerate(actors.values())],0).clamp(-6,6)
    obs,reward,term,timeout,_=env.step(actions);command()
    action_error=max(action_error,float((obs['policy'][:,22:28]-env._encode()['policy'][:,22:28]).abs().max()))
-   d=env.view.data;trajectory.append(torch.cat((d.root_lin_vel_b[:,:1],d.root_ang_vel_b[:,2:3],env._height_observation()[:,None]),-1).clone())
    if tick==99:survived2=alive.clone()
    if tick%40==0:(out/'PROGRESS.json').write_text(json.dumps(dict(step=tick,elapsed=time.time()-start,numerical=int(reason_counts['numerical'].sum()))))
  torch.randn_like=original_randn_like
@@ -240,7 +242,7 @@ try:
     rows.append(dict(model=model,variant=var,task=name,family=name.split('__')[0],drop_m=drop,command=[vx,wz,h],requested=per,cleared_count=int(cleared[sl].sum()),landed_count=int(landed[sl].sum()),posture_recovered_count=int(recovered[sl].sum()),command_recovered_count=int(tracked[sl].sum()),survived_first2s=int(survived2[sl].sum()),posture_recovery_s=recovery_s,command_recovery_s=tracking_s,first_contact_s=[float(x*.02) if x>=0 else None for x in contact_tick[sl].tolist()],landing_force_p95_n=float(torch.quantile(impacts,.95)) if len(impacts) else None,landing_force_peak_n=float(impacts.max()) if len(impacts) else None,pre_wrench_2to5s_forward_mae=mean_error,eligible_error_samples=count,first_episode_closed_loop_peak_m=float(first_closure[sl].max()),resets_over8s=int(term_count[sl].sum()),reason_events_over8s={k:int(v[sl].sum()) for k,v in reason_counts.items()}))
  result=dict(version=a.version,protocol='plane/tiny_step level0 x5/10cm extra drop xstand/forward/backward/turn x10starts; nominal/fullDR paired across models;400steps8s; first physical episode only,never count recovery afterreset; posture:nearwheels+-25mm/rollpitch<.2/height+-50mm for.5s; command:additionalvxerror<.3/wzerror<.5; diagnostic comparison,not added graduation gate',input_sha256=hashes,parent_sha256=plan['parent_sha256'],num_envs=n,rows=rows,first_failures=first_fail,physics_dt=float(env.cfg.sim.dt),delay=env.physical_delay_summary(),motor_envelope_violation_nm=envelope_violation.tolist(),action_slot_max_error=action_error,no_optimizer_constructed=True,wall_seconds=time.time()-start,reference='existing SCUT fixed-DR paired physics replay framework; project README R2 local-height reset')
  (out/'RESULT.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'INITIAL_DR.json').write_text(json.dumps(inputdr))
- np.savez_compressed(out/'trajectory.npz',values=traj.cpu().numpy(),landing=trace.cpu().numpy(),contact_tick=contact_tick.cpu().numpy(),recovery_tick=recovery_tick.cpu().numpy(),tracking_tick=tracking_tick.cpu().numpy())
+ np.savez_compressed(out/'trajectory.npz',values=traj.cpu().numpy(),landing=trace.cpu().numpy(),contact_tick=contact_tick.cpu().numpy(),recovery_tick=recovery_tick.cpu().numpy(),tracking_tick=tracking_tick.cpu().numpy(),impact_n=impact.cpu().numpy(),first_closure_m=first_closure.cpu().numpy())
 
 except BaseException:
  (out/'ERROR.json').write_text(json.dumps(dict(traceback=traceback.format_exc()),ensure_ascii=False,indent=2));raise

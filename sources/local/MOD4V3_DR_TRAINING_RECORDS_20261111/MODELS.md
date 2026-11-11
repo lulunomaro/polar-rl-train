@@ -65,3 +65,20 @@
 | [push_030m](weights/push_030m.pt) | 22269 | 5,746,273 | `1cbe4ae5e34423aa2ca298db06ee57904b3c18bfa39758da361bbd0cbdc9b805` | 5m检查点 |
 | [push_035m](weights/push_035m.pt) | 22332 | 5,746,273 | `93485c8fc9881513f177db76930f05a56b220e1bd8c5519cee700b67c7e466cc` | 5m检查点 |
 | [push_040m](weights/push_040m.pt) | 22395 | 5,746,273 | `46fa51e6b8ccaf1ad49c4263c189a1be7c394ff1300b8af264083831af6e8d3f` | 末检查点，退化对照未选 |
+
+
+## 后续合并DR轮：完整PT实体
+
+以下模型在独立本轮目录保存；首次61份档案仍按原tag固定。
+
+| 模型ID | iteration | 字节数 | SHA256 | 角色 |
+|---|---:|---:|---|---|
+| [remaining_first](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_first_complete.pt) | 22142 | 11,044,601 | `d95c25c0504c2c1e39bc6ba20c980b7043ab071b0d43ce90237b34276a1446f2` | 检查点/原始回归证据 |
+| [remaining_005m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_005m.pt) | 22203 | 11,044,601 | `71df98c5d5c50f1407175cd60b7c4760618287cf5477a760884061494ec71594` | 检查点/原始回归证据 |
+| [remaining_010m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_010m.pt) | 22265 | 11,044,601 | `978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15` | 本轮保留候选 |
+| [remaining_015m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_015m.pt) | 22324 | 11,044,601 | `e925f176c74e375e79c5f6fc75ebacea6c7ebdac6976b4d08284fb915a8585ba` | 检查点/原始回归证据 |
+| [remaining_020m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_020m.pt) | 22384 | 11,044,601 | `4290fe3973d5e4e9c9659b46e7fd3aa08dd3fd7c4fef9963cb8b2eb2fd9f558e` | 检查点/原始回归证据 |
+| [remaining_025m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_025m.pt) | 22443 | 11,044,601 | `bf2d70f3b0be58e45ed0049d3eead802b8658761a255f5551c072ba70f2f36f3` | 检查点/原始回归证据 |
+| [remaining_030m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_030m.pt) | 22501 | 11,044,601 | `0c0941adee768f54b3a6ee48ca08f266d06a9109553bee4c03f864bdb2e797ca` | 检查点/原始回归证据 |
+| [remaining_035m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_035m.pt) | 22560 | 11,044,601 | `cb5ac70c5d6f65fc2a02e76695f32e6dfaa13d62791dbf5eb12bffec1637082f` | 检查点/原始回归证据 |
+| [remaining_040m](../MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_040m.pt) | 22618 | 11,044,601 | `957653bfaf2c699ef888225ee747fb48563ffaad62bc0f46276e995ba708dfb7` | 检查点/原始回归证据 |

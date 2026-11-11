@@ -1,15 +1,19 @@
 # MOD4 DR 训练配方、阶段模型与续训索引
 
-记录日期：2026-11-11，Asia/Shanghai。入口覆盖当前增量 DR 主线的 17 个阶段/分支及 61 份检查点；原始试错、失败、提前停止和后续修复并列保留。本次只整理和保存已有成果，没有开训、重跑评测或更改模型。
+记录日期：2026-11-11，Asia/Shanghai。首次入口覆盖17个阶段/分支、61份检查点；追加本轮后共18个阶段/分支、70份完整检查点；原始试错、失败、提前停止和后续修复并列保留。首次总档案只整理已有成果；其后用户明确开训，新增剩余DR合并轮的实时状态与最终结果另行追加，旧原始记录保持。
 
-**以后接着训练，从速度推扰 `push_020m` 开始查；原 Step7 `mass_040m` 继续作为主冻结对照。两份 `.pt` 实体都在 Git 中。**
+**本轮全范围DR诊断候选为 `remaining_010m`；其实际父为 `push_020m`，原 Step7 `mass_040m` 继续作为主冻结对照；此前已接受范围的接训/回退仍为`push_020m`。本轮候选未晋升，完整PT实体均在Git。**
 
 - [逐份模型完整索引（SHA、iteration、父子关系、配方、原始两端路径）](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)
 - [全部 61 份模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
 - [取回模型、准备新运行目录、续训与检查方法](DR_TRAINING_RESUME_20261111.md)
 - [原始报告、补收证据和源码入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md)
 
-## 1. 当前应保留哪份模型
+2026-11-11追加：[剩余DR合并轮](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/README.md)已从push020m完整恢复，4096env/40min/5min保存；COM、PD、摩擦、阻尼、外力、噪声full范围与MOD4可行reset一起开启，这是启动时状态；现已完成一轮，适应尚未完成，实际结果见下面最终报告。
+
+本轮已完成：[合并DR最终报告](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)。本轮完整DR前进诊断候选为 **remaining_010m**，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；2.0→1.90988（4/10）、2.2→2.18903（6/10）；正式任务39/60、reset=0。原61份初次档案与下面历史阶段成绩保持，新增完整PT见[模型表末节](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)。
+
+## 1. 首次归档时的候选与冻结模型
 
 下表“最佳”指该轮已经测试的训练检查点中选出的候选；不是跨阶段、跨引擎、所有 DR 分布上的统一最优。每轮最后一个检查点不自动晋升。
 
@@ -91,7 +95,7 @@ partial-base 075m → Stage1 final
 
 近四轮实际训练秒数：质量2400.147、输出倍率2401.976、材质2400.734、推扰2404.033。每轮4096环境，300s完整PPO检查点并检查；末尾完整update/保存收尾会有数秒差异。
 
-## 5. 当前累计DR配方
+## 5. push020m父模型的累计DR配方（合并轮前）
 
 精确执行依据为 [推扰轮 PLAN](../sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/PLAN.json)、[实际 STARTUP](../sources/local/MOD4V3_STEP7_VELOCITY_PUSH_20261111/evidence/train040m_velocity_push_r1_STARTUP.json) 和该目录 support；下表是便于查找的展开。
 
@@ -152,4 +156,4 @@ partial-base 075m → Stage1 final
 
 ## 8. 接下来仍有什么DR
 
-当前速度推扰阶段可以累计保留继续。D2全范围机身COM、D3全Kp/Kd、D6摩擦、D7弹簧阻尼、D8外力、D9噪声的目标范围仍按 [根README计划表](../README.md) 推进，每轮固定一个变化项和新run。Rough尚未启动；进入时保留已适应DR并接低难度课程，旧rough_v0只载actor且不自动继承当前修复链，不能直接把profile字符串换成rough就当全部接好了。
+当前速度推扰阶段可以累计保留继续。用户随后明确授权D2全范围机身COM、D3全Kp/Kd、D6摩擦、D7弹簧阻尼、D8外力、D9噪声与MOD4可行reset合并40分钟训练，覆盖本轮每次只改一项的旧安排；实现范围见[本轮PLAN](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/PLAN.json)，本轮现已完成，配对已看到完整DR部分改善和PhysX名义前进回归，适应未完成。Rough尚未启动；进入时保留已适应DR并接低难度课程，旧rough_v0只载actor且不自动继承当前修复链，不能直接把profile字符串换成rough就当全部接好了。

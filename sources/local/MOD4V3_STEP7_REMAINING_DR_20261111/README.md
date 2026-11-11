@@ -13,3 +13,6 @@
 - 新checkpoint实际保存DR samples/timers字典；恢复仍fresh episode，不声称完整物理瞬时状态续接。
 
 原Step7主冻结mass040与推扰020不覆盖。64/4096固定父权重短测及真实失败分别保留，短测数值正常后启动主轮；单环境闭链reset不扩为整批失败。现有来源目录、其他AI未提交改动不改。本轮PT实体与源码/报告按用户要求Git保存，网络走7897。
+
+
+本轮已完成：实际2403.405s、8个5分钟检查点。保留[remaining_010m](weights/model_010m.pt)，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；2.0→1.90988（4/10）、2.2→2.18903（6/10）；正式任务39/60、reset=0。具体通过与限制见[FINAL_REPORT](FINAL_REPORT.md)，配方见[evidence/SELECTED_RECIPE.json](evidence/SELECTED_RECIPE.json)。原主冻结保持，Rough未启动。

@@ -2,6 +2,8 @@
 
 日期2026-11-11。先看 [阶段总表](DR_TRAINING_INDEX_20261111.md) 和 [精确索引](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)。本页是后续操作说明；本次整理没有执行下面的训练命令。
 
+追加更新：剩余DR合并轮已完成，查本轮完整DR配方与前进诊断候选，从 **remaining_010m** 查起，Git路径`sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_010m.pt`，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；配套使用`MOD4V3_STEP7_REMAINING_DR_20261111/support`、PLAN、实际STARTUP/PPO_EFFECTIVE/RESTORE和RECIPE_CLARIFICATION。完整记录见[本轮报告](../sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)，原push020仍作确切父与回退。本页下方旧示例绑定初次目录，不能直接作为新合并DR运行命令。新父路径和profile必须一起更新。
+
 ## 1. 取哪份 `.pt`
 
 当前累计 DR 接训候选：

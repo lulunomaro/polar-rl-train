@@ -1,4 +1,4 @@
-"""Paired frozen-weight Step7 mass and effort scale adaptation check. No optimizer."""
+"""Paired frozen-weight MOD4 combined remaining-DR adaptation check. No optimizer."""
 from pathlib import Path
 import argparse,base64,hashlib,json,os,sys,time,traceback
 p=argparse.ArgumentParser();p.add_argument('--plan',required=True);p.add_argument('--out',required=True);p.add_argument('--support',required=True);p.add_argument('--version',required=True);p.add_argument('--models',required=True);a=p.parse_args()

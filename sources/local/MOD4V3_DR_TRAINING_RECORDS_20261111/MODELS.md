@@ -100,3 +100,12 @@
 
 
 2026-11-11回放复核：同一mixed2_020m在MuJoCo名义超速、PhysX名义欠速；0/5ms复测保留方向，原训练actor观测与paired包装逐帧最大差0。尚无新确认的输入回放bug，物理/执行差异未定位，不能只凭跨引擎差异定为策略退化。完整DR同时有欠速和超速样本。详见`sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/replay_environment_check/REPORT.md`；未启动第三轮训练。
+
+
+## 双侧平方惩罚加倍：运行中
+
+仅首完整检查点，尚不代表完成轮次或达标。
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [square1_first](../MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_first_complete.pt) | 22266 | 11,048,951 | `f8384096a14d2942c688abfa8090b14ce09e6189f03786b671dfe861c39ce384` |

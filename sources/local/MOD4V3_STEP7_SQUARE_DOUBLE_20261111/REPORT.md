@@ -1,0 +1,9 @@
+# 双侧速度平方惩罚加倍：独立40分钟实验
+
+用户2026-11-11要求“超速和欠速度再加强一档”，随后要求从父检查点单开40分钟。实际从与第二轮相同父模型remaining_010m完整恢复（iter22265，SHA978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15）；不是第二轮40m或20m。单项改变track_lin_vel_xy_square −0.5→−1.0，sigma保持1。指数奖励、819/3277混合采样、完整DR端点、随机reset、PPO、solver、plant与35/78/6接口保持。支持源仅1个文件有行为差异，见SOURCE_DIFF_FROM_ROUND2。
+
+4env×24步实际奖励路径已验证：raw误差5.96e-08、加权误差1.4e-09、奖励和误差0.0，无reset。实际公式−e²×0.02；短冻结探针不证明学习有效。探针后本机收不存在ERROR.json造成空文件再解析失败，已保留reader失败说明与空文件；未据此重跑探针。
+
+2026-11-11 11:37:42 Asia/Shanghai启动4096环境，远端PID1044972，实际STARTUP系数−1、2.5ms物理/10msPD/20ms策略。完整恢复actor/critic/std/Adam/RNG；首更新iter22266、actor_changed=true、17优化器状态，保存完整11,048,951字节PT，SHAf8384096a14d2942c688abfa8090b14ce09e6189f03786b671dfe861c39ce384。首更新numerical0，闭链单envreset633，不把闭链reset写成无reset，也不抬阈值或整批停止。
+
+本轮正在训练。5分钟一次完整检查点/本机MuJoCo固定任务回放；名义MuJoCo超速与PhysX名义欠速分别解读，轮末同源PhysX做配对比较。原冻结、失败证据与两轮旧权重保持。只运行这一次用户授权40分钟，轮末不自动续训。

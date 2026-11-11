@@ -761,6 +761,61 @@
         "dynamics_equivalence": "unresolved; fixed-actor comparison next",
         "training_after_round2": false
       }
+    },
+    {
+      "id": "square1",
+      "title": "双侧速度平方项加倍独立40分钟",
+      "profile": "flat_remaining_mixed_dr",
+      "parent_model_id": "remaining_010m",
+      "parent_sha256": "978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15",
+      "source_directories": [
+        "sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train040m_square_double_r1",
+        "seconds": 2400,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "restore original actor/critic/STD/Adam/RNG; one fresh physical episode; override fixed LR",
+        "parent_sha256": "978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15",
+        "reward_effective_vx_squared_coefficient": -1.0,
+        "post_training": "existing fixed tasks nominal and training DR; do not promote automatically",
+        "budget": "Independent40min explicitly authorized2026-11-11 after both underspeed/overspeed penalty strengthened one grade"
+      },
+      "reward": {
+        "profile": "flat_remaining_mixed_dr",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.0,
+        "sigma": 1.0,
+        "effective_coefficient": -1.0,
+        "baseline_weight": -0.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -0.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "assignment": "fixed env IDs modulo5==4;819of4096",
+        "remaining_fraction": "3277of4096 keep identical fullDR ranges",
+        "nominal_parameters": "asset nominal mass/inertia/COM/material/jointfriction/damping; gains/effort1; no sensor/torquenoise/delay/wrench/push",
+        "reset": "same MOD4 feasible random reset distribution in both groups; not easier standreset",
+        "PPO": "single shared actor/critic same unweighted combinedrollout; no auxiliary loss",
+        "reward_and_solver": "unchanged"
+      },
+      "status": "running authorized40min; first full checkpoint verified; no result inferred",
+      "original_tag": "trial-20261111-step7-square-double-start-01",
+      "retained_model_id": null
     }
   ],
   "models": [
@@ -2266,12 +2321,53 @@
       ],
       "git_storage": "ordinary Git blob, full PT bytes; no LFS pointer",
       "role": "complete secondround checkpoint for evidence"
+    },
+    {
+      "id": "square1_first",
+      "iteration": 22266,
+      "bytes": 11048951,
+      "sha256": "f8384096a14d2942c688abfa8090b14ce09e6189f03786b671dfe861c39ce384",
+      "git_path": "sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/weights/model_first_complete.pt",
+      "original_local_path": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_STEP7_SQUARE_DOUBLE_20261111\\weights\\model_first_complete.pt",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_square_double_20261111_r1/train040m_square_double_r1/model_first_complete.pt",
+      "identity_evidence": "sources/local/MOD4V3_STEP7_SQUARE_DOUBLE_20261111/evidence/FIRST_CHECKPOINT_READBACK.json",
+      "complete_PPO": true,
+      "optimizer_entries": 17,
+      "actor_input": 35,
+      "critic_input": 78,
+      "domain_randomization_state_fields": [
+        "scope",
+        "com_delta",
+        "joint_friction",
+        "kp_scale",
+        "kd_scale",
+        "gain_last_step",
+        "gain_count",
+        "spring_damping_scale",
+        "body_mass_scale",
+        "effort_scale",
+        "material_samples",
+        "material_bucket_ids",
+        "velocity_push_count",
+        "velocity_push_time_left",
+        "velocity_push_last_delta",
+        "external_timer",
+        "external_hold",
+        "action_delay_ticks",
+        "sensor_delay_ticks",
+        "reset_modes",
+        "reset_count_by_mode",
+        "nominal_env_mask"
+      ],
+      "role": "first complete checkpoint of running independent doubled symmetric speed-square experiment",
+      "git_storage": "ordinary Git full PT bytes; no LFS pointer",
+      "resume_scope": "complete actor/critic/std/Adam/RNG; fresh physical episode"
     }
   ],
   "weights_summary": {
-    "models": 79,
-    "unique_sha256": 79,
-    "total_bytes": 528515181,
+    "models": 80,
+    "unique_sha256": 80,
+    "total_bytes": 539564132,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -2290,6 +2386,6 @@
   "remaining_dr": "All planned flatDR ranges implemented and two40minute rounds completed; fullDR tracking and nominal forward retention still incomplete. Latest mixed20m diagnostic; original push020 accepted scope retained; rough notstarted.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261111-step7-mixed-dr-round2-final-01",
+  "last_update_tag": "trial-20261111-step7-square-double-start-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m"
 }

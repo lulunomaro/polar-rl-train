@@ -27,6 +27,8 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 **2026-11-11 剩余DR合并轮完成：** 4096env、2403.405s、8次完整5min检查点与同源配对已完成。[最终报告](sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/FINAL_REPORT.md)。保留[remaining_010m](sources/local/MOD4V3_STEP7_REMAINING_DR_20261111/weights/model_010m.pt)，iter22265，SHA`978994b2614f4454f96bfd0ac264f00cbe3ffd219a5372487c558435503dbd15`；完整DR受扰后2.0→1.90988（4/10）、2.2→2.18903（6/10）；正式任务39/60、reset=0。COM/PD/摩擦/阻尼/外力/噪声full范围和MOD4可行reset已实际训练；各任务与随机reset适应限制按报告记录，原Step7主冻结保持，Rough未启动。完整PT及配方也入Git。
 
+**第二轮40分钟已启动：** 从第一轮前进误差最小的10m权重完整恢复，采用[固定20%名义＋80%完整DR采样](sources/local/MOD4V3_STEP7_MIXED_DR_R2_20261111/README.md)。实际819/3277环境，DR端点、奖励、PPO和随机复位分布保持；本轮只检验补回名义样本的效果，不把第一轮末权重自动接成父，不记为已解决。每5min完整保存并检查，轮末原fullDR测试类配对。
+
 参考范围以 [保存的华南虎 trained_env.yaml](sources/local/MOD4V3_FORWARD_REGRESSION_AUDIT_20261110/reference/trained_env.yaml) 及对应实际事件实现为准。D 编号用于追踪项目。已先完成 **D4 输出倍率 → D5 分部位材质 → D10 速度推扰**，随后按用户授权合并实训 D2/D3/D6–D9 与MOD4可行reset。下表保留目标范围并更新本轮实训状态；实际适应成绩按最终报告，不凭范围已开宣布全过。
 
 | 编号 | DR 项目 | 已有实现 / 当前状态 | 后续目标及采样方式 |

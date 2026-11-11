@@ -15,6 +15,12 @@ try:
  from mod4v3_ppo_v1.scut_flat_remaining_dr_env import ScutFlatRemainingDREnv
  class ScutFlatPhysicalDelayEnv(ScutFlatRemainingDREnv):
   rough_terrain=True
+  def _get_dones(self):
+   term,timeout=super()._get_dones()
+   if hasattr(self,'terrain'):
+    center=self.terrain.terrain_origins[self.terrain.terrain_levels,self.terrain.terrain_types]
+    timeout|=((self.view.data.root_pos_w[:,:2]-center[:,:2]).abs().amax(-1)>4.)&(~term)
+   return term,timeout
  from rough_r0_terrain import FAMILIES,COUNTS
  from isaaclab.utils.warp import raycast_mesh
  from mod4v3_ppo_v1.physical_delay_checks import TASKS,_ground_start
@@ -49,18 +55,6 @@ try:
  assert bool(torch.isfinite(hits).all())
  origin[:,2]=hits[:,2];env.terrain.env_origins[:]=origin;env.scene.env_origins[:]=origin
  _ground_start(env,6600);env.sample=Sampling(env)
- # Pair exact standing-bank joint pose and root roll/pitch/yaw/velocity, retaining tile position.
- initial_root=tensor(env.robot.data.root_state_w).clone()
- relative=initial_root[:,:3]-env.scene.env_origins
- initial_root[:,:3]=env.scene.env_origins+relative[base_ids]
- initial_root[:,3:]=initial_root[base_ids,3:]
- env.robot.write_root_state_to_sim(initial_root,env_ids=ids)
- initial_q=tensor(env.robot.data.joint_pos).clone()[base_ids]
- initial_qd=tensor(env.robot.data.joint_vel).clone()[base_ids]
- env.robot.write_joint_state_to_sim(initial_q,initial_qd,env_ids=ids)
- initial_positions=initial_root[:,:3].clone()
- ground_min=env.scene.env_origins[:,2].clone();ground_max=ground_min.clone()
- 
  def mirror(x):return x[base_ids.to(x.device)].clone()
  masses=mirror(tensor(env.robot.root_view.get_masses()).to(dev));inertias=mirror(tensor(env.robot.root_view.get_inertias()).to(dev));coms=mirror(tensor(env.robot.root_view.get_coms()).to(dev));materials=mirror(tensor(env.robot.root_view.get_material_properties()).cpu())
  fr=tensor(env.robot.root_view.get_dof_friction_properties()).clone().to(dev)[base_ids]
@@ -94,6 +88,8 @@ try:
  root[:,3:7]=quat_from_euler_xyz(uniform(-.01,.01),uniform(-.01,.01),uniform(-.05,.05));root[:,7:]=0.;root[:,7]=uniform(-.01,.01);root[:,12]=uniform(-.01,.01)
  env.robot.write_root_state_to_sim(root,env_ids=ids);env.robot.write_joint_state_to_sim(q,torch.zeros_like(q),env_ids=ids)
  env.actions.zero_();env.torque.zero_();env.zero_torque_remaining.zero_();env.episode_length_buf.zero_();env.reward.reset(ids);env.reward._invalidate_step_caches()
+ initial_positions=root[:,:3].clone()
+ ground_min=env.scene.env_origins[:,2].clone();ground_max=ground_min.clone()
  commands=torch.tensor([[vx,0.,wz] for _,vx,wz,_,_,_ in TASKS],device=dev).repeat_interleave(per,0).repeat(len(variants)*len(models),1)
  heights=torch.tensor([h for _,_,_,h,_,_ in TASKS],device=dev).repeat_interleave(per).repeat(len(variants)*len(models))
  def command():
@@ -215,7 +211,7 @@ try:
    for vi,var in enumerate(variants):
     for ti,(name,vx,wz,h,_,_) in enumerate(TASKS):
      begin=mi*len(variants)*small+vi*small+ti*per;sl=slice(begin,begin+per)
-     rows.append(dict(model=model,variant=var,task=name,family=FAMILIES[ti//2],direction=vx,requested=per,crossed_count=int(success[sl].sum()),completed_without_termination=int(alive[sl].sum()),net_progress_mean=float(net_progress[sl].mean()),peak_signed_progress_mean=float(peak_signed[sl].mean()),per_env_crossed=success[sl].cpu().tolist(),per_env_net_progress=net_progress[sl].cpu().tolist(),per_env_ground_variation=(ground_max-ground_min)[sl].cpu().tolist(),pre_push_mean_velocity_yaw_height=values[sl].mean(0).tolist(),resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},max_closure_m=float(peak_closure[sl].max())))
+     rows.append(dict(model=model,variant=var,task=name,family=FAMILIES[ti//2],direction=vx,requested=per,crossed_count=int(success[sl].sum()),completed_without_termination=int((term_count[sl]==0).sum()),net_progress_mean=float(net_progress[sl].mean()),peak_signed_progress_mean=float(peak_signed[sl].mean()),per_env_crossed=success[sl].cpu().tolist(),per_env_net_progress=net_progress[sl].cpu().tolist(),per_env_ground_variation=(ground_max-ground_min)[sl].cpu().tolist(),pre_push_mean_velocity_yaw_height=values[sl].mean(0).tolist(),resets=int(term_count[sl].sum()),reasons={k:int(v[sl].sum()) for k,v in reason_counts.items()},max_closure_m=float(peak_closure[sl].max())))
   torch.randn_like=original_randn_like
  result=dict(version=a.version,protocol='R0 level0; six terrain families x +/-1m/s x10initialstates; paired exact initialpose/DR/noise/wrench/push across models;20s; crossing2m with >=3mm observedgroundvariation beforefirstreset; no optimizer',input_sha256=hashes,parent_sha256=plan['parent_sha256'],num_envs=n,rows=rows,first_failures=first_fail,physics_dt=float(env.cfg.sim.dt),delay=env.physical_delay_summary(),motor_envelope_violation_nm=envelope_violation.tolist(),action_slot_max_error=action_error,no_optimizer_constructed=True,wall_seconds=time.time()-start)
  (out/'RESULT.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');(out/'INITIAL_DR.json').write_text(json.dumps(inputdr))

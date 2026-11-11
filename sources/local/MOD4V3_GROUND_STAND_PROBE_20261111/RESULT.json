@@ -1,0 +1,1859 @@
+{
+  "checkpoint": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_round2_20261111_r1/train040m_rough_r1_round2_r1/model_005m.pt",
+  "checkpoint_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+  "num_envs": 45,
+  "num_cases": 9,
+  "settle_seconds": 2.0,
+  "policy_seconds": 10.0,
+  "command": {
+    "vx": 0,
+    "vy": 0,
+    "wz": 0,
+    "height": 0.28
+  },
+  "physics": {
+    "dt": 0.0025,
+    "decimation": 8,
+    "closure_guard_m": 0.002
+  },
+  "success_definition": "At least1 continuous second at height .23-.33m, tilt<=20deg, both driven wheels contact>1N and chassis/guide support<1N; no safety reset. Eight sample poses, not a universal capability test.",
+  "termination_handling": "Native task terminations recorded; standalone recovery permits contact/tilt while standing up. Original numerical/2mm closure/mimic guards still terminate and censor the individual sample. No post-reset success is counted.",
+  "joint_names": [
+    "left_front1_joint",
+    "left_rear1_joint",
+    "left_rear1_drive_joint",
+    "left_front1_drive_joint",
+    "right_front1_joint",
+    "right_rear1_joint",
+    "right_rear1_drive_joint",
+    "right_front1_drive_joint",
+    "left_bottom2_guide_joint",
+    "left_bottom3_guide_joint",
+    "right_bottom2_guide_joint",
+    "right_bottom3_guide_joint",
+    "left_front_guide_joint",
+    "left_rear_guide_joint",
+    "right_front_guide_joint",
+    "right_rear_guide_joint",
+    "left_front2_joint",
+    "left_f3r1_joint",
+    "left_rear2_joint",
+    "left_spring1_joint",
+    "right_front2_joint",
+    "right_f3r1_joint",
+    "right_rear2_joint",
+    "right_spring1_joint",
+    "left_front4_joint",
+    "left_wheel_joint",
+    "left_spring2_joint",
+    "right_front4_joint",
+    "right_wheel_joint",
+    "right_spring2_joint"
+  ],
+  "sensor_body_names": [
+    "base_link",
+    "left_front1_link",
+    "left_front2_link",
+    "left_front3_link",
+    "left_front4_link",
+    "left_rear1_link",
+    "left_rear2_link",
+    "left_wheel_link",
+    "left_spring1_link",
+    "left_spring2_link",
+    "left_rear1_drive_link",
+    "left_front1_drive_link",
+    "right_front1_link",
+    "right_front2_link",
+    "right_front3_link",
+    "right_front4_link",
+    "right_rear1_link",
+    "right_rear2_link",
+    "right_wheel_link",
+    "right_spring1_link",
+    "right_spring2_link",
+    "right_rear1_drive_link",
+    "right_front1_drive_link",
+    "left_bottom2_guide_link",
+    "left_bottom3_guide_link",
+    "right_bottom2_guide_link",
+    "right_bottom3_guide_link",
+    "left_front_guide_link",
+    "left_rear_guide_link",
+    "right_front_guide_link",
+    "right_rear_guide_link"
+  ],
+  "nominal_mask": [
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    true
+  ],
+  "full_DR_summary": {
+    "profile": "remaining_dr_fixed20pct_nominal_v2",
+    "mass_inertia_factor_range": null,
+    "leg_gain_range": [
+      0.752001166343689,
+      1.2473596334457397
+    ],
+    "wheel_gain_range": [
+      0.7739936709403992,
+      1.2428066730499268
+    ],
+    "wheel_friction_range": [
+      0.5103861093521118,
+      1.1903562545776367
+    ],
+    "nominal_fraction_target": 0.2,
+    "other_randomization": "spring/PD/COM/armature/joint-friction/push/noise/delay unchanged",
+    "stage": "repaired Step7 plus startup body mass and explicit motor output scale",
+    "joint_friction_scale": 1.0,
+    "joint_friction_ranges": {
+      "active_leg_static": [
+        0.25,
+        1.0
+      ],
+      "active_leg_dynamic": [
+        0.25,
+        1.0
+      ],
+      "active_leg_viscous": [
+        0.05,
+        0.2
+      ],
+      "wheel_static": [
+        0.05,
+        0.25
+      ],
+      "passive_static": [
+        0.05,
+        0.1
+      ]
+    },
+    "missing_dr": [],
+    "spring_damping_fraction": 1.0,
+    "spring_damping_scale_range": [
+      0.5,
+      1.5
+    ],
+    "external_fraction": 1.0,
+    "external_force_range_n": [
+      -10.0,
+      10.0
+    ],
+    "external_torque_range_nm": [
+      -1.0,
+      1.0
+    ],
+    "external_interval_s": [
+      5.0,
+      10.0
+    ],
+    "external_hold_control_steps": 10,
+    "obs_noise_fraction": 1.0,
+    "obs_noise_ranges": {
+      "height": [
+        -0.01,
+        0.01
+      ],
+      "base_ang_vel_observation": [
+        -0.25,
+        0.25
+      ],
+      "projected_gravity_observation": [
+        -0.05,
+        0.05
+      ],
+      "joint_pos": [
+        -0.025,
+        0.025
+      ],
+      "leg_joint_vel_observation": [
+        -0.5,
+        0.5
+      ],
+      "wheel_joint_vel_observation": [
+        -1.0,
+        1.0
+      ]
+    },
+    "delay": {
+      "physics_dt_ms": 2.5,
+      "policy_dt_ms": 20.0,
+      "pd_dt_ms": 10.0,
+      "quantum_ms": 5.0,
+      "action_options_ms": [
+        5.0,
+        10.0
+      ],
+      "sensor_options_ms": [
+        5.0,
+        10.0,
+        15.0
+      ],
+      "sampling": "independent group lag at env reset; fixed within episode",
+      "policy_sensor_slots": [
+        4,
+        22
+      ],
+      "policy_action_slots": [
+        22,
+        28
+      ],
+      "previous_action": "last raw clamped policy output; execution delay does not overwrite it",
+      "critic": "existing undelayed privileged stream",
+      "low_pass_filter": false,
+      "buffer_time_is_not_pd_latency": true
+    },
+    "body_mass_randomization": {
+      "sampling": "independent per environment and selected rigid body at startup; fixed across resets",
+      "groups": {
+        "base": {
+          "range": [
+            0.9,
+            1.3
+          ],
+          "bodies": [
+            "base_link"
+          ]
+        },
+        "leg": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_front1_link",
+            "left_rear1_link",
+            "right_front1_link",
+            "right_rear1_link",
+            "left_front2_link",
+            "left_front3_link",
+            "left_rear2_link",
+            "left_spring1_link",
+            "right_front2_link",
+            "right_front3_link",
+            "right_rear2_link",
+            "right_spring1_link",
+            "left_front4_link",
+            "left_spring2_link",
+            "right_front4_link",
+            "right_spring2_link"
+          ]
+        },
+        "wheel": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ]
+        }
+      },
+      "unselected_bodies": [
+        "left_rear1_drive_link",
+        "left_front1_drive_link",
+        "right_rear1_drive_link",
+        "right_front1_drive_link",
+        "left_bottom2_guide_link",
+        "left_bottom3_guide_link",
+        "right_bottom2_guide_link",
+        "right_bottom3_guide_link",
+        "left_front_guide_link",
+        "left_rear_guide_link",
+        "right_front_guide_link",
+        "right_rear_guide_link"
+      ],
+      "unselected_scale": 1.0,
+      "inertia": "nominal inertia tensor scaled by that body's mass ratio",
+      "nominal_mass_mixture": false,
+      "critic_mass_slot": "actual total robot mass divided by nominal total mass; existing 78D layout",
+      "total_mass_ratio_range": [
+        0.9267633557319641,
+        1.215937614440918
+      ]
+    },
+    "base_com_delta_m": {
+      "x": [
+        -0.04,
+        0.04
+      ],
+      "y": [
+        -0.02,
+        0.02
+      ],
+      "z": [
+        -0.02,
+        0.02
+      ]
+    },
+    "effort_output_scale": {
+      "leg_range": [
+        0.8,
+        1.1
+      ],
+      "wheel_range": [
+        0.9,
+        1.1
+      ],
+      "sampling": "independent per env/active motor, first reset and eligible reset after 720 global policy steps",
+      "min_step_count_between_reset": 720,
+      "sample_count_range": [
+        1,
+        1
+      ],
+      "actual_leg_range": [
+        0.8003515601158142,
+        1.099502444267273
+      ],
+      "actual_wheel_range": [
+        0.9002441763877869,
+        1.09492826461792
+      ],
+      "application": "full raw PD torque multiplied before original DC envelope; inherited additive noise then final envelope",
+      "new_bias": 0.0,
+      "new_noise_std": 0.0,
+      "critic": "existing stiffness/damping slots report effective PD gains; actual applied torque slot retained; 78D unchanged"
+    },
+    "contact_material": {
+      "sampling": "startup; independent per-env/per-shape bucket selection; selected properties fixed across resets",
+      "make_consistent": true,
+      "groups": {
+        "wheel": {
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ],
+          "shapes": [
+            31,
+            33
+          ],
+          "static": [
+            0.5,
+            1.2
+          ],
+          "dynamic": [
+            0.4,
+            1.0
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.5103861093521118,
+            0.41957345604896545,
+            0.0
+          ],
+          "actual_max": [
+            1.1903562545776367,
+            0.9719029664993286,
+            0.1993376761674881
+          ]
+        },
+        "base": {
+          "bodies": [
+            "base_link"
+          ],
+          "shapes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "static": [
+            0.01,
+            0.1
+          ],
+          "dynamic": [
+            0.01,
+            0.1
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.010108361020684242,
+            0.010108361020684242,
+            0.0
+          ],
+          "actual_max": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.19788292050361633
+          ]
+        },
+        "guide": {
+          "bodies": [
+            "left_bottom2_guide_link",
+            "left_bottom3_guide_link",
+            "right_bottom2_guide_link",
+            "right_bottom3_guide_link",
+            "left_front_guide_link",
+            "left_rear_guide_link",
+            "right_front_guide_link",
+            "right_rear_guide_link"
+          ],
+          "shapes": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "static": [
+            0.1,
+            0.7
+          ],
+          "dynamic": [
+            0.1,
+            0.7
+          ],
+          "restitution": [
+            0.01,
+            0.1
+          ],
+          "buckets": 8,
+          "actual_min": [
+            0.019999999552965164,
+            0.019999999552965164,
+            0.0
+          ],
+          "actual_max": [
+            0.6044387817382812,
+            0.6017299890518188,
+            0.09748092293739319
+          ]
+        }
+      },
+      "unselected": "inherited Step7 mild material reset",
+      "critic": "existing six slots: actual left/right wheel material triple; shape mean if multi-shape; no base/guide encoding; 78D retained"
+    },
+    "velocity_push": {
+      "world_xy_velocity_delta_range_m_s": [
+        -0.25,
+        0.25
+      ],
+      "interval_s": [
+        5.0,
+        10.0
+      ],
+      "per_environment": true,
+      "is_global_time": false,
+      "sampling": "native EventManager interval; timer resampled on reset",
+      "function": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity",
+      "semantics": "add delta to world XY velocity; z and angular unchanged",
+      "phase": "native post-step interval before observations",
+      "total_events": 41
+    },
+    "base_com_sampling": "startup; fixed across reset; nominal + immutable sample",
+    "pd_gains": {
+      "kp_scale": [
+        0.75,
+        1.25
+      ],
+      "kd_scale": [
+        0.75,
+        1.25
+      ],
+      "sampling": "first reset and eligible reset after720 global policy steps",
+      "leg_explicit": "Kp60*scale,Kd2*scale; wheelKd0.6*scale; original DC envelope",
+      "passive": "native nominal damping * scale; zero stiffness remains zero",
+      "gas": "plant stiffness2000 retained; native damping3*[.5,1.5]; no second damping torque"
+    },
+    "joint_friction_sampling": "startup independently by selected joint; fixed across resets",
+    "reset_distribution": {
+      "mode_probabilities": {
+        "normal": 0.5,
+        "ground_positive": 0.3,
+        "ground_negative": 0.2
+      },
+      "ground_mode_per_leg": "independent conditional positive.6/negative.4",
+      "leg_length_normal_m": [
+        0.13,
+        0.32
+      ],
+      "leg_angle_normal_rad": [
+        -1.5707963267948966,
+        2.356194490192345
+      ],
+      "ground_length_m": [
+        0.14,
+        0.3466992613455914
+      ],
+      "joint_position_source": "MOD4 original exact linkage solver; bank generated only on physical feasible branch",
+      "velocity_leg_active_rad_s": [
+        -1.5707963267948966,
+        1.5707963267948966
+      ],
+      "velocity_wheel_rad_s": [
+        -50.0,
+        50.0
+      ],
+      "passive_velocity": "closure-consistent kinematic tangent, not independently random joint velocities",
+      "wheel_angle_rad": [
+        -6.283185307179586,
+        6.283185307179586
+      ],
+      "ground_root_height_m": 0.25,
+      "zero_torque_ground_s": 0.2,
+      "ground_command_override_s": 1.5,
+      "ground_command_range": {
+        "vx": [
+          -1.0,
+          1.0
+        ],
+        "vy": [
+          0.0,
+          0.0
+        ],
+        "wz": [
+          -1.0,
+          1.0
+        ]
+      },
+      "bank": {
+        "generator": "deliveredMOD4legacy.leg_configuration+1Dlength inversion; no SCUT link dimensions",
+        "seed": 663321,
+        "poses": 3072,
+        "normal_length_m": [
+          0.13,
+          0.32
+        ],
+        "ground_requested_length_m": [
+          0.14,
+          0.36
+        ],
+        "ground_effective_length_m": [
+          0.14,
+          0.3466992613455914
+        ],
+        "native_feasible_length_m": [
+          0.11538484335403737,
+          0.3466992613455914
+        ],
+        "side_tangent_epsilon": 1e-06,
+        "mechanical_delta_rad": [
+          -1.0863195404360622,
+          0.49192233306644084
+        ],
+        "source_package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/package",
+        "source_kinematics_sha256": "26ef50347dab961ed75fedff410659614e20dc1252946c4a42998a476110df64",
+        "adaptation": "reference uppergroundlength.36 exceeds MOD4 physicalreach; truncate to actual feasible max, no plant change"
+      },
+      "source_link_lengths_copied": false
+    },
+    "sampling_mixture": {
+      "nominal_envs": 9,
+      "fullDR_envs": 36,
+      "assignment": "fixed envID modulo5==4",
+      "DR_range_reduction": false,
+      "reset_distribution": "same MOD4 feasible normal/ground distribution for both groups",
+      "nominal": "asset parameters;gains/effort1;zero delay/noise/wrench/push"
+    }
+  },
+  "origins": [
+    [
+      9.300000190734863,
+      -78.69999694824219,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      -78.69999694824219,
+      0.0
+    ],
+    [
+      -14.100000381469727,
+      -78.69999694824219,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -70.69999694824219,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      -70.69999694824219,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      -62.70000076293945,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      -62.70000076293945,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -54.70000076293945,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      -54.70000076293945,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -46.70000076293945,
+      0.0
+    ],
+    [
+      9.899999618530273,
+      -46.70000076293945,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      -46.70000076293945,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      -38.70000076293945,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -38.70000076293945,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      -30.700000762939453,
+      0.0
+    ],
+    [
+      1.9000000953674316,
+      -30.700000762939453,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      -22.700000762939453,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -22.700000762939453,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      -14.699999809265137,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      -14.699999809265137,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -14.699999809265137,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      -6.699999809265137,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      -6.699999809265137,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      1.2999999523162842,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      1.2999999523162842,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      9.300000190734863,
+      0.0
+    ],
+    [
+      1.9000000953674316,
+      9.300000190734863,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      17.299999237060547,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      17.299999237060547,
+      0.0
+    ],
+    [
+      -14.100000381469727,
+      17.299999237060547,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      25.299999237060547,
+      0.0
+    ],
+    [
+      -6.099999904632568,
+      25.299999237060547,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      33.29999923706055,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      33.29999923706055,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      41.29999923706055,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      41.29999923706055,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      49.29999923706055,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      49.29999923706055,
+      0.0
+    ],
+    [
+      -14.699999809265137,
+      49.29999923706055,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      57.29999923706055,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      57.29999923706055,
+      0.0
+    ],
+    [
+      9.300000190734863,
+      65.30000305175781,
+      0.0
+    ],
+    [
+      9.899999618530273,
+      65.30000305175781,
+      0.0
+    ],
+    [
+      -6.699999809265137,
+      73.30000305175781,
+      0.0
+    ],
+    [
+      1.2999999523162842,
+      73.30000305175781,
+      0.0
+    ]
+  ],
+  "elapsed_policy_wall_s": 49.780267443013145,
+  "rows": [
+    {
+      "env": 0,
+      "case": "front_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1812913417816162,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 75.05293273925781,
+      "settled_max_joint_speed_rad_s": 0.41320449113845825,
+      "success": true,
+      "first_stable_interval_start_s": 0.5199999809265137,
+      "max_stable_duration_s": 2.94,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0012432506773620844,
+      "peak_joint_speed_rad_s": 55.334510803222656,
+      "final_root_height_m": 0.2855561673641205,
+      "final_tilt_deg": 1.8811758756637573
+    },
+    {
+      "env": 1,
+      "case": "front_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1826404482126236,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 61.656982421875,
+      "settled_max_joint_speed_rad_s": 0.11421990394592285,
+      "success": true,
+      "first_stable_interval_start_s": 1.2200000286102295,
+      "max_stable_duration_s": 1.2,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.00048795758630149066,
+      "peak_joint_speed_rad_s": 394.8468017578125,
+      "final_root_height_m": 0.29974472522735596,
+      "final_tilt_deg": 2.1342334747314453
+    },
+    {
+      "env": 2,
+      "case": "front_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800219357013702,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 56.384395599365234,
+      "settled_max_joint_speed_rad_s": 0.1501484513282776,
+      "success": true,
+      "first_stable_interval_start_s": 0.6600000262260437,
+      "max_stable_duration_s": 2.7600000000000002,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0018237257609143853,
+      "peak_joint_speed_rad_s": 72.0849609375,
+      "final_root_height_m": 0.28671038150787354,
+      "final_tilt_deg": 1.0507159233093262
+    },
+    {
+      "env": 3,
+      "case": "front_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800197005271912,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 64.35734558105469,
+      "settled_max_joint_speed_rad_s": 0.21099820733070374,
+      "success": true,
+      "first_stable_interval_start_s": 0.6000000238418579,
+      "max_stable_duration_s": 2.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0012220896314829588,
+      "peak_joint_speed_rad_s": 121.95886993408203,
+      "final_root_height_m": 0.27810537815093994,
+      "final_tilt_deg": 3.72268009185791
+    },
+    {
+      "env": 4,
+      "case": "front_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800220847129822,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 62.564456939697266,
+      "settled_max_joint_speed_rad_s": 1.0967379808425903,
+      "success": true,
+      "first_stable_interval_start_s": 0.30000001192092896,
+      "max_stable_duration_s": 9.700000000000001,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0005815748008899391,
+      "peak_joint_speed_rad_s": 55.10831069946289,
+      "final_root_height_m": 0.2892981171607971,
+      "final_tilt_deg": 0.9302009344100952
+    },
+    {
+      "env": 5,
+      "case": "rear_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18289977312088013,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 40.636173248291016,
+      "settled_max_joint_speed_rad_s": 0.19825509190559387,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.54,
+        "hard": false,
+        "root_height_m": 0.2825583219528198,
+        "chassis_force_N": 191.60311889648438,
+        "support_force_N": 191.60311889648438
+      },
+      "peak_closure_m": 0.001845188089646399,
+      "peak_joint_speed_rad_s": 173.56210327148438,
+      "final_root_height_m": 0.12565217912197113,
+      "final_tilt_deg": 161.7976531982422
+    },
+    {
+      "env": 6,
+      "case": "rear_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17876961827278137,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 34.667144775390625,
+      "settled_max_joint_speed_rad_s": 0.11826258152723312,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.66,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0009052049717865884,
+      "peak_joint_speed_rad_s": 55.26185989379883,
+      "final_root_height_m": 0.2961452603340149,
+      "final_tilt_deg": 0.27906450629234314
+    },
+    {
+      "env": 7,
+      "case": "rear_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17806142568588257,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 62.51848220825195,
+      "settled_max_joint_speed_rad_s": 1.8394283056259155,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 4.22,
+        "hard": false,
+        "root_height_m": 0.17875204980373383,
+        "chassis_force_N": 0.0,
+        "support_force_N": 66.03038787841797
+      },
+      "peak_closure_m": 0.0007026015664450824,
+      "peak_joint_speed_rad_s": 612.3112182617188,
+      "final_root_height_m": 0.17984633147716522,
+      "final_tilt_deg": 0.6949249505996704
+    },
+    {
+      "env": 8,
+      "case": "rear_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800191044807434,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 39.3094596862793,
+      "settled_max_joint_speed_rad_s": 0.2115803360939026,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0007496929029002786,
+      "peak_joint_speed_rad_s": 174.2068328857422,
+      "final_root_height_m": 0.18190430104732513,
+      "final_tilt_deg": 2.3349804878234863
+    },
+    {
+      "env": 9,
+      "case": "rear_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800189554691315,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 29.351667404174805,
+      "settled_max_joint_speed_rad_s": 0.06715437024831772,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.62,
+        "hard": false,
+        "root_height_m": 0.1784549355506897,
+        "chassis_force_N": 0.0,
+        "support_force_N": 105.8460693359375
+      },
+      "peak_closure_m": 0.0003792906063608825,
+      "peak_joint_speed_rad_s": 60.04780960083008,
+      "final_root_height_m": 0.17810624837875366,
+      "final_tilt_deg": 0.05595290660858154
+    },
+    {
+      "env": 10,
+      "case": "front_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800191044807434,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 70.4839859008789,
+      "settled_max_joint_speed_rad_s": 2.078949213027954,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.02,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.72,
+        "hard": false,
+        "root_height_m": 0.2927923798561096,
+        "chassis_force_N": 186.23338317871094,
+        "support_force_N": 186.23338317871094
+      },
+      "peak_closure_m": 0.001140291104093194,
+      "peak_joint_speed_rad_s": 94.00051879882812,
+      "final_root_height_m": 0.2859809100627899,
+      "final_tilt_deg": 90.43742370605469
+    },
+    {
+      "env": 11,
+      "case": "front_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18289974331855774,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 73.90946960449219,
+      "settled_max_joint_speed_rad_s": 0.3442269563674927,
+      "success": true,
+      "first_stable_interval_start_s": 1.2400000095367432,
+      "max_stable_duration_s": 1.86,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0014846334233880043,
+      "peak_joint_speed_rad_s": 179.4413299560547,
+      "final_root_height_m": 0.294832319021225,
+      "final_tilt_deg": 2.6734213829040527
+    },
+    {
+      "env": 12,
+      "case": "front_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1780019998550415,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 65.89390563964844,
+      "settled_max_joint_speed_rad_s": 0.3384360671043396,
+      "success": true,
+      "first_stable_interval_start_s": 3.700000047683716,
+      "max_stable_duration_s": 4.18,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0008829003199934959,
+      "peak_joint_speed_rad_s": 349.19500732421875,
+      "final_root_height_m": 0.2828284204006195,
+      "final_tilt_deg": 1.6879479885101318
+    },
+    {
+      "env": 13,
+      "case": "front_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1780019849538803,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 63.23127746582031,
+      "settled_max_joint_speed_rad_s": 2.027369499206543,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.72,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0007960946531966329,
+      "peak_joint_speed_rad_s": 55.81237030029297,
+      "final_root_height_m": 0.28773778676986694,
+      "final_tilt_deg": 0.8390679359436035
+    },
+    {
+      "env": 14,
+      "case": "front_rear",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800197005271912,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 62.15834045410156,
+      "settled_max_joint_speed_rad_s": 0.1931006908416748,
+      "success": true,
+      "first_stable_interval_start_s": 0.8600000143051147,
+      "max_stable_duration_s": 9.14,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0016394268022850156,
+      "peak_joint_speed_rad_s": 57.82963943481445,
+      "final_root_height_m": 0.28970175981521606,
+      "final_tilt_deg": 0.778586208820343
+    },
+    {
+      "env": 15,
+      "case": "rear_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800197005271912,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 55.77268981933594,
+      "settled_max_joint_speed_rad_s": 0.3261808156967163,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.02,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.66,
+        "hard": false,
+        "root_height_m": 0.28511592745780945,
+        "chassis_force_N": 52.49220275878906,
+        "support_force_N": 52.49220275878906
+      },
+      "peak_closure_m": 0.0011313601862639189,
+      "peak_joint_speed_rad_s": 77.29342651367188,
+      "final_root_height_m": 0.28238511085510254,
+      "final_tilt_deg": 102.08672332763672
+    },
+    {
+      "env": 16,
+      "case": "rear_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17841634154319763,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 47.04215621948242,
+      "settled_max_joint_speed_rad_s": 4.520658493041992,
+      "success": true,
+      "first_stable_interval_start_s": 7.579999923706055,
+      "max_stable_duration_s": 1.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0012219164054840803,
+      "peak_joint_speed_rad_s": 69.89192199707031,
+      "final_root_height_m": 0.29464977979660034,
+      "final_tilt_deg": 2.597139596939087
+    },
+    {
+      "env": 17,
+      "case": "rear_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18259897828102112,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 72.16783905029297,
+      "settled_max_joint_speed_rad_s": 1.2132710218429565,
+      "success": true,
+      "first_stable_interval_start_s": 0.8799999952316284,
+      "max_stable_duration_s": 1.22,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0012234083842486143,
+      "peak_joint_speed_rad_s": 55.213890075683594,
+      "final_root_height_m": 0.2930547595024109,
+      "final_tilt_deg": 2.3490207195281982
+    },
+    {
+      "env": 18,
+      "case": "rear_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18289975821971893,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 71.01566314697266,
+      "settled_max_joint_speed_rad_s": 0.759974479675293,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.02,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.68,
+        "hard": false,
+        "root_height_m": 0.28592538833618164,
+        "chassis_force_N": 86.2813949584961,
+        "support_force_N": 86.2813949584961
+      },
+      "peak_closure_m": 0.0011709377868101,
+      "peak_joint_speed_rad_s": 109.60032653808594,
+      "final_root_height_m": 0.2835148870944977,
+      "final_tilt_deg": 89.73775482177734
+    },
+    {
+      "env": 19,
+      "case": "rear_front",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800189554691315,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 69.4409408569336,
+      "settled_max_joint_speed_rad_s": 0.6498845815658569,
+      "success": true,
+      "first_stable_interval_start_s": 0.5400000214576721,
+      "max_stable_duration_s": 9.46,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001439245999790728,
+      "peak_joint_speed_rad_s": 60.10334396362305,
+      "final_root_height_m": 0.2892533242702484,
+      "final_tilt_deg": 0.9174924492835999
+    },
+    {
+      "env": 20,
+      "case": "random_04",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800197005271912,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 37.761234283447266,
+      "settled_max_joint_speed_rad_s": 0.1514841765165329,
+      "success": true,
+      "first_stable_interval_start_s": 0.6200000047683716,
+      "max_stable_duration_s": 2.64,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001789858564734459,
+      "peak_joint_speed_rad_s": 121.60234069824219,
+      "final_root_height_m": 0.2944154739379883,
+      "final_tilt_deg": 2.693263292312622
+    },
+    {
+      "env": 21,
+      "case": "random_04",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18289963901042938,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 58.970367431640625,
+      "settled_max_joint_speed_rad_s": 0.24771016836166382,
+      "success": true,
+      "first_stable_interval_start_s": 3.4600000381469727,
+      "max_stable_duration_s": 1.2,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001871368265710771,
+      "peak_joint_speed_rad_s": 54.75850296020508,
+      "final_root_height_m": 0.30281776189804077,
+      "final_tilt_deg": 2.6740071773529053
+    },
+    {
+      "env": 22,
+      "case": "random_04",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800185084342957,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 51.21077346801758,
+      "settled_max_joint_speed_rad_s": 0.1087941825389862,
+      "success": true,
+      "first_stable_interval_start_s": 1.8200000524520874,
+      "max_stable_duration_s": 1.16,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001882786164060235,
+      "peak_joint_speed_rad_s": 55.56842041015625,
+      "final_root_height_m": 0.2882841229438782,
+      "final_tilt_deg": 1.9988031387329102
+    },
+    {
+      "env": 23,
+      "case": "random_04",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18017104268074036,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 69.18584442138672,
+      "settled_max_joint_speed_rad_s": 0.21126800775527954,
+      "success": true,
+      "first_stable_interval_start_s": 0.6000000238418579,
+      "max_stable_duration_s": 1.4000000000000001,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0017310281982645392,
+      "peak_joint_speed_rad_s": 111.97610473632812,
+      "final_root_height_m": 0.2826778292655945,
+      "final_tilt_deg": 1.342025876045227
+    },
+    {
+      "env": 24,
+      "case": "random_04",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800211906433105,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 41.03099822998047,
+      "settled_max_joint_speed_rad_s": 1.4340393543243408,
+      "success": true,
+      "first_stable_interval_start_s": 0.25999999046325684,
+      "max_stable_duration_s": 9.74,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001968818251043558,
+      "peak_joint_speed_rad_s": 55.18785858154297,
+      "final_root_height_m": 0.2902328073978424,
+      "final_tilt_deg": 1.2474106550216675
+    },
+    {
+      "env": 25,
+      "case": "random_05",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800207436084747,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 56.537384033203125,
+      "settled_max_joint_speed_rad_s": 0.07454250752925873,
+      "success": true,
+      "first_stable_interval_start_s": 6.039999961853027,
+      "max_stable_duration_s": 1.48,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0003481351013761014,
+      "peak_joint_speed_rad_s": 103.31791687011719,
+      "final_root_height_m": 0.2850963771343231,
+      "final_tilt_deg": 0.8318070769309998
+    },
+    {
+      "env": 26,
+      "case": "random_05",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18049688637256622,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 61.351959228515625,
+      "settled_max_joint_speed_rad_s": 0.10504085570573807,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.76,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.000496655993629247,
+      "peak_joint_speed_rad_s": 55.09504318237305,
+      "final_root_height_m": 0.2928500771522522,
+      "final_tilt_deg": 0.5967608690261841
+    },
+    {
+      "env": 27,
+      "case": "random_05",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800208926200867,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 47.189430236816406,
+      "settled_max_joint_speed_rad_s": 0.7121830582618713,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.78,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0005299939075484872,
+      "peak_joint_speed_rad_s": 54.73004150390625,
+      "final_root_height_m": 0.28465285897254944,
+      "final_tilt_deg": 1.256164789199829
+    },
+    {
+      "env": 28,
+      "case": "random_05",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800205945968628,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 63.660301208496094,
+      "settled_max_joint_speed_rad_s": 0.07132971286773682,
+      "success": true,
+      "first_stable_interval_start_s": 1.059999942779541,
+      "max_stable_duration_s": 2.14,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0007322006276808679,
+      "peak_joint_speed_rad_s": 55.37284469604492,
+      "final_root_height_m": 0.28699225187301636,
+      "final_tilt_deg": 1.7486521005630493
+    },
+    {
+      "env": 29,
+      "case": "random_05",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.178002268075943,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 63.44313049316406,
+      "settled_max_joint_speed_rad_s": 0.07386841624975204,
+      "success": true,
+      "first_stable_interval_start_s": 0.3400000035762787,
+      "max_stable_duration_s": 9.66,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.00041906294063664973,
+      "peak_joint_speed_rad_s": 55.210731506347656,
+      "final_root_height_m": 0.2900780439376831,
+      "final_tilt_deg": 1.1328057050704956
+    },
+    {
+      "env": 30,
+      "case": "random_06",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.18289980292320251,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 72.60196685791016,
+      "settled_max_joint_speed_rad_s": 1.0260740518569946,
+      "success": true,
+      "first_stable_interval_start_s": 1.7799999713897705,
+      "max_stable_duration_s": 2.54,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0004388195229694247,
+      "peak_joint_speed_rad_s": 54.97971725463867,
+      "final_root_height_m": 0.2798902690410614,
+      "final_tilt_deg": 2.506396770477295
+    },
+    {
+      "env": 31,
+      "case": "random_06",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1828998625278473,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 87.80026245117188,
+      "settled_max_joint_speed_rad_s": 0.15095041692256927,
+      "success": true,
+      "first_stable_interval_start_s": 1.399999976158142,
+      "max_stable_duration_s": 3.9,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0007652955828234553,
+      "peak_joint_speed_rad_s": 54.702064514160156,
+      "final_root_height_m": 0.28493133187294006,
+      "final_tilt_deg": 1.7837766408920288
+    },
+    {
+      "env": 32,
+      "case": "random_06",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1780020147562027,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 72.26716613769531,
+      "settled_max_joint_speed_rad_s": 0.6739577651023865,
+      "success": true,
+      "first_stable_interval_start_s": 1.659999966621399,
+      "max_stable_duration_s": 3.4,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001856367220170796,
+      "peak_joint_speed_rad_s": 66.26982879638672,
+      "final_root_height_m": 0.27508410811424255,
+      "final_tilt_deg": 3.0535783767700195
+    },
+    {
+      "env": 33,
+      "case": "random_06",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1815391629934311,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 59.90468215942383,
+      "settled_max_joint_speed_rad_s": 0.09079070389270782,
+      "success": true,
+      "first_stable_interval_start_s": 1.2799999713897705,
+      "max_stable_duration_s": 1.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0005934222717769444,
+      "peak_joint_speed_rad_s": 83.73007202148438,
+      "final_root_height_m": 0.29313522577285767,
+      "final_tilt_deg": 4.04534912109375
+    },
+    {
+      "env": 34,
+      "case": "random_06",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": false,
+      "settled_root_height_m": 0.19181424379348755,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 62.029449462890625,
+      "settled_max_joint_speed_rad_s": 0.10779418051242828,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": {
+        "phase": "settle",
+        "time_s": 0.04,
+        "numerical": false,
+        "closure": true,
+        "mimic": false,
+        "fall": false,
+        "closure_m": 0.0021771127358078957
+      },
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0021771127358078957,
+      "peak_joint_speed_rad_s": 50.985939025878906,
+      "final_root_height_m": 0.19181424379348755,
+      "final_tilt_deg": 8.309478759765625
+    },
+    {
+      "env": 35,
+      "case": "random_07",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800208926200867,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 66.8339614868164,
+      "settled_max_joint_speed_rad_s": 0.4674062132835388,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.76,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0008034640923142433,
+      "peak_joint_speed_rad_s": 72.1434326171875,
+      "final_root_height_m": 0.3000515401363373,
+      "final_tilt_deg": 2.5877015590667725
+    },
+    {
+      "env": 36,
+      "case": "random_07",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.1780063956975937,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 71.7762680053711,
+      "settled_max_joint_speed_rad_s": 0.021424200385808945,
+      "success": true,
+      "first_stable_interval_start_s": 1.2799999713897705,
+      "max_stable_duration_s": 2.32,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001866749138571322,
+      "peak_joint_speed_rad_s": 54.96931076049805,
+      "final_root_height_m": 0.2885148525238037,
+      "final_tilt_deg": 1.5398952960968018
+    },
+    {
+      "env": 37,
+      "case": "random_07",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800210416316986,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 47.73229217529297,
+      "settled_max_joint_speed_rad_s": 0.3076089024543762,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.9400000000000001,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.000558599189389497,
+      "peak_joint_speed_rad_s": 88.10191345214844,
+      "final_root_height_m": 0.29205942153930664,
+      "final_tilt_deg": 0.4626712203025818
+    },
+    {
+      "env": 38,
+      "case": "random_07",
+      "kind": "belly_ground_random_legs",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": false,
+      "settled_root_height_m": 0.18247853219509125,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 103.32637023925781,
+      "settled_max_joint_speed_rad_s": 0.1919456124305725,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": {
+        "phase": "settle",
+        "time_s": 0.16,
+        "numerical": false,
+        "closure": true,
+        "mimic": false,
+        "fall": false,
+        "closure_m": 0.002352361101657152
+      },
+      "native_task_first_termination": {
+        "time_s": 0.78,
+        "hard": false,
+        "root_height_m": 0.30973294377326965,
+        "chassis_force_N": 0.0,
+        "support_force_N": 162.49822998046875
+      },
+      "peak_closure_m": 0.002352361101657152,
+      "peak_joint_speed_rad_s": 106.07591247558594,
+      "final_root_height_m": 0.18247853219509125,
+      "final_tilt_deg": 6.678436279296875
+    },
+    {
+      "env": 39,
+      "case": "random_07",
+      "kind": "belly_ground_random_legs",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800232768058777,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 49.69610595703125,
+      "settled_max_joint_speed_rad_s": 1.155391812324524,
+      "success": true,
+      "first_stable_interval_start_s": 0.3199999928474426,
+      "max_stable_duration_s": 9.68,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.001498256460763514,
+      "peak_joint_speed_rad_s": 72.77479553222656,
+      "final_root_height_m": 0.28943416476249695,
+      "final_tilt_deg": 0.9573619365692139
+    },
+    {
+      "env": 40,
+      "case": "standing_control",
+      "kind": "standing_control",
+      "variant": "fullDR",
+      "replicate": 0,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.28299981355667114,
+      "settled_chassis_force_N": 117.94847106933594,
+      "settled_support_force_N": 117.94847106933594,
+      "settled_max_joint_speed_rad_s": 0.0008689409587532282,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.4,
+        "hard": false,
+        "root_height_m": 0.2849644720554352,
+        "chassis_force_N": 0.0,
+        "support_force_N": 0.0
+      },
+      "peak_closure_m": 0.0005090899649076164,
+      "peak_joint_speed_rad_s": 59.50242614746094,
+      "final_root_height_m": 0.2830052971839905,
+      "final_tilt_deg": 90.01056671142578
+    },
+    {
+      "env": 41,
+      "case": "standing_control",
+      "kind": "standing_control",
+      "variant": "fullDR",
+      "replicate": 1,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17833714187145233,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 83.09381103515625,
+      "settled_max_joint_speed_rad_s": 13.388216018676758,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 1.84,
+        "hard": false,
+        "root_height_m": 0.18010103702545166,
+        "chassis_force_N": 0.0,
+        "support_force_N": 114.28482818603516
+      },
+      "peak_closure_m": 0.0013221456902101636,
+      "peak_joint_speed_rad_s": 169.0365753173828,
+      "final_root_height_m": 0.1797979772090912,
+      "final_tilt_deg": 1.176196813583374
+    },
+    {
+      "env": 42,
+      "case": "standing_control",
+      "kind": "standing_control",
+      "variant": "fullDR",
+      "replicate": 2,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.28300005197525024,
+      "settled_chassis_force_N": 127.81417083740234,
+      "settled_support_force_N": 127.81417083740234,
+      "settled_max_joint_speed_rad_s": 0.000593040487729013,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.0,
+      "first_hard_failure": null,
+      "native_task_first_termination": {
+        "time_s": 0.4,
+        "hard": false,
+        "root_height_m": 0.28411781787872314,
+        "chassis_force_N": 136.40618896484375,
+        "support_force_N": 136.40618896484375
+      },
+      "peak_closure_m": 0.0009849509224295616,
+      "peak_joint_speed_rad_s": 60.727874755859375,
+      "final_root_height_m": 0.28309106826782227,
+      "final_tilt_deg": 90.19325256347656
+    },
+    {
+      "env": 43,
+      "case": "standing_control",
+      "kind": "standing_control",
+      "variant": "fullDR",
+      "replicate": 3,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800197005271912,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 52.850502014160156,
+      "settled_max_joint_speed_rad_s": 5.860475540161133,
+      "success": false,
+      "first_stable_interval_start_s": null,
+      "max_stable_duration_s": 0.76,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0017492423066869378,
+      "peak_joint_speed_rad_s": 743.2944946289062,
+      "final_root_height_m": 0.2960028052330017,
+      "final_tilt_deg": 3.4908196926116943
+    },
+    {
+      "env": 44,
+      "case": "standing_control",
+      "kind": "standing_control",
+      "variant": "nominal",
+      "replicate": 4,
+      "valid_ground_start": true,
+      "settled_root_height_m": 0.17800194025039673,
+      "settled_chassis_force_N": 0.0,
+      "settled_support_force_N": 55.84112548828125,
+      "settled_max_joint_speed_rad_s": 5.533724308013916,
+      "success": true,
+      "first_stable_interval_start_s": 0.25999999046325684,
+      "max_stable_duration_s": 9.74,
+      "first_hard_failure": null,
+      "native_task_first_termination": null,
+      "peak_closure_m": 0.0019813692197203636,
+      "peak_joint_speed_rad_s": 55.28883361816406,
+      "final_root_height_m": 0.2903101146221161,
+      "final_tilt_deg": 1.2357474565505981
+    }
+  ]
+}

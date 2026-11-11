@@ -122,3 +122,8 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 
 2026-11-11 R1首轮40分钟已获用户授权并启动：父Flat1.5_020m/iter22856/a5102af6…，新增中级正反阶梯及完整计划难度范围；Rough低速起步课程，平地组原技能继续；−1.5e²/fullDR/PPO/2.5ms/TGS32/4/2mm保留，每5min完整PT。训练和真实失败计数见[本轮记录](sources/local/MOD4V3_ROUGH_R1_20261111/README.md)。未自动R2。
+
+
+## 2026-11-11 起摆站立实测
+
+当前R1第二轮005m已经能从部分底盘落地随机腿姿态站起，但未达到随意摆腿可靠起身。固定权重同源PhysX：名义6/8、完整DR25/32达到高度/姿态保持；原逐帧接触严格统计另列。真实失败、准备期闭链中止及正常站姿5/5对照均保留。未训练。[报告、回放视频与逐份证据](sources/local/MOD4V3_GROUND_STAND_PROBE_20261111/README.md)。

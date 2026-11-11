@@ -186,4 +186,7 @@
 
 | 模型ID | iteration | bytes | SHA256 |
 |---|---:|---:|---|
+| [r1cubic_005m](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_005m.pt) | 23061 | 11,325,017 | `4d0976cf1e7995e50d4084926701209982f26c2606a3c3e8c896f2df0de1efd8` |
+| [r1cubic_010m](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_010m.pt) | 23095 | 11,325,017 | `581870601676c62f250057fcfc33c8498c0355c9109bc1e7d1997d9384c34b94` |
+| [r1cubic_final](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_final.pt) | 23110 | 11,325,017 | `ab079de2569a7acef19fa0fa31d557fa0ee2669bb1c4fab69172ea3de230d2b6` |
 | [r1cubic_first](../MOD4V3_ROUGH_R1_ABSCUBIC_20261111/weights/model_first_complete.pt) | 23028 | 11,325,017 | `34bb4a5b8566b22496811df586bfe1fb9e263b7e9c11592ef24b80f1f548af39` |

@@ -40,6 +40,8 @@ if level3_path.exists():
    r=[x for x in level3['rows'] if x['model']==modelrow['model'] and x['variant']==variant]
    modelrow[variant].update(rough_level3_crossed=sum(x['crossed_count'] for x in r),rough_level3_first_episode_failures=sum(x['first_episode_terminal_failures'] for x in r),rough_level3_resets=sum(x['resets'] for x in r),rough_level3_post_cross_recovered=sum(x.get('post_cross_recovered_count',0) for x in r),rough_level3_requested=sum(x['requested'] for x in r),rough_level3_rows=r)
 summary=dict(training=final,original_segment_budget=read(TRIAL/'PLAN.json')['budget_accounting'],models=candidates,flat_num_envs=flat['num_envs'],rough_num_envs=rough['num_envs'],flat_numerical=sum(x['reasons']['numerical'] for x in flat['rows']),rough_numerical=sum(x['reasons']['numerical'] for x in rough['rows']),flat_action_error=flat['action_slot_max_error'],rough_action_error=rough['action_slot_max_error'],flat_envelope=flat['motor_envelope_violation_nm'],rough_envelope=rough['motor_envelope_violation_nm'])
+if level3_path.exists():
+ summary.update(rough_level3_numerical=sum(x['reasons']['numerical'] for x in level3['rows']),rough_level3_action_error=level3['action_slot_max_error'],rough_level3_envelope=level3['motor_envelope_violation_nm'])
 put(E/'ROUND_SUMMARY.json',summary)
 print('MODEL | fullDR Flat passed/reset/forwardMAE | fullDR Rough crossed/reset | nominal Rough crossed')
 for m in candidates:
@@ -67,7 +69,7 @@ put(E/'SPEED_ASSESSMENT.json',dict(rows=speed,definition='Postpush8–12s perenv
 # Human-readable report uses only saved paired results.
 lines=['# R1二次加绝对三次项接续结果','',
  '用户要求压制速度偏差，保留−2e²并叠加−2|e|³/(1m/s)，超速与欠速对称，指数权重1.2保留；R1地形/指令/DR/PPO/接口/时序/solver/2mm单env重置未修改。','',
- '从二次2.0_015m完整检查点iter23027/SHA22513a6e…接续，恢复PPO与课程等级、地形分组、偏移和累计计数；物理episode重新开始。原R1段756.803s＋二次2.0段903.074s，当前三次接续实际%.3fs；两段合计%.3fs，属于同一轮40min预算。'%(final['elapsed_seconds'],final['elapsed_seconds']+read(TRIAL/'PLAN.json')['budget_accounting']['prior_total_consumed_seconds']),'',
+ '从二次2.0_015m完整检查点iter23027/SHA22513a6e…接续，恢复PPO与课程等级、地形分组、偏移和累计计数；物理episode重新开始。原R1段756.803s＋二次2.0段903.074s，当前三次接续实际%.3fs；三段合计%.3fs，属于同一轮40min预算。'%(final['elapsed_seconds'],final['elapsed_seconds']+read(TRIAL/'PLAN.json')['budget_accounting']['prior_total_consumed_seconds']),'',
  '原段是用户要求切段后的SIGINT退出，无FINAL/SAFE_CLOSED；新段正常终态见TRAIN_FINAL/TRAIN_SAFE_CLOSED，不补造旧段正常关闭。','',
  '## 同批PhysX配对','',
  'parent为实际二次2.0_015m训练父；flat_parent为原Flat1.5_020m参考。所有模型同批初态/DR/噪声/外力/推扰。以下前进为6s推扰后8–12s均值；名义参数不施加推扰。','',

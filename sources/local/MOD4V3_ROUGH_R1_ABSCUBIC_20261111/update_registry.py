@@ -17,7 +17,7 @@ for path in sorted((T/'weights').glob('*.pt')):
  else:reg['models'].append(row)
  ids.append(mid)
 stage=dict(id='rough_r1_abscubic',title='RoughR1平方加绝对三次项接续',profile=plan['profile'],parent_model_id='r1sq2_015m',parent_sha256=plan['parent_sha256'],source_directories=[T.relative_to(R).as_posix()],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],training_method=plan['training_round'],sampling_mixture=plan['sampling_mixture'],reward=plan['reward'],model_ids=ids,status='R1 authorized40min segmented round completed; see paired report' if a.final else 'R1 cubic continuation740s in same authorized40min running; no promotion',original_tag='trial-20261111-mod4-rough-r1-abscubic-start-01',final_tag='trial-20261111-mod4-rough-r1-abscubic-final-01' if a.final else None)
-stage['terrain']=plan['rough_r1'];stage['budget']='Continuation within same40min; see budget_accounting'
+stage['terrain']=plan['rough_r1'];stage['budget']=plan['budget_accounting']
 reg['stages']=[m for m in reg['stages'] if m['id']!='rough_r1_abscubic']+[stage]
 reg['weights_summary'].update(models=len(reg['models']),unique_sha256=len({x['sha256'] for x in reg['models']}),total_bytes=sum(x['bytes'] for x in reg['models']))
 reg['last_update_tag']=stage['final_tag'] or stage['original_tag'];put(CAT/'MODEL_REGISTRY.json',reg)

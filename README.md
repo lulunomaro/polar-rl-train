@@ -1,8 +1,8 @@
 # polar-rl-train
 
-R1速度项当前接续为[二次＋绝对三次项](sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/README.md)，仍同一40min预算，剩740s；结果待评测。
+R1本轮已完成40min三段训练及同批评测：[最终报告与模型选择](sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。名义PhysX跟踪改善，fullDR偏速未解决；Flat1.5_020m保留回退，总26阶段/118完整PT实体。
 
-2026-11-11 R1偏速处理：同一40min轮在010m完整PT后切段，速度平方项−1.5e²→−2.0e²，原R1课程等级/计数保留，接续1643s。见[sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md](sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md)。
+本轮切段历史：同一40min轮在010m完整PT后切段，速度平方项−1.5e²→−2.0e²，原R1课程等级/计数保留，接续1643s。见[sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md](sources/local/MOD4V3_ROUGH_R1_SQUARE2_20261111/README.md)。
 
 
 MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建于 2026-10-03，默认私有。
@@ -11,8 +11,8 @@ MOD4 强化学习项目的修复、训练、诊断和交接档案。仓库创建
 
 ## 从这里看
 
-- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0首轮及评测完成，20m候选/5m备用，R1未启动。
-- **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：19个阶段/分支、79份检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
+- **[Rough 课程计划：对照华南虎版本与预训练记录](docs/ROUGH_CURRICULUM_README_20261111.md)**：MOD4-R0～R4、完整 DR 继承、低难度接入、每五分钟检查与模型接续；R0/R1首轮及配对评测已完成；R1本轮未晋升，R2未启动。
+- **[DR各阶段配方、保留模型与训练方法（含完整PT）](docs/DR_TRAINING_INDEX_20261111.md)**：26个阶段/分支、118份完整检查点、父子谱系和SHA；[直接取模型](sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)、[后续续训方法](docs/DR_TRAINING_RESUME_20261111.md)。
 - [按阶段看修了什么](docs/REPAIR_TIMELINE.md)：人工整理的修复主线、重要纠正和未完成事项。
 - [完整试验/修复标签表](history/INDEX.md)：每条记录的标签、类别和证据链接。
 - [全部版本目录](history/VERSIONS.md)：83 个目录各自的来源、源码和交接说明。

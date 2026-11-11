@@ -1,13 +1,13 @@
 # MOD4 DR 训练配方、阶段模型与续训索引
 
-当前R1接续：二次项＋绝对三次项，余740s计入本轮40min；[当前配方](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/README.md)，实际父square2_015m/22513a6e…，结果待评测。
+当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
 
 记录日期：2026-11-11，Asia/Shanghai。首次入口覆盖17个阶段/分支、61份检查点；追加本轮后共18个阶段/分支、70份完整检查点；原始试错、失败、提前停止和后续修复并列保留。首次总档案只整理已有成果；其后用户明确开训，新增剩余DR合并轮的实时状态与最终结果另行追加，旧原始记录保持。
 
-**当前最新完整DR诊断候选为双侧平方项加倍实验 `square1_030m`，实际父是第一轮 `remaining_010m`；备用`square1_020m`。同批30m完整DR前进14/20、正式45/60，PhysX名义仍欠速0/20，2.7诊断有1reset；不是已毕业。此前已接受范围接训/回退仍为`push_020m`，原 Step7 `mass_040m` 主冻结保持。全部完整PT实体在Git。**
+**历史平方项1.0阶段的完整DR诊断候选为双侧平方项加倍实验 `square1_030m`，实际父是第一轮 `remaining_010m`；备用`square1_020m`。同批30m完整DR前进14/20、正式45/60，PhysX名义仍欠速0/20，2.7诊断有1reset；不是已毕业。此前已接受范围接训/回退仍为`push_020m`，原 Step7 `mass_040m` 主冻结保持。全部完整PT实体在Git。**
 
 - [逐份模型完整索引（SHA、iteration、父子关系、配方、原始两端路径）](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)
-- [全部 88 份模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
+- [全部118份完整模型表和直接下载入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODELS.md)
 - [取回模型、准备新运行目录、续训与检查方法](DR_TRAINING_RESUME_20261111.md)
 - [原始报告、补收证据和源码入口](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md)
 
@@ -197,3 +197,6 @@ partial-base 075m → Stage1 final
 
 
 2026-11-11用户进一步要求下一检查点试三次项：平方2.0段在015m/iter23027/SHA22513a6e…完整保存后结束。实际903.074s，无FINAL/SAFE_CLOSED；原R1段756.803s＋本段903.074s已计入同一40min。新接续MOD4V3_ROUGH_R1_ABSCUBIC_20261111，余740s，奖励−2e²(1+|e|/1m/s)，二次基础保留、加绝对三次项，超/欠速对称；其余配方保留。直接有符号e³会奖励一侧，纯|e|³在误差小于1m/s时同系数更轻，不如此改。
+
+
+2026-11-11 R1本轮最终记录：当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。

@@ -1,6 +1,6 @@
 # 从 Git 取回模型并继续 DR 训练
 
-当前R1接续：二次项＋绝对三次项，余740s计入本轮40min；[当前配方](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/README.md)，实际父square2_015m/22513a6e…，结果待评测。
+当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。
 
 日期2026-11-11。先看 [阶段总表](DR_TRAINING_INDEX_20261111.md) 和 [精确索引](../sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json)。本页是后续操作说明；本次整理没有执行下面的训练命令。
 
@@ -154,3 +154,6 @@ Flat1.5实验从square1_030m恢复，配套新目录`MOD4V3_FLAT_SQUARE15_202611
 
 
 2026-11-11用户进一步要求下一检查点试三次项：平方2.0段在015m/iter23027/SHA22513a6e…完整保存后结束。实际903.074s，无FINAL/SAFE_CLOSED；原R1段756.803s＋本段903.074s已计入同一40min。新接续MOD4V3_ROUGH_R1_ABSCUBIC_20261111，余740s，奖励−2e²(1+|e|/1m/s)，二次基础保留、加绝对三次项，超/欠速对称；其余配方保留。直接有符号e³会奖励一侧，纯|e|³在误差小于1m/s时同系数更轻，不如此改。
+
+
+2026-11-11 R1本轮最终记录：当前R1首轮已结束：三段PPO合计2400.031s，三组同批评测完成；三次项改善名义PhysX跟踪但fullDR偏速未解决。Flat1.5_020m保留回退，R1_010m实验候选、三次005m名义备用；[最终结果与选择](../sources/local/MOD4V3_ROUGH_R1_ABSCUBIC_20261111/DECISION.md)。总26阶段/118份完整PT实体；不自动R2或追加训练。

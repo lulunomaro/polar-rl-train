@@ -1,0 +1,10 @@
+from pathlib import Path
+b=Path(r'D:/claude2/fangzhen/tmp/rough_v1_local_showcase_20261112')
+p=b/'showcase.py';s=p.read_text(encoding='utf8')
+s=s.replace("self.env.dt=.0025;self.env.decim=8;self.env.m.opt.timestep=.0025", "self.env.dt=.0025;self.env.decim=8;self.env.m.opt.timestep=.0025\n  self.env.m.vis.headlight.ambient[:]=[.65,.65,.65];self.env.m.vis.headlight.diffuse[:]=[.8,.8,.8];self.env.m.vis.headlight.specular[:]=[.08,.08,.08]")
+s=s.replace("self.viewer.cam.distance=8.5;", "self.viewer.cam.distance=4.6;")
+s=s.replace("if sim.viewer:sim.viewer.sync()", "if sim.viewer:\n    x,y=sim.env.d.qpos[:2];sim.viewer.cam.lookat[:]=[x+.6,y,sim.ground(x,y)+.25];sim.viewer.sync()")
+s=s.replace("保存配方＋seed66本机重建；每块9×9m。短边10档难度，长边75个地形列，净地形90×675m。", "按本轮训练配方在本机重建；每块9×9m。短边10档难度，长边75个地形列，净地形90×675m。")
+s=s.replace("原始高度比例1:1；这是本机配方重建图，与目标机随机网格不作逐字节相同声明。边界外沿另有10m。", "地形高度按实际比例显示。11类地形同时分布在地图中，难度沿短边递增。")
+p.write_text(s,encoding='utf8')
+p=b/'capture_clips.py';s=p.read_text(encoding='utf-8-sig').replace('cam.distance=4.6','cam.distance=3.4');p.write_text(s,encoding='utf8')

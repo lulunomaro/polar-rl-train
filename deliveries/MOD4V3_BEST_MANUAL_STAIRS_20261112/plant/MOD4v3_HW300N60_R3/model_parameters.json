@@ -1,0 +1,466 @@
+{
+  "schema": "mod4v3.HW300N60.model_parameters.v1",
+  "model": "MOD4v3-HW300N60-SCUT-V14",
+  "hardware_spec_status": "CONFIRMED",
+  "superseding_human_facts": "Latest user correction: actual stop between shin and linkage; both active outputs continuous; gas stroke60mm, fully extended eye-center200mm confirmed, nominal300N; old400N candidate superseded",
+  "provenance": {
+    "parameters": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\model_parameters.json",
+      "sha256": "0b3ba2494723248ee0e32596f3b408853c70081885ab650ba0d2bf7ec1dfee3a"
+    },
+    "manifest": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\reports\\model_manifest.json",
+      "sha256": "238b5ef9986b743e0642d2f97217e225179a0050ba7d2269c24d7ffad18e7f5e"
+    },
+    "kinematics": {
+      "path": "F:\\RMPOLAR-RL\\traditional_control_20261101\\kinematics.py",
+      "sha256": "372891fd60a9aa0a1348e64b0e78974cd706518951c2908690859b707df01955"
+    },
+    "contract": {
+      "path": "F:\\RMPOLAR-RL\\mod4_usd_scut_fudan_20261101\\candidates\\v1\\assets\\import_contract.json",
+      "sha256": "bae3203a7c30f75e29c20c0b0d0e215af5edfc7dbeacb9ebc5310f7867c98755"
+    },
+    "mechanical_spec": {
+      "path": "F:\\RMPOLAR-RL\\mod4v2_p0_mechanical_limits_20261105\\MECHANICAL_LIMITS_SPEC_V2_HW300N60.json",
+      "sha256": "57d129d5116dd4d2655e9aae8ec57179d8041e368a97b238fd4d0c03804da005",
+      "status": "CONFIRMED_HARDWARE_GEOMETRY_AND_NOMINAL_FORCE_ENGINEERING_FORCE_CURVE"
+    }
+  },
+  "active_coordinates": "absolute continuous hip and crank; delta=crank-hip; common turns retained",
+  "source_mechanical_delta_min_rad": -1.0863195404360622,
+  "per_side_joint_bounds_SI": {
+    "hip": [
+      null,
+      null
+    ],
+    "crank": [
+      null,
+      null
+    ],
+    "drive_hip_spin": [
+      null,
+      null
+    ],
+    "drive_input_spin": [
+      null,
+      null
+    ],
+    "rocker_pin": [
+      -0.7828279184955527,
+      null
+    ],
+    "coupler_pin": [
+      null,
+      0.9027785273324023
+    ],
+    "knee": [
+      -0.7613787030122099,
+      null
+    ],
+    "distal_pin": [
+      null,
+      0.8152830434591931
+    ],
+    "gas_pin": [
+      null,
+      0.15599963671374795
+    ],
+    "gas_slide": [
+      -0.039360558909870585,
+      0.020639441090129412
+    ]
+  },
+  "leg_motor": {
+    "model": "DM8009P",
+    "count": 4,
+    "bus_voltage_v": 24.0,
+    "mass_each_kg": 0.963,
+    "continuous_torque_nm": 20.0,
+    "peak_torque_nm": 40.0,
+    "rated_speed_rpm": 100.0,
+    "no_load_speed_rpm": 160.0,
+    "gear_ratio_internal": 9.0,
+    "external_sprocket_ratio": 1.0,
+    "output_armature_kg_m2": 0.025,
+    "armature_status": "provisional, internal rotor inertia not published in cited manual",
+    "envelope_intercept_nm": 53.333333333333336,
+    "envelope_slope_nm_s_rad": 3.183098861837907,
+    "envelope_status": "engineering linear voltage envelope fitted to 20 Nm at 100 rpm and no-load 160 rpm, clipped at 40 Nm; not a measured full torque-speed curve",
+    "source_url": "https://doc.switch-science.com/media/files/0eacb9ba-85e6-4761-93df-92773000fddb.pdf",
+    "status": "User explicitly confirmed all four MOD4 leg motors are DM8009P, 24 V on 2026-09-10; STEP labels DM8009. Dynamic armature/envelope remain estimates.",
+    "official_model": "DM-J8009P-2EC",
+    "mass_status": "OEM nominal, manualV1.3 2026-09-10 corrected prior921g; CAD matching20240809 model, not hardwareV1.1"
+  },
+  "wheel_motor": {
+    "model": "DM3519 + replacement 15.8:1 gearbox",
+    "bus_voltage_v": 24.0,
+    "total_gear_ratio": 15.8,
+    "ratio_status": "User confirmed total rotor-to-wheel ratio; replaces stock gearbox",
+    "reference_stock_ratio": 19.203208556149733,
+    "reference_stock_continuous_torque_nm": 3.5,
+    "reference_stock_peak_torque_nm": 7.8,
+    "reference_stock_rated_speed_rpm": 395.0,
+    "reference_stock_no_load_speed_rpm": 435.0,
+    "relative_gearbox_efficiency_assumption": 0.9,
+    "continuous_torque_nm": 2.591754385964913,
+    "peak_torque_nm": 5.775909774436091,
+    "rated_speed_rpm": 480.08021390374324,
+    "no_load_speed_rpm": 528.6959317674135,
+    "assembly_mass_status": "New CAD gearbox mass is computed part by part, not replaced with the stock 0.396 kg gearbox mass.",
+    "motor_rotor_inertia_kg_m2": 4e-06,
+    "output_armature_kg_m2": 0.0009985600000000001,
+    "armature_status": "Unmeasured rotor estimate reflected by total ratio squared; gearbox rotating inertia not identified",
+    "wheel_radius_m": 0.0625,
+    "rated_ground_speed_m_s": 3.142117652362117,
+    "no_load_ground_speed_m_s": 3.4603067817152438,
+    "envelope_intercept_nm": 28.18532894736838,
+    "envelope_slope_nm_s_rad": 0.5090829138384437,
+    "envelope_status": "Estimated linear voltage envelope scaled from stock rated/no-load points; peak duration, thermal and bus-power limits unmeasured",
+    "visual_geometry_status": "This MOD4 STEP contains the replacement P15.8 gearbox and DM3519 motor.",
+    "source_url": "https://gitee.com/kit-miao/DM-S3519-1EC",
+    "source_catalog_url": "https://www.worldrobotconference.com/profile/robot/download/2025/06/30/%E8%BE%BE%E5%A6%99%E7%A7%91%E6%8A%80DAMIAO%20-%202025%E5%B9%B4%E4%BA%A7%E5%93%81%E9%80%89%E5%9E%8B%E6%89%8B%E5%86%8C_20250630192546A441.pdf",
+    "bare_motor_mass_assumption_kg": 0.131,
+    "bare_motor_mass_status": "User provided131g per retained bare motor after removing original reducer; complete396g module not used",
+    "bare_motor_mass_user_provided_kg": 0.131
+  },
+  "gas_spring": {
+    "authoritative_source": "User nominal300N/full-extended200mm; linear spring surrogate declared separately",
+    "nominal_label_n": 300.0,
+    "nominal_label_is_constant_force": false,
+    "force_reference_convention": "300N at fully extended endpoint",
+    "stiffness_n_m": 2000.0,
+    "damping_n_s_m": 3.0,
+    "stiffness_status": "Inherited simulation equivalent2000N/m, NOT measured new300N spring stiffness",
+    "damping_status": "Inherited simulation equivalent3Ns/m, NOT hardware damping measurement",
+    "target_position_m": {
+      "left": 0.1706394410901294,
+      "right": 0.1706394410901294
+    },
+    "force_model": "F=k*(target-slide)-d*slide_velocity; equal-and-opposite joint force",
+    "force_at_compressed_endpoint_n": 420.0,
+    "extended_eye_length_m": 0.2,
+    "compressed_eye_length_m": 0.14,
+    "stroke_m": 0.06,
+    "slider_bounds_m": [
+      -0.039360558909870585,
+      0.020639441090129412
+    ],
+    "hardware_stroke_spec_confirmed": true,
+    "force_curve_calibrated": false,
+    "damping_calibrated": false,
+    "geometry_user_confirmed": true,
+    "screenshot_208mm_within_current_hardware": false,
+    "gas_lower_is_hardware_compression_not_lowfold_stop": true,
+    "old_400N_candidate_superseded": true
+  },
+  "source_hip_rotation_rad": -0.3977786224229303,
+  "source_input_difference_rad": 0.45,
+  "joint_offsets_from_cad": {
+    "left": {
+      "hip": -0.3977786224229303,
+      "crank": 0.05222137757706974,
+      "rocker_pin": 0.3657395772267944,
+      "coupler_pin": -0.4207145933733587,
+      "knee": 0.36181879920154403,
+      "distal_pin": -0.3780519654128285,
+      "gas_pin": -0.05196260380896334,
+      "gas_slide": 0.015635018491787056,
+      "drive_hip_spin": -0.3977786224229303,
+      "drive_input_spin": 0.05222137757706974,
+      "wheel_spin": 0.0
+    },
+    "right": {
+      "hip": -0.3977786224229303,
+      "crank": 0.05222137757706974,
+      "rocker_pin": 0.36573957722679484,
+      "coupler_pin": -0.42071459337335915,
+      "knee": 0.36181879920154403,
+      "distal_pin": -0.3780519654128289,
+      "gas_pin": -0.05196260380896334,
+      "gas_slide": 0.015635018491787,
+      "drive_hip_spin": -0.3977786224229303,
+      "drive_input_spin": 0.05222137757706974,
+      "wheel_spin": 0.0
+    }
+  },
+  "neutral_gas_eye_length_m": {
+    "left": 0.17936055890987065,
+    "right": 0.1793605589098706
+  },
+  "legacy_operating_window_provenance": {
+    "enforced_as_physics": false,
+    "old_hip_range_rad": [
+      -0.5,
+      0.5
+    ],
+    "old_source_difference_rad": [
+      -0.25,
+      0.85
+    ],
+    "old_packaged_difference_rad": [
+      -0.7,
+      0.39999999999999997
+    ],
+    "old_runtime_default_max_rad": 0.85,
+    "old_training_min_rad": -1.0843
+  },
+  "limits": {
+    "left": {
+      "hip": [
+        null,
+        null
+      ],
+      "crank": [
+        null,
+        null
+      ],
+      "drive_hip_spin": [
+        null,
+        null
+      ],
+      "drive_input_spin": [
+        null,
+        null
+      ],
+      "rocker_pin": [
+        -0.7828279184955527,
+        null
+      ],
+      "coupler_pin": [
+        null,
+        0.9027785273324023
+      ],
+      "knee": [
+        -0.7613787030122099,
+        null
+      ],
+      "distal_pin": [
+        null,
+        0.8152830434591931
+      ],
+      "gas_pin": [
+        null,
+        0.15599963671374795
+      ],
+      "gas_slide": [
+        -0.039360558909870585,
+        0.020639441090129412
+      ],
+      "input_difference_rad": [
+        -1.0863195404360622,
+        0.49192233306644084
+      ]
+    },
+    "right": {
+      "hip": [
+        null,
+        null
+      ],
+      "crank": [
+        null,
+        null
+      ],
+      "drive_hip_spin": [
+        null,
+        null
+      ],
+      "drive_input_spin": [
+        null,
+        null
+      ],
+      "rocker_pin": [
+        -0.7828279184955527,
+        null
+      ],
+      "coupler_pin": [
+        null,
+        0.9027785273324023
+      ],
+      "knee": [
+        -0.7613787030122099,
+        null
+      ],
+      "distal_pin": [
+        null,
+        0.8152830434591931
+      ],
+      "gas_pin": [
+        null,
+        0.15599963671374795
+      ],
+      "gas_slide": [
+        -0.039360558909870585,
+        0.020639441090129412
+      ],
+      "input_difference_rad": [
+        -1.0863195404360622,
+        0.49192233306644084
+      ]
+    }
+  },
+  "derived_continuous_delta_bounds_rad": {
+    "left": [
+      -1.0863195404360622,
+      0.49192233306644084
+    ],
+    "right": [
+      -1.0863195404360622,
+      0.49192233306644084
+    ]
+  },
+  "physics_dt_s": 0.0025,
+  "geometry_is_not_collision_certificate": true,
+  "continuous_branch_derivation": {
+    "left": {
+      "side": "left",
+      "delta_min_rad": -1.0863195404360622,
+      "delta_max_rad": 0.49192233306644084,
+      "source_CAD_delta_min_rad": -1.0863195404360622,
+      "lower_shift_from_source_CAD_rad": 0.0,
+      "lower_initial_bracket_rad": null,
+      "lower_values": {
+        "hip": 0.0,
+        "crank": -1.0863195404360622,
+        "rocker_pin": -0.7828279184955527,
+        "coupler_pin": 0.9027785273324032,
+        "knee": -0.7613787030122103,
+        "distal_pin": 0.8152830434591944,
+        "gas_pin": 0.1559996367137484,
+        "gas_slide": -0.02675468436086534,
+        "drive_hip_spin": 0.0,
+        "drive_input_spin": -1.0863195404360622,
+        "wheel_spin": 0.0
+      },
+      "upper_outside_rad": 0.49192233306655453,
+      "upper_active_constraints": [
+        "gas_slide:upper"
+      ],
+      "upper_values": {
+        "hip": 0.0,
+        "crank": 0.49192233306644084,
+        "rocker_pin": 0.4138190068586325,
+        "coupler_pin": -0.49595122058050567,
+        "knee": 0.41777117638769345,
+        "distal_pin": -0.4278000608326904,
+        "gas_pin": -0.0106071379391115,
+        "gas_slide": 0.020639441091127808,
+        "drive_hip_spin": 0.0,
+        "drive_input_spin": 0.49192233306644084,
+        "wheel_spin": 0.0
+      },
+      "proximal_loop_guard_rad": 6.283185307179586,
+      "initial_upper_bracket_rad": [
+        0.25,
+        0.5
+      ],
+      "doubling_brackets": 2,
+      "method": "source signed branch + mechanical bounds + bounded bisection",
+      "legacy_operating_window_used": false,
+      "hardware_stroke_spec_confirmed": true,
+      "force_curve_calibrated": false,
+      "mesh_collision_checked": false
+    },
+    "right": {
+      "side": "right",
+      "delta_min_rad": -1.0863195404360622,
+      "delta_max_rad": 0.49192233306644084,
+      "source_CAD_delta_min_rad": -1.0863195404360622,
+      "lower_shift_from_source_CAD_rad": 0.0,
+      "lower_initial_bracket_rad": null,
+      "lower_values": {
+        "hip": 0.0,
+        "crank": -1.0863195404360622,
+        "rocker_pin": -0.7828279184955522,
+        "coupler_pin": 0.9027785273324032,
+        "knee": -0.7613787030122099,
+        "distal_pin": 0.815283043459194,
+        "gas_pin": 0.15599963671374795,
+        "gas_slide": -0.02675468436086534,
+        "drive_hip_spin": 0.0,
+        "drive_input_spin": -1.0863195404360622,
+        "wheel_spin": 0.0
+      },
+      "upper_outside_rad": 0.49192233306655453,
+      "upper_active_constraints": [
+        "gas_slide:upper"
+      ],
+      "upper_values": {
+        "hip": 0.0,
+        "crank": 0.49192233306644084,
+        "rocker_pin": 0.41381900685863204,
+        "coupler_pin": -0.4959512205805061,
+        "knee": 0.417771176387693,
+        "distal_pin": -0.4278000608326895,
+        "gas_pin": -0.0106071379391115,
+        "gas_slide": 0.02063944109112778,
+        "drive_hip_spin": 0.0,
+        "drive_input_spin": 0.49192233306644084,
+        "wheel_spin": 0.0
+      },
+      "proximal_loop_guard_rad": 6.283185307179586,
+      "initial_upper_bracket_rad": [
+        0.25,
+        0.5
+      ],
+      "doubling_brackets": 2,
+      "method": "source signed branch + mechanical bounds + bounded bisection",
+      "legacy_operating_window_used": false,
+      "hardware_stroke_spec_confirmed": true,
+      "force_curve_calibrated": false,
+      "mesh_collision_checked": false
+    }
+  },
+  "runtime_selection_enabled": true,
+  "hardware_configuration": {
+    "hardware_spec_status": "CONFIRMED",
+    "runtime_selection_enabled": true,
+    "nominal_extension_force_N": 300.0,
+    "stroke_m": 0.06,
+    "extended_eye_length_m": 0.2,
+    "compressed_eye_length_m": 0.14,
+    "center_distance_definition": "User explicitly selected fully extended installation hole-center distance200mm",
+    "neutral_eye_length_m": 0.1793605589098706,
+    "geometry_user_confirmed": true,
+    "force_reference_convention": "300N modeled at full extension; nominal-force convention, no independent full force-curve measurement",
+    "force_curve_calibrated": false,
+    "damping_calibrated": false
+  },
+  "delivery_status": "SEMANTIC_PACKAGE_REQUIRES_REPORTED_VALIDATION",
+  "mechanical_stop_evidence": {
+    "fixed_part": 145,
+    "fixed_body": "thigh, not world/chassis",
+    "first_contact_part": 124,
+    "first_contact_body": "rocker",
+    "approaching_part": 134,
+    "approaching_body": "shin",
+    "source": "Existing CAD B-Rep mechanical delta reference with consistent same-source backsolve; user says shin/linkage stop; no new mesh-contact/hardware recertification",
+    "implementation": "CAD-backsolved equivalent one-sided relative joint stops plus original six closed-chain constraints; not new mesh contact",
+    "all_passive_bounds_are_one_stop_group_not_claimed_independent_contacts": true,
+    "remove_50e_minus6_hard_inset": true,
+    "training_soft_margin": "Separate optional configuration, disabled by default; not physical hard limit",
+    "source_legacy_rocker_min_rad": -0.7828277184955518,
+    "rocker_min_rad": -0.7828279184955527,
+    "rocker_numeric_consistency_fix_rad": 2.000000009e-07,
+    "rocker_new_value_basis": "Same neutral skeleton leg_configuration at source mechanical_delta_min; removes2e-7 metadata disagreement without extra margin",
+    "gas_at_mechanism_low_fold_m": -0.02675468436086534,
+    "gas_slide_hardware_lower_is_not_lowfold_stop": true
+  },
+  "gas_extension_evidence": {
+    "current_hardware_authority": "User2026-11-05 confirmed fully extended200mm, stroke60mm",
+    "extended_eye_length_m": 0.2,
+    "compressed_eye_length_m": 0.14,
+    "neutral_eye_length_m": 0.1793605589098706,
+    "slide_limits_m": [
+      -0.039360558909870585,
+      0.020639441090129412
+    ],
+    "hardware_stroke_spec_confirmed": true,
+    "old_parent_upper_restoration_superseded": true,
+    "earlier_screenshot_right_eye_m": 0.2081539082652016,
+    "screenshot_vs_confirmed_extension_excess_m": 0.00815390826520159,
+    "screenshot_required_to_pass": false,
+    "unresolved": "Earlier screenshot same-source pose exceeds confirmed hardware extension; inspect anchors/model-version rather than alter real stroke or fit geometry to picture"
+  },
+  "parameter_coordinate_basis": "legacy_v2 for inherited numeric geometry; semantics.json defines all v3 reference offsets",
+  "semantics_file": "semantics.json"
+}

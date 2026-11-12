@@ -263,3 +263,9 @@ partial-base 075m → Stage1 final
 目标机SSH超时，第6组gyro末段和后续落地/原Rough-v0保留测量待收齐；训练及全部PT已在本机完整核验。不能称验收全部完成或GPU已确认释放。未自动开下一轮。
 
 [配方/报告/全PT入口](../sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/README.md)。
+
+## 2026-11-12：当前播放模型命名快照与上台阶记录
+
+用户指定名称：**11月12日最牛逼的模型**。对应原Rough-v1 120m/iter24482/SHA `7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103`；[完整PT本体、训练配方/源码、资产、手动回放包](../deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112/README.md)。
+
+名义MuJoCo已复现：高度从0.28m缓慢调至0.365或0.40m，再以2.2m/s前进指令助跑，连续上两级16.5cm进入33cm平台。保留低速失败和原完整DR PhysX结果。本项是原权重的命名快照，不增加PPO训练阶段和更新次数。

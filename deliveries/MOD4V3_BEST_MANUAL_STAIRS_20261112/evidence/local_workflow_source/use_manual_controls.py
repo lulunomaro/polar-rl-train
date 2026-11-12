@@ -1,0 +1,4 @@
+from pathlib import Path
+b=Path(r'D:/claude2/fangzhen/tmp/rough_v1_local_showcase_20261112');p=b/'showcase.py';s=p.read_text(encoding='utf-8-sig');a=s.index('def gui():');z=s.index("\nif __name__=='__main__':",a);s=s[:a]+"def gui():\n from manual_control import run\n run()\n"+s[z:];p.write_text(s,encoding='utf8')
+p=b/'manual_control.py';s=p.read_text(encoding='utf-8-sig').replace("        label('Rough-v1 120m · 手动驾驶与高度控制',font=None) if False else None\n",'');p.write_text(s,encoding='utf8')
+p=b/'README.md';s=p.read_text(encoding='utf-8-sig');s=s.replace('回放控制窗可以固定上台阶、下台阶，或轮播11类地形；难度0～9，前进指令0～2.2m/s。取消自动轮播后可固定观察。','回放为手动模式，默认暂停。先点击控制窗，P开始/暂停，W/S前后、A/D转向，松键停车，空格停车，R复位并暂停。Q/E调节站立高度，1/2/3切换0.20/0.28/0.40m，也可使用0.20～0.42m高度滑条和屏幕方向按钮。可载入上台阶、下台阶或所选地形跑图起点；难度0～9，行驶速度0～2.2m/s。');p.write_text(s,encoding='utf8')

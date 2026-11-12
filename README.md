@@ -196,3 +196,9 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 ## 2026-11-13 连续上台阶动作调查
 
 冻结iter24692的4例动作/接触插桩：驱动轮撞立面、前导向小轮承力、前俯收腿抬轮、落轮后恢复再加速。原先约0.09m/s属于攀爬末段，不能按机身投影过阶沿认定已站稳一级。无训练、plant与模型不改。[慢放、分解图、完整报告](sources/local/MOD4V3_STAIR_MOTION_AUDIT_20261113/README.md)。
+
+<!-- CONTINUOUS_STAIRS_200MM_20261113_START -->
+## 2026-11-13 连续200mm台阶两小时专项（进行中）
+
+从iter24692完整PPO接续：固定难度3水平尺寸、每级200mm/两级400mm，修正25.8°俯仰奖励硬门控，加入实际抬轮/落台/连续完成与阶间耗时奖励，原速度项/fullDR/35-78-6/电机与2mm单环境保护保持。RTX4090、2048env、7200秒；每5分钟完整PT及检查。首更新iter24693/Adam17已保存。[配方、进展、完整权重入口](sources/local/MOD4V3_CONTINUOUS_STAIRS_200MM_2H_20261113/README.md)。原成熟包不覆盖。
+<!-- CONTINUOUS_STAIRS_200MM_20261113_END -->

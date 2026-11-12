@@ -1,0 +1,95 @@
+"""Continuous 200mm ascent: actual wheel clearance/landing, no pitch/height reward veto."""
+import math,torch
+from .scut_rough_scut_v1_env import ScutUnifiedRoughV1Env
+from .scut_flat_env import tensor
+from isaaclab.utils.math import quat_from_euler_xyz
+
+class ContinuousStairEnv(ScutUnifiedRoughV1Env):
+ def __init__(self,cfg,meta,bank):
+  self._continuous_ready=False;self.leg_pd_decimation=4;self.wheel_pd_decimation=1
+  super().__init__(cfg,meta,bank)
+  n=self.num_envs;dev=self.device
+  self.stair_up=torch.zeros(n,device=dev,dtype=torch.bool);self.stair_mid=self.stair_up.clone();self.stair_side=torch.ones(n,device=dev);self.stair_height=torch.full((n,),.38,device=dev);self.stair_speed=torch.full((n,),2.1,device=dev)
+  self.stair_start=torch.zeros(n,device=dev);self.stair_progress=self.stair_start.clone();self.stair_stage=torch.zeros(n,device=dev,dtype=torch.long);self.stair_initial_stage=self.stair_stage.clone();self.stair_first_time=torch.full((n,),-1.,device=dev);self.stair_goal_hold=self.stair_start.clone()
+  self.lift_reference=torch.zeros(n,2,device=dev);self.lift_best=self.lift_reference.clone();self.lift_armed=torch.zeros(n,device=dev,dtype=torch.bool)
+  self.stair_extra=torch.zeros(n,device=dev);self.stair_counts=torch.zeros(2,8,device=dev,dtype=torch.long);self.stair_time_sum=torch.zeros(2,device=dev);self.stair_time_count=torch.zeros(2,device=dev,dtype=torch.long);self.stair_reward_components=torch.zeros(5,device=dev)
+  self.wheel_sensor_ids=[self.scene['contacts'].body_names.index(x) for x in ['left_wheel_link','right_wheel_link']]
+  self.stair_wheel_idx=self.reward._wheel_link_idx
+  self._continuous_ready=True
+ def _center(self):return self.terrain.terrain_origins[self.terrain.terrain_levels,self.terrain.terrain_types]
+ def _count(self,ids,column):
+  if ids.numel():self.stair_counts[:,column].scatter_add_(0,self.full_dr.nominal_env_mask[ids].long(),torch.ones(len(ids),device=self.device,dtype=torch.long))
+ def _sample_command(self,ids):
+  super()._sample_command(ids)
+  if not getattr(self,'_continuous_ready',False):return
+  ids=torch.as_tensor(ids,device=self.device,dtype=torch.long).flatten();flat=ids[self.flat_terrain_mask[ids]]
+  if flat.numel():
+   draw=torch.rand(len(flat),device=self.device);straight=flat[draw<.5];stop=flat[(draw>=.5)&(draw<.7)];chosen=torch.cat((straight,stop));self.command[straight,0]=torch.empty(len(straight),device=self.device).uniform_(-2.2,2.2);self.command[chosen,1:]=0.;self.command[stop]=0.;self.heading_env[chosen]=False;self.standing_env[straight]=False;self.standing_env[stop]=True
+  picked=ids[~self.flat_terrain_mask[ids]];self.heading_env[picked]=False;self.standing_env[picked]=False
+ def _reset_idx(self,ids):
+  ids=torch.as_tensor(ids,device=self.device,dtype=torch.long).flatten();ready=getattr(self,'_continuous_ready',False)
+  if ready:
+   failed=ids[self.stair_up[ids]&self.reset_terminated[ids]];self._count(failed,6)
+  super()._reset_idx(ids)
+  if not ready or not ids.numel():return
+  self.stair_up[ids]=False;self.stair_mid[ids]=False;self.stair_progress[ids]=0.;self.stair_stage[ids]=0;self.stair_initial_stage[ids]=0;self.stair_first_time[ids]=-1.;self.stair_goal_hold[ids]=0.;self.lift_best[ids]=0.;self.lift_armed[ids]=False;self.stair_extra[ids]=0.
+  picked=ids[~self.flat_terrain_mask[ids]]
+  if not picked.numel():return
+  n=len(picked);gen=self.reset_generator;center=self._center()[picked];up=torch.rand(n,device=self.device,generator=gen)<.9;mid=up&(torch.rand(n,device=self.device,generator=gen)<.15);side=torch.where(torch.rand(n,device=self.device,generator=gen)<.5,-1.,1.)
+  options=((self._bank_h>=.24)&(self._bank_h<=.272)).nonzero().flatten();sample=options[torch.randint(len(options),(n,),device=self.device,generator=gen)];q=self._bank_q[sample][:,self._bank_ids].clone();root=tensor(self.robot.data.default_root_state)[picked].clone()
+  distance=torch.where(up,torch.where(mid,torch.full_like(side,2.35),torch.empty(n,device=self.device).uniform_(3.55,4.,generator=gen)),torch.full_like(side,.25))
+  ground=torch.where(up,torch.where(mid,.2,0.),.4);root[:,0]=center[:,0]+side*distance;root[:,1]=center[:,1]+torch.empty(n,device=self.device).uniform_(-.25,.25,generator=gen);root[:,2]=ground+self._bank_h[sample]+.01
+  forward=torch.where(up,-side,side);yaw=torch.where(forward>0,0.,math.pi);root[:,3:7]=quat_from_euler_xyz(torch.zeros_like(yaw),torch.zeros_like(yaw),yaw);root[:,7:]=0.
+  self.robot.write_root_state_to_sim(root,env_ids=picked);self.robot.write_joint_state_to_sim(q,torch.zeros_like(q),env_ids=picked)
+  self.stair_up[picked]=up;self.stair_mid[picked]=mid;self.stair_side[picked]=side;self.stair_start[picked]=distance;self.stair_stage[picked]=mid.long();self.stair_initial_stage[picked]=mid.long()
+  self.stair_height[picked]=torch.empty(n,device=self.device).uniform_(.365,.4,generator=gen);self.stair_speed[picked]=torch.empty(n,device=self.device).uniform_(1.8,2.2,generator=gen);self.stair_first_time[picked]=-1.
+  self.height[picked]=.28;self.command[picked]=0.;self.heading_env[picked]=False;self.standing_env[picked]=False;self.actions[picked]=0.;self.torque[picked]=0.;self.zero_torque_remaining[picked]=0;self._ground_command_until[picked]=0;self.r2_air_reset[picked]=False
+  self.reward.ground_z_est[picked]=ground;self.reward.command.copy_(self.command);self.reward.height_cmd.copy_(self.height);self.reward._invalidate_step_caches()
+  self._count(picked[up&~mid],0);self._count(picked[mid],1);self._count(picked[~up],7)
+ def _pre_physics_step(self,actions):
+  super()._pre_physics_step(actions)
+  if not self._continuous_ready:return
+  picked=(~self.flat_terrain_mask).nonzero().flatten();self.height[picked]+=(self.stair_height[picked]-self.height[picked]).clamp(-.0012,.0012);move=self.episode_length_buf[picked]*self.step_dt>=3.
+  self.command[picked,0]=torch.where(move,self.stair_speed[picked],0.);self.command[picked,1:]=0.;self.heading_env[picked]=False
+ def _get_dones(self):
+  term,timeout=super()._get_dones()
+  if getattr(self,'_continuous_ready',False):timeout|=(self.stair_goal_hold>=.3)&(~term)
+  return term,timeout
+ def _get_rewards(self):
+  base=super()._get_rewards()
+  if not getattr(self,'_continuous_ready',False):return base
+  active=self.stair_up&(~self.reset_terminated)&(self.episode_length_buf*self.step_dt>=3.);center=self._center();pos=self.view.data.root_pos_w;wheel=self.view.data.body_pos_w[:,self.stair_wheel_idx];forces=tensor(self.scene['contacts'].data.net_forces_w)[:,self.wheel_sensor_ids]
+  local_x=(wheel[:,:,0]-center[:,None,0])*self.stair_side[:,None];dy=(wheel[:,:,1]-center[:,None,1]).abs();radius=.0625
+  # Actual tread contact and wheel clearance, rather than root projection/world-z alone.
+  support=forces[:,:,2]>5.;first=((local_x<2.88)&(local_x>1.42)&(dy<2.88)&((wheel[:,:,2]-(.2+radius)).abs()<.05)&support).all(1)
+  second=((local_x<1.38)&(dy<1.38)&((wheel[:,:,2]-(.4+radius)).abs()<.05)&support).all(1)
+  new_first=active&first&(self.stair_stage<1);new_second=active&second&(self.stair_stage<2)
+  age=self.episode_length_buf*self.step_dt;self.stair_first_time[new_first]=age[new_first];self._count(new_first.nonzero().flatten(),2);self._count(new_second.nonzero().flatten(),3)
+  full=new_second&(self.stair_initial_stage==0);mid=new_second&(self.stair_initial_stage==1);self._count(full.nonzero().flatten(),4);self._count(mid.nonzero().flatten(),5)
+  timing=full&(self.stair_first_time>=0)
+  if bool(timing.any()):
+   g=self.full_dr.nominal_env_mask[timing].long();dt=age[timing]-self.stair_first_time[timing];self.stair_time_sum.scatter_add_(0,g,dt);self.stair_time_count.scatter_add_(0,g,torch.ones_like(g))
+  dx=(pos[:,0]-center[:,0]).abs();progress=(self.stair_start-dx).clamp_min(0.);advance=(progress-self.stair_progress).clamp_min(0.).clamp_max(2.2*self.step_dt)*active
+  self.stair_progress=torch.where(active,torch.maximum(self.stair_progress,progress),self.stair_progress)
+  stage=self.stair_stage.clamp_max(1);edge=torch.where(stage==0,2.9,1.4);lower=stage*.2;near=(local_x-edge[:,None]).abs().amin(1)<.45
+  armed=active&near&(~self.lift_armed);self.lift_reference[armed]=self.reward.length[armed];self.lift_armed|=armed
+  lift=((wheel[:,:,2]-(lower[:,None]+radius))/.2).clamp(0,1);retract=((self.lift_reference-self.reward.length)/.08).clamp(0,1);score=lift*retract
+  lift_gain=(score-self.lift_best).clamp_min(0.).mean(1)*(active&near&self.lift_armed);self.lift_best=torch.where((active&near)[:,None],torch.maximum(self.lift_best,score),self.lift_best)
+  wait=active&(self.stair_stage>=1)&(self.stair_stage<2);time_cost=.15*self.step_dt*wait
+  extra=.8*advance+.6*lift_gain+.5*new_first.float()+2.5*new_second.float()-time_cost
+  self.stair_stage=torch.where(new_second,2,torch.where(new_first,1,self.stair_stage));self.lift_best[new_first]=0.;self.lift_armed[new_first]=False
+  self.stair_goal_hold=torch.where(active&(self.stair_stage==2),self.stair_goal_hold+self.step_dt,torch.zeros_like(self.stair_goal_hold))
+  self.stair_extra=extra;self.stair_reward_components+=torch.stack((.8*advance.sum(),.6*lift_gain.sum(),.5*new_first.sum(),2.5*new_second.sum(),-time_cost.sum()))
+  return base+extra
+ def terrain_summary(self):
+  out=super().terrain_summary()
+  if getattr(self,'_continuous_ready',False):out['continuous_stair']=dict(geometry=dict(source_level=3,riser_m=.2,tread_m=1.5,platform_height_m=.4,steps=2),counts_DR_then_nominal=self.stair_counts.tolist(),columns=['whole_ascent_starts','mid_ascent_starts','first_landed','second_landed','whole_two_step_success','mid_recovery_success','terminated','descent_starts'],mean_first_to_second_s=(self.stair_time_sum/self.stair_time_count.clamp_min(1)).tolist(),timed_successes=self.stair_time_count.tolist(),reward_sums=self.stair_reward_components.tolist(),reward_columns=['new_progress','clearance_with_retraction','first_landing','second_completion','between_step_time_cost'],active_up=int(self.stair_up.sum()),active_mid=int(self.stair_mid.sum()),pitch_reward_veto=False,height_reward_veto=False,scope='Cumulative stochastic training samples, not fixed evaluation success rate')
+  return out
+ def terrain_checkpoint_state(self):
+  state=super().terrain_checkpoint_state();state['course']='continuous_stairs_200mm_level3';state['continuous_stair_counts']=self.stair_counts;state['continuous_stair_time_sum']=self.stair_time_sum;state['continuous_stair_time_count']=self.stair_time_count;return state
+ def restore_terrain_curriculum(self,state):
+  self.parent_terrain_state=state;self.snapshots=None;self.reset();return dict(new_continuous_stair_course=True,parent_state_retained=True,old_terrain_not_relabelled=True)
+
+ def begin_training_counts(self):
+  self.stair_counts.zero_();self.stair_time_sum.zero_();self.stair_time_count.zero_();self.stair_reward_components.zero_()
+  self._count((self.stair_up&~self.stair_mid).nonzero().flatten(),0);self._count(self.stair_mid.nonzero().flatten(),1);self._count((~self.flat_terrain_mask&~self.stair_up).nonzero().flatten(),7)

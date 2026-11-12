@@ -259,3 +259,14 @@
 
 
 统一SCUT Rough-v0两小时与8组验收已完成；本轮26份完整PT均归档，综合接续保留r1round2_005m，100m/120m未晋升。[本轮模型选择](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/DECISION.md)。当前29阶段/164完整训练PT记录。
+
+
+## SCUT Rough-v1统一科目2小时
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [scutroughv1_005m](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_005m.pt) | 23700 | 11,746,021 | `bddb6cc5ce0d3cc9bf8361bb63fcd814b3f0e35b7c09d16acf16cb0afec7f1a0` |
+| [scutroughv1_010m](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_010m.pt) | 23734 | 11,746,021 | `98ce877c682a21d8f8ee53439572c1514bebb09b66e582e3588d36638c862fb8` |
+| [scutroughv1_015m](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_015m.pt) | 23769 | 11,746,021 | `3308635da7a4aa31694b40e0273a0bf627c57370bc6df259c4cd34b33eb3c413` |
+| [scutroughv1_020m](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_020m.pt) | 23803 | 11,746,021 | `9784d8efe19d2e6d86868da0b2c4595d0033eb864dcd6f9a57220ec582fce1cd` |
+| [scutroughv1_first](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_first_complete.pt) | 23666 | 11,746,021 | `425fcbce681e9a0c875cb21885b9ef69b6af7cf34631ffbaf14fd9dcf6471385` |

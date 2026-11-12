@@ -1,0 +1,286 @@
+{
+  "root": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107",
+  "code": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/code",
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "runtime": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/runtime",
+  "shared_package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/shared",
+  "package": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/package",
+  "support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/support",
+  "source_paths": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/SOURCE_PATHS_LOCAL.json",
+  "reset_bank": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/dependencies/reset_bank.json",
+  "seed": 66,
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210",
+    "actual_training_assets": {
+      "robot.usd": {
+        "sha256": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c",
+        "bytes": 8846708
+      },
+      "robot_physx.usda": {
+        "sha256": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+        "bytes": 3969
+      },
+      "import_contract.json": {
+        "sha256": "76784aa2796a8a9aa5ff4d638be47f425da3d0dd0af94db7286467358808af4c",
+        "bytes": 12259
+      }
+    },
+    "local_mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f"
+  },
+  "parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_2h_20261112_r1/train120m_scut_rough_v0_r1/model_100m.pt",
+  "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+  "legacy_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_physical_dr_adapt_20261110_r1/support",
+  "baseline_support": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/step7_dr_repair_20261110_r1/support",
+  "reward": {
+    "profile": "rough_scut_v1",
+    "term": "track_lin_vel_xy_square",
+    "weight": -1.5,
+    "sigma": 1.0,
+    "effective_coefficient": -1.5,
+    "baseline_weight": -1.5,
+    "baseline_sigma": 1.0,
+    "baseline_effective_coefficient": -1.5,
+    "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+    "time_scaling": "reward rate multiplied by step_dt=.02 once",
+    "policy_input": 35,
+    "critic_input": 78,
+    "formula": "-1.5*e**2",
+    "track_lin_vel_xy_weight": 1.2,
+    "airborne": "saved Rough-v1 internal airborne segmentation; current normal reward coefficients retained; no actor mode-slot change"
+  },
+  "execution_scope": "User2026-11-12: unified SCUT Rough-v1 dash for7200s, complete PT every300s; no split courses.",
+  "training_round": {
+    "job": "train120m_scut_rough_v1_r1",
+    "seconds": 7200,
+    "num_envs": 4096,
+    "checkpoint_interval_seconds": 300,
+    "inspection_interval_seconds": 300,
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "state": "Complete PPO actor/critic/STD/Adam/RNG from Rough-v0 iter23665; new11family Rough-v1 population and new physical episodes",
+    "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+    "reward_effective_vx_squared_coefficient": -1.5,
+    "post_training": "Compare parent/timed points: PhysX rough-v1 traversal, landing, rotation and Flat retention; retain old frozen package unless evidence improves.",
+    "budget": "One7200s PPO window; no automatic further training"
+  },
+  "original_parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/flat_obs_delay_stage5_40m_20261110_r1/model_final.pt",
+  "original_parent_sha256": "884cd07b3942df9c8484b905994e302906c84151f6f9c5d079a417ec98158f24",
+  "selected_parent_reason": "User2026-11-12: Rough-v0 candidate is useful; continue its100m complete checkpoint into Rough-v1 rather than roll back to R1.100m preferred to120m for paired highspeed/gyro and flat retention; R1 remains comparison/deployment baseline.",
+  "effort_output_scale": {
+    "leg": [
+      0.8,
+      1.1
+    ],
+    "wheel": [
+      0.9,
+      1.1
+    ],
+    "independent": "per env and active motor",
+    "sampling": "on reset at first call and when global policy steps since last sampling >=720; fixed otherwise",
+    "min_step_count_between_reset": 720,
+    "mapping": "raw full PD effort * scale -> original torque-speed envelope -> inherited additive torque noise and final envelope; no change to motor constants",
+    "new_bias": 0.0,
+    "new_noise_std": 0.0,
+    "critic": "existing 78D stiffness/damping slots report effective gains after multiplication; actual applied torque retained; no new dimension or dedicated multiplier slot"
+  },
+  "frozen_baseline": "../MOD4V3_STEP7_FROZEN_20261111/RECIPE.json",
+  "contact_material": {
+    "sampling": "startup, independent bucket index per env and collider; fixed selected collider properties across episode resets",
+    "make_consistent": true,
+    "wheel": {
+      "pattern": ".*_wheel_link",
+      "static": [
+        0.5,
+        1.2
+      ],
+      "dynamic": [
+        0.4,
+        1.0
+      ],
+      "restitution": [
+        0.02,
+        0.2
+      ],
+      "buckets": 64
+    },
+    "base": {
+      "pattern": "base_link",
+      "static": [
+        0.01,
+        0.1
+      ],
+      "dynamic": [
+        0.01,
+        0.1
+      ],
+      "restitution": [
+        0.02,
+        0.2
+      ],
+      "buckets": 64
+    },
+    "guide": {
+      "pattern": ".*_guide_link",
+      "static": [
+        0.1,
+        0.7
+      ],
+      "dynamic": [
+        0.1,
+        0.7
+      ],
+      "restitution": [
+        0.01,
+        0.1
+      ],
+      "buckets": 8
+    },
+    "unselected": "retain inherited Step7 mild material resets",
+    "critic": "existing six material slots actual left/right wheel triple (shape mean if multi-shape); base/guide absent from existing78Dlayout"
+  },
+  "velocity_push": {
+    "velocity_delta_world_xy_m_s": [
+      -0.25,
+      0.25
+    ],
+    "interval_s": [
+      5.0,
+      10.0
+    ],
+    "per_environment": true,
+    "is_global_time": false,
+    "reset": "resample timer on episode reset per reference EventManager.reset",
+    "implementation": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity adds uniform random world velocity delta; retains z and angular; use function directly",
+    "event_phase": "native DirectRLEnv post-step interval before observations",
+    "evidence": "runtime counts and native pre/post/delta/tick saved in full checkpoints; progress reports counts;64env interval/reset probe before training",
+    "paired_evaluation": {
+      "steps": 600,
+      "policy_dt_s": 0.02,
+      "scheduled_push_s": 6.0,
+      "pre_stable_s": [
+        3.6,
+        5.98
+      ],
+      "post_stable_s": [
+        8.0,
+        12.0
+      ],
+      "recovery": "first0.5s continuously within existing task tolerance",
+      "pairing": "same initial pose/DR/material/XYdelta/torquenoise for each model; nominal condition disables push"
+    }
+  },
+  "baseline_main_frozen_sha256": "23c112b16e9629215c7265124925daaf0f9b6bbbb62be61689c714ba1fc7a772",
+  "profile": "rough_scut_v1",
+  "combined_changes": {
+    "base_com": {
+      "x": [
+        -0.04,
+        0.04
+      ],
+      "y": [
+        -0.02,
+        0.02
+      ],
+      "z": [
+        -0.02,
+        0.02
+      ],
+      "sampling": "startup immutable"
+    },
+    "pd_scales": [
+      0.75,
+      1.25
+    ],
+    "gain_reset_cooldown_global_steps": 720,
+    "joint_friction_fraction": 1.0,
+    "joint_friction_sampling": "startup; activelegstatic/dynamic+viscous; wheel/passive static+viscous only per savedYAML",
+    "spring_damping_scale": [
+      0.5,
+      1.5
+    ],
+    "spring_stiffness": "retain plant2000; no reference.01 stiffness transplant",
+    "external_fraction": 1.0,
+    "observation_noise_fraction": 1.0,
+    "reset": "reference normal/ground modes+MOD4 feasible linkage bank; wheelangle+-2pi,legvel+-pi/2,wheelvel+-50",
+    "reset_ground_probability": 0.5,
+    "ground_mode_per_leg": {
+      "positive": 0.6,
+      "negative": 0.4
+    },
+    "ground_root_height_m": 0.25,
+    "airmode": true,
+    "solver": "retained TGS32/4;notchanged",
+    "checkpoint": "completePPO and DRsample/timer dictionary;freshphysicalepisode restore",
+    "reset_ground_length_mod4_effective_m": [
+      0.14,
+      0.3466992613455914
+    ]
+  },
+  "previous_round_source": "MOD4V3_ROUGH_R1_ROUND2_20261111/weights/model_005m.pt",
+  "sampling_mixture": {
+    "nominal_fraction": 0.2,
+    "flat_fraction": 0.2,
+    "independent_assignment": true,
+    "reset": "Current feasible MOD4 normal/ground modes, overlaid40pctair on saved eligible dash families;3saircommand; no activejump"
+  },
+  "experiment_change": "Replace staged R1 command/4level subset with unified saved SCUT Rough-v0 rotation course: all9 terrain families/10difficulty rows from launch; native random uniform terrain; SCUT15/15/30 command special modes everywhere, terrain height overrides. Keep MOD4 current fullDR,35/78/6 interface,2.5/10/20ms,TGS32/4,-1.5e2,2.2m/s cap.",
+  "current_DR_source_of_truth": "combined_changes/contact_material/effort_output_scale/velocity_push + actualSTARTUP/launchenv;step7_dr only historical",
+  "budget_accounting": {
+    "total_authorized_seconds": 7200,
+    "rule": "Only this new Rough-v1 PPO window; previous Rough-v0/shortprobe separately reported; stop at7200seconds"
+  },
+  "rough_scut_v1": {
+    "reference": "reference/rough_dash_env.yaml",
+    "terrain_rows": 10,
+    "terrain_cols": 75,
+    "reference_cols": 13,
+    "terrain_families": [
+      "low_speed_stair_for_rm",
+      "tiny_step",
+      "slope_for_rm_high",
+      "inv_slope_for_rm_low",
+      "high_speed_stair_for_rm",
+      "stair_slope_for_rm_high",
+      "inv_stair_slope_for_rm_low",
+      "inv_stair_slope_for_rm_high",
+      "plane_for_rm",
+      "random_uniform_for_rm",
+      "cliff_inv_stair_slope_short_for_rm"
+    ],
+    "family_columns": [
+      5,
+      10,
+      5,
+      5,
+      5,
+      5,
+      5,
+      10,
+      15,
+      5,
+      5
+    ],
+    "sampling": "all10levels from launch, fixed per-env family/level; 20pctflat independent from20pctnominal; no staged admission",
+    "air_reset_probability_on_eligible": 0.4,
+    "air_eligible_families": [
+      "inv_slope_for_rm_low",
+      "inv_stair_slope_for_rm_low",
+      "plane_for_rm",
+      "random_uniform_for_rm"
+    ],
+    "active_jump": false,
+    "interface": "35actor/78critic/6action; normal seven mode slots retained",
+    "max_abs_vx": 2.2,
+    "air_reset_adaptation": "feasible MOD4 bank pose; requested root height .12-.42m clipped above pose support+.08m; choose support<=.34m; use terrain-local origin; body roll/pitch reference ranges",
+    "air_initial_linear_vx_range": [
+      -2.2,
+      2.2
+    ],
+    "air_command_seconds": 3
+  },
+  "comparison_baseline_parent": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/rough_r1_round2_20261111_r1/train040m_rough_r1_round2_r1/model_005m.pt",
+  "comparison_baseline_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f"
+}

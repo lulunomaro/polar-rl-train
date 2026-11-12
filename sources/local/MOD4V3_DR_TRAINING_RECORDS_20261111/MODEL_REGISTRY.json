@@ -2134,6 +2134,122 @@
       "selected_continuation_model_id": "r1round2_005m",
       "retained_experimental_model_id": "roughv0_100m",
       "decision_file": "sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/DECISION.md"
+    },
+    {
+      "id": "scut_rough_v1_2h",
+      "title": "SCUT Rough-v1统一跑场与腾空落地2小时",
+      "profile": "rough_scut_v1",
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train120m_scut_rough_v1_r1",
+        "seconds": 7200,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "Complete PPO actor/critic/STD/Adam/RNG from Rough-v0 iter23665; new11family Rough-v1 population and new physical episodes",
+        "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+        "reward_effective_vx_squared_coefficient": -1.5,
+        "post_training": "Compare parent/timed points: PhysX rough-v1 traversal, landing, rotation and Flat retention; retain old frozen package unless evidence improves.",
+        "budget": "One7200s PPO window; no automatic further training"
+      },
+      "sampling_mixture": {
+        "nominal_fraction": 0.2,
+        "flat_fraction": 0.2,
+        "independent_assignment": true,
+        "reset": "Current feasible MOD4 normal/ground modes, overlaid40pctair on saved eligible dash families;3saircommand; no activejump"
+      },
+      "reward": {
+        "profile": "rough_scut_v1",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.5,
+        "sigma": 1.0,
+        "effective_coefficient": -1.5,
+        "baseline_weight": -1.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -1.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78,
+        "formula": "-1.5*e**2",
+        "track_lin_vel_xy_weight": 1.2,
+        "airborne": "saved Rough-v1 internal airborne segmentation; current normal reward coefficients retained; no actor mode-slot change"
+      },
+      "model_ids": [
+        "scutroughv1_005m",
+        "scutroughv1_010m",
+        "scutroughv1_015m",
+        "scutroughv1_020m",
+        "scutroughv1_first"
+      ],
+      "status": "Unified7200s PPO running; full checkpoint every300s",
+      "original_tag": "trial-20261112-mod4-scut-rough-v1-2h-start-01",
+      "final_tag": null,
+      "terrain": {
+        "reference": "reference/rough_dash_env.yaml",
+        "terrain_rows": 10,
+        "terrain_cols": 75,
+        "reference_cols": 13,
+        "terrain_families": [
+          "low_speed_stair_for_rm",
+          "tiny_step",
+          "slope_for_rm_high",
+          "inv_slope_for_rm_low",
+          "high_speed_stair_for_rm",
+          "stair_slope_for_rm_high",
+          "inv_stair_slope_for_rm_low",
+          "inv_stair_slope_for_rm_high",
+          "plane_for_rm",
+          "random_uniform_for_rm",
+          "cliff_inv_stair_slope_short_for_rm"
+        ],
+        "family_columns": [
+          5,
+          10,
+          5,
+          5,
+          5,
+          5,
+          5,
+          10,
+          15,
+          5,
+          5
+        ],
+        "sampling": "all10levels from launch, fixed per-env family/level; 20pctflat independent from20pctnominal; no staged admission",
+        "air_reset_probability_on_eligible": 0.4,
+        "air_eligible_families": [
+          "inv_slope_for_rm_low",
+          "inv_stair_slope_for_rm_low",
+          "plane_for_rm",
+          "random_uniform_for_rm"
+        ],
+        "active_jump": false,
+        "interface": "35actor/78critic/6action; normal seven mode slots retained",
+        "max_abs_vx": 2.2,
+        "air_reset_adaptation": "feasible MOD4 bank pose; requested root height .12-.42m clipped above pose support+.08m; choose support<=.34m; use terrain-local origin; body roll/pitch reference ranges",
+        "air_initial_linear_vx_range": [
+          -2.2,
+          2.2
+        ],
+        "air_command_seconds": 3
+      },
+      "budget": {
+        "total_authorized_seconds": 7200,
+        "rule": "Only this new Rough-v1 PPO window; previous Rough-v0/shortprobe separately reported; stop at7200seconds"
+      }
     }
   ],
   "models": [
@@ -5941,12 +6057,122 @@
       "role": "Unified SCUT Rough-v0 full PPO checkpoint; comparison and selection in stage DECISION",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "scutroughv1_005m",
+      "file": "model_005m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_005m.pt",
+      "bytes": 11746021,
+      "sha256": "bddb6cc5ce0d3cc9bf8361bb63fcd814b3f0e35b7c09d16acf16cb0afec7f1a0",
+      "iteration": 23700,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_005m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_010m",
+      "file": "model_010m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_010m.pt",
+      "bytes": 11746021,
+      "sha256": "98ce877c682a21d8f8ee53439572c1514bebb09b66e582e3588d36638c862fb8",
+      "iteration": 23734,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_010m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_015m",
+      "file": "model_015m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_015m.pt",
+      "bytes": 11746021,
+      "sha256": "3308635da7a4aa31694b40e0273a0bf627c57370bc6df259c4cd34b33eb3c413",
+      "iteration": 23769,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_015m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_020m",
+      "file": "model_020m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_020m.pt",
+      "bytes": 11746021,
+      "sha256": "9784d8efe19d2e6d86868da0b2c4595d0033eb864dcd6f9a57220ec582fce1cd",
+      "iteration": 23803,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_020m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_first",
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_first_complete.pt",
+      "bytes": 11746021,
+      "sha256": "425fcbce681e9a0c875cb21885b9ef69b6af7cf34631ffbaf14fd9dcf6471385",
+      "iteration": 23666,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_first_complete.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 164,
-    "unique_sha256": 161,
-    "total_bytes": 1490350414,
+    "models": 169,
+    "unique_sha256": 166,
+    "total_bytes": 1549080519,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -5965,7 +6191,7 @@
   "remaining_dr": "All plannedFlat DR ranges implemented. R0/R1 rounds completed; fullDR speedtracking and nominal crossengine retention still incomplete. R1 square/abscubic adaptation not promoted. See exact paired results and DECISION.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261112-mod4-scut-rough-v0-2h-final-01",
+  "last_update_tag": "trial-20261112-mod4-scut-rough-v1-2h-start-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m",
@@ -5975,7 +6201,7 @@
   "latest_rough_r1_candidate_model_id": "r1round2_005m",
   "latest_nominal_tracking_alternate_model_id": "r1cubic_005m",
   "rough_r1_decision_file": "sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md",
-  "current_training_status": "7206.137s PPO and8 paired assessments completed; tested100m/120m not promoted; comprehensive continuation r1round2_005m",
+  "current_training_status": "Unified7200s PPO running; full checkpoint every300s",
   "current_round_actual_PPO_seconds": 7206.1374335289,
   "current_rough_continuation_model_id": "r1round2_005m",
   "latest_rough_r2_experimental_model_id": "r2_005m",

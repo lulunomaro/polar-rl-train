@@ -12,6 +12,9 @@ def own_block(path,body):
  path.write_text(s,encoding='utf8')
 
 def main():
+ if (E/'RETENTION_CONTINUATION_PLANNED.json').exists():
+  write(E/'FINALIZATION_DEFERRED_TO_RETENTION.json',dict(epoch=time.time(),reason='Same original7200s continues with Rough-v1 retention; segment1 is not final result',next_stage=json.loads((E/'RETENTION_CONTINUATION_PLANNED.json').read_text(encoding='utf8'))))
+  return
  assert (E/'training/SAFE_CLOSED.json').exists()
  final=json.loads((E/'training/FINAL.json').read_text(encoding="utf8")) if (E/'training/FINAL.json').exists() else None
  latest=json.loads((E/'training/LATEST_PROGRESS.json').read_text(encoding="utf8")) if (E/'training/LATEST_PROGRESS.json').exists() else {}

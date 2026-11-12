@@ -297,3 +297,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 
 从iter24692完整PPO接续：固定难度3水平尺寸、每级200mm/两级400mm，修正25.8°俯仰奖励硬门控，加入实际抬轮/落台/连续完成与阶间耗时奖励，原速度项/fullDR/35-78-6/电机与2mm单环境保护保持。RTX4090、2048env、7200秒；每5分钟完整PT及检查。首更新iter24693/Adam17已保存。[配方、进展、完整权重入口](../sources/local/MOD4V3_CONTINUOUS_STAIRS_200MM_2H_20261113/README.md)。原成熟包不覆盖。
 <!-- CONTINUOUS_STAIRS_200MM_20261113_END -->
+
+<!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_START -->
+连续200mm台阶训练已按用户要求补回原Rough-v1：50%专项台阶、30%原十类粗糙地形（10级）、20%平地。阶段一45分钟完整PPO接续，原7200秒训练预算不增加，完整DR/控制频率/原速度奖励/2mm单环境保护保持。每5分钟保存完整PT并回放。[实际配方与状态](sources/local/MOD4V3_CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113/README.md)。当前不能声称旧技能已恢复，原成熟包保留。
+<!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_END -->

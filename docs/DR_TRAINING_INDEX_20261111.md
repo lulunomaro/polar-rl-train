@@ -307,5 +307,5 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_END -->
 
 <!-- SCUT_STAIR_FINETUNE_2H_20261113_START -->
-2026-11-13按华南虎实际保存配方重开：父iter24692/SHA979e355a…载入网络与STD，Adam/seed/迭代计数新建；首更17项Adam均20步。主PPO05:26开始，预计07:26左右完成新7200秒。273个200mm宽阶用SCUT成功登阶普通奖励，1365个其余原rough与410平地保留原奖励/适用落地采样；完整DR/部署接口/电机/2mm单环境保护保持。自定义登阶分数只诊断，宽阶关闭腾空，PPO1e-4 adaptive/clip.2/5epochs/value2。每5分钟完整保存回放。[执行配方](../sources/local/MOD4V3_SCUT_STAIR_FINETUNE_2H_20261113/README.md) · [华南虎原件和逐项对照](../sources/local/MOD4V3_SCUT_STAIR_FINETUNE_2H_20261113/SCUT_METHOD_COMPARISON.md)。
+从父iter24692按SCUT方式微调，273宽阶/1365其余rough/410平地。候选scut_stair_finetune_2h_20261113_015m，iter136，连续两阶0/10、平地60/60。 独立新轮实际7203.603秒；[配方与结果](sources/local/MOD4V3_SCUT_STAIR_FINETUNE_2H_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- SCUT_STAIR_FINETUNE_2H_20261113_END -->

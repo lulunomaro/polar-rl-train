@@ -334,3 +334,9 @@
 
 候选continuous_stairs200_parent_mixed_2h_20261113_035m，iter25011，连续两阶0/10、平地60/60。 完整PPO共21份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
 <!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_END -->
+
+<!-- SCUT_STAIR_FINETUNE_2H_20261113_START -->
+## 连续200mm台阶与Rough-v1保留
+
+候选scut_stair_finetune_2h_20261113_015m，iter136，连续两阶0/10、平地60/60。 完整PPO共26份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
+<!-- SCUT_STAIR_FINETUNE_2H_20261113_END -->

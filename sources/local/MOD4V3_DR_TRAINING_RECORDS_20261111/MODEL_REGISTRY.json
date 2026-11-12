@@ -2447,6 +2447,61 @@
       "assessment_complete": false,
       "completed_assessment_groups": 5,
       "planned_assessment_groups": 10
+    },
+    {
+      "id": "scut_stair_lift_20m",
+      "title": "台阶抬高底盘20分钟接续，远端末段待收",
+      "profile": "rough_scut_v1_stair_lift",
+      "parent_model_id": "scutroughv1_120m",
+      "parent_sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "source_directories": [
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112"
+      ],
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/PLAN.json"
+      ],
+      "training_method": {
+        "job": "train020m_stair_lift_r1",
+        "seconds": 1200,
+        "num_envs": 4096,
+        "checkpoint_interval_seconds": 300,
+        "inspection_interval_seconds": 300,
+        "learning_rate": 3e-05,
+        "schedule": "fixed",
+        "clip_param": 0.1,
+        "num_learning_epochs": 3,
+        "state": "Full actor/critic/STD/Adam/RNG from selected Rough-v1 120m iter24482; new stair-lift episode sampling",
+        "parent_sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+        "reward_effective_vx_squared_coefficient": -1.5,
+        "post_training": "Compare parent and trial checkpoints: raised-height ascent, original-height ascent/descent and flat retention",
+        "budget": "One1200s actual PPO window; native no-optimizer probe separate; no further training"
+      },
+      "reward": {
+        "profile": "rough_scut_v1_stair_lift",
+        "term": "track_lin_vel_xy_square",
+        "weight": -1.5,
+        "sigma": 1.0,
+        "effective_coefficient": -1.5,
+        "baseline_weight": -1.5,
+        "baseline_sigma": 1.0,
+        "baseline_effective_coefficient": -1.5,
+        "error": "command_vx - root_lin_vel_b_x * cos(pitch)",
+        "time_scaling": "reward rate multiplied by step_dt=.02 once",
+        "policy_input": 35,
+        "critic_input": 78,
+        "formula": "-1.5*e**2",
+        "track_lin_vel_xy_weight": 1.2,
+        "airborne": "saved Rough-v1 internal airborne segmentation; current normal reward coefficients retained; no actor mode-slot change"
+      },
+      "model_ids": [
+        "stairlift_005m",
+        "stairlift_010m",
+        "stairlift_first"
+      ],
+      "status": "Last confirmed635.524s; first/5m/10m3PT collected; remoteSSH lost;15m/20m/final and nativefullDR pending; no promotion",
+      "report_file": "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/REPORT.md",
+      "original_tag": "trial-20261112-mod4-stair-lift-20m-01"
     }
   ],
   "models": [
@@ -6826,12 +6881,78 @@
       "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "stairlift_005m",
+      "file": "model_005m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_005m.pt",
+      "bytes": 11753379,
+      "sha256": "e9db6807bcff9c4604a2c8b493c9d9dbb4cf13298146370a8711d9d4c034294d",
+      "iteration": 24517,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "scutroughv1_120m",
+      "parent_sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_stair_lift_20m_20261112_r1/train020m_stair_lift_r1/model_005m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/PLAN.json"
+      ],
+      "role": "Stair-height20m continuation experimental checkpoint; original named120m snapshot retained; later remote state pending",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "stairlift_010m",
+      "file": "model_010m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_010m.pt",
+      "bytes": 11753379,
+      "sha256": "0b168a5e3cb7b903a7dc3ad9e4f9c9794b7023633b0ed5f6e403e99b5d046caa",
+      "iteration": 24551,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "scutroughv1_120m",
+      "parent_sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_stair_lift_20m_20261112_r1/train020m_stair_lift_r1/model_010m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/PLAN.json"
+      ],
+      "role": "Stair-height20m continuation experimental checkpoint; original named120m snapshot retained; later remote state pending",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "stairlift_first",
+      "file": "model_first_complete.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_first_complete.pt",
+      "bytes": 11753379,
+      "sha256": "7293732270cabb83381c72bb904e89e35666365e59f7cdeba76e21fcf19c5b03",
+      "iteration": 24483,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "scutroughv1_120m",
+      "parent_sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_stair_lift_20m_20261112_r1/train020m_stair_lift_r1/model_first_complete.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_STAIR_LIFT_20M_20261112/PLAN.json"
+      ],
+      "role": "Stair-height20m continuation experimental checkpoint; original named120m snapshot retained; later remote state pending",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 190,
-    "unique_sha256": 186,
-    "total_bytes": 1795746960,
+    "models": 193,
+    "unique_sha256": 189,
+    "total_bytes": 1831007097,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -6850,7 +6971,7 @@
   "remaining_dr": "All plannedFlat DR ranges implemented. R0/R1 rounds completed; fullDR speedtracking and nominal crossengine retention still incomplete. R1 square/abscubic adaptation not promoted. See exact paired results and DECISION.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261112-mod4-scut-rough-v1-2h-final-01",
+  "last_update_tag": "trial-20261112-mod4-stair-lift-20m-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m",
@@ -6860,7 +6981,7 @@
   "latest_rough_r1_candidate_model_id": "r1round2_005m",
   "latest_nominal_tracking_alternate_model_id": "r1cubic_005m",
   "rough_r1_decision_file": "sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md",
-  "current_training_status": "Unified Rough-v1 PPO7206.600s complete;26fullPT;5of10PhysX groups collected; targetSSH unavailable; no promotion",
+  "current_training_status": "Stair-lift20m original job: last confirmed635.524s; target SSH unreachable; later actual state unknown; internal1200s limit; no new PPO window",
   "current_round_actual_PPO_seconds": 7206.600055932999,
   "current_rough_continuation_model_id": "roughv0_100m",
   "latest_rough_r2_experimental_model_id": "r2_005m",
@@ -6870,5 +6991,7 @@
   "selected_comprehensive_continuation_model_id": "r1round2_005m",
   "current_round_parent_model_id": "roughv0_100m",
   "current_round_selected_model_id": null,
-  "current_assessment_status": "pending target reconnection;5groups outstanding"
+  "current_assessment_status": "Parent/5m/10m nominal MuJoCo stairs+flat complete. Native fullDR stair pairing pending connectivity; no promoted child",
+  "latest_stair_lift_experiment_stage_id": "scut_stair_lift_20m",
+  "latest_stair_lift_parent_model_id": "scutroughv1_120m"
 }

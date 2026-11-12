@@ -1,5 +1,16 @@
 # Git中的完整PPO检查点
 
+## 2026-11-12 台阶抬高底盘20分钟接续：末段待收
+
+当前共31阶段、193完整PT文件记录。本轮已取回首次/5m/10m的3个PT，原父120m保持；15/20/final与原生fullDR待目标SSH恢复取回。[配方与实际报告](../MOD4V3_SCUT_STAIR_LIFT_20M_20261112/REPORT.md)。
+
+| 模型 | iteration | SHA256 |
+|---|---:|---|
+| [stairlift_005m](../MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_005m.pt) | 24517 | `e9db6807bcff9c4604a2c8b493c9d9dbb4cf13298146370a8711d9d4c034294d` |
+| [stairlift_010m](../MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_010m.pt) | 24551 | `0b168a5e3cb7b903a7dc3ad9e4f9c9794b7023633b0ed5f6e403e99b5d046caa` |
+| [stairlift_first](../MOD4V3_SCUT_STAIR_LIFT_20M_20261112/weights/model_first_complete.pt) | 24483 | `7293732270cabb83381c72bb904e89e35666365e59f7cdeba76e21fcf19c5b03` |
+
+
 2026-11-11。61个模型ID对应61份不同字节的完整`.pt`。本表链接到Git内的实体；原始本地/目标机路径、父关系、完整recipe与选择依据见 [MODEL_REGISTRY.json](MODEL_REGISTRY.json)。
 
 | 模型ID | iteration | 字节数 | SHA256 | 角色 |

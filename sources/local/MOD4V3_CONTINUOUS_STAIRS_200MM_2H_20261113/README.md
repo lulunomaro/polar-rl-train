@@ -38,3 +38,7 @@
 - PLAN.json是实际远端配方；support是本轮执行源，support_baseline为父配方支持代码原件；dependencies包含实际运行的SCUT源、launcher和reset bank。
 
 首个完整PT：weights/model_first_complete.pt，iter24693，SHA c642ad9899dcbf7151f0c6bb6136c88791455ee5a79def859085d09c457eb482，17项Adam。所有后续完整PT和成功/失败、原始轨迹、源、参数一起归档；不能只保存模型地址。原成熟包与父实验候选均保留，不自动覆盖。
+
+## 首个5分钟检查点的固定复测
+
+完整200mm两级3/10（父2/10），成功样本阶间时间约1.454秒（父1.500秒），下阶5/5；原平地六项40/60（父60/60）。这是早期固定名义MuJoCo结果，有明确平地保留退步，不能写成整体提升或成熟替换。继续按已授权7200秒计划保存与检查，不据此热改正在运行的配方。原始结果在evidence/checkpoint_evals/model_005m，启动补充归档附EVALUATION快照。

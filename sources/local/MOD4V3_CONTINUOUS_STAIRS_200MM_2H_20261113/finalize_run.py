@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,hashlib,shutil,sys,subprocess,time,traceback
 import torch
-T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence';C=R/'sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111';PLAN=json.loads((T/'PLAN.json').read_text());ID='continuous_stairs200_2h_20261113'
+T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence';C=R/'sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111';PLAN=json.loads((T/'PLAN.json').read_text(encoding="utf8"));ID='continuous_stairs200_2h_20261113'
 def write(p,d):p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
 def own_block(path,body):
  s=path.read_text(encoding='utf8');start='<!-- CONTINUOUS_STAIRS_200MM_20261113_START -->';end='<!-- CONTINUOUS_STAIRS_200MM_20261113_END -->'
@@ -13,17 +13,17 @@ def own_block(path,body):
 
 def main():
  assert (E/'training/SAFE_CLOSED.json').exists()
- final=json.loads((E/'training/FINAL.json').read_text()) if (E/'training/FINAL.json').exists() else None
- latest=json.loads((E/'training/LATEST_PROGRESS.json').read_text()) if (E/'training/LATEST_PROGRESS.json').exists() else {}
+ final=json.loads((E/'training/FINAL.json').read_text(encoding="utf8")) if (E/'training/FINAL.json').exists() else None
+ latest=json.loads((E/'training/LATEST_PROGRESS.json').read_text(encoding="utf8")) if (E/'training/LATEST_PROGRESS.json').exists() else {}
  actual=final['elapsed_seconds'] if final else latest.get('training_elapsed_seconds',0.)
  records=[];required=['actor_state_dict','critic_state_dict','optimizer_state_dict','cpu_rng','cuda_rng','python_rng','numpy_rng','reset_rng','domain_randomization_state']
  for p in sorted((T/'weights').glob('model_*.pt')):
   d=torch.load(p,map_location='cpu',weights_only=False);assert all(k in d for k in required);assert len(d['optimizer_state_dict']['state'])==17;assert d['actor_state_dict']['mlp.0.weight'].shape[1]==35 and d['critic_state_dict']['mlp.0.weight'].shape[1]==78 and d['actor_state_dict']['mlp.6.weight'].shape[0]==6
   assert all(bool(torch.isfinite(v).all()) for v in d['actor_state_dict'].values())
-  records.append(dict(id='stair200_'+p.stem.removeprefix('model_'),file=p.name,git_path=p.relative_to(R).as_posix(),bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),iteration=d['iter'],optimizer_entries=17,complete_PPO=True,actor_input=35,critic_input=78,action_output=6,parent_model_id='flat_speed_full_final',parent_sha256=PLAN['parent_sha256'],root_parent_model_id='flat_speed_full_final',root_parent_sha256=PLAN['parent_sha256'],original_local_path=str(p),original_remote_path=PLAN['root']+'/train120m_r1/'+p.name,recipe_files=[(T/'PLAN.json').relative_to(R).as_posix(),(T/'README.md').relative_to(R).as_posix()],role='Continuous200mm stair bounded2h experiment; see fixed evaluations and retained limits',git_storage='ordinary full PPO PT blob',aliases=[]))
+  records.append(dict(id=ID+'_'+p.stem.removeprefix('model_'),file=p.name,git_path=p.relative_to(R).as_posix(),bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),iteration=d['iter'],optimizer_entries=17,complete_PPO=True,actor_input=35,critic_input=78,action_output=6,parent_model_id='flat_speed_full_final',parent_sha256=PLAN['parent_sha256'],root_parent_model_id='flat_speed_full_final',root_parent_sha256=PLAN['parent_sha256'],original_local_path=str(p),original_remote_path=PLAN['root']+'/train120m_r1/'+p.name,recipe_files=[(T/'PLAN.json').relative_to(R).as_posix(),(T/'README.md').relative_to(R).as_posix()],role='Continuous200mm stair bounded2h experiment; see fixed evaluations and retained limits',git_storage='ordinary full PPO PT blob',aliases=[]))
  evaluations=[]
  for p in sorted((E/'checkpoint_evals').glob('*/EVALUATION.json')):
-  ev=json.loads(p.read_text());ev['evaluation_path']=p.relative_to(R).as_posix();evaluations.append(ev)
+  ev=json.loads(p.read_text(encoding="utf8"));ev['evaluation_path']=p.relative_to(R).as_posix();evaluations.append(ev)
  candidates=[x for x in evaluations if x.get('complete')]
  def elapsed_mean(x):
   rows=[v for k,v in x.get('stair_summary',{}).items() if k.startswith('whole') and v.get('mean_first_to_second_s') is not None];n=sum(r['passed'] for r in rows);return sum(r['mean_first_to_second_s']*r['passed'] for r in rows)/n if n else float('inf')
@@ -35,7 +35,7 @@ def main():
  status='completed bounded two-hour training' if final and actual>=7195 else 'closed early or failed; actual duration retained'
  decision=dict(status=status,planned_seconds=7200,actual_seconds=actual,last_iteration=latest.get('iteration'),selected_model_id=selected_record['id'] if selected_record else None,selection='Whole two-step fixed ascent success count first,then first-to-second time,flat60 tie-break; all skill retention reported',original_mature_parent_retained=True,selected_is_experimental=True,native_fullDR_fixed_graduation=False,real_car_deployed=False,automatic_extension=False)
  write(T/'DECISION.json',decision);write(E/'MODEL_ARCHIVE_INDEX.json',dict(models=records,evaluations=evaluations,decision=decision))
- reg=json.loads((C/'MODEL_REGISTRY.json').read_text());old_ids={r['id'] for r in records};reg['models']=[x for x in reg['models'] if x['id'] not in old_ids]+records
+ reg=json.loads((C/'MODEL_REGISTRY.json').read_text(encoding="utf8"));old_ids={r['id'] for r in records};reg['models']=[x for x in reg['models'] if x['id'] not in old_ids]+records
  stage=dict(id=ID,title='连续200mm台阶两小时：俯仰奖励修复与抬轮接续',profile='continuous_stairs200_level3',parent_model_id='flat_speed_full_final',parent_sha256=PLAN['parent_sha256'],source_directories=[T.relative_to(R).as_posix()],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],training_method=PLAN['training_round'],geometry=PLAN['continuous_stair'],model_ids=[r['id'] for r in records],experimental_candidate_model_id=decision['selected_model_id'],retained_model_id=None,status=status,report_file=(T/'FINAL_REPORT.md').relative_to(R).as_posix(),budget=dict(planned_seconds=7200,actual_seconds=actual),original_tag='trial-20261113-mod4-continuous-stairs-200mm-complete-01')
  reg['stages']=[s for s in reg['stages'] if s['id']!=ID]+[stage];reg['weights_summary'].update(models=len(reg['models']),unique_sha256=len({r['sha256'] for r in reg['models']}),total_bytes=sum(r['bytes'] for r in reg['models']));reg['latest_continuous_stair_experimental_model_id']=decision['selected_model_id'];reg['latest_continuous_stair_decision_file']=(T/'DECISION.json').relative_to(R).as_posix();reg['last_update_tag']='trial-20261113-mod4-continuous-stairs-200mm-complete-01';write(C/'MODEL_REGISTRY.json',reg)
  table='| 检查点 | iteration | 完整两级 /10 | 一级至二级 s | 平地 /60 | 下阶 /5 |\n|---|---:|---:|---:|---:|---:|\n'

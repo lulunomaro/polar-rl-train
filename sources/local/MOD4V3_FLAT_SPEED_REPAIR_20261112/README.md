@@ -2,6 +2,18 @@
 
 本阶段接续用户“继续寻找原因实验后修复平地欠速超速”。原11月12日手动上台阶最佳包保持冻结。本轮已完成40分钟训练、原六项×10初态（60例）回放、270环境原生配对、49点网格与台阶保留检查。保留最终完整实验候选，名义PhysX与部分高站姿扩展点仍有残余，原成熟模型未替换。
 
+
+## 本轮最优模型（已选定）
+
+**本轮综合最优：40分钟最终检查点，iteration 24692，模型ID `flat_speed_full_final`。** 2026-11-13补充明确标注；选择范围为本轮平地速度恢复实验，原成熟上台阶包继续保留。
+
+- **完整推荐权重：** [weights/selected_flat_speed_candidate.pt](weights/selected_flat_speed_candidate.pt)
+- **原始保存点：** [training_round_full_actor/model_final.pt](training_round_full_actor/model_final.pt)，与上面文件完整字节相同。
+- **SHA256：** `979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d`
+- **选择依据：** 原六项MuJoCo60/60；扩展网格45/49、MAE0.0757m/s；原生完整DR原六项23/30、推扰后24/30。相比35分钟点，最终点的扩展网格和完整DR综合结果更好。
+- **配套反馈时序：** 轮400Hz、腿100Hz、策略50Hz、物理400Hz。
+- **保留问题：** 原生PhysX无DR前向仍欠速；部分高站姿扩展点有残余。本轮最优仍是实验候选，具体边界见[REPORT.md](REPORT.md)。
+
 父权重：Rough-v1 120m / iter24482，完整PT位于 `deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112/model/training_checkpoint.pt`，SHA256 `7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103`。
 
 ## 查到的问题

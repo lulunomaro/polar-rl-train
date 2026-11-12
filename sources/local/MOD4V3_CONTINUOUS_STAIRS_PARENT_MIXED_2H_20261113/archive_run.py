@@ -50,6 +50,12 @@ def proxy(*args):
    spec=Path(f.name)
   try:return original('--literal-pathspecs','-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true','add','--sparse','-f','--pathspec-from-file='+str(spec),'--pathspec-file-nul')
   finally:spec.unlink()
+ if args[0]=='tag' and '-m' in args:
+  index=args.index('-m');body=args[index+1]
+  with tempfile.NamedTemporaryFile(mode='w',encoding='utf8',newline='\n',prefix='scut-tag-body-',dir=R.parent/'tmp',delete=False) as f:
+   f.write(body);message_file=Path(f.name)
+  try:return original('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true',*args[:index],'-F',str(message_file),*args[index+2:])
+  finally:message_file.unlink()
  return original('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true',*args)
 rec.git=proxy
 note=T/('README.md' if phase=='launch' else 'FINAL_REPORT.md')

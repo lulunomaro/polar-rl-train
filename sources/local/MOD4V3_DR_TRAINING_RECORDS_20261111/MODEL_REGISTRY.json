@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "as_of_date": "2026-11-11",
+  "as_of_date": "2026-11-12",
   "timezone": "Asia/Shanghai",
   "catalog_tag": "trial-20261111-dr-training-catalog-pt-01",
   "scope": "MOD4 incremental DR lineage, historical repair branches, full-rangeFlat adaptation, R0/R1 terrain and reward experiments; exact stage status and failures retained",
@@ -2192,11 +2192,32 @@
         "scutroughv1_010m",
         "scutroughv1_015m",
         "scutroughv1_020m",
+        "scutroughv1_025m",
+        "scutroughv1_030m",
+        "scutroughv1_035m",
+        "scutroughv1_040m",
+        "scutroughv1_045m",
+        "scutroughv1_050m",
+        "scutroughv1_055m",
+        "scutroughv1_060m",
+        "scutroughv1_065m",
+        "scutroughv1_070m",
+        "scutroughv1_075m",
+        "scutroughv1_080m",
+        "scutroughv1_085m",
+        "scutroughv1_090m",
+        "scutroughv1_095m",
+        "scutroughv1_100m",
+        "scutroughv1_105m",
+        "scutroughv1_110m",
+        "scutroughv1_115m",
+        "scutroughv1_120m",
+        "scutroughv1_final",
         "scutroughv1_first"
       ],
-      "status": "Unified7200s PPO running; full checkpoint every300s",
+      "status": "Unified Rough-v1 PPO7206.600s complete;26fullPT;5of10PhysX groups collected; targetSSH unavailable; no promotion",
       "original_tag": "trial-20261112-mod4-scut-rough-v1-2h-start-01",
-      "final_tag": null,
+      "final_tag": "trial-20261112-mod4-scut-rough-v1-2h-final-01",
       "terrain": {
         "reference": "reference/rough_dash_env.yaml",
         "terrain_rows": 10,
@@ -2244,12 +2265,188 @@
           -2.2,
           2.2
         ],
-        "air_command_seconds": 3
+        "air_command_seconds": 3,
+        "actual_command_composition": {
+          "normal_vx": [
+            -2.2,
+            2.2
+          ],
+          "normal_wz": [
+            -6.283185307179586,
+            6.283185307179586
+          ],
+          "special_mode_draws_before_terrain_overrides": {
+            "gyro_low": {
+              "fraction": 0.15,
+              "vx": [
+                -0.1,
+                0.1
+              ],
+              "abs_wz": [
+                6.283185307179586,
+                10.210176124166829
+              ]
+            },
+            "gyro_high": {
+              "fraction": 0.15,
+              "vx": [
+                -0.1,
+                0.1
+              ],
+              "abs_wz": [
+                10.210176124166829,
+                14.137166941154069
+              ]
+            },
+            "fast": {
+              "fraction": 0.2,
+              "abs_vx": [
+                2.0,
+                2.2
+              ],
+              "wz": [
+                -6.283185307179586,
+                6.283185307179586
+              ]
+            },
+            "standing": {
+              "fraction": 0.1,
+              "vx": 0.0,
+              "wz": 0.0
+            },
+            "remaining_normal": 0.4
+          },
+          "base_normal_standing_probability": 0.1,
+          "heading_probability_before_special_and_terrain_overrides": 0.5,
+          "resample_seconds": [
+            5,
+            15
+          ],
+          "terrain_height_bounds": {
+            "low_speed_stair_for_rm": [
+              0.22,
+              0.34
+            ],
+            "tiny_step": [
+              0.22,
+              0.32
+            ],
+            "slope_for_rm_high": [
+              0.24,
+              0.32
+            ],
+            "inv_slope_for_rm_low": [
+              0.22,
+              0.42
+            ],
+            "high_speed_stair_for_rm": [
+              0.22,
+              0.34
+            ],
+            "stair_slope_for_rm_high": [
+              0.24,
+              0.32
+            ],
+            "inv_stair_slope_for_rm_low": [
+              0.22,
+              0.42
+            ],
+            "inv_stair_slope_for_rm_high": [
+              0.24,
+              0.32
+            ],
+            "plane_for_rm": [
+              0.2,
+              0.42
+            ],
+            "random_uniform_for_rm": [
+              0.22,
+              0.42
+            ],
+            "cliff_inv_stair_slope_short_for_rm": [
+              0.24,
+              0.32
+            ]
+          },
+          "straight_axis_birth_families": [
+            "low_speed_stair_for_rm",
+            "high_speed_stair_for_rm",
+            "inv_stair_slope_for_rm_high",
+            "cliff_inv_stair_slope_short_for_rm"
+          ],
+          "axis_birth_yaw_radians": [
+            0.0,
+            3.141592653589793
+          ],
+          "terrain_speed_overrides": {
+            "low_speed_stair_for_rm": {
+              "abs_vx": [
+                0.5,
+                1.5
+              ],
+              "wz": [
+                -0.1,
+                0.1
+              ]
+            },
+            "high_speed_stair_for_rm": {
+              "abs_vx": [
+                1.5,
+                2.2
+              ],
+              "wz": [
+                -0.1,
+                0.1
+              ]
+            },
+            "inv_stair_slope_for_rm_high": {
+              "abs_vx": [
+                1.5,
+                2.2
+              ],
+              "wz": [
+                -0.1,
+                0.1
+              ]
+            },
+            "cliff_inv_stair_slope_short_for_rm": {
+              "abs_vx": [
+                2.0,
+                2.2
+              ],
+              "wz": [
+                -0.1,
+                0.1
+              ]
+            },
+            "slope_for_rm_high": {
+              "vx": [
+                -2.2,
+                2.2
+              ],
+              "wz": "inherited normal/special draw"
+            },
+            "stair_slope_for_rm_high": {
+              "vx": [
+                -2.2,
+                2.2
+              ],
+              "wz": [
+                -3.141592653589793,
+                3.141592653589793
+              ]
+            }
+          },
+          "reset_overrides": "inherited ground recovery1.5s and allowed air recovery3s take temporary priority"
+        }
       },
       "budget": {
         "total_authorized_seconds": 7200,
         "rule": "Only this new Rough-v1 PPO window; previous Rough-v0/shortprobe separately reported; stop at7200seconds"
-      }
+      },
+      "assessment_complete": false,
+      "completed_assessment_groups": 5,
+      "planned_assessment_groups": 10
     }
   ],
   "models": [
@@ -6167,12 +6364,474 @@
       "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
       "git_storage": "ordinary Git full PPO PT bytes",
       "aliases": []
+    },
+    {
+      "id": "scutroughv1_025m",
+      "file": "model_025m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_025m.pt",
+      "bytes": 11746021,
+      "sha256": "9621d1bcf37ddd8dfe99bea5cf1d9c9d2a78d49f85ad72212694cda9a61701f9",
+      "iteration": 23837,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_025m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_030m",
+      "file": "model_030m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_030m.pt",
+      "bytes": 11746021,
+      "sha256": "ef8d9873e800af6ed920999aa6d1b880fd229dcf32cf91c6c8bc87a51bc9d081",
+      "iteration": 23871,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_030m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_035m",
+      "file": "model_035m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_035m.pt",
+      "bytes": 11746021,
+      "sha256": "bb5396a780412474c3e346a0940b1b360725b3dc8994c90ef048dd49c9d50324",
+      "iteration": 23904,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_035m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_040m",
+      "file": "model_040m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_040m.pt",
+      "bytes": 11746021,
+      "sha256": "bb609300cd61947f14f488a149c02e325b6c40fb35604c681b7cdf2e3c8d1fc7",
+      "iteration": 23938,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_040m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_045m",
+      "file": "model_045m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_045m.pt",
+      "bytes": 11746021,
+      "sha256": "27a173acea5971e849ac44f09b16f76f3c517835d8dee9be49feb0b3ebbb2d38",
+      "iteration": 23972,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_045m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_050m",
+      "file": "model_050m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_050m.pt",
+      "bytes": 11746021,
+      "sha256": "c53553e570da5c08a749dd1735ee6bfd37fed1e340f209ef521d6874e24be6b4",
+      "iteration": 24006,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_050m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_055m",
+      "file": "model_055m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_055m.pt",
+      "bytes": 11746021,
+      "sha256": "d9d14cf505cc3dc7be4b723721269d4043a3fa644d3c8a4aed669f7c6b95af7f",
+      "iteration": 24040,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_055m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_060m",
+      "file": "model_060m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_060m.pt",
+      "bytes": 11746021,
+      "sha256": "7302ab090945dbf9f9c79ae1d212f1b70c1e074fb12a6d68b143618c3e1fba57",
+      "iteration": 24074,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_060m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_065m",
+      "file": "model_065m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_065m.pt",
+      "bytes": 11746021,
+      "sha256": "c619cc6e57c0557ab078c5074b088f0c07241b9f0fdac9e0dcf522377f7b4f1a",
+      "iteration": 24108,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_065m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_070m",
+      "file": "model_070m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_070m.pt",
+      "bytes": 11746021,
+      "sha256": "783653739c812ba908270350b14d8ef7e49c4d744bb52a5172cee7cb53dd5461",
+      "iteration": 24142,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_070m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_075m",
+      "file": "model_075m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_075m.pt",
+      "bytes": 11746021,
+      "sha256": "1a86db30a2518e26ba64f6b000b5800bc32e2bfcc073bb58baca0934b1187575",
+      "iteration": 24176,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_075m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_080m",
+      "file": "model_080m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_080m.pt",
+      "bytes": 11746021,
+      "sha256": "be94c828690941b850651e42338e6d482c59adaa610e48502c4aff19e7b42f79",
+      "iteration": 24210,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_080m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_085m",
+      "file": "model_085m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_085m.pt",
+      "bytes": 11746021,
+      "sha256": "3e5c238f71e667803938ce5539b55a0439d928dc45b490dbbf1fccdffa861c2e",
+      "iteration": 24244,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_085m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_090m",
+      "file": "model_090m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_090m.pt",
+      "bytes": 11746021,
+      "sha256": "dd081f603330f7298c7bf15425f6c3fe66ed04e0bbebcb42725b00582a5ec101",
+      "iteration": 24278,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_090m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_095m",
+      "file": "model_095m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_095m.pt",
+      "bytes": 11746021,
+      "sha256": "34dddadbe41e081a9a1b38e88e0038bec1d584473256fab578718fbb4c91209a",
+      "iteration": 24312,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_095m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_100m",
+      "file": "model_100m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_100m.pt",
+      "bytes": 11746021,
+      "sha256": "389ad04d69974d51249563775c9d10163a8a54776aaa6e19bf0c24c4bdee9062",
+      "iteration": 24346,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_100m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_105m",
+      "file": "model_105m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_105m.pt",
+      "bytes": 11746021,
+      "sha256": "43eb5ab733f426f61b9fc963703c5114a4c837c53219d7e6042892b0325bd4bd",
+      "iteration": 24380,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_105m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_110m",
+      "file": "model_110m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_110m.pt",
+      "bytes": 11746021,
+      "sha256": "0c137cab56c5ce45597f6c1d21f81113d5cfe1fe33b950bcd25cdb58412121f6",
+      "iteration": 24414,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_110m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_115m",
+      "file": "model_115m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_115m.pt",
+      "bytes": 11746021,
+      "sha256": "25c71e9d4a616bbdd5552ff086e4141140efebe8a082eb010b4a9a79febd3335",
+      "iteration": 24448,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_115m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_120m",
+      "file": "model_120m.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_120m.pt",
+      "bytes": 11746021,
+      "sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "iteration": 24482,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_120m.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
+    },
+    {
+      "id": "scutroughv1_final",
+      "file": "model_final.pt",
+      "git_path": "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_final.pt",
+      "bytes": 11746021,
+      "sha256": "7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103",
+      "iteration": 24482,
+      "optimizer_entries": 17,
+      "complete_PPO": true,
+      "actor_input": 35,
+      "critic_input": 78,
+      "parent_model_id": "roughv0_100m",
+      "parent_sha256": "001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9",
+      "original_remote_path": "/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v1_2h_20261112_r1/train120m_scut_rough_v1_r1/model_final.pt",
+      "recipe_files": [
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/EFFECTIVE_RECIPE.json",
+        "sources/local/MOD4V3_SCUT_ROUGH_V1_2H_20261112/PLAN.json"
+      ],
+      "role": "Unified SCUT Rough-v1 full PPO checkpoint; comparison and selection in stage DECISION",
+      "git_storage": "ordinary Git full PPO PT bytes",
+      "aliases": []
     }
   ],
   "weights_summary": {
-    "models": 169,
-    "unique_sha256": 166,
-    "total_bytes": 1549080519,
+    "models": 190,
+    "unique_sha256": 186,
+    "total_bytes": 1795746960,
     "already_tracked_stage4_stage5_reused": true
   },
   "current_ppo": {
@@ -6191,7 +6850,7 @@
   "remaining_dr": "All plannedFlat DR ranges implemented. R0/R1 rounds completed; fullDR speedtracking and nominal crossengine retention still incomplete. R1 square/abscubic adaptation not promoted. See exact paired results and DECISION.",
   "current_combined_full_range_diagnostic_model_id": "mixed2_020m",
   "current_combined_full_range_alternate_model_id": "mixed2_025m",
-  "last_update_tag": "trial-20261112-mod4-scut-rough-v1-2h-start-01",
+  "last_update_tag": "trial-20261112-mod4-scut-rough-v1-2h-final-01",
   "latest_mixed_sampling_diagnostic_model_id": "mixed2_020m",
   "latest_speed_square_diagnostic_model_id": "square1_030m",
   "latest_rough_r0_candidate_model_id": "rough_r0_020m",
@@ -6201,12 +6860,15 @@
   "latest_rough_r1_candidate_model_id": "r1round2_005m",
   "latest_nominal_tracking_alternate_model_id": "r1cubic_005m",
   "rough_r1_decision_file": "sources/local/MOD4V3_ROUGH_R1_ROUND2_20261111/DECISION.md",
-  "current_training_status": "Unified7200s PPO running; full checkpoint every300s",
-  "current_round_actual_PPO_seconds": 7206.1374335289,
-  "current_rough_continuation_model_id": "r1round2_005m",
+  "current_training_status": "Unified Rough-v1 PPO7206.600s complete;26fullPT;5of10PhysX groups collected; targetSSH unavailable; no promotion",
+  "current_round_actual_PPO_seconds": 7206.600055932999,
+  "current_rough_continuation_model_id": "roughv0_100m",
   "latest_rough_r2_experimental_model_id": "r2_005m",
   "rough_r2_decision_file": "sources/local/MOD4V3_ROUGH_R2_20261112/DECISION.md",
   "latest_scut_rough_v0_experimental_model_id": "roughv0_100m",
   "latest_scut_rough_v0_decision_file": "sources/local/MOD4V3_SCUT_ROUGH_V0_2H_20261112/DECISION.md",
-  "selected_comprehensive_continuation_model_id": "r1round2_005m"
+  "selected_comprehensive_continuation_model_id": "r1round2_005m",
+  "current_round_parent_model_id": "roughv0_100m",
+  "current_round_selected_model_id": null,
+  "current_assessment_status": "pending target reconnection;5groups outstanding"
 }

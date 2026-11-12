@@ -1,6 +1,6 @@
 from pathlib import Path
 import argparse,json,time
-p=argparse.ArgumentParser();p.add_argument('--wait',type=float,default=0);p.add_argument('--full',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--wait',type=float,default=0);p.add_argument('--full',action='store_true');p.add_argument('--brief',action='store_true');a=p.parse_args()
 T=Path(__file__).resolve().parent;E=T/'evidence';M=E/'training_round'
 limit=time.monotonic()+min(a.wait,55.)
 baseline=len(list(M.glob('model_*m_CHECK.json')))
@@ -19,4 +19,7 @@ if not a.full:
   value=result['latest_checkpoint'];result['latest_checkpoint']={k:value.get(k) for k in ('iteration','sha256','full_ppo_rng_present','all_policy_critic_optimizer_tensors_finite')}
  if result['latest_cpu_replay']:
   value=result['latest_cpu_replay'];result['latest_cpu_replay']=dict(checkpoint=value['checkpoint'],physics=value['physics'],six_task_passed=sum(x['passed'] for x in value['rows'] if x['passed'] is not None),resets=sum(x['resets'] for x in value['rows']),rows=[dict(command=x['command'],vx=round(x['vx_mean'],4),wz=round(x['wz_mean'],4),height=round(x['height_mean'],4),passed=x['passed']) for x in value['rows']])
+if a.brief:
+ v=result.get('latest_cpu_replay') or {};rr=v.get('rows',[])
+ result=dict(minute=round((result.get('elapsed_s') or 0)/60,2),iteration=result.get('iteration'),checkpoints=result.get('checkpoint_count'),CPU_replays=result.get('cpu_replays_finished'),latest_replay=v.get('checkpoint'),six_passed=v.get('six_task_passed'),forward_speeds=[x['vx'] for x in rr if x['command'][0] in (2.,2.2)],done_totals=result.get('done_totals'),final_saved=bool(result.get('final')),scene_closed=bool(result.get('closed')),monitor_complete=result.get('complete'),training_error=result.get('training_error'))
 print(json.dumps(result,ensure_ascii=False))

@@ -1,17 +1,19 @@
 # 华南虎 Rough-v1：统一跑场两小时
 
-用户2026-11-12授权本轮；随后明确希望沿用已有Rough-v0成果，本轮从其100m完整检查点接续，不回退到R1。R1基线与既有实车包保留作比较。
+**PPO已完成7206.600秒，26份完整训练PT已核验；PhysX收齐5/10组，其余因目标机SSH超时待收齐。** 本轮实际父为Rough-v0 100m，未回退R1。原实车调试包保留，暂未晋升新模型。
 
-- 父：Rough-v0 `model_100m.pt`，iteration23665，SHA `001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9`。
-- 单一7200秒PPO窗，4096环境，每300秒完整PT保存、下载校验与回放。完整恢复actor/critic/STD/Adam/RNG；新地形新物理episode。
-- 参考 `reference/rough_dash_env.yaml` 全部11类地形、10级，从启动统一混训。原13列扩75列以分散4096克隆；20%平地与20%名义参数独立交叉，Rough各族相对比例保留。
-- 完整DR、35actor/78critic/6action、2.5ms物理/10msPD/20ms策略、TGS32/4、2mm单env保护、电机包络、−1.5e²及指数速度权重1.2保留。指令上限2.2m/s。
-- 宽台阶15–35/40cm，格栅2–6cm，较陡坡比.15–.35、反缓坡、正反浅阶、随机起伏与短落差地形共同训练。
-- 内部airborne奖励开启；按参考允许地形40%airreset，使用MOD4可行姿态bank和局部地面高度，避免把不同机器人腿长直接复制。7个actor控制模式槽保持原normal语义。主动跳跃关闭。
-- LR3e-5 fixed、clip.1、3epochs、rollout24、seed66。没有额外分课或前置毕业门槛。
+| 用途 | 文件 | iteration | SHA256 |
+|---|---|---:|---|
+| 本轮真实父、Rough线保留基座 | [Rough-v0 100m](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/weights/model_100m.pt) |23665|`001028396205e7d44d69ac5af36cdbb638cc26b97daeea29439f84952a58f6e9`|
+| 本轮正式比较候选 | [105m完整PPO](weights/model_105m.pt) |24380|`43eb5ab733f426f61b9fc963703c5114a4c837c53219d7e6042892b0325bd4bd`|
+| 本轮末点、实验权重 | [120m完整PPO](weights/model_120m.pt) |24482|`7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103`|
 
-启动、探针和每五分钟实际记录见evidence/；完整配方见EFFECTIVE_RECIPE.json。正式轮末比较速度、地形穿越、旋转保持与落地；不只看训练奖励或单一引擎回放。
+11类地形/10级统一训练，不拆短课；保持完整DR、20%名义与20%平地独立交叉、35/78/6、2.5/10/20ms、TGS32/4、2mm单env保护、−1.5e²/指数1.2和2.2m/s上限。LR3e-5 fixed、clip.1、3epochs、rollout24、seed66。内部腾空落地开启，主动跳跃关闭。
 
-## 当前状态
+每五分钟完整保存/下载SHA核验/实际Torch读回/名义MuJoCo筛查；24定时点、首次和final共26份PT，25种字节。全部PT本体随阶段Git归档，完整SHA/bytes/iteration见evidence/MODEL_ARCHIVE_INDEX.json。短探针原件另存，原始恢复训练盘、读回器修复和SSH读者错误均保留。
 
-4096环境短启动已完成：一更新9.434秒、numerical0、无容量漏接触警告；单env闭链reset476，未改阈值。该短探针不计入两小时主训练、不作为其父。训练盘重启后恢复记录见evidence/STORAGE_RESTORE.json。
+完整DR最高档穿越父/105m/120m=170/162/169（各200）；高速162/154/154（各180）；宽阶上行仍未掌握。原始逐地形结果在同批报告中，不把旋转/落地未收齐项写成通过。
+
+[最终报告](FINAL_REPORT.md) · [模型选择](DECISION.md) · [同批结果](PAIRED_COMPARISON.md) · [全部保存点](CHECKPOINT_COMPARISON.md) · [实际配方](EFFECTIVE_RECIPE.json) · [复现](TRAINING_RECIPE.md)。
+
+[前一轮Rough-v0行走与小陀螺分项报告](../MOD4V3_SCUT_ROUGH_V0_2H_20261112/COURSE_COMPLETION_REPORT.md)。Git同步回执另见SYNC_REPORT；当前无新PPO。

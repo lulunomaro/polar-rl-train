@@ -322,3 +322,9 @@
 | [flat_speed_full_040m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_040m.pt) | 24692 | 2,698,055 | `979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d` |
 | [flat_speed_full_final](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_final.pt) | 24692 | 2,698,055 | `979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d` |
 | [flat_speed_full_first](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_first_complete.pt) | 24574 | 2,698,055 | `9ad9610163929d3981f146db956f261d774c2e67c6f56ff6c07503c9d924df92` |
+
+<!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_START -->
+## 连续200mm台阶与Rough-v1保留
+
+候选continuous_stairs200_roughv1_retention_20261113_075m，iter25484，连续两阶8/10、平地40/60。 完整PPO共19份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
+<!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_END -->

@@ -14,6 +14,9 @@ def elapsed_mean(x):
  rows=[v for k,v in x.get('stair_summary',{}).items() if k.startswith('whole') and v.get('mean_first_to_second_s') is not None];n=sum(r['passed'] for r in rows)
  return sum(r['mean_first_to_second_s']*r['passed'] for r in rows)/n if n else float('inf')
 def main():
+ if (E/'RESTARTED_FROM_ROOT_PARENT.json').exists():
+  write(E/'FINALIZATION_DEFERRED_TO_SUPERSEDED_REPORT.json',dict(epoch=time.time(),reason='Human requested fresh7200s from root parent; skip old GPU retention jobs; preserve all actual saves/evals and finalize as superseded',next_stage=json.loads((E/'RESTARTED_FROM_ROOT_PARENT.json').read_text(encoding='utf8'))))
+  return
  assert (E/'training/SAFE_CLOSED.json').exists()
  final=json.loads((E/'training/FINAL.json').read_text(encoding='utf8')) if (E/'training/FINAL.json').exists() else None
  latest=json.loads((E/'training/LATEST_PROGRESS.json').read_text(encoding='utf8')) if (E/'training/LATEST_PROGRESS.json').exists() else {}

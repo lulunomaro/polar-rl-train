@@ -204,5 +204,5 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- CONTINUOUS_STAIRS_200MM_20261113_END -->
 
 <!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_START -->
-连续200mm台阶训练已按用户要求补回原Rough-v1：50%专项台阶、30%原十类粗糙地形（10级）、20%平地。阶段一45分钟完整PPO接续，原7200秒训练预算不增加，完整DR/控制频率/原速度奖励/2mm单环境保护保持。每5分钟保存完整PT并回放。[实际配方与状态](sources/local/MOD4V3_CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113/README.md)。当前不能声称旧技能已恢复，原成熟包保留。
+连续台阶已补回原Rough-v1，接续段50%台阶/30%粗糙地形/20%平地。候选continuous_stairs200_roughv1_retention_20261113_075m，iter25484，连续两阶8/10、平地40/60。 同一预算实际4614.497秒；[配方与结果](sources/local/MOD4V3_CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_END -->

@@ -302,3 +302,23 @@
 | [scutroughv1_120m](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_120m.pt) | 24482 | 11,746,021 | `7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103` |
 | [scutroughv1_final](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_final.pt) | 24482 | 11,746,021 | `7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103` |
 | [scutroughv1_first](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/weights/model_first_complete.pt) | 23666 | 11,746,021 | `425fcbce681e9a0c875cb21885b9ef69b6af7cf34631ffbaf14fd9dcf6471385` |
+
+
+## 2026-11-12平地速度恢复40分钟
+
+原成熟模型保持；下列均为完整PPO实验检查点，具体选择和限制见本轮REPORT。
+
+| 模型ID | iteration | bytes | SHA256 |
+|---|---:|---:|---|
+| [flat_speed_head_005m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round/model_005m.pt) | 24509 | 2,697,543 | `7de67c227b9566f0520b98a0050f88e3d8ca82b498c17b278193cb37c081a443` |
+| [flat_speed_head_010m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round/model_010m.pt) | 24535 | 2,697,543 | `420b01f6aa72cb7a48c7ee4d55bb87d10dd1e4ba4110390901416feed7962ee5` |
+| [flat_speed_head_015m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round/model_015m.pt) | 24561 | 2,697,543 | `1782a0806229a74407224c172d8270735281cb2e50d05c8d7a309cf8bbe6832d` |
+| [flat_speed_head_final](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round/model_final.pt) | 24573 | 2,697,543 | `7a2e81ba3b2f1a38547c671d154afdac3abcb5dab17fa26497b21ed1b0d163c4` |
+| [flat_speed_head_first](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round/model_first_complete.pt) | 24483 | 2,697,543 | `d44e336b38464086f789e7d524c63acc494b30d4d72a08841283b7ebe4bfe168` |
+| [flat_speed_full_020m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_020m.pt) | 24586 | 2,698,055 | `17ff5abace035af85bae46e119bd11e7b8576d69e2b1ca12036564e855ddc602` |
+| [flat_speed_full_025m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_025m.pt) | 24613 | 2,698,055 | `df6d48d5b87bcbefe1b11f1a6a6abaa11602018e7b599ac67eddda69e7b39fb3` |
+| [flat_speed_full_030m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_030m.pt) | 24639 | 2,698,055 | `a8c1ca3de1feacb4f7f00f3547e693c5b450d00001a1958014aef598f84e70d9` |
+| [flat_speed_full_035m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_035m.pt) | 24665 | 2,698,055 | `f2889ed7f32239c2d9f5dca119e601987f01f52e3f32587fc6c1b1a235296cf7` |
+| [flat_speed_full_040m](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_040m.pt) | 24692 | 2,698,055 | `979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d` |
+| [flat_speed_full_final](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_final.pt) | 24692 | 2,698,055 | `979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d` |
+| [flat_speed_full_first](../../../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/training_round_full_actor/model_first_complete.pt) | 24574 | 2,698,055 | `9ad9610163929d3981f146db956f261d774c2e67c6f56ff6c07503c9d924df92` |

@@ -1,0 +1,27 @@
+--- baseline/scut_flat_env.py
++++ repair/scut_flat_env.py
+@@ -280,7 +280,7 @@
+ 
+     def _apply_action(self):
+         # Same 100 Hz explicit PD feedback and DC voltage envelopes as V40.
+-        if (self._sim_step_counter-1)%4 == 0:
++        if (self._sim_step_counter-1)%getattr(self,"leg_pd_decimation",4) == 0:
+             q = tensor(self.robot.data.joint_pos)[:,self.active_ids]
+             v = tensor(self.robot.data.joint_vel)[:,self.active_ids]
+             raw = torch.cat((60.*(self.targets[:,:4]-q[:,:4])*self._leg_gain_scale-2.*v[:,:4]*getattr(self,"_leg_damping_scale",1.0),
+@@ -295,6 +295,15 @@
+             upper = (stall*(1-v/no_load)).clamp_min(0).minimum(peak)
+             lower = (-stall*(1+v/no_load)).clamp_max(0).maximum(-peak)
+             self.torque.copy_(raw.minimum(upper).maximum(lower))
++        elif (self._sim_step_counter-1)%getattr(self,"wheel_pd_decimation",4) == 0:
++            v=tensor(self.robot.data.joint_vel)[:,self.active_ids[4:]]
++            raw=.6*(self.targets[:,4:]-v)*self._wheel_gain_scale
++            scale=getattr(self,"_motor_effort_scale",None)
++            if scale is not None:raw=raw*scale[:,4:]
++            stall=raw.new_tensor([28.18525375641699]*2);no=raw.new_tensor([55.35573187814664]*2);peak=raw.new_tensor([5.775909774436091]*2)
++            hi=(stall*(1-v/no)).clamp_min(0).minimum(peak);lo=(-stall*(1+v/no)).clamp_max(0).maximum(-peak)
++            self.torque[:,4:]=raw.minimum(hi).maximum(lo)
++            self.motor_raw_pd_effort[:,4:]=raw
+         applied = self.torque
+         if getattr(self, 'full_dr_torque_noise_enabled', False):
+             # Perturb the held PD torque independently; do not random-walk it.

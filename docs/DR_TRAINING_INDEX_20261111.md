@@ -279,3 +279,11 @@ partial-base 075m → Stage1 final
 用户指定名称：**11月12日最牛逼的模型**。对应原Rough-v1 120m/iter24482/SHA `7cc1fc6deeee3d3aba8ae8d2da31dce200079fb229a145f1cbb1cd3bfabea103`；[完整PT本体、训练配方/源码、资产、手动回放包](../deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112/README.md)。
 
 名义MuJoCo已复现：高度从0.28m缓慢调至0.365或0.40m，再以2.2m/s前进指令助跑，连续上两级16.5cm进入33cm平台。保留低速失败和原完整DR PhysX结果。本项是原权重的命名快照，不增加PPO训练阶段和更新次数。
+
+
+## 2026-11-12 平地速度恢复专项（独立于Step7冻结）
+
+父为用户命名的SCUT Rough-v1 120m，iter24482/SHA7cc1fc6d…，没有把旧884权重或目录名当作本轮父。原生对照发现MuJoCo超速与PhysX欠速同时存在。新实验保持35/78/6、原R3资产和fullDR；轮反馈由10ms改为2.5ms，腿仍10ms/策略20ms，旧冻结配方不改。单轮2400秒内：1050.424秒轮输出行专项后安全保存，剩余1349秒正常全actor微调，每5分钟全局检查点与固定回放。源、实际父链、全部完整PT、失败和最终选择见[本轮记录](../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/README.md)。
+
+
+本轮完成补充：实际2405.762s、210更新，最终完整候选flat_speed_full_final/iter24692/SHA979e355a…；完整PT与失败都归档。原6项名义MuJoCo60/60；完整DR原生预窗口17/30→23/30、受速度推扰后18/30→24/30；名义PhysX24/30→20/30的退步不隐藏。额外高姿点不能当作原课程新增硬门槛，残余误差见[报告](../sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/REPORT.md)。原命名成熟7cc父保留，不自动替换实车包。总32阶段/205个完整PPO模型记录，另保留离线拟合失败PT与候选别名。

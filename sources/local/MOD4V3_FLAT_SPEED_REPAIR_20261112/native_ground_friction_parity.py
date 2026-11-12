@@ -1,0 +1,203 @@
+"""Paired frozen-weight MOD4 combined remaining-DR adaptation check. No optimizer."""
+from pathlib import Path
+import argparse,base64,hashlib,json,os,sys,time,traceback
+p=argparse.ArgumentParser();p.add_argument('--plan',required=True);p.add_argument('--out',required=True);p.add_argument('--support',required=True);p.add_argument('--version',required=True);p.add_argument('--models',required=True);a=p.parse_args()
+plan=json.loads(Path(a.plan).read_text());out=Path(a.out);out.mkdir(exist_ok=False)
+storage=out/'kit_isolation';(storage/'data').mkdir(parents=True);(storage/'DerivedDataCache').mkdir();(storage/'data/user.config.json').write_text('{}')
+os.environ.update(MOD4V1_E0_JOB_ROOT=str(out),MOD4V1_E0_KIT_STORAGE_ROOT=str(storage),MOD4_SCUT_SOURCE_PATHS=plan['source_paths'],PHYSICAL_DELAY_QUANTUM_MS='5',PHYSICAL_ACTION_DELAY_MIN_MS='5',PHYSICAL_ACTION_DELAY_MAX_MS='10',PHYSICAL_SENSOR_DELAY_MIN_MS='5',PHYSICAL_SENSOR_DELAY_MAX_MS='15',JOINT_FRICTION_SCALE='1',SPRING_DAMPING_FRACTION='1',EXTERNAL_DR_FRACTION='1',OBS_NOISE_FRACTION='1')
+sys.path[:0]=[plan['runtime'],plan['shared_package'],plan['package'],a.support]
+from launcher_mod4v1_e0 import IsolatedAppLauncher208
+app=IsolatedAppLauncher208(dict(headless=True,device='cuda:0',enable_cameras=False)).app;env=None
+try:
+ import torch,warp as wp,numpy as np
+ from mod4v3_ppo_v1.model import metadata,reset_bank
+ from mod4v3_ppo_v1.scut_flat_env import configuration,tensor
+ from mod4v3_ppo_v1.scut_flat_remaining_dr_env import ScutFlatRemainingDREnv
+ from mod4v3_ppo_v1.scut_flat_rewards import make_reward_class
+ from mod4v3_ppo_v1.scut_rough_scut_v1_env import configuration_scut_v1
+ class ScutFlatPhysicalDelayEnv(ScutFlatRemainingDREnv):
+  def _make_reward(self,meta):return make_reward_class(meta,cfg_factory=configuration_scut_v1)(self.view,self.num_envs,self.device)
+
+ from mod4v3_ppo_v1.scut_flat_env import ScutFlatEnv
+ base_apply=ScutFlatEnv._apply_action
+ def wheel_servo_apply(self):
+  if (self._sim_step_counter-1)%4 != 0:
+   v=tensor(self.robot.data.joint_vel)[:,self.active_ids[4:]]
+   raw=.6*(self.targets[:,4:]-v)*self._wheel_gain_scale
+   scale=getattr(self,'_motor_effort_scale',None)
+   if scale is not None:raw=raw*scale[:,4:]
+   stall=raw.new_tensor([28.18525375641699]*2);no=raw.new_tensor([55.35573187814664]*2);peak=raw.new_tensor([5.775909774436091]*2)
+   hi=(stall*(1-v/no)).clamp_min(0).minimum(peak);lo=(-stall*(1+v/no)).clamp_max(0).maximum(-peak)
+   self.torque[:,4:]=raw.minimum(hi).maximum(lo)
+   if hasattr(self,'motor_raw_pd_effort'):self.motor_raw_pd_effort[:,4:]=raw
+  return base_apply(self)
+ ScutFlatEnv._apply_action=wheel_servo_apply
+ from mod4v3_ppo_v1.physical_delay_checks import TASKS,_ground_start
+ TASKS=[("forward22_h028",2.2,0.,.28,None,None),("forward22_h038",2.2,0.,.38,None,None),]
+ from mod4v3_ppo_v1.sampling import Sampling
+ from mod4v1_scut.math_ops import euler_xyz_from_quat
+ from isaaclab.utils.math import quat_from_euler_xyz
+ from tensordict import TensorDict
+ torch.manual_seed(66);torch.cuda.manual_seed_all(66)
+ models=json.loads(Path(a.models).read_text());variants=['nominal0','Step7_all_remaining_DR'];per=1;small=len(TASKS)*per;n=small*len(variants)*len(models);dev='cuda:0'
+ ids=torch.arange(n,device=dev);base_ids=torch.arange(small,device=dev).repeat(len(variants)*len(models));nominal=(ids//small)%len(variants)==0
+ meta=metadata(plan['package']);bank=reset_bank(plan['package'],plan['reset_bank'])
+ cfg=configuration(meta,bank,n,66);cfg.scene.terrain.physics_material.static_friction=1.;cfg.scene.terrain.physics_material.dynamic_friction=1.
+ env=ScutFlatPhysicalDelayEnv(cfg,meta,bank);env.render_enabled=False
+ env.enforce_closure_reset=True
+ dr=env.full_dr;nominal_com=dr.com_nominal.clone()
+ _ground_start(env,6600);env.sample=Sampling(env)
+ def mirror(x):return x[base_ids.to(x.device)].clone()
+ masses=mirror(tensor(env.robot.root_view.get_masses()).to(dev));inertias=mirror(tensor(env.robot.root_view.get_inertias()).to(dev));coms=mirror(tensor(env.robot.root_view.get_coms()).to(dev));materials=mirror(tensor(env.robot.root_view.get_material_properties()).cpu())
+ fr=tensor(env.robot.root_view.get_dof_friction_properties()).clone().to(dev)[base_ids]
+ for target in (dr.leg_gain_scale,dr.wheel_gain_scale,dr.spring_damping_scale,dr.torque_noise_scale,dr.body_mass_scale,dr.total_mass_scale,dr.factor,dr.kp_scale,dr.kd_scale,env._leg_damping_scale):target.copy_(mirror(target))
+ masses[nominal]=dr.mass[nominal];inertias[nominal]=dr.inertia[nominal];coms[nominal]=nominal_com[nominal];materials[nominal.cpu()]=dr.materials[nominal.cpu()]
+ dr.body_mass_scale[nominal]=1.;dr.total_mass_scale[nominal]=1.;dr.factor[nominal]=1.
+ dr.leg_gain_scale[nominal]=1.;dr.wheel_gain_scale[nominal]=1.;dr.spring_damping_scale[nominal]=1.;dr.torque_noise_scale[nominal]=0.
+ fr[nominal,:,0]=dr.static_friction_default[nominal]
+ fr[nominal,:,1]=(dr.dynamic_friction_default if dr.dynamic_friction_default is not None else dr.static_friction_default)[nominal]
+ fr[nominal,:,2]=(dr.viscous_friction_default if dr.viscous_friction_default is not None else torch.zeros_like(dr.static_friction_default))[nominal]
+ dr.kp_scale[nominal]=1.;dr.kd_scale[nominal]=1.;env._leg_damping_scale[nominal]=1.
+ native_damping=dr.nominal_joint_damping*dr.kd_scale
+ native_damping[:,env.active_ids]=0.
+ native_damping[:,env.gas_ids]=3.*dr.spring_damping_scale
+ env.robot.write_joint_damping_to_sim_index(damping=native_damping,env_ids=ids)
+ for actuator in env.robot.actuators.values():
+  tensor(actuator.damping).copy_(native_damping[:,actuator.joint_indices])
+ env._ground_command_until.zero_()
+ env.robot.set_coms_index(coms=wp.from_torch(coms[:,[dr.base_id],:].contiguous(),dtype=wp.transformf),body_ids=[dr.base_id],env_ids=ids,full_data=False)
+ env.robot.set_masses_index(masses=masses,env_ids=ids);env.robot.set_inertias_index(inertias=inertias,env_ids=ids)
+ env.robot.root_view.set_material_properties(wp.from_torch(materials.contiguous(),dtype=wp.float32),wp.from_torch(ids.to('cpu',torch.int32),dtype=wp.int32))
+ env.robot.write_joint_friction_coefficient_to_sim(joint_friction_coeff=fr[:,:,0],joint_dynamic_friction_coeff=fr[:,:,1],joint_viscous_friction_coeff=fr[:,:,2],joint_ids=dr.joint_ids,env_ids=ids)
+ dr.startup_materials.copy_(materials)
+ dr.wheel_material_values=torch.cat([materials[:,shapes].mean(1) for shapes in dr.wheel_material_shapes],-1).to(dev)
+ dr.material_mu.copy_(dr.wheel_material_values[:,[0,3]].mean(-1))
+ dr.effort_scale.copy_(dr.effort_scale[base_ids]);dr.effort_scale[nominal]=1.
+ # Same grounded bank pose and root perturbation for every version and DR condition.
+ gen=torch.Generator(device=dev).manual_seed(6600);pick=torch.randint(len(env._bank_h),(small,),device=dev,generator=gen)[base_ids]
+ q=env._bank_q[pick][:,env._bank_ids].clone();root=tensor(env.robot.data.default_root_state).clone();root[:,:3]+=env.scene.env_origins;root[:,2]=env.scene.env_origins[:,2]+env._bank_h[pick]
+ def uniform(lo,hi):return torch.empty(small,device=dev).uniform_(lo,hi,generator=gen)[base_ids]
+ root[:,3:7]=quat_from_euler_xyz(uniform(-.01,.01),uniform(-.01,.01),uniform(-.05,.05));root[:,7:]=0.;root[:,7]=uniform(-.01,.01);root[:,12]=uniform(-.01,.01)
+ env.robot.write_root_state_to_sim(root,env_ids=ids);env.robot.write_joint_state_to_sim(q,torch.zeros_like(q),env_ids=ids)
+ env.actions.zero_();env.torque.zero_();env.zero_torque_remaining.zero_();env.episode_length_buf.zero_();env.reward.reset(ids);env.reward._invalidate_step_caches()
+ commands=torch.tensor([[vx,0.,wz] for _,vx,wz,_,_,_ in TASKS],device=dev).repeat_interleave(per,0).repeat(len(variants)*len(models),1)
+ heights=torch.tensor([h for _,_,_,h,_,_ in TASKS],device=dev).repeat_interleave(per).repeat(len(variants)*len(models))
+ def command():
+  env.command.copy_(commands);env.height.copy_(heights);env.command_timer.fill_(10000.);env.heading_env.zero_();env.standing_env.zero_();env.reward.command.copy_(commands);env.reward.height_cmd.copy_(heights)
+ command();env._execution_pending.fill_(True);env._sensor_pending.fill_(True);env._sensor_last_tick=-1
+ env._action_delay_ticks.copy_(env._action_delay_ticks[base_ids]);env._sensor_delay_ticks.copy_(env._sensor_delay_ticks[base_ids]);env._action_delay_ticks[nominal]=0;env._sensor_delay_ticks[nominal]=0
+ env._external_force.zero_();env._external_torque.zero_();env._external_hold.zero_();env._external_timer.fill_(5.5);env._external_timer[nominal]=10000.
+ # Independent draws, paired by task/seed at every policy step across conditions.
+ raw_observations=env._get_observations;noise_gen=torch.Generator(device=dev).manual_seed(23001)
+ ranges=torch.tensor([.01]+[.25]*3+[.05]*3+[.025]*6+[.5]*4+[1.]*2,device=dev)
+ def paired_observations():
+  obs=raw_observations();clean=env._encode()['policy'];sensor=torch.cat([env._gather(env._sensor_history,env._sensor_delay_ticks[:,i],lo,hi) for i,(lo,hi) in enumerate([(0,3),(3,6),(6,12),(12,18)])],-1)
+  noise=torch.empty((small,19),device=dev).uniform_(-1,1,generator=noise_gen)[base_ids]*ranges
+  noise[nominal]=0.;obs['policy']=clean.clone();obs['policy'][:,4:22]=sensor;obs['policy'][:,3:22]+=noise
+  return obs
+ env._get_observations=paired_observations
+ # Keep native guard/root thresholds; gather reason masks before any reset.
+ done=env._get_dones;reason_counts={k:torch.zeros(n,device=dev,dtype=torch.long) for k in ('numerical','contact','orientation','closure','mimic','fall','timeout','other')};term_count=torch.zeros(n,device=dev,dtype=torch.long)
+ peak_qd=torch.zeros(6,device=dev);peak_closure=torch.zeros(n,device=dev);envelope_violation=torch.zeros(6,device=dev);first_fail=[]
+ inner_qd=[];inner_tau=[];inner_target=[]
+ orig_apply=env._apply_action
+ def traced_apply():
+  orig_apply()
+  inner_qd.append(tensor(env.robot.data.joint_vel)[:,env.active_ids].clone());inner_tau.append(getattr(env,'applied_motor_torque',env.torque).clone());inner_target.append(env.targets.clone())
+  vel=tensor(env.robot.data.joint_vel)[:,env.active_ids];tau=getattr(env,'applied_motor_torque',env.torque)
+  stall=vel.new_tensor([53.333333333333336]*4+[28.18525375641699]*2);no=vel.new_tensor([16.755160819145562]*4+[55.35573187814664]*2);peak=vel.new_tensor([40.]*4+[5.775909774436091]*2)
+  hi=(stall*(1-vel/no)).clamp_min(0).minimum(peak);lo=(-stall*(1+vel/no)).clamp_max(0).maximum(-peak)
+  envelope_violation.copy_(torch.maximum(envelope_violation,torch.maximum(tau-hi,lo-tau).clamp_min(0).amax(0)))
+ env._apply_action=traced_apply
+ def traced_done():
+  term,timeout=done();r=env.reward;d=env.view.data
+  contact=torch.linalg.vector_norm(r.contact_sensor.data.net_forces_w[:,r._reset_contact_link_idx],dim=-1).amax(-1)>1.
+  rpy=euler_xyz_from_quat(d.root_quat_w);orient=(rpy[0].abs()>float(getattr(r.cfg,'termination_roll_deg',40.))*np.pi/180)|(rpy[1].abs()>float(getattr(r.cfg,'termination_pitch_deg',40.))*np.pi/180)
+  masks=dict(numerical=env.numeric,contact=contact,orientation=orient,closure=env.closure_reset,mimic=env.mimic_reset,fall=env.fall_reset,timeout=timeout)
+  known=torch.zeros_like(term)
+  for k,mask in masks.items():reason_counts[k].add_((mask&(term|timeout)).long());known|=mask
+  reason_counts['other'].add_((term&~known).long());term_count.add_(term.long());peak_qd.copy_(torch.maximum(peak_qd,tensor(env.robot.data.joint_vel)[:,env.active_ids].abs().amax(0)));peak_closure.copy_(torch.maximum(peak_closure,env.closure_error))
+  if len(first_fail)<16:
+   for idx in term.nonzero().flatten()[:16-len(first_fail)].tolist():first_fail.append(dict(env=idx,episode_step=int(env.episode_length_buf[idx]),reasons=[k for k,m in masks.items() if bool(m[idx])],joint_vel=tensor(env.robot.data.joint_vel)[idx,env.active_ids].tolist(),closure_m=float(env.closure_error[idx])))
+  return term,timeout
+ env._get_dones=traced_done
+ env.scene.write_data_to_sim();env.scene.update(dt=0.)
+ actors={};hashes={}
+ for label,path in models.items():
+  digest=hashlib.sha256(Path(path).read_bytes()).hexdigest();data=torch.load(path,map_location=dev,weights_only=False);state=data['actor_state_dict'];dims=[state['mlp.0.weight'].shape[1]]+[state[f'mlp.{i}.weight'].shape[0] for i in (0,2,4,6)];layers=[]
+  for i in range(4):
+   layers.append(torch.nn.Linear(dims[i],dims[i+1]));
+   if i<3:layers.append(torch.nn.ELU())
+  actor=torch.nn.Sequential(*layers).to(dev);actor.load_state_dict({k[4:]:v for k,v in state.items() if k.startswith('mlp.')});actor.eval();actors[label]=actor;hashes[label]=digest
+ assert hashes['parent']==plan['parent_sha256']
+ mass_read=tensor(env.robot.root_view.get_masses()).to(dev);inertia_read=tensor(env.robot.root_view.get_inertias()).to(dev)
+ material_write_read_error=float((tensor(env.robot.root_view.get_material_properties()).cpu()-materials).abs().max())
+ mass_readback=dict(mass_write_read_error_kg=float((mass_read-masses).abs().max()),inertia_write_read_error=float((inertia_read-inertias).abs().max()))
+ inputdr=dict(materials=materials.tolist(),material_shapes=dr.material_shapes,material_buckets={k:v.tolist() for k,v in dr.material_buckets.items()},effort_scale=dr.effort_scale.cpu().tolist(),body_names=list(env.robot.body_names),body_mass_scale=dr.body_mass_scale.cpu().tolist(),total_mass_scale=dr.total_mass_scale.cpu().tolist(),mass=masses.cpu().tolist(),com=coms[:,dr.base_id,:3].cpu().tolist(),friction=fr.cpu().tolist(),leg_gain=dr.leg_gain_scale.cpu().tolist(),wheel_gain=dr.wheel_gain_scale.cpu().tolist(),kp_scale=dr.kp_scale.cpu().tolist(),kd_scale=dr.kd_scale.cpu().tolist(),native_damping=native_damping.cpu().tolist(),action_delay_ticks=env._action_delay_ticks.cpu().tolist(),sensor_delay_ticks=env._sensor_delay_ticks.cpu().tolist())
+ damping_readback=float((tensor(env.robot.root_view.get_dof_dampings()).to(dev)-native_damping).abs().max())
+ readfr=tensor(env.robot.root_view.get_dof_friction_properties()).to(dev);friction_readback=dict(max_write_read_error=float((readfr-fr).abs().max()),leg_static_mean=float(readfr[~nominal][:,dr.leg_active_joint_ids,0].mean()),wheel_static_mean=float(readfr[~nominal][:,dr.wheel_joint_ids,0].mean()),passive_static_mean=float(readfr[~nominal][:,dr.passive_joint_ids,0].mean()))
+ # Use common random numbers for physics torque noise and the scheduled 5.5s wrench.
+ torque_rng=torch.Generator(device=dev).manual_seed(23002)
+ wrench_rng=torch.Generator(device=dev).manual_seed(23003)
+ paired_wrench_force=torch.empty((small,3),device=dev).uniform_(-10.,10.,generator=wrench_rng)[base_ids]
+ paired_wrench_torque=torch.empty((small,3),device=dev).uniform_(-1.,1.,generator=wrench_rng)[base_ids]
+ paired_wrench_force[nominal]=0.;paired_wrench_torque[nominal]=0.
+ original_randn_like=torch.randn_like
+ def paired_randn_like(value,*args,**kwargs):
+  if value is env.torque:
+   return torch.randn((small,6),device=dev,generator=torque_rng)[base_ids]
+  return original_randn_like(value,*args,**kwargs)
+ torch.randn_like=paired_randn_like
+ def paired_update_external_wrench():
+  env._external_timer-=env._control_dt
+  env._external_hold.sub_(1).clamp_(min=0)
+  event=env._external_timer<=0.
+  if bool(event.any()):
+   env._external_timer[event]=10000.
+   env._external_force[event]=paired_wrench_force[event]
+   env._external_torque[event]=paired_wrench_torque[event]
+   env._external_hold[event]=10
+  active=env._external_hold>0
+  env._external_force[~active]=0.;env._external_torque[~active]=0.
+  env.robot.set_external_force_and_torque(env._external_force[:,None,:],env._external_torque[:,None,:],env_ids=torch.arange(n,device=dev),body_ids=[dr.base_id])
+ env._update_external_wrench=paired_update_external_wrench
+ # Schedule the native interval event at 6s with common random XY deltas for each model.
+ push_gen=torch.Generator(device=dev).manual_seed(23004)
+ push_delta=torch.empty((small,6),device=dev).uniform_(-.25,.25,generator=push_gen)[base_ids]
+ push_delta[:,2:]=0.;push_delta[nominal]=0.
+ env.velocity_push_time_left.fill_(6.);env.velocity_push_time_left[nominal]=10000.
+ cfg_event=env.event_manager._mode_term_cfgs['interval'][0]
+ native_push=cfg_event.func
+ def paired_native_push(environment,env_ids,velocity_range,asset_cfg):
+  from isaaclab.utils import math as math_utils
+  original_sample=math_utils.sample_uniform
+  def paired_sample(lower,upper,size,device):return push_delta[env_ids].clone()
+  math_utils.sample_uniform=paired_sample
+  try:native_push(environment,env_ids,velocity_range,asset_cfg)
+  finally:math_utils.sample_uniform=original_sample
+  environment.velocity_push_time_left[env_ids]=10000.
+ cfg_event.func=paired_native_push
+ trajectory=[];geometry=[];detail_obs=[];detail_q=[];detail_qd=[];detail_action=[];detail_targets=[];detail_tau=[];detail_root=[];action_error=0.;start=time.time();pre_push_term_count=None
+ with torch.inference_mode():
+  obs=env._get_observations()
+  for step in range(300):
+   detail_obs.append(obs['policy'].clone());detail_q.append(tensor(env.robot.data.joint_pos).clone());detail_qd.append(tensor(env.robot.data.joint_vel).clone())
+   actions=torch.cat([actor(obs['policy'][i*len(variants)*small:(i+1)*len(variants)*small]) for i,actor in enumerate(actors.values())],0).clamp(-6,6);raw,reward,term,timeout,_=env.step(actions);command();obs=raw
+   action_error=max(action_error,float((raw['policy'][:,22:28]-env._encode()['policy'][:,22:28]).abs().max()))
+   if step==298:pre_push_term_count=term_count.clone()
+   detail_action.append(actions.clone());detail_targets.append(env.targets.clone());detail_tau.append(env.torque.clone());detail_root.append(tensor(env.robot.data.root_state_w).clone())
+   d=env.view.data;trajectory.append(torch.cat((d.root_lin_vel_b[:,:1],d.root_ang_vel_b[:,2:3],env._height_observation()[:,None]),-1).clone())
+   pitch=euler_xyz_from_quat(d.root_quat_w)[1];vw=d.root_lin_vel_w;q=d.root_quat_w;zaxis=torch.zeros((n,3),device=dev);zaxis[:,0]=1.;from mod4v1_scut.math_ops import quat_apply;heading=quat_apply(q,zaxis)[:,:2];heading=heading/heading.norm(dim=-1,keepdim=True);horizontal=(vw[:,:2]*heading).sum(-1);geometry.append(torch.stack((horizontal,pitch,d.root_lin_vel_b[:,0]*pitch.cos()),-1))
+   if step%40==0:(out/'PROGRESS.json').write_text(json.dumps(dict(step=step,elapsed=time.time()-start,numerical=int(reason_counts['numerical'].sum()))))
+  values=torch.stack(trajectory);geo=torch.stack(geometry)
+  rows=[]
+  for i in range(n):rows.append(dict(env=i,model=list(models)[i//(small*len(variants))],nominal=bool(nominal[i]),height=float(heights[i]),pre_vx=float(values[180:299,i,0].mean()),wheel_qd_std=torch.stack(detail_qd)[180:299,i][:,env.active_ids[4:]].std(0).tolist(),resets=int(term_count[i]),max_closure_m=float(peak_closure[i])))
+  (out/'RESULT.json').write_text(json.dumps(dict(version=a.version,protocol='6s frozen actor; originalKd0.6 and24-sided mesh;only wheel feedback refresh400Hz instead100Hz;legs100Hz,policy50Hz;original32/4;400Hzinnertrace;ground-friction parity diagnostic;ground1.0 multiply instead0.9;robot assets unchanged;not an executed training recipe',rows=rows,canonical_plant_unchanged=True,no_optimizer=True,wheel_feedback_nominal=.6,ground_friction=1.,ground_combine="multiply",wheel_servo_dt_s=.0025,leg_PD_s=.01,wall_seconds=time.time()-start),indent=2))
+  (out/'TRACE_LAYOUT.json').write_text(json.dumps(dict(joint_names=env.robot.joint_names,active_ids=env.active_ids,models=list(models),variants=variants,tasks=TASKS,per=per),indent=2))
+  np.savez_compressed(out/'trajectory.npz',values=values.cpu().numpy(),geometry=geo.cpu().numpy(),observation=torch.stack(detail_obs).cpu().numpy(),joint_pos=torch.stack(detail_q).cpu().numpy(),joint_vel=torch.stack(detail_qd).cpu().numpy(),actions=torch.stack(detail_action).cpu().numpy(),targets=torch.stack(detail_targets).cpu().numpy(),torque=torch.stack(detail_tau).cpu().numpy(),root=torch.stack(detail_root).cpu().numpy(),inner_qd=torch.stack(inner_qd).cpu().numpy(),inner_tau=torch.stack(inner_tau).cpu().numpy(),inner_target=torch.stack(inner_target).cpu().numpy())
+except BaseException:
+ (out/'ERROR.json').write_text(json.dumps(dict(traceback=traceback.format_exc()),ensure_ascii=False,indent=2));raise
+finally:
+ if env is not None:env.close()
+ (out/'SAFE_CLOSED.json').write_text(json.dumps(dict(epoch=time.time(),result=(out/'RESULT.json').exists(),error=(out/'ERROR.json').exists())))
+ app.close()

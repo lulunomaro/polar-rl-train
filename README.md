@@ -1,5 +1,13 @@
 # polar-rl-train
 
+## 2026-11-12 平地速度恢复40分钟完成：保留最终实验候选
+
+从用户命名的Rough-v1 120m/7cc1fc6d…完整接续，512env实际PPO2405.762s，210更新；轮输出行专项后转全策略，五分钟全局检查点与全部完整PT保存。35/78/6、原R3资产、fullDR范围与−1.5e²不改；轮反馈改为400Hz，腿100Hz/策略50Hz。原成熟父包保持冻结。
+
+最终候选iter24692/SHA979e355a…：原六项名义MuJoCo6×10初态60/60，49点网格27/49→45/49、MAE0.2089→0.0757m/s；原生完整DR原六项同批17/30→23/30、推扰后18/30→24/30。名义PhysX24/30→20/30的前向欠速退步、额外高站姿残余均保留，未宣称所有后端毕业。两种抬高上阶与下阶名义单次对照保持。
+
+[完整报告与限制](sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/REPORT.md) · [完整候选PT](sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/weights/selected_flat_speed_candidate.pt) · [配方/源码/全检查点入口](sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/README.md)。
+
 ## 2026-11-12 平地超速原因调查：腿控迁移已验证
 
 93个冻结回放、0重置；腿/轮输出互换定位主要偏移跟随腿控。高站姿速度改善、低站姿超速扩大，原平方罚未漏；额外助跑进展奖励范围过宽，旧Rough阶段也已有偏差。没有新训练、未更换原最佳模型。[完整证据与最小修复建议](sources/local/MOD4V3_STAIR_SPEED_AUDIT_20261112/REPORT.md)。

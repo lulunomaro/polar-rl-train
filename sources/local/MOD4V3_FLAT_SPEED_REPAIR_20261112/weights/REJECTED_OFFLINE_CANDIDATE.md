@@ -1,0 +1,1 @@
+parent_wheel_head_jointfit_r1.pt 是静态拟合失败原件，禁止选作恢复父或推荐部署；失败证据见 evidence/WHEEL_HEAD_FIT_R1_REJECTED.json。selected_flat_speed_candidate.pt 是本轮实际PPO后的实验候选，具体限制见DECISION.json。

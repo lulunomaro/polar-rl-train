@@ -18,3 +18,7 @@
 - [精确接续记录](NEXT_RECOMMENDATION.json)、[同步回执](SYNC_REPORT.md)。新预算或下一课程没有自动启动。
 
 复现本轮以本目录support/和launch.py为入口：4096env/LR3e-5 fixed/clip0.1/epochs3/rollout24/seed66，父为上述R1点，--kind train --seconds7200。完整参数及目标机Python/package/support路径见实际配方。独立新试验使用新job名和独立记录目录；显式--checkpoint可选已保存PT，恢复同4096env的统一十级状态时需保留本目录环境实现。模型没有实时求解器状态，物理episode重新开始。
+
+## 逐地形完成报告与后续选择（2026-11-12补充）
+
+[行走与小陀螺逐地形完成报告](COURSE_COMPLETION_REPORT.md)整理原始同批成绩。后续用户认可本轮已有能力，指定继续推进Rough-v1；新实验采用本轮100m作为完整PPO父，不回退R1。原轮末测量、未晋升结论及原实车包保留。

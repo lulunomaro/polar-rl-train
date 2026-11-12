@@ -1,0 +1,36 @@
+{
+  "status": "completed_local_diagnosis_native_pending_connection",
+  "cases": 93,
+  "resets": 0,
+  "max_closure_mm": 0.10085786971365972,
+  "findings": [
+    {
+      "rank": 1,
+      "confidence": "confirmed in frozen nominal MuJoCo counterfactuals",
+      "finding": "Leg action channel changes reproduce low-height forward speed drift; wheel action channel alone barely shifts it."
+    },
+    {
+      "rank": 2,
+      "confidence": "confirmed paired fixed-weight height contrast",
+      "finding": "At2.2m/s, h.38 improves1.978->2.221 while h.28 worsens2.556->2.906; consistent with cross-height control interference."
+    },
+    {
+      "rank": 3,
+      "confidence": "confirmed implementation and exact scalar reward calculation; training attribution not fully isolated",
+      "finding": "Extra progression pays pre-stair flat approach and shifts pointwise preferred speed upward ~.13 below the2.2cap; cannot by itself make2.9 optimal. Shared policy and training distribution transmit the bias."
+    },
+    {
+      "rank": 4,
+      "confidence": "confirmed old-checkpoint replay",
+      "finding": "Nominal forward overspeed existed before new stair shaping; old Rough-v1 trend is not monotonic."
+    },
+    {
+      "rank": 5,
+      "confidence": "confirmed exclusions on tested conditions",
+      "finding": "No lost symmetric square penalty, no timing/physical-delay explanation, no large pitch-projection or slip measurement explanation; all93replays0resets."
+    }
+  ],
+  "native_limit": "SSH10.24.3.125 remains unreachable; no nativePhysX fullDR paired audit and no PPO reward-ablation run performed",
+  "recommended_minimum_next_experiment": "From original7cc1 parent, retain high stair-height command distribution, remove only free flat-approach dense progress; preserve velocity coefficient; compare the same low/high height and channel tests before deciding on a flat-preservation loss",
+  "no_training_started": true
+}

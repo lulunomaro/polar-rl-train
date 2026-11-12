@@ -17,3 +17,7 @@
 - [weights/model_005m.pt](weights/model_005m.pt)：iter24517，11753379字节，SHA `e9db6807bcff9c4604a2c8b493c9d9dbb4cf13298146370a8711d9d4c034294d`。
 - [weights/model_010m.pt](weights/model_010m.pt)：iter24551，11753379字节，SHA `0b168a5e3cb7b903a7dc3ad9e4f9c9794b7023633b0ed5f6e403e99b5d046caa`。
 - [weights/model_first_complete.pt](weights/model_first_complete.pt)：iter24483，11753379字节，SHA `7293732270cabb83381c72bb904e89e35666365e59f7cdeba76e21fcf19c5b03`。
+
+## 后续只读原因调查
+
+93例冻结回放已定位腿—轮闭环迁移，详见[平地超速调查](../MOD4V3_STAIR_SPEED_AUDIT_20261112/REPORT.md)。原末段训练状态仍待目标机恢复连接取回。

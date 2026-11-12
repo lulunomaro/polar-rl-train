@@ -21,3 +21,9 @@
 ## 实际启动
 
 PPO起点2026-11-13T03:27:26.015174+08:00，预计2026-11-13T05:27:26.015174+08:00完成7200秒及最后正常迭代保存。首个完整更新iter24693已实际读回，父SHA核验、17项Adam和35/78/6均通过。父完整PT另保存于[weights/parent_iter24692.pt](weights/parent_iter24692.pt)。
+
+<!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_START -->
+## 实际收尾
+
+候选continuous_stairs200_parent_mixed_2h_20261113_035m，iter25011，连续两阶0/10、平地60/60。 本轮实际5853.118秒；原Rough-v1固定保留回放0/4组。[完整结果](FINAL_REPORT.md)。
+<!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_END -->

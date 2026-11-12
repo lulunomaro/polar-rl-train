@@ -208,5 +208,5 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- CONTINUOUS_STAIRS_ROUGHV1_RETENTION_20261113_END -->
 
 <!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_START -->
-从健康父iter24692（SHA979e355a…）独立重开两小时：2026-11-13 03:27开始PPO，预计05:27左右完成7200秒。首次更新即50%连续200mm台阶/30%原Rough-v1十类粗糙地形十级/20%平地，完整DR和原奖励/控制频率保持。每5分钟完整保存、下载核验和回放；原父及旧轮所有权重保留。旧轮已按用户要求提前完整收尾归档。[新轮实际配方与记录](sources/local/MOD4V3_CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113/README.md)。
+从健康父iter24692起步，首轮即50%台阶/30%原Rough-v1粗糙地形/20%平地。候选continuous_stairs200_parent_mixed_2h_20261113_035m，iter25011，连续两阶0/10、平地60/60。 独立新轮实际5853.118秒；[配方与结果](sources/local/MOD4V3_CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- CONTINUOUS_STAIRS_PARENT_MIXED_2H_20261113_END -->

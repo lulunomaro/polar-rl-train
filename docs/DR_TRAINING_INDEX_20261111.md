@@ -317,3 +317,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- REPLAY_RESET_GUARD_V2_20261113 -->
 
 回放发现两处误终止：旧成熟窗口在阶沿使用底盘投影地面参考，15m窗口使用瞬时40度而训练实际连续10步。修正后同一15m权重连续两阶6/10，0.40m高度组5/5；旧2/10按旧口径保留，平地30/60不变。新版代码与原始复现、轨迹、失败日志见[回放误复位诊断](../sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/REPLAY_RESET_DIAGNOSIS.md)。
+
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_START -->
+从健康父iter24692起步，首轮即50%台阶/30%原Rough-v1粗糙地形/20%平地。候选continuous_stairs200_own_repair_40m_20261113_010m，iter24783，连续两阶2/10、平地40/60。 独立新轮实际2401.524秒；[配方与结果](sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_END -->

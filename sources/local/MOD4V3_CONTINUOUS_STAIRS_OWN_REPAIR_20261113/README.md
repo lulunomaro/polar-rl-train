@@ -31,3 +31,9 @@ MOD4资产、35/78/6接口、电机包络、2.5ms物理、400Hz轮/100Hz腿/50Hz
 <!-- REPLAY_RESET_GUARD_V2_20261113 -->
 
 回放发现两处误终止：旧成熟窗口在阶沿使用底盘投影地面参考，15m窗口使用瞬时40度而训练实际连续10步。修正后同一15m权重连续两阶6/10，0.40m高度组5/5；旧2/10按旧口径保留，平地30/60不变。新版代码与原始复现、轨迹、失败日志见[回放误复位诊断](REPLAY_RESET_DIAGNOSIS.md)。
+
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_START -->
+## 实际收尾
+
+候选continuous_stairs200_own_repair_40m_20261113_010m，iter24783，连续两阶2/10、平地40/60。 本轮实际2401.524秒；原Rough-v1固定保留回放4/4组。[完整结果](FINAL_REPORT.md)。
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_END -->

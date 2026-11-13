@@ -218,3 +218,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- OWN_STAIR_REPAIR_20261113_LAUNCH -->
 
 恢复自有连续登阶配方：从健康父iter24692完整PPO接续，50%双级200mm台阶/30%原Rough-v1/20%平地；平地一半固定练原六项目标，用地面reset，保持原速度目标和登阶奖励。无PPO功能探针后独立40分钟，每5分钟保存及固定回放。当前状态与实际结果见[sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md](sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)。
+
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_START -->
+从健康父iter24692起步，首轮即50%台阶/30%原Rough-v1粗糙地形/20%平地。候选continuous_stairs200_own_repair_40m_20261113_010m，iter24783，连续两阶2/10、平地40/60。 独立新轮实际2401.524秒；[配方与结果](sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
+<!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_END -->

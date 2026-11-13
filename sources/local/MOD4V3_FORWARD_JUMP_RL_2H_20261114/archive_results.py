@@ -10,7 +10,7 @@ import tempfile
 T = Path(__file__).resolve().parent
 R = T.parents[2]
 parser = argparse.ArgumentParser()
-parser.add_argument('--phase',choices=['launch','revision','final'],required=True)
+parser.add_argument('--phase',choices=['launch','revision','guidance','final'],required=True)
 args = parser.parse_args()
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'))
 import record_experiment as rec
@@ -55,18 +55,19 @@ def git(*items):
 rec.git = git
 assert not git('tag','--list',TAG),'Continue pushing existing objects after a push failure'
 assert not git('diff','--cached','--name-only'),'Preserve existing staged work'
-note = T/({'launch':'LAUNCH_REPORT.md','revision':'REVISION_R2_REPORT.md','final':'FINAL_REPORT.md'}[args.phase])
+note = T/({'launch':'LAUNCH_REPORT.md','revision':'REVISION_R2_REPORT.md','guidance':'REVISION_R3_REPORT.md','final':'FINAL_REPORT.md'}[args.phase])
 assert note.is_file()
 artifacts = []
 selected = []
 if args.phase != 'final':
     for history in (T/'evidence').glob('progress_history*.jsonl'):
+        if '_snapshot' in history.stem:continue
         (T/'evidence'/(history.stem+'_'+args.phase+'_snapshot.jsonl')).write_bytes(history.read_bytes())
 text_suffixes = {'.py','.md','.json','.jsonl','.log','.txt','.xml','.yaml','.yml','.usda','.csv'}
 for path in sorted(T.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts:
         continue
-    if args.phase != 'final' and path.name in ('progress_history.jsonl','progress_history_r2.jsonl'):
+    if args.phase != 'final' and path.name in ('progress_history.jsonl','progress_history_r2.jsonl','progress_history_r3.jsonl'):
         continue
     if path.suffix in text_suffixes or path.name.endswith('.json.partial'):
         selected.append(path.relative_to(R).as_posix())

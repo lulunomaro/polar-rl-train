@@ -17,11 +17,11 @@ rows = []
 for path in sorted((T/'evidence').glob('eval_*/RESULT.json')):
     data = json.loads(path.read_bytes())
     checkpoint = Path(data.get('checkpoint',path.parent.name)).name
-    revision = 'R2' if path.parent.name.startswith('eval_r2_') else 'R1'
+    revision = 'R3' if path.parent.name.startswith('eval_r3_') else ('R2' if path.parent.name.startswith('eval_r2_') else 'R1')
     if 'parent' in path.parent.name:
         minute = 0.
     elif checkpoint == 'model_final.pt':
-        train = 'train_cont_r2' if revision == 'R2' else 'train120m_r1'
+        train = {'R1':'train120m_r1','R2':'train_cont_r2','R3':'train_cont_r3'}[revision]
         final_path = T/'evidence'/train/'FINAL.json'
         if not final_path.exists():
             continue
@@ -34,7 +34,11 @@ for path in sorted((T/'evidence').glob('eval_*/RESULT.json')):
     for group in ('nominal','fullDR'):
         for key,value in data['summary'][group].items():
             row[group+'_'+key] = value
-    row['total_success'] = row['nominal_success']+row['fullDR_success']
+        episodes=[item for item in data['episodes'] if bool(item['nominal'])==(group=='nominal')]
+        row[group+'_success_survived']=sum(bool(item['success']) and not bool(item['terminated']) for item in episodes)
+        row[group+'_late_failure_after_success']=sum(bool(item['success']) and bool(item['terminated']) for item in episodes)
+    row['raw_total_success'] = row['nominal_success']+row['fullDR_success']
+    row['total_success'] = row['nominal_success_survived']+row['fullDR_success_survived']
     rows.append(row)
 rows.sort(key=lambda row:(row['revision'],row['minute'],row['job']))
 if not rows:
@@ -44,28 +48,29 @@ with csv_path.open('w',newline='',encoding='utf8') as stream:
     writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
     writer.writeheader()
     writer.writerows(rows)
-candidates = [row for row in rows if row['revision']=='R2' and 'parent' not in row['job']]
-best = max(candidates,key=lambda row:(row['total_success'],row['nominal_success'],
+candidates = [row for row in rows if row['revision']=='R3' and 'parent' not in row['job']]
+best = max(candidates,key=lambda row:(row['total_success'],row['nominal_success_survived'],
     row['fullDR_retracted']+row['nominal_retracted'],row['fullDR_takeoff']+row['nominal_takeoff'],row['minute'])) if candidates else None
-summary = dict(evaluations=rows,selected=best,selection_rule='Total balanced complete successes among256fixed cases; nominal success, measured retraction, takeoff and recency break ties',
+summary = dict(evaluations=rows,selected=best,selection_rule='Total balanced complete successes with no episode termination among256fixed cases; nominal success, measured retraction, takeoff and recency break ties. Original completed-event counts remain separately reported.',
     parent_sha256='03884d680c0fcb4c5216f8aeaa42c319473ea1cbc7261df089f42c1136b07edd',
-    evaluation_protocol='R2fixed seed10066,205fullDR/51nominal,deterministic learned action only, no optimizer',
+    evaluation_protocol='R3phase commands and phase progress, fixed seed10066,205fullDR/51nominal,deterministic learned action only, no optimizer',
     pending=not args.final)
 if args.final:
     r1 = json.loads((T/'evidence/train120m_r1/FINAL.json').read_bytes())
     r2 = json.loads((T/'evidence/train_cont_r2/FINAL.json').read_bytes())
+    r3 = json.loads((T/'evidence/train_cont_r3/FINAL.json').read_bytes())
     started = json.loads((T/'evidence/train120m_r1/TRAINING_STARTED.json').read_bytes())
     summary['budget'] = dict(original_start_epoch=started['epoch'],deadline_epoch=started['epoch']+7200.,
-        target_wall_window_seconds=7200,actual_window_seconds=r2['total_window_elapsed_seconds'],
-        R1_owner_elapsed_seconds=r1['elapsed_seconds'],R2_owner_elapsed_seconds=r2['elapsed_seconds'],
-        total_owner_phase_elapsed_seconds=r1['elapsed_seconds']+r2['elapsed_seconds'],
-        preparation_and_admission_inside_window_seconds=r2['total_window_elapsed_seconds']-r1['elapsed_seconds']-r2['elapsed_seconds'],
-        total_PPO_updates=r1['last_progress']['new_updates']+r2['last_progress']['new_updates'],
-        environment_steps=r1['last_progress']['total_env_steps']+r2['last_progress']['total_env_steps'],
+        target_wall_window_seconds=7200,actual_window_seconds=r3['total_window_elapsed_seconds'],
+        R1_owner_elapsed_seconds=r1['elapsed_seconds'],R2_owner_elapsed_seconds=r2['elapsed_seconds'],R3_owner_elapsed_seconds=r3['elapsed_seconds'],
+        total_owner_phase_elapsed_seconds=sum(value['elapsed_seconds'] for value in (r1,r2,r3)),
+        preparation_and_admission_inside_window_seconds=r3['total_window_elapsed_seconds']-sum(value['elapsed_seconds'] for value in (r1,r2,r3)),
+        total_PPO_updates=sum(value['last_progress']['new_updates'] for value in (r1,r2,r3)),
+        environment_steps=sum(value['last_progress']['total_env_steps'] for value in (r1,r2,r3)),
         concurrent_optimizers_max=1,automatic_extension=False,
         note='Elapsed owner phases include rollout/update/save work; independent GPU1evaluation has zero optimizer steps')
     assert best is not None
-    source = T/'weights'/('train_cont_r2__'+best['checkpoint'])
+    source = T/'weights'/('train_cont_r3__'+best['checkpoint'])
     assert hashlib.sha256(source.read_bytes()).hexdigest() == best['sha256']
     deliverable = output/'selected_forward_jump_full_ppo.pt'
     shutil.copy2(source,deliverable)
@@ -78,9 +83,9 @@ plt.rcParams.update({'font.family':'DejaVu Sans','font.size':10})
 fig,axes = plt.subplots(2,1,figsize=(10,7),sharex=True,layout='constrained')
 colors = {'nominal':'#107b52','fullDR':'#b54c32'}
 for group in ('nominal','fullDR'):
-    subset = [row for row in rows if row['revision']=='R2']
+    subset = [row for row in rows if row['revision']=='R3']
     x = [row['minute'] for row in subset]
-    rate = [100*row[group+'_success']/row[group+'_requested'] for row in subset]
+    rate = [100*row[group+'_success_survived']/row[group+'_requested'] for row in subset]
     axes[0].plot(x,rate,'o-',color=colors[group],label=group)
     for key,style in (('takeoff','-'),('retracted','--')):
         y = [100*row[group+'_'+key]/row[group+'_requested'] for row in subset]

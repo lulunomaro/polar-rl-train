@@ -18,7 +18,7 @@ files=[]
 for p in sorted(T.rglob('*')):
  if not p.is_file() or '__pycache__' in p.parts or p.suffix in {'.pyc','.partial'} or 'kit_isolation' in p.parts:continue
  rel=p.relative_to(T)
- if rel.as_posix().startswith('manual_replay/runtime/') or rel.as_posix() in {'manual_replay/viewer.log','manual_replay/viewer_error.log'}:continue
+ if rel.as_posix().startswith('manual_replay/runtime/') or rel.as_posix() in {'manual_replay/viewer.log','manual_replay/viewer_error.log','manual_replay/viewer_v2.log','manual_replay/viewer_v2_error.log'}:continue
  if rel.as_posix() in {'monitor.log','monitor_error.log','start.log','start_error.log','evidence/finalize.log','evidence/ARCHIVE_COMPLETE.log','evidence/ARCHIVE_LAUNCH.log'}:continue
  if p.name in {f'ARCHIVE_MANIFEST_{phase.upper()}.json',f'GIT_{phase.upper()}_RECEIPT.json'}:continue
  if phase=='launch' and rel.as_posix() in {'evidence/MONITOR_STATUS.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'}:continue

@@ -313,3 +313,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- OWN_STAIR_REPAIR_20261113_LAUNCH -->
 
 恢复自有连续登阶配方：从健康父iter24692完整PPO接续，50%双级200mm台阶/30%原Rough-v1/20%平地；平地一半固定练原六项目标，用地面reset，保持原速度目标和登阶奖励。无PPO功能探针后独立40分钟，每5分钟保存及固定回放。当前状态与实际结果见[sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md](../sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)。
+
+<!-- REPLAY_RESET_GUARD_V2_20261113 -->
+
+回放发现两处误终止：旧成熟窗口在阶沿使用底盘投影地面参考，15m窗口使用瞬时40度而训练实际连续10步。修正后同一15m权重连续两阶6/10，0.40m高度组5/5；旧2/10按旧口径保留，平地30/60不变。新版代码与原始复现、轨迹、失败日志见[回放误复位诊断](../sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/REPLAY_RESET_DIAGNOSIS.md)。

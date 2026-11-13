@@ -1,0 +1,154 @@
+{"termination_duration_enabled": true, "termination_duration_steps": 10, "termination_roll_deg": 40.0, "termination_pitch_deg": 40.0, "termination_contact_force": null, "termination_min_height": null}
+    def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
+        # contact termination
+        reset_contact_force = torch.norm(
+            self.contact_sensor.data.net_forces_w[:, self._reset_contact_link_idx], dim=-1)
+        time_out = self.episode_length_buf >= self.max_episode_length - 1
+        terminate = torch.any(reset_contact_force > 1.0, dim=-1)
+
+        # ------------------------------------------------------------------
+        # Numerical safety termination
+        # - NaN/Inf in key states -> terminate immediately
+        # - Large outliers in velocities -> terminate immediately
+        # This prevents a single "bad" env from polluting rollout with NaNs.
+        # ------------------------------------------------------------------
+        joint_vel_act = self.joint_vel[:, self._actuate_idx]
+        root_lin_vel_b = self.robot.data.root_lin_vel_b
+        root_ang_vel_b = self.robot.data.root_ang_vel_b
+
+        nan_terminate = (
+            ~torch.isfinite(joint_vel_act).all(dim=-1)
+            | ~torch.isfinite(root_lin_vel_b).all(dim=-1)
+            | ~torch.isfinite(root_ang_vel_b).all(dim=-1)
+        )
+
+        joint_vel_abs_th = float(getattr(self.cfg, "terminate_joint_vel_abs", 500))
+        root_ang_vel_abs_th = float(getattr(self.cfg, "terminate_root_ang_vel_abs", 200.0))
+        root_lin_vel_abs_th = float(getattr(self.cfg, "terminate_root_lin_vel_abs", 100.0))
+
+        joint_vel_abs = torch.amax(torch.abs(joint_vel_act), dim=-1)
+        root_ang_vel_abs = torch.amax(torch.abs(root_ang_vel_b), dim=-1)
+        root_lin_vel_abs = torch.amax(torch.abs(root_lin_vel_b), dim=-1)
+
+        outlier_terminate = (
+            (joint_vel_abs > joint_vel_abs_th)
+            | (root_ang_vel_abs > root_ang_vel_abs_th)
+            | (root_lin_vel_abs > root_lin_vel_abs_th)
+        )
+        self._numerical_safety_reset_buf.copy_(nan_terminate | outlier_terminate)
+        # 数值安全类终止（NaN/Inf + Outlier）必须立即生效，不受 termination_duration 限制
+        immediate_terminate = nan_terminate | outlier_terminate
+        # 3. 精准打印逻辑
+        if bool(getattr(self.cfg, "debug_numerical_safety_print", False)) and outlier_terminate.any():
+            # 获取触发异常的环境索引 (env_ids)
+            outlier_indices = torch.where(outlier_terminate)[0]
+
+            print(f"\n[!!!] 检测到 {len(outlier_indices)} 个环境数值爆炸:")
+            for idx in outlier_indices:
+                env_id = idx.item()
+                print(f"--- Env ID: {env_id} ---")
+                print(f"  关节速度最大值: {joint_vel_abs[env_id]:.4f} (阈值: {joint_vel_abs_th})")
+                print(f"  机身角速度最大值: {root_ang_vel_abs[env_id]:.4f} (阈值: {root_ang_vel_abs_th})")
+                print(f"  机身线速度最大值: {root_lin_vel_abs[env_id]:.4f} (阈值: {root_lin_vel_abs_th})")
+            print("########################################################################")
+
+        terminate |= immediate_terminate
+
+        # ------------------------------------------------------------------
+        # Observation safety termination
+        # - raw obs / raw privileged obs 非有限或超过阈值 -> terminate
+        # 说明：raw obs 在 _get_observations() 里缓存，确保包含 actions 等未 clip 的输入。
+        # ------------------------------------------------------------------
+        if self._terminate_on_obs_outlier and self._value_debug_step > 10:
+            obs_abs_th = self._terminate_obs_abs if self._terminate_obs_abs > 0.0 else float(getattr(self.cfg, "debug_obs_alert_threshold", 0.0))
+            obs_outlier_terminate = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
+
+            if obs_abs_th > 0.0:
+                obs_outlier_terminate |= self._obs_raw_policy_max_abs > obs_abs_th
+                if self.cfg.state_space is not None:
+                    obs_outlier_terminate |= self._obs_raw_critic_max_abs > obs_abs_th
+
+            obs_outlier_terminate |= self._obs_raw_policy_has_nonfinite
+            if self.cfg.state_space is not None:
+                obs_outlier_terminate |= self._obs_raw_critic_has_nonfinite
+
+            if obs_outlier_terminate.any():
+                self._terminate_obs_print_counter += 1
+                if self._terminate_obs_print_interval <= 1 or (self._terminate_obs_print_counter % self._terminate_obs_print_interval == 0):
+                    bad_ids = torch.where(obs_outlier_terminate)[0]
+                    print(f"\n[ObsReset] 检测到 {len(bad_ids)} 个环境 raw obs 异常，将触发 reset. th={obs_abs_th}")
+                    print(f"[ObsReset] env_ids={bad_ids.detach().cpu().tolist()}")
+
+            immediate_terminate |= obs_outlier_terminate
+            terminate |= obs_outlier_terminate
+
+        # orientation termination
+        root_rpy = euler_xyz_from_quat(self.robot.data.root_quat_w)
+        roll_limit_rad = torch.deg2rad(
+            torch.tensor(float(getattr(self.cfg, "termination_roll_deg", 40.0)), device=self.device)
+        )
+        pitch_limit_rad = torch.deg2rad(
+            torch.tensor(float(getattr(self.cfg, "termination_pitch_deg", 40.0)), device=self.device)
+        )
+        terminate |= torch.abs(wrap_to_pi(root_rpy[0])) > roll_limit_rad
+        terminate |= torch.abs(wrap_to_pi(root_rpy[1])) > pitch_limit_rad
+        if bool(getattr(self.cfg, "reset_heading_target_terminate_enabled", False)):
+            reset_heading_target_threshold_rad = torch.deg2rad(
+                torch.tensor(
+                    float(getattr(self.cfg, "reset_heading_target_terminate_threshold_deg", 2.0)),
+                    device=self.device,
+                )
+            )
+            reset_heading_error = torch.abs(wrap_to_pi(self.robot.data.heading_w - self.reset_heading_target))
+            terminate |= reset_heading_error > reset_heading_target_threshold_rad
+        # 根据不同状态机覆盖终止需求
+        terminate, time_out = self.state_machine_manager.apply_done_masks(
+            self, terminate, time_out
+        )
+        # 可以设置终止连续条件，持续N步满足才真正终止
+        # 注意：数值安全类终止（NaN/Inf/Outlier/观测异常）不受 duration 限制，立即生效，
+        # 以避免 NaN 环境在延迟窗口内持续污染仿真和 PPO rollout。
+        delayed_terminate = terminate & ~immediate_terminate
+        delayed_terminate = self._apply_termination_duration(delayed_terminate)
+        terminate = delayed_terminate | immediate_terminate
+
+        # others
+        if self.cfg.play is True and not bool(getattr(self.cfg, "play_keep_done_reset", False)):
+            terminate = torch.zeros_like(terminate)
+
+        return terminate, time_out
+
+    def _apply_termination_duration(
+        self,
+        terminate: torch.Tensor,
+        *,
+        counter_attr: str = "_termination_duration_counter",
+        raw_attr: str = "_termination_duration_raw_buf",
+    ) -> torch.Tensor:
+        """Require a terminate condition to persist for N consecutive control steps."""
+        terminate = terminate.to(dtype=torch.bool, device=self.device)
+        steps = max(int(getattr(self.cfg, "termination_duration_steps", 1)), 1)
+        enabled = bool(getattr(self.cfg, "termination_duration_enabled", False)) and steps > 1
+
+        raw_buf = getattr(self, raw_attr, None)
+        if raw_buf is None or raw_buf.shape != terminate.shape:
+            raw_buf = torch.zeros_like(terminate, dtype=torch.bool)
+            setattr(self, raw_attr, raw_buf)
+        raw_buf.copy_(terminate)
+
+        counter = getattr(self, counter_attr, None)
+        if counter is None or counter.shape != terminate.shape:
+            counter = torch.zeros(terminate.shape, dtype=torch.int32, device=self.device)
+            setattr(self, counter_attr, counter)
+        if not enabled:
+            counter.zero_()
+            return terminate
+
+        counter_next = torch.where(
+            terminate,
+            torch.clamp(counter + 1, max=steps),
+            torch.zeros_like(counter),
+        )
+        setattr(self, counter_attr, counter_next)
+        return counter_next >= steps
+

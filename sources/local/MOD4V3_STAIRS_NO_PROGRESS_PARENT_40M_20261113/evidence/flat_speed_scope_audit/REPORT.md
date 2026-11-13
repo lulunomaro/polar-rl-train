@@ -63,3 +63,7 @@ continuous_stair_train.py:374仅用`cmd_vx>=1.5 & abs(cmd_wz)<=1 & 非done`筛�
 先统一奖励与评测的前向速度定义，并以平地固定指令为唯一速度诊断样本；同时需要保住父模型已有的轮速标定。直接加大同一错误投影量的平方权重不能独立解决高俯仰漏算。普通高度仍是真超速，需要通过原生PhysX平地父子对照，区分混合训练中的速度漂移和跨引擎变化，然后决定奖励或训练保留方式。此报告未修改本轮正在进行的单项删除对照。
 
 证据：本目录RESULT.json、ANALYSIS.json和12份逐步CSV；重放脚本为../../flat_speed_scope_audit.py。所有数据为名义MuJoCo平地；延迟两组只更改延迟，不代表完整DR验收。
+
+## 父配方对比补充
+
+父iter24692的最终阶段已经是全actor＋STD、学习率3e-5；与当前相同。不能把“当前全部actor更新”解释为父子新增差异。父最终配方应读TRAIN_PLAN_P2.json/training_round_full_actor。具体新增项与相同项见[配方对比](../parent_recipe_diff/REPORT.md)。先前关于实测轮速目标漂移、速度投影偏差的数值结论不变。

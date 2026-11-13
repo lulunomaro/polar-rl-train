@@ -38,3 +38,7 @@ reward = base + extra
 ## 仅平地速度与口径核查
 
 [核查报告](evidence/flat_speed_scope_audit/REPORT.md)：父与本轮20m，12个新增冻结CPU用例；普通0.28m高度真实超速，0.40m高度指令发生俯仰/高度退化并暴露cos²投影低估，世界X还会因跑偏误报欠速。原混合训练forward_tracking不作为平地统计。配方未改。
+
+## 与最终父模型的配方差异
+
+[父子实际配方对比](evidence/parent_recipe_diff/REPORT.md)：使用最终P2/full_actor父记录；51基础奖励、PPO配置、全actor更新与DR范围相同，主要新增为混合地形/采样、5项登阶分与适用子集的空中重置。不能用第一段wheel-only计划误判最终父模型。

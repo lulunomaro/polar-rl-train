@@ -74,7 +74,7 @@ while True:
             collect(train,weights=True)
             last_train_files = ready_train
         active = []
-        for job in sorted(n for n in roots if n.startswith('eval_')):
+        for job in sorted(n for n in roots if n.startswith('eval_') and not n.endswith(('.log','.json'))):
             closed = read(sftp,remote+'/'+job+'/SAFE_CLOSED.json')
             if closed:
                 if job not in collected:

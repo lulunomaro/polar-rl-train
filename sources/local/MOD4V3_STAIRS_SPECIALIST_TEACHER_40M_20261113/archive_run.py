@@ -24,7 +24,7 @@ for p in sorted(T.rglob('*')):
  if phase=='launch' and (rel.startswith('evidence/training/') or rel.startswith('evidence/checkpoint_evals/') or rel in {'evidence/MONITOR_STATUS.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'}):continue
  files.append(p)
 if phase!='freeze':
- for extra in ['README.md','docs/DR_TRAINING_INDEX_20261111.md']:
+ for extra in ['README.md','docs/DR_TRAINING_INDEX_20261111.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md']:
   if (R/extra).is_file():files.append(R/extra)
 binary=[p.relative_to(R).as_posix() for p in files if p.suffix.lower() in {'.pt','.pth','.npz','.npy','.onnx','.png','.jpg','.usd','.usda','.stl','.obj'}]
 text=[p.relative_to(R).as_posix() for p in files if p.relative_to(R).as_posix() not in binary]

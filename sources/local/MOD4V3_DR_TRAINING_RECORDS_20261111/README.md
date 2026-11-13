@@ -85,3 +85,7 @@
 目标机SSH超时，第6组gyro末段和后续落地/原Rough-v0保留测量待收齐；训练及全部PT已在本机完整核验。不能称验收全部完成或GPU已确认释放。未自动开下一轮。
 
 [本轮记录](../MOD4V3_SCUT_ROUGH_V1_2H_20261112/README.md)。
+
+## 2026-11-13 综合父冻结与独立台阶教师
+
+综合最优db6e9ccf/iter25331完整PT冻结在相邻`MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/`。专项教师715c40b6/iter25432：本机正向5/5、真实斜向10/20；原生名义14/100、fullDR1/100，不能称fullDR毕业。737秒专项与44秒短对照的全部PT和失败保留。当前独立学生配方见`MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/PLAN.json`，从原父而非教师权重初始化。

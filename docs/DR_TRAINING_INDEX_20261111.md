@@ -359,5 +359,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->
 
 <!-- STAIRS_SPECIALIST_TEACHER_20261113_START -->
-2026-11-13：综合最优005m/iter25331/db6e9ccf…已冻结为完整PT；独立连续200mm两阶＋斜向登阶教师已开训。专项无平地/rough混训，原综合父模型和健康保留教师均保留。教师有效后再指导父模型。[冻结与专项入口](../sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/README.md)。
+## 2026-11-13：综合父已冻结，台阶教师成功案例开始迁移
+
+综合父db6e9ccf/iter25331完整PT已冻结；专项715c40b6/iter25432在本机正向两阶5/5、真实斜向10/20（±15°9/10，30°仍弱）。原生配对名义14/100、fullDR1/100，不能称fullDR毕业。完整PT/配方/失败/两引擎证据见[专项教师报告](../sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/FINAL_REPORT.md)。已用30条真实完整两阶成功轨迹准备[独立综合学生40分钟](../sources/local/MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/README.md)：原综合父初始化，父策略保留，40%台阶/35%原rough/25%平地，每5分钟完整PT，原奖励/DR/机械接口不变。
 <!-- STAIRS_SPECIALIST_TEACHER_20261113_END -->

@@ -1,0 +1,15 @@
+{
+  "scope": "Native training near-edge-heading diagnostic only; no reward, policy observation, success admission, target action, control or optimizer depends on this diagnostic",
+  "finding": "ScutRobotView converts SDKxyzw to semanticwxyz; new native training diagnostic used SDKquat_apply on that semantic view",
+  "training_effect": "No policy/reward/physics changes; original learning objective and actual whole-two-step labels remain valid",
+  "invalid_fields": [
+    "specialist.actual_near_edge_oblique_success",
+    "success_replay_state.episodes.edge_contact_yaw_deg"
+  ],
+  "valid_fields": [
+    "actual full two-step success",
+    "initial randomized approach angle",
+    "MuJoCo exact side-face contact yaw"
+  ],
+  "correction": "native_stair_pair.py explicitly converts semanticwxyz to SDKxyzw before SDKquat_apply; current training source remains frozen; specialist selection uses independent MuJoCo contact measurements, not native training heading counters"
+}

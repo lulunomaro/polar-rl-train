@@ -1,9 +1,9 @@
 # polar-rl-train
 
 <!-- STAIRS_SPECIALIST_TEACHER_20261113_START -->
-## 2026-11-13：综合最优已冻结，独立上台阶教师已开训
+## 2026-11-13：综合父已冻结，台阶教师成功案例开始迁移
 
-综合父模型选最高站姿轮005m/iter25331/SHA db6e9ccf…，完整PT已另存并经7897推送Git。名义平地60/60、连续200mm两阶4/5。新专项集中练正向/左右10°～30°接近和第二阶衔接，2048环境全登阶，fullDR/原奖励/物理接口保留；40分钟一轮、每5分钟完整检查点。教师验证后才指导冻结父模型，并恢复平地/rough保留。[冻结PT、配方和实际状态](sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/README.md)。
+综合父db6e9ccf/iter25331完整PT已冻结；专项715c40b6/iter25432在本机正向两阶5/5、真实斜向10/20（±15°9/10，30°仍弱）。原生配对名义14/100、fullDR1/100，不能称fullDR毕业。完整PT/配方/失败/两引擎证据见[专项教师报告](sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/FINAL_REPORT.md)。已用30条真实完整两阶成功轨迹准备[独立综合学生40分钟](sources/local/MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/README.md)：原综合父初始化，父策略保留，40%台阶/35%原rough/25%平地，每5分钟完整PT，原奖励/DR/机械接口不变。
 <!-- STAIRS_SPECIALIST_TEACHER_20261113_END -->
 
 ## 2026-11-12 平地速度恢复40分钟完成：保留最终实验候选

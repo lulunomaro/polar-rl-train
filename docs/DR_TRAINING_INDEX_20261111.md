@@ -341,3 +341,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_START -->
 从健康父iter24692起步，首轮即40%台阶/35%原Rough-v1粗糙地形/25%平地。候选stairs200_no_progress_parent_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 独立新轮实际2401.777秒；[配方与结果](sources/local/MOD4V3_STAIRS_NO_PROGRESS_PARENT_40M_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_END -->
+
+<!-- STAIRS_TEACHER_RETENTION_40M_20261113_START -->
+持续教师保留PPO独立40分钟实验，2026-11-13从源005m/iter24737完整恢复，健康父模型冻结指导原平地与rough，005m原生成功片段指导登阶。仅新增原PPO中的持续动作保留项；原奖励、40/35/25比例与fullDR沿用。每5分钟完整PT与同协议验收。[本轮配方与运行](../sources/local/MOD4V3_STAIRS_TEACHER_RETENTION_40M_20261113/README.md)。
+<!-- STAIRS_TEACHER_RETENTION_40M_20261113_END -->

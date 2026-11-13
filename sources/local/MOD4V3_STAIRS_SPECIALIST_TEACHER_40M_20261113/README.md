@@ -52,3 +52,9 @@
 ## 最终状态
 
 最终完整保存点反而最好：正向5/5、真正斜向10/20，715c40b6/iter25432已冻结；原生名义14/100与fullDR1/100低于整体期望，不能称fullDR毕业。实际737.070秒，非完整40分钟。后续仅迁移成功示范，详见[完整报告](FINAL_REPORT.md)；完整模型本体在`weights/selected_stair_teacher.pt`。
+
+## 平地与Rough补测及手动回放（2026-11-13）
+
+教师自身平地原60项实测20/60：2.0m/s指令实速约2.780，2.2指令实速约3.072；0.40m高度指令约0.370m。保留旋转与低高度部分能力，不能直接替换综合父。原生Rough-v1 L9已新做父/教师配对，完整成绩、细项及原件索引见[evidence/retained_abilities_r1/REPORT.md](evidence/retained_abilities_r1/REPORT.md)。不是后续学生成绩。
+
+可操控教师入口见[manual_replay/TEACHER_PLAYER.md](manual_replay/TEACHER_PLAYER.md)，正向连续200mm两阶已在窗口展示，可选±15度起点和键盘接管。权重不变，没有新训练。

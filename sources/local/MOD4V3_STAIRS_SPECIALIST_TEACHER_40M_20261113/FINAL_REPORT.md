@@ -39,3 +39,9 @@
 ## 失败与中止记录
 
 第一冻结探针因漏传已有参考JSON启动失败，无PPO；第二2048×600步冻结探针通过，numerical0、closure reset0、峰值1.495mm。锚定对照在前阶段最终回放收齐后正常保存结束，实际44.375秒，源码/PT/结果均另存相邻目录。教师阶段总PPO约781.445秒，未耗满40分钟上限。未新增部署或修改生产资产。
+
+## 平地与Rough补测及手动回放（2026-11-13）
+
+教师自身平地原60项实测20/60：2.0m/s指令实速约2.780，2.2指令实速约3.072；0.40m高度指令约0.370m。保留旋转与低高度部分能力，不能直接替换综合父。原生Rough-v1 L9已新做父/教师配对，完整成绩、细项及原件索引见[evidence/retained_abilities_r1/REPORT.md](evidence/retained_abilities_r1/REPORT.md)。不是后续学生成绩。
+
+可操控教师入口见[manual_replay/TEACHER_PLAYER.md](manual_replay/TEACHER_PLAYER.md)，正向连续200mm两阶已在窗口展示，可选±15度起点和键盘接管。权重不变，没有新训练。

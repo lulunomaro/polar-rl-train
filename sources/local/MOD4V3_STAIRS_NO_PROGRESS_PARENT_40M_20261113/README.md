@@ -34,3 +34,7 @@ reward = base + extra
 ## 当前完整奖励清单
 
 见[REWARDS_CURRENT.md](REWARDS_CURRENT.md)：依据本轮实际启动权重及当前远端配置工厂，列出全部51项基础奖励、3项有权重但当前实现恒零的条目、腾空状态缩放、5项连续登阶额外分和已删除的推进项。此清单仅作说明，未改训练配方。
+
+## 仅平地速度与口径核查
+
+[核查报告](evidence/flat_speed_scope_audit/REPORT.md)：父与本轮20m，12个新增冻结CPU用例；普通0.28m高度真实超速，0.40m高度指令发生俯仰/高度退化并暴露cos²投影低估，世界X还会因跑偏误报欠速。原混合训练forward_tracking不作为平地统计。配方未改。

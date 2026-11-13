@@ -321,3 +321,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_START -->
 从健康父iter24692起步，首轮即50%台阶/30%原Rough-v1粗糙地形/20%平地。候选continuous_stairs200_own_repair_40m_20261113_010m，iter24783，连续两阶2/10、平地40/60。 独立新轮实际2401.524秒；[配方与结果](sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_END -->
+
+
+<!-- STAIRS_TRAINING_GUARD_REPAIR_20261113 -->
+2026-11-13：连续台阶高度参考改为轮下中心射线，阶沿上行导轮接触按限定窗口放行，接触/倾角独立持续计时；新源码版本经2048环境600步冻结回放，numerical=0，仍执行2mm单环境重置。没有PPO更新。修正协议V3下，最新40m(iter25050)完整双阶1/10，15m(iter24830)为6/10（0.40m指令5/5）；旧分数保留原协议标签。最新窗口可手动操控，完整PT/配方/失败轨迹见[本次修复与回放说明](../sources/local/MOD4V3_STAIRS_TRAINING_GUARD_REPAIR_20261113/README.md)。

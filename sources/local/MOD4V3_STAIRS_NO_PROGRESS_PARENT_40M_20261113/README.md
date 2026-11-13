@@ -48,3 +48,7 @@ reward = base + extra
 
 候选stairs200_no_progress_parent_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 本轮实际2401.777秒；原Rough-v1固定保留回放4/4组。[完整结果](FINAL_REPORT.md)。
 <!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_END -->
+
+## 40分钟最终效果复核
+
+[完成效果与父子对照](evidence/round_effect_review/REPORT.md)：最终平地39/60、连续两阶0/10；5m实验候选平地40/60、两阶5/10，未整体晋升。原生rough对照测的是5m，分项计数及父V3基线已核实。

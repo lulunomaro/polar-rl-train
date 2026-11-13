@@ -1,0 +1,10 @@
+{
+  "attempt": "archive_attempt1",
+  "status": "failed_before_commit",
+  "actual_error": "AssertionError in archive_git: set(changed) == set(selected) | {experiment record}",
+  "cause": "git diff-tree --name-only quotes non-ASCII paths by default; the expected Python paths used literal Chinese. The scope check compared differently represented path strings.",
+  "existing_commit_or_tag_created": false,
+  "evidence": "reports/superseded/archive_attempt1_uncommitted_record.json and archive_attempt1_ARTIFACT_INDEX.json",
+  "resolution": "Use NUL-delimited Git names. Preserve the original uncommitted draft, reset only the private clone index, and resume this same stage before commit. No existing trial/tag is replaced.",
+  "delivery": "V1 ZIP retained; V2 adds this archival fix/evidence. Firmware, actor and ROS plugin implementations are unchanged from their passed checks."
+}

@@ -1,0 +1,292 @@
+{
+  "schema": "mod4v3.r1_realcar_debug.v1",
+  "release": "MOD4V3_R1_005M_REALCAR_DEBUG_20261112",
+  "status": "engineering_debug_package_not_real_robot_acceptance",
+  "selected_model": "r1round2_005m",
+  "checkpoint_sha256": "0dcc15f5ecfca08107dba8b1a1d80de57c777218b5f3a928c094be66c73a644f",
+  "iteration": 22959,
+  "actor_widths": [
+    35,
+    256,
+    128,
+    64,
+    6
+  ],
+  "actor_activation": "ELU alpha1, linear last layer, clip outputs[-6,6]",
+  "input": {
+    "name": "observation",
+    "dtype": "float32",
+    "shape": [
+      "batch",
+      35
+    ],
+    "blocks": [
+      {
+        "name": "command",
+        "offset": 0,
+        "count": 3,
+        "units": "m/s,m/s,rad/s",
+        "clip_raw": 100.0,
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "name": "height_cmd",
+        "offset": 3,
+        "count": 1,
+        "units": "m",
+        "clip_raw": [
+          0.0,
+          1.0
+        ],
+        "scale": 5.0
+      },
+      {
+        "name": "root_ang_vel_b",
+        "offset": 4,
+        "count": 3,
+        "units": "rad/s",
+        "clip_raw": 100.0,
+        "scale": 0.5
+      },
+      {
+        "name": "projected_gravity_b",
+        "offset": 7,
+        "count": 3,
+        "units": "unit vector",
+        "clip_raw": 100.0,
+        "scale": 1.0
+      },
+      {
+        "name": "joint_pos",
+        "offset": 10,
+        "count": 6,
+        "units": "rad relative to native defaults; wheel position slots zero",
+        "clip_raw": 100.0,
+        "scale": 1.0
+      },
+      {
+        "name": "joint_vel_leg",
+        "offset": 16,
+        "count": 4,
+        "units": "rad/s",
+        "clip_raw": 200.0,
+        "scale": 0.1
+      },
+      {
+        "name": "joint_vel_wheel",
+        "offset": 20,
+        "count": 2,
+        "units": "rad/s",
+        "clip_raw": 200.0,
+        "scale": 0.1
+      },
+      {
+        "name": "actions",
+        "offset": 22,
+        "count": 6,
+        "units": "previous clipped policy action before target mapping or actuator delay",
+        "clip_raw": 100.0,
+        "scale": 1.0
+      },
+      {
+        "name": "ctrl_mode_obs",
+        "offset": 28,
+        "count": 7,
+        "units": "constant normal mode",
+        "clip_raw": null,
+        "scale": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          5.0,
+          1.0
+        ]
+      }
+    ],
+    "operation_order": "clip raw component then scale",
+    "actual_velocity_input": false,
+    "quaternion_input": false
+  },
+  "output": {
+    "name": "action",
+    "dtype": "float32",
+    "shape": [
+      "batch",
+      6
+    ],
+    "order": [
+      "left_front1_joint",
+      "left_rear1_joint",
+      "right_front1_joint",
+      "right_rear1_joint",
+      "left_wheel_joint",
+      "right_wheel_joint"
+    ],
+    "roles": [
+      "left_crank",
+      "left_hip",
+      "right_crank",
+      "right_hip",
+      "left_wheel_spin",
+      "right_wheel_spin"
+    ],
+    "clip": [
+      -6.0,
+      6.0
+    ]
+  },
+  "observation_default_joint_positions_rad": [
+    0.7783382073627201,
+    -0.4806332576622214,
+    0.7783382073627201,
+    -0.4806332576622214,
+    0.0,
+    0.0
+  ],
+  "mode_vector": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "coordinate": {
+    "world": "right-handed Xforward,Yleft,Zup",
+    "joint": "native anatomical output joint angle, unwrapped radians, NOT motor rotor angle",
+    "gyro": "body frame rad/s",
+    "gravity": "R_world_from_body.T @ [0,0,-1]; level=[0,0,-1]",
+    "previous_action": "clipped actor output before actuator target conversion, never delayed/applied torque"
+  },
+  "timing": {
+    "policy_period_s": 0.02,
+    "PD_period_s": 0.01,
+    "training_physics_period_s": 0.0025,
+    "extra_software_delay_s": 0.0,
+    "action_smoothing": "none"
+  },
+  "controller": {
+    "leg_position_scale_rad": 0.5,
+    "wheel_velocity_scale_rad_s": 10.0,
+    "leg_kp": 60.0,
+    "leg_kd": 2.0,
+    "wheel_kd": 0.6,
+    "front_rear_delta_bounds_rad": [
+      [
+        0.17265192458887935,
+        1.7508937980913823
+      ],
+      [
+        0.17265192458887935,
+        1.7508937980913823
+      ]
+    ],
+    "continuous_target": "match training nearest2pi branch using round-to-nearest ties-to-even; clamp front-minus-rear difference only"
+  },
+  "motor_envelope": {
+    "order": [
+      "left_front1_joint",
+      "left_rear1_joint",
+      "right_front1_joint",
+      "right_rear1_joint",
+      "left_wheel_joint",
+      "right_wheel_joint"
+    ],
+    "plateau_Nm": [
+      40.0,
+      40.0,
+      40.0,
+      40.0,
+      5.775909774436091,
+      5.775909774436091
+    ],
+    "stall_Nm": [
+      53.333333333333336,
+      53.333333333333336,
+      53.333333333333336,
+      53.333333333333336,
+      28.18525375641699,
+      28.18525375641699
+    ],
+    "no_load_rad_s": [
+      16.755160819145562,
+      16.755160819145562,
+      16.755160819145562,
+      16.755160819145562,
+      55.35573187814664,
+      55.35573187814664
+    ],
+    "formula": "lo=max(-plateau,min(0,-stall*(1+qd/no_load))); hi=min(plateau,max(0,stall*(1-qd/no_load))); tau=clip(rawPD,lo,hi)",
+    "effort_units": "joint output Nm; hardware current conversion belongs to calibrated firmware"
+  },
+  "command_scope": {
+    "vx_m_s": [
+      -2.2,
+      2.2
+    ],
+    "vy_m_s": [
+      0.0,
+      0.0
+    ],
+    "wz_rad_s": [
+      -14.137167,
+      14.137167
+    ],
+    "height_m": [
+      0.2,
+      0.4
+    ],
+    "initial_debug": {
+      "vx": 0.0,
+      "vy": 0.0,
+      "wz": 0.0,
+      "height": 0.28
+    },
+    "note": "Ranges are task command scope, not certification of every combined command on every terrain. Start debug at zero; introduce speed gradually."
+  },
+  "plant": {
+    "version": "MOD4v3-HW300N60-SCUT-V14",
+    "mjcf": "plant/mjcf/scene.xml",
+    "mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f",
+    "physx": "plant/assets/robot_physx.usda",
+    "physx_sha256": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+    "native_default_positions_source": "plant/runtime_config.json",
+    "policy_order_overrides_asset_generic_order": true,
+    "closure_guard_m": 0.002,
+    "mimic_guard_rad": 0.01,
+    "old_September_plant_compatible": false,
+    "gas_spring": {
+      "model": "HW300N60",
+      "stiffness_N_m": 2000.0,
+      "native_slider_target_m": 0.1706394410901294,
+      "do_not_add_software_torque_again": true
+    },
+    "root_usd": "plant/assets/robot.usd",
+    "root_usd_sha256": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c"
+  },
+  "hardware_calibration": {
+    "verified": false,
+    "file": "config/hardware_calibration.template.json",
+    "unknown": [
+      "per_motor_CAN_id",
+      "encoder_sign_and_zero",
+      "feedback_coordinate_units",
+      "command_effort_to_current_scale",
+      "IMU_mounting_rotation"
+    ],
+    "note": "No measured hardware calibration exists in this workspace. Fill using the physical robot; no values inferred from simulation."
+  },
+  "known_limits": [
+    "Ground-start recovery incomplete; see evidence/ground_stand_summary.json.",
+    "No R2 airborne/landing training or validation.",
+    "MuJoCo forward speed overshoot is present in existing same-checkpoint replay; see evidence/R1_FINAL_REPORT.md.",
+    "No actual-robot power-on calibration or acceptance run is included."
+  ]
+}

@@ -1,0 +1,11 @@
+# Append the two component entries to your actual RMCS configuration.
+# Auto-aim camera, IMU, gimbal and referee ports still need the robot's RMCS config.
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs::AutoAimComponent -> auto_aim_component
+      - mod4::ChassisComponent -> mod4_chassis
+mod4_chassis:
+  ros__parameters:
+    device: /dev/ttyACM0

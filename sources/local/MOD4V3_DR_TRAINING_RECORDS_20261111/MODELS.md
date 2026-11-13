@@ -370,3 +370,9 @@
 
 候选stairs200_success_refresh_40m_20261113_025m，平地60/60、0.42m指令两阶4/5。 原健康父与源040m保留，完整PT/教师/数据见本轮目录及MODEL_REGISTRY.json。
 <!-- STAIRS_SUCCESS_REFRESH_40M_20261113_END -->
+
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_START -->
+## 最高站姿0.42m接训PPO
+
+候选stairs200_max_height_40m_20261113_005m，平地60/60、0.42m指令两阶4/5。 原健康父与源025m保留，完整PT/教师/数据见本轮目录及MODEL_REGISTRY.json。
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->

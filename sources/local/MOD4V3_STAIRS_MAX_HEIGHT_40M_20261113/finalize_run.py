@@ -99,7 +99,7 @@ def main():
  selected=pool[0] if pool else None;selected_record=None;retention=[]
  if selected:
   source=Path(selected['model']);selected_record=next(r for r in records if r['sha256']==selected['sha256']);alias=T/'weights/selected_max_height_candidate.pt';shutil.copy2(source,alias);selected_record['aliases'].append(alias.relative_to(R).as_posix())
-  write(T/'weights/SELECTED_MODEL.json',dict(display_name='最高站姿0.42m接训40分钟实验候选',model_id=selected_record['id'],iteration=selected_record['iteration'],sha256=selected_record['sha256'],source=selected_record['git_path'],alias=alias.relative_to(R).as_posix(),full_PPO=True,whole_stair_passed=stair_passed(selected),whole_stair_requested=5,stair_height_command_m=.42,primary_stair_protocol='0.42m command, five full two-step starts',flat60_passed=selected['flat60_passed'],flat60_requested=selected['flat60_requested'],joint_source025m_retention=bool(joint),forward_tracking_MAE_m_s=forward_error(selected),selection_order='same0.42m command baseline retention, flat count,0.42m stair count, lower forward MAE, shorter stair interval',status='Experimental; healthy parent and source025m retained; no automatic deployment promotion'))
+  write(T/'weights/SELECTED_MODEL.json',dict(display_name='最高站姿0.42m接训40分钟实验候选',model_id=selected_record['id'],iteration=selected_record['iteration'],sha256=selected_record['sha256'],source=selected_record['git_path'],alias=alias.relative_to(R).as_posix(),full_PPO=True,whole_stair_passed=stair_passed(selected),whole_stair_requested=5,stair_height_command_m=.42,online_success_replay=selected_record['teacher_retention'].get('online_success_replay'),primary_stair_protocol='0.42m command, five full two-step starts',flat60_passed=selected['flat60_passed'],flat60_requested=selected['flat60_requested'],joint_source025m_retention=bool(joint),forward_tracking_MAE_m_s=forward_error(selected),selection_order='same0.42m command baseline retention, flat count,0.42m stair count, lower forward MAE, shorter stair interval',status='Experimental; healthy parent and source025m retained; no automatic deployment promotion'))
   sys.path.insert(0,str(T));from run_retention_replays import main as replay
   retention=replay(alias)
  rough_table=rough_comparison(retention,selected_record['sha256'] if selected_record else None)
@@ -119,6 +119,7 @@ def main():
   table+=f"| {Path(ev['model']).name} | {ev['flat60_passed']} | {stair_passed(ev)} | {text} | {ev['stair_summary']['descent']['passed']} |\n"
  flat_table=flat_task_comparison(evaluations)
  chosen=f"候选{selected_record['id']}，平地{selected['flat60_passed']}/60、0.42m指令两阶{stair_passed(selected)}/5。" if selected else '没有完整可选回放。'
+ selected_bank_text=(f"所选检查点自己的示范库：共{selected_online['accepted_whole_two_step_episodes']}个完整两阶成功回合，其中完整DR {selected_online['accepted_DR']}个、名义{selected_online['accepted_nominal']}个；扣除继承的源025m数据，本轮截至该检查点新增{selected_online['accepted_whole_two_step_episodes']-initial_replay['accepted_whole_two_step_episodes']}个、完整DR新增{selected_online['accepted_DR']-initial_replay['accepted_DR']}个。后续轮末新增数据属于末轮PT，所选较早PT的库以这里和SELECTED_MODEL/DECISION为准。" if selected_online else '没有所选检查点示范库。')
  report=f'''# 最高站姿0.42m接训40分钟实际结果（2026-11-13）
 
 状态：{state}，实际{seconds:.3f}秒，原预算2400秒，每300秒完整保存。{chosen} 是否同时达到源025m的{baseline_flat}/60平地与同0.42m指令{baseline_stairs}/5两阶：{bool(joint)}。该条件只用于结果选模，不阻断训练，不是新物理门槛。同通过数时先比较两档前进MAE，再比较成功阶间耗时。
@@ -127,13 +128,19 @@ def main():
 
 训练计数：{json.dumps(health['done_totals'],ensure_ascii=False)}。教师指导共{health['teacher_updates']}次PPO更新，冻结教师最大参数变化{health['teacher_max_parameter_change']}。普通闭链保护重置与数值保护重置分别记录。
 
-{online_text}source_iteration记录成功时的迭代；轨迹来自训练中的实际动作，可能跨多次PPO更新。
+{online_text}
+
+{selected_bank_text}
+
+source_iteration记录成功时的迭代；轨迹来自训练中的实际动作，可能跨多次PPO更新。
 
 起点上一轮025m iter25288 SHA{P['parent_sha256']}，完整actor/critic/STD/Adam/LR/RNG恢复。冻结健康父iter24692作为原技能指导，冻结旧005m成功登阶示范保留；新增训练内完整两阶成功回合，并提高一级落轮到二级落轮片段采样。初始数据SHA在PLAN与reference，新增样本、来源和阶段计数在每个完整PT的success_replay_state与teacher_retention字段；失败及中途起点不加入新增主库。
 
 本轮只改上行高度目标，沿用上一轮的成功回合示范库和第二阶过渡段采样；仍在原PPO同一次反向传播中加入动作MSE，lambda0.25，保留/成功登阶各半；有新增成功时登阶旧/新各半，新样本第二阶过渡段优先半数；没有额外imitation-only训练段，未使用自动任务采样或多头critic。不是论文整套复现。原40/35/25任务分配、20%nominal/80%fullDR、奖励、速度投影定义、2.5ms/100Hz腿/400Hz轮/50Hz策略、MOD4 R3资产、电机与2mm单环境保护沿用。flat-only稳态诊断为日志，不改环境奖励。原健康父及源025m保持。
 
 {table}
+
+中途20m同初态触阶轨迹记录见[evidence/CONTACT_STAGE_NOTE.md](evidence/CONTACT_STAGE_NOTE.md)：该样本未触发重置，阶前实速与抬轮高度都下降；这份记录用于区分一级失败和二级衔接，不推断唯一训练原因。
 
 固定平地单项比较（同协议10例平均速度；仅平地，不混入坡面或台阶）：
 

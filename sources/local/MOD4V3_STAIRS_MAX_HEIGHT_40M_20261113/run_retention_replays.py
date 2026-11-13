@@ -22,7 +22,7 @@ def main(candidate):
   models=dict(parent=P['teacher_retention']['keep_teacher'],candidate=REMOTE+'/retention_candidate.pt')
   put(E/'MODELS.json',models);sf.put(str(E/'MODELS.json'),REMOTE+'/RETENTION_MODELS.json')
  finally:c.close()
- reports=[];cache_records=[];pending_cache=[REMOTE+'/train040m_success_refresh_r1']
+ reports=[];cache_records=[];pending_cache=[REMOTE+'/train040m_max_height_r1']
  for skill,level in [('traverse',0),('traverse',9),('gyro',5),('landing',5)]:
   name='paired_retention_'+skill+'_L'+str(level)+'_r1';dest=E/name;dest.mkdir(exist_ok=True);job=REMOTE+'/'+name
   while True:

@@ -21,3 +21,9 @@ MOD4 R3资产、电机、35维actor/78维critic/6动作、2.5ms物理/腿100Hz/�
 ## 实际启动
 
 2026-11-13 18:27:40启动正式40分钟，远端PID712617；height_probe_r2原生2048×600步通过上行高度保持和平地/rough隔离检查，numerical=0，449次单环境闭链保护重置；未扩大门槛。main从原source025m开始，两个探针均无PPO更新。全部数据实体位于Windows数据盘。
+
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_START -->
+## 实际收尾
+
+候选stairs200_max_height_40m_20261113_005m，平地60/60、0.42m指令两阶4/5。 实际2405.015秒，联合源025m保留=True。[完整结果](FINAL_REPORT.md)。
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->

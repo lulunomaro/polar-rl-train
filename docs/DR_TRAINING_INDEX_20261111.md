@@ -355,5 +355,5 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STORAGE_MIGRATION_20261113_END -->
 
 <!-- STAIRS_MAX_HEIGHT_40M_20261113_START -->
-最高站姿0.42m上行接训已启动：source025m iter25288/SHA8215a43a…，40分钟每5分钟完整保存；修复上行高度被通用重采样拉低，奖励/DR/教师配方不改。 [配方与进展](../sources/local/MOD4V3_STAIRS_MAX_HEIGHT_40M_20261113/README.md)。
+最高站姿0.42m接训PPO，从上一轮025m起步；候选stairs200_max_height_40m_20261113_005m，平地60/60、0.42m指令两阶4/5。 实际2405.015秒，联合源025m保留=True；[配方与结果](../sources/local/MOD4V3_STAIRS_MAX_HEIGHT_40M_20261113/README.md)。
 <!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->

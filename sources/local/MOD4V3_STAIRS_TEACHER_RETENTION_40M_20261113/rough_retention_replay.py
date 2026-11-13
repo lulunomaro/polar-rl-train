@@ -175,7 +175,7 @@ try:
    layers.append(torch.nn.Linear(dims[i],dims[i+1]));
    if i<3:layers.append(torch.nn.ELU())
   actor=torch.nn.Sequential(*layers).to(dev);actor.load_state_dict({k[4:]:v for k,v in state.items() if k.startswith('mlp.')});actor.eval();actors[label]=actor;hashes[label]=digest
- assert hashes['parent']==plan['parent_sha256']
+ assert hashes['parent']==plan['teacher_retention']['keep_teacher_sha256']
  mass_read=tensor(env.robot.root_view.get_masses()).to(dev);inertia_read=tensor(env.robot.root_view.get_inertias()).to(dev)
  material_write_read_error=float((tensor(env.robot.root_view.get_material_properties()).cpu()-materials).abs().max())
  mass_readback=dict(mass_write_read_error_kg=float((mass_read-masses).abs().max()),inertia_write_read_error=float((inertia_read-inertias).abs().max()))

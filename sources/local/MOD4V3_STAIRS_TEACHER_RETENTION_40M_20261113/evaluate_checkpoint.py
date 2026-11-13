@@ -12,3 +12,5 @@ summary=dict(model=str(model),sha256=hashlib.sha256(model.read_bytes()).hexdiges
 if summary['complete']:
  stairs=json.loads((out/'stairs/RESULT.json').read_text());flat=json.loads((out/'flat60/RESULT.json').read_text());summary.update(whole_stair_passed=stairs['whole_passed'],whole_stair_requested=stairs['whole_requested'],stair_summary=stairs['summary'],flat60_passed=sum(x['passed'] for x in flat['rows']),flat60_requested=len(flat['rows']))
 (out/'EVALUATION.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf8');print(json.dumps(summary),flush=True)
+
+if not summary["complete"]:raise SystemExit(1)

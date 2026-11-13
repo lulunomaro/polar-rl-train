@@ -23,7 +23,7 @@ def main(candidate):
  finally:c.close()
  reports=[];cache_records=[];pending_cache=[REMOTE+'/train040m_teacher_retention_r1']
  for skill,level in [('traverse',0),('traverse',9),('gyro',5),('landing',5)]:
-  name='paired_retention_'+skill+'_L'+str(level)+'_r1';dest=E/name;dest.mkdir(exist_ok=True);job=REMOTE+'/'+name
+  name='paired_retention_'+skill+'_L'+str(level)+'_r2';dest=E/name;dest.mkdir(exist_ok=True);job=REMOTE+'/'+name
   while True:
    c=connect()
    try:owners=execute(c,'nvidia-smi --query-compute-apps=pid --format=csv,noheader,nounits').strip()

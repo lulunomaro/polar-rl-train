@@ -343,5 +343,5 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_END -->
 
 <!-- STAIRS_TEACHER_RETENTION_40M_20261113_START -->
-持续教师保留PPO独立40分钟实验，2026-11-13从源005m/iter24737完整恢复，健康父模型冻结指导原平地与rough，005m原生成功片段指导登阶。仅新增原PPO中的持续动作保留项；原奖励、40/35/25比例与fullDR沿用。每5分钟完整PT与同协议验收。[本轮配方与运行](../sources/local/MOD4V3_STAIRS_TEACHER_RETENTION_40M_20261113/README.md)。
+持续教师保留PPO，从005m起步；候选stairs200_teacher_retention_40m_20261113_040m，平地40/60、两阶5/10。 实际2405.004秒，联合源5m保留=True；[配方与结果](../sources/local/MOD4V3_STAIRS_TEACHER_RETENTION_40M_20261113/README.md)。
 <!-- STAIRS_TEACHER_RETENTION_40M_20261113_END -->

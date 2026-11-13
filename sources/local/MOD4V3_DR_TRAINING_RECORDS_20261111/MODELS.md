@@ -358,3 +358,9 @@
 
 候选stairs200_no_progress_parent_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 完整PPO共10份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
 <!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_END -->
+
+<!-- STAIRS_TEACHER_RETENTION_40M_20261113_START -->
+## 持续教师保留PPO
+
+候选stairs200_teacher_retention_40m_20261113_040m，平地40/60、两阶5/10。 原健康父与源5m保留，完整PT/教师/数据见本轮目录及MODEL_REGISTRY.json。
+<!-- STAIRS_TEACHER_RETENTION_40M_20261113_END -->

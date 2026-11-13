@@ -1,0 +1,21 @@
+{
+  "id": "20261113-mod4-stair-specialist-freeze-01",
+  "tag": "trial-20261113-mod4-stair-specialist-freeze-01",
+  "title": "MOD4 stair specialist freeze and frozen best parent",
+  "kind": "training",
+  "recorded_at": "2026-11-13T11:44:26.786330+00:00",
+  "repair_or_experiment_note": "# 独立连续登阶教师与综合父模型冻结（2026-11-13）\n\n先冻结目前综合最优，再单独练上台阶教师。教师通过独立正向/斜向连续两阶评测后，才用于综合父模型的保留训练。\n\n## 已冻结父模型\n\n- 完整 PPO：`frozen_parent/best_parent_full_ppo.pt`，iter25331。\n- SHA256：`db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283`。\n- 来源：上一轮最高高度接训的005m；平地60/60，名义MuJoCo连续200mm两级4/5。\n- 配方、原始启动回读、选优与评测报告一并冻结在`frozen_parent/`。0.42m是现有高度指令上限，不称机械极限。\n- 完整PT作为普通Git二进制归档。后续教师/学生实验不覆盖这份文件。\n\n## 当前计划\n\n独立教师集中练连续200mm两阶，包含正向与左右斜向接近。保持原MOD4资产、35/78/6接口、电机包络、物理时序、完整DR和原登阶奖励。仍按40分钟一轮、每5分钟完整检查点及检查。斜向成绩依据接近台阶时的实际朝向单独记录。\n\n综合父模型的平地与rough能力保留要求不取消。只有教师得到有效成功样本和独立改善证据后，才把教师成功经验用于父模型；教师本身不冒充综合部署模型。\n",
+  "validation": "Frozen comprehensive parent db6e9ccf iter25331 preserved as full PPO; separate200mmx2 stair specialist with genuine oblique approach; same approved MOD4/35-78-6/fullDR/controller/2mm per-env protection;40m budget and5m full checkpoints; see stage evidence for actual executed status",
+  "source_and_evidence_sha256": {
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/archive_run.py": "94b586bbe24977d2d4ad6b8adfd5879c88e589a46afd14dc2ac7d6d784d566dc",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/PARENT_EVALUATION_REPORT.md": "f015a9c23e93848bee886ad501083d100e6227c05370b07ff81786159296a64e",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/PARENT_RECIPE.json": "5e5030da3a4009cb2cc2dd79fdf38fc83662219c32dd7757eb4ed4ec8bf963c6",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/PARENT_SELECTION.json": "b305b3728e041d640e02ad7eecb58f93ee62c0f07794b060af83ed64954837af",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/PARENT_STARTUP.json": "309797539068e1e617dd68f7eeea29b4a8402c5ba89c885fc9f902ec136dd294",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/PROVENANCE.json": "6f1ab13ab70ab6ddc90fcf307f631234ba36686064a28ceaefc9d18516bf5032",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/README.md": "dd00dc2442217b4c99583e8899a603a464943da2a0dd6863c326c561a5d2e5db",
+    "sources/local/MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/best_parent_full_ppo.pt": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283"
+  },
+  "real_robot_certified": false,
+  "artifact_storage": "Explicit user request: actual complete ordinary PT blobs, never LFS pointers; physical assets/interfaces unchanged."
+}

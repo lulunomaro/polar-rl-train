@@ -1,0 +1,243 @@
+{
+  "runtime": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/launcher",
+  "shared_package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/package",
+  "package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/native_package",
+  "support": "/home/egde/rl_candidates/mod4v3_stairs_specialist_teacher_40m_20261113_r1/support",
+  "source_paths": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/SOURCE_PATHS.remote.json",
+  "reset_bank": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/reset_bank.json",
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210",
+    "actual_training_assets": {
+      "robot.usd": {
+        "sha256": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c",
+        "bytes": 8846708
+      },
+      "robot_physx.usda": {
+        "sha256": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+        "bytes": 3969
+      },
+      "import_contract.json": {
+        "sha256": "76784aa2796a8a9aa5ff4d638be47f425da3d0dd0af94db7286467358808af4c",
+        "bytes": 12259
+      }
+    },
+    "local_mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f"
+  },
+  "parent_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+  "parent": "/home/egde/rl_candidates/mod4v3_stairs_specialist_teacher_40m_20261113_r1/frozen_best_parent.pt",
+  "training_round": {
+    "seconds": 2400,
+    "num_envs": 2048,
+    "full_checkpoint_every_seconds": 300,
+    "inspection_every_seconds": 300,
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "rollout": 24,
+    "automatic_extension": false
+  },
+  "seed": 66,
+  "root_parent": {
+    "model_id": "flat_speed_full_final",
+    "iteration": 24692,
+    "sha256": "979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d",
+    "git_path": "sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/weights/selected_flat_speed_candidate.pt"
+  },
+  "cumulative_training_seconds_before": 0,
+  "root": "/home/egde/rl_candidates/mod4v3_stairs_specialist_teacher_40m_20261113_r1",
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "continuous_stair": {
+    "source_level": 3,
+    "riser_m": 0.2,
+    "tread_depth_m": 1.5,
+    "platform_width_m": 3.0,
+    "platform_height_m": 0.4,
+    "num_steps": 2,
+    "tile_size_m": [
+      9.0,
+      9.0
+    ],
+    "fixed_terrain_row": 3,
+    "terrain_fraction": 1.0,
+    "flat_fraction": 0.0,
+    "nominal_fraction": 0.2,
+    "stair_ascent_fraction": 1.0,
+    "mid_start_fraction_of_ascent": 0.2,
+    "approach_distance_from_center_m": [
+      3.55,
+      4.0
+    ],
+    "mid_start_distance_from_center_m": 2.35,
+    "height_command_m": [
+      0.42,
+      0.42
+    ],
+    "height_command_start_m": 0.28,
+    "height_command_rate_m_s": 0.06,
+    "forward_start_s": 3.0,
+    "command_vx_m_s": [
+      1.8,
+      2.2
+    ],
+    "physics_dt_s": 0.0025,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02,
+    "full_DR_ranges_unchanged": true,
+    "actor35_critic78_action6": true,
+    "velocity_reward": "Original symmetric -1.5e^2 plus exponential1.2 unchanged",
+    "pitch_progress_veto": false,
+    "height_progress_veto": false,
+    "extra_reward": {
+      "new_forward_progress_per_m": 0.0,
+      "clearance_times_retraction_per_step": 0.6,
+      "first_true_wheel_landing": 0.5,
+      "between_landing_time_cost_per_s": -0.15,
+      "second_true_wheel_landing": 0.5,
+      "whole_course_completion_after_hold_0_3s": 2.0
+    },
+    "actual_landing": "Both drive wheels past edge, center near target tread+radius and measured upward contact>5N",
+    "lift": "Monotonic wheel-height clearance times relative leg shortening near the actual next edge; not raw short-leg reward",
+    "complete_Adam_retained": true,
+    "closure_reset_m": 0.002,
+    "solver": "Original TGS32/4; no numerical/plant relaxation",
+    "selection": "Fixed straight and actual oblique two-step success, nominal and full-DR reported separately; speed/time secondary; specialist is not deployment candidate",
+    "retained_original_rough_fraction": 0.0,
+    "retained_original_rough_levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "retained_original_rough_families": 10,
+    "retained_commands": "Dedicated teacher only: all ascending stairs; frozen comprehensive parent retains flat/rough",
+    "all_other_recipe_settings_unchanged": true,
+    "terrain_name_filter": "Actual terrain_family; carry verified implementation repair",
+    "custom_stair_shaping_to_PPO": true,
+    "training_guard_repair": "Wheel-center support height; near-edge guide exemption; separate contact/orientation dwell; original2mm numerical protection",
+    "forward_progress_reward_removed": true,
+    "height_command_scope": "ascent only; descent keeps prior0.365-0.40m sampling; other courses unchanged",
+    "descent_height_command_m": [
+      0.365,
+      0.4
+    ],
+    "ascent_height_resampling": "preserve the ramped ascent height across original generic command resampling; all RNG draws and other courses unchanged"
+  },
+  "previous_stage": "frozen comprehensive max-height005m",
+  "previous_remote_job": null,
+  "budget_total_training_seconds": 2400,
+  "phase": "isolated_stair_specialist_teacher",
+  "supersedes_previous_trial": false,
+  "resume_mode": "complete PPO; new isolated all-ascent and oblique course",
+  "flat_preservation": {
+    "enabled": false,
+    "reason": "Separate specialist; frozen comprehensive parent and healthy flat/rough teacher retained for later student training"
+  },
+  "parent_iteration": 25331,
+  "stair_training_repair_source": "sources/local/MOD4V3_STAIRS_TRAINING_GUARD_REPAIR_20261113",
+  "expected_env_groups": {
+    "continuous_stairs": 2048,
+    "retained_rough": 0,
+    "flat": 0
+  },
+  "single_factor_comparison": false,
+  "teacher_retention": {
+    "enabled": true,
+    "paper": "arXiv:2610.10601v1, persistent imitation during RL; adapted, not a full paper reproduction",
+    "student_initial_iteration": 25331,
+    "student_initial_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+    "keep_teacher": "/home/egde/rl_candidates/mod4v3_stairs_specialist_teacher_40m_20261113_r1/healthy_flat_rough_teacher.pt",
+    "keep_teacher_sha256": "979e355a563b3057d7509e9e5ef33e7a364906bd80bd16789ad80df654efa64d",
+    "stair_teacher_sha256": "f6ab98df35d5f69ee9109239eba3367ae182effb8cb267fe3e90437b84038b14",
+    "dataset": "/home/egde/rl_candidates/mod4v3_stairs_specialist_teacher_40m_20261113_r1/native_stair_success_demos.pt",
+    "lambda_bc": 0.125,
+    "keep_fraction": 0.0,
+    "stair_fraction": 1.0,
+    "demo_minibatch": 1024,
+    "action_loss": "mean_over_samples(sum_over6((clipped_student_mean-clipped_frozen_teacher_action)^2)); clipping uses original+-6 execution contract",
+    "keep_domain": "No flat/rough policy updates in specialist; no keep loss",
+    "stair_domain": "Same frozen seed plus growing completed successful two-step replay",
+    "policy35_critic78_action6_unchanged": true,
+    "regularizer_added_to": "same native PPO backward and optimizer step",
+    "coefficient_schedule": "Preserve previous effective stair BC coefficient0.125; no flat/rough BC in specialist",
+    "metadata_observation": "teacher_keep train-only scalar; policy still35 and critic78",
+    "dataset_sha256": "14d4e915e161eed2eae0922520a59425835e4ea9ad0ac1bce5200edc619820fa"
+  },
+  "demo_collection": {
+    "max_steps": 1000,
+    "only_first_physical_episode": true,
+    "height_cmd_m": 0.4,
+    "speed_cmd_m_s": 2.2,
+    "full_DR_ranges_unchanged": true,
+    "nominal_fraction": 0.2,
+    "optimizer_update": false
+  },
+  "online_success_replay": {
+    "enabled": true,
+    "max_episode_frames": 1000,
+    "capacity_per_stratum": 16384,
+    "new_fraction": 0.5,
+    "transition_fraction": 0.5,
+    "nominal_DR_balanced_when_available": true,
+    "accept": "existing whole two-step both-wheel landing plus0.3s hold, no termination, initial_stage0, same physical episode",
+    "targets": "actual clipped successful stochastic executed actions; immutable after acceptance",
+    "phase": "first true landing through second true landing; labels only, actor35/critic78/action6 unchanged",
+    "teacher_weight_updates": "none; healthy teacher and original seed targets frozen; successful replay grows",
+    "no_new_reward_DR_or_PPO_coefficients": true
+  },
+  "source_experiment": "MOD4V3_STAIRS_MAX_HEIGHT_40M_20261113/selected005m",
+  "evaluation_height_correction_20261113": {
+    "user_request": "stair climbing should use highest available stance command;0.40m is not the maximum",
+    "verified_command_ceiling_m": 0.42,
+    "ceiling_source": [
+      "support/mod4v3_ppo_v1/scut_flat_env.py:207",
+      "deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112/viewer/manual_control.py:36"
+    ],
+    "physical_maximum_verified": false,
+    "primary_evaluation": "0.42m command,2.2m/s,five identical starts for source025m and every new checkpoint; descent5 and flat60 retained",
+    "lower_height_cases": "preserved diagnostics; not required for primary stair pass rate",
+    "actual_running_training_height_range_m": [
+      0.42,
+      0.42
+    ],
+    "running_training_parameters_changed": true,
+    "scope": "new independent run only; previous run unchanged"
+  },
+  "storage": {
+    "old_210_path_compatible": true,
+    "actual_volume": "/mnt/mod4_windows_data/MOD4_training_data/rl_candidates",
+    "maintenance_record": "sources/local/MOD4V3_STORAGE_MIGRATION_20261113/README.md",
+    "remote_training_data_physical_root": "/mnt/mod4_windows_data/MOD4_training_data/rl_candidates"
+  },
+  "specialist": {
+    "enabled": true,
+    "total_stair_fraction": 1.0,
+    "straight_fraction": 0.5,
+    "oblique_fraction": 0.5,
+    "oblique_abs_yaw_deg": [
+      10.0,
+      30.0
+    ],
+    "signs": "left/right equal in expectation",
+    "whole_start_fraction": 0.8,
+    "mid_start_fraction": 0.2,
+    "landing_target_y_m": [
+      -0.15,
+      0.15
+    ],
+    "landing_target_abs_x_m": 1.1,
+    "ascent_height_command_m": 0.42,
+    "oblique_validation": "Actual first-riser wheel/guide contact heading in MuJoCo; native near-edge horizontal wheel contact heading also recorded",
+    "train_seconds": 2400,
+    "checkpoint_seconds": 300,
+    "student_training": "Conditional on specialist independently improving relevant successful skills; frozen parent remains unchanged until then"
+  }
+}

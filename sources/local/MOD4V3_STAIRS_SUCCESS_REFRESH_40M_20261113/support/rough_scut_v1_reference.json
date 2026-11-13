@@ -1,0 +1,558 @@
+{
+  "airborne_state_machine_cfg": {
+    "enabled": true,
+    "allowed_terrain_names": [],
+    "not_allowed_terrain_names": [],
+    "enter": {
+      "wheel_radius": 0.06,
+      "body_height_threshold": 0.3,
+      "wheel_clearance_threshold": 0.08,
+      "duration_s": 0.02
+    },
+    "target_height": {
+      "enabled": true,
+      "bias": 0.12,
+      "max": 0.36
+    },
+    "landing_trajectory": {
+      "enabled": false,
+      "start_wheel_contact_duration_s": 0.02,
+      "target_height": 0.24,
+      "end_vel_z": 0.0,
+      "min_height_margin": 0.02,
+      "min_down_vel": 0.2,
+      "duration_s": 0.3,
+      "max_abs_acc": 30.0
+    },
+    "exit": {
+      "wheel_contact_force_threshold": 20.0,
+      "wheel_contact_height_threshold": 0.15,
+      "wheel_contact_duration_s": 0.3,
+      "base_contact_force_threshold": 5.0,
+      "base_contact_duration_s": 0.25,
+      "max_duration_s": 1.0
+    },
+    "reward_scales": {
+      "undesired_contact": 25.0,
+      "foot_bound_square": 1.0,
+      "termination": 6.0,
+      "flat_orientation_y_v": 0.0,
+      "lin_vel_z": 2.0,
+      "track_height_square": 0.0
+    },
+    "reward_full": {},
+    "reward_additions": {
+      "airborne_undesired_contact_force": {
+        "type": "undesired_contact_force",
+        "force_threshold": 3.0,
+        "mode": "l1"
+      },
+      "airborne_landing_down_vel": {
+        "type": "negative_lin_vel_z_after_wheel_contact",
+        "start_duration_s": 0.02,
+        "use_world_frame": true,
+        "mode": "l2",
+        "square_sigma": 2.0
+      },
+      "airborne_landing_down_vel_exp": {
+        "type": "negative_lin_vel_z_after_wheel_contact_exp",
+        "start_duration_s": 0.02,
+        "use_world_frame": true,
+        "sigma": 0.25
+      },
+      "airborne_joint_pos_limits": {
+        "type": "rear2_rear1_joint_pos_limits"
+      },
+      "airborne_joint_pos_limits_vel_reg": {
+        "type": "rear2_rear1_joint_pos_limits_vel_reg"
+      },
+      "airborne_leg_length_min": {
+        "type": "leg_retraction",
+        "mode": "below_target_per_leg",
+        "target": 0.25,
+        "before_wheel_contact_duration_s": 0.02,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_wheel_height_below_base": {
+        "type": "wheel_height_below_base_exp",
+        "target": 0.34,
+        "sigma": 0.025,
+        "before_wheel_contact_duration_s": 0.02,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_wheel_heading_x_centering": {
+        "type": "wheel_heading_x_centering",
+        "wheel_contact_duration_s": 0.02,
+        "base_contact_duration_s": 0.02,
+        "wheel_heading_z_max": -0.1,
+        "sigma": 0.02
+      },
+      "airborne_low_body_height": {
+        "type": "body_height_below",
+        "threshold": 0.3,
+        "mode": "l2",
+        "square_sigma": 5.0
+      },
+      "airborne_body_height_below_binary": {
+        "type": "body_height_below",
+        "threshold": 0.25,
+        "mode": "binary"
+      },
+      "airborne_wheel_contact_force_over": {
+        "type": "wheel_contact_force_over",
+        "force_threshold": 300.0,
+        "mode": "l1",
+        "reduce": "sum"
+      },
+      "airborne_landing_wheel_body_x_positive": {
+        "type": "landing_wheel_body_x_positive",
+        "target_x": 0.03,
+        "sigma": 0.03,
+        "command_x_min": 1.0,
+        "start_wheel_contact_duration_s": 0.02,
+        "contact_force_threshold": 1.0,
+        "contact_mode": "any_wheel",
+        "use_entry_command": true
+      },
+      "airborne_air_wheel_zero_torque_exp": {
+        "type": "wheel_zero_torque_exp",
+        "sigma": 1.5,
+        "before_wheel_contact_duration_s": 0.02,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_precontact_wheel_directional_speed": {
+        "type": "wheel_directional_speed",
+        "start": 0.0,
+        "full": 10.0,
+        "command_x_threshold": 1.0,
+        "root_x_threshold": 1.0,
+        "reduce": "min",
+        "before_wheel_contact_duration_s": 0.02,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_precontact_wheel_directional_speed_shortfall": {
+        "type": "wheel_directional_speed_shortfall",
+        "start": 0.0,
+        "full": 10.0,
+        "command_x_threshold": 1.0,
+        "root_x_threshold": 1.0,
+        "reduce": "min",
+        "require_wheel_contact_timer_started": true,
+        "before_wheel_contact_duration_s": 0.05,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_landing_wheel_max_contact_force": {
+        "type": "landing_wheel_max_contact_force",
+        "force_start": 200.0,
+        "force_full": 400.0,
+        "start_wheel_contact_duration_s": 0.02,
+        "contact_force_threshold": 1.0,
+        "contact_mode": "any_wheel"
+      },
+      "airborne_landing_traj_height": {
+        "type": "landing_traj_height_exp",
+        "sigma": 0.01
+      },
+      "airborne_landing_traj_vel_z": {
+        "type": "landing_traj_vel_z_exp",
+        "sigma": 0.25
+      }
+    },
+    "terrain_command_resample": {
+      "enabled": true,
+      "prob": 0.15,
+      "lin_vel_x_sign_from_current": true,
+      "profiles": {
+        "high_stair_for_rm": {
+          "lin_vel_x": [
+            [
+              -1.5,
+              1.5
+            ]
+          ],
+          "lin_vel_y": [
+            0.0,
+            0.0
+          ],
+          "ang_vel_z": [
+            -1.0,
+            1.0
+          ]
+        },
+        "high_speed_stair_for_rm": {
+          "lin_vel_x": [
+            [
+              -1.5,
+              1.5
+            ]
+          ],
+          "lin_vel_y": [
+            0.0,
+            0.0
+          ],
+          "ang_vel_z": [
+            -1.0,
+            1.0
+          ]
+        },
+        "low_speed_stair_for_rm": {
+          "lin_vel_x": [
+            [
+              -1.5,
+              1.5
+            ]
+          ],
+          "lin_vel_y": [
+            0.0,
+            0.0
+          ],
+          "ang_vel_z": [
+            -1.0,
+            1.0
+          ]
+        }
+      }
+    }
+  },
+  "predefined_reset_air": {
+    "enabled": true,
+    "modes": {
+      "name": "air_1",
+      "prob": 0.4,
+      "iteration_start": 0,
+      "iteration_end": -1,
+      "pose_range": {
+        "z": [
+          0.12,
+          0.42
+        ],
+        "roll": [
+          -0.1,
+          0.1
+        ],
+        "pitch": [
+          -0.2,
+          0.2
+        ],
+        "yaw": [
+          -3.141592653589793,
+          3.141592653589793
+        ]
+      },
+      "velocity_range": {
+        "x": [
+          -2.5,
+          2.5
+        ],
+        "y": [
+          -0.5,
+          0.5
+        ],
+        "z": [
+          -0.0,
+          0.0
+        ],
+        "roll": [
+          -0.05,
+          0.05
+        ],
+        "pitch": [
+          -0.1,
+          0.1
+        ],
+        "yaw": [
+          -0.5,
+          0.5
+        ]
+      },
+      "command_limits": {
+        "duration_s": 3.0,
+        "lin_vel_x": [
+          -2.5,
+          2.5
+        ],
+        "lin_vel_y": [
+          0.0,
+          0.0
+        ],
+        "ang_vel_z": [
+          -1.5707963267948966,
+          1.5707963267948966
+        ],
+        "height": [
+          0.18,
+          0.43
+        ]
+      },
+      "leg_length_range": [
+        0.15,
+        0.35
+      ],
+      "leg_angle_range": [
+        -0.7853981633974483,
+        0.7853981633974483
+      ]
+    }
+  },
+  "terrain_command_overrides": {
+    "high_speed_stair_for_rm": {
+      "height_range": [
+        [
+          0.22,
+          0.34
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          1.5,
+          2.7
+        ],
+        [
+          -2.7,
+          -1.5
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": [
+        -0.1,
+        0.1
+      ],
+      "reset_heading_axis_aligned_only": true,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": true
+    },
+    "low_speed_stair_for_rm": {
+      "height_range": [
+        [
+          0.22,
+          0.34
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          0.5,
+          1.5
+        ],
+        [
+          -1.5,
+          -0.5
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": [
+        -0.1,
+        0.1
+      ],
+      "reset_heading_axis_aligned_only": true,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": true
+    },
+    "cliff_inv_stair_slope_short_for_rm": {
+      "height_range": [
+        [
+          0.24,
+          0.32
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          2.0,
+          2.7
+        ],
+        [
+          -2.7,
+          -2.0
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": [
+        -0.1,
+        0.1
+      ],
+      "reset_heading_axis_aligned_only": true,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": true
+    },
+    "slope_for_rm_high": {
+      "height_range": [
+        [
+          0.24,
+          0.32
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          -2.5,
+          2.5
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": null,
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    },
+    "inv_slope_for_rm_low": {
+      "height_range": [
+        [
+          0.22,
+          0.42
+        ]
+      ],
+      "lin_vel_x": null,
+      "lin_vel_y": null,
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": null,
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": null,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    },
+    "stair_slope_for_rm_high": {
+      "height_range": [
+        [
+          0.24,
+          0.32
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          -2.5,
+          2.5
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": [
+        -3.141592653589793,
+        3.141592653589793
+      ],
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    },
+    "inv_stair_slope_for_rm_low": {
+      "height_range": [
+        [
+          0.22,
+          0.42
+        ]
+      ],
+      "lin_vel_x": null,
+      "lin_vel_y": null,
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": null,
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": null,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    },
+    "inv_stair_slope_for_rm_high": {
+      "height_range": [
+        [
+          0.24,
+          0.32
+        ]
+      ],
+      "lin_vel_x": [
+        [
+          1.5,
+          2.7
+        ],
+        [
+          -2.7,
+          -1.5
+        ]
+      ],
+      "lin_vel_y": [
+        0.0,
+        0.0
+      ],
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": [
+        -0.1,
+        0.1
+      ],
+      "reset_heading_axis_aligned_only": true,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": true
+    },
+    "random_uniform_for_rm": {
+      "height_range": [
+        [
+          0.22,
+          0.42
+        ]
+      ],
+      "lin_vel_x": null,
+      "lin_vel_y": null,
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": null,
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": null,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    },
+    "tiny_step": {
+      "height_range": [
+        [
+          0.22,
+          0.32
+        ]
+      ],
+      "lin_vel_x": null,
+      "lin_vel_y": null,
+      "ang_vel_z": null,
+      "ang_vel_z_heading": null,
+      "ang_vel_z_non_heading": null,
+      "reset_heading_axis_aligned_only": null,
+      "disable_predefined_reset_air": true,
+      "disable_jump_takeoff": null,
+      "disable_special_mode": null
+    }
+  },
+  "airborne_reward_weights": {
+    "airborne_landing_down_vel": -1.0,
+    "airborne_joint_pos_limits": -10.0,
+    "airborne_joint_pos_limits_vel_reg": -100.0,
+    "airborne_wheel_heading_x_centering": 10.0,
+    "airborne_air_wheel_zero_torque_exp": 20.0,
+    "airborne_precontact_wheel_directional_speed": 10.0,
+    "airborne_precontact_wheel_directional_speed_shortfall": -10.0,
+    "airborne_landing_wheel_max_contact_force": -10.0
+  }
+}

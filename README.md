@@ -246,3 +246,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- STAIRS_TEACHER_RETENTION_40M_20261113_START -->
 持续教师保留PPO，从005m起步；候选stairs200_teacher_retention_40m_20261113_040m，平地40/60、两阶5/10。 实际2405.004秒，联合源5m保留=True；[配方与结果](sources/local/MOD4V3_STAIRS_TEACHER_RETENTION_40M_20261113/README.md)。
 <!-- STAIRS_TEACHER_RETENTION_40M_20261113_END -->
+
+<!-- STAIRS_SUCCESS_REFRESH_40M_20261113_START -->
+连续两阶成功示范更新40分钟，从上一轮040m/iter25076完整恢复；旧教师保持，成功完整两阶轨迹动态补充并重点采样第二阶过渡。原奖励、DR、2048环境40/35/25比例及PPO系数沿用，每5分钟完整PT与原固定回放。[本轮配方与结果](sources/local/MOD4V3_STAIRS_SUCCESS_REFRESH_40M_20261113/README.md)。
+<!-- STAIRS_SUCCESS_REFRESH_40M_20261113_END -->

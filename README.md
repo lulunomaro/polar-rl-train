@@ -226,3 +226,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 <!-- STAIRS_TRAINING_GUARD_REPAIR_20261113 -->
 2026-11-13：连续台阶高度参考改为轮下中心射线，阶沿上行导轮接触按限定窗口放行，接触/倾角独立持续计时；新源码版本经2048环境600步冻结回放，numerical=0，仍执行2mm单环境重置。没有PPO更新。修正协议V3下，最新40m(iter25050)完整双阶1/10，15m(iter24830)为6/10（0.40m指令5/5）；旧分数保留原协议标签。最新窗口可手动操控，完整PT/配方/失败轨迹见[本次修复与回放说明](sources/local/MOD4V3_STAIRS_TRAINING_GUARD_REPAIR_20261113/README.md)。
+
+
+<!-- STAIRS_PARENT_REPAIRED_40M_20261113_LAUNCH -->
+新授权40分钟：修复台阶高度/导轮接触/独立终止计时后，从原父iter24692完整PPO重新开始，环境比例40%台阶/35%原Rough-v1/25%平地（819/717/512）；每5分钟完整保存与回放，不自动延长。[本轮配方与进度](sources/local/MOD4V3_STAIRS_PARENT_REPAIRED_40M_20261113/README.md)。

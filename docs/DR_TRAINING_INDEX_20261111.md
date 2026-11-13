@@ -353,3 +353,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STORAGE_MIGRATION_20261113_START -->
 2026-11-13：210训练实验目录约61GB、130878文件已逐一SHA校验迁往Windows数据盘，旧路径兼容；Linux可用734MiB→62G，清理114份已发布Git实体旧PT和两个关闭作业缓存。[搬迁、恢复与删除明细](../sources/local/MOD4V3_STORAGE_MIGRATION_20261113/README.md)。
 <!-- STORAGE_MIGRATION_20261113_END -->
+
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_START -->
+最高站姿0.42m上行接训已启动：source025m iter25288/SHA8215a43a…，40分钟每5分钟完整保存；修复上行高度被通用重采样拉低，奖励/DR/教师配方不改。 [配方与进展](../sources/local/MOD4V3_STAIRS_MAX_HEIGHT_40M_20261113/README.md)。
+<!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->

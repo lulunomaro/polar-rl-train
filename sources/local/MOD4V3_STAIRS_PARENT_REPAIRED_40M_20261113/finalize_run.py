@@ -36,7 +36,8 @@ def main():
   source=Path(selected['model']);selected_record=next(r for r in records if r['sha256']==selected['sha256']);alias=T/'weights/selected_parent_repaired_candidate.pt';shutil.copy2(source,alias);selected_record['aliases'].append(alias.relative_to(R).as_posix())
   write(T/'weights/SELECTED_MODEL.json',dict(display_name='父模型起步台阶判定修复40分钟实验候选',model_id=selected_record['id'],iteration=selected_record['iteration'],sha256=selected_record['sha256'],full_PPO=True,source=selected_record['git_path'],alias=alias.relative_to(R).as_posix(),whole_stair_passed=selected['whole_stair_passed'],whole_stair_requested=selected['whole_stair_requested'],flat60_passed=selected['flat60_passed'],flat60_requested=selected['flat60_requested'],status='Experimental; original mature package retained; measured regression disclosed'))
   sys.path.insert(0,str(T));from run_retention_replays import main as replay
-  retention=replay(alias)
+  if not (E/'SUPERSEDED_BY_NO_PROGRESS_RESTART.json').exists():
+   retention=replay(alias)
  aggregate=[]
  for job in retention:
   if not job['complete']:continue
@@ -47,6 +48,7 @@ def main():
     aggregate.append(dict(job=job['job'],model=model,variant=variant,requested=sum(r['requested'] for r in rows),crossed=sum(r['crossed_count'] for r in rows),without_termination=sum(r['completed_without_termination'] for r in rows),gyro_survived6s=sum((r.get('gyro_metrics') or {}).get('first_episode_survived6s',0) for r in rows),landing_pose=sum((r.get('landing_metrics') or {}).get('posture_recovered',0) for r in rows),landing_command=sum((r.get('landing_metrics') or {}).get('command_recovered',0) for r in rows)))
  write(E/'ROUGH_RETENTION_SUMMARY.json',dict(reports=retention,aggregate=aggregate,scope='Original Rough-v1 geometry/commands/guards; matched400Hz wheel; paired initialDR/wrench/push/noise; no optimizer; no automatic graduation'))
  status='completed fresh2400s mixed training from iter24692' if final and total>=2395 else 'closed early or failed; actual new-round seconds retained'
+ if (E/'SUPERSEDED_BY_NO_PROGRESS_RESTART.json').exists():status='Stopped early by human-authorized no-progress restart; original regressions and actual seconds preserved; GPU retention deferred'
  decision=dict(status=status,total_budget_seconds=2400,actual_training_seconds=phase_seconds,total_training_seconds=total,selected_model_id=selected_record['id'] if selected_record else None,selected_flat60=selected['flat60_passed'] if selected else None,selected_stairs10=selected['whole_stair_passed'] if selected else None,rough_replays_complete=sum(x['complete'] for x in retention),rough_replays_requested=4,original_mature_parent_retained=True,automatic_mature_or_realcar_promotion=False,selection='Flat60 retention first, then whole-stair count, then stair interval; original Rough-v1 paired results disclosed; healthy parent retained')
  write(T/'DECISION.json',decision);write(E/'MODEL_ARCHIVE_INDEX.json',dict(models=records,decision=decision))
  reg=json.loads((C/'MODEL_REGISTRY.json').read_text(encoding='utf8'));ids={r['id'] for r in records};reg['models']=[x for x in reg['models'] if x['id'] not in ids]+records
@@ -75,6 +77,7 @@ def main():
 
 配方和来源见PLAN.json，首轮恢复和分布见evidence/training/RESTORE.json、TERRAIN_STARTUP.json。每五分钟完整保存、SHA下载核验与巡检，所有真实PT、原始回放、失败和报告随Git普通blob归档，网络走7897代理。
 '''
+ report+='\n\n本轮若存在SUPERSEDED_BY_NO_PROGRESS_RESTART.json，则因前向超速与平地保留退化按用户指令提前保存结束；原Rough-v1 GPU回放延后，0/4不表示通过或失败。\n' if (E/'SUPERSEDED_BY_NO_PROGRESS_RESTART.json').exists() else ''
  report+='\n\n此次恢复自有收腿/落轮/接续奖励；平地保留组的一半固定练原六项目标并用地面reset，余下平地和原rough采样保留；真实terrain_family用于奖励过滤。实际配方、探针和启动核验见PLAN.json及evidence。\n'.replace('\\n','\n')
  (T/'FINAL_REPORT.md').write_text(report,encoding='utf8')
  own_block(T/'README.md','## 实际收尾\n\n'+chosen+f' 本轮实际{total:.3f}秒；原Rough-v1固定保留回放{sum(x["complete"] for x in retention)}/4组。[完整结果](FINAL_REPORT.md)。')

@@ -346,3 +346,9 @@
 
 候选continuous_stairs200_own_repair_40m_20261113_010m，iter24783，连续两阶2/10、平地40/60。 完整PPO共10份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
 <!-- CONTINUOUS_STAIRS_OWN_REPAIR_40M_20261113_END -->
+
+<!-- STAIRS_PARENT_REPAIRED_40M_20261113_START -->
+## 连续200mm台阶与Rough-v1保留
+
+候选stairs200_parent_repaired_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 完整PPO共6份，逐文件SHA/bytes/配方在MODEL_REGISTRY.json；原成熟基座不替换。
+<!-- STAIRS_PARENT_REPAIRED_40M_20261113_END -->

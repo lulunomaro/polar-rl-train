@@ -230,3 +230,11 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 <!-- STAIRS_PARENT_REPAIRED_40M_20261113_LAUNCH -->
 新授权40分钟：修复台阶高度/导轮接触/独立终止计时后，从原父iter24692完整PPO重新开始，环境比例40%台阶/35%原Rough-v1/25%平地（819/717/512）；每5分钟完整保存与回放，不自动延长。[本轮配方与进度](sources/local/MOD4V3_STAIRS_PARENT_REPAIRED_40M_20261113/README.md)。
+
+
+<!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_LAUNCH -->
+上一轮前向超速未解决，按用户指令正常保存提前结束。新一轮从原父iter24692完整PPO重新开始40分钟，仅删除0.8×advance推进奖励，继续819台阶/717原Rough-v1/512平地；每5分钟完整保存及同协议回放。[本轮单项删除配方与结果](sources/local/MOD4V3_STAIRS_NO_PROGRESS_PARENT_40M_20261113/README.md)。
+
+<!-- STAIRS_PARENT_REPAIRED_40M_20261113_START -->
+从健康父iter24692起步，首轮即40%台阶/35%原Rough-v1粗糙地形/25%平地。候选stairs200_parent_repaired_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 独立新轮实际1451.965秒；[配方与结果](sources/local/MOD4V3_STAIRS_PARENT_REPAIRED_40M_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
+<!-- STAIRS_PARENT_REPAIRED_40M_20261113_END -->

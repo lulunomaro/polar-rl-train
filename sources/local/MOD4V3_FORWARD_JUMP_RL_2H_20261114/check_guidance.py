@@ -12,6 +12,7 @@ T=Path(__file__).resolve().parent
 parser=argparse.ArgumentParser()
 parser.add_argument('--dataset',default=str(T/'weights/teacher_demos_r1__successful_demos.pt'))
 parser.add_argument('--report',default='R3_GUIDANCE_NO_UPDATE_CHECK.json')
+parser.add_argument('--checkpoint')
 args=parser.parse_args()
 sys.path.insert(0,str(T/'support_r3'))
 from mod4v3_ppo_v1.jump_bc import JumpGuidance
@@ -28,6 +29,7 @@ class Actor(nn.Module):
         return self.mlp(observations['policy'])
 actor=Actor()
 weights=T/'weights/train_cont_r2__model_final.pt'
+if args.checkpoint:weights=Path(args.checkpoint)
 if not weights.exists():weights=sorted((T/'weights').glob('train_cont_r2__model_*m.pt'))[-1]
 state=torch.load(weights,map_location='cpu',weights_only=False)
 actor.mlp.load_state_dict({k.removeprefix('mlp.'):v for k,v in state['actor_state_dict'].items() if k.startswith('mlp.')})

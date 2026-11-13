@@ -19,13 +19,27 @@ selected = summary['selected']
 assert selected is not None
 evidence = T/'evidence'/selected['job']
 result = json.loads((evidence/'RESULT.json').read_bytes())
-rows = [row for row in result['episodes'] if row['nominal']]
+all_rows=result['episodes']
+good=[row for row in all_rows if row['success'] and not row['terminated']]
+nominal_good=[row for row in good if row['nominal']]
+rows = nominal_good or good or [row for row in all_rows if row['nominal']]
 row = max(rows,key=lambda item:(bool(item['success']) and not item['terminated'],bool(item['retracted']),bool(item['takeoff']),item['rim_peak'],-item['env']))
 qualified = bool(row['success']) and not bool(row['terminated'])
+group_label='Nominal' if row['nominal'] else 'FullDR'
 index = row['env']
 trace = np.load(evidence/'trajectory.npz')
 names = trace['joint_names'].tolist()
 model = mujoco.MjModel.from_xml_path(str((T/'native_package/mjcf/scene.xml').resolve()))
+model.vis.headlight.active=1
+model.vis.headlight.ambient[:]=(.65,.65,.65)
+model.vis.headlight.diffuse[:]=(.75,.75,.75)
+if model.nlight:
+    model.light_ambient[:]=(.25,.25,.25)
+    model.light_diffuse[:]=(.75,.75,.75)
+for geom in range(model.ngeom):
+    if model.geom_type[geom]==mujoco.mjtGeom.mjGEOM_PLANE:
+        model.geom_matid[geom]=-1
+        model.geom_rgba[geom]=(.82,.86,.85,1.)
 data = mujoco.MjData(model)
 addresses = [model.joint(name).qposadr[0] for name in names]
 root_address = int(model.joint('root_joint').qposadr[0])
@@ -43,7 +57,7 @@ option.geomgroup[5] = 0
 font_path = Path('C:/Windows/Fonts/arial.ttf')
 font = ImageFont.truetype(str(font_path),20) if font_path.exists() else ImageFont.load_default()
 small = ImageFont.truetype(str(font_path),16) if font_path.exists() else ImageFont.load_default()
-labels = ['FORWARD','CROUCH','PUSH','FLIGHT / RETRACT','LAND / RECOVER']
+labels = ['FORWARD','CROUCH','PUSH','FLIGHT','LAND / RECOVER']
 renderer = mujoco.Renderer(model,height=540,width=960)
 rendered_rims = []
 
@@ -65,12 +79,12 @@ def frame(step):
     draw = ImageDraw.Draw(image)
     draw.rectangle((0,0,960,72),fill=(245,247,247))
     phase = int(trace['phase'][step,index])
-    draw.text((16,9),f'LEARNED POLICY | {labels[phase]} | {step*.02:.2f} s',font=font,fill=(20,30,30))
-    draw.text((16,41),f'Nominal case {index} | native recorded state | complete pass: {qualified}',font=small,fill=(50,65,65))
+    draw.text((16,9),f'LEARNED POLICY | {labels[phase]} | {float(trace["age"][step,index]):.2f} s',font=font,fill=(20,30,30))
+    draw.text((16,41),f'{group_label} case {index} | native state | pass: {qualified} | vx {float(trace["vx"][step,index]):.2f} m/s | x {root[0]:.2f} m',font=small,fill=(50,65,65))
     draw.rectangle((0,504,960,540),fill=(245,247,247))
     pitch = np.rad2deg(float(trace['air_pitch'][step,index]))
     roll = np.rad2deg(float(trace['air_roll'][step,index]))
-    draw.text((16,512),f'Air peak pitch {pitch:.2f} deg | roll {roll:.2f} deg | measured air {float(trace["air_s"][step,index]):.2f} s',font=small,fill=(30,45,45))
+    draw.text((16,512),f'Air pitch {pitch:.2f} deg | roll {roll:.2f} deg | air {float(trace["air_s"][step,index]):.2f} s | tuck: {bool(trace["retracted"][step,index])}',font=small,fill=(30,45,45))
     return image
 
 
@@ -81,6 +95,9 @@ with imageio.get_writer(video,fps=50,codec='libx264',quality=8,macro_block_size=
         writer.append_data(np.asarray(frame(step)))
 keys = []
 phases = trace['phase'][:end,index]
+joint_case=trace['native_q'][:end,index]
+leg_delta=.5*(joint_case[:,names.index('left_front1_joint')]-joint_case[:,names.index('left_rear1_joint')]
+              +joint_case[:,names.index('right_front1_joint')]-joint_case[:,names.index('right_rear1_joint')])
 for phase in range(5):
     options = np.flatnonzero(phases == phase)
     if len(options):
@@ -88,7 +105,9 @@ for phase in range(5):
             height = trace['root_pos'][options,index,2]
             step = int(options[int(height.argmin())])
         elif phase == 3:
-            step = int(options[len(options)//2])
+            step = int(options[int(leg_delta[options].argmin())])
+        elif phase == 2:
+            step = int(options[int(leg_delta[options].argmax())])
         else:
             step = int(options[len(options)//2])
         keys.append(step)
@@ -105,9 +124,11 @@ rendered_peak = max(rendered_rims,default=0.)
 receipt = dict(checkpoint_sha256=selected['sha256'],evaluation=selected['job'],case=row,
     accepted_complete_case=qualified,
     playback='Recorded native PhysX policy states; MuJoCo renderer only, no physics integration',
+    visualization='Render-only lighting and floor contrast; plant file and physical state unchanged',
     teacher_executed=False,frames=end,fps=50,terminal_reset_frame_omitted=True,
     native_recorded_rim_peak_m=actual_peak,rendered_rim_peak_m=rendered_peak,
     pose_height_difference_m=abs(actual_peak-rendered_peak),
+    video_path=str(video),video_bytes=video.stat().st_size,
     video_sha256=hashlib.sha256(video.read_bytes()).hexdigest())
 (T/'evidence/RECORDED_POLICY_RENDER.json').write_text(json.dumps(receipt,indent=2)+'\n')
 shutil.copy2(output/'learned_policy_frames.png',T/'evidence/learned_policy_frames.png')

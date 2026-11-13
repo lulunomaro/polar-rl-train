@@ -63,13 +63,13 @@ if args.phase != 'final':
     for history in (T/'evidence').glob('progress_history*.jsonl'):
         if '_snapshot' in history.stem:continue
         (T/'evidence'/(history.stem+'_'+args.phase+'_snapshot.jsonl')).write_bytes(history.read_bytes())
-text_suffixes = {'.py','.md','.json','.jsonl','.log','.txt','.xml','.yaml','.yml','.usda','.csv'}
+text_suffixes = {'.py','.md','.json','.jsonl','.log','.txt','.xml','.yaml','.yml','.usda','.csv','.png','.rst','.toml','.cfg','.ini','.sh','.bat','.ps1','.urdf'}
 for path in sorted(T.rglob('*')):
     if not path.is_file() or '__pycache__' in path.parts:
         continue
     if args.phase != 'final' and path.name in ('progress_history.jsonl','progress_history_r2.jsonl','progress_history_r3.jsonl'):
         continue
-    if path.suffix in text_suffixes or path.name.endswith('.json.partial'):
+    if path.suffix in text_suffixes or path.name.endswith('.json.partial') or 'LICENSE' in path.name.upper() or path.name.upper()=='COPYING':
         selected.append(path.relative_to(R).as_posix())
     elif path.suffix in {'.pt','.npz','.usd','.stl','.obj','.png','.mp4','.gif'}:
         artifacts.append(dict(path=str(path),git_path=path.relative_to(R).as_posix(),bytes=path.stat().st_size,

@@ -97,3 +97,7 @@ stairs_specialist_student_20261113_010m；平地60/60、正向1/5、真实斜向
 ## 完整台阶示范＋上阶约束修复2小时已结束
 
 实际PPO 7204.53080534935秒；实验候选stairs_parent_complete_20261113_095m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_STAIRS_PARENT_COMPLETE_2H_20261113/FINAL_REPORT.md。
+
+## 2026-11-14 高站姿保留与连续登阶修复：已开训两小时
+
+实际PPO 2026-11-14T00:32:44.468226+08:00至预算约2026-11-14T02:32:44.468226+08:00。完整PPO接续上一轮95m（SHA de57c6dc）；健康综合父db6继续作为冻结保留教师。高站姿4腿单独保留、运动后成功示范阶段/角度均衡、单轮真实落轮及时分配原有0.5奖励。819台阶/717rough/512平地，原fullDR和速度奖励沿用。每5分钟完整PT和固定验收，预算7200秒不自动加时。完整配方、问题和负面诊断：sources/local/MOD4V3_STAIRS_PHASE_HEIGHT_REPAIR_2H_20261113/README.md、DIAGNOSIS.md、PLAN.json。

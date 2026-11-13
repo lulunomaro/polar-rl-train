@@ -89,3 +89,7 @@
 ## 2026-11-13 综合父冻结与独立台阶教师
 
 综合最优db6e9ccf/iter25331完整PT冻结在相邻`MOD4V3_STAIRS_SPECIALIST_TEACHER_40M_20261113/frozen_parent/`。专项教师715c40b6/iter25432：本机正向5/5、真实斜向10/20；原生名义14/100、fullDR1/100，不能称fullDR毕业。737秒专项与44秒短对照的全部PT和失败保留。当前独立学生配方见`MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/PLAN.json`，从原父而非教师权重初始化。
+
+## 台阶教师迁移学生完成
+
+stairs_specialist_student_20261113_010m；平地60/60、正向1/5、真实斜向0/20；全PT与原生保留结果见相邻MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/FINAL_REPORT.md。原冻结父保持。

@@ -42,3 +42,9 @@ reward = base + extra
 ## 与最终父模型的配方差异
 
 [父子实际配方对比](evidence/parent_recipe_diff/REPORT.md)：使用最终P2/full_actor父记录；51基础奖励、PPO配置、全actor更新与DR范围相同，主要新增为混合地形/采样、5项登阶分与适用子集的空中重置。不能用第一段wheel-only计划误判最终父模型。
+
+<!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_START -->
+## 实际收尾
+
+候选stairs200_no_progress_parent_40m_20261113_005m，iter24737，连续两阶5/10、平地40/60。 本轮实际2401.777秒；原Rough-v1固定保留回放4/4组。[完整结果](FINAL_REPORT.md)。
+<!-- STAIRS_NO_PROGRESS_PARENT_40M_20261113_END -->

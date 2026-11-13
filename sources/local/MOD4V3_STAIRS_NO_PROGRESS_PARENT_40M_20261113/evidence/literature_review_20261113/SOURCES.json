@@ -1,0 +1,105 @@
+{
+  "review_date": "2026-11-13",
+  "primary_sources_only": true,
+  "sources": [
+    {
+      "id": "R1",
+      "title_short": "Teaching a Robot Dog New Tricks",
+      "authors": "Marc Oliver Hare et al.",
+      "date": "2026-10-06",
+      "status": "arXiv preprint v1; submitted to IEEE RA-L, no acceptance inferred",
+      "arxiv": "2610.10601",
+      "url": "https://arxiv.org/html/2610.10601v1",
+      "primary": true,
+      "key_finding": "Multi-teacher PPO plus imitation, imitation-led phase followed by RL-led phase that retains imitation; optional adversarial task allocation; quadruped simulations, not this MOD4 robot.",
+      "limits": "Paper student uses a different command/observation contract. Borrow retention loss, not its full input or task interface."
+    },
+    {
+      "id": "R2",
+      "title": "Scalable Multi-Objective Robot Reinforcement Learning through Gradient Conflict Resolution",
+      "authors": "Baojin Luo et al.",
+      "date": "2025-09-18",
+      "status": "arXiv preprint",
+      "arxiv": "2509.14816",
+      "url": "https://arxiv.org/html/2509.14816v1",
+      "implementation": "https://github.com/baojinLuo/gcr_ppo",
+      "primary": true,
+      "key_finding": "Per-objective value heads and advantage estimation, prioritized conflict projection; demonstrated in quadruped and humanoid control.",
+      "limits": "Not proven for this wheel-legged task. New multi-head critic changes training checkpoint schema; official code is based on IsaacLab2.1, not our installed runtime."
+    },
+    {
+      "id": "R3",
+      "title": "Adaptive Curriculum of Learning Progress for Reinforcement Learning-Based Legged Locomotion",
+      "authors": "José David Charry Sánchez et al.",
+      "date": "2026-01-24",
+      "status": "arXiv preprint v1",
+      "arxiv": "2601.17428",
+      "url": "https://arxiv.org/html/2601.17428v1",
+      "primary": true,
+      "key_finding": "Task-conditioned terrain/velocity curriculum driven by learning progress; robust positive progress outperforms several heuristics in its locomotion study.",
+      "limits": "Increasing samples for negative progress alone can chase oscillations. This is not a universal least-success-rate sampler."
+    },
+    {
+      "id": "R4",
+      "title": "Adaptive multi-mode locomotion for bipedal wheel-legged robots via sparse mixture-of-experts deep reinforcement learning",
+      "authors": "Shoulin Ye et al.",
+      "date": "2026-02-25",
+      "status": "Frontiers in Robotics and AI original research; simulation study",
+      "doi": "10.3389/frobt.2026.1720014",
+      "url": "https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2026.1720014/full",
+      "fulltext": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12975443/",
+      "primary": true,
+      "key_finding": "Two sparse MoE experts specialize in rolling and lifting using learned routing.",
+      "limits": "Diablo simulation; 12cm stair, 0.6m/s, 153-dimensional observations including three-frame history; not evidence of 20cm at our command speeds or 35-D deployment compatibility."
+    },
+    {
+      "id": "R5",
+      "title": "Experience Replay for Continual Learning",
+      "authors": "David Rolnick et al.",
+      "date": "2019",
+      "status": "NeurIPS 2019",
+      "arxiv": "1811.11682",
+      "url": "https://arxiv.org/html/1811.11682v1",
+      "primary": true,
+      "key_finding": "CLEAR combines on/off-policy learning, replay and behavioral cloning to retain old behavior.",
+      "limits": "Original algorithm is not PPO. Do not reuse stale trajectories as ordinary on-policy PPO rollouts."
+    },
+    {
+      "id": "R6",
+      "title": "Kickstarting Deep Reinforcement Learning",
+      "authors": "Simon Schmitt et al.",
+      "date": "2018-03-20",
+      "status": "arXiv paper",
+      "arxiv": "1803.03835",
+      "url": "https://arxiv.org/abs/1803.03835",
+      "primary": true,
+      "key_finding": "Teacher policy guidance is added to reinforcement learning instead of only initial pretraining.",
+      "limits": "Teacher quality, task validity and annealing must be adapted to the present robot."
+    },
+    {
+      "id": "R7",
+      "title": "Proximal Policy Optimization Algorithms",
+      "authors": "John Schulman et al.",
+      "date": "2017-07-20",
+      "status": "PPO original paper",
+      "arxiv": "1707.06347",
+      "url": "https://arxiv.org/abs/1707.06347",
+      "primary": true,
+      "key_finding": "Clipped surrogate restricts changes relative to the recent behavior policy; it is not a fixed-ancestor skill-retention guarantee."
+    },
+    {
+      "id": "R8",
+      "title": "Benchmarking Massively Parallelized Multi-Task Reinforcement Learning for Robotics Tasks",
+      "authors": "Amay Joshi et al.",
+      "date": "2025",
+      "status": "RLC/RLJ 2025 primary paper and author implementation",
+      "url": "https://arxiv.org/html/2506.13922v1",
+      "project": "https://utaustin-rpl.github.io/learning_to_multitask/",
+      "implementation": "https://github.com/utiasDSL/learning_to_multitask",
+      "primary": true,
+      "key_finding": "Actor and critic conflicts can differ; critic sharing and value error matter; conflict-avoidance techniques are not uniformly beneficial.",
+      "limits": "IsaacGym benchmark, not our wheeled robot; report as an implementation and diagnosis caution, not a solution guarantee."
+    }
+  ],
+  "no_training_or_installation": true
+}

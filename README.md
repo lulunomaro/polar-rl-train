@@ -214,3 +214,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- SCUT_STAIR_FINETUNE_2H_20261113_START -->
 从父iter24692按SCUT方式微调，273宽阶/1365其余rough/410平地。候选scut_stair_finetune_2h_20261113_015m，iter136，连续两阶0/10、平地60/60。 独立新轮实际7203.603秒；[配方与结果](sources/local/MOD4V3_SCUT_STAIR_FINETUNE_2H_20261113/README.md)，所有完整PT原件归档；原成熟包保留。
 <!-- SCUT_STAIR_FINETUNE_2H_20261113_END -->
+
+<!-- OWN_STAIR_REPAIR_20261113_LAUNCH -->
+
+恢复自有连续登阶配方：从健康父iter24692完整PPO接续，50%双级200mm台阶/30%原Rough-v1/20%平地；平地一半固定练原六项目标，用地面reset，保持原速度目标和登阶奖励。无PPO功能探针后独立40分钟，每5分钟保存及固定回放。当前状态与实际结果见[sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md](sources/local/MOD4V3_CONTINUOUS_STAIRS_OWN_REPAIR_20261113/README.md)。

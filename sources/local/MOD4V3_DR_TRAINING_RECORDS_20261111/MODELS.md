@@ -364,3 +364,9 @@
 
 候选stairs200_teacher_retention_40m_20261113_040m，平地40/60、两阶5/10。 原健康父与源5m保留，完整PT/教师/数据见本轮目录及MODEL_REGISTRY.json。
 <!-- STAIRS_TEACHER_RETENTION_40M_20261113_END -->
+
+<!-- STAIRS_SUCCESS_REFRESH_40M_20261113_START -->
+## 两阶成功示范更新PPO
+
+候选stairs200_success_refresh_40m_20261113_025m，平地60/60、0.42m指令两阶4/5。 原健康父与源040m保留，完整PT/教师/数据见本轮目录及MODEL_REGISTRY.json。
+<!-- STAIRS_SUCCESS_REFRESH_40M_20261113_END -->

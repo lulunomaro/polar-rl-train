@@ -10,9 +10,32 @@ def own_block(path,body):
   a=s.index(start);b=s.index(end,a)+len(end);s=s[:a]+start+'\n'+body+'\n'+end+s[b:]
  else:s+='\n'+start+'\n'+body+'\n'+end+'\n'
  p.write_text(s,encoding='utf8')
+def highest_command_replays(evaluations):
+ # Correct the user's task condition; preserve every original mixed-height result.
+ out=E/'highest_command_stairs';out.mkdir(exist_ok=True);results={}
+ inputs=[('source040m',T/'weights/student_initial_040m.pt',P['parent_sha256'])]
+ inputs.extend((Path(ev['model']).stem,Path(ev['model']),ev['sha256']) for ev in evaluations)
+ for label,model,expected in inputs:
+  target=out/label;result=target/'RESULT.json'
+  same=next((name for name,value in results.items() if value['sha256']==expected),None)
+  if not result.exists() and same is not None:
+   shutil.copytree(out/same,target)
+   reused=json.loads(result.read_text(encoding='utf8'));reused['model']=str(model);reused['reused_from_identical_PT_sha256']=str(out/same/'RESULT.json');write(result,reused)
+  if not result.exists():
+   with(out/(label+'.log')).open('wb') as log:
+    completed=subprocess.run([sys.executable,'-X','utf8',str(T/'fixed_stair_eval.py'),'--model',str(model),'--out',str(target),'--highest-command-only'],cwd=R,stdout=log,stderr=subprocess.STDOUT)
+   if completed.returncode:raise RuntimeError('Highest-command replay failed: '+label+'; preserve original evidence')
+  d=json.loads(result.read_text(encoding='utf8'))
+  assert d['sha256']==expected and len(d['rows'])==5 and all(r['height']==.42 and r['case']=='whole_h420' for r in d['rows'])
+  results[label]=d
+  print('HIGHEST_COMMAND_EVALUATED '+label+' '+str(d['whole_passed'])+'/5',flush=True)
+ write(E/'HIGHEST_COMMAND_COMPARISON.json',dict(height_command_m=.42,meaning='current training/manual command ceiling, not a proven mechanical limit',training_height_range_this_round=[.365,.40],speed_command_m_s=2.2,source040m=results['source040m'],checkpoints={k:v for k,v in results.items() if k!='source040m'},original_tests='untouched; lower commands are diagnostics, not required stair task conditions'))
+ return results
+
+def stair_passed(x):return x['highest_command_stair']['whole_passed']
 def interval(x):
- rows=[v for k,v in x.get('stair_summary',{}).items() if k.startswith('whole') and v.get('mean_first_to_second_s') is not None];n=sum(v['passed'] for v in rows)
- return sum(v['passed']*v['mean_first_to_second_s'] for v in rows)/n if n else 1e9
+ value=x['highest_command_stair']['summary']['whole_h420']['mean_first_to_second_s']
+ return value if value is not None else 1e9
 
 def forward_error(x):
  path=E/'checkpoint_evals'/Path(x['model']).stem/'flat60/RESULT.json'
@@ -76,33 +99,44 @@ def main():
   replay_state=d['success_replay_state'];assert all(bool(torch.isfinite(replay_state[k]).all()) for k in ['bank_obs','bank_actions'])
   records.append(dict(id=ID+'_'+path.stem.removeprefix('model_'),file=path.name,git_path=path.relative_to(R).as_posix(),bytes=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest(),iteration=d['iter'],optimizer_entries=17,complete_PPO=True,actor_input=35,critic_input=78,action_output=6,parent_sha256=P['parent_sha256'],root_parent_model_id='flat_speed_full_final',root_parent_sha256=P['root_parent']['sha256'],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix(),(T/'README.md').relative_to(R).as_posix()],teacher_retention=d['teacher_retention'],role='Online successful two-step replay from040m; phase balanced teacher guidance',git_storage='ordinary full PPO PT blob',aliases=[]))
  evaluations=[json.loads(p.read_text(encoding='utf8')) for p in sorted((E/'checkpoint_evals').glob('*/EVALUATION.json'))]
- complete=[x for x in evaluations if x.get('complete')];joint=[x for x in complete if x['flat60_passed']>=40 and x['whole_stair_passed']>=5];pool=joint or complete
- pool.sort(key=lambda x:((x['flat60_passed'],x['whole_stair_passed'],-forward_error(x),-interval(x)) if joint else (min(x['flat60_passed']/40.,x['whole_stair_passed']/5.),x['flat60_passed'],x['whole_stair_passed'],-forward_error(x),-interval(x))),reverse=True)
+ complete=[x for x in evaluations if x.get('complete')];highest=highest_command_replays(complete);baseline_stairs=highest['source040m']['whole_passed']
+ for ev in complete:ev['highest_command_stair']=highest[Path(ev['model']).stem]
+ for record in records:
+  label=Path(record['file']).stem
+  if label in highest:record['highest_command_stair']=dict(height_command_m=.42,passed=highest[label]['whole_passed'],requested=5,result=str(E/'highest_command_stairs'/label/'RESULT.json'))
+ joint=[x for x in complete if x['flat60_passed']>=40 and stair_passed(x)>=baseline_stairs];pool=joint or complete
+ pool.sort(key=lambda x:((x['flat60_passed'],stair_passed(x),-forward_error(x),-interval(x)) if joint else (min(x['flat60_passed']/40.,stair_passed(x)/max(baseline_stairs,1)),x['flat60_passed'],stair_passed(x),-forward_error(x),-interval(x))),reverse=True)
  selected=pool[0] if pool else None;selected_record=None;retention=[]
  if selected:
-  source=Path(selected['model']);selected_record=next(r for r in records if r['sha256']==selected['sha256']);alias=T/'weights/selected_teacher_retention_candidate.pt';shutil.copy2(source,alias);selected_record['aliases'].append(alias.relative_to(R).as_posix())
-  write(T/'weights/SELECTED_MODEL.json',dict(display_name='两阶成功示范更新PPO40分钟实验候选',model_id=selected_record['id'],iteration=selected_record['iteration'],sha256=selected_record['sha256'],source=selected_record['git_path'],alias=alias.relative_to(R).as_posix(),full_PPO=True,whole_stair_passed=selected['whole_stair_passed'],whole_stair_requested=selected['whole_stair_requested'],flat60_passed=selected['flat60_passed'],flat60_requested=selected['flat60_requested'],joint_source040m_retention=bool(joint),forward_tracking_MAE_m_s=forward_error(selected),selection_order='joint floor then flat count, stair count, lower forward MAE, shorter stair interval',status='Experimental; healthy parent and source040m retained; no automatic deployment promotion'))
+  source=Path(selected['model']);selected_record=next(r for r in records if r['sha256']==selected['sha256']);alias=T/'weights/selected_success_refresh_candidate.pt';shutil.copy2(source,alias);selected_record['aliases'].append(alias.relative_to(R).as_posix())
+  write(T/'weights/SELECTED_MODEL.json',dict(display_name='两阶成功示范更新PPO40分钟实验候选',model_id=selected_record['id'],iteration=selected_record['iteration'],sha256=selected_record['sha256'],source=selected_record['git_path'],alias=alias.relative_to(R).as_posix(),full_PPO=True,whole_stair_passed=stair_passed(selected),whole_stair_requested=5,stair_height_command_m=.42,legacy_mixed_height_diagnostic=dict(passed=selected['whole_stair_passed'],requested=selected['whole_stair_requested']),flat60_passed=selected['flat60_passed'],flat60_requested=selected['flat60_requested'],joint_source040m_retention=bool(joint),forward_tracking_MAE_m_s=forward_error(selected),selection_order='same0.42m command baseline retention, flat count,0.42m stair count, lower forward MAE, shorter stair interval',status='Experimental; healthy parent and source040m retained; no automatic deployment promotion'))
   sys.path.insert(0,str(T));from run_retention_replays import main as replay
   retention=replay(alias)
  rough_table=rough_comparison(retention,selected_record['sha256'] if selected_record else None)
+ online=health['online_success_replay'];frames=online['frames_by_stratum'];sampled=online['sampled_by_stratum']
+ online_text=f"轮末训练检查点的示范库：新增完整两阶成功回合{online['accepted_whole_two_step_episodes']}个，其中完整DR {online['accepted_DR']}个、名义{online['accepted_nominal']}个。库中第二阶过渡状态{frames[1]+frames[3]}条、其他状态{frames[0]+frames[2]}条；累计抽样第二阶过渡{sampled[1]+sampled[3]}次、其他{sampled[0]+sampled[2]}次。失败/超时未入库回合{online['rejected_failed_or_timeout_episodes']}个，缓冲区超长丢弃{online['overflow_discarded_episodes']}个。完整库与来源保存在PT的success_replay_state，详细计数在evidence/TRAINING_HEALTH.json。"
+
  registry=json.loads((C/'MODEL_REGISTRY.json').read_text(encoding='utf8'));known={x['id'] for x in registry['models']};registry['models'].extend(r for r in records if r['id'] not in known);registry['updated_at_epoch']=time.time();write(C/'MODEL_REGISTRY.json',registry)
+ selected_online=selected_record['teacher_retention'].get('online_success_replay') if selected_record else None
  state='completed2400s' if final and seconds>=2400 and not(E/'training/ERROR.json').exists() else 'incomplete; see original error and saved checkpoints'
- decision=dict(status=state,actual_training_seconds=seconds,budget_seconds=2400,selected_model_id=selected_record['id'] if selected_record else None,selected_flat60=selected['flat60_passed'] if selected else None,selected_stairs10=selected['whole_stair_passed'] if selected else None,joint_source040m_retention=bool(joint),baseline040m=dict(flat60=40,stairs10=5),rough_replays_complete=sum(x['complete'] for x in retention),rough_replays_requested=4,original_healthy_parent_retained=True,source040m_retained=True,automatic_mature_or_realcar_promotion=False)
+ decision=dict(status=state,actual_training_seconds=seconds,budget_seconds=2400,selected_model_id=selected_record['id'] if selected_record else None,selected_flat60=selected['flat60_passed'] if selected else None,selected_stairs_h420=stair_passed(selected) if selected else None,stair_requested=5,stair_height_command_m=.42,selected_online_success_replay=selected_online,joint_source040m_retention=bool(joint),baseline040m=dict(flat60=40,stairs_h420=baseline_stairs,stairs_requested=5,height_command_m=.42),rough_replays_complete=sum(x['complete'] for x in retention),rough_replays_requested=4,original_healthy_parent_retained=True,source040m_retained=True,automatic_mature_or_realcar_promotion=False)
  write(T/'DECISION.json',decision)
- table='| 检查点 | 平地/60 | 连续两阶/10 | 成功阶间耗时s | 下阶/5 |\n|---|---:|---:|---:|---:|\n'
+ table='| 检查点 | 平地/60 | 0.42m连续两阶/5 | 成功阶间耗时s | 0.365m诊断/5 | 下阶/5 |\n|---|---:|---:|---:|---:|---:|\n'
  for ev in evaluations:
-  if not ev.get('complete'):table+=f"| {Path(ev['model']).name} | 未完成，见原错误 | — | — | — |\n";continue
+  if not ev.get('complete'):table+=f"| {Path(ev['model']).name} | 未完成，见原错误 | — | — | — | — |\n";continue
   dt=interval(ev);text=f'{dt:.3f}' if dt<1e8 else '无成功样本'
-  table+=f"| {Path(ev['model']).name} | {ev['flat60_passed']} | {ev['whole_stair_passed']} | {text} | {ev['stair_summary']['descent']['passed']} |\n"
+  table+=f"| {Path(ev['model']).name} | {ev['flat60_passed']} | {stair_passed(ev)} | {text} | {ev['stair_summary']['whole_h365']['passed']} | {ev['stair_summary']['descent']['passed']} |\n"
  flat_table=flat_task_comparison(evaluations)
- chosen=f"候选{selected_record['id']}，平地{selected['flat60_passed']}/60、两阶{selected['whole_stair_passed']}/10。" if selected else '没有完整可选回放。'
+ chosen=f"候选{selected_record['id']}，平地{selected['flat60_passed']}/60、0.42m指令两阶{stair_passed(selected)}/5。" if selected else '没有完整可选回放。'
  report=f'''# 两阶成功示范更新PPO40分钟实际结果（2026-11-13）
 
-状态：{state}，实际{seconds:.3f}秒，原预算2400秒，每300秒完整保存。{chosen} 是否同时达到源040m的40/60平地与5/10两阶：{bool(joint)}。该条件只用于结果选模，不阻断训练，不是新物理门槛。同通过数时先比较两档前进MAE，再比较成功阶间耗时。
+状态：{state}，实际{seconds:.3f}秒，原预算2400秒，每300秒完整保存。{chosen} 是否同时达到源040m的40/60平地与同0.42m指令{baseline_stairs}/5两阶：{bool(joint)}。该条件只用于结果选模，不阻断训练，不是新物理门槛。同通过数时先比较两档前进MAE，再比较成功阶间耗时。
+
+用户在本轮进行中明确登阶应给最高站姿。已核实当前训练/手动接口允许0.42m，0.40m只是快捷档，不能当机械最高值。主登阶验收已补为0.42m指令、2.2m/s、原五组起点，源040m与所有检查点同条件对照；原0.365/0.40m原始结果保留，低高度不作为主任务失败条件。本轮实际台阶目标仍采样0.365–0.40m，未中途改写运行参数，不能标成已按0.42m训练。
 
 训练计数：{json.dumps(health['done_totals'],ensure_ascii=False)}。教师指导共{health['teacher_updates']}次PPO更新，冻结教师最大参数变化{health['teacher_max_parameter_change']}。普通闭链保护重置与数值保护重置分别记录。
 
-本轮新增成功示范库实际计数：{json.dumps(health["online_success_replay"],ensure_ascii=False)}。source_iteration记录成功时的迭代；轨迹来自训练中的实际动作，可能跨多次PPO更新。
+{online_text}source_iteration记录成功时的迭代；轨迹来自训练中的实际动作，可能跨多次PPO更新。
 
 起点上轮040m iter25076 SHA{P['parent_sha256']}，完整actor/critic/STD/Adam/LR/RNG恢复。冻结健康父iter24692作为原技能指导，冻结旧005m成功登阶示范保留；新增训练内完整两阶成功回合，并提高一级落轮到二级落轮片段采样。初始数据SHA在PLAN与reference，新增样本、来源和阶段计数在每个完整PT的success_replay_state与teacher_retention字段；失败及中途起点不加入新增主库。
 
@@ -116,7 +150,7 @@ def main():
 
 {flat_table}
 
-原生rough对照完成{sum(x['complete'] for x in retention)}/4组，对比冻结健康父与所选实验候选；候选实际SHA在每组input_sha256，不能外推未测检查点。完成不等于满分，原始RESULT和逐环境轨迹保留。固定MuJoCo平地与V3两阶仍使用原门槛；没有自动晋升实车。
+原生rough对照完成{sum(x['complete'] for x in retention)}/4组，对比冻结健康父与所选实验候选；候选实际SHA在每组input_sha256，不能外推未测检查点。完成不等于满分，原始RESULT和逐环境轨迹保留。固定MuJoCo平地与V3落轮/保持判据沿用，主登阶指令按用户纠正为0.42m；没有自动晋升实车。
 
 {rough_table}
 

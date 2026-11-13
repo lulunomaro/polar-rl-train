@@ -2,15 +2,16 @@
 from pathlib import Path
 import argparse,sys,json,hashlib,time,importlib.util,types,shutil,math,xml.etree.ElementTree as ET
 import torch,numpy as np,mujoco
-p=argparse.ArgumentParser();p.add_argument('--model',required=True);p.add_argument('--out',required=True);a=p.parse_args();torch.set_num_threads(1)
-T=Path(__file__).resolve().parent;R=T.parents[2];D=R/'deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112';E=Path(a.out).resolve();E.mkdir(exist_ok=False);B=E/'scene_assets';(B/'tiles').mkdir(parents=True)
+p=argparse.ArgumentParser();p.add_argument('--model',required=True);p.add_argument('--out',required=True);p.add_argument('--highest-command-only',action='store_true');a=p.parse_args();torch.set_num_threads(1)
+T=Path(__file__).resolve().parent;R=T.parents[2];D=R/'deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112';E=Path(a.out).resolve();E.mkdir(parents=True,exist_ok=False);B=E/'scene_assets';(B/'tiles').mkdir(parents=True)
 source=np.load(D/'viewer/tiles/r03_c00.npz');vertices=source['vertices'].copy();vertices[:,2]*=.2/float(np.unique(vertices[:,2])[1]);np.savez_compressed(B/'tiles/r00_c00.npz',vertices=vertices,faces=source['faces'])
 spec=importlib.util.spec_from_file_location('fixed200_show',D/'viewer/showcase.py');show=importlib.util.module_from_spec(spec);spec.loader.exec_module(show);show.B=B;show.CKPT=Path(a.model).resolve();show.EXPECTED=hashlib.sha256(show.CKPT.read_bytes()).hexdigest()
 sys.path.insert(0,str(T/'manual_replay'))
 from replay_training_guards import replay_step
 show.Replay.step=replay_step(show.Simulation,show.SafetyStop,duration_steps=10,event_dir=E/'reset_events')
 starts=[(-3.9,0.,0.),(-3.75,-.12,-.03),(-3.6,.12,.03),(-3.99,.06,-.04),(-3.8,-.06,.04)];rows=[];arrays={};wall=time.time()
-for case,direction,height,speed in [('whole_h365','up',.365,2.2),('whole_h400','up',.4,2.2),('mid_h365','up',.365,2.2),('descent','down',.28,1.)]:
+cases=[('whole_h420','up',.42,2.2)] if a.highest_command_only else [('whole_h365','up',.365,2.2),('whole_h400','up',.4,2.2),('mid_h365','up',.365,2.2),('descent','down',.28,1.)]
+for case,direction,height,speed in cases:
  for seed,(sx,sy,syaw) in enumerate(starts):
   s=show.Replay(direction=direction);s.args.vx=speed;e=s.env;m=e.m;d=e.d;wb=[m.body(n).id for n in ['left_wheel_link','right_wheel_link']];x0=sx if case.startswith('whole') else (-2.35+(seed-2)*.04 if case.startswith('mid') else .25+(seed-2)*.04)
   d.qpos[:3]=[x0,sy,s.ground(x0,sy)+e.bank_z];d.qpos[3:7]=[math.cos(syaw/2),0.,0.,math.sin(syaw/2)];d.qvel[:]=0.;mujoco.mj_forward(m,d);s.reset_count=1;s.reason='';s.z=float(e.z)-s.ground(x0,sy)
@@ -45,10 +46,11 @@ for case,direction,height,speed in [('whole_h365','up',.365,2.2),('whole_h400','
     trace.append([k*.02,x,y,float(d.qpos[2]),float(e.vx),float(s.z),float(s.cos_tilt),float(w[:,2].mean()),s.closure,*s.a_prev[0].tolist()])
     if success or s.reset_count>1:break
    row=dict(case=case,seed=seed,height=height,speed=speed,start=[x0,sy,syaw],success=success,resets=s.reset_count-1,reason=s.reason,first_landing_s=landing.get(1),second_landing_s=landing.get(2),first_to_second_s=(landing[2]-landing[1]) if direction=='up' and 1 in landing and 2 in landing else None,completed_s=k*.02,max_closure_m=maxclosure,whole_course=case.startswith('whole'),diagnostic_only=case.startswith('mid'))
+   before_motion=[t[5] for t in trace if 2.<=t[0]<3.];row['pre_motion_height_mean_m']=float(np.mean(before_motion)) if before_motion else None
    rows.append(row);arrays[case+'_seed'+str(seed)]=np.asarray(trace);(E/'PROGRESS.json').write_text(json.dumps(dict(completed=len(rows),last=row)))
   finally:s.close()
 summary={}
-for case in ['whole_h365','whole_h400','mid_h365','descent']:
+for case,_,_,_ in cases:
  part=[r for r in rows if r['case']==case];tt=[r['first_to_second_s'] for r in part if r['success'] and r['first_to_second_s'] is not None];summary[case]=dict(passed=sum(r['success'] for r in part),requested=len(part),mean_first_to_second_s=float(np.mean(tt)) if tt else None)
-np.savez_compressed(E/'trajectory.npz',**arrays);result=dict(model=str(show.CKPT),sha256=show.EXPECTED,rows=rows,summary=summary,whole_passed=sum(r['success'] for r in rows if r['whole_course']),whole_requested=10,protocol='Level3 horizontal geometry;200mm x2;five x/y/yaw starts each;whole/mid/descent separate;actual pair wheel tread contact>5N and0.3s on top;wheel-ground height;native terrain-fall;40deg/10endpoints;separate1Ncontact/tilt dwell;edge-guide exemption;2mmguard;nominal MuJoCo contact analogue only;protocolV3',wall_seconds=time.time()-wall,no_optimizer=True)
-(E/'RESULT.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(dict(sha256=show.EXPECTED,summary=summary,whole_passed=result['whole_passed'],whole_requested=10)),flush=True)
+np.savez_compressed(E/'trajectory.npz',**arrays);result=dict(model=str(show.CKPT),sha256=show.EXPECTED,rows=rows,summary=summary,whole_passed=sum(r['success'] for r in rows if r['whole_course']),whole_requested=sum(r['whole_course'] for r in rows),highest_command_only=a.highest_command_only,protocol='Level3 horizontal geometry;200mm x2;five x/y/yaw starts each;whole/mid/descent separate;actual pair wheel tread contact>5N and0.3s on top;wheel-ground height;native terrain-fall;40deg/10endpoints;separate1Ncontact/tilt dwell;edge-guide exemption;2mmguard;nominal MuJoCo contact analogue only;protocolV3',wall_seconds=time.time()-wall,no_optimizer=True)
+(E/'RESULT.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(dict(sha256=show.EXPECTED,summary=summary,whole_passed=result['whole_passed'],whole_requested=result['whole_requested'])),flush=True)

@@ -10,6 +10,7 @@ def read(sf,p):
   with sf.open(p) as f:return json.loads(f.read())
  except FileNotFoundError:return None
 def main(candidate):
+ while (T/'evidence/STORAGE_MAINTENANCE_HOLD.json').exists():time.sleep(2)
  candidate=Path(candidate);E=T/'evidence/rough_retention';E.mkdir(exist_ok=True)
  c=connect()
  try:

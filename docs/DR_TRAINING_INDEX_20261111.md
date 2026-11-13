@@ -349,3 +349,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 <!-- STAIRS_SUCCESS_REFRESH_40M_20261113_START -->
 连续两阶成功示范更新40分钟，从上一轮040m/iter25076完整恢复；旧教师保持，成功完整两阶轨迹动态补充并重点采样第二阶过渡。原奖励、DR、2048环境40/35/25比例及PPO系数沿用，每5分钟完整PT与原固定回放。[本轮配方与结果](../sources/local/MOD4V3_STAIRS_SUCCESS_REFRESH_40M_20261113/README.md)。
 <!-- STAIRS_SUCCESS_REFRESH_40M_20261113_END -->
+
+<!-- STORAGE_MIGRATION_20261113_START -->
+2026-11-13：210训练实验目录约61GB、130878文件已逐一SHA校验迁往Windows数据盘，旧路径兼容；Linux可用734MiB→62G，清理114份已发布Git实体旧PT和两个关闭作业缓存。[搬迁、恢复与删除明细](../sources/local/MOD4V3_STORAGE_MIGRATION_20261113/README.md)。
+<!-- STORAGE_MIGRATION_20261113_END -->

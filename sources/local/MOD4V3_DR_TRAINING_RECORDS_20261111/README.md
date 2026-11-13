@@ -93,3 +93,7 @@
 ## 台阶教师迁移学生完成
 
 stairs_specialist_student_20261113_010m；平地60/60、正向1/5、真实斜向0/20；全PT与原生保留结果见相邻MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/FINAL_REPORT.md。原冻结父保持。
+
+## 完整台阶示范＋上阶约束修复2小时已结束
+
+实际PPO 7204.53080534935秒；实验候选stairs_parent_complete_20261113_095m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_STAIRS_PARENT_COMPLETE_2H_20261113/FINAL_REPORT.md。

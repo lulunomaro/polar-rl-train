@@ -271,3 +271,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 
 父db6e9ccf完整续训，完整成功示范8933帧含准备；所有上台阶解除旧父动作模仿，平地/rough/下台阶继续保留。原40/35/25、奖励、完整DR和MOD4接口不变。7200秒，每5分钟全PT和独立回放，原综合模型仍冻结。实际启动与配方见[本轮README](sources/local/MOD4V3_STAIRS_PARENT_COMPLETE_2H_20261113/README.md)。
 <!-- STAIRS_PARENT_COMPLETE_2H_20261113_END -->
+
+## 完整台阶示范＋上阶约束修复2小时已结束
+
+实际PPO 7204.53080534935秒；实验候选stairs_parent_complete_20261113_095m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_STAIRS_PARENT_COMPLETE_2H_20261113/FINAL_REPORT.md。

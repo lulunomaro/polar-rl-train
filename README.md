@@ -4,6 +4,7 @@
 ## 2026-11-13：综合父冻结、独立台阶教师及40分钟迁移实验完成
 
 冻结父db6e9ccf完整PT保留；专项教师715c40b6名义正向5/5、真实斜向10/20，原生fullDR仍弱。独立学生候选stairs_specialist_student_20261113_010m：名义平地60/60、正向1/5、真实斜向0/20，下阶5/5。两引擎与原Rough-v1保留分别记录，不自动晋升部署。[全PT、配方和完整报告](sources/local/MOD4V3_STAIRS_SPECIALIST_DISTILL_40M_20261113/FINAL_REPORT.md)。
+综合默认仍为冻结父db6e9ccf；学生未晋升，专项教师只作登阶实验；完整8933帧示范已补齐，新配方未开训。
 <!-- STAIRS_SPECIALIST_TEACHER_20261113_END -->
 
 ## 2026-11-12 平地速度恢复40分钟完成：保留最终实验候选

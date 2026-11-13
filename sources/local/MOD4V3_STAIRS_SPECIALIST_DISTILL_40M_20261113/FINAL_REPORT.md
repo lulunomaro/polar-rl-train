@@ -1,5 +1,7 @@
 # 冻结上台阶教师指导综合父模型：完成报告（2026-11-13）
 
+**综合默认仍为冻结父db6e9ccf；本轮学生未晋升。** 当前用途见MODEL_USE_STATUS.md。
+
 实际PPO 2403.798秒；2048环境，819台阶/717原rough/512平地；每5分钟完整检查点与固定回放。原综合父db6e9ccf和独立教师715c40b6均完整冻结，学生从父初始化。
 
 本轮固定任务实验候选：**stairs_specialist_student_20261113_010m**，完整PT `weights/selected_specialist_student.pt`，SHA256 `3c868a44536748b15d81ae1cb9990aa59781d21f5cbc1b50880d190a2475efad`。这是实验选优；原父模型保留，未自动晋升部署。

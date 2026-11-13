@@ -265,3 +265,9 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 <!-- STAIRS_MAX_HEIGHT_40M_20261113_START -->
 最高站姿0.42m接训PPO，从上一轮025m起步；候选stairs200_max_height_40m_20261113_005m，平地60/60、0.42m指令两阶4/5。 实际2405.015秒，联合源025m保留=True；[配方与结果](sources/local/MOD4V3_STAIRS_MAX_HEIGHT_40M_20261113/README.md)。
 <!-- STAIRS_MAX_HEIGHT_40M_20261113_END -->
+
+<!-- STAIRS_PARENT_COMPLETE_2H_20261113_START -->
+## 2026-11-13：完整示范与上阶保留约束修复，两小时训练已开始
+
+父db6e9ccf完整续训，完整成功示范8933帧含准备；所有上台阶解除旧父动作模仿，平地/rough/下台阶继续保留。原40/35/25、奖励、完整DR和MOD4接口不变。7200秒，每5分钟全PT和独立回放，原综合模型仍冻结。实际启动与配方见[本轮README](sources/local/MOD4V3_STAIRS_PARENT_COMPLETE_2H_20261113/README.md)。
+<!-- STAIRS_PARENT_COMPLETE_2H_20261113_END -->

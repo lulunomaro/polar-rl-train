@@ -1,0 +1,532 @@
+{
+  "epoch": 1794654726.986928,
+  "checkpoint": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_FORWARD_JUMP_HEIGHT_2H_20261114_R1/train7200/model_045m.pt",
+  "sha256": "71eeb5b25ee61a1eccf24d1d4f78957cba314a985029494d2289eba54b7ccbe2",
+  "iteration": 27411,
+  "num_envs": 256,
+  "seed": 10066,
+  "control": "deterministic learned actor only",
+  "optimizer_created": false,
+  "teacher_execution": false,
+  "task": {
+    "sequence": [
+      "forward",
+      "crouch",
+      "extend_push",
+      "airborne_retract",
+      "land_and_roll"
+    ],
+    "flat_terrain": true,
+    "command_vx_m_s": [
+      0.4,
+      0.8
+    ],
+    "jump_cue_s": [
+      1.9,
+      2.5
+    ],
+    "crouch_seconds": 0.32,
+    "episode_seconds": 6.0,
+    "min_air_seconds": 0.16,
+    "min_wheel_lower_rim_peak_m": 0.35,
+    "crouch_measured_delta_max_rad": 0.8,
+    "push_measured_delta_min_rad": 1.25,
+    "retract_measured_delta_max_rad": 0.9,
+    "air_pitch_max_deg": 10.0,
+    "air_roll_max_deg": 5.0,
+    "landing_stable_seconds": 0.5,
+    "landing_support_duty_min": 0.8,
+    "landing_pitch_roll_max_deg": 15.0,
+    "landing_vx_min_m_s": 0.1,
+    "closure_reset_m": 0.01,
+    "mimic_reset_rad": 0.01,
+    "physics_dt_s": 0.0025,
+    "leg_feedback_hz": 100,
+    "wheel_feedback_hz": 400,
+    "policy_hz": 50,
+    "solver": "Unmodified TGS32/4",
+    "original_motor_envelopes": true,
+    "full_DR_ranges_unchanged": true,
+    "nominal_fraction": 0.2,
+    "reset_distribution": "Upright feasible pose, yaw +/-0.04 rad, zero velocity",
+    "policy_slots_28_35": [
+      "base_mode",
+      "jump_request",
+      "measured_air",
+      "measured_tuck_complete_and_descending_or_landed",
+      "crouch_command",
+      "push_command",
+      "phase_progress"
+    ],
+    "critic_slots_32_39": "Five phase bits plus reserved bit and normalized phase progress",
+    "deployment_input_producer_update_required": true,
+    "selection": "Survived fixed-final-height successes, then complete sequences and measured clearance",
+    "push_attempt_timeout_s": 0.8,
+    "phase_commands_explicit": true,
+    "controller_execution": "Learned action only; environment supplies high-level phase commands",
+    "phase_progress_normalization_s": {
+      "crouch": 0.32,
+      "push": 0.8,
+      "flight": 0.4
+    },
+    "phase_clock_observed": true,
+    "landing_preparation_command": "phase3 AND measured retraction already passed AND world vz<-0.10, or landed",
+    "teacher_tuck_ramp_s": 0.08,
+    "air_reward_switch": "Only after measured tuck AND descent; .20rad before, 1.35rad after",
+    "min_body_rise_peak_m": 0.32,
+    "initial_curriculum_clearance_m": 0.25,
+    "legacy_sequence_clearance_m": 0.12,
+    "actual_extension_required_before_takeoff": true,
+    "request_exit": "Measured stable sequence completion; height success is a separate score"
+  },
+  "sampling": {
+    "closure_max_absolute_difference_m": 3.6761512092198245e-06,
+    "preallocated": true,
+    "CUDA_graph": true,
+    "physics": "PhysX TGS32/4",
+    "supermimic": false,
+    "newton": false
+  },
+  "reset_distribution": {
+    "task": "moving_jump",
+    "upright_only": true,
+    "feasible_pose_height_m": 0.26,
+    "yaw_rad": [
+      -0.04,
+      0.04
+    ],
+    "initial_velocity": 0,
+    "command_vx_m_s": [
+      0.4,
+      0.8
+    ],
+    "command_ramp_s": [
+      0.8,
+      1.1
+    ],
+    "jump_cue_s": [
+      1.9,
+      2.5
+    ],
+    "episode_seconds": 6.0,
+    "note": "Task-specific reset replaces prior ground/fall distribution; DR ranges retained"
+  },
+  "domain_randomization": {
+    "profile": "remaining_dr_fixed20pct_nominal_v2",
+    "mass_inertia_factor_range": null,
+    "leg_gain_range": [
+      0.7501677870750427,
+      1.2494797706604004
+    ],
+    "wheel_gain_range": [
+      0.7512875199317932,
+      1.2496232986450195
+    ],
+    "wheel_friction_range": [
+      0.5126115679740906,
+      1.186448335647583
+    ],
+    "nominal_fraction_target": 0.2,
+    "other_randomization": "spring/PD/COM/armature/joint-friction/push/noise/delay unchanged",
+    "stage": "repaired Step7 plus startup body mass and explicit motor output scale",
+    "joint_friction_scale": 1.0,
+    "joint_friction_ranges": {
+      "active_leg_static": [
+        0.25,
+        1.0
+      ],
+      "active_leg_dynamic": [
+        0.25,
+        1.0
+      ],
+      "active_leg_viscous": [
+        0.05,
+        0.2
+      ],
+      "wheel_static": [
+        0.05,
+        0.25
+      ],
+      "passive_static": [
+        0.05,
+        0.1
+      ]
+    },
+    "missing_dr": [],
+    "spring_damping_fraction": 1.0,
+    "spring_damping_scale_range": [
+      0.5,
+      1.5
+    ],
+    "external_fraction": 1.0,
+    "external_force_range_n": [
+      -10.0,
+      10.0
+    ],
+    "external_torque_range_nm": [
+      -1.0,
+      1.0
+    ],
+    "external_interval_s": [
+      5.0,
+      10.0
+    ],
+    "external_hold_control_steps": 10,
+    "obs_noise_fraction": 1.0,
+    "obs_noise_ranges": {
+      "height": [
+        -0.01,
+        0.01
+      ],
+      "base_ang_vel_observation": [
+        -0.25,
+        0.25
+      ],
+      "projected_gravity_observation": [
+        -0.05,
+        0.05
+      ],
+      "joint_pos": [
+        -0.025,
+        0.025
+      ],
+      "leg_joint_vel_observation": [
+        -0.5,
+        0.5
+      ],
+      "wheel_joint_vel_observation": [
+        -1.0,
+        1.0
+      ]
+    },
+    "delay": {
+      "physics_dt_ms": 2.5,
+      "policy_dt_ms": 20.0,
+      "pd_dt_ms": 10.0,
+      "quantum_ms": 5.0,
+      "action_options_ms": [
+        5.0,
+        10.0
+      ],
+      "sensor_options_ms": [
+        5.0,
+        10.0,
+        15.0
+      ],
+      "sampling": "independent group lag at env reset; fixed within episode",
+      "policy_sensor_slots": [
+        4,
+        22
+      ],
+      "policy_action_slots": [
+        22,
+        28
+      ],
+      "previous_action": "last raw clamped policy output; execution delay does not overwrite it",
+      "critic": "existing undelayed privileged stream",
+      "low_pass_filter": false,
+      "buffer_time_is_not_pd_latency": true
+    },
+    "body_mass_randomization": {
+      "sampling": "independent per environment and selected rigid body at startup; fixed across resets",
+      "groups": {
+        "base": {
+          "range": [
+            0.9,
+            1.3
+          ],
+          "bodies": [
+            "base_link"
+          ]
+        },
+        "leg": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_front1_link",
+            "left_rear1_link",
+            "right_front1_link",
+            "right_rear1_link",
+            "left_front2_link",
+            "left_front3_link",
+            "left_rear2_link",
+            "left_spring1_link",
+            "right_front2_link",
+            "right_front3_link",
+            "right_rear2_link",
+            "right_spring1_link",
+            "left_front4_link",
+            "left_spring2_link",
+            "right_front4_link",
+            "right_spring2_link"
+          ]
+        },
+        "wheel": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ]
+        }
+      },
+      "unselected_bodies": [
+        "left_rear1_drive_link",
+        "left_front1_drive_link",
+        "right_rear1_drive_link",
+        "right_front1_drive_link",
+        "left_bottom2_guide_link",
+        "left_bottom3_guide_link",
+        "right_bottom2_guide_link",
+        "right_bottom3_guide_link",
+        "left_front_guide_link",
+        "left_rear_guide_link",
+        "right_front_guide_link",
+        "right_rear_guide_link"
+      ],
+      "unselected_scale": 1.0,
+      "inertia": "nominal inertia tensor scaled by that body's mass ratio",
+      "nominal_mass_mixture": false,
+      "critic_mass_slot": "actual total robot mass divided by nominal total mass; existing 78D layout",
+      "total_mass_ratio_range": [
+        0.9211218357086182,
+        1.2195669412612915
+      ]
+    },
+    "base_com_delta_m": {
+      "x": [
+        -0.04,
+        0.04
+      ],
+      "y": [
+        -0.02,
+        0.02
+      ],
+      "z": [
+        -0.02,
+        0.02
+      ]
+    },
+    "effort_output_scale": {
+      "leg_range": [
+        0.8,
+        1.1
+      ],
+      "wheel_range": [
+        0.9,
+        1.1
+      ],
+      "sampling": "independent per env/active motor, first reset and eligible reset after 720 global policy steps",
+      "min_step_count_between_reset": 720,
+      "sample_count_range": [
+        1,
+        1
+      ],
+      "actual_leg_range": [
+        0.8007809519767761,
+        1.0998982191085815
+      ],
+      "actual_wheel_range": [
+        0.9000585675239563,
+        1.099896788597107
+      ],
+      "application": "full raw PD torque multiplied before original DC envelope; inherited additive noise then final envelope",
+      "new_bias": 0.0,
+      "new_noise_std": 0.0,
+      "critic": "existing stiffness/damping slots report effective PD gains; actual applied torque slot retained; 78D unchanged"
+    },
+    "contact_material": {
+      "sampling": "startup; independent per-env/per-shape bucket selection; selected properties fixed across resets",
+      "make_consistent": true,
+      "groups": {
+        "wheel": {
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ],
+          "shapes": [
+            31,
+            33
+          ],
+          "static": [
+            0.5,
+            1.2
+          ],
+          "dynamic": [
+            0.4,
+            1.0
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.5126115679740906,
+            0.4098871648311615,
+            0.0
+          ],
+          "actual_max": [
+            1.186448335647583,
+            0.9707397222518921,
+            0.19649212062358856
+          ]
+        },
+        "base": {
+          "bodies": [
+            "base_link"
+          ],
+          "shapes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "static": [
+            0.01,
+            0.1
+          ],
+          "dynamic": [
+            0.01,
+            0.1
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.01076294295489788,
+            0.01076294295489788,
+            0.0
+          ],
+          "actual_max": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.19607993960380554
+          ]
+        },
+        "guide": {
+          "bodies": [
+            "left_bottom2_guide_link",
+            "left_bottom3_guide_link",
+            "right_bottom2_guide_link",
+            "right_bottom3_guide_link",
+            "left_front_guide_link",
+            "left_rear_guide_link",
+            "right_front_guide_link",
+            "right_rear_guide_link"
+          ],
+          "shapes": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "static": [
+            0.1,
+            0.7
+          ],
+          "dynamic": [
+            0.1,
+            0.7
+          ],
+          "restitution": [
+            0.01,
+            0.1
+          ],
+          "buckets": 8,
+          "actual_min": [
+            0.019999999552965164,
+            0.019999999552965164,
+            0.0
+          ],
+          "actual_max": [
+            0.441739946603775,
+            0.441739946603775,
+            0.08854334056377411
+          ]
+        }
+      },
+      "unselected": "inherited Step7 mild material reset",
+      "critic": "existing six slots: actual left/right wheel material triple; shape mean if multi-shape; no base/guide encoding; 78D retained"
+    },
+    "velocity_push": {
+      "world_xy_velocity_delta_range_m_s": [
+        -0.25,
+        0.25
+      ],
+      "interval_s": [
+        5.0,
+        10.0
+      ],
+      "per_environment": true,
+      "is_global_time": false,
+      "sampling": "native EventManager interval; timer resampled on reset",
+      "function": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity",
+      "semantics": "add delta to world XY velocity; z and angular unchanged",
+      "phase": "native post-step interval before observations",
+      "total_events": 0
+    },
+    "base_com_sampling": "startup; fixed across reset; nominal + immutable sample",
+    "pd_gains": {
+      "kp_scale": [
+        0.75,
+        1.25
+      ],
+      "kd_scale": [
+        0.75,
+        1.25
+      ],
+      "sampling": "first reset and eligible reset after720 global policy steps",
+      "leg_explicit": "Kp60*scale,Kd2*scale; wheelKd0.6*scale; original DC envelope",
+      "passive": "native nominal damping * scale; zero stiffness remains zero",
+      "gas": "plant stiffness2000 retained; native damping3*[.5,1.5]; no second damping torque"
+    },
+    "joint_friction_sampling": "startup independently by selected joint; fixed across resets",
+    "reset_distribution": {
+      "task": "moving_jump",
+      "upright_only": true,
+      "feasible_pose_height_m": 0.26,
+      "yaw_rad": [
+        -0.04,
+        0.04
+      ],
+      "initial_velocity": 0,
+      "command_vx_m_s": [
+        0.4,
+        0.8
+      ],
+      "command_ramp_s": [
+        0.8,
+        1.1
+      ],
+      "jump_cue_s": [
+        1.9,
+        2.5
+      ],
+      "episode_seconds": 6.0,
+      "note": "Task-specific reset replaces prior ground/fall distribution; DR ranges retained"
+    },
+    "sampling_mixture": {
+      "nominal_envs": 51,
+      "fullDR_envs": 205,
+      "assignment": "fixed envID modulo5==4",
+      "DR_range_reduction": false,
+      "reset_distribution": "same MOD4 feasible normal/ground distribution for both groups",
+      "nominal": "asset parameters;gains/effort1;zero delay/noise/wrench/push"
+    }
+  }
+}

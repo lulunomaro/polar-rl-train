@@ -27,7 +27,7 @@ try:
  # Sample source entries from genuinely fullDR startup slots, excluding the training mixture's nominal modulo5 slots.
  source_ids=torch.div(torch.arange(small,device=dev),4,rounding_mode='floor')*5+torch.arange(small,device=dev)%4
  meta=metadata(plan['package']);bank=reset_bank(plan['package'],plan['reset_bank'])
- env=ContinuousStairEnv(configuration(meta,bank,n,66,terrain_selection='rough_scut_v1'),meta,bank);env.render_enabled=False;env.reset();env.sample=Sampling(env)
+ cfg=configuration(meta,bank,n,66,terrain_selection='rough_scut_v1');cfg.episode_length_s=30.;env=ContinuousStairEnv(cfg,meta,bank);env.render_enabled=False;env.reset();env.sample=Sampling(env)
  dr=env.full_dr;nominal_com=dr.com_nominal.clone()
  def mirror(x):return x[source_ids[base_ids].to(x.device)].clone()
  masses=mirror(tensor(env.robot.root_view.get_masses()).to(dev));inertias=mirror(tensor(env.robot.root_view.get_inertias()).to(dev));coms=mirror(tensor(env.robot.root_view.get_coms()).to(dev));materials=mirror(tensor(env.robot.root_view.get_material_properties()).cpu())

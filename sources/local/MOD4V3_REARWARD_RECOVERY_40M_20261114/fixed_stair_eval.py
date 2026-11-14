@@ -1,3 +1,4 @@
+import gc
 """Frozen 200mm continuous stair evaluation; five varied starts, actual wheel landings."""
 from pathlib import Path
 import argparse,sys,json,hashlib,time,importlib.util,types,shutil,math,xml.etree.ElementTree as ET
@@ -52,7 +53,8 @@ for case,direction,height,speed in cases:
    row=dict(case=case,seed=seed,height=height,speed=speed,start=[x0,sy,syaw],success=success,resets=s.reset_count-1,reason=s.reason,first_landing_s=landing.get(1),second_landing_s=landing.get(2),first_to_second_s=(landing[2]-landing[1]) if direction=='up' and 1 in landing and 2 in landing else None,completed_s=k*.02,max_closure_m=maxclosure,whole_course=case.startswith('whole'),diagnostic_only=case.startswith('mid'))
    before_motion=[t[5] for t in trace if 2.<=t[0]<3.];row['first_riser_contact_yaw_deg']=wall_contact_yaw.get(1);row['second_riser_contact_yaw_deg']=wall_contact_yaw.get(2);row['actual_oblique_success']=bool(success and wall_contact_yaw.get(1) is not None and abs(wall_contact_yaw[1])>=10.);row['pre_motion_height_mean_m']=float(np.mean(before_motion)) if before_motion else None
    rows.append(row);arrays[case+'_seed'+str(seed)]=np.asarray(trace);(E/'PROGRESS.json').write_text(json.dumps(dict(completed=len(rows),last=row)))
-  finally:s.close()
+  finally:
+   s.close();del s,e,m,d;gc.collect()
 summary={}
 for case,_,_,_ in cases:
  part=[r for r in rows if r['case']==case];tt=[r['first_to_second_s'] for r in part if r['success'] and r['first_to_second_s'] is not None];summary[case]=dict(passed=sum(r['success'] for r in part),actual_oblique_passed=sum(r['actual_oblique_success'] for r in part),requested=len(part),mean_first_to_second_s=float(np.mean(tt)) if tt else None)

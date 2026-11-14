@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,datetime,hashlib,json,shutil,sys,tempfile
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
-p=argparse.ArgumentParser();p.add_argument('--phase',choices=['planned','launch','complete'],required=True);phase=p.parse_args().phase
+p=argparse.ArgumentParser();p.add_argument('--phase',choices=['planned','launch','first5m','complete'],required=True);phase=p.parse_args().phase
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'));import record_experiment as rec
 original=rec.git;NET=('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true');binary=[]
 date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='rearward-recovery-40m-'+phase+'-01';TAG='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
@@ -26,19 +26,23 @@ def git(*args):
 rec.git=git
 assert git('branch','--show-current')=='mod4v1-experts-fulldr-rm70'
 assert not git('tag','--list',TAG),'Existing archive must only resume push; do not record again'
-if phase=='launch':
- snapshot=E/'launch_snapshot';snapshot.mkdir(exist_ok=False)
+if phase in ('launch','first5m'):
+ snapshot=E/('launch_snapshot' if phase=='launch' else 'first5m_snapshot');snapshot.mkdir(exist_ok=False)
  for source in (E/'training').glob('*.json'):
-  if source.name in ['LATEST_PROGRESS.json','FIRST_UPDATE.json','RESTORE.json','STARTUP.json','PPO_EFFECTIVE.json','ACTOR_UPDATE_SCOPE.json','TEACHER_KEEP_SCOPE.json','TEACHER_RETENTION_STARTUP.json']:
+  if source.name in ['LATEST_PROGRESS.json','FIRST_UPDATE.json','RESTORE.json','STARTUP.json','PPO_EFFECTIVE.json','ACTOR_UPDATE_SCOPE.json','TEACHER_KEEP_SCOPE.json','TEACHER_RETENTION_STARTUP.json'] or (phase=='first5m' and source.name.startswith('PERIODIC_005')):
    shutil.copy2(source,snapshot/source.name)
+if phase=='first5m':
+ evaluation=E/'checkpoint_evals/model_005m_r2';assert json.loads((evaluation/'EVALUATION.json').read_text())['complete']
+ shutil.copytree(evaluation,snapshot/'checkpoint_evaluation')
+ for file in (E/'inspections').glob('INSPECTION_005M.json'):shutil.copy2(file,snapshot/file.name)
 files=[]
 for path in sorted(T.rglob('*')):
  if not path.is_file() or any(part in {'__pycache__','kit_isolation','runtime','cache','tmp'} for part in path.relative_to(T).parts):continue
  rel=path.relative_to(T).as_posix()
  if rel.startswith('evidence/manual_low_speed/') and path.name in {'STATUS.json','trajectory.jsonl'}:continue
  if path.suffix in {'.pyc','.partial','.npz','.npy'} or path.name in {'monitor.log','monitor_error.log','pipeline.log','pipeline_error.log'} or path.name.startswith('ARCHIVE_') or path.name.endswith('_worker.log'):continue
- if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase=='launch':continue
- if phase=='launch' and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
+ if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('launch','first5m'):continue
+ if phase in ('launch','first5m') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
  files.append(path)
 for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json']:
  if (R/rel).is_file():files.append(R/rel)
@@ -46,9 +50,9 @@ for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md','sources/local/MOD4
 prior=T.parent/'MOD4V3_REARWARD_SUPPORTED_STAIRS_40M_20261114'
 for rel in ['evidence/ARCHIVE_COMPLETE_RECOVERY_R1.json','evidence/PIPELINE_COMPLETE_RECOVERED_R1.json','pipeline.log','pipeline_error.log']:
  if (prior/rel).is_file():files.append(prior/rel)
-for rel in ['pipeline.log','pipeline_error.log']:
+for rel in ['pipeline.log','pipeline_error.log','pipeline_recovery_r1.log','pipeline_recovery_r1_error.log']:
  if (T/rel).is_file():files.append(T/rel)
-if phase=='complete':
+if phase in ('first5m','complete'):
  for name in ['ARCHIVE_LAUNCH.log','ARCHIVE_LAUNCH_ERROR.log','ARCHIVE_START_FOLLOWUP.log','ARCHIVE_START_FOLLOWUP_ERROR.log','ARCHIVE_FIRST5M.log','ARCHIVE_FIRST5M_ERROR.log','ARCHIVE_MANUAL_REPLAY.log','ARCHIVE_MANUAL_REPLAY_ERROR.log']:
   if (E/name).is_file():files.append(E/name)
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']

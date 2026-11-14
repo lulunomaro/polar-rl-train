@@ -1,7 +1,7 @@
 """Independent nominal whole-two-step, oblique, original flat60 and descent tests."""
 from pathlib import Path
 import sys,json,subprocess,time,hashlib,shutil
-T=Path(__file__).resolve().parent;R=T.parents[2];model=Path(sys.argv[1]);out=T/'evidence/checkpoint_evals'/model.stem;out.mkdir(parents=True,exist_ok=False);start=time.time();digest=hashlib.sha256(model.read_bytes()).hexdigest()
+T=Path(__file__).resolve().parent;R=T.parents[2];model=Path(sys.argv[1]);out=T/'evidence/checkpoint_evals'/(sys.argv[2] if len(sys.argv)>2 else model.stem);out.mkdir(parents=True,exist_ok=False);start=time.time();digest=hashlib.sha256(model.read_bytes()).hexdigest()
 if model.stem=='model_final':
  previous=T/'evidence/checkpoint_evals/model_040m/EVALUATION.json'
  if previous.exists():

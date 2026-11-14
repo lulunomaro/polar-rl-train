@@ -464,3 +464,7 @@ PPO 1055.1810894012451秒完整保存；5m平地30/60、10m恢复60/60，低速�
 2026-11-15 耦合后摆轮用户中止：实际PPO 3348.848秒，非两小时完成；未晋升；固定回放及完整PT已保留，见 sources/local/MOD4V3_COUPLED_REARWARD_LIFT_2H_20261115/FINAL_REPORT.md。
 
 2026-11-15 顺序搭阶轮用户中止：实际PPO 232.745秒，非两小时完成；未晋升；固定回放及完整PT已保留，见 sources/local/MOD4V3_SEQUENTIAL_CHASSIS_MOUNT_2H_20261115/FINAL_REPORT.md。
+
+2026-11-15 当前优先任务：综合最优父db6e9ccf的随机起伏难度9与启动/急停底盘俯仰稳定修复R2，实际04:52:29至预计06:52:29，两小时独立PPO，每300秒完整检查点及固定启停/原技能回放。完整DR，40/35/25总体占比；359个level9随机起伏与256个平地环境专练启停，其余用冻结父保留技能。原速度奖励、资产、电机、35/78/6、2mm单环境保护保留。综合默认未晋升。配方与进度见 sources/local/MOD4V3_PITCH_STABILITY_LEVEL9_R2_2H_20261115/README.md 。R1短试出生网格缺陷已保存停止，证据另存，旧用时不计入R2。
+
+2026-11-15 俯仰稳定轮结束：实际PPO 338.291秒；综合默认仍为db6；结果见 sources/local/MOD4V3_PITCH_STABILITY_LEVEL9_2H_20261115/FINAL_REPORT.md。

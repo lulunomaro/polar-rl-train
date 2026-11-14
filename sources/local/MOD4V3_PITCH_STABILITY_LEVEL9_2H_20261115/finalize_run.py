@@ -1,24 +1,28 @@
-"""Report measured two-hour results; preserve the frozen comprehensive default."""
+"""Report measured pitch comparison and preserve the frozen comprehensive default."""
 from pathlib import Path
 import json,time,hashlib
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
 def read(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
-def put(p,d):Path(p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+chr(10),encoding='utf8')
-p=read(T/'PLAN.json');final=read(E/'training/FINAL.json');actual=final['elapsed_seconds'];total=p['cumulative_training_seconds_before']+actual;selected=read(T/'weights/SELECTED_STUDENT.json');rank=read(E/'STUDENT_FIXED_RANKING.json');collection=read(E/'MODEL_COLLECTION.json')['models'];frozen=p['frozen_comprehensive_parent_sha256']
-rows=['# 2026-11-15 顺序搭阶：先后摆、再承重、再抬轮两小时实验结果','',f'授权总计7200秒PPO，实际{total:.3f}秒，本轮从冻结db6独立开始；PPO{actual:.3f}秒。准备和评测不计PPO。','',f'实验候选{selected["model_id"]}，SHA {selected["sha256"]}。综合默认db6e9ccf仍冻结，未自动晋升。','',f'低速完整两阶{selected["low_whole_passed"]}/{selected["low_whole_requested"]}；早期辅助一级落轮{selected["supported_first_passed"]}/2，后摆中段辅助一级落轮{selected["late_supported_first_passed"]}/3。辅助初态不计全程通过。','','| 检查点 | 低速两阶/4 | 辅助早/2 | 辅助晚/3 | 平地/60 | 快速正向/5 | 实际斜向/20 | 下阶/5 |','|---|---:|---:|---:|---:|---:|---:|---:|---:|']
-for row in sorted(rank,key=lambda x:x['source_file']):rows.append('| '+row['source_file']+' | '+' | '.join(str(row[k])for k in ['low_whole_passed','supported_first_passed','late_supported_first_passed','flat60_passed','straight_passed','actual_oblique_passed','descent_passed'])+' |')
-rows+=['','## 原生PhysX配对复核','', '父与学生同初态、同DR；名义/完整DR及原任务Rough-v1保留能力分别列出。']
-for d in sorted((E/'post_native').iterdir()):
- if d.is_dir()and(d/'RESULT.json').exists():
-  data=read(d/'RESULT.json');rows+=['','### '+d.name,'','~~~json',json.dumps(data.get('summary',data.get('summaries',{})),ensure_ascii=False,indent=2),'~~~']
-rows+=['','## 训练范围','', '本轮从冻结综合父db6完整actor/critic/STD/Adam/RNG独立重训7200秒。修复真实触阶后下层轮子后摆的奖励死区；后摆准备、真实承重转移、承重后独立抬轮和越沿放轮分开计入有限进度；保留丢失抬升的局部代价。完整DR、40/35/25任务占比、速度奖励、电机、MOD4资产、时序及原2mm单环境保护保持。','', '顺序仍为站高接近、真实触阶后向后摆腿、上层支撑后收腿抬轮、落轮站稳。旧后摆参考损失0；保留教师all6系数1.0，高站姿腿锚0.25。35/78/6接口保持。','', '本轮检查点从0独立计时，旧轮失败和中止证据另存。本轮保存后关闭，无继续训练授权。']
-(T/'FINAL_REPORT.md').write_text(chr(10).join(rows)+chr(10),encoding='utf8')
-decision=dict(default_comprehensive_parent_sha256=frozen,experimental_candidate=selected,promoted=False,low_speed_whole_observed=selected['low_whole_passed']>0,continuation_PPO_seconds=actual,total_round_PPO_seconds=total,authorized_budget_seconds=7200,charged_previous_PPO_seconds=0,all_training_and_evaluations_closed=True,no_further_training=True)
-put(T/'DECISION.json',decision);put(E/'ARTIFACT_INDEX.json',[dict(path=str(q),bytes=q.stat().st_size,sha256=hashlib.sha256(q.read_bytes()).hexdigest(),storage='local original; indexed in Git')for q in E.rglob('*.npz')])
-regpath=R/'sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json';reg=read(regpath);sid='pitch_stability_level9_20261115';assert not any(x.get('id')==sid for x in reg['stages']);model_ids=[]
-for row in collection:
- mid=sid+'_'+Path(row['file']).stem.removeprefix('model_');model_ids.append(mid);reg['models'].append(dict(id=mid,file=row['file'],git_path=(T/'weights'/row['file']).relative_to(R).as_posix(),sha256=row['sha256'],bytes=row['bytes'],complete_PPO=True,actor_input=35,critic_input=78,action_output=6,root_parent_sha256=frozen,continuation_parent_sha256=p['parent_sha256'],recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],role='Experimental ordered low-speed stair checkpoint; not promoted',git_storage='ordinary full PT blob'))
-reg['stages'].append(dict(id=sid,title='触阶后先后摆、承重后独立抬轮：独立两小时',parent_sha256=frozen,retained_model_id=selected['model_id'],other_model_ids=model_ids,status='Completed; actual results in final report',total_PPO_seconds=total,source_directories=[T.relative_to(R).as_posix()],decision_file=(T/'DECISION.json').relative_to(R).as_posix()));reg['active_pitch_stability_level9_training_20261115'].update(status='completed',total_PPO_seconds=total,promoted=False);put(regpath,reg)
-for q in [T/'README.md',R/'README.md',R/'docs/DR_TRAINING_INDEX_20261111.md']:
- with q.open('a',encoding='utf8')as f:f.write(chr(10)+'2026-11-15两小时轮完成：累计PPO '+str(round(total,3))+'秒；低速完整两阶'+str(selected['low_whole_passed'])+'/'+str(selected['low_whole_requested'])+'；综合db6仍冻结。结果见 '+(T/'FINAL_REPORT.md').relative_to(R).as_posix()+'。'+chr(10))
-print(json.dumps(decision,ensure_ascii=False),flush=True)
+def put(p,d):Path(p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+p=read(T/'PLAN.json');final=read(E/'training/FINAL.json');actual=final['elapsed_seconds'];selected=read(T/'weights/SELECTED_STUDENT.json');rank=read(E/'STUDENT_FIXED_RANKING.json');models=read(E/'MODEL_COLLECTION.json')['models'];frozen=p['parent_sha256'];baseline=read(E/'baseline_parent_pitch/RESULT.json')
+lines=['# 难度9随机起伏与启动急停俯仰修复结果','',f'实际PPO {actual:.3f}秒，授权7200秒；是否完成两小时：{actual>=7199}。父为综合冻结db6e9ccf，实验候选未自动晋升。','', '## 父模型与候选固定启停结果','', '| 模型与地形 | 完整无重置/4 | 俯仰RMS° | 启动峰值° | 急停峰值° | 启动速度MAE m/s |','|---|---:|---:|---:|---:|---:|']
+for label,summaries in [('父模型',baseline['summary']),('实验候选',selected['pitch_summary'])]:
+ for family,v in summaries.items():lines.append('| '+label+' '+family+' | '+str(v['completed_without_reset'])+' | '+' | '.join(str(v[k])for k in ['pitch_RMS_deg_mean','startup_peak_deg_max','braking_peak_deg_max','moving_vx_MAE_mean'])+' |')
+lines+=['','标称MuJoCo0ms固定14s启停；level9随机起伏与平地、0.28/0.40m高度、1.2/2.2m/s指令。前2s站稳，随后1s启动、2s急停交替正反向。首次物理episode、原2mm保护；不冒充完整DR部署验收。','', '## 全部检查点保留能力','', '| 检查点 | 启停完整/8 | 平地/60 | 正向上阶/5 | 实际斜向/20 | 下阶/5 | 俯仰评分越低越好 |','|---|---:|---:|---:|---:|---:|---:|']
+for row in sorted(rank,key=lambda r:r['source_file']):lines.append('| '+row['source_file']+' | '+' | '.join(str(row[k])for k in ['pitch_complete_cases','flat60_passed','straight_passed','actual_oblique_passed','descent_passed','stability_score'])+' |')
+lines+=['','## 配方','', '真实底盘重力投影俯仰与机身omega_y：-dt*[10*relu(abs(pitch)-5deg)^2+0.35*omega_y^2]，只在目标平地/随机起伏且真实轮子接地时应用。专项采用真实阶跃速度指令，未通过命令低通伪造稳定；原速度追踪奖励保留。','', '40%台阶、35%Rough、25%平地；一半Rough定为随机起伏level9，一半平地反复启停；其余保留综合技能并接受冻结父教师指导。目标环境落地启停，其他环境保留落空/旋转/高度等原科目。台阶环境源码恢复综合父配方来源，不训练最新顺序后摆奖励。完整DR、MOD4资产、电机、35/78/6、控制时序及2mm单环境保护沿用。','', '## 原生完整DR配对证据','']
+post=E/'post_native'
+if post.exists():
+ for folder in sorted(post.iterdir()):
+  if folder.is_dir()and(folder/'RESULT.json').exists():
+   data=read(folder/'RESULT.json');lines+=['### '+folder.name,'','~~~json',json.dumps(data.get('summary',data.get('summaries',{})),ensure_ascii=False,indent=2),'~~~','']
+(T/'FINAL_REPORT.md').write_text('\n'.join(lines)+'\n',encoding='utf8')
+decision=dict(status='completed'if actual>=7199 else'ended_before_full_budget',actual_PPO_seconds=actual,authorized_seconds=7200,promoted=False,default_comprehensive_parent_sha256=frozen,experimental_candidate=selected,parent_pitch_summary=baseline['summary'],all_training_and_evaluations_closed=True,no_further_training=True);put(T/'DECISION.json',decision)
+put(E/'ARTIFACT_INDEX.json',[dict(path=str(q),bytes=q.stat().st_size,sha256=hashlib.sha256(q.read_bytes()).hexdigest(),storage='original retained; indexed in Git')for q in E.rglob('*.npz')])
+regpath=R/'sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json';reg=read(regpath);sid='pitch_stability_level9_20261115';assert not any(x.get('id')==sid for x in reg['stages']);ids=[]
+for row in models:
+ mid=sid+'_'+Path(row['file']).stem.removeprefix('model_');ids.append(mid);reg['models'].append(dict(id=mid,file=row['file'],git_path=(T/'weights'/row['file']).relative_to(R).as_posix(),sha256=row['sha256'],bytes=row['bytes'],complete_PPO=True,actor_input=35,critic_input=78,action_output=6,root_parent_sha256=frozen,recipe_files=[(T/'PLAN.json').relative_to(R).as_posix()],role='Experimental pitch stability checkpoint;not promoted',git_storage='ordinary full PT blob'))
+reg['stages'].append(dict(id=sid,title='难度9随机起伏与启动急停的真实底盘俯仰稳定',status=decision['status'],total_PPO_seconds=actual,parent_sha256=frozen,retained_model_id=selected['model_id'],other_model_ids=ids,decision_file=(T/'DECISION.json').relative_to(R).as_posix()));reg['active_pitch_stability_level9_training_20261115'].update(status=decision['status'],actual_PPO_seconds=actual,promoted=False);put(regpath,reg)
+for path in [T/'README.md',R/'README.md',R/'docs/DR_TRAINING_INDEX_20261111.md']:
+ with path.open('a',encoding='utf8')as out:out.write('\n2026-11-15 俯仰稳定轮结束：实际PPO '+str(round(actual,3))+'秒；综合默认仍为db6；结果见 '+(T/'FINAL_REPORT.md').relative_to(R).as_posix()+'。\n')
+print(json.dumps(decision),flush=True)

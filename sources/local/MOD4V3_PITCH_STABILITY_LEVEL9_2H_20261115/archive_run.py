@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,datetime,hashlib,json,shutil,sys,tempfile
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
-p=argparse.ArgumentParser();p.add_argument('--phase',choices=['queued','launch','complete','closure'],required=True);phase=p.parse_args().phase
+p=argparse.ArgumentParser();p.add_argument('--phase',choices=['queued','launch','followup','complete','closure'],required=True);phase=p.parse_args().phase
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'));import record_experiment as rec
 original=rec.git;NET=('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true');binary=[]
 date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='pitch-stability-level9-2h-'+phase+'-01';TAG='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
@@ -35,14 +35,17 @@ if phase=='checkpoint20m':
  evaluation=E/'checkpoint_evals/model_020m';assert json.loads((evaluation/'EVALUATION.json').read_text())['complete']
  shutil.copytree(evaluation,snapshot/'checkpoint_evaluation')
  for file in (E/'inspections').glob('INSPECTION_020M.json'):shutil.copy2(file,snapshot/file.name)
+if phase=='followup':
+ snapshot=E/'followup_snapshot';snapshot.mkdir(exist_ok=False)
+ for source in (E/'training').glob('*.json'):shutil.copy2(source,snapshot/source.name)
 files=[]
 for path in sorted(T.rglob('*')):
  if not path.is_file() or any(part in {'__pycache__','kit_isolation','runtime','cache','tmp'} for part in path.relative_to(T).parts):continue
  rel=path.relative_to(T).as_posix()
  if rel.startswith('evidence/manual_low_speed/') and path.name in {'STATUS.json','trajectory.jsonl'}:continue
  if path.suffix in {'.pyc','.partial','.npz','.npy'} or path.name in {'monitor.log','monitor_error.log','pipeline.log','pipeline_error.log'} or path.name.startswith('ARCHIVE_') or path.name.endswith('_worker.log'):continue
- if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('queued','launch'):continue
- if phase in ('queued','launch') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
+ if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('queued','launch','followup'):continue
+ if phase in ('queued','launch','followup') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
  files.append(path)
 for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json']:
  if (R/rel).is_file():files.append(R/rel)

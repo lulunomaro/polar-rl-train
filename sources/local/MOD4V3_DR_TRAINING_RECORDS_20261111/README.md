@@ -149,3 +149,9 @@ PPO 1055.1810894012451秒完整保存；5m平地30/60、10m恢复60/60，低速�
 ## 真实搭阶承重奖励归类修复，原40分钟剩余预算已结束
 
 实际PPO 1344.2572255134583秒；实验候选rearward_contact_repair_20261114_final，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_REARWARD_CONTACT_REPAIR_40M_20261114/FINAL_REPORT.md。
+
+### 2026-11-15：后摆收腿台阶轮延长为总计两小时
+
+用户授权总计7200秒PPO，每300秒完整PT与独立检查。当前正确世界高度的有效段继续运行；完整保存并释放自身GPU上下文后，接续当前学生全部PPO/Adam/RNG，剩余时长按真实FINAL回填，约80分钟。保留最初292.226秒错误阶段计账与失败原件。原40分钟收尾已交接，避免提前占用GPU做最终评测。
+
+训练源、完整DR、40%台阶/35%Rough-v1/25%平地、速度奖励、0.42m上阶高度指令和MOD4资产均沿用本轮；综合最优db6仍冻结。两小时目录：sources/local/MOD4V3_ORDERED_REARWARD_2H_20261115；真实排队/启动状态见evidence/EXTENSION_STATUS.json和TRAINING_STARTED_CONFIRMED.json。原有效段和失败段均独立保留。

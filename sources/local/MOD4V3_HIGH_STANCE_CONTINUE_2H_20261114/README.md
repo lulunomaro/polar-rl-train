@@ -21,3 +21,7 @@ continue_after_current.py负责单次衔接，monitor_run.py负责5分钟检查�
 ## 追加轮实际开训
 
 实际PPO 2026-11-14T11:56:41.346864+08:00，预算约到2026-11-14T13:56:41.346864+08:00。完整actor/critic/STD/Adam和20组成功池恢复；首个完整PT已保存。父SHA 3b20e4f0cf03251fc82abb260fda2fa2f6ac12be2e341479eb834766e4a41b1f。
+
+## 实际完成
+
+PPO 7205.239659786224秒，所有独立检查点与原生复核完成。实验候选high_stance_continue_20261114_035m，未自动晋升；详见FINAL_REPORT.md与DECISION.json。

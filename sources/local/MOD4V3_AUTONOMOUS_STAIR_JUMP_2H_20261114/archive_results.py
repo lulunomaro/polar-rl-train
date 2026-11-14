@@ -68,14 +68,17 @@ if not git('tag', '--list', tag):
     index.write_text(json.dumps(dict(epoch=datetime.now(timezone.utc).isoformat(), artifacts=artifacts,
         reused_parent=plan['parent'], parent_sha256=plan['parent_sha256'],
         reused_base_support=plan['base_support'], reused_native_package=plan['package'],
-        asset_identity=plan['asset_identity'], ongoing_remote_reports='pending next collection and append while training remains active'), indent=2) + '\n', encoding='utf8')
+        asset_identity=plan['asset_identity'],
+        ongoing_remote_reports='All task reports collected after training and supervision completed' if a.phase == 'final'
+            else 'pending next collection and append while training remains active'), indent=2) + '\n', encoding='utf8')
     selected.append(index.relative_to(R).as_posix())
     note = T / ('LAUNCH_REPORT.md' if a.phase == 'launch' else 'FINAL_REPORT.md')
     assert note.is_file()
     sys.argv = ['record_experiment.py', '--id', ident, '--title',
                'Record autonomous stair jump task and finite two-hour PPO ' + a.phase,
                '--kind', 'training', '--note-file', str(note), '--validation',
-               'Historical31 failures rejected; see native attempt evidence and first PPO update; original plant/motors/clocks',
+               ('Final256 cases: all takeoff, zero crossings/landings/successes;21 completed evaluations and retained30m assertion failure; no policy promotion'
+                if a.phase == 'final' else 'Historical31 failures rejected; see native attempt evidence and first PPO update; original plant/motors/clocks'),
                '--files', *sorted(set(selected))]
     rec.main()
 commit = git('rev-parse', tag + '^{}')

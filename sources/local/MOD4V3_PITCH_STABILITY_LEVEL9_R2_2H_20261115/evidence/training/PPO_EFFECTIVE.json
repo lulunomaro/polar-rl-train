@@ -1,0 +1,66 @@
+{
+  "config": {
+    "num_steps_per_env": 24,
+    "save_interval": 500,
+    "obs_groups": {
+      "actor": [
+        "policy"
+      ],
+      "critic": [
+        "critic"
+      ]
+    },
+    "actor": {
+      "activation": "elu",
+      "obs_normalization": false,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "distribution_cfg": {
+        "init_std": 1.0,
+        "std_type": "scalar"
+      }
+    },
+    "critic": {
+      "activation": "elu",
+      "obs_normalization": false,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "algorithm": {
+      "num_learning_epochs": 3,
+      "num_mini_batches": 4,
+      "learning_rate": 3e-05,
+      "schedule": "fixed",
+      "gamma": 0.99,
+      "lam": 0.95,
+      "entropy_coef": 0.005,
+      "desired_kl": 0.01,
+      "max_grad_norm": 1.0,
+      "value_loss_coef": 4.0,
+      "use_clipped_value_loss": true,
+      "clip_param": 0.1,
+      "normalize_advantage_per_mini_batch": false,
+      "rnd_cfg": null,
+      "symmetry_cfg": null
+    },
+    "logger": "tensorboard",
+    "check_for_nan": true,
+    "empirical_normalization": false,
+    "clip_actions": 6.0,
+    "multi_gpu": null
+  },
+  "learning_rate": 3e-05,
+  "schedule": "fixed",
+  "clip_param": 0.1,
+  "num_learning_epochs": 3,
+  "optimizer_lrs": [
+    3e-05
+  ],
+  "parent_lr": 3e-05
+}

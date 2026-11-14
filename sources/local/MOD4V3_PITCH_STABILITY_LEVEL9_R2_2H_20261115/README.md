@@ -25,3 +25,5 @@ R1问题是集中359个目标环境后，原随机起伏列的非目标邻居继
 注意历史日志字段：TEACHER_KEEP_SCOPE.json沿用旧字段ascent_envs，本轮实际表示615个俯仰专项环境，而不是819个台阶；ascent_parent_keep=0表示专项解除旧动作约束。retained_parent_keep=1433表示全部非专项环境有父教师。必须结合本轮mask解释，不能仅按字段名推断上台阶未保留。
 
 新增固定启停评测可用本机 .venv/Scripts/python.exe -X utf8 -B fixed_pitch_eval.py --model 完整PT路径 --out 新的结果目录 复现。原始名义基线、失败、源模型SHA与复用说明全部留档；完整PT使用普通Git正文，不是LFS指针。
+
+2026-11-15 俯仰稳定轮结束：实际PPO 1850.715秒；综合默认仍为db6；结果见 sources/local/MOD4V3_PITCH_STABILITY_LEVEL9_R2_2H_20261115/FINAL_REPORT.md。

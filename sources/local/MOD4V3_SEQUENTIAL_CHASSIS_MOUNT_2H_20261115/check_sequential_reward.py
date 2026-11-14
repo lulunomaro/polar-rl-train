@@ -1,0 +1,53 @@
+"""Observed failure regressions for sequential stair mounting; no simulator updates."""
+from pathlib import Path
+import importlib.util, json
+import torch
+T=Path(__file__).resolve().parent
+spec=importlib.util.spec_from_file_location('sequential_credit',T/'support/mod4v3_ppo_v1/sequential_mount_credit.py')
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+checks=[]
+def check(name, condition):
+    assert bool(condition),name
+    checks.append(name)
+reference=torch.tensor([[-.12,-.12]])
+stage=torch.tensor([0]);floor=torch.full((1,2),.0625)
+inward=torch.full((1,2),.2);no=torch.zeros(1,2,dtype=torch.bool);yes=~no
+base,_=m.transfer_scores(reference,reference,floor,stage,inward,no)
+rear,_=m.transfer_scores(reference-.04,reference,floor,stage,inward,no)
+contact_only=torch.tensor([[[True,False,False]]])
+g,best,parts=m.transfer_credit(rear,base,contact_only)
+check('touching stair: rearward4cm with wheels on lower floor receives finite preparation credit',torch.isclose(g,torch.tensor([.1])).all())
+check('floor-only preparation receives no lift or placement reward',parts[:,:,1:].sum()==0)
+g_repeat,_,_=m.transfer_credit(rear,best,contact_only)
+check('holding or repeating previous rearward maximum earns nothing',g_repeat.sum()==0)
+g_inactive,unchanged,_=m.transfer_credit(rear,base,torch.zeros_like(contact_only))
+check('flat rough descent and no-contact cases have zero special credit',g_inactive.sum()==0 and torch.equal(unchanged,base))
+high=torch.full((1,2),.2775)
+raised,lift=m.transfer_scores(reference-.04,reference,high,stage,inward,no)
+g_no_mount,_,no_mount_parts=m.transfer_credit(raised,best,contact_only)
+check('rear preparation completed: lifting before actual mount gets no lift credit',g_no_mount.sum()==0 and no_mount_parts[:,:,1].sum()==0)
+all_on=torch.ones_like(contact_only)
+g_lift,lift_best,lift_parts=m.transfer_credit(raised,best,all_on)
+check('after actual mount: lift has a direct gradient without additional rear movement',torch.isclose(g_lift,torch.tensor([.5])).all())
+check('upper-tread inward position alone cannot earn placement before wheel clears',lift_parts[:,:,2].sum()==0)
+placed,_=m.transfer_scores(reference-.04,reference,high,stage,inward,yes)
+g_place,full_best,_=m.transfer_credit(placed,lift_best,all_on)
+check('post-clear physical inward placement has separate finite credit',torch.isclose(g_place,torch.tensor([.1])).all())
+mount,mount_best=m.load_credit(torch.ones(1),torch.zeros(1),torch.tensor([True]))
+mount2,_=m.load_credit(torch.ones(1),mount_best,torch.tensor([True]))
+check('real upper load transfer is paid once instead of every support frame',mount.sum()==1 and mount2.sum()==0)
+reset_credit,_,_=m.transfer_credit(placed,placed.clone(),all_on)
+reset_mount,_=m.load_credit(torch.ones(1),torch.ones(1),torch.tensor([True]))
+check('existing assisted reset and initial mount states are baselines without free reward',reset_credit.sum()==0 and reset_mount.sum()==0)
+one,_=m.transfer_scores(reference-.04,reference,torch.tensor([[.2775,.0625]]),stage,inward,torch.tensor([[True,False]]))
+one_credit,_,_=m.transfer_credit(one,best,all_on)
+check('one wheel may lift clear and place before the other',0<float(one_credit)<float(g_lift+g_place))
+second,_=m.transfer_scores(reference-.04,reference,high+.2,torch.tensor([1]),inward,yes)
+check('second200mm riser uses identical lower-relative score',torch.allclose(second,placed,atol=1e-6))
+loss=m.lift_regression(torch.zeros_like(lift),lift,torch.tensor([True]))
+no_loss=m.lift_regression(torch.zeros_like(lift),lift,torch.tensor([False]))
+check('post-mount lost lift has local cost and preparation has no such cost',loss.sum()>0 and no_loss.sum()==0)
+check('full finite stage budget including mount equals original outer0.6',abs(float(.6*(.2+.2+.5+.1))-.6)<1e-6)
+result=dict(passed=len(checks),checks=checks,scope='Reward timing and preserved task masks only; not proof the policy learned mounting')
+(T/'evidence/SEQUENTIAL_REWARD_REGRESSION.json').write_text(json.dumps(result,indent=2)+'\n')
+print(json.dumps(result))

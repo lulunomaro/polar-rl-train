@@ -382,3 +382,11 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 ## 2026-11-14 高站姿追加两小时已排队
 
 当前00:32开训的7200秒窗口继续，预算约到02:32；完成该轮训练和验收后，单次追加7200秒，完整PPO/Adam/STD与20组成功回放接续。每5分钟完整PT和检查。0.40m指令最新20m实际0.388021m，差约1.2cm；沿用原0.40/0.42m目标和现有配方。下一轮来源、排队状态和实际开训回执：sources/local/MOD4V3_HIGH_STANCE_CONTINUE_2H_20261114/README.md。
+
+## 2026-11-14 原生验收与追加两小时排队状态更正
+
+核实于2026-11-14T11:43:06.139951+08:00：高站姿修复首轮PPO已完成7206秒，最终高站姿0.38869m（指令0.40m）。固定回放所选15m完整检查点：平地60/60、正向连续登阶4/5、实际斜向7/20、下阶5/5。该固定回放不等同fullDR台阶毕业。原生验收曾将训练起点de57误当冻结综合对照db6的SHA，尚未动作即中断，连带追加队列退出；追加两小时未启动且消耗0秒。现按r2显式分别校验参考/学生身份，补跑原生验收后接续同配方7200秒。原错误、日志、源码和所有完整PT保留。恢复目录：sources/local/MOD4V3_STAIRS_PHASE_HEIGHT_REPAIR_2H_20261113/evidence/post_native_recovery_r2；接训入口：sources/local/MOD4V3_HIGH_STANCE_CONTINUE_2H_20261114/continue_after_current_r2.py。
+
+## 完整台阶示范＋上阶约束修复2小时已结束
+
+实际PPO 7206.379692316055秒；实验候选stairs_phase_height_repair_20261114_015m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_STAIRS_PHASE_HEIGHT_REPAIR_2H_20261113/FINAL_REPORT.md。

@@ -1,0 +1,33 @@
+119:  def _get_rewards(self):
+120:   base=super()._get_rewards()
+121:   if not getattr(self,'_continuous_ready',False):return base
+122:   active=self.stair_up&(~self.reset_terminated)&(self.episode_length_buf*self.step_dt>=3.);center=self._center();pos=self.view.data.root_pos_w;wheel=self.view.data.body_pos_w[:,self.stair_wheel_idx];forces=tensor(self.scene['contacts'].data.net_forces_w)[:,self.wheel_sensor_ids]
+123:   local_x=(wheel[:,:,0]-center[:,None,0])*self.stair_side[:,None];dy=(wheel[:,:,1]-center[:,None,1]).abs();radius=.0625
+124:   # Record real heading at near-first-edge horizontal wheel contact; diagnostic only.
+125:   axis=torch.zeros(self.num_envs,3,device=self.device);axis[:,0]=1.
+126:   forward_axis=quat_apply(self.view.data.root_quat_w[:,[1,2,3,0]],axis)
+127:   edge_yaw=torch.atan2(-self.stair_side*forward_axis[:,1],-self.stair_side*forward_axis[:,0])
+128:   near_first=(local_x-2.9).abs()<.12
+129:   horizontal_contact=torch.linalg.vector_norm(forces[:,:,:2],dim=-1)>5.
+130:   seen=active&(self.stair_stage==0)&(~self.stair_edge_contact_seen)&(near_first&horizontal_contact).any(1)
+131:   self.stair_edge_contact_yaw[seen]=edge_yaw[seen];self.stair_edge_contact_seen[seen]=True
+132:   # Actual tread contact and wheel clearance, rather than root projection/world-z alone.
+133:   support=forces[:,:,2]>5.
+134:   first_wheels=(local_x<2.88)&(local_x>1.42)&(dy<2.88)&((wheel[:,:,2]-(.2+radius)).abs()<.05)&support
+135:   second_wheels=(local_x<1.38)&(dy<1.38)&((wheel[:,:,2]-(.4+radius)).abs()<.05)&support
+136:   first=first_wheels.all(1);second=second_wheels.all(1)
+137:   from .stair_landing_credit import landing_credit
+138:   first_credit=landing_credit(first_wheels,self.stair_landed_wheels[:,0],active&(self.stair_stage<1))
+139:   second_credit=landing_credit(second_wheels,self.stair_landed_wheels[:,1],active&(self.stair_stage<2))
+140:   new_first=active&first&(self.stair_stage<1);new_second=active&second&(self.stair_stage<2)
+141:   age=self.episode_length_buf*self.step_dt;self.stair_first_time[new_first]=age[new_first];self._count(new_first.nonzero().flatten(),2);self._count(new_second.nonzero().flatten(),3)
+142:   self.stair_second_time[new_second]=age[new_second]
+143:   dx=(pos[:,0]-center[:,0]).abs();progress=(self.stair_start-dx).clamp_min(0.);advance=(progress-self.stair_progress).clamp_min(0.).clamp_max(2.2*self.step_dt)*active
+144:   self.stair_progress=torch.where(active,torch.maximum(self.stair_progress,progress),self.stair_progress)
+145:   stage=self.stair_stage.clamp_max(1);edge=torch.where(stage==0,2.9,1.4);lower=stage*.2;near=(local_x-edge[:,None]).abs().amin(1)<.45
+146:   armed=active&near&(~self.lift_armed);self.lift_reference[armed]=self.reward.length[armed];self.lift_armed|=armed
+147:   lift=((wheel[:,:,2]-(lower[:,None]+radius))/.2).clamp(0,1);retract=((self.lift_reference-self.reward.length)/.08).clamp(0,1);score=lift*retract
+148:   lift_gain=(score-self.lift_best).clamp_min(0.).mean(1)*(active&near&self.lift_armed);self.lift_best=torch.where((active&near)[:,None],torch.maximum(self.lift_best,score),self.lift_best)
+149:   wait=active&(self.stair_stage>=1)&(self.stair_stage<2);time_cost=.15*self.step_dt*wait
+150:   extra=.6*lift_gain+first_credit+second_credit+.2*new_first.float()+.2*new_second.float()-time_cost
+151:   self.stair_stage=torch.where(new_second,2,torch.where(new_first,1,self.stair_stage));self.lift_best[new_first]=0.;self.lift_armed[new_first]=False

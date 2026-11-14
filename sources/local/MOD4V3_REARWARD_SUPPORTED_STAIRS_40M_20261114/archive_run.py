@@ -35,6 +35,7 @@ files=[]
 for path in sorted(T.rglob('*')):
  if not path.is_file() or any(part in {'__pycache__','kit_isolation','runtime','cache','tmp'} for part in path.relative_to(T).parts):continue
  rel=path.relative_to(T).as_posix()
+ if rel.startswith('evidence/manual_low_speed/') and path.name in {'STATUS.json','trajectory.jsonl'}:continue
  if path.suffix in {'.pyc','.partial','.npz','.npy'} or path.name in {'monitor.log','monitor_error.log','pipeline.log','pipeline_error.log'} or path.name.startswith('ARCHIVE_') or path.name.endswith('_worker.log'):continue
  if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase=='launch':continue
  if phase=='launch' and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue

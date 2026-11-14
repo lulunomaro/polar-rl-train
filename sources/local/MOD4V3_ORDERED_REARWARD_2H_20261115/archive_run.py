@@ -5,7 +5,7 @@ T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
 p=argparse.ArgumentParser();p.add_argument('--phase',choices=['queued','launch','complete','closure'],required=True);phase=p.parse_args().phase
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'));import record_experiment as rec
 original=rec.git;NET=('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true');binary=[]
-date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='ordered-rearward-2h-'+phase+'-01';TAG='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
+date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='ordered-rearward-2h-superseded-'+phase+'-01';TAG='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
 def git(*args):
  if args[0]=='add':
   info=json.loads(record.read_text(encoding='utf8'))
@@ -56,7 +56,7 @@ if phase in ('complete','closure'):
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']
 main_before=git('ls-remote','origin','refs/heads/main').split()[0]
 note=T/('FINAL_REPORT.md' if phase in ('complete','closure') else 'README.md')
-sys.argv=['record_experiment.py','--id',ID,'--title','MOD4 ordered rearward stairs total two-hour continuation '+phase,'--kind','training','--note-file',str(note),'--validation','Human-authorized total7200s PPO including prior292.226s invalid phase; continuation restores current valid student complete PPO/Adam/RNG after safe save; unchanged source/asset/DR/reward/40-35-25;300s full PT and independent evaluations; frozen db6 default unchanged; existing GPU owners preserved; actual launch status and receipts retained','--files',*text]
+sys.argv=['record_experiment.py','--id',ID,'--title','Archive user-stopped ordered-rearward round before fresh parent retraining '+phase,'--kind','training','--note-file',str(note),'--validation','Original7200s authorization superseded by human repair-and-retrain request; actual old PPO3198.8146s including invalid292.226s; complete iteration/model_final saved; all periodic full PTs and fixed evaluations retained; no native final pairing or promotion; fresh coupled lift round starts separately from db6 for7200s; reports state safe early stop explicitly','--files',*text]
 rec.main();head=git('rev-parse','HEAD');tag=git('rev-parse',TAG);assert git('rev-parse',TAG+'^{}')==head
 git('push','--atomic','origin','HEAD','refs/tags/'+TAG)
 refs={line.split()[1]:line.split()[0] for line in git('ls-remote','origin','refs/heads/mod4v1-experts-fulldr-rm70','refs/heads/main','refs/tags/'+TAG,'refs/tags/'+TAG+'^{}').splitlines()}

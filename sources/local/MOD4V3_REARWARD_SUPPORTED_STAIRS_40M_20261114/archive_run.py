@@ -48,7 +48,7 @@ for rel in ['evidence/PIPELINE_RECOVERY_R2_COMPLETE.json','evidence/PHYSICAL_REC
 for rel in ['pipeline.log','pipeline_error.log']:
  if (T/rel).is_file():files.append(T/rel)
 if phase=='complete':
- for name in ['ARCHIVE_LAUNCH.log','ARCHIVE_LAUNCH_ERROR.log']:
+ for name in ['ARCHIVE_LAUNCH.log','ARCHIVE_LAUNCH_ERROR.log','ARCHIVE_START_FOLLOWUP.log','ARCHIVE_START_FOLLOWUP_ERROR.log','ARCHIVE_FIRST5M.log','ARCHIVE_FIRST5M_ERROR.log']:
   if (E/name).is_file():files.append(E/name)
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']
 main_before=git('ls-remote','origin','refs/heads/main').split()[0]

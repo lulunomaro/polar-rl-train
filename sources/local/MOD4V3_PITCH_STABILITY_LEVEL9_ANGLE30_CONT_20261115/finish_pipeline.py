@@ -1,4 +1,4 @@
-"""Close only this fresh7200s round, paired evaluations, complete PT archive and receipt."""
+"""Close this continuation within the original7200s combined budget, paired evaluations, complete PT archive and receipt."""
 from pathlib import Path
 import json,time,sys,subprocess,traceback
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'

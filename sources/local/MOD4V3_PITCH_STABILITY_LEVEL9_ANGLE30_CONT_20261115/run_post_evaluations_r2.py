@@ -6,7 +6,7 @@ selected=json.loads((T/'weights/SELECTED_STUDENT.json').read_text());source=sele
 models={'parent':P['teacher_retention']['keep_teacher'],'student':REMOTE+'/post_selected_student.pt'};E=T/'evidence/post_native';E.mkdir(exist_ok=False)
 c=connect()
 try:
- sf=c.open_sftp();assert sf.stat(REMOTE+'/train2h_pitch_stability_level9_r2/SAFE_CLOSED.json')
+ sf=c.open_sftp();assert sf.stat(REMOTE+'/train_pitch_stability_level9_angle30_cont/SAFE_CLOSED.json')
  sf.put(str(T/'weights/selected_specialist_student.pt'),models['student'])
  assert execute(c,'sha256sum -- '+shlex.quote(models['student'])).split()[0]==selected['sha256']
  assert execute(c,'sha256sum -- '+shlex.quote(models['parent'])).split()[0]==P['teacher_retention']['keep_teacher_sha256']

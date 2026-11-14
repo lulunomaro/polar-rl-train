@@ -25,7 +25,10 @@ records=[]
 for label,cmd in jobs:
  out=cmd[cmd.index('--out')+1];local=E/label;local.mkdir();c=connect()
  try:
-  busy=execute(c,'nvidia-smi --query-compute-apps=pid --format=csv,noheader').strip();allowed=P['GPU_sharing']['allowed_existing_owner_pids'];unexpected=[int(x)for x in busy.split()if int(x)not in allowed];assert not unexpected,'Unexpected compute owner:'+str(unexpected)
+  owner_code="from pathlib import Path;import subprocess,json;o=subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True);print(json.dumps([dict(pid=int(i),cmd=Path('/proc/'+i+'/cmdline').read_bytes().replace(bytes([0]),b' ').decode())for i in o.split()]))"
+  owners=json.loads(execute(c,P['python']+' -B -c '+shlex.quote(owner_code)))
+  unexpected=[o['pid']for o in owners if '/mnt/mod4_windows_data/hjq/' not in o['cmd']or '--livestream' not in o['cmd']or not any(n in o['cmd']for n in P['GPU_sharing']['allowed_owner_commands_contain'])]
+  assert not unexpected,'Unexpected compute owner:'+str(unexpected)
   code="from pathlib import Path;import subprocess,os,json,time;root=Path("+repr(REMOTE)+");out=Path("+repr(out)+");assert not out.exists();env=dict(os.environ);env.update(CUDA_VISIBLE_DEVICES='0',PYTHONUNBUFFERED='1',OMNI_KIT_ACCEPT_EULA='YES',ISAACSIM_ACCEPT_EULA='Y',XDG_CACHE_HOME=str(root/'cache'),WARP_CACHE_PATH=str(root/'cache/warp'),TMPDIR=str(root/'tmp'));log=(root/"+repr('post_'+label+'_r2.log')+").open('xb',buffering=0);child=subprocess.Popen("+repr(cmd)+",cwd=root/'support',env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True);print(json.dumps(dict(pid=child.pid,epoch=time.time(),job=str(out))))"
   receipt=json.loads(execute(c,P['python']+' -B -c '+shlex.quote(code)));(local/'LAUNCH.json').write_text(json.dumps(receipt,indent=2)+'\n');print('POST_NATIVE_STARTED '+label+' '+str(receipt['pid']),flush=True)
  finally:c.close()
@@ -48,7 +51,7 @@ for label,cmd in jobs:
     sf.get(REMOTE+'/post_'+label+'_r2.log',str(local/'stdout.log'))
     # app.close may take a moment after writing the safe-close marker.
     owner=execute(c,'nvidia-smi --query-compute-apps=pid --format=csv,noheader').strip()
-    if owner:closed=False
+    if str(receipt['pid'])in owner.split():closed=False
    if closed:
     if (local/'ERROR.json').exists():raise RuntimeError('Native '+label+' failed; see preservedERROR.json')
     assert (local/'RESULT.json').exists();records.append(dict(label=label,remote=out,result=str(local/'RESULT.json')));break

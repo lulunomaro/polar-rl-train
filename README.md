@@ -343,3 +343,7 @@ PPO 1055.1810894012451秒完整保存；5m平地30/60、10m恢复60/60，低速�
 ## 真实搭阶承重奖励归类修复，原40分钟剩余预算已结束
 
 实际PPO 1344.2572255134583秒；实验候选rearward_contact_repair_20261114_final，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_REARWARD_CONTACT_REPAIR_40M_20261114/FINAL_REPORT.md。
+
+### 2026-11-15 后摆登阶高度坐标修复
+
+新流程首阶段292.226秒因高度基准错误完整保存停止，已记录失败。修复后从同一冻结db6重开原预算剩余2107秒；原资产/保护保持。实际状态和完整配方：sources/local/MOD4V3_ORDERED_REARWARD_FIX_40M_20261115/README.md。

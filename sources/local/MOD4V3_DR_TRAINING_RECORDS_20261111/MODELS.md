@@ -1,5 +1,15 @@
 # Git中的完整PPO检查点
 
+<!-- BEST_COMPREHENSIVE_20261113_START -->
+## 重点模型：11月13日最牛逼模型（冻结综合优选）
+
+**`db6e9ccf…` / iteration25331 / 最高站姿登阶轮005m。当前综合默认固定使用这份权重。**
+
+[直接打开完整模型与配方](../../../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/README.md) · [完整PT本体](../../../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/model_full_ppo.pt)。固定Git标签：`best-20261113-comprehensive-db6e9ccf`。
+
+2026-11-14按用户要求重点命名；模型日期为2026-11-13。平地60/60、名义MuJoCo正向连续200 mm两阶4/5；完整DR与未解决科目见专页。后续实验候选不自动替换此模型。下方旧轮次状态按当时时刻保留。
+<!-- BEST_COMPREHENSIVE_20261113_END -->
+
 ## 2026-11-12 台阶抬高底盘20分钟接续：末段待收
 
 当前共31阶段、193完整PT文件记录。本轮已取回首次/5m/10m的3个PT，原父120m保持；15/20/final与原生fullDR待目标SSH恢复取回。[配方与实际报告](../MOD4V3_SCUT_STAIR_LIFT_20M_20261112/REPORT.md)。

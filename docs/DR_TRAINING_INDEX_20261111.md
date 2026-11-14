@@ -1,5 +1,15 @@
 # MOD4 DR 训练配方、阶段模型与续训索引
 
+<!-- BEST_COMPREHENSIVE_20261113_START -->
+## 重点模型：11月13日最牛逼模型（冻结综合优选）
+
+**`db6e9ccf…` / iteration25331 / 最高站姿登阶轮005m。当前综合默认固定使用这份权重。**
+
+[直接打开完整模型与配方](../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/README.md) · [完整PT本体](../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/model_full_ppo.pt)。固定Git标签：`best-20261113-comprehensive-db6e9ccf`。
+
+2026-11-14按用户要求重点命名；模型日期为2026-11-13。平地60/60、名义MuJoCo正向连续200 mm两阶4/5；完整DR与未解决科目见专页。后续实验候选不自动替换此模型。下方旧轮次状态按当时时刻保留。
+<!-- BEST_COMPREHENSIVE_20261113_END -->
+
 ## 2026-11-12 平地超速原因调查：腿控迁移已验证
 
 93个冻结回放、0重置；腿/轮输出互换定位主要偏移跟随腿控。高站姿速度改善、低站姿超速扩大，原平方罚未漏；额外助跑进展奖励范围过宽，旧Rough阶段也已有偏差。没有新训练、未更换原最佳模型。[完整证据与最小修复建议](../sources/local/MOD4V3_STAIR_SPEED_AUDIT_20261112/REPORT.md)。

@@ -43,7 +43,7 @@ def save_json(path, value):
 
 
 class JumpSimulation(Simulation):
-    def __init__(self, visible=False, terrain=False):
+    def __init__(self, visible=False, terrain=False, terrain_row=3, terrain_family=0):
         for path, expected in ((JUMP, JUMP_SHA), (DRIVE, DRIVE_SHA)):
             assert hashlib.sha256(path.read_bytes()).hexdigest() == expected, str(path)
         args = args_for(str(JUMP))
@@ -55,7 +55,7 @@ class JumpSimulation(Simulation):
         self.terrain = None
         if terrain:
             from map_terrain import SavedMap
-            self.terrain = SavedMap()
+            self.terrain = SavedMap(row=terrain_row, family=terrain_family)
             args.xml = str(self.terrain.build())
         super().__init__(args)
         if self.terrain:
@@ -288,6 +288,10 @@ class JumpSimulation(Simulation):
                      retracted=self.retracted, closure_m=self.closure, mimic_rad=self.mimic,
                      last_jump=self.last_jump, root_xyz=self.env.d.qpos[:3].tolist(),
                      simulation_time_s=float(self.env.d.time))
+        if self.terrain:
+            value.update(terrain_tiles=1, terrain_tile=self.terrain.tile()["name"],
+                         terrain_family=self.terrain.families[self.terrain.family],
+                         terrain_difficulty=self.terrain.row)
         return value
 
 
@@ -298,7 +302,7 @@ class JumpControl(ControlApp):
         super().__init__(root, sim)
 
     def _build(self):
-        self.root.title("MOD4 | Isaac Lab Map + Space Jump")
+        self.root.title("MOD4 | Single Terrain + Space Jump")
         self.root.geometry("470x720+20+25")
         self.root.minsize(450, 700)
         self.root.configure(bg=self.BG)
@@ -319,7 +323,7 @@ class JumpControl(ControlApp):
             self._button(row, "Go", self.go_to_terrain, self.TEXT).pack(side="left", fill="x", expand=True)
             row = tk.Frame(outer, bg=self.BG)
             row.pack(fill="x", pady=(0, 8))
-            self._button(row, "750-tile map", self.show_map, self.CYAN).pack(side="left", fill="x", expand=True, padx=2)
+            self._button(row, "Terrain view", self.show_map, self.CYAN).pack(side="left", fill="x", expand=True, padx=2)
             self._button(row, "Follow robot", self.follow_robot, self.CYAN).pack(side="left", fill="x", expand=True, padx=2)
         self.speed_var = tk.DoubleVar(value=.6)
         self.turn_var = tk.DoubleVar(value=1.)
@@ -364,9 +368,11 @@ class JumpControl(ControlApp):
     def go_to_terrain(self):
         from map_terrain import NAMES
         self.keys.clear()
-        self.sim.terrain.family = NAMES.index(self.family_var.get())
-        self.sim.terrain.row = self.level_var.get()
-        self.sim.reset_standing()
+        visible = self.sim.viewer is not None
+        self.sim.close()
+        self.sim = JumpSimulation(visible=visible, terrain=True, terrain_row=self.level_var.get(),
+                                  terrain_family=NAMES.index(self.family_var.get()))
+        self.sim.args.vx, self.sim.args.wz = self.speed_var.get(), self.turn_var.get()
         self.sim.paused = True
         self.follow_robot()
         self._focus_control()
@@ -377,7 +383,7 @@ class JumpControl(ControlApp):
                 cam = self.sim.viewer.cam
                 cam.type = mujoco.mjtCamera.mjCAMERA_FREE
                 cam.lookat[:] = [0., 0., .2]
-                cam.distance, cam.azimuth, cam.elevation = 780., 180., -75.
+                cam.distance, cam.azimuth, cam.elevation = 13., 115., -55.
 
     def follow_robot(self):
         if self.sim.viewer:
@@ -478,7 +484,8 @@ def main():
     ready = dict(epoch=time.time(), pid=os.getpid(), jump=str(JUMP), jump_sha256=JUMP_SHA,
                  drive=str(DRIVE), drive_sha256=DRIVE_SHA, viewer_running=sim.viewer.is_running(),
                  manual=True, autoplay=False, paused=True, reused_controller="play_ppo_flatv1_control.ControlApp",
-                 map_tiles=750, map_rows=10, map_cols=75, map_source="Adjacent player saved Isaac Lab Rough-v1 map",
+                 map_tiles=1, map_rows=1, map_cols=1, map_tile=sim.terrain.tile()["name"],
+                 map_source="One original tile from adjacent player's saved Isaac Lab Rough-v1 map",
                  space="one-shot jump, retained WASD, return to drive after landing", runtime=str(runtime))
     save_json(runtime / "READY.json", ready)
     print("MANUAL_JUMP_READY " + json.dumps(ready), flush=True)

@@ -1,4 +1,4 @@
-"""Reuse the adjacent player's saved Isaac Lab Rough-v1 terrain meshes."""
+"""Load one selected tile from the saved Isaac Lab Rough-v1 terrain library."""
 from pathlib import Path
 import hashlib
 import json
@@ -23,19 +23,19 @@ NAMES = ["Wide stairs", "Grid bars", "Slope", "Inverse slope", "High stairs", "S
 
 
 class SavedMap:
-    def __init__(self):
+    def __init__(self, row=3, family=0):
         self.manifest = json.loads((SOURCE / "MAP_MANIFEST.json").read_bytes())
         assert self.manifest["rows"] == 10 and self.manifest["cols"] == 75
         assert len(self.manifest["tiles"]) == 750
         self.families = self.manifest["families"]
-        self.row, self.family = 3, 0
+        self.row, self.family = row, family
 
     def tile(self):
         return next(t for t in self.manifest["tiles"] if t["row"] == self.row
                     and t["family"] == self.families[self.family])
 
     def center(self, tile):
-        return (tile["row"] + .5) * 9. - 45., (tile["col"] + .5) * 9. - 337.5
+        return 0., 0.
 
     def start(self):
         x, y = self.center(self.tile())
@@ -43,18 +43,22 @@ class SavedMap:
 
     def build(self):
         CACHE.mkdir(exist_ok=True)
-        scene = CACHE / "full_map_with_robot.xml"
-        if scene.exists() and (CACHE / "heightfields.npz").exists() and (CACHE / "BUILD.json").exists():
+        selected = self.tile()
+        name = selected["name"]
+        scene = CACHE / ("single_"+name+".xml")
+        field_path = CACHE / ("single_"+name+"_heightfields.npz")
+        receipt_path = CACHE / ("single_"+name+"_BUILD.json")
+        if scene.exists() and field_path.exists() and receipt_path.exists():
             return scene
         start = time.time()
         tree = ET.parse(PLANT)
         root = tree.getroot()
-        root.set("model", "MOD4v3_IsaacLab_Rough_v1_750_tiles_Space_Jump")
+        root.set("model", "MOD4v3_IsaacLab_"+name+"_Single_Tile_Space_Jump")
         root.find("compiler").set("meshdir", str(PLANT.parent / "assets"))
         asset, world = root.find("asset"), root.find("worldbody")
         world.remove(world.find("geom[@name='ground']"))
         fields, records = {}, []
-        for index, tile in enumerate(self.manifest["tiles"]):
+        for tile in [selected]:
             name, family = tile["name"], self.families.index(tile["family"])
             mesh = MESHES / (name + ".msh")
             original = SOURCE / "tiles" / (name + ".npz")
@@ -88,7 +92,11 @@ class SavedMap:
                                       group="5", friction=".9 .005 .0001")
             else:
                 previous = MESHES.parent / (name+"_hf_v2.npz")
-                if previous.exists():
+                existing_fields = CACHE / "heightfields.npz"
+                if existing_fields.exists():
+                    with np.load(existing_fields) as cached:
+                        h = cached[name].copy()
+                elif previous.exists():
                     with np.load(previous) as cached:
                         h = cached["h"].copy()
                 else:
@@ -123,23 +131,22 @@ class SavedMap:
                               pos=f"{x} {y} {low}", contype="1", conaffinity="2", group="5", friction=".9 .005 .0001")
             records.append(dict(name=name, source=str(original), source_sha256=hashlib.sha256(original.read_bytes()).hexdigest(),
                                 mesh=str(mesh), mesh_sha256=hashlib.sha256(raw).hexdigest(), geometry_verified=True))
-            if (index+1) % 25 == 0:
-                print(f"MAP_BUILD {index+1}/750 elapsed={time.time()-start:.1f}s", flush=True)
-        np.savez_compressed(CACHE / "heightfields.npz", **fields)
+        np.savez_compressed(field_path, **fields)
         tree.write(scene, encoding="utf-8", xml_declaration=True)
-        receipt = dict(epoch=time.time(), elapsed_s=time.time()-start, rows=10, cols=75, tiles=750,
+        receipt = dict(epoch=time.time(), elapsed_s=time.time()-start, rows=1, cols=1, tiles=1,
+                       source_row=selected["row"], source_col=selected["col"], selected_tile=selected["name"],
                        tile_size_m=[9,9], families=self.families, source_manifest=str(SOURCE/"MAP_MANIFEST.json"),
                        source_manifest_sha256=hashlib.sha256((SOURCE/"MAP_MANIFEST.json").read_bytes()).hexdigest(),
                        same_saved_map_as_adjacent_player=True, source_scope=self.manifest["scope"],
-                       visual="Original saved meshes, all 750; exact source vertices and faces checked",
+                       visual="One original saved mesh; exact source vertices and faces checked; centered at origin",
                        collision="Existing MuJoCo player conversion: exact wide stair boxes; 5cm sampled heightfields elsewhere",
                        native_plant_sha256=hashlib.sha256(PLANT.read_bytes()).hexdigest(), artifacts=records)
-        (CACHE/"BUILD.json").write_text(json.dumps(receipt, indent=2)+"\n", encoding="utf-8")
+        receipt_path.write_text(json.dumps(receipt, indent=2)+"\n", encoding="utf-8")
         print("MAP_BUILD_READY "+str(scene), flush=True)
         return scene
 
     def populate(self, model):
-        with np.load(CACHE / "heightfields.npz") as fields:
+        with np.load(CACHE / ("single_"+self.tile()["name"]+"_heightfields.npz")) as fields:
             for name in fields.files:
                 field = model.hfield("map_hf_"+name)
                 h = fields[name]

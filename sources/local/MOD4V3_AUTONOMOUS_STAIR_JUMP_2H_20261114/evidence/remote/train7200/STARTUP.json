@@ -1,0 +1,647 @@
+{
+  "epoch": 1794666998.6032364,
+  "mode": "train",
+  "seed": 66,
+  "parent": "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_FORWARD_JUMP_REPAIR_2H_20261114_R1/train7200/model_085m.pt",
+  "parent_sha256": "c4d0328472e8642c497f113e37fb8940d92435cd8d96f547b8f1f4aa15cc1dfe",
+  "parent_iteration": 27116,
+  "interface": [
+    35,
+    78,
+    6
+  ],
+  "observation_schema": "MOD4V3_AUTONOMOUS_STAIR_OBS_V1",
+  "task_slots": [
+    "base_mode",
+    "jump_request",
+    "measured_air",
+    "signed_edge_distance_m",
+    "step_height_m",
+    "tread_depth_m",
+    "vertical_velocity_m_s"
+  ],
+  "adaptation": {
+    "full_parent_restored_before_adaptation": true,
+    "zeroed_input_columns": [
+      {
+        "model": "actor",
+        "input_columns": [
+          31,
+          35
+        ]
+      },
+      {
+        "model": "critic",
+        "input_columns": [
+          32,
+          39
+        ]
+      }
+    ],
+    "critic_output_reset": true,
+    "matching_Adam_moments_reset": true,
+    "actor_std_before": [
+      0.18010404706001282,
+      0.1282033771276474,
+      0.13810957968235016,
+      0.12563000619411469,
+      0.4905722141265869,
+      0.4391999840736389
+    ],
+    "actor_std_after": [
+      0.30000001192092896,
+      0.30000001192092896,
+      0.30000001192092896,
+      0.30000001192092896,
+      0.4905722141265869,
+      0.4391999840736389
+    ],
+    "retained_old_phase_commands": false
+  },
+  "optimizer_entries": 17,
+  "num_envs": 2048,
+  "asset_hashes": {
+    "robot.usd": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c",
+    "robot_physx.usda": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+    "import_contract.json": "76784aa2796a8a9aa5ff4d638be47f425da3d0dd0af94db7286467358808af4c"
+  },
+  "sampling": {
+    "closure_max_absolute_difference_m": 9.531779596727574e-07,
+    "preallocated": true,
+    "CUDA_graph": true,
+    "physics": "PhysX TGS32/4",
+    "supermimic": false,
+    "newton": false
+  },
+  "physics_dt_s": 0.0025,
+  "leg_hz": 100,
+  "wheel_hz": 400,
+  "policy_hz": 50,
+  "closure_reset_m": 0.01,
+  "mimic_reset_rad": 0.01,
+  "motor_phase_schedule": false,
+  "teacher_actions": false,
+  "task": {
+    "goal": "moving jump onto first upper tread, then >=0.5s stable recovery",
+    "policy_interface": [
+      35,
+      78,
+      6
+    ],
+    "observation_schema": "MOD4V3_AUTONOMOUS_STAIR_OBS_V1",
+    "task_slots": [
+      "base_mode",
+      "jump_request",
+      "measured_air",
+      "signed_edge_distance_m",
+      "step_height_m",
+      "tread_depth_m",
+      "vertical_velocity_m_s_times_0.25"
+    ],
+    "phase_commands": false,
+    "phase_clock_observed": false,
+    "leg_pose_targets": false,
+    "teacher_execution": false,
+    "motor_actions": "all six learned actions only",
+    "geometry": "saved original Isaac Lab r00_c00 and r03_c00; lower heights are explicit scaled warmup copies",
+    "heights_m": [
+      0.0,
+      0.04,
+      0.08,
+      0.12,
+      0.165,
+      0.22
+    ],
+    "target_heights_m": [
+      0.165,
+      0.22
+    ],
+    "curriculum_max_level_at_s": {
+      "0": 2,
+      "900": 3,
+      "1800": 4,
+      "3600": 5
+    },
+    "target_exposure_each_from_start": 0.1,
+    "scan_resolution_m": 0.05,
+    "single_space_request_latched": true,
+    "required_physical_air_s": 0.08,
+    "must_cross_in_qualified_flight": true,
+    "both_wheel_top_footprints": true,
+    "stable_recovery_s": 0.5,
+    "support_duty_min": 0.8,
+    "landing_pitch_roll_max_deg": 15.0,
+    "physics_dt_s": 0.0025,
+    "policy_hz": 50,
+    "leg_hz": 100,
+    "wheel_hz": 400,
+    "closure_reset_m": 0.01,
+    "mimic_reset_rad": 0.01,
+    "original_plant_and_motors": true,
+    "full_DR_ranges_unchanged": true,
+    "nominal_fraction": 0.2,
+    "overspeed_penalty": true,
+    "task_velocity_limit_m_s": 2.0,
+    "manual_player_input_update_required": true,
+    "old_manual_player_preserved": true
+  },
+  "source_archive_sha256": "b2690dfd92e47a9116427e16bb9aaf782ca2e52a72f8a1bf273cda0cdc33e207",
+  "DR": {
+    "profile": "remaining_dr_fixed20pct_nominal_v2",
+    "mass_inertia_factor_range": null,
+    "leg_gain_range": [
+      0.750096321105957,
+      1.2499535083770752
+    ],
+    "wheel_gain_range": [
+      0.7501909732818604,
+      1.249833583831787
+    ],
+    "wheel_friction_range": [
+      0.500775158405304,
+      1.1891746520996094
+    ],
+    "nominal_fraction_target": 0.2,
+    "other_randomization": "spring/PD/COM/armature/joint-friction/push/noise/delay unchanged",
+    "stage": "repaired Step7 plus startup body mass and explicit motor output scale",
+    "joint_friction_scale": 1.0,
+    "joint_friction_ranges": {
+      "active_leg_static": [
+        0.25,
+        1.0
+      ],
+      "active_leg_dynamic": [
+        0.25,
+        1.0
+      ],
+      "active_leg_viscous": [
+        0.05,
+        0.2
+      ],
+      "wheel_static": [
+        0.05,
+        0.25
+      ],
+      "passive_static": [
+        0.05,
+        0.1
+      ]
+    },
+    "missing_dr": [],
+    "spring_damping_fraction": 1.0,
+    "spring_damping_scale_range": [
+      0.5,
+      1.5
+    ],
+    "external_fraction": 1.0,
+    "external_force_range_n": [
+      -10.0,
+      10.0
+    ],
+    "external_torque_range_nm": [
+      -1.0,
+      1.0
+    ],
+    "external_interval_s": [
+      5.0,
+      10.0
+    ],
+    "external_hold_control_steps": 10,
+    "obs_noise_fraction": 1.0,
+    "obs_noise_ranges": {
+      "height": [
+        -0.01,
+        0.01
+      ],
+      "base_ang_vel_observation": [
+        -0.25,
+        0.25
+      ],
+      "projected_gravity_observation": [
+        -0.05,
+        0.05
+      ],
+      "joint_pos": [
+        -0.025,
+        0.025
+      ],
+      "leg_joint_vel_observation": [
+        -0.5,
+        0.5
+      ],
+      "wheel_joint_vel_observation": [
+        -1.0,
+        1.0
+      ]
+    },
+    "delay": {
+      "physics_dt_ms": 2.5,
+      "policy_dt_ms": 20.0,
+      "pd_dt_ms": 10.0,
+      "quantum_ms": 5.0,
+      "action_options_ms": [
+        5.0,
+        10.0
+      ],
+      "sensor_options_ms": [
+        5.0,
+        10.0,
+        15.0
+      ],
+      "sampling": "independent group lag at env reset; fixed within episode",
+      "policy_sensor_slots": [
+        4,
+        22
+      ],
+      "policy_action_slots": [
+        22,
+        28
+      ],
+      "previous_action": "last raw clamped policy output; execution delay does not overwrite it",
+      "critic": "existing undelayed privileged stream",
+      "low_pass_filter": false,
+      "buffer_time_is_not_pd_latency": true
+    },
+    "body_mass_randomization": {
+      "sampling": "independent per environment and selected rigid body at startup; fixed across resets",
+      "groups": {
+        "base": {
+          "range": [
+            0.9,
+            1.3
+          ],
+          "bodies": [
+            "base_link"
+          ]
+        },
+        "leg": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_front1_link",
+            "left_rear1_link",
+            "right_front1_link",
+            "right_rear1_link",
+            "left_front2_link",
+            "left_front3_link",
+            "left_rear2_link",
+            "left_spring1_link",
+            "right_front2_link",
+            "right_front3_link",
+            "right_rear2_link",
+            "right_spring1_link",
+            "left_front4_link",
+            "left_spring2_link",
+            "right_front4_link",
+            "right_spring2_link"
+          ]
+        },
+        "wheel": {
+          "range": [
+            0.9,
+            1.1
+          ],
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ]
+        }
+      },
+      "unselected_bodies": [
+        "left_rear1_drive_link",
+        "left_front1_drive_link",
+        "right_rear1_drive_link",
+        "right_front1_drive_link",
+        "left_bottom2_guide_link",
+        "left_bottom3_guide_link",
+        "right_bottom2_guide_link",
+        "right_bottom3_guide_link",
+        "left_front_guide_link",
+        "left_rear_guide_link",
+        "right_front_guide_link",
+        "right_rear_guide_link"
+      ],
+      "unselected_scale": 1.0,
+      "inertia": "nominal inertia tensor scaled by that body's mass ratio",
+      "nominal_mass_mixture": false,
+      "critic_mass_slot": "actual total robot mass divided by nominal total mass; existing 78D layout",
+      "total_mass_ratio_range": [
+        0.9201580286026001,
+        1.2256817817687988
+      ]
+    },
+    "base_com_delta_m": {
+      "x": [
+        -0.04,
+        0.04
+      ],
+      "y": [
+        -0.02,
+        0.02
+      ],
+      "z": [
+        -0.02,
+        0.02
+      ]
+    },
+    "effort_output_scale": {
+      "leg_range": [
+        0.8,
+        1.1
+      ],
+      "wheel_range": [
+        0.9,
+        1.1
+      ],
+      "sampling": "independent per env/active motor, first reset and eligible reset after 720 global policy steps",
+      "min_step_count_between_reset": 720,
+      "sample_count_range": [
+        1,
+        1
+      ],
+      "actual_leg_range": [
+        0.8000199198722839,
+        1.0999687910079956
+      ],
+      "actual_wheel_range": [
+        0.900049090385437,
+        1.0999473333358765
+      ],
+      "application": "full raw PD torque multiplied before original DC envelope; inherited additive noise then final envelope",
+      "new_bias": 0.0,
+      "new_noise_std": 0.0,
+      "critic": "existing stiffness/damping slots report effective PD gains; actual applied torque slot retained; 78D unchanged"
+    },
+    "contact_material": {
+      "sampling": "startup; independent per-env/per-shape bucket selection; selected properties fixed across resets",
+      "make_consistent": true,
+      "groups": {
+        "wheel": {
+          "bodies": [
+            "left_wheel_link",
+            "right_wheel_link"
+          ],
+          "shapes": [
+            31,
+            33
+          ],
+          "static": [
+            0.5,
+            1.2
+          ],
+          "dynamic": [
+            0.4,
+            1.0
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.500775158405304,
+            0.41020798683166504,
+            0.0
+          ],
+          "actual_max": [
+            1.1891746520996094,
+            0.9726054668426514,
+            0.1997298151254654
+          ]
+        },
+        "base": {
+          "bodies": [
+            "base_link"
+          ],
+          "shapes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "static": [
+            0.01,
+            0.1
+          ],
+          "dynamic": [
+            0.01,
+            0.1
+          ],
+          "restitution": [
+            0.02,
+            0.2
+          ],
+          "buckets": 64,
+          "actual_min": [
+            0.010410093702375889,
+            0.010410093702375889,
+            0.0
+          ],
+          "actual_max": [
+            0.8999999761581421,
+            0.8999999761581421,
+            0.1946413516998291
+          ]
+        },
+        "guide": {
+          "bodies": [
+            "left_bottom2_guide_link",
+            "left_bottom3_guide_link",
+            "right_bottom2_guide_link",
+            "right_bottom3_guide_link",
+            "left_front_guide_link",
+            "left_rear_guide_link",
+            "right_front_guide_link",
+            "right_rear_guide_link"
+          ],
+          "shapes": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "static": [
+            0.1,
+            0.7
+          ],
+          "dynamic": [
+            0.1,
+            0.7
+          ],
+          "restitution": [
+            0.01,
+            0.1
+          ],
+          "buckets": 8,
+          "actual_min": [
+            0.019999999552965164,
+            0.019999999552965164,
+            0.0
+          ],
+          "actual_max": [
+            0.647406816482544,
+            0.601736307144165,
+            0.09603419154882431
+          ]
+        }
+      },
+      "unselected": "inherited Step7 mild material reset",
+      "critic": "existing six slots: actual left/right wheel material triple; shape mean if multi-shape; no base/guide encoding; 78D retained"
+    },
+    "velocity_push": {
+      "world_xy_velocity_delta_range_m_s": [
+        -0.25,
+        0.25
+      ],
+      "interval_s": [
+        5.0,
+        10.0
+      ],
+      "per_environment": true,
+      "is_global_time": false,
+      "sampling": "native EventManager interval; timer resampled on reset",
+      "function": "target installed isaaclab.envs.mdp.events.push_by_setting_velocity",
+      "semantics": "add delta to world XY velocity; z and angular unchanged",
+      "phase": "native post-step interval before observations",
+      "total_events": 0
+    },
+    "base_com_sampling": "startup; fixed across reset; nominal + immutable sample",
+    "pd_gains": {
+      "kp_scale": [
+        0.75,
+        1.25
+      ],
+      "kd_scale": [
+        0.75,
+        1.25
+      ],
+      "sampling": "first reset and eligible reset after720 global policy steps",
+      "leg_explicit": "Kp60*scale,Kd2*scale; wheelKd0.6*scale; original DC envelope",
+      "passive": "native nominal damping * scale; zero stiffness remains zero",
+      "gas": "plant stiffness2000 retained; native damping3*[.5,1.5]; no second damping torque"
+    },
+    "joint_friction_sampling": "startup independently by selected joint; fixed across resets",
+    "reset_distribution": {
+      "task": "autonomous_stair_jump",
+      "upright_only": true,
+      "initial_gap_m": [
+        1.05,
+        1.35
+      ],
+      "yaw_rad": [
+        -0.04,
+        0.04
+      ],
+      "request_age_s": [
+        0.8,
+        1.3
+      ],
+      "command_vx_m_s": [
+        0.4,
+        0.8
+      ],
+      "episode_seconds": 8.0,
+      "motor_phase_schedule": false,
+      "nominal_fraction": 0.2,
+      "full_DR_ranges_unchanged": true
+    },
+    "sampling_mixture": {
+      "nominal_envs": 409,
+      "fullDR_envs": 1639,
+      "assignment": "fixed envID modulo5==4",
+      "DR_range_reduction": false,
+      "reset_distribution": "same MOD4 feasible normal/ground distribution for both groups",
+      "nominal": "asset parameters;gains/effort1;zero delay/noise/wrench/push"
+    }
+  },
+  "PPO": {
+    "num_steps_per_env": 24,
+    "save_interval": 500,
+    "obs_groups": {
+      "actor": [
+        "policy"
+      ],
+      "critic": [
+        "critic"
+      ]
+    },
+    "actor": {
+      "activation": "elu",
+      "obs_normalization": false,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "distribution_cfg": {
+        "init_std": 1.0,
+        "std_type": "scalar"
+      }
+    },
+    "critic": {
+      "activation": "elu",
+      "obs_normalization": false,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ]
+    },
+    "algorithm": {
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "learning_rate": 0.0001,
+      "schedule": "fixed",
+      "gamma": 0.99,
+      "lam": 0.95,
+      "entropy_coef": 0.01,
+      "desired_kl": 0.01,
+      "max_grad_norm": 1.0,
+      "value_loss_coef": 1.0,
+      "use_clipped_value_loss": true,
+      "clip_param": 0.2,
+      "normalize_advantage_per_mini_batch": false,
+      "rnd_cfg": null,
+      "symmetry_cfg": null
+    },
+    "logger": "tensorboard",
+    "check_for_nan": true,
+    "empirical_normalization": false,
+    "clip_actions": 6.0,
+    "multi_gpu": null
+  },
+  "reset": {
+    "task": "autonomous_stair_jump",
+    "upright_only": true,
+    "initial_gap_m": [
+      1.05,
+      1.35
+    ],
+    "yaw_rad": [
+      -0.04,
+      0.04
+    ],
+    "request_age_s": [
+      0.8,
+      1.3
+    ],
+    "command_vx_m_s": [
+      0.4,
+      0.8
+    ],
+    "episode_seconds": 8.0,
+    "motor_phase_schedule": false,
+    "nominal_fraction": 0.2,
+    "full_DR_ranges_unchanged": true
+  }
+}

@@ -390,3 +390,7 @@ iter24692四例固定名义MuJoCo：高姿高速两例成功，高姿1m/s与低�
 ## 完整台阶示范＋上阶约束修复2小时已结束
 
 实际PPO 7206.379692316055秒；实验候选stairs_phase_height_repair_20261114_015m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_STAIRS_PHASE_HEIGHT_REPAIR_2H_20261113/FINAL_REPORT.md。
+
+## 2026-11-14 高站姿追加两小时：实际接续
+
+实际PPO 2026-11-14T11:56:41.346864+08:00至预算约2026-11-14T13:56:41.346864+08:00；完整PPO/Adam/STD与20组成功池恢复。原高站姿指导、fullDR、平地/rough配比及速度奖励沿用；每5分钟完整PT和检查。记录：sources/local/MOD4V3_HIGH_STANCE_CONTINUE_2H_20261114/README.md。

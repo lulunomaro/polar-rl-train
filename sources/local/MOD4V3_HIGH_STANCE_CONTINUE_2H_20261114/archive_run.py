@@ -41,6 +41,15 @@ for path in sorted(T.rglob('*')):
  files.append(path)
 for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/README.md','sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json']:
  if (R/rel).is_file():files.append(R/rel)
+# The prior archive receipt is generated after its own commit; carry it here.
+prior=T.parent/'MOD4V3_STAIRS_PHASE_HEIGHT_REPAIR_2H_20261113'
+for rel in ['evidence/PIPELINE_RECOVERY_R2_COMPLETE.json','evidence/PHYSICAL_RECOVERY_R2_COMPLETE.json','pipeline_recovery_r2.log','pipeline_recovery_r2_error.log','pipeline.log','pipeline_error.log']:
+ if (prior/rel).is_file():files.append(prior/rel)
+for rel in ['pipeline.log','pipeline_error.log']:
+ if (T/rel).is_file():files.append(T/rel)
+if phase=='complete':
+ for name in ['ARCHIVE_LAUNCH.log','ARCHIVE_LAUNCH_ERROR.log']:
+  if (E/name).is_file():files.append(E/name)
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']
 main_before=git('ls-remote','origin','refs/heads/main').split()[0]
 note=T/('FINAL_REPORT.md' if phase=='complete' else 'README.md')

@@ -46,3 +46,7 @@ model_005m.pt 已从210完整收回并核对SHA；35维actor、78维critic、6�
 入口local_low_speed_manual.py，默认完整40分钟检查点model_040m.pt（SHA b29c37b9edd2c39d79a758d72fe73ef2f406a1258708e1e400bd7c4613b87736），两级200mm台阶、每级台面1.5m；默认暂停，速度0.4m/s，高度目标0.42m。点击控制窗后P开始/暂停、W/S前后、A/D转向、空格停车、R起点复位；4/5/6对应0.4/0.6/0.75m/s。新增“载入已搭阶姿态”按钮，载入后仍需P开始并按住W。使用与新低速评测相同的上台面机身/导轮支撑豁免，保留2mm闭链和40度姿态驻留保护；腿100Hz、轮400Hz、物理2.5ms、策略50Hz。
 
 运行记录见evidence/MANUAL_LOW_SPEED_LATEST.json及其logs目录。交互过程轨迹、STATUS持续写入，开放期间作为pending原件保留，固定启动快照单独入Git；启动只确认viewer和控制窗由应用创建，不代表学会上台阶。
+
+## 实际完成
+
+PPO 2406.6362285614014秒，所有独立检查点与原生复核完成。实验候选rearward_supported_stairs_20261114_010m，未自动晋升；详见FINAL_REPORT.md与DECISION.json。

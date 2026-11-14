@@ -35,8 +35,9 @@ for path in sorted((T/'evidence').glob('eval_*/RESULT.json')):
     rows.append(row)
 assert rows,'No completed independent evaluations'
 candidates=[r for r in rows if r['child_checkpoint']]
-selected=max(candidates,key=lambda r:(r['worst_group_rate'],r['total_success'],r['nominal_success_survived'],r['minute'])) if candidates else None
-summary=dict(evaluations=rows,selected=selected,pending=not a.final,
+selected=max(candidates,key=lambda r:(r['worst_group_rate'],r['total_success'],r['nominal_success_survived'],r['minute'],r['iteration'],r['checkpoint']=='model_final.pt')) if candidates else None
+failed_attempts=[json.loads(p.read_bytes()) for p in sorted((T/'evidence').glob('eval_*/STARTUP_FAILED.json'))]
+summary=dict(evaluations=rows,selected=selected,pending=not a.final,failed_evaluation_attempts=failed_attempts,
     selection_rule='Maximize lower of nominal/fullDR complete-and-survived rates, then total complete cases, nominal complete cases, recency',
     evaluation_protocol='Seed10066;51nominal/205fullDR; deterministic actor-only; native closed-chain state; no optimizer; fixed physical and success criteria',
     parent_sha256=json.loads((T/'PLAN.json').read_bytes())['parent_sha256'])
@@ -57,11 +58,25 @@ if a.final:
     clock=lambda t:datetime.fromtimestamp(t,timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S CST')
     n=selected['nominal_success_survived'];dr=selected['fullDR_success_survived']
     final_row=next((r for r in rows if r['checkpoint']=='model_final.pt'),None)
+    failure_note='; '.join(f"{v['attempt']} -> {v['retry_attempt']}" for v in failed_attempts) or 'None'
     report=f'''# Forward Jump Repair And New Two-Hour PPO Result
 
 New continuous learning window: {clock(s['epoch'])} to {clock(f['epoch'])}; actual owner duration {f['elapsed_seconds']:.3f}s. Preparation, physical admission and teacher collection happened before this window. PPO updates: {f['last_progress']['new_updates']}; native environment steps: {f['last_progress']['total_env_steps']:,}. Exactly one optimizer owner on Host72GPU0; GPU1evaluations created no optimizer. Full saves were made every five minutes and at final completion.
 
-Selected child: `{selected['checkpoint']}`, iteration{selected['iteration']}, SHA256`{selected['sha256']}`. Independent deterministic fixed evaluation: nominal complete and survived **{n}/51**, fullDR **{dr}/205**. Nominal measured retraction: **{selected['nominal_retracted']}/51**. FullDR measured retraction: **{selected['fullDR_retracted']}/205**. Nominal airborne balance: **{selected['nominal_air_balance_passed']}/51**; fullDR airborne balance: **{selected['fullDR_air_balance_passed']}/205**. Total accepted complete cases: **{selected['total_success']}/256**. The complete result already requires the full forward-crouch-push-air-tuck-land-stable sequence and rejects later terminations. Final chronological checkpoint result: `{json.dumps(final_row)}`.
+Independent evaluation startup failures and separate retries: {failure_note}. The original70minute evaluator segmented during engine initialization before creating an environment or evaluating any cases. Its process exit and absent GPU context were verified, its raw log and failure marker retained, and a new attempt evaluated the same immutable checkpoint. The local observer was repaired and restarted; the native training owner was never restarted or paused.
+
+Selected child: `{selected['checkpoint']}`, iteration {selected['iteration']}, SHA256 `{selected['sha256']}`. The complete result requires the full forward-crouch-push-air-tuck-land-stable sequence and excludes any later termination.
+
+| Fixed evaluation | Nominal | Full DR |
+| --- | ---: | ---: |
+| Measured takeoff | {selected['nominal_takeoff']}/51 | {selected['fullDR_takeoff']}/205 |
+| Measured tuck | {selected['nominal_retracted']}/51 | {selected['fullDR_retracted']}/205 |
+| Airborne balance | {selected['nominal_air_balance_passed']}/51 | {selected['fullDR_air_balance_passed']}/205 |
+| Complete and survived | **{n}/51** | **{dr}/205** |
+
+Total accepted complete cases: **{selected['total_success']}/256**. The selected child has no later failures among its successful cases.
+
+The final chronological checkpoint is retained separately. Its accepted result is nominal **{final_row['nominal_success_survived']}/51**, full DR **{final_row['fullDR_success_survived']}/205**. The full DR raw completed-event count was {final_row['fullDR_success']}, but {final_row['fullDR_later_failure']} of those cases later terminated and were excluded. The intermediate console counters must not be read as final accepted successes. Every checkpoint's raw, later-failure and survived counts are in the CSV and JSON.
 
 ## Repair And Evidence
 
@@ -71,11 +86,11 @@ The first40ms teacher probe was rejected as the final teacher:51/51nominal tucks
 
 ## Provenance And Contract
 
-Continuation parent SHA`{plan['parent_sha256']}`; root five-minute parent SHA`{plan['root_parent_sha256']}`. Complete actor, critic,STD,17Adam states and RNG restored from the prior best learned child. Actor35/critic78/action6retained; fresh physical episodes. NativeMOD4V3HW300N60R3asset, motor envelopes,2.5ms/TGS32/4,leg100Hz/wheel400Hz/policy50Hzretained. Closure10mm and mimic0.01radare per-environment episode resets. Admission and zero-update finite-gradient check are in evidence.
+Continuation parent SHA `{plan['parent_sha256']}`; root five-minute parent SHA `{plan['root_parent_sha256']}`. Complete actor, critic, STD, 17 Adam states and RNG were restored from the prior best learned child. Actor 35 / critic 78 / action 6 retained; fresh physical episodes. The native MOD4V3 HW300N60R3 asset, motor envelopes, 2.5ms / TGS32/4, leg 100Hz / wheel 400Hz / policy 50Hz were retained. Closure 10mm and mimic 0.01rad are per-environment episode resets. Admission and the zero-update finite-gradient check are in evidence.
 
 Acceptance thresholds remain: measured tuck<0.9rad; air>=0.16s; wheel rim peak>=0.12m; all-air pitch<=10deg/roll<=5deg; stable forward landing>=0.5s with>=80%support,|vz|<0.3m/s,vx>0.1m/s,roll/pitch<15deg,no forbidden contact. No threshold was lowered.
 
-Selection uses the lower nominal/fullDR success rate first, then total successes, nominal successes and recency. All fixed-checkpoint evaluations and individual failures are retained. These fixed cases are selection evidence, not a claim of generalization across all seeds. Phase command semantics are versioned and need a matching deployment input producer. No production or hardware promotion was performed. Host210and existing viewer were not touched.
+Selection uses the lower nominal/full DR success rate first, then total successes, nominal successes and recency. All fixed-checkpoint evaluations and individual failures are retained. These fixed cases are selection evidence, not a claim of generalization across all seeds. Phase command semantics are versioned and need a matching deployment input producer. No production or hardware promotion was performed. Host210 and the existing viewer were not touched.
 
 ## Files
 

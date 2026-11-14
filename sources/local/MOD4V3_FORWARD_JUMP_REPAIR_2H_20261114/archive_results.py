@@ -71,7 +71,7 @@ for path in sorted(T.rglob('*')):
         continue
     if path.suffix in text_suffixes or path.name.endswith('.json.partial') or 'LICENSE' in path.name.upper() or path.name.upper()=='COPYING':
         selected.append(path.relative_to(R).as_posix())
-    elif path.suffix in {'.pt','.npz','.usd','.stl','.obj','.png','.mp4','.gif'}:
+    elif path.suffix in {'.pt','.npz','.usd','.stl','.obj','.png','.mp4','.gif','.gz','.zip'}:
         artifacts.append(dict(path=str(path),git_path=path.relative_to(R).as_posix(),bytes=path.stat().st_size,
             sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
             full_body_in_commit=path.suffix == '.pt',status='full checkpoint' if path.suffix == '.pt' else 'actual original indexed'))

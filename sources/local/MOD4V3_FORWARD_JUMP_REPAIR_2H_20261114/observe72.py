@@ -44,6 +44,12 @@ while True:
         checkpoints=sorted(n for n in names if n.startswith('model_') and n.endswith('.pt') and n!='model_first_complete.pt')
         active=[]
         for job in sorted(n for n in roots if n.startswith('eval_') and '.' not in n):
+            failed_start=read(s,root+'/'+job+'/STARTUP_FAILED.json')
+            if failed_start:
+                if job not in collected:
+                    local(['--mode','collect','--job',job],'collect_'+job+'.log');collected.add(job)
+                    print(json.dumps(dict(evaluation=job,startup_failed=failed_start)),flush=True)
+                continue
             closed=read(s,root+'/'+job+'/SAFE_CLOSED.json')
             if closed:
                 if job not in collected:
@@ -53,9 +59,12 @@ while True:
             else:active.append(job)
         status,out,err=execute(client,'nvidia-smi --query-compute-apps=gpu_uuid,pid --format=csv,noheader',20)
         assert status==0,err
+        def eval_job(checkpoint):
+            base='eval_'+checkpoint.removesuffix('.pt')
+            return base+'_retry1' if read(s,root+'/'+base+'/STARTUP_FAILED.json') else base
         if not active and 'GPU-c27eecbd-6838-7290-1cd2-37e34522213d' not in out:
             for checkpoint in checkpoints:
-                job='eval_'+checkpoint.removesuffix('.pt')
+                job=eval_job(checkpoint)
                 if job in roots:continue
                 local(['--mode','evaluate','--job',job,'--checkpoint',root+'/'+train+'/'+checkpoint,'--num-envs','256'],
                     'launch_'+job+'.log')
@@ -63,7 +72,7 @@ while True:
         if error:
             local(['--mode','collect','--job',train],'collect_failed_training.log')
             raise RuntimeError('Native owner failed: '+json.dumps(error))
-        expected={'eval_'+n.removesuffix('.pt') for n in checkpoints}
+        expected={eval_job(n) for n in checkpoints}
         if final and read(s,root+'/'+train+'/SAFE_CLOSED.json') and not active and expected.issubset(collected):
             local(['--mode','collect','--job',train],'collect_final_training.log')
             print(json.dumps(dict(complete=True,final=final,evaluations=len(expected))),flush=True);break

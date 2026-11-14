@@ -1,0 +1,79 @@
+{
+  "rearward_reference": {
+    "sha256": "45d8e202885e39843fcc614cab94284a76d01efea7e281c2f4518ff8a16bf369",
+    "metadata": {
+      "scope": "Nominal MuJoCo first-step recovery from real chassis-supported partially retracted pose; not floor-to-two-step success",
+      "actual_parent_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+      "no_external_holding_force": true,
+      "physics_ms": 2.5,
+      "leg_Hz": 100,
+      "wheel_Hz": 400,
+      "action_Hz": 50,
+      "action_order": "left_front,left_rear,right_front,right_rear,left_wheel,right_wheel",
+      "observations": "35 original actor dimensions; normal control-mode constant matches native ctrl_mode_obs_enabled=False",
+      "successful_trajectories": 4,
+      "frames": 194
+    },
+    "lambda_legs": 0.25,
+    "legs_only": true
+  },
+  "online_success_replay": null,
+  "spec": {
+    "enabled": true,
+    "paper": "arXiv:2610.10601v1, persistent imitation during RL; adapted, not a full paper reproduction",
+    "student_initial_iteration": 25331,
+    "student_initial_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+    "keep_teacher": "/home/egde/rl_candidates/mod4v3_rearward_recovery_40m_20261114_r1/comprehensive_keep_teacher.pt",
+    "keep_teacher_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+    "stair_teacher_sha256": "715c40b6bd18c51d050d0bae38c0d04008f3841cc4a40ddca980a9cd52623ff5",
+    "dataset": "/home/egde/rl_candidates/mod4v3_rearward_recovery_40m_20261114_r1/teacher_movement_balanced_demos.pt",
+    "lambda_bc": 0.25,
+    "keep_fraction": 0.5,
+    "stair_fraction": 0.0,
+    "demo_minibatch": 1024,
+    "action_loss": "Existing sum6 actionMSE; high-stance separate sum4 leg MSE; all execution clips remain+-6",
+    "keep_domain": "Flat/rough/descent all6 actions retained; flat high stance and ascent preparation height>=.38 additionally preserve only4leg actions; no parent action constraint after ascent movement starts",
+    "stair_domain": "Disabled for this trial; old fast-stair demos are archived inputs only",
+    "policy35_critic78_action6_unchanged": true,
+    "regularizer_added_to": "same native PPO backward and optimizer step",
+    "coefficient_schedule": "0.125 retained-task keep +0.25 high-stance leg anchors; old fast-stair action loss0; no auxiliary phase observation",
+    "metadata_observation": "teacher_keep train-only scalar; policy still35 and critic78",
+    "dataset_sha256": "eb799194f85eaee43ad7efcdfd815d2c61d66f9d244cc1a7fd5228696aee5298",
+    "high_stance_dataset": "/home/egde/rl_candidates/mod4v3_rearward_recovery_40m_20261114_r1/high_stance_comprehensive_anchors.pt",
+    "high_stance_dataset_sha256": "39a4ebbd02ad92cc9aa9e5d50163e70ddc2aab799ac694c267a8ad2890a25914",
+    "lambda_high_stance": 0.25,
+    "high_stance_minibatch": 256
+  },
+  "dataset_sha256": "eb799194f85eaee43ad7efcdfd815d2c61d66f9d244cc1a7fd5228696aee5298",
+  "high_dataset_sha256": "39a4ebbd02ad92cc9aa9e5d50163e70ddc2aab799ac694c267a8ad2890a25914",
+  "dataset_metadata": {
+    "teacher_sha256": "715c40b6bd18c51d050d0bae38c0d04008f3841cc4a40ddca980a9cd52623ff5",
+    "source_sha256": "e551f3e9f947600d7cea1ab2c5887adc0e3a2fdb9790ad7aaeea986e2fe60bb2",
+    "observations": 4433,
+    "original_frames": 8933,
+    "excluded_preparation_frames": 4500,
+    "retains_initial_preparation": false,
+    "first_recorded_endpoint": 150,
+    "actions": "Unchanged original executed clipped specialist actions from verified complete successful episodes",
+    "angle_groups": [
+      "straight",
+      "-15",
+      "15",
+      "-30",
+      "30"
+    ],
+    "angle_provenance": "Native teacher env_id modulo100 divided20 from original explicit task ordering; MuJoCo episode_id joined to original case metadata",
+    "sampling": "equal phase, then available angle, then available engine; never synthesize missing successful strata"
+  },
+  "last": {},
+  "updates": 0,
+  "keep_teacher_max_parameter_change": 0.0,
+  "keep_teacher_no_grad": true,
+  "algorithm": "Native PPO plus task-averaged retention, separate high-stance leg anchors, movement-only phase/angle/engine balanced successes",
+  "external_policy_dims": [
+    35,
+    6
+  ],
+  "critic_input_dim": 78,
+  "sampling": {}
+}

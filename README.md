@@ -311,3 +311,7 @@ python archive_tools/record_experiment.py --id yaw6-regression-01 --title "6rad/
 ## 视频式底盘搭阶后摆抬轮40分钟已结束
 
 实际PPO 2406.6362285614014秒；实验候选rearward_supported_stairs_20261114_010m，原综合父保持。源码、完整PT、配方和逐项结果：sources/local/MOD4V3_REARWARD_SUPPORTED_STAIRS_40M_20261114/FINAL_REPORT.md。
+
+## 2026-11-14 后摆收腿修复独立40分钟已开训
+
+原生64环境功能探针完成；从综合父db6e9ccf/iter25331恢复。原乘积改为独立后摆/抬升进展，加入3个后摆中段辅助姿态及4条真实单阶恢复的194帧腿参考，保留完整DR、40/35/25、原教师和高站姿锚。每5分钟完整PT与纯策略固定回放。PPO 2026-11-14T15:43:54.395436+08:00，计划到2026-11-14T16:23:54.395436+08:00；不自动晋升。见sources/local/MOD4V3_REARWARD_RECOVERY_40M_20261114/README.md。

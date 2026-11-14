@@ -6,7 +6,15 @@ def read(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
 def put(p,d):Path(p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+chr(10),encoding='utf8')
 try:
  while not(E/'MONITOR_COMPLETE.json').exists():time.sleep(10)
- current=read(E/'MONITOR_COMPLETE.json');assert not current['training_has_error'];assert all(x['exit_code']==0 for x in current['evaluations'])
+ current=read(E/'MONITOR_COMPLETE.json');assert not current['training_has_error']
+ # Retain the original import failure; accept only its completed same-SHA replay.
+ import hashlib
+ for item in current['evaluations']:
+  if item['exit_code']==0:continue
+  retry=E/'checkpoint_evals'/(Path(item['model']).stem+'_importfix01')/'EVALUATION.json'
+  fixed=read(retry)
+  assert fixed['complete'] and Path(fixed['model']).resolve()==Path(item['model']).resolve()
+  assert fixed['sha256']==hashlib.sha256(Path(item['model']).read_bytes()).hexdigest()
  for name,args in [('select_student.py',[]),('run_post_evaluations_r2.py',[]),('finalize_run.py',[]),('archive_run.py',['--phase','complete'])]:
   print('PIPELINE_STAGE '+name,flush=True);result=subprocess.run([sys.executable,'-X','utf8','-B','-u',str(T/name),*args],cwd=R);assert result.returncode==0,name+' failed; evidence retained'
  import datetime

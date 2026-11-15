@@ -1,0 +1,89 @@
+{
+  "no_optimizer_updates": true,
+  "steps": 250,
+  "num_envs": 2048,
+  "wall_seconds": 94.38228583335876,
+  "measurements": {
+    "target_samples": 117983.0,
+    "endpoint_grounded_samples": 111571.0,
+    "unloaded_after_contact_samples": 6412.0,
+    "endpoint_rate2_dt_all": 743.30908203125,
+    "endpoint_rate2_dt_grounded": 624.112548828125,
+    "endpoint_rate2_dt_missed_unloaded": 119.19654846191406,
+    "substep_trapezoid_rate2_dt_all": 762.2304077148438,
+    "substep_peak_rate2_dt_all": 1097.228759765625,
+    "steps_substep_peak_over125pct_endpoint_and1rad_s": 4030.0,
+    "old_extra_reward_sum": -4086.442626953125,
+    "total_reward_sum": 2390.554931640625,
+    "grounded_fast_rate_samples_above2rad_s": 1489.0,
+    "unloaded_fast_rate_samples_above2rad_s": 437.0,
+    "grounded_fast_rate_within5deg": 732.0,
+    "old_rate_cost_sum": 218.43939208984375
+  },
+  "peaks": {
+    "endpoint_rad_s": 5.372747898101807,
+    "substep_rad_s": 5.372747898101807,
+    "pitch_rad": 0.725051760673523,
+    "command_overwrite_m_s": 0.0
+  },
+  "actual_substeps_per_policy_step": [
+    8
+  ],
+  "done_totals": {
+    "episodes": 1192,
+    "closure": 230,
+    "mimic": 0,
+    "numerical": 0,
+    "timeout": 768,
+    "fall": 0,
+    "closure_catastrophic": 0,
+    "terrain_boundary": 730
+  },
+  "pitch": {
+    "rate_square_coefficient": 3.5,
+    "angle_square_coefficient": 30.0,
+    "prediction_horizon_s": 0.2,
+    "prediction_coefficient": 60.0,
+    "prediction_window_s": 0.4,
+    "rate_units": "body omega_y rad/s",
+    "sampling": "50Hz endpoint; actual400Hz audit differed1.4pct in integrated squared rate",
+    "ground_contact_gate": "per-episode latched first real wheel contact>5N; target ground-only tasks; cleared on reset",
+    "reward_component_sums": {
+      "angle": -174.2393798828125,
+      "pitch_rate": -2601.58251953125,
+      "predicted_pitch": -1310.6204833984375
+    },
+    "unloaded_samples_still_penalized": 6412,
+    "unloaded_rate2_dt_still_penalized": 119.19656372070312,
+    "groups": {
+      "random_uniform_level9": {
+        "envs": 359,
+        "contact_samples": 69444,
+        "pitch_RMS_deg": 5.329765319824219,
+        "pitch_rate_RMS_rad_s": 0.5791903734207153,
+        "pitch_abs_peak_deg": 41.54240798950195,
+        "startup_peak_deg": 23.248083114624023,
+        "braking_peak_deg": 41.54240798950195
+      },
+      "flat_start_stop": {
+        "envs": 256,
+        "contact_samples": 48539,
+        "pitch_RMS_deg": 4.840025424957275,
+        "pitch_rate_RMS_rad_s": 0.5345492959022522,
+        "pitch_abs_peak_deg": 37.23357009887695,
+        "startup_peak_deg": 22.122228622436523,
+        "braking_peak_deg": 37.23357009887695
+      }
+    },
+    "target_envs": 615,
+    "random_uniform_levels": [
+      9
+    ],
+    "scope": "Cumulative on-policy target transition samples after first real contact, not fixed model comparison",
+    "reward": "-dt*(30*excess(pitch)^2+3.5*omega_y^2+60*excess(pitch+0.2*omega_y)^2*transition_window)",
+    "retained_tasks_exempt": true,
+    "original_speed_rewards": true
+  },
+  "physics_dt_s": 0.0025,
+  "policy_dt_s": 0.02
+}

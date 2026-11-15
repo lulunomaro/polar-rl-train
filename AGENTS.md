@@ -1,3 +1,13 @@
+# 当前模型与时间线更新（用户2026-11-15确认）
+
+当前项目使用最新 **MOD4v3 / MOD4V3_HW300N60_R3**。本条覆盖下方2026-09-10旧模型路径的“唯一live plant”描述；不要据旧e91 pin把当前MOD4v3工作退回9月模型。当前训练资产以`_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/PLAN.json`的`asset_identity`及新的同源试验读回为准：MJCF SHA256 `77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f`，USD SHA256 `e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c`。当前冻结综合默认仍为11月13日iteration25331、权重SHA256 `db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283`；之后未晋升试验不能覆盖它。
+
+查询进展先按对话时间读取最新消息和实际运行状态，不能把旧总览当实时记忆。MOD4v3的PPO六动作顺序是`left_front1_joint,left_rear1_joint,right_front1_joint,right_rear1_joint,left_wheel_joint,right_wheel_joint`，现有播放器通过`[0,2,1,3,4,5]`映射到模型关节顺序；不要套用下方旧模型的名字。35维actor、78维critic、6动作和现有电机包络保持。新模型不得混用旧模型检查点。retired rm2025_fixed仍不可恢复。
+
+俯仰修复当前试验：`_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115`，独立40分钟，无自动延长；继承上一轮2mm闭链episode guard，本次不改变物理容差。
+
+---
+
 # MOD4 Git 记录必须遵守
 
 人类2026-10-09明确要求所有试错和所有报告都用Git记录。读取 [完整记录政策](docs/ALL_TRIALS_AND_REPORTS_GIT_POLICY.md) 与 [既有追加工作流](docs/NEXT_AI_GIT_WORKFLOW.md)。

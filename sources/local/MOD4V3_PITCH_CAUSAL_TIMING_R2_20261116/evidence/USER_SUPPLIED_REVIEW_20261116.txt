@@ -1,0 +1,148 @@
+Ran list support files in causal repair
+Ran search pitch repair logic in support code · Exited with code 1
+Analyzed check_pitch_reward.py:L1-15
+Analyzed LATEST_PROGRESS.json:L1-800
+Analyzed LATEST_PROGRESS.json:L801-1181
+Analyzed pitch_stability_math.py:L1-34
+Ran search pitch stability calls in support scripts
+Analyzed causal_replay.py:L1-75
+Analyzed pitch_stability_env.py:L1-104
+Analyzed pitch_stability_checks.py:L1-35
+Analyzed continuous_stair_train.py:L1-360
+Analyzed fixed_pitch_eval.py:L1-55
+Ran check pitch vs omega_y sign in causal trajectories
+Ran check 5-minute checkpoint and evaluation files
+Analyzed continuous_stair_train.py:L360-519
+Analyzed teacher_retention.py:L1-121
+Ran check 5m inspection and eval status
+Analyzed continuous_stair_env.py:L1-153
+Analyzed rough_scut_v1_terrain.py:L1-80
+Analyzed evaluate_checkpoint.py:L1-26
+Ran check 5m checkpoint and eval files
+Analyzed scut_rough_scut_v1_env.py:L1-120
+Analyzed matched_pitch_metrics.py:L1-29
+Analyzed stair_training_repair.py:L1-120
+Analyzed INSPECTION_005M.json:L1-336
+Analyzed scut_rough_scut_v1_env.py:L121-231
+Ran check model_005m evaluation progress
+Analyzing RESULT.json:L1-120
+Analyzing RESULT.json
+Analyzing EVALUATION.json
+Ran check step ordering and standing_env usage
+Analyzed INSPECTION_005M.json:L1-120
+Analyzed scut_flat_env.py:L230-380
+Analyzed rewards.py:L1-112
+Analyzed model_005m_evaluation_worker.log
+Analyzed INSPECTION_005M.json:L121-332
+Analyzed RESULT.json:L1-171
+Analyzing EVALUATION.json
+Analyzed scut_flat_rewards.py:L1-120
+Ran check model_005m eval files
+Ran compare model_005m against db6 and m25
+Analyzed env.py:L1-120
+Analyzed scut_flat_env.py:L170-320
+Ran check if model_005m EVALUATION.json is ready · Exited with code 1
+Analyzed scut_flat_env.py:L380-465
+Analyzed scut_flat_remaining_dr_env.py:L1-120
+Analyzed scut_rough_r2_env.py:L1-120
+Ran print full causal replay summary table · Exited with code 1
+Ran inspect causal_full and checkpoint_evals
+Analyzed scut_flat_rewards.py:L121-220
+Analyzed INSPECTION_025M.json:L1-100
+Ran search standing_env and step timing · Exited with code 1
+Ran inspect causal_full rows and latest progress · Exited with code 1
+Ran search standing_env and step in support
+Analyzed scut_flat_rewards.py:L221-320
+Analyzed scut_flat_env.py:L1-169
+Ran print causal_full rows summary · Exited with code 1
+Ran compare latest progress and evals
+Analyzed scut_flat_rewards.py:L321-511
+Ran find stand_still reward implementation
+Ran inspect causal_full rows
+Analyzed scut_flat_rewards.py:L1-45
+Analyzed INSPECTION_025M.json:L99-170
+Ran check model_005m eval logs
+Ran print all causal_full rows · Exited with code 1
+Ran check RATE_SQUARE evals and 005m stats
+Ran inspect DirectRLEnv.step source · Exited with code 1
+Ran check ScutRewards standing_env usage · Exited with code 1
+Ran print causal_full summary rows
+Ran locate rewards.py and direct_rl_env.py
+Killing task Locate rewards.py and direct_rl_env.py
+Analyzed start_training.py:L1-40
+Ran locate DirectRLEnv.step lines
+Ran locate mod4v1_scut/rewards.py
+Analyzed direct_rl_env.py:L420-495
+Ran inspect ScutRewards stand_still usage
+Ran check latest weights and model_005m eval
+Analyzed PLAN.json:L1-100
+Ran list reward methods and stand_still usage
+Analyzed pitch_stability_env.py:L1-104
+Ran compare 000M vs 005M pitch_stability inspections
+Ran check RATE_SQUARE 025M and 040M inspections
+Ran check mod4v1_scut reward formulas
+Ran check h=0.4 v=2.2 causal_full rows
+Ran compare EVALUATION.json across runs
+Ran list training json files in both runs
+Ran compare PERIODIC training stats across runs
+Analyzed rewards.py:L1-100
+Analyzed rewards.py:L260-335
+Analyzed PITCH_REWARD_REGRESSION.json:L1-17
+Ran inspect upstream reward definitions
+Analyzed scut_flat_env.py:L230-265
+Ran check model_005m eval and weights
+Ran check model_005m pitch and stairs RESULT.json
+Ran read key sections of PLAN.json
+Ran check latest training progress metrics
+Ran check 010M inspection and 005m eval
+Analyzed fixed_pitch_eval.py:L1-55
+Analyzed matched_pitch_metrics.py:L1-29
+
+有明显问题。先给结论：**这一轮修复（`MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115`）的代码数学符号与评测防作弊口径本身是写对的，但从“因果归因 → 奖励设计 → 训练起步/数据实测”存在 4 个很实的问题；截至刚出炉的 5 分钟全量评测与 10 分钟训练巡检，目标指标不仅没降反而回弹，且连续楼梯成功率已出现下降。**
+
+---
+
+### 一、先确认：修对的部分
+1. **俯仰与角速度同号定义一致**：[pitch_stability_math.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/pitch_stability_math.py#L5-L24) 使用 `predicted = pitch + 0.2 * pitch_rate`。在急刹低头时 `pitch` 与 `omega_y` 同正，只在“继续向外倒”时放大代价。
+2. **没靠指令滤波或动作叠加作弊**：[PLAN.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/PLAN.json#L473-L514) 明确锁定 `no_command_smoothing: true`、`no_action_overlay: true`。
+3. **评测新增了“不能靠慢刹骗稳定”的约束**：[matched_pitch_metrics.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/matched_pitch_metrics.py#L15-L21) 补齐了公共对齐时长下的 `braking_vx_MAE` 和 `braking_path_first0p8s_m_mean`。
+
+---
+
+### 二、现在有哪些明显问题（代码、机制与 5m/10m 实测）
+
+#### 1. 物理因果与优化目标打架：硬改 `-60` 预测惩罚治标不治本
+看他自己跑的反事实回放 [causal_full/RESULT.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/evidence/causal_full/RESULT.json)：
+- 在 `h=0.40, v=2.2` 的硬停瞬间，轮电机力矩 **`first_stop_tau` 已经直接顶满 `-5.7759 Nm` 饱和上限**。
+- `hold_legs_100ms`（冻结腿动作 100ms）后，崎岖路面刹车峰值从 **`22.64°` 暴涨到 `30.83°`**，平地从 **`18.67°` 恶化到 `27.38°` 且越界 reset**——说明原策略其实**已经在用腿主动补偿抵消约 8~9° 的俯仰**。
+- 策略在观测里无法预知 `t=3.00s` 那一拍 `vx` 会突然从 `2.2` 阶跃成 `0`；等阶跃发生，轮矩已经打满且腿已在救。在 [scut_flat_rewards.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/scut_flat_rewards.py#L376-L380) 的速度跟踪误差惩罚（`track_lin_vel_xy_square=-0.5` 等）与高度目标 `height_cmd=0.40` 不变的情况下，只在 `0.4s` 窗口塞 `-60 * excess(pitch + 0.2*omega_y)^2`，会直接和“快速减到 `vx=0`”产生正面拉扯。
+
+#### 2. 奖励实现存在两处明显问题（`value loss` 飙升 + `20ms` 相位错位 Bug）
+1. **尖峰硬开关导致 Critic 价值估计严重变差**：
+   - [pitch_stability_env.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/pitch_stability_env.py#L81) 只在起/停后 `0.4s` 硬打开 `transition_window`，系数高达 `-60`（10 分钟累计 `predicted_pitch = -13315.7`，是 `angle = -1746.6` 的 7.6 倍）。因为不可预测的随机速度切换/推力，窗口开启瞬间回报剧烈跳变。
+   - 实测 10 分钟（iter `25538`）[LATEST_PROGRESS.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/evidence/training/LATEST_PROGRESS.json) 中 **`losses.value = 1.985`**（5 分钟为 `1.967`），显著高于上一轮 [PITCH_RATE_SQUARE LATEST_PROGRESS.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/evidence/training/LATEST_PROGRESS.json) 的 **`1.173`**。
+2. **代码里有 1 步（20ms）的 `episode_length_buf` 时序错位 Bug**：
+   - 在 IsaacLab 父类 [direct_rl_env.py](file:///d:/claude2/fangzhen/third_party/IsaacLab-3.0.0-beta2.patch1/source/isaaclab/isaaclab/envs/direct_rl_env.py#L428-L486) 中，顺序是：`428行 _pre_physics_step` → 物理步 → **`464行 episode_length_buf += 1`** → `469行 _get_rewards()`。
+   - 但 [pitch_stability_env.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/pitch_stability_env.py#L51-L88) 在 `_pre_physics_step` 和 `_get_rewards` 里都直接用当时的 `self.episode_length_buf * self.step_dt` 去算 `transition_command`。结果在 `2.98s -> 3.00s`（步数 `149 -> 150`）那一拍：**物理步和策略观测看到的仍是“前进 `vx=speed`”，但同一拍算 reward 时却已经把 `age=3.00s` 判定成“刹车阶段、开启 `transition_window=True`”开始罚 `predicted_pitch` 了**；窗口结束也同样早关了 1 步（实际覆盖刹车后 `0.38s`）。
+
+#### 3. 5 分钟全量评测与 10 分钟巡检已暴露的数据问题
+1. **起跑权重选在波动谷底，5m 实测已经回弹恶化**：
+   - 上一轮 `PITCH_RATE_SQUARE_40M` 从 5m 到 40m 的 9 级崎岖刹车峰值序列是 `20.22° → 20.54° → 21.80° → 22.64° → [025m: 19.21°] → 22.11° → 22.66° → 22.27°`——`model_025m` 只是方差单点低谷，并没稳定学会。本轮以它做起点（[PLAN.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/PLAN.json#L401-L403)）。
+   - 刚跑完的 [model_005m/EVALUATION.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/evidence/checkpoint_evals/model_005m/EVALUATION.json) 显示，对比起点 `parent (m25)`：
+     - **`random_uniform_for_rm`**：刹车峰值从 **`19.21°` 恶化到 `20.05°`**（+0.84°），起步峰值 `12.06° → 12.22°`，`moving_vx_MAE` `0.881 → 0.884`，`braking_vx_MAE` `1.085 → 1.088`。
+     - **`plane_for_rm`**：刹车峰值微降 `17.99° → 17.57°`（-0.42°），但代价是 **`braking_vx_MAE` 从 `1.107 → 1.120`、刹车后 0.8s 滑行距离从 `0.859m → 0.870m`（刹得更慢）**。
+2. **连续楼梯能力在 5 分钟就掉了**：
+   - `parent (m25)` 在 `whole_h420`（正上楼梯）是 **`4/5`**（整个上一轮 5m~40m 基本稳在 `4/5`、`oblique 3~6/20`）；
+   - 本轮 [model_005m/EVALUATION.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/evidence/checkpoint_evals/model_005m/EVALUATION.json) 中 **`straight_passed` 已掉到 `3/5`**（`oblique` 为 `4/20`、`actual_oblique_passed = 0`，`flat60 = 60/60`, `descent = 5/5`）。
+3. **训练内峰值、闭链终止率与有效更新步数不乐观**：
+   - 看 10 分钟巡检 [INSPECTION_010M.json](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/evidence/inspections/INSPECTION_010M.json)：`random_uniform_level9` 训练内俯仰峰值仍达 **`47.63°`**，`flat_start_stop` 甚至从 5m 的 `43.08°` 升到 **`45.38°`**；前 10 分钟 `6887` 个 episode 里 **`closure` 终止 `718` 次（10.4%）**，高于上一轮 25m 累计水平（`1510 / 17073 = 8.84%`）。
+   - 受 `lr=3e-5, clip_param=0.1, epochs=3` 和速度限制，前 10 分钟只更新了 **60 个 iter**（`25478 → 25538`，40 分钟约 ~240 iter），且开场 `teacher_keep_mse`（`m25` 对 `db6` 的偏移）高达 `0.00281`，前 10 分钟降到 `0.00132`——大量梯度都在把 `m25` 往 `db6` 拉回，与俯仰新增惩罚相互抵消。
+
+#### 4. 特化分区与评测覆盖依然有盲区
+- **615/1433 割裂训练**：只有 615 个特定环境（359 个 level-9 `random_uniform` + 256 个 `plane`）有启停循环与俯仰预测惩罚，其余 1433 个环境全部豁免该惩罚（`retained_tasks_exempt=True`）并用 `lambda_bc=1.0` 向 `db6` 看齐；同时 [pitch_stability_env.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/pitch_stability_env.py#L46) 在目标环境显式关闭了 `r2_air_reset`。容易只过拟合到固定平地/9级网格的小循环上。
+- **评测只跑 0ms nominal**：[fixed_pitch_eval.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/fixed_pitch_eval.py#L54) 只测 8 条 `0ms` 延迟、无推力扰动的轨迹，且 `h=0.40, v=2.2` 在 `model_005m` 仍全部因 `tile_boundary` 中断（`completed_without_reset = 3/4`），没有带动作/观测延迟（full-DR）的抗俯仰测试。
+- **小工程冗余**：[teacher_retention.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115/support/mod4v3_ppo_v1/teacher_retention.py) 在 `lambda_legs=0` 时每个 minibatch 仍白算一遍 `rearward_reference_legs_mse`（日志约 `4.79`），只耗算力不进梯度。
+
+---
+
+**简短判断**：当前在跑的 40 分钟 trial（已过 10 分钟，`model_010m.pt` 刚落盘、正在等评测）大概率只是重演上一轮 `PITCH_RATE_SQUARE_40M` 的轨迹——在 `20°~22°` 之间震荡且略伤楼梯表现。除非后面 `model_010m`~`model_020m` 突然明显下破到 `17°` 以下且楼梯回升到 `>=4/5`，否则**问题出在“用静态观测下不可预见的硬阶跃 + 重度尖峰罚项去对抗力矩物理饱和”这个方案本身**，需要换思路（比如先确认全速到急停的物理极限、调整刹车减速度奖励/前馈高度耦合，而不是继续加 `predicted_pitch` 权重）。

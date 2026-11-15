@@ -1,0 +1,332 @@
+{
+  "epoch": 1794740678.0970027,
+  "training_minutes": 20.344887002309164,
+  "phase_training_seconds": 1220.6932201385498,
+  "course_groups": {
+    "continuous_stairs": 819,
+    "retained_rough": 717,
+    "flat": 512,
+    "special_only_rewards": true,
+    "retained_original_commands_and_air_resets": true
+  },
+  "rearward_support": null,
+  "specialist": null,
+  "iteration": 25450,
+  "done_totals": {
+    "episodes": 13452,
+    "closure": 1215,
+    "mimic": 0,
+    "numerical": 1,
+    "timeout": 10878,
+    "fall": 0,
+    "closure_catastrophic": 0,
+    "terrain_boundary": 7891
+  },
+  "mean_reward": -0.026221860432997346,
+  "continuous_stair": {
+    "ascent_height_target_m": 0.42,
+    "descent_height_target_m": [
+      0.365,
+      0.4
+    ],
+    "geometry": {
+      "source_level": 3,
+      "riser_m": 0.2,
+      "tread_m": 1.5,
+      "platform_height_m": 0.4,
+      "steps": 2
+    },
+    "counts_DR_then_nominal": [
+      [
+        3134,
+        533,
+        28,
+        22,
+        6,
+        16,
+        93,
+        385
+      ],
+      [
+        637,
+        104,
+        124,
+        105,
+        74,
+        29,
+        9,
+        82
+      ]
+    ],
+    "columns": [
+      "whole_ascent_starts",
+      "mid_ascent_starts",
+      "first_landed",
+      "second_landed",
+      "whole_two_step_success",
+      "mid_recovery_success",
+      "terminated",
+      "descent_starts"
+    ],
+    "mean_first_to_second_s": [
+      1.346666693687439,
+      1.3643242120742798
+    ],
+    "timed_successes": [
+      6,
+      74
+    ],
+    "reward_sums": [
+      0.0,
+      348.6761169433594,
+      76.0,
+      313.5,
+      -1082.0570068359375
+    ],
+    "reward_columns": [
+      "disabled_progress_zero",
+      "clearance_with_retraction",
+      "first_landing",
+      "second_landing_plus_held_completion",
+      "between_step_time_cost"
+    ],
+    "active_up": 783,
+    "active_mid": 152,
+    "pitch_reward_veto": false,
+    "height_reward_veto": false,
+    "scope": "Cumulative stochastic training samples, not fixed evaluation success rate"
+  },
+  "pitch_stability": {
+    "rate_square_coefficient": 3.5,
+    "angle_square_coefficient": 30.0,
+    "rate_units": "body omega_y rad/s",
+    "sampling": "50Hz endpoint; actual400Hz audit differed1.4pct in integrated squared rate",
+    "ground_contact_gate": "per-episode latched first real wheel contact>5N; target ground-only tasks; cleared on reset",
+    "reward_component_sums": {
+      "angle": -4179.654296875,
+      "pitch_rate": -88036.640625
+    },
+    "unloaded_samples_still_penalized": 154918,
+    "unloaded_rate2_dt_still_penalized": 4353.1357421875,
+    "groups": {
+      "random_uniform_level9": {
+        "envs": 359,
+        "contact_samples": 944528,
+        "pitch_RMS_deg": 6.418580532073975,
+        "pitch_rate_RMS_rad_s": 0.8960085511207581,
+        "pitch_abs_peak_deg": 55.33210754394531,
+        "startup_peak_deg": 42.053932189941406,
+        "braking_peak_deg": 55.33210754394531
+      },
+      "flat_start_stop": {
+        "envs": 256,
+        "contact_samples": 662002,
+        "pitch_RMS_deg": 6.2281999588012695,
+        "pitch_rate_RMS_rad_s": 0.8685232400894165,
+        "pitch_abs_peak_deg": 58.796791076660156,
+        "startup_peak_deg": 58.796791076660156,
+        "braking_peak_deg": 44.76653289794922
+      }
+    },
+    "target_envs": 615,
+    "random_uniform_levels": [
+      9
+    ],
+    "scope": "Cumulative on-policy target transition samples after first real contact, not fixed model comparison",
+    "reward": "-dt*(30*relu(abs(real_body_pitch)-5deg)^2+3.5*real_body_pitch_rate^2)",
+    "retained_tasks_exempt": true,
+    "original_speed_rewards": true
+  },
+  "numeric_peaks": {
+    "joint_vel_max": 68.04984283447266,
+    "root_ang_max": 14.173126220703125,
+    "root_lin_max": 2.612075090408325
+  },
+  "teacher_retention": {
+    "rearward_reference": {
+      "sha256": "c6dfc748753945fb721fe820bec9c2c3176c7ab58f237f79b6da2db8267d0db1",
+      "metadata": {
+        "scope": "Nominal MuJoCo first-step recovery from real chassis-supported partially retracted pose; not floor-to-two-step success",
+        "actual_parent_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+        "no_external_holding_force": true,
+        "physics_ms": 2.5,
+        "leg_Hz": 100,
+        "wheel_Hz": 400,
+        "action_Hz": 50,
+        "action_order": "left_front,left_rear,right_front,right_rear,left_wheel,right_wheel",
+        "observations": "35 original actor dimensions; normal control-mode constant matches native ctrl_mode_obs_enabled=False",
+        "successful_trajectories": 4,
+        "frames": 194,
+        "phase_counts": [
+          16,
+          48,
+          52,
+          78
+        ],
+        "change": "Only sampling labels added; all194 physical observations/actions unchanged"
+      },
+      "lambda_legs": 0,
+      "legs_only": true
+    },
+    "online_success_replay": null,
+    "spec": {
+      "enabled": true,
+      "paper": "arXiv:2610.10601v1, persistent imitation during RL; adapted, not a full paper reproduction",
+      "student_initial_iteration": 25518,
+      "student_initial_sha256": "d85231ec20d203951bbfce5a3034539052ef06b9d31d597c74db836b63a00ced",
+      "keep_teacher": "/home/egde/rl_candidates/mod4v3_pitch_rate_square_40m_20261115/comprehensive_keep_teacher.pt",
+      "keep_teacher_sha256": "db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283",
+      "stair_teacher_sha256": "715c40b6bd18c51d050d0bae38c0d04008f3841cc4a40ddca980a9cd52623ff5",
+      "dataset": "/home/egde/rl_candidates/mod4v3_pitch_rate_square_40m_20261115/teacher_movement_balanced_demos.pt",
+      "lambda_bc": 1,
+      "keep_fraction": 1,
+      "stair_fraction": 0,
+      "demo_minibatch": 1024,
+      "action_loss": "Existing sum6 actionMSE; high-stance separate sum4 leg MSE; all execution clips remain+-6",
+      "keep_domain": "All1433 non-target environments including819stairs retained;all615pitch targets free for PPO",
+      "stair_domain": "Disabled for this trial; old fast-stair demos are archived inputs only",
+      "policy35_critic78_action6_unchanged": true,
+      "regularizer_added_to": "same native PPO backward and optimizer step",
+      "coefficient_schedule": "1.0 retained-task all6-action keep +0.25 high-stance leg anchors;0.0 old rearward reference;0.0 old fast-stair imitation",
+      "metadata_observation": "teacher_keep train-only scalar; policy still35 and critic78",
+      "dataset_sha256": "eb799194f85eaee43ad7efcdfd815d2c61d66f9d244cc1a7fd5228696aee5298",
+      "high_stance_dataset": "/home/egde/rl_candidates/mod4v3_pitch_rate_square_40m_20261115/high_stance_comprehensive_anchors.pt",
+      "high_stance_dataset_sha256": "39a4ebbd02ad92cc9aa9e5d50163e70ddc2aab799ac694c267a8ad2890a25914",
+      "lambda_high_stance": 0.25,
+      "high_stance_minibatch": 256
+    },
+    "dataset_sha256": "eb799194f85eaee43ad7efcdfd815d2c61d66f9d244cc1a7fd5228696aee5298",
+    "high_dataset_sha256": "39a4ebbd02ad92cc9aa9e5d50163e70ddc2aab799ac694c267a8ad2890a25914",
+    "dataset_metadata": {
+      "teacher_sha256": "715c40b6bd18c51d050d0bae38c0d04008f3841cc4a40ddca980a9cd52623ff5",
+      "source_sha256": "e551f3e9f947600d7cea1ab2c5887adc0e3a2fdb9790ad7aaeea986e2fe60bb2",
+      "observations": 4433,
+      "original_frames": 8933,
+      "excluded_preparation_frames": 4500,
+      "retains_initial_preparation": false,
+      "first_recorded_endpoint": 150,
+      "actions": "Unchanged original executed clipped specialist actions from verified complete successful episodes",
+      "angle_groups": [
+        "straight",
+        "-15",
+        "15",
+        "-30",
+        "30"
+      ],
+      "angle_provenance": "Native teacher env_id modulo100 divided20 from original explicit task ordering; MuJoCo episode_id joined to original case metadata",
+      "sampling": "equal phase, then available angle, then available engine; never synthesize missing successful strata"
+    },
+    "last": {
+      "teacher_keep_mse": 0.0015048913871093343,
+      "teacher_stair_mse": 0.0,
+      "teacher_aux_loss": 0.0015899647454110284,
+      "teacher_seed_mse": 0.0,
+      "teacher_new_success_mse": 0.0,
+      "teacher_high_stance_legs_mse": 0.00034029342835613835,
+      "rearward_reference_legs_mse": 4.676816304524739,
+      "teacher_keep_samples": 103176,
+      "teacher_stair_samples": 0,
+      "teacher_minibatches": 12,
+      "teacher_new_success_samples": 0,
+      "teacher_high_live_samples": 4860,
+      "teacher_high_anchor_samples": 3072
+    },
+    "updates": 119,
+    "keep_teacher_max_parameter_change": 0.0,
+    "keep_teacher_no_grad": true,
+    "algorithm": "Native PPO plus task-averaged retention, separate high-stance leg anchors, movement-only phase/angle/engine balanced successes",
+    "external_policy_dims": [
+      35,
+      6
+    ],
+    "critic_input_dim": 78,
+    "sampling": {
+      "keep": 8620,
+      "high_live": 402,
+      "high_anchor": 256,
+      "stair_seed": 0,
+      "stair_online": 0,
+      "seed_cumulative_by_phase_angle_engine": {
+        "(0, 0, 0)": 0,
+        "(0, 0, 1)": 0,
+        "(0, 1, 0)": 0,
+        "(0, 1, 1)": 0,
+        "(0, 2, 0)": 0,
+        "(0, 2, 1)": 0,
+        "(0, 4, 1)": 0,
+        "(1, 0, 0)": 0,
+        "(1, 0, 1)": 0,
+        "(1, 1, 0)": 0,
+        "(1, 1, 1)": 0,
+        "(1, 2, 0)": 0,
+        "(1, 2, 1)": 0,
+        "(1, 4, 1)": 0
+      },
+      "specialist_preparation_samples": 0
+    }
+  },
+  "flat_fixed_steady_tracking": {
+    "forward20": {
+      "samples": 0,
+      "mean_heading_vx": null,
+      "mean_command_vx": null,
+      "heading_vx_MAE": null,
+      "mean_height": null,
+      "mean_height_cmd": null,
+      "mean_wz": null,
+      "wz_MAE": null
+    },
+    "forward22": {
+      "samples": 0,
+      "mean_heading_vx": null,
+      "mean_command_vx": null,
+      "heading_vx_MAE": null,
+      "mean_height": null,
+      "mean_height_cmd": null,
+      "mean_wz": null,
+      "wz_MAE": null
+    },
+    "reverse15": {
+      "samples": 8,
+      "mean_heading_vx": -1.1504520177841187,
+      "mean_command_vx": -1.5,
+      "heading_vx_MAE": 0.34954798221588135,
+      "mean_height": 0.2821424603462219,
+      "mean_height_cmd": 0.2800000011920929,
+      "mean_wz": 0.060102690011262894,
+      "wz_MAE": 0.21814915537834167
+    },
+    "yaw14137": {
+      "samples": 1032,
+      "mean_heading_vx": -0.0119703961897266,
+      "mean_command_vx": 0.0,
+      "heading_vx_MAE": 0.1177095516707546,
+      "mean_height": 0.27726242893425995,
+      "mean_height_cmd": 0.2799989567246548,
+      "mean_wz": 13.36175773679748,
+      "wz_MAE": 0.7813860279645106
+    },
+    "height020": {
+      "samples": 744,
+      "mean_heading_vx": -0.09896805465862316,
+      "mean_command_vx": 0.0,
+      "heading_vx_MAE": 0.15681781563707578,
+      "mean_height": 0.20709864298502603,
+      "mean_height_cmd": 0.1999984864265688,
+      "mean_wz": -0.09930101004979944,
+      "wz_MAE": 0.23455841310562625
+    },
+    "height040": {
+      "samples": 528,
+      "mean_heading_vx": 0.1359650149489894,
+      "mean_command_vx": 0.0,
+      "heading_vx_MAE": 0.17988719362201114,
+      "mean_height": 0.38406730420661694,
+      "mean_height_cmd": 0.3999982313676314,
+      "mean_wz": -0.059225635095076126,
+      "wz_MAE": 0.23419273260867957
+    }
+  },
+  "optimizer_entries": 17,
+  "collected_full_PT": 5
+}

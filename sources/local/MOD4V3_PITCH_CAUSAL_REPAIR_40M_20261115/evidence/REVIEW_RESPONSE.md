@@ -9,3 +9,7 @@
 7. **确认小冗余。**lambda_legs=0仍计算参考MSE；它不是当前梯度项。R2保留该采样序列，隔离时序修正，不用这项清理去混淆学习变化。
 
 本轮后续结果若仍无改善，必须如实记失败；不得继续加时间或把名义回放写成fullDR完成。
+
+补充实际源码读回：本轮速度平方有效权重为-1.5，不是审查引用rough_v0工厂中的-0.5。当前原生PPO对actor和critic分别clip_grad_norm，不能假设critic的大梯度会消耗actor的同一个全局裁剪额度；原生函数完整源码见R2/evidence/ACTIVE_PPO_UPDATE_WITH_TEACHER.py。
+
+原生零更新梯度核查已完成：真实optimizer更新0次、所有actor/critic参数不变；教师/整体PPO梯度范数比平均0.527，余弦-0.219；教师/按样本占比加权的俯仰专项梯度范数比0.967，余弦-0.069。确认局部目标竞争，不能据此称大多数学习被教师抵消；actor/critic分别裁剪。完整数据见R2/evidence/GRADIENT_AUDIT.json。

@@ -73,6 +73,7 @@ for rel in ['pipeline.log','pipeline_error.log','pipeline_recovery_r1.log','pipe
 if phase in ('complete','closure'):
  for name in ['ARCHIVE_LAUNCH.log','ARCHIVE_LAUNCH_ERROR.log','ARCHIVE_START_FOLLOWUP.log','ARCHIVE_START_FOLLOWUP_ERROR.log','ARCHIVE_FIRST5M.log','ARCHIVE_FIRST5M_ERROR.log','ARCHIVE_MANUAL_REPLAY.log','ARCHIVE_MANUAL_REPLAY_ERROR.log','ARCHIVE_STRENGTHEN_FOLLOWUP.log','ARCHIVE_STRENGTHEN_FOLLOWUP_ERROR.log','ARCHIVE_EVALUATION_REPAIR.log','ARCHIVE_EVALUATION_REPAIR_ERROR.log']:
   if (E/name).is_file():files.append(E/name)
+files.extend(path for path in E.glob('ARCHIVE_*.log') if path.is_file())
 files.append(R/'AGENTS.md')
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']
 main_before=git('ls-remote','origin','refs/heads/main').split()[0]

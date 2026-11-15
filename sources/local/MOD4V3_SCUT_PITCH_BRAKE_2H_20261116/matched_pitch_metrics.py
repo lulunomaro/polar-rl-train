@@ -6,7 +6,11 @@ def compare(parent_path,candidate_path,until_s=None):
  a=np.load(parent_path);b=np.load(candidate_path);rows=[]
  for k in a.files:
   if k not in b.files:raise ValueError('Missing pitch case '+k)
-  n=min(len(a[k]),len(b[k]));n=min(n,int(np.searchsorted(a[k][:,0],until_s+1e-7,side='right'))) if until_s is not None else n;x=a[k][:n];y=b[k][:n]
+  n=min(len(a[k]),len(b[k]))
+  reset_rows=np.where((a[k][:n,8]>.5)|(b[k][:n,8]>.5))[0]
+  if len(reset_rows):n=min(n,int(reset_rows[0]))
+  if until_s is not None:n=min(n,int(np.searchsorted(a[k][:,0],until_s+1e-7,side="right")))
+  x=a[k][:n];y=b[k][:n]
   if not np.allclose(x[:,0],y[:,0]):raise ValueError('Mismatched simulated timestamps')
   valid=x[:,0]>=2.;moving=valid&(x[:,9]>.5);startup=moving&(x[:,10]<.8);brake=valid&(x[:,9]<.5)&(x[:,10]>=1)&(x[:,10]<1.8)
   def peak(z,mask,col,deg=False):
@@ -28,4 +32,4 @@ def compare(parent_path,candidate_path,until_s=None):
   for side in ['parent','candidate']:
    keys=selected[0][side].keys();group[side]={k:float(max(r[side][k] for r in selected) if 'peak' in k else np.mean([r[side][k] for r in selected])) for k in keys}
   summary[fam]=group
- return dict(rows=rows,summary=summary,requested_horizon_s=until_s,complete_requested_horizon=(until_s is None or all(r['common_horizon_s']>=until_s-.005 for r in rows)),protocol='Compare common timestamps from2s to minimum first-episode duration for each of8 fixed cases; same nominal0ms scene and commands; added actual braking-speed MAE and0.8s traveled path prevent claiming a slower stop as stability success. Map exit is not a fall. No graduation assertion.')
+ return dict(rows=rows,summary=summary,requested_horizon_s=until_s,complete_requested_horizon=(until_s is None or all(r['common_horizon_s']>=until_s-.005 for r in rows)),protocol='Exclude post-reset/teleport rows; world-x velocity at50Hz. Compare common timestamps from2s to minimum first-episode duration for each of8 fixed cases; same nominal0ms scene and commands; added actual braking-speed MAE and0.8s traveled path prevent claiming a slower stop as stability success. Map exit is not a fall. No graduation assertion.')

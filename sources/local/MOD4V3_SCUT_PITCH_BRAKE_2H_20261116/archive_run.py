@@ -39,8 +39,12 @@ if not git('tag','--list',tag):
   if any(part in {'__pycache__','kit_isolation','cache','tmp','runtime'}for part in parts)or q.suffix in {'.pyc','.partial','.npz','.npy'}:continue
   if q.name.startswith('ARCHIVE_')and q.name.endswith('.log'):continue
   if q.parent==T and q.name.endswith('.log'):continue
-  if phase=='launch'and(rel.startswith(('evidence/training/','evidence/inspections/','evidence/checkpoint_evals/'))or q.name in {'MONITOR_STATUS.json','MODEL_COLLECTION.json','EVALUATION_QUEUE.json','INSPECTIONS.jsonl'}):continue
-  if q.name.endswith('_evaluation_worker.log')and phase=='launch':continue
+  if phase in ('launch','followup')and(rel.startswith(('evidence/training/','evidence/inspections/'))or q.name in {'MONITOR_STATUS.json','MODEL_COLLECTION.json','EVALUATION_QUEUE.json','INSPECTIONS.jsonl'}):continue
+  if phase=='launch'and rel.startswith('evidence/checkpoint_evals/'):continue
+  if phase=='followup'and rel.startswith('evidence/checkpoint_evals/'):
+   evaluation=E/'checkpoint_evals'/parts[2]/'EVALUATION.json'
+   if not evaluation.exists()or not json.loads(evaluation.read_text()).get('complete'):continue
+  if q.name.endswith('_evaluation_worker.log')and phase in ('launch','followup'):continue
   files.append(q)
  for rel in ['AGENTS.md','docs/DR_TRAINING_INDEX_20261111.md']:
   if(R/rel).exists():files.append(R/rel)

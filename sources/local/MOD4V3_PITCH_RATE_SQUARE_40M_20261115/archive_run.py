@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,datetime,hashlib,json,shutil,sys,tempfile
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
-p=argparse.ArgumentParser();p.add_argument('--phase',choices=['queued','launch','followup','fivemin-eval','evaluation-repair','fivemin-eval','complete','closure'],required=True);phase=p.parse_args().phase
+p=argparse.ArgumentParser();p.add_argument('--phase',choices=['queued','launch','followup','fivemin-eval','reward-catalog','evaluation-repair','fivemin-eval','reward-catalog','complete','closure'],required=True);phase=p.parse_args().phase
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'));import record_experiment as rec
 original=rec.git;NET=('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true');binary=[]
 date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='pitch-rate-square-40m-'+phase+'-01';TAG='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
@@ -63,8 +63,8 @@ for path in sorted(T.rglob('*')):
  rel=path.relative_to(T).as_posix()
  if rel.startswith('evidence/manual_low_speed/') and path.name in {'STATUS.json','trajectory.jsonl'}:continue
  if path.suffix in {'.pyc','.partial','.npz','.npy'} or path.name in {'monitor.log','monitor_error.log','pipeline.log','pipeline_error.log'} or path.name.startswith('ARCHIVE_') or path.name.endswith('_worker.log'):continue
- if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('queued','launch','followup','fivemin-eval','evaluation-repair'):continue
- if phase in ('queued','launch','followup','fivemin-eval','evaluation-repair') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
+ if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('queued','launch','followup','fivemin-eval','reward-catalog','evaluation-repair'):continue
+ if phase in ('queued','launch','followup','fivemin-eval','reward-catalog','evaluation-repair') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
  files.append(path)
 for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md']:
  if (R/rel).is_file():files.append(R/rel)

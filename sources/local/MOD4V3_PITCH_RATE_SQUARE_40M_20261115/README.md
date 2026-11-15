@@ -23,3 +23,5 @@
 5分钟完整PT已保存（iter25361，SHA82a9448c…）。同窗启停：rough9急停22.6446→20.2248度、omega3.14296→2.98888rad/s；平地急停18.6731→18.0876度、omega3.00488→2.87704rad/s。rough启动12.2865→12.3623度尚未改善。详见FIRST_5M_REPORT.md；其他保留科目验收尚待本检查点EVALUATION.json。
 
 5m完整固定套件完成：平地60/60，正向两级台阶4/5，下阶5/5，实际斜向0/20。仍为实验候选，不升级综合默认。
+
+当前奖励函数、有效系数、Airborne倍率、关闭/恒零项及教师辅助loss的完整核对清单：[CURRENT_REWARD_CATALOG.md](CURRENT_REWARD_CATALOG.md)。本次只补充配方记录。

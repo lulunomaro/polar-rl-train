@@ -486,3 +486,5 @@ PPO 1055.1810894012451秒完整保存；5m平地30/60、10m恢复60/60，低速�
 从冻结综合最优db6e9ccf…/iter25331完整PPO重新开始，2026-11-15 18:44:13至预计19:24:13，单独2400秒，每300秒完整PT和固定回放。原两小时试验已结束；本轮不挪用其预算，不自动部署。记录：[本轮README](../sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/README.md)。首轮实际actor和17项Adam已恢复，角速度成本及卸载继续计罚已核实；效果待同口径检查点回放。
 
 2026-11-15 瞬时俯仰角速度平方40分钟轮结束：实际PPO 2409.381秒；综合默认保持db6，结果见 sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/FINAL_REPORT.md。
+
+2026-11-16 MOD4v3俯仰修复分段40分钟轮结束：R2实际 1381.904秒；两段合计 2401.152秒；综合默认保持db6，结果见 sources/local/MOD4V3_PITCH_CAUSAL_TIMING_R2_20261116/FINAL_REPORT.md。

@@ -52,7 +52,7 @@ if phase=='evaluation-repair':
 numpy_artifacts=[dict(path=x.relative_to(R).as_posix(),bytes=x.stat().st_size,sha256=hashlib.sha256(x.read_bytes()).hexdigest())for x in T.rglob('*')if x.is_file()and x.suffix in {'.npz','.npy'}and not any(v in {'__pycache__','cache','runtime'}for v in x.relative_to(T).parts)]
 if numpy_artifacts:(E/('NUMPY_ARTIFACTS_'+phase+'.json')).write_text(json.dumps(dict(artifacts=numpy_artifacts,storage='Originals retained locally; complete PTs are committed separately'),indent=2)+'\n',encoding='utf8')
 if phase=='complete':
- final=json.loads((E/'training/FINAL.json').read_text());note='2026-11-15 瞬时俯仰角速度平方40分钟轮结束：实际PPO '+str(round(final['elapsed_seconds'],3))+'秒；综合默认保持db6，结果见 sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/FINAL_REPORT.md。'
+ final=json.loads((E/'training/FINAL.json').read_text());plan=json.loads((T/'PLAN.json').read_text());aggregate=plan['cumulative_training_seconds_before']+final['elapsed_seconds'];note='2026-11-16 MOD4v3俯仰修复分段40分钟轮结束：R2实际 '+str(round(final['elapsed_seconds'],3))+'秒；两段合计 '+str(round(aggregate,3))+'秒；综合默认保持db6，结果见 '+(T/'FINAL_REPORT.md').relative_to(R).as_posix()+'。'
  for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md']:
   path=R/rel
   if note not in path.read_text(encoding='utf8'):
@@ -77,7 +77,7 @@ files.append(R/'AGENTS.md')
 binary[:]=[x.relative_to(R).as_posix() for x in files if x.suffix=='.pt'];text=[x.relative_to(R).as_posix() for x in files if x.suffix!='.pt']
 main_before=git('ls-remote','origin','refs/heads/main').split()[0]
 note=T/('FINAL_REPORT.md' if phase in ('complete','closure') else 'README.md')
-sys.argv=['record_experiment.py','--id',ID,'--title','MOD4v3 causal pitch prediction repair '+phase,'--kind','training','--note-file',str(note),'--validation','Independent new40m from prior25m full PPO; frozen db6 remains default and retention teacher; causal first-stop interventions precede focused0.2s pitch prediction cost; 300s complete PPO checkpoints and original fixed pitch/flat60/stairs/descent suites; preserve2048 mixed tasks/fullDR/35-78-6/2mm and motor envelopes; no promotion inferred','--files',*text]
+sys.argv=['record_experiment.py','--id',ID,'--title','MOD4v3 causal pitch prediction repair '+phase,'--kind','training','--note-file',str(note),'--validation','Same original2400s authorization across1019s phase1 and1380s R2 cap; full PPO restored from phase1 final; actual SDK reward-age mismatch and float32 boundary fixed using issuance clock/integer50Hz ticks; frozen db6 remains default; 300s complete PPO checkpoints and original fixed pitch/flat60/stairs/descent suites; preserve2048 mixed tasks/fullDR/35-78-6/2mm and motor envelopes; no promotion inferred','--files',*text]
 rec.main();head=git('rev-parse','HEAD');tag=git('rev-parse',TAG);assert git('rev-parse',TAG+'^{}')==head
 git('push','--atomic','origin','HEAD','refs/tags/'+TAG)
 refs={line.split()[1]:line.split()[0] for line in git('ls-remote','origin','refs/heads/mod4v1-experts-fulldr-rm70','refs/heads/main','refs/tags/'+TAG,'refs/tags/'+TAG+'^{}').splitlines()}

@@ -17,3 +17,7 @@
 首个累计35分钟检查点回放因新目录漏复制manual_replay下三个既有guard模块，在导入阶段失败，未进入仿真。已补齐相同R2模块；原失败保留于model_035m目录，同一SHA完整回放补跑至model_035m_importfix01；不改保护阈值、不改训练。
 
 35分钟同一SHA补跑已完成全部四项回放，原导入失败未改写；具体表现见evidence/EVALUATION_IMPORT_REPAIR_COMPLETE.json，不把执行完成当作俯仰达标。
+
+2026-11-15 收尾：PPO已于06:56:05结束，最终iter26057，累计7206.886秒（当前迭代完成后保存）。固定回放已全部完成，按既有规则选出105分钟候选，未晋升综合默认。原生评测因旧env.rearward复位引用失败，原错误保留；兼容补跑位于post_native_envfix01，仅做既定冻结评测和归档，未启动新PPO。
+
+2026-11-15 俯仰稳定轮结束：实际PPO 7206.886秒；综合默认仍为db6；结果见 sources/local/MOD4V3_PITCH_STABILITY_LEVEL9_ANGLE30_CONT_20261115/FINAL_REPORT.md。

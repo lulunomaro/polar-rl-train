@@ -11,13 +11,15 @@ for label,summaries in [('父模型',baseline['summary']),('实验候选',select
 lines+=['','标称MuJoCo0ms固定14s启停；level9随机起伏与平地、0.28/0.40m高度、1.2/2.2m/s指令。前2s站稳，随后1s启动、2s急停交替正反向。首次物理episode、原2mm保护；不冒充完整DR部署验收。','', '## 全部检查点保留能力','', '| 检查点 | 启停完整/8 | 平地/60 | 正向上阶/5 | 实际斜向/20 | 下阶/5 | 俯仰评分越低越好 |','|---|---:|---:|---:|---:|---:|---:|']
 for row in sorted(rank,key=lambda r:r['source_file']):lines.append('| '+row['source_file']+' | '+' | '.join(str(row[k])for k in ['pitch_complete_cases','flat60_passed','straight_passed','actual_oblique_passed','descent_passed','stability_score'])+' |')
 lines+=['','## 配方','', '真实底盘重力投影俯仰与机身omega_y：-dt*[30*relu(abs(pitch)-5deg)^2+0.35*omega_y^2]，只在目标平地/随机起伏且真实轮子接地时应用。专项采用真实阶跃速度指令，未通过命令低通伪造稳定；原速度追踪奖励保留。','', '40%台阶、35%Rough、25%平地；一半Rough定为随机起伏level9，一半平地反复启停；其余保留综合技能并接受冻结父教师指导。目标环境落地启停，其他环境保留落空/旋转/高度等原科目。台阶环境源码恢复综合父配方来源，不训练最新顺序后摆奖励。完整DR、MOD4资产、电机、35/78/6、控制时序及2mm单环境保护沿用。','', '## 原生完整DR配对证据','']
-post=E/'post_native'
+post=E/'accepted_native_results_none'
+lines+=['原生补充台阶评测未被接受：旧脚本兼容问题保留全部ERROR；补跑夹具未将训练混合环境的任务mask同步为全台阶测试，不能把该结果当通过率。未完成的Rough补充项不计通过。模型仅按已完成的固定检查点回放比较；不晋升、不声称完整DR俯仰验收通过。','']
+lines+=['原生初次收尾评测在读取已停用的env.rearward状态时失败，原ERROR和SAFE_CLOSED保留于evidence/post_native/stairs。兼容修复移除旧模块复位引用，并将原近阶水平轮接触与朝向测量移至评测局部统计，未向训练环境添加虚构字段；不改地形、保护、奖励或策略；原生评测补跑保留于evidence/post_native_envfix02。','']
 if post.exists():
  for folder in sorted(post.iterdir()):
   if folder.is_dir()and(folder/'RESULT.json').exists():
    data=read(folder/'RESULT.json');lines+=['### '+folder.name,'','~~~json',json.dumps(data.get('summary',data.get('summaries',{})),ensure_ascii=False,indent=2),'~~~','']
 (T/'FINAL_REPORT.md').write_text('\n'.join(lines)+'\n',encoding='utf8')
-decision=dict(status='completed'if actual>=7199 else'ended_before_full_budget',actual_PPO_seconds=phase_actual,total_PPO_seconds=actual,previous_phase_PPO_seconds=p["cumulative_training_seconds_before"],authorized_seconds=7200,promoted=False,default_comprehensive_parent_sha256=frozen,experimental_candidate=selected,parent_pitch_summary=baseline['summary'],all_training_and_evaluations_closed=True,no_further_training=True);put(T/'DECISION.json',decision)
+decision=dict(status='training_completed;pitch_peak_goal_unmet;native_supplement_unverified'if actual>=7199 else'ended_before_full_budget',actual_PPO_seconds=phase_actual,total_PPO_seconds=actual,previous_phase_PPO_seconds=p["cumulative_training_seconds_before"],authorized_seconds=7200,promoted=False,default_comprehensive_parent_sha256=frozen,experimental_candidate=selected,parent_pitch_summary=baseline['summary'],all_training_and_evaluation_processes_closed=True,fixed_checkpoint_suites_completed=True,native_supplement_accepted=False,no_further_training=True,original_native_error='evidence/post_native/stairs/ERROR.json',native_supplement_status='evidence/NATIVE_SUPPLEMENT_NOT_ACCEPTED.json');put(T/'DECISION.json',decision)
 put(E/'ARTIFACT_INDEX.json',[dict(path=str(q),bytes=q.stat().st_size,sha256=hashlib.sha256(q.read_bytes()).hexdigest(),storage='original retained; indexed in Git')for q in E.rglob('*.npz')])
 regpath=R/'sources/local/MOD4V3_DR_TRAINING_RECORDS_20261111/MODEL_REGISTRY.json';reg=read(regpath);sid='pitch_stability_level9_angle30_cont_20261115';assert not any(x.get('id')==sid for x in reg['stages']);ids=[]
 for row in models:

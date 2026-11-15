@@ -12,6 +12,9 @@
 
 本次俯仰训练已于2026-11-16T00:29:14.977693+08:00完整保存结束，PPO两段合计2401.152479s（40分1.15秒），最终iteration25716，最终权重SHA256 930fb0ec09428f92a5f403beed6c74b59cf807bbcd17344a29f449f516b6c18d。训练未自动延长，综合默认未晋升；俯仰效果待本轮所有固定回放完整报告判定。最终报告位于R2/COMBINED_REPORT.md。
 
+
+全量回放与零更新梯度核查已完成：最终40m rough急停20.396度、平地17.805度、正向两阶3/5，未形成稳定俯仰修复。R2实验候选为累计20m（平地60/60、正向5/5、下阶5/5、实际斜向0/20）；默认仍是db6，未晋升。别把20ms时序bug修好等同于姿态控制已修好。综合结论与因果数据见R2/COMBINED_REPORT.md、PROJECT_OVERVIEW.md。
+
 ---
 
 # Agent rules for this workspace (RM2026 wheel-legged robot)

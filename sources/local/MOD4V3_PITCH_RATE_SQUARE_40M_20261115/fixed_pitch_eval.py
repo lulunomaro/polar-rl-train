@@ -43,6 +43,7 @@ for family,level in [('random_uniform_for_rm',9),('plane_for_rm',0)]:
     arr=np.asarray(trace);window=arr[:,0]>=2.;startup=window&(arr[:,9]>.5)&(arr[:,10]<.8);braking=window&(arr[:,9]<.5)&(arr[:,10]>=1.)&(arr[:,10]<1.8)
     def peak(mask):return float(np.degrees(np.abs(arr[mask,1])).max())if mask.any()else None
     row=dict(family=family,level=level,height=height,speed=speed,resets=s.reset_count-1,reason=s.reason,completed_s=float(arr[-1,0]),pitch_RMS_deg=float(np.degrees(np.sqrt(np.mean(arr[window,1]**2))))if window.any()else None,pitch_rate_RMS_rad_s=float(np.sqrt(np.mean(arr[window,2]**2)))if window.any()else None,startup_peak_deg=peak(startup),braking_peak_deg=peak(braking),moving_vx_MAE=float(np.mean(np.abs(arr[startup,4]-arr[startup,3])))if startup.any()else None,max_closure_m=maxclosure)
+    row.update(pitch_rate_peak_rad_s=float(np.abs(arr[window,2]).max()) if window.any() else None,startup_rate_peak_rad_s=float(np.abs(arr[startup,2]).max()) if startup.any() else None,braking_rate_peak_rad_s=float(np.abs(arr[braking,2]).max()) if braking.any() else None)
     rows.append(row);arrays[family+f'_h{height}_v{speed}']=arr;(E/'PROGRESS.json').write_text(json.dumps(dict(completed=len(rows),last=row)))
    finally:s.close();del s,e,m,d;gc.collect()
 summary={}

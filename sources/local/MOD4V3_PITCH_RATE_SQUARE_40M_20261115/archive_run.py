@@ -38,12 +38,25 @@ if phase=='checkpoint20m':
 if phase=='followup':
  snapshot=E/'followup_snapshot';snapshot.mkdir(exist_ok=False)
  for source in (E/'training').glob('*.json'):shutil.copy2(source,snapshot/source.name)
+if phase=='followup':
+ source=E/'checkpoint_evals/model_005m'
+ if (source/'EVALUATION.json').exists() and json.loads((source/'EVALUATION.json').read_text()).get('complete'):
+  shutil.copytree(source,snapshot/'model_005m_evaluation')
 if phase=='evaluation-repair':
  snapshot=E/'evaluation_repair_snapshot';snapshot.mkdir(exist_ok=False)
  for name in ['model_035m','model_035m_importfix01']:
   shutil.copytree(E/'checkpoint_evals'/name,snapshot/name)
  for name in ['PERIODIC_035M.json','RESTORE.json','PPO_EFFECTIVE.json','LATEST_PROGRESS.json']:
   shutil.copy2(E/'training'/name,snapshot/name)
+# Keep NumPy originals in place and index their exact bytes; PTs remain ordinary Git blobs.
+numpy_artifacts=[dict(path=x.relative_to(R).as_posix(),bytes=x.stat().st_size,sha256=hashlib.sha256(x.read_bytes()).hexdigest())for x in T.rglob('*')if x.is_file()and x.suffix in {'.npz','.npy'}and not any(v in {'__pycache__','cache','runtime'}for v in x.relative_to(T).parts)]
+if numpy_artifacts:(E/('NUMPY_ARTIFACTS_'+phase+'.json')).write_text(json.dumps(dict(artifacts=numpy_artifacts,storage='Originals retained locally; complete PTs are committed separately'),indent=2)+'\n',encoding='utf8')
+if phase=='complete':
+ final=json.loads((E/'training/FINAL.json').read_text());note='2026-11-15 瞬时俯仰角速度平方40分钟轮结束：实际PPO '+str(round(final['elapsed_seconds'],3))+'秒；综合默认保持db6，结果见 sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/FINAL_REPORT.md。'
+ for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md']:
+  path=R/rel
+  if note not in path.read_text(encoding='utf8'):
+   with path.open('a',encoding='utf8')as out:out.write('\n'+note+'\n')
 files=[]
 for path in sorted(T.rglob('*')):
  if not path.is_file() or any(part in {'__pycache__','kit_isolation','runtime','cache','tmp'} for part in path.relative_to(T).parts):continue
@@ -53,6 +66,8 @@ for path in sorted(T.rglob('*')):
  if rel in {'evidence/MONITOR_STATUS.json','evidence/MONITOR_LAST_ERROR.json','evidence/MODEL_COLLECTION.json','evidence/EVALUATION_QUEUE.json','evidence/INSPECTIONS.jsonl'} and phase in ('queued','launch','followup','evaluation-repair'):continue
  if phase in ('queued','launch','followup','evaluation-repair') and rel.startswith(('evidence/training/','evidence/checkpoint_evals/','evidence/inspections/')):continue
  files.append(path)
+for rel in ['README.md','docs/DR_TRAINING_INDEX_20261111.md']:
+ if (R/rel).is_file():files.append(R/rel)
 for rel in ['pipeline.log','pipeline_error.log','pipeline_recovery_r1.log','pipeline_recovery_r1_error.log']:
  if (T/rel).is_file():files.append(T/rel)
 if phase in ('complete','closure'):

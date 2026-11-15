@@ -6,6 +6,9 @@
 
 俯仰修复当前试验：`_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115`，独立40分钟，无自动延长；继承上一轮2mm闭链episode guard，本次不改变物理容差。
 
+
+当前40分钟俯仰试验在2026-11-16确认20ms奖励窗口时序错位后分段修复：第一段`MOD4V3_PITCH_CAUSAL_REPAIR_40M_20261115`已安全保存，实际1019.2484555s；第二段`MOD4V3_PITCH_CAUSAL_TIMING_R2_20261116`只使用剩余1380s，不是新增40分钟。回放所有原始成功/失败保留，默认综合权重尚未晋升。
+
 ---
 
 # MOD4 Git 记录必须遵守

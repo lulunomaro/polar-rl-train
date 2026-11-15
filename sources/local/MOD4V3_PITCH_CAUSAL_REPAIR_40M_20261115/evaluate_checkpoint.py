@@ -21,5 +21,6 @@ if result['complete']:
 if result['complete']:
  from matched_pitch_metrics import compare
  result['matched_pitch_comparison']=compare(R/'sources/local/MOD4V3_PITCH_STABILITY_LEVEL9_ANGLE30_CONT_20261115/evidence/baseline_parent_pitch/trajectory.npz',out/'pitch/trajectory.npz')
+ result['matched_starting_checkpoint_comparison']=compare(R/'sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/evidence/checkpoint_evals/model_025m/pitch/trajectory.npz',out/'pitch/trajectory.npz')
 (out/'EVALUATION.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)
 if not result['complete']:raise SystemExit(1)

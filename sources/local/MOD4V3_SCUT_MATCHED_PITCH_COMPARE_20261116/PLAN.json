@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-11-16T08:49:47.057990+08:00",
+  "authorization": "User requested detailed pitch comparison under the same conditions",
+  "scope": "Frozen paired-system evaluation; no training/export/default change",
+  "models": {
+    "scut": "d19492be858ffd431a67e5aa40afb4a4c51dc9a1c914c5c92022ed46d5868db7",
+    "mod4": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617"
+  },
+  "families": [
+    "flat",
+    "rough_level9"
+  ],
+  "height_commands": [
+    0.28,
+    0.4
+  ],
+  "directions": [
+    -1,
+    1
+  ],
+  "target_actual_entry_speeds_m_s": [
+    0.6,
+    1.2,
+    2.0
+  ],
+  "same_conditions": {
+    "terrain": "Identical181x181 source heightfields and origin",
+    "initial_xy": [
+      -0.8,
+      -0.1
+    ],
+    "initial_root_orientation_wxyz": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "initial_velocity": 0,
+    "settling_s": 2.0,
+    "acceleration_s": 1.0,
+    "braking_s": 2.0,
+    "command_after_stop": 0.0,
+    "contact_friction": [
+      1.0,
+      0.01,
+      0.01
+    ],
+    "contact_solref": [
+      0.0012,
+      1.0
+    ],
+    "contact_solimp": [
+      0.99,
+      0.999,
+      0.0001,
+      0.5,
+      2.0
+    ],
+    "contact_condim": 3,
+    "policy_dt": 0.02,
+    "delay_ms": 0,
+    "random_pushes": 0
+  },
+  "calibration": {
+    "method": "Each native frozen policy command amplitude calibrated separately to attain target actual root world speed at exact1s endpoint; no torque/observation injection; per-model tolerance±0.01m/s; same endpoint does not imply same velocity trajectory",
+    "commands": [
+      0.3,
+      0.6,
+      0.9,
+      1.2,
+      1.5,
+      1.8,
+      2.1,
+      2.4,
+      2.7
+    ],
+    "refine": "adjacent sign-bracket bisection,10 max"
+  },
+  "limits": "Different robot bodies, mass, motor envelopes, native PD rates, physics timesteps and solvers remain. Height commands matched; attained heights, pre-start drift, braking positions and pitch at brake recorded separately. This is not identical full-state common-plant policy ablation. Contact material edits apply only to isolated evaluation copies, not canonical MJCF/USD or training contracts.",
+  "closure_guard_m": 0.002,
+  "no_optimizer": true
+}

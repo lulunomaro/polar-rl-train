@@ -37,6 +37,15 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         self.course_event_reward=torch.zeros(n,device=dev)
         self.course_reward_sums=torch.zeros(4,device=dev)
         self.course_accounting=False;self.course_evaluation=False
+        self.speed_stage=torch.zeros(n,dtype=torch.long,device=dev)
+        self.speed_streak=torch.zeros_like(self.speed_stage)
+        self.speed_limits=self.command.new_tensor([1.3,1.0,.8,.6])
+        self.speed_completed=torch.zeros(4,device=dev,dtype=torch.long)
+        self.speed_penalty_sum=torch.zeros((),device=dev)
+        self.strict_hold=torch.zeros(n,device=dev)
+        self.strict_success=torch.zeros(n,dtype=torch.bool,device=dev)
+        self.strict_success_count=torch.zeros((),device=dev,dtype=torch.long)
+        self.previous_course_body_x=torch.zeros(n,device=dev)
         self._course_ready=True
 
     def _set_origins(self,ids):
@@ -59,6 +68,11 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         picked=ids[self.continuous_stair_mask[ids]&(self.episode_length_buf[ids]>0)]
         if not picked.numel():return
         ok=self.course_success[picked]&(~self.reset_terminated[picked])
+        if not self.course_evaluation:
+            self.speed_streak[picked]=torch.where(ok,self.speed_streak[picked]+1,torch.zeros_like(self.speed_streak[picked]))
+            promoted=(self.speed_streak[picked]>=3)&(self.speed_stage[picked]<3)
+            self.speed_stage[picked]+=promoted.long()
+            self.speed_streak[picked]=torch.where(promoted,torch.zeros_like(self.speed_streak[picked]),self.speed_streak[picked])
         attempted=torch.ones_like(ok)
         new,streak,up,down=advance(self.course_mastered[picked],self.course_level[picked],self.course_fail_streak[picked],ok,attempted)
         self._course_scatter(self.course_attempts,picked,attempted)
@@ -98,6 +112,8 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         for buf in (self.course_entry_seen,self.course_success,self.course_landed,self.course_lift_armed):buf[ids]=False
         for buf in (self.course_entry_speed,self.course_speed_max,self.course_hold,self.course_lift_best,self.course_progress,self.course_event_reward):buf[ids]=0
         picked=ids[self.continuous_stair_mask[ids]]
+        self.strict_hold[ids]=0.;self.strict_success[ids]=False
+        self.previous_course_body_x[ids]=(self.view.data.root_pos_w[ids,0]-self._center()[ids,0])*self.stair_side[ids]
         self.stair_up[ids]=False;self.stair_mid[ids]=False;self.stair_goal_hold[ids]=0.;self.stair_stage[ids]=0
         if not picked.numel():return
         n=len(picked);gen=self.reset_generator;center=self._center()[picked]
@@ -181,8 +197,13 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         gained,self.course_landed=first_landings(self.course_landed,upper,active)
         body_x=(d.root_pos_w[:,0]-center[:,0])*self.stair_side
         roll,pitch,_=euler_xyz_from_quat(self.robot.data.root_quat_w)
-        stable=stable_completion(upper,body_x,wrap_to_pi(pitch),wrap_to_pi(roll),d.root_ang_vel_b[:,:2].norm(dim=-1),tensor(self.robot.data.root_lin_vel_w)[:,2],self.course_entry_speed,self.course_speed_max,self.course_entry_seen,term|self.reward._stair_contact_raw,active)
+        limit=self.speed_limits[self.speed_stage]
+        stable=stable_completion(upper,body_x,wrap_to_pi(pitch),wrap_to_pi(roll),d.root_ang_vel_b[:,:2].norm(dim=-1),tensor(self.robot.data.root_lin_vel_w)[:,2],self.course_entry_speed,self.course_speed_max,self.course_entry_seen,term|self.reward._stair_contact_raw,active,maximum_allowed=limit)
         self.course_hold=torch.where(stable,self.course_hold+self.step_dt,torch.zeros_like(self.course_hold))
+        strict_stable=stable&(self.course_entry_speed<=.6)&(self.course_speed_max<=.6)
+        self.strict_hold=torch.where(strict_stable,self.strict_hold+self.step_dt,torch.zeros_like(self.strict_hold))
+        strict_new=(self.strict_hold>=SPEC.hold_seconds-1e-7)&(~self.strict_success)
+        self.strict_success|=strict_new;self.strict_success_count+=strict_new.long().sum()
         completed=(self.course_hold>=SPEC.hold_seconds-1e-7)&(~self.course_success)
         self.course_success|=completed;self.stair_goal_hold.copy_(self.course_hold)
         # Credit increases only, near the real edge with measured support and actual wheel lift.
@@ -198,7 +219,12 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         progress=(self.stair_start-body_x).clamp(0,1.5)
         advance=(progress-self.course_progress).clamp(0,.02)*interaction
         self.course_progress=torch.where(interaction,torch.maximum(self.course_progress,progress),self.course_progress)
-        parts=torch.stack((.25*lift_gain,.15*advance,.2*gained.sum(1),2.*completed.float()),1)
+        completion_scale=self.command.new_tensor([2.,3.,4.,6.])[self.speed_stage]
+        self.speed_completed+=torch.bincount(self.speed_stage[completed],minlength=4)
+        real_forward=(self.previous_course_body_x-body_x)>.0001
+        speed_penalty=2.*(speed-limit).clamp_min(0).square()*active*near*(real_forward|gained.any(1))*self.step_dt
+        self.previous_course_body_x.copy_(body_x);self.speed_penalty_sum+=speed_penalty.sum()
+        parts=torch.stack((.25*lift_gain,.15*advance,.2*gained.sum(1),completion_scale*completed.float()-speed_penalty),1)
         self.course_event_reward.copy_(parts.sum(1));self.course_reward_sums+=parts.sum(0)
         self.stair_stage=torch.where(self.course_landed.all(1),1,0)
 
@@ -219,18 +245,20 @@ class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv)
         mask=self.continuous_stair_mask
         out['closure_contract']=dict(closure_2mm_diagnostic_only=not self.enforce_closure_reset,closure_2mm_reset_enabled=bool(self.enforce_closure_reset),catastrophic_closure_single_env_reset_m=1.,single_peak_batch_stop=False,solver='TGS32/4')
         out['course_groups']=dict(continuous_stairs=int(mask.sum()),retained_rough=int(self.terrain.r1_retained_rough_mask.sum()),flat=int(self.flat_terrain_mask.sum()))
-        out['single_step_curriculum']=dict(course=COURSE,heights_m=list(SPEC.heights),mastered_population=torch.bincount(self.course_mastered[mask],minlength=len(SPEC.heights)).tolist(),episode_population=torch.bincount(self.course_level[mask],minlength=len(SPEC.heights)).tolist(),attempts_DR_then_nominal=self.course_attempts.tolist(),successes_DR_then_nominal=self.course_successes.tolist(),promotions_DR_then_nominal=self.course_promotions.tolist(),demotions_DR_then_nominal=self.course_demotions.tolist(),entry_speed_rejections_DR_then_nominal=self.course_speed_rejections.tolist(),failure_causes=self.course_failure_causes.tolist(),failure_columns=['terminated','both_wheels_never_landed','landing_without_qualified_hold'],reward_sums=self.course_reward_sums.tolist(),reward_columns=['incremental_supported_lift','incremental_edge_progress','each_wheel_first_landing','qualified_stable_completion'],review_fraction=SPEC.review_fraction,failures_before_demotion=SPEC.failures_to_demote,maximum_actual_entry_speed=SPEC.maximum_speed,hold_s=SPEC.hold_seconds,per_env_reset_only=True,evaluation_only=self.course_evaluation,scope='stochastic training episode totals; not a frozen evaluation')
+        out['single_step_curriculum']=dict(course=COURSE,heights_m=list(SPEC.heights),mastered_population=torch.bincount(self.course_mastered[mask],minlength=len(SPEC.heights)).tolist(),episode_population=torch.bincount(self.course_level[mask],minlength=len(SPEC.heights)).tolist(),attempts_DR_then_nominal=self.course_attempts.tolist(),successes_DR_then_nominal=self.course_successes.tolist(),promotions_DR_then_nominal=self.course_promotions.tolist(),demotions_DR_then_nominal=self.course_demotions.tolist(),entry_speed_rejections_DR_then_nominal=self.course_speed_rejections.tolist(),failure_causes=self.course_failure_causes.tolist(),failure_columns=['terminated','both_wheels_never_landed','landing_without_qualified_hold'],reward_sums=self.course_reward_sums.tolist(),reward_columns=['incremental_supported_lift','incremental_edge_progress','each_wheel_first_landing','qualified_stable_completion'],review_fraction=SPEC.review_fraction,failures_before_demotion=SPEC.failures_to_demote,formal_evaluation_maximum_actual_entry_speed=SPEC.maximum_speed,training_maximum_actual_entry_speed=1.3,hold_s=SPEC.hold_seconds,per_env_reset_only=True,evaluation_only=self.course_evaluation,scope='stochastic training episode totals; not a frozen evaluation')
         return out
 
     def terrain_checkpoint_state(self):
         state=ScutUnifiedRoughV1Env.terrain_checkpoint_state(self)
-        state.update(course=COURSE,heights_m=SPEC.heights)
+        state.update(course='history_fixed200_speed_v1',heights_m=SPEC.heights,training_speed_state={k:getattr(self,k).clone()for k in ['speed_stage','speed_streak','speed_completed','strict_success_count','speed_penalty_sum']})
         for name in ('course_mastered','course_level','course_fail_streak','course_attempts','course_successes','course_promotions','course_demotions','course_speed_rejections','course_failure_causes','course_reward_sums'):
             state[name]=getattr(self,name).clone()
         return state
 
     def restore_terrain_curriculum(self,state):
         same=state.get('course')==COURSE
+        if same:
+            for name,value in state.get('training_speed_state',{}).items():getattr(self,name).copy_(value.to(getattr(self,name)))
         self.course_accounting=False
         if same:
             assert tuple(state['heights_m'])==SPEC.heights

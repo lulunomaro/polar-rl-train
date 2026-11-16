@@ -1,3 +1,11 @@
+## 2026-11-17 历史编码器独立2小时已实际开训（人类明确授权局部actor合约例外）
+
+仅sources/local/MOD4V3_HISTORY_ENCODER_FIXED200_2H_20261117内改actor：current35+12帧history420->监督latent5，再40->256->128->64->6；78critic与6动作不变。原010m/37dbe178热继承，latent列0；encoder3000步8.4s、10229样本动作差0、critic完全相同、真实第0步flat60=60/60。原8391+新prewall1838，47源episode物理重放qpos误差0。2048 fullDR原生0更新预检通过，819固定200mm+1229keep1，normal/stair平地配对.5；技能1，初始技能/keep cos+.13187，未硬降.25。
+
+实际PPO 2026-11-17T01:58:19.505491+08:00，严格7200s截止 2026-11-17T03:58:19.505491+08:00；首iter25488/12个Adam小批次，actor_changed=True。7170s停计算预留保存关闭，独立deadline守护，不追整迭代越点、不自动延长/晋升/重启。固定20cm，训练速度1.3/1.0/.8/.6，每环境3次真实稳定完成后收紧；正式评估永远<=.6。每5m完整PT，10/20m独立flat60/单200，结束全套回归与视频。
+
+保护默认c874/CURRENT、原010m/8391及归档实验；物理2.5ms/腿100Hz/轮400Hz/策略50Hz、PD/电机/scene/fullDR、2mm仅诊断不变。新架构不得替换默认播放器或拿nominal通过当fullDR毕业。仍未证明旧35维数学不可分（本次单帧分类98.97%，latent97.71%），不承诺加历史必胜。实际进展读该目录evidence/training及MONITOR_STATUS，不将本条开训记录当最终结果。问题/历史/失败/方案及预检见HISTORY_AND_PLAN.md、PRECHECK_REPORT.md。
+
 ## 2026-11-17 01:23 0更新模式因果对照：normal起步保留，stair条件异常
 
 人类询问是否无解/华南虎如何解决。新增独立scut_control_comparison：四权重×normal/stair各center3s，共8次真实MuJoCo；PPO0/优化器0，无新训练。完全相同姿态/物理/0→1s后.47指令，仅改obs[28:35]。repair10m normal首1s−4.0mm、前1.6s最低base z.39408m；stair +152.55mm、最低.18234m。原010m normal−17.16mm，stair+631.83mm；64步副本normal最低.39412、stair.17986m。说明起步异常受stair输入条件明显影响，不能用normal flat60代替stair平地验收；不等于已证明唯一训练根因或正常模式已会低速200mm。3s截断timeout不是正式上阶评分。

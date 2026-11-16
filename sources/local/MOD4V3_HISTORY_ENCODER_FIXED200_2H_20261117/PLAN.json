@@ -29,7 +29,7 @@
     "num_envs": 2048,
     "full_checkpoint_every_seconds": 300,
     "inspection_every_seconds": 300,
-    "learning_rate": 3e-05,
+    "learning_rate": 0.00003,
     "schedule": "fixed",
     "clip_param": 0.1,
     "num_learning_epochs": 3,
@@ -130,7 +130,7 @@
     "command_speeds_m_s": [
       0.6,
       1.2,
-      2.0,
+      2,
       2.2
     ],
     "heights_m": [
@@ -138,13 +138,13 @@
       0.4,
       0.42
     ],
-    "initial_stand_s": 2.0,
-    "run_s": 1.0,
-    "stop_s": 2.0,
+    "initial_stand_s": 2,
+    "run_s": 1,
+    "stop_s": 2,
     "alternate_forward_reverse": true,
     "no_command_smoothing": true,
-    "pitch_deadband_deg": 0.0,
-    "pitch_excess_square_coefficient": 0.0,
+    "pitch_deadband_deg": 0,
+    "pitch_excess_square_coefficient": 0,
     "pitch_rate_square_coefficient": 0.05,
     "reward": "-dt*(0.25*(2*exp(-cmd_vx^2/3)+2)^2*sin(pitch)^2+2*(1-exp(-sin(pitch)^2/0.02))+0.05*omega_y^2); native SCUT base retained",
     "ground_contact_gate": "First actual wheel contact>5N arms episode latch for target ground-only specialist; unloading does not bypass; cleared on reset; stairs and planned airborne retain original rewards",
@@ -154,8 +154,8 @@
     "diagnostic_first": true,
     "proposed_only_until_probe": false,
     "sampling": "50Hz endpoint;400Hz diagnostic energy only1.435pct larger; timing unchanged",
-    "prediction_horizon_s": 0.0,
-    "predicted_pitch_excess_square_coefficient": 0.0,
+    "prediction_horizon_s": 0,
+    "predicted_pitch_excess_square_coefficient": 0,
     "prediction_window": "first0.4s after each hard start or hard stop; specialist only",
     "parent_selection": "Adopted11/16 low-pitch c874 iter25362",
     "phase_timing": "Capture action issuance age before physics; reward uses this frozen age after episode buffer increments; no other objective or hardware change",
@@ -163,18 +163,18 @@
   },
   "root": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1",
   "support": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/support",
-  "parent": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/parent_010m.pt",
-  "parent_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
-  "parent_iteration": 25362,
+  "parent": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/model_step000.pt",
+  "parent_sha256": "9ac68e9c9b43d7bb267fe0ee73b2aa8b9d6aeb0cf7d917870a35f44eb6f598b9",
+  "parent_iteration": 25487,
   "root_parent": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\deliveries\\MOD4V3_LOW_PITCH_20261116\\model_full_ppo.pt",
   "seed": 67,
   "training_job": "train_history_fixed200_2h",
-  "probe_job": "probe_fixed200_contract",
-  "budget_total_training_seconds": 600,
+  "probe_job": "history_native_preflight_r2",
+  "budget_total_training_seconds": 7200,
   "cumulative_training_seconds_before": 0,
-  "source_experiment": "sources\\local\\MOD4V3_LOW_SPEED_STAIR_CURRICULUM_2H_20261116",
-  "resume_mode": "Complete c874 PPO actor/critic/STD/17 Adam; new independent fixed200 task; no separate warmstart",
-  "authority_update": "2026-11-16 latest human approved current native teacher and requested original recipe, fixed200mm without height curriculum,40min",
+  "source_experiment": "MOD4V3_FIXED200_DAGGER_SEMANTIC_10M_20261116/original010m",
+  "resume_mode": "Original010m actor/critic/STD copied with zero latent columns; supervised encoder pretraining; fresh Adam",
+  "authority_update": "2026-11-17 human explicitly authorized independent history encoder and at most7200s PPO after local/native gates",
   "expected_env_groups": {
     "continuous_stairs": 819,
     "retained_rough": 717,
@@ -190,10 +190,10 @@
     "enabled": true,
     "keep_teacher": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/comprehensive_keep_teacher.pt",
     "keep_teacher_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
-    "lambda_bc": 1.0,
-    "keep_fraction": 1.0,
-    "stair_fraction": 0.0,
-    "student_initial_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
+    "lambda_bc": 1,
+    "keep_fraction": 1,
+    "stair_fraction": 0,
+    "student_initial_sha256": "9ac68e9c9b43d7bb267fe0ee73b2aa8b9d6aeb0cf7d917870a35f44eb6f598b9",
     "student_initial_iteration": 25487,
     "keep_domain": "1229 retained flat/rough including pitch targets; stair uses current native LQR demonstrations",
     "policy35_critic78_action6_unchanged": false
@@ -205,10 +205,10 @@
     ],
     "steps": 1,
     "edge_distance_m": 1.5,
-    "platform_width_m": 3.0,
+    "platform_width_m": 3,
     "tile_size_m": [
-      9.0,
-      9.0
+      9,
+      9
     ],
     "command_vx_m_s": [
       0.3,
@@ -218,10 +218,10 @@
     "minimum_actual_entry_speed_m_s": 0.1,
     "settle_seconds": 1.5,
     "stable_hold_seconds": 0.4,
-    "stable_pitch_roll_deg": 25.0,
+    "stable_pitch_roll_deg": 25,
     "stable_rate_rad_s": 1.5,
     "failures_before_demotion": null,
-    "easy_review_fraction": 0.0,
+    "easy_review_fraction": 0,
     "one_success_advances_one_env_at_next_reset": false,
     "physics_dt_s": 0.0025,
     "leg_feedback_s": 0.01,
@@ -235,16 +235,18 @@
     "solver": "Original selected TGS32/4, physics2.5ms, no precision sweep",
     "closure_2mm_diagnostic_only": true,
     "enforce_closure_reset": false,
-    "catastrophic_closure_single_env_reset_m": 1.0,
+    "catastrophic_closure_single_env_reset_m": 1,
     "curriculum_enabled": false,
     "commanded_root_height_m": 0.4091,
     "command_root_height_after_double_top_landing_m": 0.2,
     "speed_ladder_m_s": [
       1.3,
-      1.0,
+      1,
       0.8,
       0.6
-    ]
+    ],
+    "formal_eval_speed_limit_m_s": 0.6,
+    "training_speed_promotion_consecutive_successes": 3
   },
   "current_closure_contract": {
     "scope": "MOD4v3 SCUT native PPO including this new curriculum",
@@ -261,7 +263,7 @@
     "source_thread": "01a088fc-06aa-7ae1-8644-33f67fe91e95",
     "closure_2mm": "diagnostic only; not reward,reset or whole-run stop",
     "ten_mm_note": "OlderNov1 rule is not the latest SCUT contract; do not substitute a new10mm gate",
-    "catastrophic_closure_single_env_reset_m": 1.0,
+    "catastrophic_closure_single_env_reset_m": 1,
     "existing_numeric_mimic_nonfinite_and_full_save_protections_retained": true,
     "old_rejections_preserved_not_relabelled": true
   },
@@ -290,13 +292,17 @@
     "wheel_feedback_s": 0.0025,
     "policy_dt_s": 0.02
   },
-  "authorization_status": "authorized_by_latest_human",
-  "startup_probe": "Integrated native contract assertions and dry loss; no separate matrix; first update receipt required",
+  "authorization_status": "authorized; preflight gates passed; not yet launched",
+  "startup_probe": {
+    "native_job": "history_native_preflight_r2",
+    "optimizer_updates": 0,
+    "required": true
+  },
   "skill_supervision": {
     "enabled": true,
     "dataset": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/skill_dataset",
-    "lambda_bc": 1.0,
-    "batch_size": 192,
+    "lambda_bc": 1,
+    "batch_size": 256,
     "teacher_profile": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_SERIAL_LQR_SKILL_TEACHER_20261116\\equivalent_controller_v1\\forward_capture_repair_20261116\\CANDIDATE_PROFILE.json",
     "teacher_profile_sha256": "72742606c17a6149d8c64a1222f4b1acdcda3a8e5b742100cab3956ac656bc1d",
     "qualified_starts_mm": [
@@ -326,7 +332,7 @@
     ],
     "frozen_current_native_teacher": true,
     "teacher_assistance_in_student_rollout": false,
-    "manifest_sha256": "d9a475621fa6a4995a38737a10c7031854725cd1a8609845b22267da6fbdee8d",
+    "manifest_sha256": "recorded in upload input hashes",
     "existing_mode_slices": {
       "actor": [
         28,
@@ -337,51 +343,22 @@
         39
       ]
     },
-    "lambda_start": 1.0,
-    "warmup_optimizer_minibatches": 1,
-    "semantic_sampling": true
+    "lambda_start": 1,
+    "warmup_optimizer_minibatches": 0,
+    "semantic_sampling": [
+      0.08,
+      0.13,
+      0.03,
+      0.2,
+      0.14,
+      0.08,
+      0.08,
+      0.04,
+      0.02,
+      0.2
+    ]
   },
-  "source_attempt": "New authorized5-10min continuation from frozen010m after completed regression; sampling reweight only",
-  "quick_verification": {
-    "authority": "Latest human request: complete010m regression first; ifflat60 retained, continue010m5-10minutes restoring settle/cruise sampling",
-    "maximum_requested_optimizer_wall_seconds": 600,
-    "finish_current_iteration_at_deadline": true,
-    "automatic_extension": false,
-    "initial_checkpoint": "Frozen model_010m/iter25487 full PPO/Adam continuation",
-    "default_c874_unchanged": true,
-    "previous010m_regression": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_FIXED200_DAGGER_SEMANTIC_10M_20261116\\evidence\\checkpoint_evals\\model_010m\\EVALUATION.json",
-    "previous010m_regression_sha256": "9b7c7f035d4b8bb9de52f32f94b8615c856596d5d391d95c05bb8cf489d4c0ae",
-    "previous010m_flat60": 60,
-    "checkpoints_seconds": [
-      300,
-      600
-    ],
-    "semantic_mass": {
-      "settle": 0.1,
-      "cruise": 0.15,
-      "approach_correction": 0.03,
-      "contact_pre_lift": 0.28,
-      "lift": 0.19,
-      "swing": 0.1,
-      "plant": 0.1,
-      "capture": 0.04,
-      "post": 0.01
-    },
-    "only_training_recipe_change": "semantic sampling weights",
-    "no_local_optimizer_updates": true,
-    "new_dagger_collection": false,
-    "student_strict_speed_limit_unchanged_m_s": 0.6
-  },
-  "settle_cruise_repair": {
-    "source_dataset": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_FIXED200_DAGGER_SEMANTIC_10M_20261116\\skill_dataset\\qualified_mod4_skills.npz",
-    "source_dataset_sha256": "97b08db89360ce99e146620338458c4535d3f1dd12b6a22cf3393cc6b73627c8",
-    "source_checkpoint_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
-    "target_zero_command_first_second": "standstill; report forward displacement and maximum speed",
-    "target_forward_command_m_s": 0.47,
-    "qualified_stair_must_preserve_original_whole_episode_maximum_speed_m_s": 0.6,
-    "teacher_assistance": false,
-    "other_hyperparameters_unchanged": true
-  },
+  "source_attempt": "history_sequence_v1",
   "history_policy": {
     "H": 12,
     "obs_dim": 35,
@@ -405,15 +382,43 @@
     ],
     "reset": "repeat first current observation",
     "includes_current": true,
-    "warm_inherit": "original010m; latent columns zero; critic exact"
+    "warm_inherit": "original010m; latent columns zero; critic exact",
+    "source_010m_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
+    "actor_total_input_dim": 40
   },
   "native_skill_bc": {
     "enabled": true,
     "dataset": "/home/egde/rl_candidates/mod4v3_history_encoder_fixed200_2h_20261117_r1/skill_dataset",
     "batch_size": 256,
-    "lambda_bc": 1.0,
-    "lambda_start": 0.25,
-    "warmup_optimizer_minibatches": 240
+    "lambda_bc": 1,
+    "lambda_start": 1,
+    "warmup_optimizer_minibatches": 0
   },
-  "experiment": "MOD4V3_HISTORY_ENCODER_FIXED200_2H_20261117"
+  "experiment": "MOD4V3_HISTORY_ENCODER_FIXED200_2H_20261117",
+  "fresh_expanded_optimizer": true,
+  "authorized_total_seconds": 7200,
+  "parent_source_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
+  "parent_source": "original010m/37dbe178",
+  "source_parent_sha256": "37dbe1784bf80883586225ae0f1a6238c6258c51c1ceeb516627f6735aa2193a",
+  "native_preflight_job": "history_native_preflight_r2",
+  "strict_timing": {
+    "maximum_seconds": 7200,
+    "clock": "monotonic",
+    "work_cutoff_seconds": 7170,
+    "save_close_reserve_seconds": 30,
+    "finish_iteration_after_deadline": false,
+    "automatic_restart": false
+  },
+  "evaluation": {
+    "formal_speed_limit_m_s": 0.6,
+    "pre1s_displacement": true,
+    "pre1s_peak_speed": true,
+    "midrun_minutes": [
+      10,
+      20
+    ],
+    "full_final": true
+  },
+  "initial_gradient_cosine": 0.1318720579147339,
+  "initial_gradient_decision": "keep skill=1; no coefficient pre-warm needed after positive fixed-bank gradient audit"
 }

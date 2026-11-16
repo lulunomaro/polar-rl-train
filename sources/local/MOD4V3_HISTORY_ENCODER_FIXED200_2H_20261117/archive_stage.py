@@ -9,7 +9,7 @@ def main():
   text=f.suffix.lower()in ['.py','.md','.json','.yaml','.xml','.log','.jsonl','.txt']and f.stat().st_size<5000000
   rows.append(dict(path=str(f),bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest(),git_text=text))
   if text:files.append(f.relative_to(R).as_posix())
- idx=T/('ARTIFACT_INDEX_'+a.stage+'.json');idx.write_text(json.dumps(dict(date=datetime.datetime.now().astimezone().isoformat(),artifacts=rows,large_originals_retained=True),indent=2)+'\n');files.append(idx.relative_to(R).as_posix())
+ idx=T/('ARTIFACT_INDEX_'+a.stage+'.json');idx.write_text(json.dumps(dict(date=datetime.datetime.now().astimezone().isoformat(),artifacts=rows,large_originals_retained=True),indent=2)+'\n');files.append(idx.relative_to(R).as_posix());files.append('AGENTS.md')
  sys.path.insert(0,str(R/'archive_tools'));import record_experiment as rec
  orig=rec.git
  def git(*args):

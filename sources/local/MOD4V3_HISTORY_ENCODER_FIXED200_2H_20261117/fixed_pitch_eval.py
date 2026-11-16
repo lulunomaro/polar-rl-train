@@ -1,3 +1,4 @@
+import history_eval_hooks; history_eval_hooks.install()
 """Fixed nominal IMU pitch comparison on existing official level9 rough and plane."""
 from pathlib import Path
 import argparse,json,hashlib,sys,importlib.util,types,time,gc

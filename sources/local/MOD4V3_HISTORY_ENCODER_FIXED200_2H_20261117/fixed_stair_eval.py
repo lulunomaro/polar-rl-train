@@ -1,3 +1,4 @@
+import history_eval_hooks; history_eval_hooks.install()
 import gc
 """Frozen 200mm continuous stair evaluation; five varied starts, actual wheel landings."""
 from pathlib import Path

@@ -26,3 +26,8 @@ PPO：1229 normal keep=1，819固定200mm；技能权重1、前240小批次从.2
 c874默认、CURRENT指针、原010m、原8391、历史归档不改。MOD4v3/78critic/6动作/fullDR、物理2.5ms/腿100Hz/轮400Hz/策略50Hz、scene/碰撞/PD/电机不改；2mm只诊断。通过率只认零教师辅助独立学生；真实登台与严格守速分列。保护SHA见evidence/PROTECTED_INPUTS.json。历史失败不覆盖，所有产物只在本目录，源码/报告进Git，大权重和数组留原件并记录SHA。
 
 当前状态：准备与实现，0 PPO；尚未通过新架构预检，尚未启动7200s。
+
+
+2026-11-17阶段追加：本地encoder、真实flat60=60/60和2048环境原生0更新预检已通过，详见PRECHECK_REPORT.md。实现与预检失败也一并归档；下一步为一次性启动授权7200s。
+
+初始梯度审计后配方更新：cos=+.13187、技能/keep范数5.934/4.360；BC从首步起固定1，不采用初稿.25->1预热。详见preflight/INITIAL_GRADIENTS.json。

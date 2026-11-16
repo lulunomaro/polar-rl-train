@@ -1,3 +1,4 @@
+import history_eval_hooks; history_eval_hooks.install(legacy=True)
 """Checkpoint consumer: fixed MuJoCo tasks with the recorded controller periods."""
 from pathlib import Path
 import argparse,sys,json,hashlib,time,math,xml.etree.ElementTree as ET

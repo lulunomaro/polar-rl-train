@@ -21,7 +21,7 @@ class CourseSpec:
     failures_to_demote: int = 3
 
 SPEC=CourseSpec()
-COURSE='fixed_200mm_serial_teacher_v1'
+COURSE='history_fixed200_speed_v1'
 
 def advance(mastered,episode_level,failures,success,attempted):
     zeros=torch.zeros_like(mastered)
@@ -35,13 +35,14 @@ def supported_upper(wheel_x,wheel_y,wheel_z,force_z,height):
             ((wheel_z-(height[:,None]+SPEC.radius)).abs()<tolerance[:,None])&
             (force_z>SPEC.support_force))
 
-def stable_completion(upper,body_x,pitch,roll,rate,vertical_speed,entry_speed,maximum_speed,entry_seen,failed,active):
+def stable_completion(upper,body_x,pitch,roll,rate,vertical_speed,entry_speed,maximum_speed,entry_seen,failed,active,maximum_allowed=None):
+    limit=SPEC.maximum_speed if maximum_allowed is None else maximum_allowed
     return (upper.all(1)&(body_x<SPEC.edge-SPEC.body_margin)&
             (body_x>-SPEC.edge+.2)&(pitch.abs()<SPEC.maximum_angle)&
             (roll.abs()<SPEC.maximum_angle)&(rate<SPEC.maximum_rate)&
             (vertical_speed.abs()<.25)&entry_seen&
-            (entry_speed>=SPEC.minimum_entry_speed)&(entry_speed<=SPEC.maximum_speed)&
-            (maximum_speed<=SPEC.maximum_speed)&(~failed)&active)
+            (entry_speed>=SPEC.minimum_entry_speed)&(entry_speed<=limit)&
+            (maximum_speed<=limit)&(~failed)&active)
 
 def first_landings(already,upper,active):
     gained=upper&(~already)&active[:,None]

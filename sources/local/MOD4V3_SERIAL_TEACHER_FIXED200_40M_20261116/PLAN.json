@@ -1,0 +1,336 @@
+{
+  "runtime": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/launcher",
+  "shared_package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/package",
+  "package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/native_package",
+  "source_paths": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/SOURCE_PATHS.remote.json",
+  "reset_bank": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/reset_bank.json",
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210",
+    "actual_training_assets": {
+      "robot.usd": {
+        "sha256": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c",
+        "bytes": 8846708
+      },
+      "robot_physx.usda": {
+        "sha256": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+        "bytes": 3969
+      },
+      "import_contract.json": {
+        "sha256": "76784aa2796a8a9aa5ff4d638be47f425da3d0dd0af94db7286467358808af4c",
+        "bytes": 12259
+      }
+    },
+    "local_mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f"
+  },
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "training_round": {
+    "seconds": 2400,
+    "num_envs": 2048,
+    "full_checkpoint_every_seconds": 300,
+    "inspection_every_seconds": 300,
+    "learning_rate": 3e-05,
+    "schedule": "fixed",
+    "clip_param": 0.1,
+    "num_learning_epochs": 3,
+    "rollout": 24,
+    "automatic_extension": false
+  },
+  "GPU_sharing": {
+    "allowed_existing_owner_pids": [
+      1595112,
+      1743715
+    ],
+    "allowed_owner_commands_contain": [
+      "empty_stage.py",
+      "run_dual_arm.py"
+    ],
+    "minimum_free_MiB": 14000,
+    "reason": "Existing unrelated livestream viewers retain ownership; no other training owner observed; new optimizer is the only owner for this experiment",
+    "owner_scope": "Only the two observed hjq livestream script families; restart PID may change; all other compute owners rejected",
+    "allowed_existing_cpu_tuner": {
+      "script": "/mnt/mod4_windows_data/hjq/27Reinstall/reinstall2.0/mujoco_arm/isaac_lab/tune_pid.py",
+      "required_arguments": [
+        "--device cpu",
+        "--headless",
+        "--livestream 0"
+      ]
+    },
+    "observed_additional_owner": {
+      "pid": 2898583,
+      "command_contains": [
+        "train_lift.py",
+        "baseline_loaded",
+        "--livestream 0"
+      ],
+      "allow_shared_gpu_without_killing_or_modifying": true
+    }
+  },
+  "flat_preservation": {
+    "fraction_of_flat": 0.5,
+    "fraction_of_all_envs": 0.125,
+    "expected_num_envs": 256,
+    "normal_ground_resets": true,
+    "tasks": [
+      [
+        "forward20",
+        2,
+        0,
+        0.28
+      ],
+      [
+        "forward22",
+        2.2,
+        0,
+        0.28
+      ],
+      [
+        "reverse15",
+        -1.5,
+        0,
+        0.28
+      ],
+      [
+        "yaw14137",
+        0,
+        14.137166941154069,
+        0.28
+      ],
+      [
+        "height020",
+        0,
+        0,
+        0.2
+      ],
+      [
+        "height040",
+        0,
+        0,
+        0.4
+      ]
+    ],
+    "command_fixed_for_episode": false,
+    "reward_unchanged": "Original symmetric -1.5e2 plus exponential1.2",
+    "other_flat_and_rough_sampling": "Unchanged original tasks including eligible airborne resets",
+    "command_fixed_after_original_ground_warmup": true,
+    "original_ground_reset_warmup_s": 1.5,
+    "expected_nominal_envs": 51
+  },
+  "storage": {
+    "old_210_path_compatible": true,
+    "actual_volume": "/mnt/mod4_windows_data/MOD4_training_data/rl_candidates",
+    "maintenance_record": "sources/local/MOD4V3_STORAGE_MIGRATION_20261113/README.md"
+  },
+  "pitch_stability": {
+    "rough_level": 9,
+    "rough_family": "random_uniform_for_rm",
+    "target_fraction_of_retained_rough": 0.5,
+    "target_flat": "non-preservation half of plane environments",
+    "grounded_start_stop_only": true,
+    "command_speeds_m_s": [
+      0.6,
+      1.2,
+      2.0,
+      2.2
+    ],
+    "heights_m": [
+      0.28,
+      0.4,
+      0.42
+    ],
+    "initial_stand_s": 2.0,
+    "run_s": 1.0,
+    "stop_s": 2.0,
+    "alternate_forward_reverse": true,
+    "no_command_smoothing": true,
+    "pitch_deadband_deg": 0.0,
+    "pitch_excess_square_coefficient": 0.0,
+    "pitch_rate_square_coefficient": 0.05,
+    "reward": "-dt*(0.25*(2*exp(-cmd_vx^2/3)+2)^2*sin(pitch)^2+2*(1-exp(-sin(pitch)^2/0.02))+0.05*omega_y^2); native SCUT base retained",
+    "ground_contact_gate": "First actual wheel contact>5N arms episode latch for target ground-only specialist; unloading does not bypass; cleared on reset; stairs and planned airborne retain original rewards",
+    "teacher_keep": "all1229 non-curriculum environments incl615 retained pitch targets",
+    "original_velocity_rewards_unchanged": false,
+    "spawn_grid_fix": "Random-column non-target neighbors use separate bounded0.8m grid;target359env grid0.15m;2048env actual zero-update probe200steps confirms initial random ground inside original4m boundary",
+    "diagnostic_first": true,
+    "proposed_only_until_probe": false,
+    "sampling": "50Hz endpoint;400Hz diagnostic energy only1.435pct larger; timing unchanged",
+    "prediction_horizon_s": 0.0,
+    "predicted_pitch_excess_square_coefficient": 0.0,
+    "prediction_window": "first0.4s after each hard start or hard stop; specialist only",
+    "parent_selection": "Adopted11/16 low-pitch c874 iter25362",
+    "phase_timing": "Capture action issuance age before physics; reward uses this frozen age after episode buffer increments; no other objective or hardware change",
+    "velocity_fix": "Exact horizontal reward on pitch targets and new stairs; original speed coefficients"
+  },
+  "root": "/home/egde/rl_candidates/mod4v3_serial_teacher_fixed200_40m_20261116_r3",
+  "support": "/home/egde/rl_candidates/mod4v3_serial_teacher_fixed200_40m_20261116_r3/support",
+  "parent": "/home/egde/rl_candidates/mod4v3_serial_teacher_fixed200_40m_20261116_r3/parent_comprehensive.pt",
+  "parent_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
+  "parent_iteration": 25362,
+  "root_parent": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\deliveries\\MOD4V3_LOW_PITCH_20261116\\model_full_ppo.pt",
+  "seed": 67,
+  "training_job": "train_serial_teacher_fixed200_40m",
+  "probe_job": "probe_fixed200_contract",
+  "budget_total_training_seconds": 2400,
+  "cumulative_training_seconds_before": 0,
+  "source_experiment": "sources\\local\\MOD4V3_LOW_SPEED_STAIR_CURRICULUM_2H_20261116",
+  "resume_mode": "Complete c874 PPO actor/critic/STD/17 Adam; new independent fixed200 task; no separate warmstart",
+  "authority_update": "2026-11-16 latest human approved current native teacher and requested original recipe, fixed200mm without height curriculum,40min",
+  "expected_env_groups": {
+    "continuous_stairs": 819,
+    "retained_rough": 717,
+    "flat": 512
+  },
+  "online_success_replay": {
+    "enabled": false
+  },
+  "brake_distillation": {
+    "enabled": false
+  },
+  "teacher_retention": {
+    "enabled": true,
+    "keep_teacher": "/home/egde/rl_candidates/mod4v3_serial_teacher_fixed200_40m_20261116_r3/comprehensive_keep_teacher.pt",
+    "keep_teacher_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
+    "lambda_bc": 1.0,
+    "keep_fraction": 1.0,
+    "stair_fraction": 0.0,
+    "student_initial_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
+    "student_initial_iteration": 25362,
+    "keep_domain": "1229 retained flat/rough including pitch targets; stair uses current native LQR demonstrations",
+    "policy35_critic78_action6_unchanged": true
+  },
+  "continuous_stair": {
+    "course": "fixed_200mm_serial_teacher_v1",
+    "heights_m": [
+      0.2
+    ],
+    "steps": 1,
+    "edge_distance_m": 1.5,
+    "platform_width_m": 3.0,
+    "tile_size_m": [
+      9.0,
+      9.0
+    ],
+    "command_vx_m_s": [
+      0.3,
+      0.5
+    ],
+    "maximum_actual_entry_speed_m_s": 0.6,
+    "minimum_actual_entry_speed_m_s": 0.1,
+    "settle_seconds": 1.5,
+    "stable_hold_seconds": 0.4,
+    "stable_pitch_roll_deg": 25.0,
+    "stable_rate_rad_s": 1.5,
+    "failures_before_demotion": null,
+    "easy_review_fraction": 0.0,
+    "one_success_advances_one_env_at_next_reset": false,
+    "physics_dt_s": 0.0025,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02,
+    "full_DR_ranges_unchanged": true,
+    "actor35_critic78_action6": true,
+    "velocity_reward": "original -1.5e2 sigma1 plus exponential1.2",
+    "teacher_on_curriculum": true,
+    "new_course_state_not_old_fixed_rows": true,
+    "solver": "Original selected TGS32/4, physics2.5ms, no precision sweep",
+    "closure_2mm_diagnostic_only": true,
+    "enforce_closure_reset": false,
+    "catastrophic_closure_single_env_reset_m": 1.0,
+    "curriculum_enabled": false,
+    "commanded_root_height_m": 0.4091,
+    "command_root_height_after_double_top_landing_m": 0.2
+  },
+  "current_closure_contract": {
+    "scope": "MOD4v3 SCUT native PPO including this new curriculum",
+    "human_messages": [
+      {
+        "local_time": "2026-11-09T00:43:15.296+08:00",
+        "quote": "我的意思是2mm不要重置环境这是可接受的华南虎没有限制这个"
+      },
+      {
+        "local_time": "2026-11-10T01:28:08.671+08:00",
+        "quote": "2mm门控早没了"
+      }
+    ],
+    "source_thread": "01a088fc-06aa-7ae1-8644-33f67fe91e95",
+    "closure_2mm": "diagnostic only; not reward,reset or whole-run stop",
+    "ten_mm_note": "OlderNov1 rule is not the latest SCUT contract; do not substitute a new10mm gate",
+    "catastrophic_closure_single_env_reset_m": 1.0,
+    "existing_numeric_mimic_nonfinite_and_full_save_protections_retained": true,
+    "old_rejections_preserved_not_relabelled": true
+  },
+  "abandoned_solver_sweep_history": {
+    "reason": "Actual7.2mm closure and356 guard triggers in R3; enforce user2mm contract before PPO",
+    "old_position_iterations": 32,
+    "old_velocity_iterations": 4,
+    "new_position_iterations": 255,
+    "new_velocity_iterations": 4,
+    "asset_unchanged": true,
+    "physics_timestep_unchanged": true,
+    "guard_tolerance_m": 0.002,
+    "r4_result": "128/8 reduced closure events to5 but caused2 numerical faults; rejected",
+    "current_probe": "300steps stochastic actual5cm2048env initial population; nine bank heights raychecked; stop at first physical fault",
+    "runtime_fault_response": "Save complete last optimizer state and stop entire PPO on any2mm closure/numerical fault; no auto retry or extension",
+    "status": "reverted_due_to_wrong_obsolete_2mm_contract",
+    "current_position_iterations": 32,
+    "current_velocity_iterations": 4,
+    "no_more_solver_probe_sweeps": true
+  },
+  "physics_configuration": {
+    "physics_dt_s": 0.0025,
+    "TGS_position_iterations": 32,
+    "TGS_velocity_iterations": 4,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02
+  },
+  "authorization_status": "authorized_by_latest_human",
+  "startup_probe": "Integrated native contract assertions and dry loss; no separate matrix; first update receipt required",
+  "skill_supervision": {
+    "enabled": true,
+    "dataset": "/home/egde/rl_candidates/mod4v3_serial_teacher_fixed200_40m_20261116_r3/skill_dataset",
+    "lambda_bc": 1.0,
+    "batch_size": 192,
+    "teacher_profile": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_SERIAL_LQR_SKILL_TEACHER_20261116\\equivalent_controller_v1\\forward_capture_repair_20261116\\CANDIDATE_PROFILE.json",
+    "teacher_profile_sha256": "72742606c17a6149d8c64a1222f4b1acdcda3a8e5b742100cab3956ac656bc1d",
+    "qualified_starts_mm": [
+      -60,
+      -30,
+      0,
+      30,
+      60
+    ],
+    "task": "stair200_only",
+    "modes": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "action_order": [
+      "left_front1_joint",
+      "left_rear1_joint",
+      "right_front1_joint",
+      "right_rear1_joint",
+      "left_wheel_joint",
+      "right_wheel_joint"
+    ],
+    "frozen_current_native_teacher": true,
+    "teacher_assistance_in_student_rollout": false,
+    "manifest_sha256": "41a580a7e405570984112445c0f182356877335afbc5152442cccc4f0f6ac16b",
+    "existing_mode_slices": {
+      "actor": [
+        28,
+        35
+      ],
+      "critic": [
+        32,
+        39
+      ]
+    }
+  },
+  "source_attempt": "r1 missing upload JSON;r2 caught critic mode slice before PPO clock;both preserved;no optimizer budget used"
+}

@@ -23,8 +23,7 @@ def prepare(phase):
  for f in sorted(T.rglob('*')):
   if not f.is_file()or '__pycache__'in f.parts or f.suffix in ['.partial','.pyc']or f.name.startswith(('ARTIFACT_INDEX_','ARCHIVE_FILES_')):continue
   rel=f.relative_to(T);is_live=rel.parts[0]=='evidence'and len(rel.parts)>1 and rel.parts[1]in ['training','inspections','checkpoint_evals']
-  if is_live:continue
-  eligible=f.suffix.lower()in ['.py','.md','.json','.yaml','.log']and f.name!='STEP_DIAGNOSTICS.json'and f.stat().st_size<8_000_000
+  eligible=(not is_live) and f.suffix.lower()in ['.py','.md','.json','.yaml','.log']and f.name!='STEP_DIAGNOSTICS.json'and f.stat().st_size<8_000_000
   if rel.as_posix()in ['monitor_run.log','monitor_run_error.log','finish_pipeline.log','finish_pipeline_error.log']:eligible=False
   rows.append(dict(path=str(f),bytes=f.stat().st_size,sha256=sha(f),storage='git_text'if eligible else'local_original_indexed',git_path=f.relative_to(R).as_posix()if eligible else None))
   if eligible:files.append(f.relative_to(R).as_posix())

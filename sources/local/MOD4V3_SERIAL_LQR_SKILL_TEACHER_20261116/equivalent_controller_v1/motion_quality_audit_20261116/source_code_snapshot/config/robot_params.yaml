@@ -1,0 +1,218 @@
+schema_version: 0.1
+robot_name: serial_five_link_wheel_leg
+simulation:
+  timestep_s: 0.001
+  control_period_s: 0.002
+  control_frequency_hz: 500
+  integrator: implicitfast
+  gravity_mps2: 9.81
+coordinates:
+  world_frame:
+    x: forward
+    y: left
+    z: up
+  body_euler_order: roll_pitch_yaw
+  lqr_state_order:
+  - x
+  - yaw
+  - pitch
+  - theta_L
+  - theta_R
+  - x_dot
+  - yaw_dot
+  - pitch_dot
+  - theta_L_dot
+  - theta_R_dot
+  lqr_output_order:
+  - tau_L_virtual_leg
+  - tau_R_virtual_leg
+  - T_wheel_L
+  - T_wheel_R
+geometry:
+  wheel:
+    radius_m: 0.06
+    width_m: 0.01
+  chassis:
+    half_track_m: 0.20575
+    track_width_m: 0.4115
+    body_box_half_size_m:
+    - 0.15
+    - 0.15
+    - 0.025
+    nominal_body_height_m: 0.312
+  five_link:
+    front_big_m: 0.18
+    back_big_m: 0.18
+    front_small_m: 0.21
+    back_small_m: 0.21
+    anchor_base_m: 0.0
+    min_length_m: 0.3
+    max_length_m: 0.379
+    nominal_length_m: 0.364052
+mass_properties:
+  total_robot_mass_kg: 19.62477455571143
+  body:
+    mass_kg: 15.067140000116192
+    inertia_kg_m2:
+    - 0.2383692203509827
+    - 0.3143089897473729
+    - 0.45725583095705735
+    com_local_m:
+    - -0.010926262795983186
+    - 0.0003581340533896905
+    - -0.04544202817278775
+  links:
+    thigh: 0.6963698552944488
+    hip_knee_driver: 0.3336204932054989
+    upper_coupler: 0.08393164971519948
+    knee_node: 0.12530980178329088
+    lower_coupler: 0.08470848881231
+    shank: 0.7656358557341226
+  wheel:
+    mass_kg: 0.18924111628014
+    inertia_kg_m2:
+    - 0.00033958
+    - 0.00034133
+    - 0.0005817
+mujoco:
+  xml_path: mjcf/bigeye_rmuc2027.xml
+  base_body: base
+  imu_site: imu
+  active_joints:
+    left_front: left_front_hip_joint
+    left_back: left_rear_hip_joint
+    right_front: right_front_hip_joint
+    right_back: right_rear_hip_joint
+  wheel_joints:
+    left: left_wheel_joint
+    right: right_wheel_joint
+  actuator_order:
+  - left_front_hip_motor
+  - right_front_hip_motor
+  - left_rear_hip_motor
+  - right_rear_hip_motor
+  - left_wheel_motor
+  - right_wheel_motor
+  sensors:
+    quat: imu_quat
+    gyro: imu_gyro
+    accel: imu_accel
+    left_front_pos: left_front_hip_pos
+    left_front_vel: left_front_hip_vel
+    left_back_pos: left_rear_hip_pos
+    left_back_vel: left_rear_hip_vel
+    right_front_pos: right_front_hip_pos
+    right_front_vel: right_front_hip_vel
+    right_back_pos: right_rear_hip_pos
+    right_back_vel: right_rear_hip_vel
+    left_wheel_pos: left_wheel_pos
+    left_wheel_vel: left_wheel_vel
+    right_wheel_pos: right_wheel_pos
+    right_wheel_vel: right_wheel_vel
+actuators:
+  joint_motor:
+    ctrlrange_Nm:
+    - -50.0
+    - 50.0
+    default_limit_Nm: 40.0
+  wheel_motor:
+    model: M3508
+    ctrlrange_Nm:
+    - -10.0
+    - 10.0
+    default_limit_Nm: 10.0
+    power_model:
+      k1: 0.015756
+      k2: 0.194
+      k3: 1.9202e-05
+      k4: 1.15
+      current_convert_A_per_cmd: 0.001220703125
+contact:
+  ground:
+    friction:
+    - 1.0
+    - 0.001
+    - 0.0001
+    condim: 6
+  wheel:
+    friction:
+    - 0.8
+    - 0.005
+    - 0.0001
+    condim: 6
+    solref:
+    - 0.005
+    - 1.0
+    solimp:
+    - 0.9
+    - 0.95
+    - 0.001
+  closed_chain_equality: null
+control_initial:
+  leg_length_pid:
+    position_kp: 1500.0
+    position_ki: 0.0
+    position_kd: 40.0
+    velocity_kp: 100.0
+    velocity_ki: 0.0
+    velocity_kd: 0.0
+  roll_control:
+    wc_radps: 25.0
+    zeta: 0.9
+    ki_slope: 100.0
+  leg_length_trajectory:
+    # 直立时约 127 mm 开始自碰撞，伸长端给抬腿瞬态留余量。
+    min_length_m: 0.13
+    max_length_m: 0.34
+    default_length_m: 0.2496265
+    max_rate_mps: 0.4
+  self_righting:
+    enabled: true
+    min_length_m: 0.13
+    swing_length_m: 0.32
+    roll_speed_mps: 0.60
+    swing_speed_radps: 2.933333333333333
+    ground_preload_n: 3.0
+    capture_length_m: 0.15
+    capture_blend_s: 0.04
+    grow_duration_s: 0.2
+    pose_speed_limit_radps: 8.0
+  jump:
+    force_per_leg_n: 500.0
+    max_thrust_time_s: 0.25
+    thrust_end_length_m: 0.323
+    retract_length_m: 0.13
+    retract_duration_s: 0.18
+    min_retract_duration_s: 0.14
+    landing_duration_s: 0.35
+    takeoff_momentum_gain: 50.0
+    length_kp_npm: 2500.0
+    length_kd_nspm: 80.0
+    wheel_speed_limit_radps: 180.0
+  lqr_target:
+    x_m: 0.0
+    yaw_rad: 0.0
+    pitch_rad: 0.0
+    left_leg_theta_rad: 0.0
+    right_leg_theta_rad: 0.0
+    x_dot_mps: 0.0
+    yaw_dot_radps: 0.0
+  keyboard_command:
+    max_speed_mps: 2.0
+    max_yaw_rate_radps: 2.5
+    speed_accel_mps2: 5.0
+    speed_release_accel_mps2: 5.0
+    instant_stop_on_release: false
+    instant_yaw_rate_command: true
+    speed_axis_sign: 1.0
+    yaw_axis_sign: 1.0
+  fall_angle_rad: 1.0
+  kalman:
+    q_v: 0.01
+    q_a: 1.0
+    r_v: 0.5
+    r_a: 1.0
+  slip_detection:
+    dby_threshold: 0.5
+    dvb_threshold: 0.3
+    dvw_threshold: 0.02

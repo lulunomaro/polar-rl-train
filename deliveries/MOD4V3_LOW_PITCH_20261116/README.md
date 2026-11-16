@@ -1,5 +1,7 @@
 # 11月16日俯仰较低模型
 
+MuJoCo交互播放入口：[play_mujoco.py](play_mujoco.py)。沿用WASD面板，额外显示机身俯仰/角速度；松键硬停车，P暂停，R复位。运行输出隔离于playback_runtime。
+
 用户于2026-11-16明确采用的当前综合默认模型。后续综合回放和续训从本目录完整PT进入；统一指针见[CURRENT_COMPREHENSIVE_MODEL.json](../CURRENT_COMPREHENSIVE_MODEL.json)。
 
 - 模型：`scut_pitch_brake_2h_20261116_005m`，iteration **25362**；两小时轮次第5分钟完整检查点，实际305.428秒。

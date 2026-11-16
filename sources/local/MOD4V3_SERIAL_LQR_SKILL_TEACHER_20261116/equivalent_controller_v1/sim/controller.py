@@ -478,6 +478,10 @@ class StandController:
                 gov.x_dot = gov.yaw_dot = 0.
             if climb_capture:
                 self.climb_capture_offset = None
+        if (getattr(self, 'native_capture_stop_anchor', False)
+                and previous_climb_phase == 'capture' and self.step_climb.phase == 'idle'):
+            self.capture_stop_pending = True
+            self.capture_stop_direction = np.sign(self.target_x_dot)
         if previous_climb_phase != "idle":
             keyboard_axes = (*self._unpack_keyboard_axes(keyboard_axes)[:3], False)
 
@@ -538,6 +542,16 @@ class StandController:
         elif recovery_ctrl is None:
             self._update_navigation(keyboard_axes, state["yaw_continuous"],
                                     current_x=float(x_lqr[0, 0]))
+        if (getattr(self, 'native_capture_stop_anchor', False)
+                and getattr(self, 'capture_stop_pending', False)
+                and self.step_climb.phase == 'idle' and abs(state['_speed_axis']) < 1e-6):
+            # Brake in velocity control first. Latch the parking position at
+            # the stop, rather than pulling back to the throttle-release point.
+            self.target_x = float(x_lqr[0,0])
+            if self.reference_governor is not None:
+                self.reference_governor.x = self.target_x
+            if x_lqr[5,0]*self.capture_stop_direction <= 0.:
+                self.capture_stop_pending = False
         e3_l, e3_r = get_e3(self.left_leg.length, self.right_leg.length)
         jump_target = self.jump_state not in ("idle", "landing")
         target_e3_l = 0.0 if jump_target else e3_l
@@ -570,6 +584,8 @@ class StandController:
                 if self.climb_capture_offset is None:
                     self.climb_capture_offset = self.previous_motor_ctrl[:4] - balance_ctrl[:4]
                 fraction = max(0., 1.-self.step_climb.capture_time/.045)
+                if getattr(self, 'native_capture_coherent_handoff', False):
+                    fraction = 0.
                 ctrl = balance_ctrl.copy()
                 ctrl[:4] = np.clip(ctrl[:4] + fraction*self.climb_capture_offset,
                                   -self.args.joint_torque_limit, self.args.joint_torque_limit)
@@ -1093,6 +1109,14 @@ class StandController:
         equilibrium[suppressed] = 0.
         U_adj = equilibrium - K_adj @ (x_lqr - target_adj)
         self.U_lqr = U_adj
+        state['_native_lqr_diagnostic'] = dict(
+            state=x_lqr[:, 0].tolist(), target=target_adj[:, 0].tolist(),
+            contribution=(-K_adj * (x_lqr-target_adj).T).tolist(),
+            equilibrium=equilibrium[:, 0].tolist(), output=U_adj[:, 0].tolist(),
+            suppressed=suppressed.tolist(), wheel_scale=self._wheel_torque_scale.tolist(),
+            governor=None if self.reference_governor is None else dict(
+                x=float(self.reference_governor.x), vx=float(self.reference_governor.x_dot)),
+            capture_time=float(getattr(self.step_climb, 'capture_time', 0.)))
 
         if self.jump_state == "landing":
             forces=[F_l,F_r]

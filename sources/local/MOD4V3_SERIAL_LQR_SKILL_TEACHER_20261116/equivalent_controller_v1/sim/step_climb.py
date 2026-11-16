@@ -203,7 +203,10 @@ class StepClimb:
             self.asymmetric_lift = uncertain_load and abs(self.lift_x[0]-self.lift_x[1]) > .12
 
         self.elapsed += dt
-        if self.elapsed > (1.20 if self.landing_shift > 0. else .95) or abs(roll) > .65 or abs(pitch) > .85:
+        supported_capture = (getattr(self, 'native_capture_loaded_hold', False)
+                             and self.phase == 'capture' and self.wheel_odometry_valid)
+        if ((self.elapsed > (1.20 if self.landing_shift > 0. else .95) and not supported_capture)
+                or abs(roll) > .65 or abs(pitch) > .85):
             return self.finish()
         if self.phase == 'capture':
             self.capture_time += dt
@@ -213,7 +216,7 @@ class StepClimb:
             if (self.capture_time >= .15 and self.wheel_odometry_valid and
                     body_speed*self.direction > .12 and abs(pitch) < .14):
                 return self.finish()
-            if self.unloaded_time < .016 and self.capture_time < .32:
+            if self.unloaded_time < .016 and (getattr(self, 'native_capture_loaded_hold', False) or self.capture_time < .32):
                 return None
             # 碰到台阶棱边后可能重新失去承载。回到落轮控制，并把落点向前移。
             self.phase = 'plant'

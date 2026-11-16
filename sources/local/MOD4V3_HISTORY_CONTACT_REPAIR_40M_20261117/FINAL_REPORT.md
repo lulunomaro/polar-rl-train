@@ -1,4 +1,6 @@
-# 历史观测固定200mm实验实测报告
+# 触墙修复40分钟最终实测：未达低速上阶目标，不采用
+
+最终正式低速200mm仍0/5；真实双轮越边及>=0.4s物理稳态事件各2/5，末端均无连续稳定保持。normal保底60/60，原双阶5/5、斜向10/20、下阶5/5。保底隔离有效，上阶闭环尚未修好，不晋升、不追加训练。
 
 本轮只在独立目录改变actor。默认c874、CURRENT指针、原010m、原8391帧保护检查：True。不自动晋升、不延长。
 
@@ -13,7 +15,7 @@ PPO时间：1794857663.6778688 → 1794860000.1111484；elapsed=2336.43327975273
 |model_005m|60|0|1|1|未测|未测|未测|
 |model_010m|60|0|3|3|未测|未测|未测|
 |model_020m|60|0|0|0|未测|未测|未测|
-|model_final|60|0|2|2|未测|未测|未测|
+|model_final|60|0|2|2|5|10|5|
 
 正式速度线始终<=0.6m/s；训练放宽档位的完成数不能充当正式成绩。教师辅助为0。nominal冻结回放不等于full-DR毕业。
 
@@ -28,5 +30,19 @@ PPO时间：1794857663.6778688 → 1794860000.1111484；elapsed=2336.43327975273
 |60|False|True|1.3800000000000008|0.47015662746685266|0.7218704273347798|-0.01715520385861493|0.048642728911719536|18.904256342855366|
 
 急停/原双阶/斜向/下阶原始数据：evidence/checkpoint_evals/model_final/。视频：同目录single_step/STUDENT_CENTER_1X.mp4。历史实验与方案：REPAIR_PLAN.md。所有失败预检、训练错误与未通过评测均保留。
+
+## 收尾核验与补测记录
+
+实际PPO 2026-11-17 03:34:23.677869 → 04:13:20.111148，2336.433秒；352轮PPO、4224次Adam小批次，原生已安全关闭且训练PID已退出、GPU释放，早于2400秒硬上限。
+
+最终normal/STD完整参数变化0，所有保护SHA一致。训练累计DR5553+nominal1326=6879次尝试，阶段/严格完成均0，819全部仍1.3首速度档。不能把nominal回放的2次物理事件说成原生DR通过。
+
+原final评测的急停/楼梯/下阶因缺失manual_replay依赖，在仿真前失败；补入旧已归档字节一致的三个guard模块后，只补跑缺失三项，单阶与flat60原有效结果未重跑。初次失败日志/partial目录、初次EVALUATION与报告已全部保留，不改写历史。
+
+补测原始结果：evidence/checkpoint_evals/model_final/pitch_retry01/RESULT.json、stairs_retry01/RESULT.json、descent_retry01/RESULT.json。补测记录：evidence/final_regression_repair01/REPAIR_RECEIPT.json。
+
+低俯仰急停峰值：崎岖11.5863°、平地11.8534°；均沿原normal协议，不等于新技能fullDR毕业。当前没有单独隔离PPO、encoder与历史门控变化的因果贡献，不由小loss推定技能已学会。
+
+视频：evidence/checkpoint_evals/model_final/single_step/STUDENT_CENTER_1X.mp4；五点实测曲线：evidence/FINAL_FIVE_STARTS.png。默认c874/CURRENT、原010m37dbe178、原8391及既有归档继续保护。
 
 实际训练速度课程计数（不能当独立成绩）：{"checkpoint": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_HISTORY_CONTACT_REPAIR_40M_20261117\\weights\\model_final.pt", "iteration": 25839, "PPO_updates": 352, "optimizer_minibatches": 4224, "training_speed_course": {"limits_m_s": [1.3, 1.0, 0.8, 0.6], "stair_population": [819, 0, 0, 0], "completions_by_stage": [0, 0, 0, 0], "strict0p6_completions": 0, "speed_penalty_sum": 10.357529640197754, "source": "actual checkpoint counters, not frozen independent score"}}

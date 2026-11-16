@@ -1,0 +1,39 @@
+{
+  "experiment": "MOD4V3_FIXED200_PREWALL_DIAG_DAGGER_20261117",
+  "created_at": "2026-11-16T16:36:25.869Z",
+  "requested_stage": "0 PPO: diagnose repair5m/10m, collect pre-wall live teacher corrections, test normalized35D separability and offline gradients/fit",
+  "PPO_updates_authorized_for_this_stage": 0,
+  "teacher_profile": "forward_capture_repair_20261116 unchanged",
+  "models": [
+    "repair model_005m",
+    "repair model_010m"
+  ],
+  "offsets_mm": [
+    -60,
+    -30,
+    0,
+    30,
+    60
+  ],
+  "pre_action_handoff_frames": [
+    50,
+    53,
+    60
+  ],
+  "maximum_teacher_attempts": 30,
+  "teacher_admission": "native final stable >=0.4s AND first actual main-wheel stair contact entry<=0.6m/s; no student historical-speed veto",
+  "truncated_user_message": "ends at 带keep=1与临时; no next PPO recipe inferred",
+  "source_artifacts": "indexed by SHA, never modified",
+  "offline_probe": {
+    "optimizer": "fresh Adam on isolated copied repair10m actor",
+    "max_optimizer_steps": 64,
+    "lr": 5e-05,
+    "gradient_clip_L2": 1.0,
+    "keep_lambda": 1.0,
+    "new_pre_wall_fraction": 0.4,
+    "existing_skill_fraction": 0.6,
+    "PPO_updates": 0,
+    "scope": "bounded fit diagnostic; independent rollout afterwards, no adoption or PPO continuation",
+    "keep0_ablation": "not inferred from truncated sentence"
+  }
+}

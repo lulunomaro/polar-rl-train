@@ -1,0 +1,46 @@
+"""Final actual receipts and comparisons; no training or additional simulation."""
+from pathlib import Path
+import sys,json,time,hashlib,datetime,numpy as np,torch
+T=Path(__file__).resolve().parent;R=T.parents[2];F=R/'sources/local/MOD4V3_SERIAL_TEACHER_FIXED200_40M_20261116';E=T/'evidence';tz=datetime.timezone(datetime.timedelta(hours=8))
+def read(p):return json.loads(p.read_text())
+def put(p,x):p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+assert (E/'training/SAFE_CLOSED.json').exists()and(E/'MONITOR_COMPLETE.json').exists()
+final=read(E/'training/FINAL.json');last=read(E/'training/LATEST_PROGRESS.json');clock=read(E/'training/TRAINING_CLOCK.json');base_course=read(E/'training/TERRAIN_RESTORED.json')['single_step_curriculum'];current=last['terrain']['single_step_curriculum'];manifest=read(T/'skill_dataset/MANIFEST.json');refs=read(E/'INITIAL_REFERENCES.json');assert sha(Path(refs['default_pointer']['path']))==refs['default_pointer']['sha256'];assert sha(Path(refs['parent']['path']))==refs['parent']['sha256'];assert sha(Path(refs['retention']['path']))==refs['retention']['sha256']
+rows=[]
+for label,path in [('c874',F/'evidence/checkpoint_evals/parent_comprehensive_scut_contract'),('035m control',F/'evidence/checkpoint_evals/model_035m'),('new5m',E/'checkpoint_evals/model_005m'),('new10m',E/'checkpoint_evals/model_010m')]:
+ assessment=path/('EVALUATION_REPAIRED.json'if(path/'EVALUATION_REPAIRED.json').exists()else'EVALUATION.json');d=read(assessment);assert d['complete'];student=read(path/'single_step/RESULT.json');row=dict(label=label,sha256=d['sha256'],flat60=d['flat60_passed'],student200=d['single_step_qualified_passed'],normal_double_stairs=d['straight_passed'],normal_actual_oblique=d['actual_oblique_passed'],normal_descent=d['descent_passed'],rough_braking_peak_deg=d['pitch_summary']['random_uniform_for_rm']['braking_peak_deg_max'],flat_braking_peak_deg=d['pitch_summary']['plane_for_rm']['braking_peak_deg_max'],student_rows=student['rows'],source=str(assessment));rows.append(row)
+# Real optimizer step deltas, independent of the BC compute-call counter.
+parent=torch.load(T/'weights/parent_035m.pt',map_location='cpu',weights_only=False);checkpoint=torch.load(T/'weights/model_final.pt',map_location='cpu',weights_only=False)
+opt_keys=[k for k,v in checkpoint.items()if isinstance(v,dict)and 'state'in v and 'param_groups'in v];optimizer_deltas={}
+for key in opt_keys:
+ for i,state in checkpoint[key]['state'].items():
+  if 'step'in state and i in parent[key]['state']:
+   optimizer_deltas[f'{key}.{i}']=int(float(state['step']))-int(float(parent[key]['state'][i]['step']))
+assert optimizer_deltas and len(set(optimizer_deltas.values()))==1
+steps=next(iter(optimizer_deltas.values()));counter=last['teacher_retention']['native_skill_supervision']['actual_optimizer_minibatches_total'];assert steps==counter==(last['iteration']-25455)*12
+new_course={k:(np.asarray(current[k])-np.asarray(base_course[k])).tolist()for k in ['attempts_DR_then_nominal','successes_DR_then_nominal','entry_speed_rejections_DR_then_nominal','failure_causes','reward_sums']};counts=last['teacher_retention']['last']['semantic_sample_counts_total'];actual_mass={k:v/sum(counts.values())for k,v in counts.items()}
+# Exact current-pool fitting error, without changing weights.
+sys.path.insert(0,str(R/'deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112/runtime/core'));from play_ppo_flatv1 import ActorMLP
+torch.set_num_threads(1);a=np.load(T/'skill_dataset/qualified_mod4_skills.npz');x=torch.from_numpy(a['obs']);y=torch.from_numpy(a['actions']);fit=[]
+for name in ['parent_035m','model_005m','model_010m']:
+ ck=torch.load(T/'weights'/(name+'.pt'),map_location='cpu',weights_only=False);m=ActorMLP();m.load_state_dict(ck['actor_state_dict'],strict=False);m.eval()
+ with torch.inference_mode():err=(m(x).clamp(-6,6)-y).square().sum(1).numpy()
+ per={n:float(np.sum(err[a['semantic_id']==i]*a['sampling_weight'][a['semantic_id']==i])/a['sampling_weight'][a['semantic_id']==i].sum())for i,n in enumerate(manifest['semantic_names'])};fit.append(dict(checkpoint=name,weighted_sum6_MSE=float(np.sum(err*a['sampling_weight'])),per_semantic_sum6_MSE=per,optimizer_updates=0))
+result=dict(actual_start_local=datetime.datetime.fromtimestamp(clock['epoch'],tz).isoformat(),actual_save_local=datetime.datetime.fromtimestamp(final['epoch'],tz).isoformat(),requested_training_seconds=600,actual_training_seconds=final['elapsed_seconds'],last_complete_iteration=last['iteration'],new_PPO_iterations=last['iteration']-25455,actual_optimizer_minibatches=steps,adam_step_deltas=optimizer_deltas,errors=(E/'training/ERROR.json').exists(),safe_closed=True,default_c874_unchanged=True,original035m_unchanged=True,automatic_extension=False,automatic_promotion=False,teacher_recovery_attempts=30,teacher_recovery_qualified=18,teacher_recovery_failed=12,dataset_sha256=manifest['sha256'],dataset_frames=manifest['frames'],semantic_target_mass={k:v['mass']for k,v in manifest['semantic_sampling'].items()},semantic_observed_sample_mass=actual_mass,semantic_observed_sample_counts=counts,new_training_course_counters=new_course,training_course_counter_baseline='Restored035m counters subtracted',comparison=rows,dataset_fit=fit,student_strict_speed_protocol_unchanged=True,teacher_assistance_in_student_scores=False,optimizer_updates_in_local_checks=0,native_full_DR_graduation=False,video_paths=[str(p)for p in(E/'checkpoint_evals').glob('model_0*0m/single_step/STUDENT_CENTER_1X.mp4')]+[str(p)for p in(E/'checkpoint_evals').glob('model_005m/single_step/STUDENT_CENTER_1X.mp4')])
+physical=read(E/'FINAL_STUDENT_PHYSICAL_CROSSING.json');result['final_physical_crossing_diagnostic']=physical;result['curve_paths']=[str(p)for p in(E/'figures').glob('*.png')];put(E/'FINAL_COMPARISON.json',result)
+lines=['# 固定200mm语义采样 + DAgger，10分钟完整结果','',f"实际PPO：{result['actual_start_local']} → {result['actual_save_local']}，{result['actual_training_seconds']:.3f}秒。最后完整iteration{last['iteration']}；新增{result['new_PPO_iterations']}轮PPO、{steps}次真实Adam小批次更新。已安全关闭，未自动延长，默认c874和035m原件不动。",'','| 模型 | 纯学生低速200mm | flat60 | normal双阶 | normal斜向 | 下阶 | 粗糙/平地急停峰值 |','|---|---:|---:|---:|---:|---:|---:|']
+for r in rows:lines.append(f"| {r['label']} | {r['student200']}/5 | {r['flat60']}/60 | {r['normal_double_stairs']}/5 | {r['normal_actual_oblique']}/20 | {r['normal_descent']}/5 | {r['rough_braking_peak_deg']:.2f}° / {r['flat_braking_peak_deg']:.2f}° |")
+lines+=['','逐帧复核：最终5/5均有真实双轮顶面承载和车身越边，最长连续2.54–4.14秒；但实际入阶0.903–1.287m/s（过程最高1.191–1.292），超过正式学生<=.6上限，故低速合格成绩仍0/5。这是学生独立高速冲台进展，不能称低速从容技能已学会。', '',f"最终是否破0/5：{'是'if rows[-1]['student200']else'否'}。教师接管18/30不能充当纯学生成绩。原normal双阶与低速单200mm协议不同。",'','| 新学生 | 起点mm | 通过 | 最长/最终稳态s | 入阶/过程最高速度m/s | 俯仰峰值 | 最低vx | 最大倒退mm |','|---|---:|---|---:|---:|---:|---:|---:|']
+for r in rows[2:]:
+ for q in r['student_rows']:lines.append(f"| {r['label']} | {q['start_offset_mm']:+d} | {q['success']} | {q['max_continuous_top_hold_s']:.2f}/{q['final_continuous_hold_s']:.2f} | {q['entry_speed_m_s'] if q['entry_speed_m_s'] is not None else '无触阶'} / {q['maximum_entry_ascent_speed_m_s']:.3f} | {q['pitch_peak_deg']:.2f}° | {q['minimum_forward_vx']:.3f} | {q['maximum_retreat_m']*1000:.1f} |")
+lines+=['','配方与实际数据：原教师5条 + 合格DAgger18条，8391帧；失败12条全保留。新池初始技能/keep梯度17.895/5.350，cos=-.10148；据此使用技能lambda .25→1（前48小批次预热），之后1；keep1。固定819个20cm环境和1229个保留环境，无高度课程。','', '| 语义段 | 帧数 | 目标采样 | 实际抽样 |','|---|---:|---:|---:|']
+for n,g in manifest['semantic_sampling'].items():lines.append(f"| {n} | {g['frames']} | {g['mass']*100:.2f}% | {actual_mass[n]*100:.2f}% |")
+lines+=['','| 权重 | 新池加权sum6 MSE | 触阶→lift | lift | swing | plant |','|---|---:|---:|---:|---:|---:|']
+for r in fit:
+ d=r['per_semantic_sum6_MSE'];lines.append(f"| {r['checkpoint']} | {r['weighted_sum6_MSE']:.5f} | {d['contact_pre_lift']:.5f} | {d['lift']:.5f} | {d['swing']:.5f} | {d['plant']:.5f} |")
+lines+=['','本轮训练端新增计数（已减035m恢复基数）：','', '```json',json.dumps(new_course,ensure_ascii=False,indent=2),'```','','教师准入修正：初版误把学生整程<=.6门槛套到教师纠偏，原RESULT/COLLECTION保存；ADMISSION按原教师稳定顶面物理标准重算，仅最终连续稳态>=.4s入池。学生正式评测整程<=.6规则保持。所有DAgger前缀均与原学生逐帧相同，同仿交权无物理状态重置；教师控制器/场景/PD/电机未改。初始局部梯度不是实际PPO小批次梯度，不能据此保证full-DR保底。','','物理2.5ms/腿100Hz/轮400Hz/策略50Hz、35/78/6、原电机与PD、fullDR/TGS32/4不变。2mm仅诊断，保留非有限/数值与>1m灾难保护。无额外训练或自动晋升。','','回放路径：']+['- '+p for p in result['video_paths']]
+lines+=['','最终真实登台明细（不替代低速验收）：','','| 起点mm | 入阶m/s | 真实双轮顶面承载且车身越边最长连续s | 最终仍在台顶 |','|---|---:|---:|---|']
+for q in sorted(physical['rows'],key=lambda x:x['start_offset_mm']):lines.append(f"| {q['start_offset_mm']:+d} | {q['entry_speed_m_s']:.3f} | {q['max_continuous_bilateral_top_and_body_crossed_s']:.2f} | {q['final_bilateral_top_and_body_crossed']} |")
+lines+=['','曲线：']+['- '+p for p in result['curve_paths']]+['','评测依赖修复：5m初次急停/楼梯/下阶因漏拷manual_replay辅助模块失败，原EVALUATION.json与日志保留。复制上一轮原模块并只补跑未执行的3项，EVALUATION_REPAIRED.json完整；单200mm和平地不重复。10m/最终完整评测通过运行，最终同SHA复用不重复物理回放。']
+(T/'FINAL_REPORT.md').write_text('\n'.join(lines)+'\n',encoding='utf8');print('FINALIZED',result['actual_training_seconds'],last['iteration'],steps,[(r['label'],r['student200'],r['flat60'])for r in rows])

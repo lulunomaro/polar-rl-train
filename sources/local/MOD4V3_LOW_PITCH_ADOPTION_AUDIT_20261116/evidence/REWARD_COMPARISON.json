@@ -1,0 +1,135 @@
+{
+  "scut_velocity_square_sigma": 0.25,
+  "our_velocity_square_sigma": 1.0,
+  "scut_effective_speed_square": -0.00625,
+  "our_effective_speed_square": -1.5,
+  "effective_speed_square_ratio": 240.0,
+  "raw_outer_weight_ratio": 15.0,
+  "weight_rows": [
+    {
+      "term": "track_lin_vel_xy_square",
+      "scut": -0.1,
+      "ours": -1.5,
+      "absolute_weight_ratio": 15.0
+    },
+    {
+      "term": "track_lin_vel_xy",
+      "scut": 1.0,
+      "ours": 1.2,
+      "absolute_weight_ratio": 1.2
+    },
+    {
+      "term": "stand_still_lin_vel",
+      "scut": -1.0,
+      "ours": -2.0,
+      "absolute_weight_ratio": 2.0
+    },
+    {
+      "term": "flat_orientation_y_v",
+      "scut": -2.0,
+      "ours": -2.0,
+      "absolute_weight_ratio": 1.0
+    },
+    {
+      "term": "flat_orientation_y_exp",
+      "scut": 1.0,
+      "ours": 1.0,
+      "absolute_weight_ratio": 1.0
+    },
+    {
+      "term": "ang_vel_xy",
+      "scut": -0.05,
+      "ours": -0.05,
+      "absolute_weight_ratio": 1.0
+    },
+    {
+      "term": "action_rate",
+      "scut": -0.01,
+      "ours": -0.05,
+      "absolute_weight_ratio": 5.0
+    },
+    {
+      "term": "action_smoothness_leg",
+      "scut": -0.05,
+      "ours": -0.1,
+      "absolute_weight_ratio": 2.0
+    },
+    {
+      "term": "action_smoothness_wheel",
+      "scut": -0.01,
+      "ours": -0.03,
+      "absolute_weight_ratio": 3.0
+    },
+    {
+      "term": "joint_torque",
+      "scut": -1e-05,
+      "ours": -0.0001,
+      "absolute_weight_ratio": 10.0
+    },
+    {
+      "term": "wheel_power",
+      "scut": -1e-05,
+      "ours": -0.0001,
+      "absolute_weight_ratio": 10.0
+    }
+  ],
+  "pitch_scut": "-2*A(cmd)^2*gx^2 + exp(-gx^2/0.02)",
+  "pitch_ours_target": "-2.25*A(cmd)^2*gx^2 +3*exp(-gx^2/0.02)-2; native pitch damping-.05wy^2 plus specialist-.05wy^2",
+  "A": "2*exp(-cmd_vx^2/3)+2",
+  "scope": "per-second reward rates; actual rewards multiply dt=.02. Target extra requires active ground specialist; native state-machine weights may depend on state. Counterfactual algebra below assumes ordinary grounded state, roll0, pitch rate0.",
+  "disabled_gates": {
+    "vel_upright_gate_enabled": "false",
+    "vel_height_gate_enabled": "false",
+    "height_upright_gate_enabled": "false"
+  },
+  "counterfactual_examples": [
+    {
+      "command_vx": 0.0,
+      "pitch_deg": 5.0,
+      "scut_pitch_loss_relative_to_upright": 0.5590819800993911,
+      "ours_target_pitch_loss_relative_to_upright": 1.2214785306644154
+    },
+    {
+      "command_vx": 0.0,
+      "pitch_deg": 10.0,
+      "scut_pitch_loss_relative_to_upright": 1.743495975395465,
+      "ours_target_pitch_loss_relative_to_upright": 3.4212665497636467
+    },
+    {
+      "command_vx": 0.0,
+      "pitch_deg": 15.0,
+      "scut_pitch_loss_relative_to_upright": 3.108486896386867,
+      "ours_target_pitch_loss_relative_to_upright": 5.306222802693762
+    },
+    {
+      "command_vx": 2.2,
+      "pitch_deg": 5.0,
+      "scut_pitch_loss_relative_to_upright": 0.40340000273241405,
+      "ours_target_pitch_loss_relative_to_upright": 1.046336306126566
+    },
+    {
+      "command_vx": 2.2,
+      "pitch_deg": 10.0,
+      "scut_pitch_loss_relative_to_upright": 1.1254983840309705,
+      "ours_target_pitch_loss_relative_to_upright": 2.7260192594785906
+    },
+    {
+      "command_vx": 2.2,
+      "pitch_deg": 15.0,
+      "scut_pitch_loss_relative_to_upright": 1.7355872803826409,
+      "ours_target_pitch_loss_relative_to_upright": 3.7617107346890073
+    }
+  ],
+  "speed_error_examples": [
+    {
+      "error": 1.0,
+      "scut_cost": 0.00625,
+      "ours_cost": 1.5
+    },
+    {
+      "error": 2.2,
+      "scut_cost": 0.030250000000000006,
+      "ours_cost": 7.260000000000002
+    }
+  ]
+}

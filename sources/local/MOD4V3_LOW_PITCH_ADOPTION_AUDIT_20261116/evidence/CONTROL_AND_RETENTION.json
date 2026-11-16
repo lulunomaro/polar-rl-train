@@ -1,0 +1,42 @@
+{
+  "SCUT": {
+    "physics_dt": 0.001,
+    "policy_dt": 0.02,
+    "leg_and_wheel_PD_Hz": 1000,
+    "leg_kp": 60,
+    "leg_kd": 2,
+    "leg_torque_limit": 40,
+    "wheel_kd": 0.2,
+    "wheel_target_scale": 10,
+    "wheel_torque_limit": 5,
+    "closure_guard_m": 0.002
+  },
+  "MOD4v3": {
+    "physics_dt_s": 0.0025,
+    "control_dt_s": 0.02,
+    "feedback_dt_s": 0.01,
+    "wheel_feedback_dt_s": 0.0025,
+    "total_mass_kg": 14.29413890838623
+  },
+  "training_retention": {
+    "target_envs": 615,
+    "non_target_keep_envs": 1433,
+    "num_envs": 2048,
+    "keep_lambda": 1,
+    "high_stance_leg_anchor_lambda": 0.25,
+    "high_stance_leg_anchor_batch": 256,
+    "brake_distillation": {
+      "enabled": true,
+      "lambda_brake": 0.25,
+      "wheel_action_offset": 1.0,
+      "window_s": 0.1,
+      "minimum_height_m": 0.38,
+      "minimum_command_m_s": 2.0,
+      "label_source": "Prior db6 same-state100ms +1 wheel-action intervention, rough22.64->16.41deg and flat18.67->15.63deg; actual deployment remains unmodified6D actor",
+      "target_formula": "Frozen db6 actor on current35D observation; both wheel outputs += sign(mean(observed wheel velocity))*1,clip+-6; first100ms after hard stop only; high stance/high command target envs",
+      "no_actor_linear_velocity_input": true,
+      "no_deployment_residual": true
+    }
+  },
+  "causal_identification_limit": "Different plants/controllers and unmatched achieved speeds; no common-state/current-student physics ablation. Reward ratios are algebraic facts, not measured causal shares. High-stance leg anchors still apply as global auxiliary minibatches, despite target environments being exempt from keep mask."
+}

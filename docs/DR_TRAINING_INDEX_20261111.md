@@ -1,3 +1,9 @@
+## 2026-11-16 最新采用：11月16日俯仰较低模型
+
+用户已明确采用两小时俯仰训练的5分钟检查点：`scut_pitch_brake_2h_20261116_005m` / iteration25362 / SHA256 `c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617`。当前综合默认及后续综合续训入口改为`deliveries/MOD4V3_LOW_PITCH_20261116/model_full_ppo.pt`，统一指针为`deliveries/CURRENT_COMPREHENSIVE_MODEL.json`。旧11月13日db6保留回退基线；历史“不自动晋升”记录是本次用户采用前的状态。
+
+两小时PPO已于2026-11-16T03:30:17+08:00结束，实际7209.351秒，全部25组检查点评估及原轮次归档已完成。选中5m的名义MuJoCo固定评测：崎岖急停13.562°、平地13.370°，平地60/60、正向两阶5/5、实际斜向1/20、下阶5/5。尚无此新SHA的原生完整DR毕业证据，不继承旧db6的分数；没有新增训练或部署。MOD4v3、35/78/6接口与硬件合同保持。详见`deliveries/MOD4V3_LOW_PITCH_20261116/README.md`。
+
 # MOD4 DR 训练配方、阶段模型与续训索引
 
 ## 2026-11-16：SCUT奖励与急停轮协调两小时训练
@@ -21,7 +27,7 @@
 <!-- BEST_COMPREHENSIVE_20261113_START -->
 ## 重点模型：11月13日最牛逼模型（冻结综合优选）
 
-**`db6e9ccf…` / iteration25331 / 最高站姿登阶轮005m。当前综合默认固定使用这份权重。**
+**`db6e9ccf…` / iteration25331 / 最高站姿登阶轮005m。该权重在2026-11-16用户采用低俯仰模型后保留作回退基线。**
 
 [直接打开完整模型与配方](../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/README.md) · [完整PT本体](../deliveries/MOD4V3_BEST_COMPREHENSIVE_20261113/model_full_ppo.pt)。固定Git标签：`best-20261113-comprehensive-db6e9ccf`。
 

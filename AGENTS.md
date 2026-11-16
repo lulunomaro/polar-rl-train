@@ -1,8 +1,14 @@
+## 2026-11-16 最新采用：11月16日俯仰较低模型
+
+用户已明确采用两小时俯仰训练的5分钟检查点：`scut_pitch_brake_2h_20261116_005m` / iteration25362 / SHA256 `c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617`。当前综合默认及后续综合续训入口改为`deliveries/MOD4V3_LOW_PITCH_20261116/model_full_ppo.pt`，统一指针为`deliveries/CURRENT_COMPREHENSIVE_MODEL.json`。旧11月13日db6保留回退基线；历史“不自动晋升”记录是本次用户采用前的状态。
+
+两小时PPO已于2026-11-16T03:30:17+08:00结束，实际7209.351秒，全部25组检查点评估及原轮次归档已完成。选中5m的名义MuJoCo固定评测：崎岖急停13.562°、平地13.370°，平地60/60、正向两阶5/5、实际斜向1/20、下阶5/5。尚无此新SHA的原生完整DR毕业证据，不继承旧db6的分数；没有新增训练或部署。MOD4v3、35/78/6接口与硬件合同保持。详见`deliveries/MOD4V3_LOW_PITCH_20261116/README.md`。
+
 # 当前模型与时间线更新（用户2026-11-15确认）
 
 2026-11-16新独立两小时俯仰修复已实际开训：2026-11-16T01:30:08.102419+08:00，预计完整迭代结束约2026-11-16T03:30:08.102419+08:00；从冻结db6/iter25331完整恢复，新增SCUT稠密姿态、水平速度奖励修复和训练期急停轮协调示范。每5分钟完整PT与固定回放，默认不自动晋升。见sources/local/MOD4V3_SCUT_PITCH_BRAKE_2H_20261116/README.md。
 
-当前项目使用最新 **MOD4v3 / MOD4V3_HW300N60_R3**。本条覆盖下方2026-09-10旧模型路径的“唯一live plant”描述；不要据旧e91 pin把当前MOD4v3工作退回9月模型。当前训练资产以`_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/PLAN.json`的`asset_identity`及新的同源试验读回为准：MJCF SHA256 `77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f`，USD SHA256 `e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c`。当前冻结综合默认仍为11月13日iteration25331、权重SHA256 `db6e9ccf5c6d4d05a68633fd82861d903c4c52fcc1a6dd89132e55e2a4bf1283`；之后未晋升试验不能覆盖它。
+当前项目使用最新 **MOD4v3 / MOD4V3_HW300N60_R3**。本条覆盖下方2026-09-10旧模型路径的“唯一live plant”描述；不要据旧e91 pin把当前MOD4v3工作退回9月模型。当前训练资产以`_mod4v2_src_20261106/sources/local/MOD4V3_PITCH_RATE_SQUARE_40M_20261115/PLAN.json`的`asset_identity`及新的同源试验读回为准：MJCF SHA256 `77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f`，USD SHA256 `e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c`。原11月13日iteration25331/db6保留为历史冻结基线；当前综合默认已按2026-11-16用户指令采用本页顶部的5分钟低俯仰模型。
 
 查询进展先按对话时间读取最新消息和实际运行状态，不能把旧总览当实时记忆。MOD4v3的PPO六动作顺序是`left_front1_joint,left_rear1_joint,right_front1_joint,right_rear1_joint,left_wheel_joint,right_wheel_joint`，现有播放器通过`[0,2,1,3,4,5]`映射到模型关节顺序；不要套用下方旧模型的名字。35维actor、78维critic、6动作和现有电机包络保持。新模型不得混用旧模型检查点。retired rm2025_fixed仍不可恢复。
 

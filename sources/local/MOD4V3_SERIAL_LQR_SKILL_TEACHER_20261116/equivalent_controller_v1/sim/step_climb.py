@@ -20,6 +20,7 @@ class StepClimb:
 
     def reset(self):
         self.phase = 'idle'
+        self.native_transfer_pending = False
         self.cooldown = 0.
         self.direction = 0.
         self.approach = self.impact = self.confirm = 0.
@@ -46,6 +47,7 @@ class StepClimb:
         self.cooldown = max(0., self.cooldown-dt)
         if self.phase == 'idle' and (not armed or self.cooldown > 0.):
             self.approach = self.impact = self.confirm = 0.
+            self.native_transfer_pending = False
             self.support_impulse = 0.
             self.inertial_speed = None
             self.light_support = 0.
@@ -166,8 +168,33 @@ class StepClimb:
                 wheel_load_quasistatic=wheel_load_quasistatic.tolist(), wheel_support_unfused=float(wheel_support_unfused), guide_support=float(guide_support), support_impulse=float(self.support_impulse), confirm=float(self.confirm), eligible=bool(eligible), transferred=bool(transferred),
                 edge_landing=bool(edge_landing), uncertain_load=bool(uncertain_load), hit=bool(hit), supported=bool(supported),
                 clearance=clearance.tolist(), native_contacts=state.get("_native_contacts"))
-            if not (transferred or edge_landing or uncertain_load) or not (hit or supported or quick_retract):
+            transfer_event=((transferred or edge_landing or uncertain_load)
+                            and (hit or supported or quick_retract))
+            if getattr(self,'native_prelift_geometry_gate',False):
+                # A verified transfer event remains pending while advancing to
+                # the geometric release condition; its original impact pulse
+                # need not occur a second time. Real support and forward motion
+                # are still required, so a stalled/reversing run cannot lift late.
+                self.native_transfer_pending |= transfer_event
+                if self.native_transfer_pending:
+                    self.native_transfer_pending=bool(eligible and guide_support>.25
+                                                     and body_speed*self.direction>.28)
+                transfer_event=self.native_transfer_pending
+                self.diagnostic['transfer_pending']=bool(self.native_transfer_pending)
+            if not transfer_event:
                 return None
+            if getattr(self,'native_prelift_geometry_gate',False) and contacts.get('edge_valid',False):
+                # A radius-wide support strip must lie behind the projected
+                # whole-system COM before removing the lower wheel support.
+                # All distances are measured about the contacted riser plane.
+                ready=(contacts['com_edge_distance'] <= -self.radius
+                       and contacts['com_forward_speed'] > 0.)
+                self.diagnostic['lift_geometry_gate']=dict(ready=bool(ready),
+                    com_edge_distance=float(contacts['com_edge_distance']),
+                    required_forward_margin_m=float(self.radius),
+                    com_forward_speed=float(contacts['com_forward_speed']))
+                if not ready:
+                    return None
             self.phase = 'lift'
             self.elapsed = 0.
             self.lift_x = positions[:, 0].copy()

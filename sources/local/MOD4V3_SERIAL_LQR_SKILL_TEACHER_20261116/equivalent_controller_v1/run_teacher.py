@@ -7,6 +7,11 @@ from native_runtime import NativeTeacher,ROOT,PPO_TO_NATIVE
 def run(case,out):
  start=time.perf_counter();teacher=NativeTeacher(out,height=case.get('height',0.),start_x=case.get('start_x',0.),yaw=np.deg2rad(case.get('yaw_deg',0.)),length=case.get('length',.25),reset_pitch=np.deg2rad(case.get('pitch_deg',0.)),actuation=case.get('actuation','native_action'))
  teacher.controller.args.jump_target_height=case.get('target_height')
+ teacher.controller.native_contact_history=case.get('native_contact_history',False)
+ teacher.surface_observer.contact_hysteresis=case.get('contact_geometry_hysteresis',False)
+ teacher.controller.native_encoder_rates=case.get('native_encoder_rates',False)
+ teacher.controller.native_blocked_wheel_reference=case.get('blocked_wheel_reference',False)
+ teacher.controller.step_climb.native_prelift_geometry_gate=case.get('prelift_geometry_gate',False)
  step_diagnostics=[]
  frames=[];qs=[];vs=[];requests=[];actions=[];actual=[];errors=[];feasible_errors=[];projected=[];empty=0;phases=[];stop=False;top_hold=0.;best_hold=0.;airtime=0.;best_air=0.;air=False;landhold=0.;best_land=0.;height0=float(teacher.d.qpos[2]);peak=height0;com0=float(teacher.m.body_mass@teacher.d.xipos[:,2]/teacher.m.body_mass.sum());com_peak=com0;entry=None;error=None
  try:
@@ -26,7 +31,8 @@ def run(case,out):
    airtime=airtime+.02 if airborne else 0.;best_air=max(best_air,airtime);air|=airborne
    landed=bool(air and ground.all()and abs(RPY[0])<.25 and abs(RPY[1])<.25 and vel<.4 and jphase=='idle')
    landhold=landhold+.02 if landed else 0.;best_land=max(best_land,landhold)
-   step_diagnostics.append(dict(time=age,phase=phase,trigger=getattr(teacher.controller.step_climb,'diagnostic',{}),contact=teacher.controller.last_state.get('_native_contacts')))
+   contact_control=dict(blocked_reference=teacher.controller.last_state.get('_native_blocked_reference'),encoder_rates=teacher.controller.last_state.get('_native_encoder_rates'),raw=teacher.controller.last_state.get('_wheel_contacts_raw'),used=teacher.controller.last_state.get('_wheel_contacts'),confirmed=teacher.controller._wheel_support_confirmed.tolist(),scale=teacher.controller._wheel_torque_scale.tolist(),history=teacher.controller.last_state.get('_native_prelift_contact_history',False),double_support=teacher.controller._has_double_support(teacher.controller.last_state))
+   step_diagnostics.append(dict(time=age,phase=phase,contact_control=contact_control,trigger=getattr(teacher.controller.step_climb,'diagnostic',{}),contact=teacher.controller.last_state.get('_native_contacts')))
    frames.append([age+.02,*teacher.d.qpos[:3],*RPY,vel,*wheel.reshape(-1),*ground,*top,*edge,guide,best_hold,teacher.closure_peak,teacher.controller.body_odom.velocity,*teacher.controller.step_climb.wheel_load,teacher.controller.step_climb.support,*teacher.controller.last_x_lqr[:,0]])
    qs.append(teacher.d.qpos.copy());vs.append(teacher.d.qvel.copy());requests.append(diag['requested']);actions.append(diag['action']);actual.append(diag['actual']);errors.append(diag['first_error']);feasible_errors.append(diag['feasible_first_error']);projected.append(diag['feasible_requested']);empty+=int(diag['empty_feasible_set']);phases.append((phase,jphase))
    if abs(RPY[0])>1.2 or abs(RPY[1])>1.2 or teacher.d.qpos[2]<.11:break

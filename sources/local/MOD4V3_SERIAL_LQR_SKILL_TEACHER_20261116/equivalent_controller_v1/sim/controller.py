@@ -612,24 +612,62 @@ class StandController:
             interval_accel = state["_native_contacts"].get("accel_interval_body")
             if interval_accel is not None:
                 state["accel"] = np.asarray(interval_accel)
+        if (getattr(self, 'native_encoder_rates', False)
+                and self.step_climb.phase=='idle' and self.jump_state=='idle'
+                and not self.recovery.active
+                and state.get('_native_contacts',{}).get('edge_valid',False)):
+            roll=state['euler'][0]
+            pitch_rate=np.cos(roll)*state['gyro'][1]-np.sin(roll)*state['gyro'][2]
+            state['_native_encoder_rates']={}
+            for i,(side,leg) in enumerate((('left',self.left_leg),('right',self.right_leg))):
+                q=np.array([state[side+'_front_pos'],state[side+'_back_pos']])
+                qd=np.array([state[side+'_front_vel'],state[side+'_back_vel']])
+                rates=leg.jacobian(*q)@qd
+                old=np.array([leg.length_dot.value,leg.theta_dot.value,leg.shank_rate])
+                leg.length_dot.value=float(rates[0])
+                leg.theta_dot.value=float(rates[1]+pitch_rate)
+                eps=1e-6;index=G.wheel_parent_index[i];angular=[]
+                for j in range(2):
+                    delta=np.eye(2)[j]*eps
+                    a=G.fk(side,*(q+delta))[1][index]
+                    b=G.fk(side,*(q-delta))[1][index]
+                    angular.append(((a-b+np.pi)%(2*np.pi)-np.pi)/(2*eps))
+                leg.shank_rate=float(pitch_rate-np.asarray(angular)@qd)
+                state['_native_encoder_rates'][side]=dict(difference_rates=old.tolist(),
+                    encoder_rates=[leg.length_dot.value,leg.theta_dot.value,leg.shank_rate])
         self._jump_sensor = state
-        state["_wheel_contacts"] = self._wheel_contact_flags()
-        for side, contact in enumerate(state["_wheel_contacts"]):
-            ticks = self._wheel_contact_ticks[side]
-            if contact:
-                ticks = max(0, ticks) + 1
-                if ticks*self.dt >= .004:
-                    self._wheel_support_confirmed[side] = True
-            else:
-                ticks = min(0, ticks) - 1
-                if -ticks*self.dt >= .006:
-                    self._wheel_support_confirmed[side] = False
-                    self._wheel_torque_scale[side] = 0.
-            self._wheel_contact_ticks[side] = ticks
-            if contact and self._wheel_support_confirmed[side]:
-                self._wheel_torque_scale[side] = min(1., self._wheel_torque_scale[side]+self.dt/.012+1e-12)
+        state["_wheel_contacts_raw"] = self._wheel_contact_flags()
+        native_contacts=state.get('_native_contacts',{})
+        use_history=(getattr(self,'native_contact_history',False)
+                     and native_contacts.get('edge_valid',False)
+                     and self.step_climb.phase=='idle' and self.jump_state=='idle'
+                     and not self.recovery.active)
+        if use_history:
+            # Confirmation and torque ramp already ran at 400 Hz. A 50 Hz
+            # point sample must not restart their 4/6/12 ms state machines.
+            state['_wheel_contacts']=tuple(native_contacts['wheel_contact_confirmed'])
+            self._wheel_support_confirmed[:]=native_contacts['wheel_contact_confirmed']
+            self._wheel_torque_scale[:]=native_contacts['wheel_torque_scale_physics']
+        else:
+            state['_wheel_contacts']=state['_wheel_contacts_raw']
+            for side, contact in enumerate(state["_wheel_contacts"]):
+                ticks = self._wheel_contact_ticks[side]
+                if contact:
+                    ticks = max(0, ticks) + 1
+                    if ticks*self.dt >= .004:
+                        self._wheel_support_confirmed[side] = True
+                else:
+                    ticks = min(0, ticks) - 1
+                    if -ticks*self.dt >= .006:
+                        self._wheel_support_confirmed[side] = False
+                        self._wheel_torque_scale[side] = 0.
+                self._wheel_contact_ticks[side] = ticks
+                if contact and self._wheel_support_confirmed[side]:
+                    self._wheel_torque_scale[side] = min(1., self._wheel_torque_scale[side]+self.dt/.012+1e-12)
 
-        # 里程计仍逐轮使用原始接触，避免空转速度进入融合。
+        state['_native_prelift_contact_history']=bool(use_history)
+
+        # 承载确认使用物理时钟；滚动里程计另用 wheel_odometry_valid，排除墙面。
         self.gc.contact_state[:] = ["grounded" if contact else "airborne"
                                     for contact in state["_wheel_contacts"]]
 
@@ -1030,6 +1068,24 @@ class StandController:
             e3_r_adj = -e3_r
         target_adj = self.build_lqr_target(e3_l_adj, e3_r_adj)
 
+        if getattr(self,'native_blocked_wheel_reference',False) and normal_balance:
+            contact=state.get('_native_contacts',{})
+            distance=np.asarray(contact.get('wheel_edge_distance',[np.inf,np.inf]))
+            blocked=(contact.get('edge_valid',False)
+                     and np.all(distance>=0.) and np.all(distance<2.*self.wheel_radius)
+                     and not any(contact.get('wheel_top_supported',(False,False))))
+            if blocked:
+                # The rolling equilibrium's zero common leg angle is not a
+                # reachable reference while the axles are pinned at a riser.
+                # Permit the necessary common backswing; preserve differential
+                # leg feedback, native body attitude, yaw and velocity gains.
+                mean_angle=float(np.mean(x_lqr[3:5,0]))
+                mean_height=float(np.mean([self.left_leg.length*np.cos(self.left_leg.theta),
+                                           self.right_leg.length*np.cos(self.right_leg.theta)]))
+                rate=self.target_x_dot/max(self.wheel_radius,mean_height)
+                target_adj[3:5,0]+=mean_angle-float(np.mean(target_adj[3:5,0]))
+                target_adj[8:10,0]=rate
+                state['_native_blocked_reference']=dict(common_angle=mean_angle,common_rate=float(rate))
         K_adj = K_raw.copy()
         equilibrium = np.asarray(u_eq, dtype=float).reshape(4, 1).copy()
         suppressed = np.array([zlL, zlR, zwL, zwR])

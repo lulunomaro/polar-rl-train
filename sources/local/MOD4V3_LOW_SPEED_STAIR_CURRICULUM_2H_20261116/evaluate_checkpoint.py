@@ -20,7 +20,10 @@ for name in results:
  f=out/name/'RESULT.json'
  if f.exists():
   d=json.loads(f.read_text())
-  if name=='single_step':result.update(single_step_by_height=d['by_height'],single_step_qualified_passed=sum(x['success']for x in d['rows']),single_step_requested=len(d['rows']))
+  if name=='single_step':
+   valid=d.get('contact_protocol')=='SINGLE_STEP_TOP_GEOMETRY_V2'
+   result.update(single_step_metric_valid=valid,single_step_contact_protocol=d.get('contact_protocol'))
+   if valid:result.update(single_step_by_height=d['by_height'],single_step_qualified_passed=sum(x['success']for x in d['rows']),single_step_requested=len(d['rows']))
   if name=='pitch':result['pitch_summary']=d['summary']
   if name=='flat60':result.update(flat60_passed=sum(x['passed']for x in d['rows']),flat60_requested=len(d['rows']))
   if name=='stairs':

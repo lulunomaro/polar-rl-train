@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,sys,json,hashlib,time,importlib.util,types,math,gc
 import numpy as np,torch,mujoco,trimesh
-p=argparse.ArgumentParser();p.add_argument('--model',required=True);p.add_argument('--out',required=True);p.add_argument('--quick',action='store_true');a=p.parse_args();torch.set_num_threads(1)
+p=argparse.ArgumentParser();p.add_argument('--model',required=True);p.add_argument('--out',required=True);p.add_argument('--quick',action='store_true');p.add_argument('--heights',type=float,nargs='+');a=p.parse_args();torch.set_num_threads(1)
 T=Path(__file__).resolve().parent;R=T.parents[2];E=Path(a.out).resolve();E.mkdir(parents=True,exist_ok=False)
 D=R/'deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112'
 spec=importlib.util.spec_from_file_location('single_course_show',D/'viewer/showcase.py');show=importlib.util.module_from_spec(spec);spec.loader.exec_module(show)
@@ -12,6 +12,9 @@ sys.path.insert(0,str(T/'manual_replay'));from replay_guards import policy_step_
 advance=policy_step_without_flat_reset(show.Simulation)
 heights=[.05,.07,.09,.11,.13,.15,.17,.19,.20];starts=[(-2.25,0.,0.),(-2.15,-.10,-.03),(-2.40,.10,.03),(-2.5,.06,-.04),(-2.3,-.06,.04)]
 if a.quick:heights=[.05];starts=starts[:1]
+if a.heights:
+ if any(h not in heights for h in a.heights):raise ValueError('Requested height is outside the fixed course')
+ heights=[h for h in heights if h in a.heights]
 rows=[];arrays={};wall=time.time()
 for h in heights:
  B=E/('h%03dmm'%round(h*1000));(B/'tiles').mkdir(parents=True)
@@ -20,6 +23,8 @@ for h in heights:
   s=show.Replay();e=s.env;m=e.m;d=e.d;s.args.vx=.4;s.cmd_vx=0.;s.cmd_wz=0.;s.cmd_vy=0.
   d.qpos[:3]=[sx,sy,e.bank_z+.01];d.qpos[3:7]=[math.cos(syaw/2),0.,0.,math.sin(syaw/2)];d.qvel[:]=0.;mujoco.mj_forward(m,d);e.state();s.reset_count=1
   wb=[m.body(n).id for n in ['left_wheel_link','right_wheel_link']];guides={int(m.geom_bodyid[i])for i in range(m.ngeom)if m.geom(i).name.startswith('guide_wheel_')}
+  upper_geom_ids={i for i in range(m.ngeom) if m.geom(i).name.startswith('step_') and abs(float(m.geom_pos[i,2]+m.geom_size[i,2])-h)<1e-6}
+  if not upper_geom_ids:raise RuntimeError('No collision box matches the requested upper platform')
   maxclosure=0.;reason='timeout';hold=0.;success=False;physical_top=False;entry=None;speedmax=0.;trace=[];landed=[False,False];tiltsteps=contactsteps=0
   def physics(env,act):
    nonlocal_placeholder=None
@@ -43,7 +48,7 @@ for h in heights:
     for ci in range(d.ncon):
      c=d.contact[ci];g1,g2=int(c.geom1),int(c.geom2);b1,b2=int(m.geom_bodyid[g1]),int(m.geom_bodyid[g2]);cf=np.zeros(6);mujoco.mj_contactForce(m,d,ci,cf);world=np.asarray(c.frame).reshape(3,3).T@cf[:3];forces[b1]-=world;forces[b2]+=world
      terrain,body,sgn=(g1,b2,1.)if b1==0 else(g2,b1,-1.)if b2==0 else(-1,-1,0.)
-     if terrain>=0 and m.geom(terrain).name=='step_1'and body in wb:
+     if terrain>=0 and terrain in upper_geom_ids and body in wb:
       normal=sgn*np.asarray(c.frame).reshape(3,3)[0]
       if cf[0]>5. and normal[2]>.7 and abs(float(c.pos[2])-h)<.012:supported[wb.index(body)]=True
     wheel=d.xpos[wb];x=-wheel[:,0];y=wheel[:,1];z=wheel[:,2];vx=float(np.linalg.norm(d.qvel[:2]));near=float(np.min(np.abs(x-1.5)))<.45
@@ -63,10 +68,10 @@ for h in heights:
     hold=hold+.02 if stable else 0.;success=hold>=.4-1e-7
     trace.append([age,*d.qpos[:3],vx,entry if entry is not None else -1.,speedmax,pitch,roll,float(upper[0]),float(upper[1]),hold,maxclosure])
     if success:reason='qualified_success';break
-   row=dict(height_m=h,seed=seed,start=[sx,sy,syaw],command_vx=.4,entry_speed_m_s=entry,maximum_approach_ascent_speed_m_s=speedmax,success=success,ever_both_wheels_and_body_on_top=physical_top,each_wheel_landed=landed,hold_s=hold,reason=reason,completed_s=k*.02,maximum_closure_m=maxclosure);rows.append(row);arrays['h%03d_seed%d'%(round(h*1000),seed)]=np.asarray(trace)
+   row=dict(top_collision_geoms=[m.geom(i).name for i in sorted(upper_geom_ids)],height_m=h,seed=seed,start=[sx,sy,syaw],command_vx=.4,entry_speed_m_s=entry,maximum_approach_ascent_speed_m_s=speedmax,success=success,ever_both_wheels_and_body_on_top=physical_top,each_wheel_landed=landed,hold_s=hold,reason=reason,completed_s=k*.02,maximum_closure_m=maxclosure);rows.append(row);arrays['h%03d_seed%d'%(round(h*1000),seed)]=np.asarray(trace)
    (E/'PROGRESS.json').write_text(json.dumps(dict(completed=len(rows),last=row),indent=2)+'\n')
   finally:s.close();del s,e,m,d;gc.collect()
 summary={str(h):dict(passed=sum(r['success']for r in rows if r['height_m']==h),requested=sum(r['height_m']==h for r in rows),actual_top=sum(r['ever_both_wheels_and_body_on_top']for r in rows if r['height_m']==h))for h in heights}
 np.savez_compressed(E/'trajectory.npz',**arrays)
-result=dict(model=str(show.CKPT),sha256=show.EXPECTED,rows=rows,by_height=summary,wall_seconds=time.time()-wall,no_optimizer=True,protocol='Frozen9single-step heights x5starts;0.4m/s command;actual entry0.1-0.6m/s and peak<=0.6;both wheel actual upper contact>5N,body crosses,25deg/1.5rad/s and0.4s hold;native100Hzleg/400Hzwheel/50Hzpolicy;2mm diagnostic only;>1mcatastrophic and0.2s ordinary guards;nominal MuJoCo analogue,not native fullDR graduation')
+result=dict(contact_protocol='SINGLE_STEP_TOP_GEOMETRY_V2',model=str(show.CKPT),sha256=show.EXPECTED,rows=rows,by_height=summary,wall_seconds=time.time()-wall,no_optimizer=True,protocol='Frozen9single-step heights x5starts;0.4m/s command;actual entry0.1-0.6m/s and peak<=0.6;both wheel actual upper contact>5N,body crosses,25deg/1.5rad/s and0.4s hold;native100Hzleg/400Hzwheel/50Hzpolicy;2mm diagnostic only;>1mcatastrophic and0.2s ordinary guards;nominal MuJoCo analogue,not native fullDR graduation')
 (E/'RESULT.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)

@@ -1,0 +1,221 @@
+schema_version: 0.1
+robot_name: serial_five_link_wheel_leg
+simulation:
+  timestep_s: 0.0025
+  control_period_s: 0.02
+  control_frequency_hz: 50
+  integrator: implicitfast
+  gravity_mps2: 9.81
+coordinates:
+  world_frame:
+    x: forward
+    y: left
+    z: up
+  body_euler_order: roll_pitch_yaw
+  lqr_state_order:
+  - x
+  - yaw
+  - pitch
+  - theta_L
+  - theta_R
+  - x_dot
+  - yaw_dot
+  - pitch_dot
+  - theta_L_dot
+  - theta_R_dot
+  lqr_output_order:
+  - tau_L_virtual_leg
+  - tau_R_virtual_leg
+  - T_wheel_L
+  - T_wheel_R
+geometry:
+  wheel:
+    radius_m: 0.0625
+    width_m: 0.01
+  chassis:
+    half_track_m: 0.2188000000004
+    track_width_m: 0.4376000000008
+    body_box_half_size_m:
+    - 0.15
+    - 0.15
+    - 0.025
+    nominal_body_height_m: 0.312
+  five_link:
+    front_big_m: 0.18
+    back_big_m: 0.18
+    front_small_m: 0.21
+    back_small_m: 0.21
+    anchor_base_m: 0.0
+    min_length_m: 0.125
+    max_length_m: 0.34671288759430147
+    nominal_length_m: 0.364052
+mass_properties:
+  total_robot_mass_kg: 14.294140288606286
+  body:
+    mass_kg: 10.384698409587145
+    inertia_kg_m2:
+    - 0.17658259568826687
+    - 0.20055889663357715
+    - 0.3320953817869091
+    com_local_m:
+    - -0.020708649712026343
+    - -0.00023772083685057638
+    - -0.04922102220042357
+  links:
+    left_rear1_link: 0.37941068410873413
+    left_front3_link: 0.04555434733629227
+    left_front4_link: 0.010060557164251804
+    left_rear2_link: 0.824956476688385
+    left_spring1_link: 0.03622781112790108
+    left_spring2_link: 0.06272286176681519
+    left_front1_link: 0.18827122449874878
+    left_front2_link: 0.009685343131422997
+    left_rear1_drive_link: 0.03300409018993378
+    left_front1_drive_link: 0.022226005792617798
+  wheel:
+    mass_kg: 0.3426015377044678
+    inertia_kg_m2:
+    - 0.00033958
+    - 0.00034133
+    - 0.0005817
+mujoco:
+  xml_path: D:\claude2\fangzhen\_mod4v2_src_20261106\deliveries\MOD4V3_BEST_MANUAL_STAIRS_20261112\plant\MOD4v3_HW300N60_R3\mjcf\scene.xml
+  base_body: base_link
+  imu_site: imu
+  active_joints:
+    left_front: left_front1_joint
+    left_back: left_rear1_joint
+    right_front: right_front1_joint
+    right_back: right_rear1_joint
+  wheel_joints:
+    left: left_wheel_joint
+    right: right_wheel_joint
+  actuator_order:
+  - left_front_hip_motor
+  - right_front_hip_motor
+  - left_rear_hip_motor
+  - right_rear_hip_motor
+  - left_wheel_motor
+  - right_wheel_motor
+  sensors:
+    quat: imu_quat
+    gyro: imu_gyro
+    accel: imu_accel
+    left_front_pos: left_front_hip_pos
+    left_front_vel: left_front_hip_vel
+    left_back_pos: left_rear_hip_pos
+    left_back_vel: left_rear_hip_vel
+    right_front_pos: right_front_hip_pos
+    right_front_vel: right_front_hip_vel
+    right_back_pos: right_rear_hip_pos
+    right_back_vel: right_rear_hip_vel
+    left_wheel_pos: left_wheel_pos
+    left_wheel_vel: left_wheel_vel
+    right_wheel_pos: right_wheel_pos
+    right_wheel_vel: right_wheel_vel
+actuators:
+  joint_motor:
+    ctrlrange_Nm:
+    - -50.0
+    - 50.0
+    default_limit_Nm: 40.0
+  wheel_motor:
+    model: M3508
+    ctrlrange_Nm:
+    - -10.0
+    - 10.0
+    default_limit_Nm: 10.0
+    power_model:
+      k1: 0.015756
+      k2: 0.194
+      k3: 1.9202e-05
+      k4: 1.15
+      current_convert_A_per_cmd: 0.001220703125
+contact:
+  ground:
+    friction:
+    - 1.0
+    - 0.001
+    - 0.0001
+    condim: 6
+  wheel:
+    friction:
+    - 0.8
+    - 0.005
+    - 0.0001
+    condim: 6
+    solref:
+    - 0.005
+    - 1.0
+    solimp:
+    - 0.9
+    - 0.95
+    - 0.001
+  closed_chain_equality: null
+control_initial:
+  leg_length_pid:
+    position_kp: 1500.0
+    position_ki: 0.0
+    position_kd: 40.0
+    velocity_kp: 100.0
+    velocity_ki: 0.0
+    velocity_kd: 0.0
+  roll_control:
+    wc_radps: 25.0
+    zeta: 0.9
+    ki_slope: 100.0
+  leg_length_trajectory:
+    min_length_m: 0.125
+    max_length_m: 0.34671288759430147
+    default_length_m: 0.25
+    max_rate_mps: 0.4
+  self_righting:
+    enabled: false
+    min_length_m: 0.13
+    swing_length_m: 0.32
+    roll_speed_mps: 0.6
+    swing_speed_radps: 2.933333333333333
+    ground_preload_n: 3.0
+    capture_length_m: 0.15
+    capture_blend_s: 0.04
+    grow_duration_s: 0.2
+    pose_speed_limit_radps: 8.0
+  jump:
+    force_per_leg_n: 357.71091327853145
+    max_thrust_time_s: 0.25
+    thrust_end_length_m: 0.34
+    retract_length_m: 0.125
+    retract_duration_s: 0.18
+    min_retract_duration_s: 0.14
+    landing_duration_s: 0.35
+    takeoff_momentum_gain: 50.0
+    length_kp_npm: 2500.0
+    length_kd_nspm: 80.0
+    wheel_speed_limit_radps: 55.35573187814664
+  lqr_target:
+    x_m: 0.0
+    yaw_rad: 0.0
+    pitch_rad: 0.0
+    left_leg_theta_rad: 0.0
+    right_leg_theta_rad: 0.0
+    x_dot_mps: 0.0
+    yaw_dot_radps: 0.0
+  keyboard_command:
+    max_speed_mps: 2.0
+    max_yaw_rate_radps: 2.5
+    speed_accel_mps2: 5.0
+    speed_release_accel_mps2: 5.0
+    instant_stop_on_release: false
+    instant_yaw_rate_command: true
+    speed_axis_sign: 1.0
+    yaw_axis_sign: 1.0
+  fall_angle_rad: 1.0
+  kalman:
+    q_v: 0.01
+    q_a: 1.0
+    r_v: 0.5
+    r_a: 1.0
+  slip_detection:
+    dby_threshold: 0.5
+    dvb_threshold: 0.3
+    dvw_threshold: 0.02

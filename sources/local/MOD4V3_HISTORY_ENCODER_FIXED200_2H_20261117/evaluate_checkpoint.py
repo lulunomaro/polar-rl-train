@@ -16,7 +16,7 @@ results={}
 for name,cmd in commands:
  with(out/(name+'.log')).open('wb')as log:r=subprocess.run(cmd,cwd=R,stdout=log,stderr=subprocess.STDOUT)
  results[name]=dict(exit_code=r.returncode)
-result=dict(model=str(model),sha256=digest,complete=len(results)==(2 if midrun else 5) and all(x['exit_code']==0 for x in results.values()),wall_seconds=time.time()-start,results=results,native_full_DR_graduation=False,automatic_promotion=False,teacher_assistance=False,stair_mode=[0,1,0,0,0,1,0],retention_mode=[1,0,0,0,0,0,0],closure_guard_contract='SCUT_NO_2MM_RESET_V1')
+result=dict(evaluation_scope='midrun_flat60_and_strict_single200'if midrun else'full_frozen_regression',model=str(model),sha256=digest,complete=len(results)==(2 if midrun else 5) and all(x['exit_code']==0 for x in results.values()),wall_seconds=time.time()-start,results=results,native_full_DR_graduation=False,automatic_promotion=False,teacher_assistance=False,stair_mode=[0,1,0,0,0,1,0],retention_mode=[1,0,0,0,0,0,0],closure_guard_contract='SCUT_NO_2MM_RESET_V1')
 for name in results:
  f=out/name/'RESULT.json'
  if f.exists():

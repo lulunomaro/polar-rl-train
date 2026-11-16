@@ -1,3 +1,9 @@
+## 2026-11-17 02:13 历史模型10m抽检：normal60/60、起步改善，上200mm尚0/5
+
+MOD4V3_HISTORY_ENCODER_FIXED200_2H_20261117本轮新model_010m SHA45cc374521e2117add75efbc89f5d61cd40dbeccae380d41f0db197b86408546（勿混原010m37dbe178或旧repair10m28360ac4）：独立history学生normal flat60=60/60；200mm严格0/5、真实双轮越边0/5、物理稳态0/5。原010m第0步热继承复核真实越边/稳态5/5、严格仍0/5。新10m零指令首秒−.028043m、峰速.05866m/s（原+.631829m/1.1011）；w后正常前进，center约t3s/bx1.203m/vx.621触墙附近，之后顶墙未完成抬轮登台，不能说新10m已保住原上阶。
+
+实际PPO持续运行，尚未到2小时结论；不因10m早停或热改配方。第10m PT保存32个PPO更新/384小批次，819全处<=1.3首速度档，真实训练完成0；正式<=.6不变。速度课程真实计数保存在PT terrain_curriculum_state.training_speed_state，live旧摘要未增字段，可只读inspect_run.py读取。后续20m/末端完整评测由后台继续，03:58:19硬截止，默认c874/原010m/8391等SHA不动。新增10分钟跟进仅监测/回归/归档，不批准新PPO。
+
 ## 2026-11-17 历史编码器独立2小时已实际开训（人类明确授权局部actor合约例外）
 
 仅sources/local/MOD4V3_HISTORY_ENCODER_FIXED200_2H_20261117内改actor：current35+12帧history420->监督latent5，再40->256->128->64->6；78critic与6动作不变。原010m/37dbe178热继承，latent列0；encoder3000步8.4s、10229样本动作差0、critic完全相同、真实第0步flat60=60/60。原8391+新prewall1838，47源episode物理重放qpos误差0。2048 fullDR原生0更新预检通过，819固定200mm+1229keep1，normal/stair平地配对.5；技能1，初始技能/keep cos+.13187，未硬降.25。

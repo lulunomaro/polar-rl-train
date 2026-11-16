@@ -4,7 +4,9 @@ import json,time,hashlib,csv
 T=Path(__file__).resolve().parent;E=T/'evidence';W=T/'weights'
 monitor=json.loads((E/'MONITOR_COMPLETE.json').read_text());evaluations=[]
 for f in sorted((E/'checkpoint_evals').glob('*/EVALUATION.json')):
- d=json.loads(f.read_text());d['evaluation_path']=str(f);evaluations.append(d)
+ d=json.loads(f.read_text())
+ if d.get('closure_guard_contract')!='SCUT_NO_2MM_RESET_V1':continue
+ d['evaluation_path']=str(f);evaluations.append(d)
 parent=next((d for d in evaluations if Path(d['model']).stem=='parent_comprehensive'),None)
 rows=[]
 for d in evaluations:

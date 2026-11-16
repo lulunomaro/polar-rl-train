@@ -171,7 +171,7 @@ def main():
         if abs(float(mass[0].sum())-14.294140288606286)>.0001:raise ValueError('Asset mass mismatch')
         dr_name=env.mild_dr.summary().get('profile','mild_dr_white')
         put(job/'STARTUP.json',dict(epoch=time.time(),mode=args.mode,profile=args.profile,num_envs=args.num_envs,
-            backend='PhysX TGS128/8' if args.profile!='rough_v0' else 'PhysX SCUT saved config',physics_dt_s=float(env.cfg.sim.dt),control_dt_s=float(env.cfg.sim.dt*env.cfg.decimation),decimation=int(env.cfg.decimation),env_spacing=float(env.cfg.scene.env_spacing),feedback_dt_s=.01,wheel_feedback_dt_s=.0025,
+            backend='PhysX TGS32/4' if args.profile!='rough_v0' else 'PhysX SCUT saved config',physics_dt_s=float(env.cfg.sim.dt),control_dt_s=float(env.cfg.sim.dt*env.cfg.decimation),decimation=int(env.cfg.decimation),env_spacing=float(env.cfg.scene.env_spacing),feedback_dt_s=.01,wheel_feedback_dt_s=.0025,
             nominal=False,DR=dr_name,dr_profile=dr_name,supermimic=False,newton=False,warp=parity,
             policy_action_order=env.order,root_quaternion_native=env.qorder,native_limits=native,
             total_mass_kg=float(mass[0].sum()),reward_weights=env.reward.cfg.rewards,

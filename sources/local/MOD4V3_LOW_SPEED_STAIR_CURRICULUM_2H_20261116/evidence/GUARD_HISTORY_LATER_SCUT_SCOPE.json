@@ -1,0 +1,53 @@
+{
+  "source_thread": "01a088fc-06aa-7ae1-8644-33f67fe91e95",
+  "original_context_local_path": "D:\\claude2\\fangzhen\\tmp\\guard_history_raw_20261116\\GUARD_HISTORY_LATER_SCUT_SCOPE.json",
+  "original_context_sha256": "5d69060cb48ec4e61f0d3ef84afd36d15910a9c3a3d589385dbacbe4757d22f5",
+  "archive_scope": "Guard-related excerpts only; unrelated original context excluded from Git",
+  "excerpts": [
+    {
+      "time": "2026-11-08T16:37:07.205Z",
+      "role": "assistant",
+      "guard_excerpt": "当前这轮不能直接长训：目标机现在 `max_closure_m ≈ 15.7 mm`，但 `enforce_closure_reset=False`，也就是 2 mm 闭链门禁没有生效；同时 value loss 已经到 `2859`。这不是可以放心睡 8 小时的状态，我先停止当前短跑，避免继续污染检查点。\n\n\n\n"
+    },
+    {
+      "time": "2026-11-08T16:47:24.163Z",
+      "role": "assistant",
+      "guard_excerpt": "1024 环境 2 分钟门禁通过：value loss `1.90`，mean reward `+0.034`，无 numerical/mimic/closure reset；2 mm 只记录，最大约 `15.5 mm`，不触发 reset，符合你刚才的定义。现在做 4096 环境 2 分钟门禁，过了就按 8 小时正式开训。\n\n\n\n"
+    },
+    {
+      "time": "2026-11-08T16:50:35.692Z",
+      "role": "assistant",
+      "guard_excerpt": "4096 环境 2 分钟门禁通过：value loss `3.99`、mean reward `+0.0275`、无 numerical/mimic/closure reset；2 mm 只记录不重置，最大闭链约 `12.7 mm`，符合你刚才的定义。现在启动 8 小时正式训练，并挂 watchdog + 20 分钟 checkpoint。\n\n\n\n"
+    },
+    {
+      "time": "2026-11-08T17:36:25.273Z",
+      "role": "assistant",
+      "guard_excerpt": "m reset。数值指标本身是稳定的：value loss `1.15`、mean reward `+0.0259`、numerical `0`；但闭链诊断到了 `123.6 mm`。\n\n按你的定义，2 mm 只记录、不 reset，我也不应该用 50 mm 把长训停掉。我会把 watchdog 改成只拦非有限值、数值 reset 和灾难性 `>1 m` 闭链，然后重启 8 小时。\n\n"
+    },
+    {
+      "time": "2026-11-09T04:15:33.845Z",
+      "role": "assistant",
+      "guard_excerpt": "false`、`use_leg_length_as_height=false`\n- MOD4v3 没有 gimbal，所以不伪造 gimbal 奖励\n- Rough-v0 关闭 SCUT 状态机\n- 2 mm 闭链误差只记录，不作为 reset 条件\n- 2.2 m/s 上限仍是任务级限制，不是奖励权重改动\n- `action clip [-6, 6]` 仍是 MOD4 部署合同，不属于 SCUT 奖励\n\n---\n\n## 验证结果\n\n本地和远端奖励文件 SHA 已一致：\n\n```text\n8fb4fcb8d5c1228000956d053e393a7ccf65167dd6bf736e27d9c3a2969994e3\n```\n\n逐项检查结果：\n\n```text\nreward_keys 37 expected 37\nmissing []\nextra []\nvalue_diffs {}\nSCUT_ROUGH_REWARD_PARITY_OK\n```\n\n同时和 `PARITY_CONTRACT.json` 对比也是：\n\n```text\n37/37 keys\nno missing\nno extra\nno value differences\n```\n\n验证脚本：\n\n```text\nD:\\claude2\\fangzhen\\tmp\\roughv0_scut_stage_20261109\\verify_scut_reward_parity.py\n```\n\n完整 37 项奖励公式和通俗说明：\n\n``"
+    },
+    {
+      "time": "2026-11-09T04:50:54.118Z",
+      "role": "assistant",
+      "guard_excerpt": " `2.2%` |\n| `catastrophic closure` | `8 / 6,629`，约 `0.12%` |\n\n首帧出现过一次异常大的闭链值，后续已经回落到毫米级。按你的规则：\n\n- **2 mm 只记录，不 reset**\n- 只有 `>1 m` 的灾难性闭链才 reset 单个 env\n- 当前没有因为闭链误差停掉整个训练\n\n训练进程和 watchdog 都正常，日志在：\n\n```text\n/mnt/mod4_linux_durable_20261013/mod4v3_scut_target_native_20261107/scut_rough_v0_22cap_1h_20261109_r2/train_2h_r4_scut_exact.log\n```\n\n完整奖励说明在：\n\n```text\nD:\\claude2\\fangzhen\\docs\\SCUT_ROUGH_V0_REWARD_ADAPTATION_MOD4V3_20261109.md\n```\n\n下一步等约 20 分钟检查点落地后，做固定回放 gate；**不会拿旧 r3 的 40 分钟检查点续训，也不会因为 reward 上涨就直接宣布可用。**"
+    },
+    {
+      "time": "2026-11-09T17:32:30.896Z",
+      "role": "assistant",
+      "guard_excerpt": "已核对当前源码：`flat_external_dr` 的 `enforce_closure_reset=False`，2 mm 只记录诊断，超过 1 m 才按 catastrophic closure reset。当前 10 分钟 run 正常在跑，GPU 约 61%、6.2 GB、约 162 W；我按这个真实门控继续观察，不再把 2 mm 当失败条件。\n\n"
+    },
+    {
+      "time": "2026-11-09T17:38:25.999Z",
+      "role": "assistant",
+      "guard_excerpt": "81`，`numerical 1 / 12290`，`fall 11`，`catastrophic closure 0`。我现在把 final 拉到本机，按之前的速度/后退/高度/yaw 门槛做回放；2 mm 只记录，不作为失败条件。若不过，就从这份 final 再同配方续 10 分钟。\n\n"
+    },
+    {
+      "time": "2026-11-10T14:03:21.946Z",
+      "role": "assistant",
+      "guard_excerpt": " DR 的结果冒充 full SCUT DR。\n3. 不从零初始化。\n4. 不修改奖励来掩盖 DR 或延迟实现问题。\n5. 不修改 MOD4v3 资产、35D/6D 接口、电机包络和动作顺序。\n6. 不把 2 mm 闭链误差重新变成 reward 或自动 reset 条件；保留只读诊断。\n7. 不把 4096 环境评测当常规门槛。\n8. 不使用未验证的 Stage 7 / physical_dr_r1 检查点晋升。\n9. 不在 full DR 失败后自动退回分步 DR；先停下来查实现和父模型。\n10. 不把 `flatv2_final`、Stage 6/7 或新 5 分钟实验检查点当作可用模型。\n\n---\n\n## 4. Full SCUT DR 必须包含什么\n\n以华南虎 `iter246 trained_env.yaml` 为准，不以 `env_cfg.py` 的默认模板为准。\n\n### 4.1 质量和质心\n\n- base mass：`1.0–1.4×`\n- leg mass：`0.9–1.1×`\n- wheel mass：`0.9–1.1×`\n- base COM：`x ±0.04 m`，`y/z ±0.02 m`\n\n### 4.2 接触材质\n\n必须分开随机：\n\n- base material\n- guide material\n- wheel material\n\n包括 static friction、dynamic friction、restitution。  \n不能像当前 S"
+    }
+  ]
+}

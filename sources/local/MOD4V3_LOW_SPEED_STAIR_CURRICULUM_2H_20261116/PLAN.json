@@ -152,15 +152,15 @@
     "phase_timing": "Capture action issuance age before physics; reward uses this frozen age after episode buffer increments; no other objective or hardware change",
     "velocity_fix": "Exact horizontal reward on pitch targets and new stairs; original speed coefficients"
   },
-  "root": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r1",
-  "support": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r1/support",
-  "parent": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r1/parent_comprehensive.pt",
+  "root": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r2_scut_guard",
+  "support": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r2_scut_guard/support",
+  "parent": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r2_scut_guard/parent_comprehensive.pt",
   "parent_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
   "parent_iteration": 25362,
   "root_parent": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\deliveries\\MOD4V3_LOW_PITCH_20261116\\model_full_ppo.pt",
   "seed": 67,
   "training_job": "train_low_speed_stair_curriculum_2h",
-  "probe_job": "probe_low_speed_stair_curriculum_r4_solver128",
+  "probe_job": "probe_low_speed_stair_curriculum_r6_scut_contract",
   "budget_total_training_seconds": 7200,
   "cumulative_training_seconds_before": 0,
   "source_experiment": "MOD4V3_SCUT_PITCH_BRAKE_2H_20261116",
@@ -179,7 +179,7 @@
   },
   "teacher_retention": {
     "enabled": true,
-    "keep_teacher": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r1/comprehensive_keep_teacher.pt",
+    "keep_teacher": "/home/egde/rl_candidates/mod4v3_low_speed_stair_curriculum_2h_20261116_r2_scut_guard/comprehensive_keep_teacher.pt",
     "keep_teacher_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
     "lambda_bc": 1.0,
     "keep_fraction": 1.0,
@@ -222,7 +222,6 @@
     "failures_before_demotion": 3,
     "easy_review_fraction": 0.15,
     "one_success_advances_one_env_at_next_reset": true,
-    "closure_reset_m": 0.002,
     "physics_dt_s": 0.0025,
     "leg_feedback_s": 0.01,
     "wheel_feedback_s": 0.0025,
@@ -232,16 +231,54 @@
     "velocity_reward": "original -1.5e2 sigma1 plus exponential1.2",
     "teacher_on_curriculum": false,
     "new_course_state_not_old_fixed_rows": true,
-    "solver": "TGS128/8, precision repair after R3 closure gate failure; no asset/dt/DR/tolerance change"
+    "solver": "Original selected TGS32/4, physics2.5ms, no precision sweep",
+    "closure_2mm_diagnostic_only": true,
+    "enforce_closure_reset": false,
+    "catastrophic_closure_single_env_reset_m": 1.0
   },
-  "solver_repair": {
+  "current_closure_contract": {
+    "scope": "MOD4v3 SCUT native PPO including this new curriculum",
+    "human_messages": [
+      {
+        "local_time": "2026-11-09T00:43:15.296+08:00",
+        "quote": "我的意思是2mm不要重置环境这是可接受的华南虎没有限制这个"
+      },
+      {
+        "local_time": "2026-11-10T01:28:08.671+08:00",
+        "quote": "2mm门控早没了"
+      }
+    ],
+    "source_thread": "01a088fc-06aa-7ae1-8644-33f67fe91e95",
+    "closure_2mm": "diagnostic only; not reward,reset or whole-run stop",
+    "ten_mm_note": "OlderNov1 rule is not the latest SCUT contract; do not substitute a new10mm gate",
+    "catastrophic_closure_single_env_reset_m": 1.0,
+    "existing_numeric_mimic_nonfinite_and_full_save_protections_retained": true,
+    "old_rejections_preserved_not_relabelled": true
+  },
+  "hold_state": "User requested original-conversation review before further launch; PPO not started;7200seconds unused",
+  "abandoned_solver_sweep_history": {
     "reason": "Actual7.2mm closure and356 guard triggers in R3; enforce user2mm contract before PPO",
     "old_position_iterations": 32,
     "old_velocity_iterations": 4,
-    "new_position_iterations": 128,
-    "new_velocity_iterations": 8,
+    "new_position_iterations": 255,
+    "new_velocity_iterations": 4,
     "asset_unchanged": true,
     "physics_timestep_unchanged": true,
-    "guard_tolerance_m": 0.002
+    "guard_tolerance_m": 0.002,
+    "r4_result": "128/8 reduced closure events to5 but caused2 numerical faults; rejected",
+    "current_probe": "300steps stochastic actual5cm2048env initial population; nine bank heights raychecked; stop at first physical fault",
+    "runtime_fault_response": "Save complete last optimizer state and stop entire PPO on any2mm closure/numerical fault; no auto retry or extension",
+    "status": "reverted_due_to_wrong_obsolete_2mm_contract",
+    "current_position_iterations": 32,
+    "current_velocity_iterations": 4,
+    "no_more_solver_probe_sweeps": true
+  },
+  "physics_configuration": {
+    "physics_dt_s": 0.0025,
+    "TGS_position_iterations": 32,
+    "TGS_velocity_iterations": 4,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02
   }
 }

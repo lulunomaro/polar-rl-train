@@ -2,7 +2,7 @@
 from pathlib import Path
 import sys,json,datetime,tempfile,hashlib,argparse,shutil
 T=Path(__file__).resolve().parent;R=T.parents[2];E=T/'evidence'
-p=argparse.ArgumentParser();p.add_argument('--phase',choices=['setup','launch','complete','followup'],required=True);phase=p.parse_args().phase
+p=argparse.ArgumentParser();p.add_argument('--phase',choices=['setup','contract-correction','launch','complete','followup'],required=True);phase=p.parse_args().phase
 sys.path.insert(0,str(R.parent/'tmp/step7_archive_helper'));import record_experiment as rec
 original=rec.git;NET=('-c','http.proxy=http://127.0.0.1:7897','-c','http.sslVerify=true');binary=[]
 date=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y%m%d');ID='low-speed-stair-curriculum-2h-'+phase+'-01';tag='trial-'+date+'-'+ID;record=R/'history/experiments'/(date+'-'+ID+'.json')
@@ -52,10 +52,10 @@ if not git('tag','--list',tag):
    if not evaluation.exists()or not json.loads(evaluation.read_text()).get('complete'):continue
   if q.name.endswith('_evaluation_worker.log')and phase in ('setup','launch','followup'):continue
   files.append(q)
- for rel in ['AGENTS.md','docs/DR_TRAINING_INDEX_20261111.md']:
+ for rel in ['AGENTS.md','docs/DR_TRAINING_INDEX_20261111.md','docs/NUMERICAL_AUDIT_AND_TRAINING_GUARDS_20261021.md']:
   if(R/rel).exists():files.append(R/rel)
  binary[:]=[q.relative_to(R).as_posix()for q in files if q.suffix=='.pt'];text=[q.relative_to(R).as_posix()for q in files if q.suffix!='.pt']
- sys.argv=['record_experiment.py','--id',ID,'--title','MOD4v3 per-env low-speed single-step curriculum two hours '+phase,'--kind','training','--note-file',str(T/('FINAL_REPORT.md'if phase=='complete'else'README.md')),'--validation','User authorized independent7200s; adopted c874 iter25362 complete PPO+17Adam;35/78/6 MOD4v3 unchanged; prebuilt5/7/9/11/13/15/17/19/20cm single-step; independent reset-only advance,3failures demotion,15percent review; actual contact and speed qualified0.4s completion;2048fullDR 819stairs717rough512flat; c874 teacher only1229retained envs; original velocity reward,100Hzlegs400Hzwheels50Hzpolicy and2mmguard; fullPT every300s; fixed45low-speed and retained skill evaluations; no extension or automatic adoption','--files',*text]
+ sys.argv=['record_experiment.py','--id',ID,'--title','MOD4v3 per-env low-speed single-step curriculum two hours '+phase,'--kind','training','--note-file',str(T/('FINAL_REPORT.md'if phase=='complete'else'README.md')),'--validation','User originalNov9/10 explicitly cancelled2mm reset:diagnostic only,no reward,no batch stop;originalTGS32/4 and2.5ms restored;existing numerical,mimic,nonfinite,full-save and>1m catastrophe per-env protections retained; current c874 iter25362 student and retained teacher verified;35/78/6 and motors/fullDR/timing unchanged;per-env5to20cm course implemented;all obsolete gate/solver probes preserved;no PPO has launched and7200s budget unused during user-requested contract review','--files',*text]
  rec.main()
 commit=git('rev-parse',tag+'^{}');assert git('rev-parse','HEAD')==commit
 git('push','--atomic','origin','HEAD','refs/tags/'+tag)

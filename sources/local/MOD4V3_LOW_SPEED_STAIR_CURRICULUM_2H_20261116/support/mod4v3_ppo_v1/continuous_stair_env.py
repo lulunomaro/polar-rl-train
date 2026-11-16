@@ -9,6 +9,8 @@ from isaaclab.utils.math import quat_from_euler_xyz
 from mod4v1_scut.math_ops import euler_xyz_from_quat,wrap_to_pi
 
 class ContinuousStairEnv(ContinuousStairRepairMixin,_OriginalContinuousStairEnv):
+    # User2026-11-09/10:2mm is diagnostic only; inherited >1m catastrophe reset remains.
+    enforce_closure_reset=False
     def __init__(self,cfg,meta,bank):
         self._course_ready=False
         super().__init__(cfg,meta,bank)

@@ -14,15 +14,15 @@ def spawn(name):
 launched=False
 try:
  assert not(E/'TRAIN_LAUNCH.json').exists(),'Existing training receipt; inspect its PID instead of relaunching'
- probe=json.loads((E/'native_probe_r4_ROUGH_PROBE.json').read_text());closed=json.loads((E/'native_probe_r4_SAFE_CLOSED.json').read_text())
+ probe=json.loads((E/'native_probe_r6_ROUGH_PROBE.json').read_text());closed=json.loads((E/'native_probe_r6_SAFE_CLOSED.json').read_text())
  assert probe['passed']and probe['no_optimizer_updates']and closed['scene_closed']
- assert probe['maximum_measured_closure_m']<=.002 and probe['done_totals']['closure']==0
+ assert probe['closure_2mm_diagnostic_only']and not probe['closure_2mm_reset_enabled']
  assert json.loads((E/'LOCAL_CURRICULUM_CHECKS.json').read_text())['passed']
  assert P['parent_iteration']==25362 and P['training_round']['seconds']==7200
  assert hashlib.sha256((T/'weights/parent_comprehensive.pt').read_bytes()).hexdigest()==P['parent_sha256']==P['teacher_retention']['keep_teacher_sha256']
  c=connect()
  try:
-  uploaded=json.loads((E/'UPLOADED_INPUTS_R4.json').read_text())['files']
+  uploaded=json.loads((E/'UPLOADED_INPUTS_R6.json').read_text())['files']
   for name,sha in uploaded.items():
    local=T/('weights/parent_comprehensive.pt'if name=='parent_comprehensive.pt'else name)
    assert hashlib.sha256(local.read_bytes()).hexdigest()==sha,'Source changed after admission: '+name

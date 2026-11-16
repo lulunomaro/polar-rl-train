@@ -51,7 +51,7 @@ def configuration(meta,bank,n,seed,terrain_selection='flat'):
                 max_depenetration_velocity=1.,linear_damping=0.,angular_damping=0.,
                 enable_gyroscopic_forces=True),
             articulation_props=sim_utils.ArticulationRootPropertiesCfg(enabled_self_collisions=True,
-                solver_position_iteration_count=128,solver_velocity_iteration_count=8)),
+                solver_position_iteration_count=32,solver_velocity_iteration_count=4)),
         init_state=ArticulationCfg.InitialStateCfg(pos=(0.,0.,.337742301121),
             joint_pos=rt['initial_joint_positions'],joint_vel={'.*':0.}),
         soft_joint_pos_limit_factor=1.,actuators=dict(active=active,
@@ -162,7 +162,7 @@ def configuration(meta,bank,n,seed,terrain_selection='flat'):
         sim = SimulationCfg(dt=.005 if rough else .0025,render_interval=4 if rough else 8,device='cuda:0')
         scene = None
     cfg = Cfg();cfg.scene=scene;cfg.seed=seed
-    cfg.sim.physics=PhysxCfg(solver_type=1,max_position_iteration_count=255 if rough else 128,max_velocity_iteration_count=255 if rough else 8)
+    cfg.sim.physics=PhysxCfg(solver_type=1,max_position_iteration_count=255 if rough else 32,max_velocity_iteration_count=255 if rough else 4)
     # 20k official rough measured up to 696124 patches; the SDK default
     # 163840 overflowed. Keep the other PhysX capacities unchanged.
     if n >= 20000:

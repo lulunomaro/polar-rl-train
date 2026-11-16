@@ -9,13 +9,13 @@ if model.stem=='model_final':
   old=json.loads(previous.read_text())
   if old.get('complete')and old['sha256']==digest:
    shutil.copytree(previous.parent,out,dirs_exist_ok=True);old.update(model=str(model),reused_from_identical_full_PT_sha256=str(previous),additional_simulation=False);(out/'EVALUATION.json').write_text(json.dumps(old,indent=2)+'\n');raise SystemExit(0)
-commands=[('single_step',[sys.executable,str(T/'fixed_single_step_eval.py'),'--model',str(model),'--out',str(out/'single_step')]),('pitch',[sys.executable,str(T/'fixed_pitch_eval.py'),'--model',str(model),'--out',str(out/'pitch')]),('flat60',[sys.executable,str(R/'sources/local/MOD4V3_FLAT_SPEED_REPAIR_20261112/fixed_60_eval.py'),'--model',str(model),'--out',str(out/'flat60')]),('stairs',[sys.executable,str(T/'fixed_stair_eval.py'),'--model',str(model),'--out',str(out/'stairs'),'--highest-command-only']),('descent',[sys.executable,str(T/'descent_eval.py'),'--model',str(model),'--out',str(out/'descent'),'--highest-command-only'])]
+commands=[('single_step',[sys.executable,str(T/'fixed_single_step_eval.py'),'--model',str(model),'--out',str(out/'single_step')]),('pitch',[sys.executable,str(T/'fixed_pitch_eval.py'),'--model',str(model),'--out',str(out/'pitch')]),('flat60',[sys.executable,str(T/'fixed_60_eval.py'),'--model',str(model),'--out',str(out/'flat60')]),('stairs',[sys.executable,str(T/'fixed_stair_eval.py'),'--model',str(model),'--out',str(out/'stairs'),'--highest-command-only']),('descent',[sys.executable,str(T/'descent_eval.py'),'--model',str(model),'--out',str(out/'descent'),'--highest-command-only'])]
 results={}
 for name,cmd in commands:
  with(out/(name+'.log')).open('wb')as log:r=subprocess.run(cmd,cwd=R,stdout=log,stderr=subprocess.STDOUT)
  results[name]=dict(exit_code=r.returncode)
  # Keep independent task results even if one reader fails; never rerun PPO for an evaluator.
-result=dict(model=str(model),sha256=digest,complete=len(results)==5 and all(x['exit_code']==0 for x in results.values()),wall_seconds=time.time()-start,results=results,native_full_DR_graduation=False,automatic_promotion=False)
+result=dict(model=str(model),sha256=digest,complete=len(results)==5 and all(x['exit_code']==0 for x in results.values()),wall_seconds=time.time()-start,results=results,native_full_DR_graduation=False,automatic_promotion=False,closure_guard_contract='SCUT_NO_2MM_RESET_V1')
 for name in results:
  f=out/name/'RESULT.json'
  if f.exists():

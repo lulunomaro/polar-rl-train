@@ -27,7 +27,7 @@ for family,level in [('random_uniform_for_rm',9),('plane_for_rm',0)]:
      d.ctrl[env.act_ids[4:]]=tau[4:];mujoco.mj_step(m,d)
      if not np.isfinite(d.qpos).all() or not np.isfinite(d.qvel).all():raise show.SafetyStop('nonfinite')
      cl=max(float(np.linalg.norm(d.site_xpos[u]-d.site_xpos[v]))for u,v in s.pairs);s.closure=cl;maxclosure=max(maxclosure,cl)
-     if cl>.002:raise show.SafetyStop('closure>2mm')
+     if cl>1.0:raise show.SafetyStop('catastrophic closure>1m')
     env.a_prev=act.detach().to(env.device);return env.state()
    e.step=types.MethodType(physics,e);trace=[]
    try:

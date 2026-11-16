@@ -9,7 +9,7 @@ def put(path,data):
 while not (E/'TRAIN_LAUNCH.json').exists():
  if (E/'LAUNCH_ERROR.json').exists():raise RuntimeError('New launch failed; see LAUNCH_ERROR.json')
  time.sleep(3)
-baseline_dir=E/'checkpoint_evals/parent_comprehensive'
+baseline_dir=E/'checkpoint_evals/parent_comprehensive_scut_contract'
 baseline_external=baseline_dir.exists()
 seen={};models={};queue=[]if baseline_external else[str(W/'parent_comprehensive.pt')];active=None;history=[];last_boundary=-1;failures=0;closed=False
 while True:
@@ -45,7 +45,7 @@ while True:
  if active is not None and active['process'].poll() is not None:
   result=dict(model=active['model'],exit_code=active['process'].returncode,finished_epoch=time.time(),evaluation=str(E/'checkpoint_evals'/Path(active['model']).stem/'EVALUATION.json'));history.append(result);put(E/'EVALUATION_QUEUE.json',dict(completed=history,queued=queue));active=None
  if active is None and queue:
-  model=queue.pop(0);log=(E/(Path(model).stem+'_evaluation_worker.log')).open('wb');process=subprocess.Popen([sys.executable,'-X','utf8','-u',str(T/'evaluate_checkpoint.py'),model],cwd=R,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT);log.close();active=dict(model=model,process=process);print('EVALUATING '+Path(model).name,flush=True)
+  model=queue.pop(0);log=(E/(Path(model).stem+'_evaluation_worker.log')).open('wb');process=subprocess.Popen([sys.executable,'-X','utf8','-u',str(T/'evaluate_checkpoint.py'),model]+(['parent_comprehensive_scut_contract']if Path(model).stem=='parent_comprehensive'else[]),cwd=R,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT);log.close();active=dict(model=model,process=process);print('EVALUATING '+Path(model).name,flush=True)
  put(E/'MODEL_COLLECTION.json',dict(models=list(models.values()),remote_job=JOB,full_PT_bytes=True))
  if closed and not queue and active is None and (not baseline_external or(baseline_dir/'EVALUATION.json').exists()):
   put(E/'MONITOR_COMPLETE.json',dict(epoch=time.time(),training_closed=True,training_has_error=(E/'training/ERROR.json').exists(),models=list(models.values()),evaluations=history));print('MONITOR_COMPLETE',flush=True)

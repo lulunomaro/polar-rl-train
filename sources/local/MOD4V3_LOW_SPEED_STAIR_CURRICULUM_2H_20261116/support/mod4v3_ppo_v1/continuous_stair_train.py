@@ -287,7 +287,7 @@ def main():
         checkpoint_format=('MOD4V3_SCUT_FLAT_V1_AIRBORNE_PPO_V1' if args.profile=='flat_v1' else ('MOD4V3_SCUT_FLAT_V2_PPO_V1' if args.profile=='flat_v2' else ('MOD4V3_SCUT_FLAT_ROBUST_PPO_V1' if args.profile=='flat_robust' else ('MOD4V3_SCUT_FLAT_ROBUST_FULL_PPO_V1' if args.profile in ('flat_robust_full','flat_joint_friction','flat_spring_damping','flat_speed_preserve','flat_external_dr','flat_obs_noise','flat_obs_delay','flat_action_delay','flat_scut_delay','flat_physical_delay','flat_forward_square','flat_body_mass','flat_effort_scale','flat_material','flat_velocity_push','flat_remaining_dr','flat_remaining_mixed_dr','rough_r0','rough_r1','rough_r2','rough_scut_v0','rough_scut_v1') else ('MOD4V3_SCUT_ROUGH_V0_PPO_V1' if args.profile=='rough_v0' else 'MOD4V3_SCUT_FLAT_HEIGHT_PPO_V1')))))
         def save(name):
             data=algorithm.save()
-            data.update(format=checkpoint_format,iter=iteration,pitch_stability_recipe=dict(plan["pitch_stability"]),stair_curriculum_recipe=dict(plan["continuous_stair"]),
+            data.update(format=checkpoint_format,iter=iteration,pitch_stability_recipe=dict(plan["pitch_stability"]),stair_curriculum_recipe=dict(plan["continuous_stair"]),closure_guard_recipe=dict(plan.get("current_closure_contract",{})),
                 action_order=env.order,num_envs=env.num_envs,learning_rate=algorithm.learning_rate,
                 reward_recipe=dict(profile=args.profile,velocity_penalty_formula='-1.5*e**2',weights=dict(env.reward.cfg.rewards),lin_vel_xy_square_sigma=env.reward.cfg.lin_vel_xy_square_sigma,lin_vel_err_constraint=env.reward.cfg.lin_vel_err_constraint),
                 domain_randomization_state=env.full_dr.checkpoint_state() if hasattr(env.full_dr,'checkpoint_state') else None,
@@ -383,6 +383,7 @@ def main():
             # Preserve valid Adam moments from the full-actor parent.
         put(job/'ACTOR_UPDATE_SCOPE.json',dict(trainable='all actor layers andSTD',critic_full_update=True,actor_Adam_moments_reset=False,parent=plan['parent_sha256'],reason='Adopted c874 full PPO continuation; independent per-env low-speed single-step curriculum; same current-model teacher only on1229 retained flat/rough environments'))
         algorithm.train_mode();start=time.time();last_save=start;last=None;next_checkpoint=(int(plan["cumulative_training_seconds_before"]//300)+1)*300-plan["cumulative_training_seconds_before"]
+        put(job/'TRAINING_CLOCK.json',dict(epoch=start,requested_seconds=args.seconds,planned_end_epoch=start+args.seconds,parent_sha256=plan['parent_sha256'],automatic_extension=False))
         before={k:v.detach().clone() for k,v in algorithm.actor.state_dict().items()}
         start_iteration=iteration
         while iteration<args.iterations and time.time()-start<args.seconds:

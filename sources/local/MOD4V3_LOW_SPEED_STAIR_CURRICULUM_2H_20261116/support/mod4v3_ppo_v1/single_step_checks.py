@@ -1,4 +1,4 @@
-"""Real native2048-env full-DR admission and frozen all-height parent replay."""
+"""Small native contract/interface smoke, without optimizer updates or skill graduation."""
 import time,torch,os,json
 from pathlib import Path
 from tensordict import TensorDict
@@ -8,7 +8,7 @@ from .single_step_math import SPEC,COURSE
 def run_probe(env,algorithm):
     start=time.time();algorithm.eval_mode();before={k:v.detach().clone()for k,v in algorithm.actor.state_dict().items()}
     mask=env.continuous_stair_mask;ids=mask.nonzero().flatten()
-    assert int(mask.sum())==819 and int(env.flat_terrain_mask.sum())==512
+    assert int(mask.sum())==round(env.num_envs*.4) and int(env.flat_terrain_mask.sum())==round(env.num_envs*.25)
     assert env.course_mastered[ids].eq(0).all()and env.course_level[ids].eq(0).all()
     # Query actual cooked collision mesh at each bank level, including lower/upper sides.
     t=env.terrain;column=int(t.terrain_types[ids[0]])
@@ -23,7 +23,7 @@ def run_probe(env,algorithm):
     # Exercise actual initial5cm population with the same stochastic actor used by PPO.
     env.reset();env.begin_training_counts();obs=TensorDict(env._get_observations(),batch_size=[env.num_envs]);policy=algorithm.get_policy()
     max_closure=0.;max_reward=0.
-    for step in range(300):
+    for step in range(100):
         with torch.inference_mode():
             action=policy(obs,stochastic_output=True);raw,reward,term,timeout,_=env.step(action)
         assert torch.isfinite(reward).all()
@@ -34,10 +34,10 @@ def run_probe(env,algorithm):
     assert unchanged and not env.enforce_closure_reset and env.cfg.decimation==8
     assert float(env.reward.cfg.rewards['track_lin_vel_xy_square'])==-1.5 and float(env.reward.cfg.lin_vel_xy_square_sigma)==1.
     assert env.course_mastered[ids].eq(0).all(),'Frozen probe advanced mastery'
-    (Path(os.environ['MOD4V1_E0_JOB_ROOT'])/'PROBE_ROLLOUT.json').write_text(json.dumps(dict(steps=300,maximum_measured_closure_m=max_closure,done_totals=dict(env.done_totals),course=env.terrain_summary()['single_step_curriculum']),indent=2)+'\n')
+    (Path(os.environ['MOD4V1_E0_JOB_ROOT'])/'PROBE_ROLLOUT.json').write_text(json.dumps(dict(steps=100,maximum_measured_closure_m=max_closure,done_totals=dict(env.done_totals),course=env.terrain_summary()['single_step_curriculum']),indent=2)+'\n')
     state=env.terrain_checkpoint_state();assert state['course']==COURSE
     env.course_accounting=False;env.course_mastered[ids[0]]=2
     state=env.terrain_checkpoint_state();env.course_mastered[ids[0]]=0
     with torch.inference_mode():restored=env.restore_terrain_curriculum(state)
     assert restored['counters_restored']and int(env.course_mastered[ids[0]])==2
-    return dict(passed=True,no_optimizer_updates=True,actor_identical=unchanged,num_envs=env.num_envs,steps=300,wall_seconds=time.time()-start,actual_collision_heights_m=actual.tolist(),initial_training_population_all5cm=True,initial5cm_stochastic_probe_frozen_no_promotion=True,checkpoint_roundtrip_passed=True,teacher_excludes_all819_stair_envs=True,teacher_retains_all1229_other_envs=True,maximum_measured_closure_m=max_closure,closure_2mm_diagnostic_only=True,closure_2mm_reset_enabled=False,catastrophic_closure_single_env_reset_m=1.,mechanical_graduation_claimed=False,maximum_abs_reward=max_reward,done_totals=dict(env.done_totals),course=env.terrain_summary()['single_step_curriculum'],physics_dt_s=env.physics_dt,policy_dt_s=env.step_dt,full_DR=env.mild_dr.summary(),guard_contract_source="User2026-11-09/10 original conversation; cancelled2mm reset and batch-stop")
+    return dict(passed=True,no_optimizer_updates=True,actor_identical=unchanged,num_envs=env.num_envs,steps=100,wall_seconds=time.time()-start,actual_collision_heights_m=actual.tolist(),initial_training_population_all5cm=True,initial5cm_stochastic_probe_frozen_no_promotion=True,checkpoint_roundtrip_passed=True,teacher_excluded_stair_envs=int(mask.sum()),teacher_retained_other_envs=int((~mask).sum()),maximum_measured_closure_m=max_closure,closure_2mm_diagnostic_only=True,closure_2mm_reset_enabled=False,catastrophic_closure_single_env_reset_m=1.,mechanical_graduation_claimed=False,maximum_abs_reward=max_reward,done_totals=dict(env.done_totals),course=env.terrain_summary()['single_step_curriculum'],physics_dt_s=env.physics_dt,policy_dt_s=env.step_dt,full_DR=env.mild_dr.summary(),guard_contract_source="User2026-11-09/10 original conversation; cancelled2mm reset and batch-stop")

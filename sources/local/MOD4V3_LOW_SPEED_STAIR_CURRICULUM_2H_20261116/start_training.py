@@ -22,6 +22,9 @@ try:
  assert hashlib.sha256((T/'weights/parent_comprehensive.pt').read_bytes()).hexdigest()==P['parent_sha256']==P['teacher_retention']['keep_teacher_sha256']
  c=connect()
  try:
+  probe_pid=json.loads((E/'NATIVE_PROBE_R6_LAUNCH.json').read_text())['pid']
+  wait_code="from pathlib import Path;import time,json;pid="+str(probe_pid)+";name="+repr(P['probe_job'])+"\nfor _ in range(30):\n p=Path('/proc')/str(pid)/'cmdline'\n if not p.exists() or name not in p.read_bytes().decode(errors='ignore'):break\n time.sleep(1)\nelse:raise RuntimeError('Probe process still closing; preserve its PID')\nprint(json.dumps(dict(probe_process_closed=True)))"
+  execute(c,P['python']+' -B -c '+shlex.quote(wait_code))
   uploaded=json.loads((E/'UPLOADED_INPUTS_R6.json').read_text())['files']
   for name,sha in uploaded.items():
    local=T/('weights/parent_comprehensive.pt'if name=='parent_comprehensive.pt'else name)
@@ -44,10 +47,11 @@ try:
  course=first['terrain']['single_step_curriculum'];assert sum(course['mastered_population'])==819
  teacher=first['teacher_retention'];assert teacher['keep_teacher_sha256']==P['parent_sha256']and teacher['keep_teacher_max_parameter_change']==0. and teacher['last']['curriculum_teacher_samples']==0
  assert teacher['last']['teacher_keep_samples']>0
- start=first['epoch']-first['training_elapsed_seconds'];tz=datetime.timezone(datetime.timedelta(hours=8))
- confirmed=dict(epoch=time.time(),remote_pid=receipt['pid'],actual_PPO_start_local=datetime.datetime.fromtimestamp(start,tz).isoformat(),planned_end_local=datetime.datetime.fromtimestamp(start+7200,tz).isoformat(),requested_training_seconds=7200,parent_sha256=P['parent_sha256'],parent_iteration=25362,first_updated_iteration=first['iteration'],actor_changed=True,optimizer_entries=17,course_groups=groups,heights_m=course['heights_m'],initial_mastered_population=course['mastered_population'],teacher_sha256=teacher['keep_teacher_sha256'],teacher_curriculum_samples=0,checkpoint_seconds=300,automatic_extension=False,automatic_promotion=False,native_probe_no_optimizer=True)
+ clock=json.loads((E/'training/TRAINING_CLOCK.json').read_text());start=clock['epoch'];tz=datetime.timezone(datetime.timedelta(hours=8))
+ assert first['terrain']['closure_contract']['closure_2mm_reset_enabled']is False
+ confirmed=dict(epoch=time.time(),remote_pid=receipt['pid'],actual_PPO_start_local=datetime.datetime.fromtimestamp(start,tz).isoformat(),planned_end_local=datetime.datetime.fromtimestamp(start+7200,tz).isoformat(),requested_training_seconds=7200,parent_sha256=P['parent_sha256'],parent_iteration=25362,first_updated_iteration=first['iteration'],actor_changed=True,optimizer_entries=17,course_groups=groups,heights_m=course['heights_m'],initial_mastered_population=course['mastered_population'],teacher_sha256=teacher['keep_teacher_sha256'],teacher_curriculum_samples=0,checkpoint_seconds=300,automatic_extension=False,automatic_promotion=False,native_probe_no_optimizer=True,closure_2mm_diagnostic_only=True,solver="TGS32/4")
  put(E/'TRAINING_STARTED_CONFIRMED.json',confirmed);print('FIRST_UPDATE_CONFIRMED',json.dumps(confirmed),flush=True)
- note='2026-11-16逐环境低速单台阶课程两小时已实际开训：'+confirmed['actual_PPO_start_local']+'，预计最后完整迭代结束约'+confirmed['planned_end_local']+'。从当前采用c874/iter25362完整PPO和17项Adam续训；819环境从5cm独立升到7/9/11/13/15/17/19/20cm，实际入阶速度与双轮接触/车身越边/0.4s稳定合格才升级。3次失败降级、15%低级复习；1229保留平地/崎岖环境由当前c874教师约束，课程环境无旧高速台阶/高站姿BC。每5分钟完整PT与固定回放；7200s上限，无自动延长/晋升。见sources/local/MOD4V3_LOW_SPEED_STAIR_CURRICULUM_2H_20261116/README.md。'
+ note='2026-11-16逐环境低速单台阶课程两小时已实际开训：'+confirmed['actual_PPO_start_local']+'，预计最后完整迭代结束约'+confirmed['planned_end_local']+'。从当前采用c874/iter25362完整PPO和17项Adam续训；819环境从5cm独立升到7/9/11/13/15/17/19/20cm，实际入阶速度与双轮接触/车身越边/0.4s稳定合格才升级。3次失败降级、15%低级复习；1229保留平地/崎岖环境由当前c874教师约束，课程环境无旧高速台阶/高站姿BC。每5分钟完整PT与固定回放；2mm仅诊断、不reset、不整轮停训，沿用TGS32/4与原有数值保护；7200s上限，无自动延长/晋升。见sources/local/MOD4V3_LOW_SPEED_STAIR_CURRICULUM_2H_20261116/README.md。'
  for file in [R/'AGENTS.md',R.parent/'AGENTS.md']:
   text=file.read_text(encoding='utf-8-sig');file.write_text('## 2026-11-16 最新训练：逐环境低速单台阶课程\n\n'+note+'\n\n'+text,encoding='utf8')
  put(E/'PROJECT_MEMORY_UPDATE.json',dict(epoch=time.time(),note=note,current_adopted_model_unchanged=True))

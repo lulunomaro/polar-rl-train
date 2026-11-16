@@ -1,3 +1,11 @@
+## 2026-11-17 01:23 0更新模式因果对照：normal起步保留，stair条件异常
+
+人类询问是否无解/华南虎如何解决。新增独立scut_control_comparison：四权重×normal/stair各center3s，共8次真实MuJoCo；PPO0/优化器0，无新训练。完全相同姿态/物理/0→1s后.47指令，仅改obs[28:35]。repair10m normal首1s−4.0mm、前1.6s最低base z.39408m；stair +152.55mm、最低.18234m。原010m normal−17.16mm，stair+631.83mm；64步副本normal最低.39412、stair.17986m。说明起步异常受stair输入条件明显影响，不能用normal flat60代替stair平地验收；不等于已证明唯一训练根因或正常模式已会低速200mm。3s截断timeout不是正式上阶评分。
+
+核查实际对比的SCUT rough_rotation_stair/2026-07-23_16-23-21/model1000：实读35→256→128→64→6普通MLP（非帧堆叠/RNN），保存配置stair/jump_takeoff/airborne三个FSM皆False、站立比例.1、指令5~15s重采样、静止死区True/.1。不能借README列出算法或FSM就说该权重靠历史估计/上阶脚本。普通运动在normal语义训练，现有公开资料未证明其通过本项目同工况低速200mm五点协议。
+
+新修复方向应在独立原010m副本上加强normal/stair配对平地保留与真实偏离纠偏，先保证stair下等候/起步闭环，再验触阶技能是否保留；不加入按世界x切换脚本，不能把运行时直接切normal当技能修复。本轮只诊断，没有新PPO预算。默认c874、原010m/8391帧/物理等不动，用户WASD未被接管。详细证据scut_control_comparison/REPORT.md和MODE_CONTRAST.json，实测曲线MODE_CONTRAST.png。
+
 ## 2026-11-17 00:52 平地起步根因体检：0 PPO，教师纠偏24/30，离线副本未修好
 
 独立目录MOD4V3_FIXED200_PREWALL_DIAG_DAGGER_20261117。用户明确只先做0 PPO诊断/补采/35维体检；长消息截在“带keep=1与临时”，未收到完整第二步，不推断新PPO预算。默认c874/原010m37dbe178/原8391帧/冻结教师源码profile逐项SHA前后相同，所有硬合同不变。

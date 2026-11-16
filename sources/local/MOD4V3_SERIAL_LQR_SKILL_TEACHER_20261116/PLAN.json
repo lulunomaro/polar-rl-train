@@ -1,0 +1,50 @@
+{
+  "objective": "Use successful Serial_Leg LQR/VMC jump and stair skills as a task-space teacher for MOD4v3 RL, preserving the adopted low-pitch policy on retained tasks.",
+  "teacher_repository": "D:\\claude2\\fangzhen\\playgrounds\\Serial_Leg_Simulation",
+  "teacher_revision": "3a997e3455e26313bba69faec72c89fe2bdb70b4",
+  "student_plant": "MOD4v3 / MOD4V3_HW300N60_R3",
+  "student_mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f",
+  "retention_teacher_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
+  "actor_dim": 35,
+  "critic_dim": 78,
+  "action_dim": 6,
+  "source_torque_not_direct_student_label": true,
+  "teacher_phase_not_added_to_actor": true,
+  "first_stage": "collect and physically qualify source demonstrations, then retarget and test on MOD4v3 before student supervision",
+  "running_PPO_unchanged": true,
+  "new_PPO_budget_seconds": 0,
+  "closure_contract": "2mm diagnostic only; no episode/global reset from 2mm; inherited catastrophic/nonfinite protections remain",
+  "existing_mode_fields": {
+    "dimension": 7,
+    "one_hot": [
+      "normal",
+      "stair",
+      "slope",
+      "recover",
+      "jump"
+    ],
+    "auxiliary": [
+      "jump_height_target_scaled5",
+      "jump_elapsed_request_clock"
+    ],
+    "normal_tasks_unchanged": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "jump_intent_source": "operator/request clock, not source FSM phase or hidden terrain distance",
+    "source_definition_git_blob": "9ec2b4361265e11253863591eaffc13d8a2d1edd",
+    "jump_clock_cap_seconds": 1.5
+  },
+  "latest_user_scope": "Try transferring a200mm step with this Serial LQR/VMC teacher",
+  "latest_status": "Native MOD4 teacher execution succeeded nominal200mm; final three-start check1/3. Prepared qualified skill dataset and differentiable supervision; no student optimizer steps.",
+  "skill_dataset": "skill_dataset/qualified_mod4_skills.npz",
+  "PPO_integration_installed": false,
+  "student_updates": 0,
+  "updated_at": "2026-11-16T14:33:32.389241+08:00",
+  "frozen_source_adapter": "source_adapter/SOURCE_MANIFEST.json"
+}

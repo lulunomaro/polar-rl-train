@@ -1,0 +1,14 @@
+<mujoco model="Serial_Leg_07cm_WASD">
+  <include file="bigeye_robot.xml"/>
+  <statistic center=".8 0 .3" extent="2.4"/>
+  <visual><headlight ambient=".45 .45 .45" diffuse=".65 .65 .65"/></visual>
+  <asset><texture name="local_checker" type="2d" builtin="checker" rgb1=".17 .21 .27" rgb2=".22 .27 .34" width="512" height="512"/>
+  <material name="local_floor" texture="local_checker" texrepeat="12 12" texuniform="true" reflectance=".05"/></asset>
+  <worldbody>
+    <light pos="0 -2 4" dir="0 0 -1" directional="true"/>
+    <geom name="ground" type="plane" size="12 8 .1" material="local_floor" contype="2" conaffinity="1" friction="1 .001 .0001" condim="6"/>
+    <geom name="local_step" type="box" pos="2.1 0 0.035" size=".9 1.1 0.035" rgba=".30 .62 .78 1" contype="2" conaffinity="1" friction="1 .001 .0001" condim="6"/>
+    <geom name="approach_mark" type="box" pos=".7 0 .0005" size=".015 .75 .0005" rgba="1 .78 .25 1" contype="0" conaffinity="0"/>
+    <body name="step_label" pos="2.1 0 0.07500000000000001"><site type="sphere" size=".001" rgba="0 0 0 0"/></body>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,128 @@
+"""Zero-optimizer transfer probe: source leg motion -> MOD4 closed-chain poses -> native PD actions."""
+from pathlib import Path
+import sys,json,time,math,types,hashlib,xml.etree.ElementTree as ET,gc
+import numpy as np,torch,mujoco as mj
+from mod4_retarget import Mod4Retarget,PPO_ORDER,PLANT,PIN,T,R
+D=R/'deliveries/MOD4V3_BEST_MANUAL_STAIRS_20261112'
+sys.path.insert(0,str(D/'runtime/core'))
+from args_for import args_for
+from play_ppo_flatv1_control import Simulation
+SOURCE=Path(r'D:\claude2\fangzhen\playgrounds\Serial_Leg_Simulation')
+SOURCE_DATA=json.loads((T/'source_demonstrations/RESULT.json').read_text())
+COL={n:i for i,n in enumerate(SOURCE_DATA['columns'])}
+A=np.load(T/'source_demonstrations/trajectories.npz')
+OUT=T/'mod4_transfer_probe_r1';OUT.mkdir(exist_ok=False)
+CKPT=R/'deliveries/MOD4V3_LOW_PITCH_20261116/model_full_ppo.pt'
+assert hashlib.sha256(CKPT.read_bytes()).hexdigest()=='c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617'
+torch.set_num_threads(1)
+sm=mj.MjModel.from_xml_path(str(SOURCE/'mjcf/bigeye_flat.xml'));sd=mj.MjData(sm);mj.mj_forward(sm,sd)
+source_base=sm.body('base').id
+source_hips=np.stack([sd.xanchor[sm.joint(s+'_rear_hip_joint').id]-sd.xpos[source_base]for s in ['left','right']])
+
+def source_task(rows):
+ values=[]
+ for row in rows:
+  rotation=np.zeros(9);mj.mju_quat2Mat(rotation,row[4:8]);rotation=rotation.reshape(3,3)
+  wheel=row[[COL[f'wheel_xyz_{i}']for i in range(6)]].reshape(2,3)
+  vector=(wheel-row[1:4])@rotation-source_hips
+  values.append(np.r_[np.linalg.norm(vector,axis=1),np.arctan2(vector[:,0],-vector[:,2])])
+ return np.asarray(values)
+
+def observation(sim,vx,height):
+ q,qd=sim._current_active();rot=torch.tensor(sim.env.d.xmat[sim.env.base_id].reshape(3,3),dtype=torch.float32)
+ gravity=rot.T@torch.tensor([0.,0.,-1.]);jp=q-sim.default_active;jp[4:]=0.
+ mode=torch.zeros(7);mode[0]=1.
+ return torch.cat([torch.tensor([vx,0.,0.]),torch.tensor([height*5.]),torch.tensor(sim.env.d.qvel[3:6],dtype=torch.float32)*.5,gravity,jp,qd[:4]*.1,qd[4:]*.1,sim.a_prev[0],mode]).reshape(1,35)
+
+def scene(height,name):
+ original=PLANT/'mjcf/scene.xml';assert hashlib.sha256(original.read_bytes()).hexdigest()==PIN
+ tree=ET.parse(original);root=tree.getroot();root.find('compiler').set('meshdir',str(original.parent/'assets'))
+ if height:ET.SubElement(root.find('worldbody'),'geom',name='skill_teacher_platform',type='box',pos=f'2.1 0 {height/2}',size=f'.9 1.1 {height/2}',contype='1',conaffinity='2',friction='.9 .005 .0001')
+ path=OUT/(name+'.xml');tree.write(path,encoding='utf-8',xml_declaration=True);return path
+
+results=[];trajectories={};paired={}
+for name,key,height,cmd,base_height,amplitude in [('jump_1x','flat_jump',0.,0.,.32,1.),('jump_13x','flat_jump',0.,0.,.32,1.3),('step07_1x','step07_auto_low',.07,.4,.40,1.)]:
+ source=A[key];source_info=next(x for x in SOURCE_DATA['rows']if x['case']==key)
+ phase_ids=source_info['phases'];active=[v for k,v in phase_ids.items()if k!='idle|idle']
+ t0=float(source[np.isin(source[:,-1],active),0].min())-.10
+ ref=source[source[:,0]>=t0].copy();ref_time=ref[:,0]-ref[0,0];task=source_task(ref)
+ args=args_for(str(CKPT));args.xml=str(scene(height,name));sim=Simulation(args);e=sim.env;m=e.m;d=e.d
+ e.dt=.0025;e.decim=8;m.opt.timestep=.0025
+ maxclosure=0.;closed=False
+ pairs=[(m.site(x.get('site1')).id,m.site(x.get('site2')).id)for x in ET.parse(args.xml).getroot().findall('equality/connect')]
+ def physics(env,action):
+  global maxclosure
+  action=action.clamp(-env.action_clip,env.action_clip)
+  for j in range(8):
+   tau=env._torque(action).detach().numpy().reshape(-1)
+   if j%4==0:d.ctrl[env.act_ids[:4]]=tau[:4]
+   d.ctrl[env.act_ids[4:]]=tau[4:];mj.mj_step(m,d)
+   if not np.isfinite(d.qpos).all()or not np.isfinite(d.qvel).all():raise RuntimeError('nonfinite')
+   cl=max(np.linalg.norm(d.site_xpos[u]-d.site_xpos[v])for u,v in pairs);maxclosure=max(maxclosure,float(cl))
+   if cl>1.:raise RuntimeError('catastrophic closure>1m')
+  env.a_prev=action.detach();return env.state()
+ e.step=types.MethodType(physics,e)
+ tire=[m.geom(n).id for n in ['left_tire','right_tire']];wb=[int(m.geom_bodyid[x])for x in tire]
+ platform=mj.mj_name2id(m,mj.mjtObj.mjOBJ_GEOM,'skill_teacher_platform')
+ hip=[m.joint(s+'_rear1_joint').id for s in ['left','right']]
+ ik=None;qrefs=None;start_at=None;eq_action=None;first_top=None;air=False;max_z=float(d.qpos[2]);hold=0.;reason='timeout';numeric_error=None
+ rows=[];obs_rows=[];act_rows=[];skill_rows=[];fit_errors=[];torque_peaks=np.zeros(6);pose_bad=0
+ try:
+  for k in range(600):
+   age=k*.02;speed=cmd if age>=2. else 0.
+   wheel=d.geom_xpos[tire].copy()
+   if start_at is None and ((not height and age>=2.)or(height and wheel[:,0].max()>=1.14)):
+    start_at=age;ik=Mod4Retarget();ik.d.qpos[ik.qadr]=d.qpos[ik.qadr];ik.q=d.qpos[ik.qadr].copy()
+    rotation=d.xmat[e.base_id].reshape(3,3)
+    vector=(d.xpos[wb]-np.stack([d.xanchor[j]for j in hip]))@rotation
+    baseL=np.linalg.norm(vector,axis=1);baseTheta=np.arctan2(vector[:,0],-vector[:,2])
+    qrefs=[]
+    for target in task:
+     L=np.clip(baseL+amplitude*(target[:2]-task[0,:2]),.13,.35)
+     theta=baseTheta+amplitude*(target[2:]-task[0,2:])
+     fitted=ik.fit(L,theta);qrefs.append(fitted['active_q']);fit_errors.append(fitted['target_error_m'])
+    qrefs=np.asarray(qrefs)
+   x=observation(sim,speed,base_height)
+   with torch.no_grad():action=sim.actor(x).clamp(-6.,6.)
+   active_now=False
+   if start_at is not None:
+    elapsed=age-start_at
+    if eq_action is None:eq_action=action[0,:4].numpy().copy()
+    if elapsed<=ref_time[-1]:
+     qref=np.array([np.interp(elapsed,ref_time,qrefs[:,j])for j in range(4)])
+     action[0,:4]=torch.tensor(eq_action+(qref-qrefs[0])/.5,dtype=torch.float32);active_now=True
+   action=action.clamp(-6.,6.)
+   obs_rows.append(x[0].numpy().copy());act_rows.append(action[0].numpy().copy());skill_rows.append(active_now)
+   e.step(action[:,sim.ppo_to_env]);sim.a_prev=action.detach().clone()
+   torque_peaks=np.maximum(torque_peaks,np.abs(d.ctrl[e.act_ids]))
+   rotation=d.xmat[e.base_id].reshape(3,3);pitch=math.asin(float(np.clip(-rotation[2,0],-1,1)));roll=math.atan2(float(rotation[2,1]),float(rotation[2,2]))
+   ground=np.zeros(2,dtype=bool);upper=np.zeros(2,dtype=bool)
+   for ci in range(d.ncon):
+    contact=d.contact[ci];g1,g2=int(contact.geom1),int(contact.geom2);b1,b2=int(m.geom_bodyid[g1]),int(m.geom_bodyid[g2])
+    for side,body in enumerate(wb):
+     other=g1 if b2==body and b1==0 else g2 if b1==body and b2==0 else -1
+     if other<0:continue
+     cf=np.zeros(6);mj.mj_contactForce(m,d,ci,cf);normal=(1. if b2==body else -1.)*np.asarray(contact.frame).reshape(3,3)[0]
+     if cf[0]>5. and normal[2]>.7:
+      ground[side]=True
+      if other==platform and abs(float(contact.pos[2])-height)<.012:upper[side]=True
+   wheel=d.geom_xpos[tire];air|=bool(not ground.any()and np.all(wheel[:,2]>.0825));max_z=max(max_z,float(d.qpos[2]))
+   physical=bool(upper.all()and 1.32<d.qpos[0]<2.85)
+   if physical and first_top is None:first_top=age
+   ready=physical if height else air and ground.all()and start_at is not None and age-start_at>ref_time[-1]
+   stable=ready and max(abs(pitch),abs(roll))<math.radians(25)and np.linalg.norm(d.qvel[3:5])<1.5 and abs(float(d.qvel[2]))<.25
+   hold=hold+.02 if stable else 0.
+   pose_bad=pose_bad+1 if max(abs(pitch),abs(roll))>math.radians(40)else 0
+   rows.append([age,*d.qpos[:3],pitch,roll,*wheel.reshape(-1),*ground.astype(float),*upper.astype(float),active_now,hold,maxclosure])
+   if hold>=.4-1e-8:reason='qualified_stable_landing';break
+   if pose_bad>=10:reason='orientation>40deg_0.2s';break
+   if np.abs(d.qpos[:2]).max()>4.1:reason='boundary';break
+ except Exception as ex:reason='probe_error';numeric_error=str(ex)
+ finally:
+  result=dict(case=name,source_case=key,success=reason=='qualified_stable_landing',reason=reason,error=numeric_error,source_reference_started_at=start_at,physical_top=first_top is not None,first_top_s=first_top,both_wheels_airborne=air,root_peak_z=max_z,hold_s=hold,max_closure_m=maxclosure,max_IK_target_error_m=max(fit_errors,default=0.),torque_abs_peak=torque_peaks.tolist(),frames=len(rows),PPO_updates=0,actor_changed=False,actor_input=35,action_output=6,phase_is_teacher_only=True,jump_intent_not_yet_distilled=True)
+  results.append(result);trajectories[name]=np.asarray(rows);paired[name+'_obs']=np.asarray(obs_rows);paired[name+'_actions']=np.asarray(act_rows);paired[name+'_skill_mask']=np.asarray(skill_rows)
+  (OUT/'PROGRESS.json').write_text(json.dumps(results,indent=2)+'\n');print(json.dumps(result),flush=True)
+  sim.close();del sim,e,m,d;gc.collect()
+np.savez_compressed(OUT/'trajectories.npz',**trajectories)
+np.savez_compressed(OUT/'paired_student_obs_actions.npz',**paired)
+(OUT/'RESULT.json').write_text(json.dumps(dict(rows=results,admitted=[x['case']for x in results if x['success']],method='task-space motion retarget and actual MOD4 execution; no copied source torques;35/78/6 unchanged; no PPO updates; unresolved explicit jump intent remains excluded from supervised admission',source_reference=str(T/'source_demonstrations/RESULT.json')),indent=2)+'\n')

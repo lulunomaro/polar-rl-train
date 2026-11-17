@@ -151,8 +151,8 @@
   "support": "/home/egde/rl_candidates/mod4v3_moe_route2_dense_top_replay_repair_20261117_r1/support",
   "parent": "/home/egde/rl_candidates/mod4v3_moe_route2_dense_top_replay_repair_20261117_r1/model_step000.pt",
   "seed": 67,
-  "authorized_PPO_seconds": 0,
-  "PPO_training_authorized": false,
+  "authorized_PPO_seconds": 2400,
+  "PPO_training_authorized": true,
   "proposed_training_seconds": 2400,
   "alternative_only_if_human_approves_seconds": null,
   "no_automatic_extension": true,
@@ -336,8 +336,8 @@
   },
   "parent_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
   "local_skill_preflight_passed": false,
-  "authorized_total_seconds": 0,
-  "budget_total_training_seconds": 0,
+  "authorized_total_seconds": 2400,
+  "budget_total_training_seconds": 2400,
   "training_job": "train_dense_top_replay",
   "parent_iteration": 0,
   "cumulative_training_seconds_before": 0,
@@ -345,10 +345,11 @@
   "local_skill_failure_is_launch_blocker": false,
   "training_round": "reward_repair_precheck_only",
   "strict_timing": {
-    "maximum_seconds": 0,
+    "maximum_seconds": 2400,
     "save_close_reserve_seconds": 60,
-    "clock": "new actual PPO start only after explicit budget",
-    "finish_iteration_after_deadline": false
+    "clock": "New actual PPO start; 2400 seconds hard maximum, stop computation at 2340 seconds; prior stopped round is history only",
+    "finish_iteration_after_deadline": false,
+    "work_cutoff_seconds": 2340
   },
   "evaluation": {
     "teacher_actions": 0,
@@ -378,8 +379,8 @@
     "stochastic_training_forward": true,
     "stalled_without_progress_reward_maximum_must_be_negative": true
   },
-  "human_restart_authorized": false,
-  "budget_cap_seconds": 0,
+  "human_restart_authorized": true,
+  "budget_cap_seconds": 2400,
   "automatic_restart": false,
   "offset_partition": {
     "offsets_mm": [
@@ -395,12 +396,25 @@
     "maximum_population_difference_per_group": 1
   },
   "restart_policy": {
-    "authorized": false,
-    "reason": "Old round explicitly stopped; new reward repair and 0-PPO collection authorized; no new duration supplied",
+    "authorized": true,
+    "reason": "Human confirmed start of the proposed new 40-minute repaired run from locked original v1; never resume previous final checkpoint",
     "source_attempt": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_MOE_ROUTE2_FIXED200_DR_CURRICULUM_20261117",
     "previous_elapsed_seconds": 2034.6813823319972,
     "previous_actual_Adam_steps": 2748,
-    "new_clock_requires_explicit_duration": true
+    "new_clock_requires_explicit_duration": false,
+    "human_confirmation": {
+      "recorded_at": "2026-11-17T23:42:36.319700+08:00",
+      "human_message": "开始训练",
+      "interpretation": "Confirmation of the immediately preceding proposed new 40-minute repaired run from original v1; use a new actual PPO clock.",
+      "authorized_PPO_seconds": 2400,
+      "work_cutoff_seconds": 2340,
+      "reserve_seconds": 60,
+      "parent_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
+      "previous_round_elapsed_seconds_history_only": 2034.6813823319972,
+      "automatically_extend": false,
+      "automatically_restart": false,
+      "automatically_promote": false
+    }
   },
   "human_conditional_start_authorized": true,
   "startup_repair": {
@@ -506,5 +520,18 @@
     "/home/egde/rl_candidates/mod4v3_moe_route2_dense_top_replay_repair_20261117_r1/native_dense_probe_v1_r3/success_replay",
     "/home/egde/rl_candidates/mod4v3_moe_route2_dense_top_replay_repair_20261117_r1/native_dense_probe_010m/success_replay"
   ],
-  "zero_update_precheck_passed": true
+  "zero_update_precheck_passed": true,
+  "human_training_authorization": {
+    "recorded_at": "2026-11-17T23:42:36.319700+08:00",
+    "human_message": "开始训练",
+    "interpretation": "Confirmation of the immediately preceding proposed new 40-minute repaired run from original v1; use a new actual PPO clock.",
+    "authorized_PPO_seconds": 2400,
+    "work_cutoff_seconds": 2340,
+    "reserve_seconds": 60,
+    "parent_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
+    "previous_round_elapsed_seconds_history_only": 2034.6813823319972,
+    "automatically_extend": false,
+    "automatically_restart": false,
+    "automatically_promote": false
+  }
 }

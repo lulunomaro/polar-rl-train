@@ -151,10 +151,10 @@
   "support": "/home/egde/rl_candidates/mod4v3_moe_route2_fixed200_dr_curriculum_20261117_r1/support",
   "parent": "/home/egde/rl_candidates/mod4v3_moe_route2_fixed200_dr_curriculum_20261117_r1/model_step000.pt",
   "seed": 67,
-  "authorized_PPO_seconds": 0,
-  "PPO_training_authorized": false,
-  "proposed_training_seconds": 7200,
-  "alternative_only_if_human_approves_seconds": 7200,
+  "authorized_PPO_seconds": 2400,
+  "PPO_training_authorized": true,
+  "proposed_training_seconds": 2400,
+  "alternative_only_if_human_approves_seconds": 2400,
   "no_automatic_extension": true,
   "no_automatic_promotion": true,
   "teacher_retention": {
@@ -318,48 +318,32 @@
   },
   "parent_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
   "local_skill_preflight_passed": false,
-  "authorized_total_seconds": 7200,
-  "budget_total_training_seconds": 7200,
-  "training_job": "train_fixed200_dr_curriculum",
+  "authorized_total_seconds": 2400,
+  "budget_total_training_seconds": 2400,
+  "training_job": "train_fixed200_dr_curriculum_40m_r2",
   "parent_iteration": 0,
   "cumulative_training_seconds_before": 0,
   "locked_v1_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
   "local_skill_failure_is_launch_blocker": false,
-  "training_round": {
-    "seconds": 7200,
-    "num_envs": 2048,
-    "full_checkpoint_every_seconds": 300,
-    "rollout": 24,
-    "epochs": 3,
-    "minibatches_per_epoch": 4,
-    "learning_rate": 0.0001,
-    "schedule": "adaptive",
-    "learning_rate_min": 0.0001,
-    "learning_rate_max": 0.0002,
-    "clip_param": 0.05,
-    "automatic_restart": false,
-    "automatic_extension": false,
-    "automatic_promotion": false
-  },
+  "training_round": "human_authorized_zeroDR_to_DR_40m_20261117",
   "strict_timing": {
-    "maximum_seconds": 7200,
-    "work_cutoff_seconds": 7140,
+    "maximum_seconds": 2400,
+    "work_cutoff_seconds": 2340,
     "save_close_reserve_seconds": 60,
-    "clock": "monotonic",
+    "clock": "monotonic from actual PPO start",
     "finish_iteration_after_deadline": false
   },
   "evaluation": {
     "teacher_actions": 0,
     "formal_speed_limit_m_s": 0.6,
     "midrun_minutes": [
+      5,
       10,
-      20,
-      40,
-      60,
-      90
+      20
     ],
     "full_final_regression": true,
-    "video": true
+    "video": true,
+    "final_at_authorized_budget": true
   },
   "early_stop": {
     "at_seconds": 2400,
@@ -370,15 +354,15 @@
     "no_automatic_restart": true
   },
   "native_probe": {
-    "job": "native_fixed200_probe_r1",
+    "job": "native_zeroDR_curriculum_probe_r3_cache",
     "PPO_updates": 0,
     "optimizer_updates": 0,
     "policy_steps": 600,
     "stochastic_training_forward": true,
     "stalled_without_progress_reward_maximum_must_be_negative": true
   },
-  "human_restart_authorized": false,
-  "budget_cap_seconds": 7200,
+  "human_restart_authorized": true,
+  "budget_cap_seconds": 2400,
   "automatic_restart": false,
   "offset_partition": {
     "offsets_mm": [
@@ -394,8 +378,8 @@
     "maximum_population_difference_per_group": 1
   },
   "restart_policy": {
-    "authorized": false,
-    "reason": "previous attempt stopped for implementation error; user explicitly prohibited automatic restart",
+    "authorized": true,
+    "reason": "Human explicitly authorized a fresh40m PPO run after completed zero-update precheck",
     "source_attempt": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\sources\\local\\MOD4V3_MOE_ROUTE2_FIXED200_2H_20261117",
     "previous_training_start": "2026-11-17T20:30:31.928145+08:00",
     "original_absolute_deadline": "2026-11-17T22:30:31.928145+08:00",
@@ -405,7 +389,11 @@
     "do_not_automatically_shift_deadline": true,
     "conditional_restart_authorized_by_latest_human_message": true,
     "conditional_authorization_message": "三项一起修完并通过0-PPO预检后再正式启动本轮",
-    "awaiting_explicit_clock_rebase": true
+    "awaiting_explicit_clock_rebase": false,
+    "superseded_original_absolute_deadline": "2026-11-17T22:30:31.928145+08:00",
+    "deadline_basis": "actual PPO start +2400s; no absolute limit inherited from superseded round",
+    "prior_elapsed_is_historical_not_deducted_from_new40m": true,
+    "human_authorization_message": "开始40分钟ppo训练"
   },
   "human_conditional_start_authorized": true,
   "startup_repair": {
@@ -485,5 +473,25 @@
       "recent_success_rate": 0.6
     },
     "all_transitions_at_environment_reset_only": true
+  },
+  "human_40m_authorization": {
+    "approved_at_recorded": "2026-11-17T22:17:30.573540+08:00",
+    "human_message": "开始40分钟ppo训练",
+    "authorized_seconds": 2400,
+    "clock_basis": "fresh actual PPO start; supersedes previous absolute deadline for this round only",
+    "work_seconds": 2340,
+    "save_close_reserve_seconds": 60,
+    "automatic_extension": false,
+    "automatic_restart": false,
+    "automatic_promotion": false,
+    "previous_attempt_seconds_historical_only": 326.8371746430057
+  },
+  "startup_retry": {
+    "reason": "legacy7200s_assert_before_first_PPO",
+    "previous_training_job": "train_fixed200_dr_curriculum_40m",
+    "previous_PPO_updates": 0,
+    "previous_Adam_steps": 0,
+    "not_a_post_training_restart": true,
+    "original_40m_budget_unchanged": true
   }
 }

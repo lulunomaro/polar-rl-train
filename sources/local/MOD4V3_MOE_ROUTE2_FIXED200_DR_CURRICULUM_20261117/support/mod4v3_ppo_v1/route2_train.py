@@ -1,4 +1,4 @@
-"""Train the independent Route2 stair expert within a strict7200s budget."""
+"""Train the independent Route2 stair expert within the explicitly authorized2400s budget."""
 from pathlib import Path
 import argparse
 import hashlib
@@ -40,6 +40,7 @@ def main():
     parser.add_argument('--parallel-suite',action='store_true')
     args=parser.parse_args();plan=json.loads(Path(args.plan).read_bytes())
     assert plan.get('PPO_training_authorized') and plan.get('human_restart_authorized'), 'Human restart authorization required before native app or job creation'
+    assert args.seconds == plan['authorized_PPO_seconds'] == plan['strict_timing']['maximum_seconds'] == 2400
     job=Path(args.job);job.mkdir(parents=True,exist_ok=False)
     storage=job/'kit_isolation';(storage/'data').mkdir(parents=True)
     (storage/'DerivedDataCache').mkdir();(storage/'data/user.config.json').write_text('{}')
@@ -188,7 +189,7 @@ def main():
             ctrl_mode_obs_enabled=bool(getattr(env.reward.cfg,'ctrl_mode_obs_enabled',False))))
         if args.profile in ('rough_r0','rough_r1','rough_r2','rough_scut_v0','rough_scut_v1'):put(job/'TERRAIN_STARTUP.json',env.terrain_summary())
         if args.profile in ('rough_r2','rough_scut_v1'):put(job/'R2_STARTUP.json',env.r2_summary())
-        assert args.mode=='train' and plan['PPO_training_authorized'] and args.seconds==plan['authorized_PPO_seconds']==7200
+        assert args.mode=='train' and plan['PPO_training_authorized'] and args.seconds==plan['authorized_PPO_seconds']==2400
         assert hashlib.sha256(Path(plan['parent']).read_bytes()).hexdigest()==plan['locked_v1_sha256']
         from .route2_common import HistoryQueue,action_mlp
         from .route2_optimizer import route2_update
@@ -260,10 +261,9 @@ def main():
         algorithm.train_mode();env.begin_training_counts()
         import datetime
         start_mono=time.monotonic();start_epoch=time.time()
-        original_deadline=datetime.datetime.fromisoformat(plan['restart_policy']['original_absolute_deadline']).timestamp()
-        remaining_compute=7200.-plan['restart_policy']['previous_elapsed_seconds']
-        effective_seconds=min(float(args.seconds),remaining_compute,original_deadline-start_epoch)
-        assert effective_seconds>2460.,'Less than40m plus safe-close reserve remains before original deadline'
+        original_deadline=datetime.datetime.fromisoformat(plan['restart_policy']['superseded_original_absolute_deadline']).timestamp()
+        effective_seconds=float(args.seconds)
+        assert effective_seconds == 2400., 'Explicit fresh40m authorization required'
         deadline=start_mono+effective_seconds;stop_work=deadline-60.
         from .startup_telemetry import StartupTelemetry
         startup=StartupTelemetry(env)
@@ -287,10 +287,10 @@ def main():
             result=original_step(*a,**kw);adam_steps+=1
             return result
         algorithm.optimizer.step=counted_step
-        put(job/'TRAINING_CLOCK.json',dict(epoch=start_epoch,requested_seconds=7200,effective_this_run_seconds=effective_seconds,planned_end_epoch=start_epoch+effective_seconds,strict_max_seconds=7200,original_absolute_deadline_epoch=original_deadline,previous_attempt_seconds=plan['restart_policy']['previous_elapsed_seconds'],save_close_reserve_seconds=60,monotonic_start=start_mono,work_cutoff_monotonic=stop_work,deadline_monotonic=deadline,automatic_restart=False,automatic_extension=False,automatic_promotion=False,parent_sha256=plan['locked_v1_sha256']))
+        put(job/'TRAINING_CLOCK.json',dict(epoch=start_epoch,requested_seconds=args.seconds,effective_this_run_seconds=effective_seconds,planned_end_epoch=start_epoch+effective_seconds,strict_max_seconds=args.seconds,superseded_original_absolute_deadline_epoch=original_deadline,previous_attempt_seconds=plan['restart_policy']['previous_elapsed_seconds'],save_close_reserve_seconds=60,monotonic_start=start_mono,work_cutoff_monotonic=stop_work,deadline_monotonic=deadline,automatic_restart=False,automatic_extension=False,automatic_promotion=False,parent_sha256=plan['locked_v1_sha256']))
         def save(name):
             data=algorithm.save()
-            data.update(frozen_v1_E1_state_dict=algorithm.initial_v1_e1.state_dict(),initial_exploration_std=algorithm.initial_exploration_std,v1_anchor_action_scale=algorithm.v1_anchor_action_scale,early_stop=early_stop_info,format='MOD4V3_MOE_ROUTE2_V1',iter=iteration,PPO_updates_in_experiment=iteration,actual_Adam_steps=adam_steps,partial_update=partial_update,route2=plan['route2'],route2_recipe=plan['route2'],action_order=env.order,num_envs=env.num_envs,learning_rate=algorithm.learning_rate,training_elapsed_seconds=time.monotonic()-start_mono,source_asset=plan['asset_identity'],continuous_stair=plan['continuous_stair'],curriculum_summary=curriculum(),terrain_curriculum_state=env.terrain_checkpoint_state(),r2_curriculum_state=env.r2_checkpoint_state(),domain_randomization_state=env.full_dr.checkpoint_state() if hasattr(env.full_dr,'checkpoint_state') else None,cpu_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all(),python_rng=random.getstate(),numpy_rng=np.random.get_state(),reset_rng=env.reset_generator.get_state(),reward_tensors={k:v for k,v in vars(env.reward).items() if torch.is_tensor(v)},reward_sums=env.reward._episode_sums,done_totals=env.done_totals,physics_ticks=physics_ticks,full_DR=env.mild_dr.summary(),normal_isolation=isolation(),resume_scope='complete PPO/Adam/STD/RNG/DR/course; fresh physical episodes; no automatic restart',clock=dict(start_epoch=start_epoch,deadline_epoch=start_epoch+7200))
+            data.update(frozen_v1_E1_state_dict=algorithm.initial_v1_e1.state_dict(),initial_exploration_std=algorithm.initial_exploration_std,v1_anchor_action_scale=algorithm.v1_anchor_action_scale,early_stop=early_stop_info,format='MOD4V3_MOE_ROUTE2_V1',iter=iteration,PPO_updates_in_experiment=iteration,actual_Adam_steps=adam_steps,partial_update=partial_update,route2=plan['route2'],route2_recipe=plan['route2'],action_order=env.order,num_envs=env.num_envs,learning_rate=algorithm.learning_rate,training_elapsed_seconds=time.monotonic()-start_mono,source_asset=plan['asset_identity'],continuous_stair=plan['continuous_stair'],curriculum_summary=curriculum(),terrain_curriculum_state=env.terrain_checkpoint_state(),r2_curriculum_state=env.r2_checkpoint_state(),domain_randomization_state=env.full_dr.checkpoint_state() if hasattr(env.full_dr,'checkpoint_state') else None,cpu_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all(),python_rng=random.getstate(),numpy_rng=np.random.get_state(),reset_rng=env.reset_generator.get_state(),reward_tensors={k:v for k,v in vars(env.reward).items() if torch.is_tensor(v)},reward_sums=env.reward._episode_sums,done_totals=env.done_totals,physics_ticks=physics_ticks,full_DR=env.mild_dr.summary(),normal_isolation=isolation(),resume_scope='complete PPO/Adam/STD/RNG/DR/course; fresh physical episodes; no automatic restart',clock=dict(start_epoch=start_epoch,deadline_epoch=start_epoch+effective_seconds))
             output=job/name;tmp=output.with_name(output.name+'.partial')
             with tmp.open('wb') as stream:
                 torch.save(data,stream);stream.flush();os.fsync(stream.fileno())

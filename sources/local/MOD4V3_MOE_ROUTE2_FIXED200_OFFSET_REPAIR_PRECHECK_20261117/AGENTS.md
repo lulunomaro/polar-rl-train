@@ -1,0 +1,1 @@
+本目录仅修复五起点与DR分组混淆并执行2048环境600步零PPO预检。PPO训练未获重启授权，不得自动开训、重启或移动原22:30:31.928145截止。锁定v1/a55eeaed；所有历史目录只读。只有用户明确允许后才能设置human_restart_authorized与PPO_training_authorized。

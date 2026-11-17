@@ -1,0 +1,291 @@
+{
+  "runtime": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/launcher",
+  "shared_package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/package",
+  "package": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/native_package",
+  "source_paths": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/SOURCE_PATHS.remote.json",
+  "reset_bank": "/home/egde/rl_candidates/mod4v3_continuous_stairs_200mm_2h_20261113_r1/dependencies/reset_bank.json",
+  "asset_identity": {
+    "source": "MOD4V3_SCUT_TARGET_NATIVE_1793993162336813600",
+    "local": "copied_to_210",
+    "actual_training_assets": {
+      "robot.usd": {
+        "sha256": "e057969b136fd75613bb8d77985d43d043f54faae62dc060afb718ebabbe1c1c",
+        "bytes": 8846708
+      },
+      "robot_physx.usda": {
+        "sha256": "edc5380d1301cd0ece6b95fb1d81c88dc43c0ad43b39d10d20b3876b3f967aa9",
+        "bytes": 3969
+      },
+      "import_contract.json": {
+        "sha256": "76784aa2796a8a9aa5ff4d638be47f425da3d0dd0af94db7286467358808af4c",
+        "bytes": 12259
+      }
+    },
+    "local_mjcf_sha256": "77904c001262d53bdb5ec59b270dc24588b7c1aee8c9ba59d8c85074720c8d8f"
+  },
+  "python": "/home/egde/anaconda3/envs/fangzhen-isaaclab/bin/python",
+  "flat_preservation": {
+    "fraction_of_flat": 0.5,
+    "fraction_of_all_envs": 0.125,
+    "expected_num_envs": 256,
+    "normal_ground_resets": true,
+    "tasks": [
+      [
+        "forward20",
+        2,
+        0,
+        0.28
+      ],
+      [
+        "forward22",
+        2.2,
+        0,
+        0.28
+      ],
+      [
+        "reverse15",
+        -1.5,
+        0,
+        0.28
+      ],
+      [
+        "yaw14137",
+        0,
+        14.137166941154069,
+        0.28
+      ],
+      [
+        "height020",
+        0,
+        0,
+        0.2
+      ],
+      [
+        "height040",
+        0,
+        0,
+        0.4
+      ]
+    ],
+    "command_fixed_for_episode": false,
+    "reward_unchanged": "Original symmetric -1.5e2 plus exponential1.2",
+    "other_flat_and_rough_sampling": "Unchanged original tasks including eligible airborne resets",
+    "command_fixed_after_original_ground_warmup": true,
+    "original_ground_reset_warmup_s": 1.5,
+    "expected_nominal_envs": 51
+  },
+  "pitch_stability": {
+    "rough_level": 9,
+    "rough_family": "random_uniform_for_rm",
+    "target_fraction_of_retained_rough": 0.5,
+    "target_flat": "non-preservation half of plane environments",
+    "grounded_start_stop_only": true,
+    "command_speeds_m_s": [
+      0.6,
+      1.2,
+      2,
+      2.2
+    ],
+    "heights_m": [
+      0.28,
+      0.4,
+      0.42
+    ],
+    "initial_stand_s": 2,
+    "run_s": 1,
+    "stop_s": 2,
+    "alternate_forward_reverse": true,
+    "no_command_smoothing": true,
+    "pitch_deadband_deg": 0,
+    "pitch_excess_square_coefficient": 0,
+    "pitch_rate_square_coefficient": 0.05,
+    "reward": "-dt*(0.25*(2*exp(-cmd_vx^2/3)+2)^2*sin(pitch)^2+2*(1-exp(-sin(pitch)^2/0.02))+0.05*omega_y^2); native SCUT base retained",
+    "ground_contact_gate": "First actual wheel contact>5N arms episode latch for target ground-only specialist; unloading does not bypass; cleared on reset; stairs and planned airborne retain original rewards",
+    "teacher_keep": "all1229 non-curriculum environments incl615 retained pitch targets",
+    "original_velocity_rewards_unchanged": false,
+    "spawn_grid_fix": "Random-column non-target neighbors use separate bounded0.8m grid;target359env grid0.15m;2048env actual zero-update probe200steps confirms initial random ground inside original4m boundary",
+    "diagnostic_first": true,
+    "proposed_only_until_probe": false,
+    "sampling": "50Hz endpoint;400Hz diagnostic energy only1.435pct larger; timing unchanged",
+    "prediction_horizon_s": 0,
+    "predicted_pitch_excess_square_coefficient": 0,
+    "prediction_window": "first0.4s after each hard start or hard stop; specialist only",
+    "parent_selection": "Adopted11/16 low-pitch c874 iter25362",
+    "phase_timing": "Capture action issuance age before physics; reward uses this frozen age after episode buffer increments; no other objective or hardware change",
+    "velocity_fix": "Exact horizontal reward on pitch targets and new stairs; original speed coefficients"
+  },
+  "current_closure_contract": {
+    "scope": "MOD4v3 SCUT native PPO including this new curriculum",
+    "human_messages": [
+      {
+        "local_time": "2026-11-09T00:43:15.296+08:00",
+        "quote": "我的意思是2mm不要重置环境这是可接受的华南虎没有限制这个"
+      },
+      {
+        "local_time": "2026-11-10T01:28:08.671+08:00",
+        "quote": "2mm门控早没了"
+      }
+    ],
+    "source_thread": "01a088fc-06aa-7ae1-8644-33f67fe91e95",
+    "closure_2mm": "diagnostic only; not reward,reset or whole-run stop",
+    "ten_mm_note": "OlderNov1 rule is not the latest SCUT contract; do not substitute a new10mm gate",
+    "catastrophic_closure_single_env_reset_m": 1,
+    "existing_numeric_mimic_nonfinite_and_full_save_protections_retained": true,
+    "old_rejections_preserved_not_relabelled": true
+  },
+  "physics_configuration": {
+    "physics_dt_s": 0.0025,
+    "TGS_position_iterations": 32,
+    "TGS_velocity_iterations": 4,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02
+  },
+  "expected_env_groups": {
+    "continuous_stairs": 819,
+    "retained_rough": 717,
+    "flat": 512
+  },
+  "experiment": "MOD4V3_MOE_ROUTE2_PRECHECK_20261117",
+  "root": "/home/egde/rl_candidates/mod4v3_moe_route2_precheck_20261117_r1",
+  "support": "/home/egde/rl_candidates/mod4v3_moe_route2_precheck_20261117_r1/support",
+  "parent": "/home/egde/rl_candidates/mod4v3_moe_route2_precheck_20261117_r1/model_probe.pt",
+  "seed": 67,
+  "authorized_PPO_seconds": 0,
+  "PPO_training_authorized": false,
+  "proposed_training_seconds": 2400,
+  "alternative_only_if_human_approves_seconds": 7200,
+  "no_automatic_extension": true,
+  "no_automatic_promotion": true,
+  "teacher_retention": {
+    "enabled": false
+  },
+  "online_success_replay": {
+    "enabled": false
+  },
+  "brake_distillation": {
+    "enabled": false
+  },
+  "route2": {
+    "E0_source": "D:\\claude2\\fangzhen\\_mod4v2_src_20261106\\deliveries\\MOD4V3_LOW_PITCH_20261116\\model_full_ppo.pt",
+    "E0_sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617",
+    "E0_frozen": true,
+    "E0_STD_semantics": "original scalar Gaussian standard deviations, frozen exactly",
+    "E1_history_H": 12,
+    "E1_current_obs": 35,
+    "E1_latent": 16,
+    "E1_encoder": [
+      420,
+      128,
+      64,
+      16
+    ],
+    "E1_actor": [
+      51,
+      256,
+      128,
+      64,
+      6
+    ],
+    "E1_trainable": [
+      "encoder",
+      "complete action head",
+      "independent6D logSTD",
+      "independent78D critic"
+    ],
+    "E1_initial_std": [
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.6,
+      0.6
+    ],
+    "E1_keep_loss": 0,
+    "E1_paired_keep_loss": 0,
+    "routing": "g=1 iff existing stair mode bit obs[29]>0.5, for entire episode; else g=0",
+    "learned_gate_in_this_round": false,
+    "privileged_policy_inputs": false,
+    "history_includes_current": true,
+    "history_reset": "repeat first observation",
+    "a_prev": "one shared actual executed previous action"
+  },
+  "height_curriculum": {
+    "heights_m": [
+      0.1,
+      0.14,
+      0.17,
+      0.2
+    ],
+    "consecutive_successes_to_promote": 3,
+    "per_environment": true,
+    "promotion_only_at_reset": true,
+    "review_fraction": 0.0,
+    "training_speed_limits_m_s": [
+      0.8,
+      0.7,
+      0.6
+    ],
+    "strict_final_speed_limit_m_s": 0.6,
+    "stable_hold_s": 0.4,
+    "no_stationary_completion": true,
+    "body_height_command_by_step": ".2091m + current step height, up to.4091m; settled approach before move",
+    "speed_tightening": "after reaching20cm, three stable completions per speed stage; final graduation requires strict0.6"
+  },
+  "continuous_stair": {
+    "course": "route2_height_curriculum",
+    "heights_m": [
+      0.1,
+      0.14,
+      0.17,
+      0.2
+    ],
+    "steps": 1,
+    "edge_distance_m": 1.5,
+    "platform_width_m": 3,
+    "tile_size_m": [
+      9,
+      9
+    ],
+    "command_vx_m_s": [
+      0.3,
+      0.5
+    ],
+    "maximum_actual_entry_speed_m_s": 0.6,
+    "minimum_actual_entry_speed_m_s": 0.1,
+    "settle_seconds": 1.5,
+    "stable_hold_seconds": 0.4,
+    "stable_pitch_roll_deg": 25,
+    "stable_rate_rad_s": 1.5,
+    "failures_before_demotion": null,
+    "easy_review_fraction": 0,
+    "one_success_advances_one_env_at_next_reset": false,
+    "physics_dt_s": 0.0025,
+    "leg_feedback_s": 0.01,
+    "wheel_feedback_s": 0.0025,
+    "policy_dt_s": 0.02,
+    "full_DR_ranges_unchanged": true,
+    "actor35_critic78_action6": false,
+    "velocity_reward": "original -1.5e2 sigma1 plus exponential1.2",
+    "teacher_on_curriculum": true,
+    "new_course_state_not_old_fixed_rows": true,
+    "solver": "Original selected TGS32/4, physics2.5ms, no precision sweep",
+    "closure_2mm_diagnostic_only": true,
+    "enforce_closure_reset": false,
+    "catastrophic_closure_single_env_reset_m": 1,
+    "curriculum_enabled": true,
+    "commanded_root_height_m": 0.4091,
+    "command_root_height_after_double_top_landing_m": 0.2,
+    "speed_ladder_m_s": [
+      0.8,
+      0.7,
+      0.6
+    ],
+    "formal_eval_speed_limit_m_s": 0.6,
+    "training_speed_promotion_consecutive_successes": 3,
+    "consecutive_successes_to_promote": 3,
+    "curriculum_only": true
+  },
+  "parent_sha256": "a55eeaed11ed7c7471444e1369153824b3fe79544e59296c911a3235507bd7a4",
+  "local_skill_preflight_passed": false
+}

@@ -1,3 +1,17 @@
+## 2026-11-18 02:43 抽搐/深蹲根因修复并启动接触门控+台顶驻车40分钟PPO
+
+上一轮MOD4V3_MOE_ROUTE2_LOWSPEED_PARK_REPAIR_20261118因10m视频暴露平地助跑塌腰深蹲(0.18m)与左右抽搐，已通过REQUEST_STOP在1561.902s安全停机(158PPO/1896Adam，最终SHA 605348f2，SAFE_CLOSED落盘，GPU释放，纯E1越边5/5但正式0/5、flat60 60/60，原件完整保留)。根因为无门控单MLP同时拟合平地高姿直走与触墙收腿产生cos=-0.718梯度冲突导致深蹲擦地抽搐。
+
+新独立实验MOD4V3_MOE_ROUTE2_ELEGANT_GATED_PPO_20261118重构纯学生E1(35+420->6，0运行时教师、0特权/世界坐标输入)：(1)E1内置冻结高姿直走基座approach_base+冻结纯历史接触门控gate，平地100%高姿笔直零抽搐，触阶自动切换可训练攀爬头head；(2)双轮上台切低姿(obs[3]<1.5)路由至经LQR制动+闭环DAgger预热的独立可训练台顶驻车头top_head，上台稳稳刹停；(3)加入双侧腿/轮对称损失、前5维物理编码锚定、低STD[0.012..0.025]，剔除旧v1深蹲回放，仅装入新起点<=0.60m/s干净成功轨迹(2850帧，含150帧锁死静站)。本地预检model_step000.pt(SHA 1c072fc4)纯学生5起点实测：正式<=0.60m/s通过3/5(-60/0/+30mm)、双轮越边5/5、物理稳态5/5、E0 flat60 60/60，1x视频已逐帧核验优雅无抽搐。
+
+远端600步0PPO预检native_elegant_gated_probe_r1通过并释放显存(0更新即在Isaac Sim完成6次完整攀爬+1s台顶驻车[[4],[2]])。主训练job=train_elegant_gated_40m已于2026-11-18T02:42:27.974920+08:00实际开训，03:21:27.974920+08:00停算保存，03:22:27.974920+08:00硬截止(2400s，PID 3722817/守护3722818)。首轮1PPO/12Adam核验通过(model_first_complete.pt SHA ea8cf42a)：E1_head/E1_top_head/E1_encoder/E1_STD/E1_critic五组均实际更新，E0与冻结基座/门控变化及梯度全0；本地monitor守护已启动。默认c874/CURRENT、原010m/8391及所有物理/DR硬边界不变。
+
+## 2026-11-18 01:16 人类授权新40分钟：低速助跑+台顶停车(v=0,h=0.20)+四阶段锁静站回放已实际PPO开训
+
+实验MOD4V3_MOE_ROUTE2_LOWSPEED_PARK_REPAIR_20261118，job=train_lowspeed_park_40m。实际PPO 2026-11-18T01:15:23.026543+08:00；2026-11-18T01:54:23.026543+08:00停算保存，2026-11-18T01:55:23.026543+08:00硬截止，2400秒新独立预算，无自动延长/重启/晋升。父权重锁定原v1/a55eeaed；首轮1PPO/12真实Adam，model_first_complete.pt SHA 9d846a3f，E1四组均实际更新，E0 actor/STD/critic变化与梯度全0。远端训练/守护PID 3679400/3679401，本地monitor守护已启动（含5~35m每5m检查点视频+flat60及最终全回归）。
+
+视频与闭环审查定位四项根因并修复：(1)原v1在评测台顶停车指令(v=0,h=0.20)下实测以vx=-0.95m/s倒车掉台，且旧训练满0.4s即重置从未练停车；新环境满0.4s移动稳态后切v_cmd=0、要求继续完成1.0s(<=0.20m/s)台顶驻车才算完成，并在(v=0,h=0.20)处将v1锚置0；(2)永久8.0静站锚收紧至t<1.0s高姿静站，消除1.0~1.5s强迫复刻v1的1.03m/s猛冲；(3)回放拆为settle_high/approach/top_climb/top_park四独立池，原v1的150帧静站永久锁死不淘汰，剔除04c0211c冲刺样本，仅用v1+上轮8条<=0.71m/s干净成功回合(5444帧)冷启动，在线入池限速<=0.78→0.60m/s；(4)新增>0.54m/s软限速、提高height_aux至0.30抑深蹲，爬墙瞬时俯仰峰放宽至38°(台顶仍<25°)。600步0PPO预检r2已通过并安全释放GPU(r1因float32(1.2)比较断言0PPO退出亦完整保留)。默认c874/CURRENT、原010m/8391及所有物理/DR硬合同不变。详见本目录REPAIR_REPORT.md与LAUNCH_REPORT_40M.md。
+
 ## 2026-11-18 00:32 台顶连续奖励40m已全部收尾：不采用，E0保住、E1正式0/5
 
 MOD4V3_MOE_ROUTE2_DENSE_TOP_REPLAY_REPAIR_20261117实际2340.442s（39m00s，按计划预留关闭），332PPO/3984真实Adam，最终f2f21eef；训练/守护退出、GPU释放，无强杀/重启/延长/晋升。partial仅未完成rollout，无额外Adam。
@@ -330,6 +344,12 @@ DAgger30例18合格12失败，23个episode/8391帧；旧错误严格速度RESULT
 
 大速度权重表、去位置领先及预测间隙等未通过探针已回退并保留。207例acceptance_v1由用户停止，旧47个已完成结果仍保留，未重启矩阵。70/100/150mm、其他速度、初始±10°和多跳高没有当前版完整验收。学生/PPO优化器更新0，默认c874/iter25362及CURRENT_COMPREHENSIVE_MODEL.json不变；35/78/6、2.5ms/100Hz/400Hz/50Hz、原电机和PD限制不变；2mm仅诊断。下一步只定位-30mm落台/接管失败，再恢复扩展验收，不先开蒸馏。详见sources/local/MOD4V3_SERIAL_LQR_SKILL_TEACHER_20261116/equivalent_controller_v1/STEP200_PHASEPLANE_REPORT.md；全部五例视频在replays_step200_phaseplane/。下方旧“本分支最新”及c874轮平衡描述均为历史，不能覆盖本条。
 
+## 2026-11-16 Serial LQR/VMC技能教师与200mm迁移（本分支最新）
+
+用户要求让Serial_Leg_Simulation的LQR/VMC教MOD4v3跳跃/上阶，随后要求试迁移200mm。已验证MOD4名义MuJoCo教师执行：平地跳跃双轮离地/稳定落地、7cm上阶通过、200mm标准起点通过。200mm最终起点[-60,0,+60]mm复核仅1/3：-60mm短暂登台后后仰，+60mm未稳定登台；不能称鲁棒能力或学生已学会。标准起点指令0.4m/s、实际入阶水平0.480m/s，4.88s双轮实际顶部支撑且车身越边，5.72s完成连续稳定0.4s，技能俯仰峰值14.62°。关键适配为补齐触阶前承重、完整径向力/摆矩经MOD4雅可比映射、保留c874轮平衡、教师内部低姿态接管。
+
+成功MOD4观测动作已整理为826帧/3个episode，技能监督+c874保留损失入口完成梯度检查，但未执行任何学生/PPO优化器更新，未安装到原2h作业。使用35维既有7项mode字段，不新增维度；默认仍c874/iter25362，2mm仅诊断。源教师SHA3a997e3，全部失败及回放归档于sources/local/MOD4V3_SERIAL_LQR_SKILL_TEACHER_20261116/REPORT.md。原WASD播放器未修改。
+
 ## 2026-11-16 单台阶固定回放纠正与7cm诊断
 
 低速单阶旧固定评测误认step_1，而场景实际碰撞体为step_2，顶部接触/通过统计无效；此前固定0/45不能继续当可靠成功率。已按实际碰撞体及顶面高度识别，协议SINGLE_STEP_TOP_GEOMETRY_V2，汇总器排除旧协议。原生课程不按该名字查找接触，等级统计不受影响。修正后父模型c874和本轮45m模型在7cm/0.4m/s五起点各0/5；45m单起点提高速度到1.2m/s可双轮实际登台，提高站高到0.4m低速仍失败。低速轮心仅升至0.073/0.078m，正常7cm落台轮心约0.1325m；证据支持低速抬轮动作未形成。819课程环境在诊断时仍全停5cm，7cm训练尝试0。详见sources/local/MOD4V3_LOW_SPEED_STAIR_CURRICULUM_2H_20261116/diagnosis_7cm_20261116/REPORT.md。仅修正回放与汇总，正在运行的原生PPO继续原预算。
@@ -377,25 +397,79 @@ DAgger30例18合格12失败，23个episode/8391帧；旧错误严格速度RESULT
 
 ---
 
-# MOD4 Git 记录必须遵守
+# Agent rules for this workspace (RM2026 wheel-legged robot)
 
-人类2026-10-09明确要求所有试错和所有报告都用Git记录。读取 [完整记录政策](docs/ALL_TRIALS_AND_REPORTS_GIT_POLICY.md) 与 [既有追加工作流](docs/NEXT_AI_GIT_WORKFLOW.md)。
+Read this before you touch the robot model, launch training, or export a policy.
+These rules exist because 2026-09-10 two AI runs trained on a retired plant and on a
+plant that did not match the deployment firmware.
 
-所有真实成功/失败/拒绝/回退保留独立ID和证据；所有保存的报告，包括同步/验证回执、读者错误、交接和后续补充都需提交。旧失败/false/raw不可改成pass，也不可只归档成功摘要。阶段报告可以合并一次记录，阶段归档后生成的报告必须再补入Git或如实标pending，不能遗漏。
+## 1. The only live robot plant is MOD4
 
-使用archive_tools/record_experiment.py，唯一annotated trial并核验remote main/tag/peeled；推送失败只续已有objects。健康无新报告无需造trial。凭据禁止归档；权重和大型原件只SHA/路径索引。主训练、生产源与canonical预算不因归档修改或暂停，旧once不重跑。
+* MuJoCo / mjlab plant: `incoming/rm2025_mod4/robot_hifi.xml`, pinned by
+  `incoming/rm2025_mod4/PLANT_PROVENANCE.json` (sha256 `e91ce284..`).
+* Isaac Lab / PhysX asset: `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/robot.usd`
+  plus the `import_contract.json` next to it. Do NOT regenerate that USD with a generic
+  MJCF importer - the closed loops and the 1:1 chain couplings are authored into it.
+* **Everything under `incoming/rm2025_fixed/` is RETIRED (0908 and 0910).** There is no
+  `robot_hifi.xml` there any more; the 0910 file was renamed to `robot_hifi_0910.xml` so
+  nothing can select it by default. Read `incoming/rm2025_fixed/DO_NOT_USE.md` before you
+  even think about it, and never wire it back into `names.py`. If something asks for
+  `incoming/rm2025_fixed/robot_hifi.xml`, the correct answer is "that plant is retired",
+  not "restore the file".
+* `train/rmvehicle/src/rmvehicle/robot_cfg.py` raises for any plant path that resolves
+  inside `rm2025_fixed/`; `scripts/check_model_identity.py` refuses to train when the
+  plant hash or a pinned number disagrees with the provenance file.
 
-# 三张4090的持续调度要求
+## 2. Entry points
 
-人类2026-10-16明确要求：“3张4090要最大程度利用好别让显卡空闲浪费算力时间”。这是持续有效的资源调度偏好。
+| purpose | entry point |
+|---|---|
+| production RL (mjlab, MuJoCo-Warp, MOD4 MJCF) | `migration/linux/run_closed_chain_training.sh` |
+| plant identity gate | `scripts/check_model_identity.py --task RM2025-Later-CC-Flat-v0` |
+| Isaac Lab training (PhysX, MOD4 USD) | `isaac/mod4/train_mod4_ppo.py` |
+| Isaac Lab physics acceptance | `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/isaac/smoke_test.py` (must print `PASS_RUNTIME_BOUNDED`) |
+| deployment gate | `sim2real/preflight_deploy.sh` with the exported ONNX |
 
-- 提前准备下一项已授权任务的源码、检查点、准入与交接；在实际完成、安全保存和资源释放后及时接续。
-- 三张4090优先分别推进专家；3060承担冻结评测。一个科目等待评测时，优先安排其他已有明确授权且准入通过的工作。
-- 记录空闲卡的实际原因与可执行的下一步，主动推进可完成的准备，避免仅排队或等待下一次巡检。
-- 本偏好不单独批准新科目、奖励修改、新训练窗、并发计账合同、预算增加或旧试验重跑；实际任务仍须符合既有授权、资源与原canonical计账边界。不得为提高利用率重放已消费任务、关闭安全检查或干扰其他进程。
+`migration/linux/run_allterrain_training.sh`, `run_skills_training.sh`, `run_training.sh`,
+`run_final_*.sh`, `run_teacher_view.sh`, `run_spin_pure.sh`, `supervise_*.sh` and
+`finalize_refine.sh` are the retired 0908/0910 serial-teacher pipeline. They now exit 2
+unless `ALLOW_RETIRED_TEACHER=1` is set, and their checkpoints were never deployable.
 
-# 数值审计与训练门槛的范围
+## 3. Contracts you may not silently change
 
-2026-11-01人类明确更新：“还有闭链误差调整到10mm终止”。未来新MOD4训练和评测采用0.01m单环境episode重置，覆盖历史2mm数值；实体闭环、奖励、solver和mimic .01rad不因此修改。原2mm记录和冻结source/INDEX/once不可改写；旧未执行2mm任务需另建10mm版本和新准入。按[门槛范围与历史依据](docs/NUMERICAL_AUDIT_AND_TRAINING_GUARDS_20261021.md)的最新更新执行。
+* Policy interface: 35-D observation, 6-D action in the exported order
+  `[left_crank, left_hip, right_crank, right_hip, left_wheel_spin, right_wheel_spin]`
+  (`train/deploy/contract_rm2025_later.json`). The passive knee is never an action.
+* Motor envelope (plateau / stall / no-load): legs 40 / 53.333 / 16.755,
+  wheels 5.7759 / 28.185 / 55.3557. Training and deployment must use the same numbers;
+  `scripts/check_model_identity.py` reads them back out of the compiled model.
+* Closed-chain guard: the six loop-closure anchors must stay within 2 mm in any engine
+  (mjlab/MuJoCo and Isaac/PhysX both enforce this). If the guard fires, stop and fix the
+  plant or the solver - do not raise the tolerance.
+* A model swap voids every existing checkpoint, ONNX and sim2sim contract. Retrain and
+  re-run the gates; never re-label old artefacts.
 
-人类2026-10-21核历史后明确“以后按照这个继续”。遵守[门槛范围与历史依据](docs/NUMERICAL_AUDIT_AND_TRAINING_GUARDS_20261021.md)：已选2.5ms/TGS32/4；闭链2mm是单环境重置，单峰不整批停训/回退1ms；查询1µm仅特定数值核验，不能升级成统一物理健康或毕业线。不要再用额外FP64、逐位相等、维度不符的三角边缘条件等新增审计规则反复阻断已授权工作。复用已过同源证据；原失败、实际任务所需检查与非有限/完整性/硬件/完整保存保护保留。
+## 4. Isaac Lab notes that cost hours on 2026-09-10
+
+* Isaac Lab 3.0/6.x uses (x, y, z, w) quaternions (identity `[0, 0, 0, 1]`); 2.x used
+  (w, x, y, z). Code that hard-codes the 2.x order reports phantom geometry errors - the
+  delivered `RuntimeGuard`/`smoke_test.py` did exactly that (a fake 0.36 m closure error).
+  Use `isaaclab.utils.math.quat_apply` instead of hand-rolled quaternion maths.
+* `SimulationCfg.physics` is `None` by default; solver settings only exist once you
+  assign a `PhysxCfg` (`isaaclab_physx.physics`).
+* Kit tears the interpreter down inside `app.close()` and can swallow a traceback, leaving
+  an exit code of 0 with no error text. Always wrap the entry point, write the traceback to
+  a file, then close (`isaac/mod4/train_mod4_ppo.py` and `isaac/mod4/probe_physx.py` show
+  the pattern).
+* Do not spawn terrain via the packaged "plane"/grid assets on a machine without Nucleus
+  access; build a local collider instead.
+* Local Isaac Lab venv: `.venv-isaaclab` (Isaac Sim 6.0.1, Isaac Lab 6.1.14, rsl-rl 5.x).
+  Run scripts with `.venv-isaaclab\Scripts\python.exe`.
+
+## 5. Where the evidence lives
+
+* `docs/ISAACLAB_MOD4_20260910.md` - Isaac Lab / PhysX MOD4 bring-up, training task, DR list.
+* `docs/SCUT_ALIGNMENT_AND_DEPLOY_20260909.md` - the SCUT/华南虎 randomization list.
+* `docs/MODEL_0910_VS_CURRENT.md`, `docs/AUDIT_0910_ADOPTION_RM2025.md` - why 0908/0910
+  were retired.
+* `incoming/chassis_mod4_mjcf_usd_20260910/chassis_mod4/reports/` - the delivery evidence.

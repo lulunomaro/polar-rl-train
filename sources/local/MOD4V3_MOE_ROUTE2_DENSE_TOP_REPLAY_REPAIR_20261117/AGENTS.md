@@ -1,3 +1,13 @@
+## 2026-11-18 00:32 台顶连续奖励40m已全部收尾：不采用，E0保住、E1正式0/5
+
+MOD4V3_MOE_ROUTE2_DENSE_TOP_REPLAY_REPAIR_20261117实际2340.442s（39m00s，按计划预留关闭），332PPO/3984真实Adam，最终f2f21eef；训练/守护退出、GPU释放，无强杀/重启/延长/晋升。partial仅未完成rollout，无额外Adam。
+
+全部最终冻结回归exit0：E0 flat60 60/60、双阶5/5、实际斜向1/20、下阶5/5、崎岖/平地急停13.56197/13.37020度；最终PT对真c874 E0 actor/STD/critic差0，保护SHA一致。纯E1正式0/5、真实越边/物理稳态事件各1/5，仅center最长.62s、末端.10s，峰速1.12934；其他四点未越边，不能只归因超速。首秒后退9.67cm，静站未守住。
+
+最终准确0DR训练完成78/9231，内部严格15不算独立正式成绩；819全center/1.5首档、实际fullDR人口0，无晋级。78条在线真实成功完整原始NPZ、43552帧已下载SHA/历史/a_prev校验，非原补采26条。FIFO已挤出全部原补采和静站，最终相位[0,29273,2984]；永久on-policy锚8仍生效，尚未隔离唯一根因。
+
+最终视频/曲线/报告齐，FINAL_VERIFICATION artifact_closure_verified=true但E1_formal_graduated=false；本轮不采用，不追加训练。原始自动报告/所有失败保留。默认c874/CURRENT/原010m/8391及物理硬边界不变。见FINAL_REPORT.md、FINAL_VERIFICATION.json及evidence/final_closure。
+
 ## 2026-11-18 00:18 台顶奖励修复轮30m：E0仍零变化，发现FIFO挤掉全部静站回放
 
 本轮MOD4V3_MOE_ROUTE2_DENSE_TOP_REPLAY_REPAIR_20261117的25/30m完整PT对真c874 E0 actor/STD/critic差全0。20m独立flat60后续已完整60/60；20m纯E1正式0/5、越边1/5、稳态0/5，未新增30m独立评测。30m model_030m/bedb4ae3已存257PPO/3084Adam。

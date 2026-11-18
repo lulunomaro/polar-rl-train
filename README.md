@@ -1,5 +1,15 @@
 # polar-rl-train
 
+<!-- POST_TRAINING_MASTER_20261118_START -->
+## 重点配方：后训练最牛逼配方（2026-11-18 同构型轮腿机器人多技能纯 RL 标准总纲）
+
+- **[直接打开：后训练最牛逼配方.md](后训练最牛逼配方.md)** · **[结构化配置 JSON](sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/mod4v3_reference_recipe.json)** · **[三专家统一部署模型 `bed1da66`](sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/weights/model_unified_3expert_moe.pt)** · **[串联演示视频](sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/media/UNIFIED_ALL_SKILLS_COURSE_1X.mp4)**
+- 完整沉淀了 `MOD4v3` 同构型双足并联四连杆轮腿机器人在**零运行期教师、零状态机、零特权输入（纯 `obs 35D + history 420D -> act 6D`）且冻结基座 `E0 (c874)` 严格 `0.0` 误差**前提下的全套后训练方法、踩坑根因、数学公式、超参数与复现脚本：
+  1. **单级 `200 mm` 轮腿优雅上台阶 + 台顶零速驻车**：[model_rl_stair_best.pt](sources/local/MOD4V3_RL_SINGLE200_FULLDR_5OF5_20261118/weights/model_rl_stair_best.pt)（`a1acd1a8`，原版 `evaluate_student200.py` 五起点 **`5/5 (100%)`** 严格 `<=0.60 m/s` 满分通过，`0/26` 滑落，`E0` 四项回归全 `exit 0`）；
+  2. **平机身低俯仰（腾空 `<=8.70°` / 全程 `<=10.82°`）COD 式前向跳扑 + 直跳 `16/20/24 cm` 高台**：[model_rl_forward_leap_best.pt](sources/local/MOD4V3_RL_FORWARD_LEAP_STEP_JUMP_20261118/weights/model_rl_forward_leap_best.pt)（`79e27807`，`0-DR` **`45/45 (100%)`** 达标且全 `0.0 N` 零擦碰，直跳高台 **`25/25 (100%)`** 登顶零掉台）；
+  3. **同构型新机器人 6 步一键迁移 SOP 与三专家零干扰合成工具**：[adapt_new_wheel_leg_robot.py](sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/scripts/adapt_new_wheel_leg_robot.py) / [unified_all_skills_moe.py](sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/scripts/unified_all_skills_moe.py)。（原默认综合模型保持不变）
+<!-- POST_TRAINING_MASTER_20261118_END -->
+
 <!-- ORDERED_REARWARD_20261115_START -->
 ## 2026-11-15：先后摆、承重后收腿，40分钟独立训练
 

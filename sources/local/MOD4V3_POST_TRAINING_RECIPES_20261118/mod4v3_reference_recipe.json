@@ -17,69 +17,62 @@
     "history_steps": 12,
     "critic_obs_dim": 78
   },
-  "derived_geometry": {
-    "tall_leg_vertical_length_m": 0.3466,
-    "crouch_leg_vertical_length_m": 0.1375,
-    "recommended_single_step_height_m": 0.22,
-    "recommended_continuous_2step_heights_m": [
-      0.22,
-      0.44
-    ],
-    "recommended_2step_tread_depth_m": 1.5,
-    "obs3_tall_command": 2.0455,
-    "obs3_top_park_command": 1.0
+  "graduated_reference_checkpoints": {
+    "e0_frozen_locomotion": {
+      "path": "deliveries/MOD4V3_LOW_PITCH_20261116/model_full_ppo.pt",
+      "sha256": "c874a1afa9adc33c3fa806d098fc135a76d3e9ecdf411d0ca4ab879696b18617"
+    },
+    "e1_single_step_200mm_5of5_best": {
+      "path": "sources/local/MOD4V3_RL_SINGLE200_FULLDR_5OF5_20261118/weights/model_rl_stair_best.pt",
+      "sha256": "a1acd1a809fff689bf09ff067ad270a64e56b3e0ea7798d73f337ba9549ced16",
+      "official_0dr_5offsets": "5/5 (100%, max_speed 0.4807..0.5566 m/s, 0/5 slide-off)",
+      "dense_26offsets_0dr": "20/26 passed, 21/26 crossed, 0/26 slide-off",
+      "fulldr_100pct_30ep": "17/30 crossed",
+      "e0_drift": 0.0
+    },
+    "e1_continuous_2step_400mm_warmstart": {
+      "path": "sources/local/MOD4V3_MOE_ROUTE2_CONTINUOUS_2STEP_ANTICHEAT_20261118/weights/model_step000.pt",
+      "sha256": "274a134a4289a829f45888843ce2deac572687cf9deee0b289453da39b510c25"
+    },
+    "e2_low_pitch_forward_leap_and_step_jump_best": {
+      "path": "sources/local/MOD4V3_RL_FORWARD_LEAP_STEP_JUMP_20261118/weights/model_rl_forward_leap_best.pt",
+      "sha256": "79e27807294a225f6ab4b239e1c6fd1ccc73a456ecd342c4d3d127d4be2617e9",
+      "nominal_0dr_45ep": "45/45 survived, 45/45 task_success, 45/45 0.0N zero_scrape",
+      "step_jump_16_20_24cm_25ep": "25/25 mounted, 25/25 zero_slide_off",
+      "max_air_pitch_deg": 8.7,
+      "max_episode_pitch_deg": 10.82,
+      "mean_leap_dx_m": 1.042,
+      "fulldr_100pct_45ep": "40/45 survived, 22/25 step zero_slide_off",
+      "e0_drift": 0.0
+    },
+    "unified_3expert_moe": {
+      "path": "sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/weights/model_unified_3expert_moe.pt",
+      "sha256": "bed1da66c033293bad2db2c140b71dbee433049f7c9486fd9126df3d2caf5655",
+      "cross_expert_max_abs_error": 0.0
+    }
   },
-  "stair_expert_phase_gate": {
-    "formula_ext": "0.25 * (obs[10] - obs[11] + obs[12] - obs[13])",
-    "crouched_settled_max_recent5_threshold": -0.33,
-    "rising_tread_d_ext_min": 0.02,
-    "tall_handoff_ext_max": 0.195,
-    "top_park_obs3_threshold": 1.5,
-    "note": "Re-verify ext_tall (~+0.23) and ext_crouch (~-0.43) if joint zero offsets change."
-  },
-  "anti_cheat_contract": {
+  "stair_anti_cheat_and_ppo_recipe": {
     "drop_wheel_z_tolerance_m": 0.035,
     "slide_off_clawback_penalty": 25.0,
     "terminate_immediately_on_step_drop": true,
-    "single_wheel_top_reward_requires_vx_min_m_s": 0.05,
-    "pre_reset_max_speed_latch_required": true,
-    "replay_strict_max_speed_m_s": 0.6
+    "full_episode_horizon_steps": 500,
+    "anti_backward_creep_penalty": "10.0 * relu(-vx - 0.01)",
+    "active_mask_ppo": "(obs[3] < 1.5) or (gate_prob(hist) > 0.04)",
+    "critic_warmup_iterations": 6,
+    "progressive_dr_stages": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "stage3_cem_last_layer_polish": true
   },
-  "ppo_schedule": {
-    "critic_only_warmup_iterations": 15,
-    "learning_rate": 0.0001,
-    "clip_param": 0.05,
-    "desired_kl": 0.006,
-    "e1_initial_std": [
-      0.01,
-      0.01,
-      0.01,
-      0.01,
-      0.02,
-      0.02
-    ],
-    "pinned_settle_anchor_weight": 8.0,
-    "high_stance_anchor_decay": [
-      3.0,
-      1.6
-    ],
-    "low_stance_anchor_decay": [
-      2.5,
-      1.4
-    ],
-    "bilateral_symmetry_weight": 0.45,
-    "dr_mixture_stages": [
-      0.0,
-      0.0,
-      0.1,
-      0.25,
-      0.5,
-      0.75,
-      1.0
-    ]
-  },
-  "actuator_mass_scaling_hint": {
-    "mass_ratio_vs_mod4v3": 1.0,
-    "recommended_pd_kp_kd_scale": 1.0
+  "low_pitch_forward_leap_and_step_jump_recipe": {
+    "gate_mode_bit_index": 30,
+    "gate_duration_s": 1.9,
+    "nominal_h_cmd_m": 0.28,
+    "decouple_virtual_leg_angle_from_chassis_pitch": true,
+    "air_pitch_target_rad": 0.0,
+    "in_air_reaction_wheel_pd": "0.5 * (15.5 * pitch + 1.40 * wy)",
+    "ppo_low_pitch_reward": "+0.40 * exp(-(pitch/0.08)^2) - 8.0 * relu(|pitch|-8deg) - 25.0 * relu(|pitch|-12deg)",
+    "anti_stationary_or_rollback_penalty": -18.0,
+    "step_drop_off_penalty": -25.0,
+    "critic_warmup_iterations": 8,
+    "progressive_dr_stages": [0.0, 0.5, 1.0]
   }
 }

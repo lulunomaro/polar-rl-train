@@ -1,120 +1,76 @@
-# MOD4v3 轮腿机器人多技能 RL 后训练标准配方（上台阶 + 压低大跳/移动连跳）
+# MOD4v3 同构型双轮足机器人多技能纯神经网络 RL 后训练总配方（`5/5` 优雅上台阶 + 平机身 COD 前向跳扑/直跳高台）
 
-> **适用对象**：与 `MOD4v3 / HW300N60_R3` 同构型的双足并联四连杆（含气弹簧补偿）+ 双差速轮毂电机轮腿机器人。  
-> **核心目标**：在不破坏基础全地形平顺运动专家（`E0`，`flat60 = 60/60` 零退化）的前提下，通过**解耦专家路由（MoE）+ 闭环 DAgger 热启动 + 零容忍反作弊 PPO + `0-DR -> Full-DR` 成功率门控课程**，高鲁棒性习得：
-> 1. **优雅高姿上单阶（`20 cm`）与连续多级台阶（`20 cm + 20 cm = 40 cm`，踏面平滑起身衔接 + 台顶低姿零速驻车）**；
-> 2. **深蹲蓄力原地大跳与边移动边连续大跳/跨栏（`33~35+ cm` 双轮离地净空，`0.0 ~ +1.2 / -0.5 m/s`）**。
+> **适用对象**：与 `MOD4v3 / HW300N60_R3` 同构型的双足并联四连杆（含气弹簧重力补偿）+ 双差速轮毂电机轮腿机器人。  
+> **核心保证**：**100% 纯本体感受神经网络推理（仅输入 `obs 35D + obs_history 420D -> action 6D`，运行期零教师、零状态机、零世界坐标 $x/z$ 或台阶距离特权输入）**，且基础全地形运动专家 `E0`（`c874`）严格保持 **`0.0` 参数与动作误差**。
 
 ---
 
-## 一、 硬件控制契约与观测/动作标准接口
+## 一、 最终毕业最优权重与实测指标速览
 
-后训练同构型机器人时，必须先对齐以下底层控制频率与观测归一化约定（可用 [adapt_new_wheel_leg_robot.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/scripts/adapt_new_wheel_leg_robot.py) 自动换算新机型的派生阈值）：
-
-| 维度 / 参数 | 标准设定（MOD4v3 基准） | 同构型新机器人迁移准则 |
-| :--- | :--- | :--- |
-| **物理步长 / 求解器** | `dt = 0.0025 s`（`400 Hz`），PhysX TGS `32 / 4` | 保持 `400 Hz` 物理步长与四连杆闭合刚度 |
-| **执行器控制频率** | 腿部关节 PD `100 Hz`（4 分频），轮毂速度/力矩 `400 Hz`，策略 `50 Hz`（`0.02 s`） | 严禁将腿部与轮毂降频至 `50 Hz` 直接力矩 |
-| **并联四连杆气弹簧** | `K_gas = 2000 N/m`，阻尼 `1.5 ~ 4.5 N·s/m`（DR 覆盖） | 按新机器人整机质量比 $M_{\text{new}} / M_{\text{mod4v3}}$ 线性缩放 PD 与气弹簧预紧 |
-| **策略输入（Actor）** | 当前帧 `35D` + 历史队列 `H=12` 帧（`420D`，含当前帧，重置时首帧重复 12 次） | 无任何世界坐标 $x, z$ 或特权地形扫描输入，100% 本体感受可实机部署 |
-| **价值网络输入（Critic）** | `78D` 特权状态（仅训练期 Critic 使用，推理期零依赖） | 独立 `E0 / E1 / E2` Critic 头，互不干扰 |
-| **动作输出（`6D`）** | `[L_front, L_rear, R_front, R_rear, L_wheel, R_wheel]`，裁剪范围 `[-6.0, +6.0]` | `a_prev`（`obs[22:28]`）必须记录真实执行裁剪后的上一拍动作 |
-
-### `35D` 本体观测逐维定义
-- `obs[0:3]`：线速度/角速度指令 `[v_x_cmd, v_y_cmd, w_z_cmd]`
-- `obs[3]`：目标机身相对地面高度指令 `h_cmd * 5.0`（高姿直走 `0.4091m -> 2.0455`，常规巡航 `0.28m -> 1.40`，台顶驻车低姿 `0.20m -> 1.00`）
-- `obs[4:7]`：机体系角速度 $\boldsymbol{\omega}_b \times 0.5$
-- `obs[7:10]`：机体系重力投影 $\mathbf{g}_b = \mathbf{R}^\top [0, 0, -1]^\top$
-- `obs[10:16]`：相对默认零位的关节角偏差 `[q_leg(4), 0, 0]`（轮转角置零防漂移）
-- `obs[16:22]`：关节角速度 $\dot{\mathbf{q}} \times 0.1$
-- `obs[22:28]`：上一控制拍实际执行的 `6D` 动作 $\mathbf{a}_{t-1}$
-- `obs[28:35]`：`7D` 技能路由模式位（常规运动 `[1,0,0,0,0,0,0]`；上台阶 `[0,1,0,0,0,1,0]`；RL 大跳/移动跳触发位 `obs[30]=1`）
+| 专家模块 / 技能 | 最优权重路径 | SHA256（前 16 位） | 核心实测毕业成绩 |
+| :--- | :--- | :--- | :--- |
+| **`E0` 常规全地形巡航/斜坡/下阶** | [model_full_ppo.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/deliveries/MOD4V3_LOW_PITCH_20261116/model_full_ppo.pt) | `c874a1afa9adc33c` | `flat60 = 60/60`、双阶 `5/5`、下阶 `5/5`、急停正常（在全部新模型中误差严格 **`0.0`**） |
+| **`E1` 单级 `200 mm` 优雅上台阶 + 台顶零速驻车** | [model_rl_stair_best.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_RL_SINGLE200_FULLDR_5OF5_20261118/weights/model_rl_stair_best.pt) | `a1acd1a809fff689` | 原版 `evaluate_student200.py` 五起点 **`5/5 (100%)` 严格 `<= 0.60 m/s` 满分通过**（峰速 `0.481~0.557 m/s`，稳态驻车 `3.30~4.96 s`，`0/5` 滑落）；26 密点越边 `21/26` 且 `0/26` 滑落；`100% Full-DR` 越边 `17/30` |
+| **`E1-2Step` 连续二级台阶 (`20+20=40 cm`) 扩展基线** | [model_step000.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_MOE_ROUTE2_CONTINUOUS_2STEP_ANTICHEAT_20261118/weights/model_step000.pt) | `274a134a4289a829` | 一级越边 **`5/5`**，`1.5 m` 踏面柔顺站高衔接二级 `40 cm` 登顶驻车严格 `<= 0.60 m/s` 通过 `2/5`（另 `-15 mm` `0.504 m/s`），`0/5` 滑落 |
+| **`E2` 平机身低俯仰 COD 前向跳扑 + 直跳 `16/20/24 cm` 高台** | [model_rl_forward_leap_best.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_RL_FORWARD_LEAP_STEP_JUMP_20261118/weights/model_rl_forward_leap_best.pt) | `79e27807294a225f` | `0-DR` 9 工况 **`45/45 (100%)` 达标且 `45/45` 全 `0.0 N` 零擦碰**；**腾空最大俯仰角压降至 `8.70°`**（全回合 400Hz 最大俯仰 `<= 10.82°`）；静止起步前扑 `+0.996 m`、移动远扑 `+1.238 m`；直跳 `16/20/24 cm` 高台 **`25/25 (100%)` 登顶且 `25/25` 零掉台**；`100% Full-DR` 存活 `40/45`、零掉台 `22/25` |
+| **原本位深蹲高跳 / 跨栏专用模型（可选备选）** | [model_rl_best.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_RL_HIGH_MOVING_JUMP_20261118/weights/model_rl_best.pt) | `9bad1458faafa999` | `0-DR` `30/30` 存活、双轮峰值净空均值 `33.63 cm`（三连跳 `35.08 cm`），`20 cm` 实体栏架 `5/5` 飞越 |
+| **三专家统一零干扰部署模型 (`E0 + E1 + E2`)** | [model_unified_3expert_moe.pt](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/weights/model_unified_3expert_moe.pt) | `bed1da66c033293b` | `E0 / E1_stair / E2_forward_leap` 跨专家最大动作误差严格 **`0.0`**；连续跑酷+登阶驻车实测视频 [UNIFIED_ALL_SKILLS_COURSE_1X.mp4](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/media/UNIFIED_ALL_SKILLS_COURSE_1X.mp4) |
 
 ---
 
-## 二、 为什么不能用单一无门控 MLP 硬训全技能？（核心踩坑总结）
+## 二、 硬件控制契约与 `35D + 420D -> 6D` 标准接口
 
-在多轮实测对比中，我们定位并彻底解决了五项导致轮腿上台阶/跳跃训练失败或退化的根因：
+后训练同构型机器人时，必须先对齐以下底层控制频率与观测约定（可用 [adapt_new_wheel_leg_robot.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_POST_TRAINING_RECIPES_20261118/scripts/adapt_new_wheel_leg_robot.py) 自动换算新机型的派生阈值）：
 
-1. **平地高姿直走 vs 触墙收腿的梯度冲突（$\cos = -0.718$）**：单一 MLP 同时拟合平地高姿（`0.409m`）与爬阶缩腿（`0.175m`）会导致机器人在平地助跑段塌腰深蹲（`0.18m`）擦地左右抽搐。
-   - **解法**：在专家内部采用**冻结平地高姿基座 `approach_base` + 纯历史接触门控 `gate` + 不相交相平面运动学门控 `(obs[3], ext, d_ext)`**，平地段 100% 笔直高姿零抽搐。
-2. **蹭阶滑落刷分作弊（Touch-and-Slide Reward Hacking）**：仅给台顶触地密集分而不严惩滑落，策略会学会“单轮/双轮蹭一下阶顶拿分再滑下重刷”。
-   - **解法**：建立 `s1_committed / s2_committed` 与单轮累计帧承诺机制——一旦上阶后任意轮高度跌破阶面安全阈值（`step_z + R_w - 0.035m`）或后退越过阶沿，**立即扣除 `-25.0` 追回罚分并当场终止回合（`reset_terminated = True`）**；单轮触顶且 `vx < 0.05 m/s` 密集奖严格置 `0`。
-3. **二级台阶一级阶唇越边瞬间提前伸腿顶退**：双轮刚越过一级阶唇（`x ≈ 1.25m`）处于深蹲态（`ext ≈ -0.43`）时，若立即按 `h_cmd = 0.4091m` 伸腿会把轮胎反推下阶。
-   - **解法**：利用纯关节角运动学伸展量
-     $$\text{ext} = \frac{1}{4}\bigl((q_0 - q_1) + (q_2 - q_3)\bigr)$$
-     与 `12` 帧历史差分 $d_{\text{ext}} = \text{ext}_t - \text{ext}_{t-11}$ 构造**完全不相交的相平面门控**，在深蹲落阶初期（过去 5 帧 $\max \text{ext} < -0.33$）平滑拉上踏面 `25~30 cm`，随后在 `1.5 m` 踏面上用 `0.6~0.8 s` 柔顺站高至 `0.409 m` 直走衔接二级台阶。
-4. **`env.step()` 自动重置清零峰速绕过回放限速**：Isaac Lab `env.step()` 内部在 `timeout` 时先调用 `_reset_idx` 清零 `course_speed_max`，后读取会导致 `>0.60 m/s` 猛冲轨迹混入成功回放池。
-   - **解法**：必须在 `_reset_idx` 之前将 `replay_episode_max_speed_at_step` 锁存到独立快照张量，严守 `<= 0.60 m/s` 入池。
-5. **冷启动 Critic 冲击热启动 Actor**：直接联合更新会导致前 20 轮未收敛的 Value GAE 噪声冲垮精细预热的攀爬动作。
-   - **解法**：强制执行 **前 15 轮 PPO 仅更新 Critic（Critic-Only Warmup）**，第 16 轮起再放开 Actor 小学习率（`6e-5 ~ 8e-5`）与低探索噪声（`STD = [0.01, 0.01, 0.01, 0.01, 0.02, 0.02]`）。
+- **物理与执行器频率**：`dt = 0.0025 s`（`400 Hz` 物理），腿部关节 PD `100 Hz`（4 分频），轮毂伺服 `400 Hz`，策略推理 `50 Hz`（`0.02 s`），并联四连杆气弹簧 `K_gas = 2000 N/m`（按整机质量比线性缩放）。
+- **`35D` 本体观测定义**：
+  - `obs[0:3]`：`[v_x_cmd, v_y_cmd, w_z_cmd]`
+  - `obs[3]`：`h_cmd * 5.0`（上阶高姿助跑 `0.4091m -> 2.0455`，跳扑基准 `0.28m -> 1.40`，台顶驻车低姿 `0.20m -> 1.00`）
+  - `obs[4:7]`：机体系角速度 $\boldsymbol{\omega}_b \times 0.5$
+  - `obs[7:10]`：机体系重力投影 $\mathbf{g}_b = \mathbf{R}^\top [0, 0, -1]^\top$
+  - `obs[10:16]`：关节角偏差 `[L_front, L_rear, R_front, R_rear, 0, 0]`
+  - `obs[16:22]`：关节角速度 $\dot{\mathbf{q}} \times 0.1$
+  - `obs[22:28]`：上一控制拍裁剪后实际执行的 `6D` 动作 $\mathbf{a}_{t-1} \in [-6, 6]^6$
+  - `obs[28:35]`：专家路由位（常规 `[1,0,0,0,0,0,0]` -> `E0`；轮腿上台阶 `obs[29]=1` -> `E1`；前向跳扑/直跳高台 `obs[30]=1` 持续 `1.90 s` -> `E2`）
 
 ---
 
-## 三、 配方 A：RL 连续多级上台阶（`MOD4V3_MOE_ROUTE2_CONTINUOUS_2STEP_ANTICHEAT_20261118`）
+## 三、 配方 A：轮腿优雅上台阶与台顶零速驻车（[POST_TRAINING_RECIPE_RL_STAIR.md](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_RL_SINGLE200_FULLDR_5OF5_20261118/POST_TRAINING_RECIPE_RL_STAIR.md)）
 
-### 1. 网络与相平面门控架构（`StairExpert E1`）
+1. **三子头无梯度冲突结构**：`approach_base`（冻结高姿笔直行走，彻底消除 `cos = -0.718` 平地深蹲抽搐）+ `gate`（纯 `420D` 历史触阶门控）+ `head`（可训练缩腿攀爬头）+ `top_head`（双轮越边切 `obs[3] < 1.5` 后先拉进台面 `20~35 cm` 再执行无倒溜零速驻车）。
+2. **反作弊与回放限速铁律**：
+   - 上阶后滑落/退回立即扣 **`-25.0`** 并当场终止回合；单轮触顶且 `vx < 0.05 m/s` 零密集奖励；
+   - 在 `_reset_idx` 前锁存真实回合峰速，严守 `<= 0.60 m/s` 方可进入在线回放池；
+   - 必须在**完整 `10.0s`（`500` 步，无 1 秒提前重置）**回合上对 `vx < -0.01 m/s` 施加反倒溜惩罚，防止慢速后溜掉阶。
+3. **四步训练法**：五起点干净低速回放采集 -> 前 `15` 轮 Critic-Only 独立预热 -> **Active-Mask 渐进 `0% -> 25% -> 50% -> 75% -> 100% Full-DR` 闭环 PPO** -> 末层闭环 CEM + 微半径极值精调锁死 `5/5` 满分。
 
-```mermaid
-flowchart LR
-    Obs["当前观测 x (35D)\n+ 历史队列 h (420D)"] --> Enc["HistoryFeatures 编码器\n420 -> 128 -> 64 -> 16"]
-    Obs --> Base["approach_base (冻结)\n平地/踏面高姿笔直行走"]
-    Obs --> Gate["接触门控 gate (冻结)\n420 -> 128 -> 32 -> 1"]
-    Enc --> Climb["head (可训练)\n触阶缩腿攀爬头"]
-    Enc --> Stand["standup_head (可训练)\n一级踏面拉进+柔顺起身头"]
-    Enc --> Park["top_head (可训练)\n终阶低姿制动驻车头"]
-    Gate --> Mix["不相交相平面合成\n(obs[3], ext, d_ext)"]
-    Base --> Mix
-    Climb --> Mix
-    Stand --> Mix
-    Park --> Mix
-    Mix --> Act["6D 动作输出 [-6, 6]"]
+---
+
+## 四、 配方 B：平机身低俯仰 COD 前向跳扑与直跳高台（[POST_TRAINING_RECIPE_FORWARD_LEAP.md](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_RL_FORWARD_LEAP_STEP_JUMP_20261118/POST_TRAINING_RECIPE_FORWARD_LEAP.md)）
+
+1. **彻底解耦“虚拟腿摆角 $\bar{q}$”与“机身俯仰角 $\theta_{\text{pitch}}$”（核心突破）**：
+   - **严禁靠压低车头俯仰（`20°~30°`）产生前跳或顺轮落足**！
+   - **低重心平姿前冲蓄力（`CROUCH`）**：机身保持 `|pitch| <= 5°` 水平，先在低重心下加速建立 `vx_takeoff = 1.20 ~ 1.43 m/s` 前向动量；
+   - **零净俯仰冲量蹬伸（`PUSH`）**：蹬伸瞬间车轮切换为等速跟随（`0.94 * vx`）并配平前后髋偏置，使离地角速度 $|w_y| \approx 0$；
+   - **腾空双轮角动量锁平与摆腿落足（`FLIGHT`）**：腾空目标机身俯仰严格锁定 `pitch_ref = 0.0 rad`（利用双轮反作用力矩动量轮阻尼压制空中俯仰 `<= 8.70°`），Raibert 前伸落足完全由虚拟腿髋摆角承担；
+   - **平滑缓降与高台自适应吸能（`ABSORB`）**：`1.90s` 门控窗口内纯靠本体 `dq / gyro` 历史自动适应提前 `16 / 20 / 24 cm` 触台吸能并稳停/续行。
+2. **两阶段训练法**：
+   - **Stage 1（闭环 DAgger 热启动）**：覆盖静止前扑、移动远扑、连续二连扑与 `16/20/24 cm` 三维实体高台（`<body mocap="true">` 确保碰撞精确）采集 `~39,000` 帧干净轨迹训练 `TemporalHistoryEncoder (Conv1d+MLP) + delta_head`。
+   - **Stage 2（反作弊 + 刚性低俯仰渐进 DR 闭环 PPO）**：前 `8` 轮 Critic 预热 -> `0% -> 50% -> 100% Full-DR`；全程施加水平机身奖励 `+0.40 * exp(-(pitch/0.08)^2)` 与超限重罚 `-8 * relu(|pitch|-8°) - 25 * relu(|pitch|-12°)`，叠加原地跳/回滚 `-18.0` 重罚与高台滑落 `-25.0` 即刻终止。
+
+---
+
+## 五、 同构型新机器人一键迁移与统一模型合成命令
+
+```powershell
+$env:OPENBLAS_NUM_THREADS="1"; $env:OMP_NUM_THREADS="1"
+
+# 1. 根据新机器人质量、轮径、腿长自动换算全套控制与反作弊阈值
+D:\claude2\fangzhen\.venv\Scripts\python.exe sources\local\MOD4V3_POST_TRAINING_RECIPES_20261118\scripts\adapt_new_wheel_leg_robot.py --spec-json your_robot_spec.json --out adapted_thresholds.json
+
+# 2. 将最优 E0 (常规) + E1 (上台阶) + E2 (平机身前向跳扑/直跳高台) 合成为单文件零干扰 MoE 并渲染全技能连贯跑酷+登阶视频
+D:\claude2\fangzhen\.venv\Scripts\python.exe sources\local\MOD4V3_POST_TRAINING_RECIPES_20261118\scripts\unified_all_skills_moe.py
+
+# 3. 启动三专家统一交互式游乐场（WASD 巡航 / SPACE 平机身跳扑与跳上高台 / E 轮腿优雅上台阶 / P 台顶零速驻车）
+sources\local\MOD4V3_POST_TRAINING_RECIPES_20261118\Run_MOD4v3_Unified_All_Skills.bat
 ```
-
-- **四个完全不相交的相平面区域**：
-  1. **平地及踏面高姿直走**（$\text{ext} \ge 0.195,\ g_{\text{climb}} \approx 0$）：输出 `approach_base`；
-  2. **立面攀爬（一级与二级通用）**（$\text{ext} > -0.33$ 或正在收腿 $d_{\text{ext}} < 0$，$g_{\text{climb}} \to 1$）：输出 `head`；
-  3. **中间级踏面拉进与柔顺站高**（`obs[3] > 1.7` 且满足深蹲落定 $\max_{k \in [-5,-1]} \text{ext}_k < -0.33$ 或正在伸腿起身 $d_{\text{ext}} > 0.020 \wedge \text{ext} < 0.195$）：输出 `standup_head`；
-  4. **终阶台顶稳态与零速驻车**（双轮登顶终阶后 `obs[3] = 1.0 < 1.5`）：输出 `top_head`。
-
-### 2. 三步标准复训流程
-1. **阶段 1（本地 60 秒闭环 DAgger 热启动）**：
-   运行 [build_2step_anticheat_step000.py](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_MOE_ROUTE2_CONTINUOUS_2STEP_ANTICHEAT_20261118/build_2step_anticheat_step000.py) 生成 `weights/model_step000.pt`，并在 MuJoCo 独立验证单阶 `20 cm` 与连续二级 `20+20=40 cm` 视频及零滑落。
-2. **阶段 2（远端 Isaac Sim `2048` 环境 `0-PPO` 预检）**：
-   采样 `30%` 单阶 `20 cm` + `70%` 连续二级台阶（`1.5 m` 踏面，总高 `40 cm`），运行 `600` 步零更新预检，验证 Warp 烘焙网格高度、`E0` 零误差、全可训练参数梯度非零有限。
-3. **阶段 3（反作弊渐进 DR PPO 主训练）**：
-   - **课程晋级（`E1DRMixture`）**：
-     - `Stage 0`：`0-DR` 中心起点 `0 mm`，`v_cmd = 0.47 m/s`（累计完成 $\ge 64$ 且近 128 回合成功率 $\ge 70\%$ 晋级）；
-     - `Stage 1`：`0-DR` 五起点 `[-60, -30, 0, +30, +60] mm` 泛化，`v_cmd \in [0.35, 0.48] m/s`（每起点 $\ge 16$ 且近 256 回合 $\ge 70\%$ 晋级）；
-     - `Stage 2 ~ 6`：按 `10% -> 25% -> 50% -> 75% -> 100%` 逐步激活完整 SCUT 全量物理 DR（质量、质心、关节摩擦、刚度阻尼、电机增益、`5~15 ms` 传感/动作延迟），仅统计真实开启 Full-DR 环境的成功次数晋级。
-   - **四池隔离成功回放（`SuccessReplayPool`）**：`settle_high`（永久锁死 150 帧高姿静站不淘汰）、`approach`、`top_climb`、`top_park`，每小批次 `128` 帧 BC 正则（权重 `0.5`）+ 双侧动作对称损失（`0.45`）+ 前 `1s` 静站强锚定（`8.0`）。
-
----
-
-## 四、 配方 B：RL 压低姿态蓄力大跳与边移动边连跳（`MOD4V3_RL_HIGH_MOVING_JUMP_20261118`）
-
-### 1. 四阶段物理机制与纯神经网络内化
-- **物理基线与演示源**：[MOD4V3_HIGH_MOVING_JUMP_20261118](file:///d:/claude2/fangzhen/_mod4v2_src_20261106/sources/local/MOD4V3_HIGH_MOVING_JUMP_20261118)（双轮离地净空 `33.23 ~ 35.70 cm`）。
-- **纯 RL 网络输入输出**：同样严格采用 `obs(35) + history(420) -> action(6)`，无外部相位计时器、无世界高度 $z$ 特权输入：
-  1. **深蹲蓄力（Crouch）**：收到跳跃触发位后快速下潜至机身高度 `0.188~0.194 m`（底盘/导轮零擦地），压缩并联气弹簧储能，轮毂前馈锁速；
-  2. **爆发蹬伸（Explosive Push）**：双腿同步满幅伸展 + 俯仰角速度阻尼配平，实现原地与移动态近零俯仰起跳（空中 $|\text{pitch}| < 10^\circ$）；
-  3. **空中收腿与 Raibert 落足预置（Flight Tuck）**：起跳离地瞬间主动快收双腿，额外赚取 `+12 ~ +15 cm` 轮底净空以跨越 `16~20 cm` 实体栏架，并按水平速度预置落足角；
-  4. **单向天棚柔顺缓冲（Skyhook Absorb）**：触地顺势屈腿吸收冲击，抑制二次弹跳并在 `0.5 s` 内无缝恢复目标巡航速度或衔接下一跳。
-
-### 2. 两阶段 RL 训练流水线
-1. **阶段 1（多工况闭环 DAgger 热启动）**：覆盖 `vx_cmd \in [-0.6, 0.0, +0.4, +0.8, +1.2] m/s`、单跳、连续二/三连跳及 `14~20 cm` 跨栏场景采集闭环轨迹，训练纯历史条件 `E_jump` 专家。
-2. **阶段 2（闭环 PPO + 渐进 DR 强化微调）**：
-   - 奖励项：双轮同时离地净空峰值奖 + 跨栏越障奖 + 空中水平姿态保持奖 + 落地无擦地/低冲击天棚缓冲奖 + 前后巡航速度跟踪奖 - 非轮胎触地重罚；
-   - 逐步注入质量 `±12%`、质心 `±2.5 cm`、地面摩擦 `0.55~1.15`、PD 增益 `±12%`、电机力矩上限 `±10%` 与 `0~20 ms` 延迟随机化，固化高鲁棒性权重 `model_rl_best.pt`。
-
----
-
-## 五、 同构型新机器人一键迁移清单
-
-1. **生成新机型适配配置**：
-   ```powershell
-   D:\claude2\fangzhen\.venv\Scripts\python.exe sources\local\MOD4V3_POST_TRAINING_RECIPES_20261118\scripts\adapt_new_wheel_leg_robot.py --spec-json your_robot_spec.json --out adapted_thresholds.json
-   ```
-2. **替换资产并校验闭合链与质量**：替换 MJCF / USD 与 `import_contract.json`，确认主动关节隐式刚度阻尼为 `0`、气弹簧刚度正确。
-3. **运行 60 秒本地 DAgger 生成 `model_step000.pt` 与 `model_bc_dagger.pt`**，目视核验 `1x` 视频无抽搐、无擦地、无滑落。
-4. **启动 `0-PPO` 预检 -> 渐进 DR PPO 训练**，以独立纯学生评测（`flat60` + 单阶/双阶五起点 + 移动连跳/跨栏 Full-DR）选出最优检查点归档。

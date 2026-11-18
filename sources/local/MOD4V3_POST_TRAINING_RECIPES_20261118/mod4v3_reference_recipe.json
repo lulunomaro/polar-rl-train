@@ -1,0 +1,85 @@
+{
+  "input_spec": {
+    "robot_family": "MOD4v3_4Bar_WheelLeg",
+    "total_mass_kg": 14.29414,
+    "wheel_radius_m": 0.0625,
+    "tall_root_height_m": 0.4091,
+    "nominal_cruise_height_m": 0.28,
+    "crouch_park_height_m": 0.2,
+    "deep_jump_crouch_height_m": 0.19,
+    "gas_spring_stiffness_n_m": 2000.0,
+    "physics_dt_s": 0.0025,
+    "leg_pd_dt_s": 0.01,
+    "wheel_pd_dt_s": 0.0025,
+    "policy_dt_s": 0.02,
+    "action_clip": 6.0,
+    "obs_dim": 35,
+    "history_steps": 12,
+    "critic_obs_dim": 78
+  },
+  "derived_geometry": {
+    "tall_leg_vertical_length_m": 0.3466,
+    "crouch_leg_vertical_length_m": 0.1375,
+    "recommended_single_step_height_m": 0.22,
+    "recommended_continuous_2step_heights_m": [
+      0.22,
+      0.44
+    ],
+    "recommended_2step_tread_depth_m": 1.5,
+    "obs3_tall_command": 2.0455,
+    "obs3_top_park_command": 1.0
+  },
+  "stair_expert_phase_gate": {
+    "formula_ext": "0.25 * (obs[10] - obs[11] + obs[12] - obs[13])",
+    "crouched_settled_max_recent5_threshold": -0.33,
+    "rising_tread_d_ext_min": 0.02,
+    "tall_handoff_ext_max": 0.195,
+    "top_park_obs3_threshold": 1.5,
+    "note": "Re-verify ext_tall (~+0.23) and ext_crouch (~-0.43) if joint zero offsets change."
+  },
+  "anti_cheat_contract": {
+    "drop_wheel_z_tolerance_m": 0.035,
+    "slide_off_clawback_penalty": 25.0,
+    "terminate_immediately_on_step_drop": true,
+    "single_wheel_top_reward_requires_vx_min_m_s": 0.05,
+    "pre_reset_max_speed_latch_required": true,
+    "replay_strict_max_speed_m_s": 0.6
+  },
+  "ppo_schedule": {
+    "critic_only_warmup_iterations": 15,
+    "learning_rate": 0.0001,
+    "clip_param": 0.05,
+    "desired_kl": 0.006,
+    "e1_initial_std": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.02,
+      0.02
+    ],
+    "pinned_settle_anchor_weight": 8.0,
+    "high_stance_anchor_decay": [
+      3.0,
+      1.6
+    ],
+    "low_stance_anchor_decay": [
+      2.5,
+      1.4
+    ],
+    "bilateral_symmetry_weight": 0.45,
+    "dr_mixture_stages": [
+      0.0,
+      0.0,
+      0.1,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ]
+  },
+  "actuator_mass_scaling_hint": {
+    "mass_ratio_vs_mod4v3": 1.0,
+    "recommended_pd_kp_kd_scale": 1.0
+  }
+}

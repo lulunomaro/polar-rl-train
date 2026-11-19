@@ -189,6 +189,8 @@ def launch(role, batch, seconds, iters, probe=False):
             params.append('--leap-height-focus')
         if role == 'stair' and options.get('stair_low_stance_focus'):
             params.append('--stair-low-stance-focus')
+        if role in ('stair', 'router') and options.get('stair_mid_stance_focus'):
+            params.append('--stair-mid-stance-focus')
         if role == 'stair' and options.get('stair_high_slow_focus'):
             params.append('--stair-high-slow-focus')
         if role == 'jump' and options.get('leap_moving_focus'):
@@ -227,7 +229,7 @@ print(json.dumps(receipt))
     print(json.dumps(receipt | {'host': host}), flush=True)
 
 
-def status(role, batch, probe=False, download=False):
+def status(role, batch, probe=False, download=False, all_checkpoints=False):
     host, _ = ASSIGN[role]
     path, interpreter = location(host)
     run_name = role + '_probe' if probe else role
@@ -248,27 +250,39 @@ for name in ('STARTED.json','LATEST.json','FINISHED.json','JUMP_ANCHOR.json','ST
     if f.is_file():
         result[name]=json.loads(f.read_text())
 log=folder.with_suffix('.log'); result['tail']='\\n'.join(log.read_text(errors='replace').splitlines()[-2:]) if log.exists() else ''
+if len(sys.argv)>2 and sys.argv[2]=='all':
+    import hashlib,re
+    result['checkpoints']={f.name:hashlib.sha256(f.read_bytes()).hexdigest()
+                           for f in sorted(folder.glob('model_*.pt'))
+                           if re.fullmatch('model_(?:[0-9]{4}|warm|final)[.]pt',f.name)}
 result['gpu']=subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_memory','--format=csv,noheader'],text=True).strip().splitlines()
 print(json.dumps(result))
 '''
     with connect(host) as ssh:
-        state = json.loads(remote_python(ssh, interpreter, script, [out]))
+        state = json.loads(remote_python(ssh, interpreter, script, [out, 'all' if all_checkpoints else 'latest']))
         if download:
             record = state.get('FINISHED.json') or state.get('LATEST.json') or {}
             name = record.get('checkpoint')
+            expected = state.get('checkpoints', {})
             if name and re.fullmatch(r'model_(?:\d{4}|final)\.pt', name):
-                dest = dst / name
-                with ssh.open_sftp() as sf:
+                expected = expected | {name: record['checkpoint_sha256']}
+            with ssh.open_sftp() as sf:
+                for filename, sha in expected.items():
+                    dest = dst / filename
+                    if dest.exists() and digest(dest) == sha:
+                        continue
                     tmp = dest.with_suffix('.tmp')
-                    sf.get(str(out / name), str(tmp))
-                    if digest(tmp) != record['checkpoint_sha256']:
-                        raise RuntimeError(f'Checkpoint transfer hash mismatch for {role}')
+                    sf.get(str(out / filename), str(tmp))
+                    if digest(tmp) != sha:
+                        raise RuntimeError(f'Checkpoint transfer hash mismatch for {role}/{filename}')
                     tmp.replace(dest)
-                    if 'STAIR_ANCHOR.json' in state and 'model_warm.pt' in sf.listdir(str(out)):
+                if expected and 'STAIR_ANCHOR.json' in state and 'model_warm.pt' not in expected:
+                    if 'model_warm.pt' in sf.listdir(str(out)):
                         sf.get(str(out / 'model_warm.pt'), str(dst / 'model_warm.pt'))
-                    if (state.get('FINISHED.json')):
-                        sf.get(str(out/'EPISODES.json'), str(dst/'EPISODES.json'))
-                state['downloaded'] = str(dest)
+                if state.get('FINISHED.json'):
+                    sf.get(str(out/'EPISODES.json'), str(dst/'EPISODES.json'))
+            if name in expected:
+                state['downloaded'] = str(dst / name)
     (dst / 'STATUS.json').write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({'host':host,'role':role, **state}), flush=True)
 
@@ -281,7 +295,10 @@ def main():
     parser.add_argument('--seconds', type=int, default=2340)
     parser.add_argument('--iters', type=int, default=110)
     parser.add_argument('--probe', action='store_true')
+    parser.add_argument('--all-checkpoints', action='store_true', help='Fetch every complete, hash-verified checkpoint')
     args = parser.parse_args()
+    if args.all_checkpoints and args.action != 'fetch':
+        parser.error('--all-checkpoints requires fetch')
     if not re.fullmatch(r'r\d+(?:[a-z0-9_]{0,18})', args.batch):
         raise ValueError(args.batch)
     if args.action == 'pack':
@@ -294,7 +311,7 @@ def main():
         elif args.action in ('probe','launch'):
             launch(key, args.batch, args.seconds if args.action == 'launch' else 180, args.iters, args.action == 'probe')
         else:
-            status(key, args.batch, args.probe, args.action == 'fetch')
+            status(key, args.batch, args.probe, args.action == 'fetch', args.all_checkpoints)
 
 
 if __name__ == '__main__':

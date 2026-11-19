@@ -35,6 +35,7 @@ class Case:
     double: bool = False
     cancel_delay_s: float = .04
     restart_delay_s: float | None = None
+    raise_at_s: float = .10
 
 
 def cases(quick):
@@ -188,7 +189,7 @@ def run_case(sim, case, out, video=False, before_step=None):
         for k in range(round(case.duration / CONTROL_DT)):
             now = k * CONTROL_DT
             keys = {'w'} if now >= .40 and case.mode != 'jump_idle' else set()
-            if (case.raise_while_moving and now >= .10
+            if (case.raise_while_moving and now >= case.raise_at_s
                     and sim.target_h + 1e-8 < case.target):
                 keys.add('e')
             if (case.mode in ('stop', 'reverse', 'turn', 'turn_w') and trace.hits[0]

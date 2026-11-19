@@ -32,9 +32,12 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.high_router_weights = None
         self.restart_router = None
         self.high_restart_router = None
+        self.parked_restart_router = None
         self.restart_history = deque(maxlen=RESTART_WINDOW)
         self.stair_height_bank = ()
         self.slow_stair = None
+        self.mid_stair = None
+        self.rising_stair = None
         self.stair_driver_speed = None
         self.allow_stair = False
         self.jump_frames = jump.GATE_STEPS
@@ -123,9 +126,25 @@ class RepairedPolicy(AutonomousThreeExpert):
 
     def stair_outputs(self, current, history):
         out = self.height_stair_outputs(current, history)
+        requested_height = float(current[0, 3]) / 5.
+        if self.mid_stair is not None:
+            # Keep the learned .36 m correction local to its training range.
+            weight = float(np.clip((.009 - abs(requested_height - .36)) / .007, 0., 1.))
+            if weight > 0.:
+                middle = self.mid_stair.compute_all_heads(current, history)
+                for name in ('a_stair', 'h_virt', 'v_virt'):
+                    out[name] = torch.lerp(out[name], middle[name], weight)
+        if self.rising_stair is not None and self.restart_history and requested_height > .40:
+            recent_height = min(float(obs[3]) / 5. for obs in list(self.restart_history)[-68:])
+            raised = float(np.clip((requested_height - recent_height) / .035, 0., 1.))
+            tall = float(np.clip((requested_height - .40) / .02, 0., 1.))
+            weight = raised * tall
+            if weight > 0.:
+                rising = self.rising_stair.compute_all_heads(current, history)
+                for name in ('a_stair', 'h_virt', 'v_virt'):
+                    out[name] = torch.lerp(out[name], rising[name], weight)
         if self.slow_stair is None:
             return out
-        requested_height = float(current[0, 3]) / 5.
         # The actuator receives the slewed command via obs[0]. Expert selection uses
         # the driver's speed setpoint because every restart briefly slews through low speed.
         requested_speed = self.stair_driver_speed if self.stair_driver_speed is not None else float(current[0, 0])
@@ -149,11 +168,26 @@ class RepairedPolicy(AutonomousThreeExpert):
         context, probability = router.probability(self.restart_history)
         return context, probability, np.zeros(3, dtype=np.float32)
 
+    def parked_restart_outputs(self, height, baseline):
+        """Use the learned low-stance restart gate after neutral forward release."""
+        weight = float(np.clip((.35 - height) / .021, 0., 1.))
+        if self.parked_restart_router is None or weight == 0.:
+            return baseline
+        recent_commands = list(self.restart_history)[-104:]
+        if any(float(row[0]) < -.10 for row in recent_commands):
+            return baseline
+        context, probability, _ = self.parked_restart_router.evaluate(self.restart_history)
+        contact_mix = float(np.clip(.5 + (probability - .76) / .10, 0., 1.))
+        base_context, base_mix, base_delta = baseline
+        return (base_context + weight * (context - base_context),
+                base_mix + weight * (contact_mix - base_mix),
+                (1. - weight) * base_delta)
+
     @torch.inference_mode()
     def act(self, obs: np.ndarray):
         x = torch.from_numpy(obs).reshape(1, stair.OBS_DIM)
         history = self.history.append(x)
-        if self.restart_router is not None:
+        if self.restart_router is not None or self.rising_stair is not None:
             self.restart_history.append(obs.copy())
         if obs[jump.JUMP_MODE_BIT_INDEX] > 0.5:
             self.stair_mix = 0.0
@@ -189,10 +223,11 @@ class RepairedPolicy(AutonomousThreeExpert):
         release = self.stair_release_per_tick
         restart_delta = None
         if permit and self.restart_router is not None:
-            resumed, restart_probability, restart_delta = self.restart_outputs(self.restart_router)
+            height = float(current[0, 3]) / 5.
+            baseline = self.restart_outputs(self.restart_router)
+            resumed, restart_probability, restart_delta = self.parked_restart_outputs(height, baseline)
             restart_release = self.restart_release_per_tick
             if self.high_restart_router is not None:
-                height = float(current[0, 3]) / 5.
                 tall = float(np.clip((height - .40) / .018, 0., 1.))
                 if tall == 1.0:
                     resumed, restart_probability, restart_delta = self.restart_outputs(self.high_restart_router)
@@ -247,7 +282,8 @@ def load_jump_expert(raw, base_state):
 
 def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fast_moving_jump=False,
                    stair_height_bank=None, high_router_path=None, slow_stair_path=None, moving_jump_path=None,
-                   restart_router_path=None, high_restart_router_path=None):
+                   restart_router_path=None, high_restart_router_path=None, parked_restart_router_path=None,
+                   mid_stair_path=None, rising_stair_path=None):
     torch.set_num_threads(1)
     parent, parent_sha = load_parent()
     model = RepairedPolicy()
@@ -258,7 +294,8 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
         model.moving_jump = parent.jump
         hashes['moving_jump'] = SOURCE_SHA['E2']
     for role, path in [('stair', stair_path), ('router', router_path), ('high_router', high_router_path),
-                       ('slow_stair', slow_stair_path), ('jump', jump_path), ('moving_jump', moving_jump_path)]:
+                       ('slow_stair', slow_stair_path), ('mid_stair', mid_stair_path), ('rising_stair', rising_stair_path),
+                       ('jump', jump_path), ('moving_jump', moving_jump_path)]:
         if path is None:
             continue
         path = Path(path)
@@ -273,10 +310,10 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
             weights = raw['moe_state_dict']
             same_locomotion(base_state, weights, 'e0.')
             same_locomotion(base_state, weights, 'e1_stair.loco_base.')
-            if role in ('router', 'high_router', 'slow_stair'):
+            if role in ('router', 'high_router', 'slow_stair', 'mid_stair', 'rising_stair'):
                 network = stair.AutonomousStairMoE()
                 network.load_state_dict(weights, strict=True)
-                setattr(model, role if role == 'slow_stair' else role + '_weights', network)
+                setattr(model, role + '_weights' if role in ('router', 'high_router') else role, network)
             else:
                 model.stair.load_state_dict(weights, strict=True)
     if stair_height_bank is not None:
@@ -301,9 +338,10 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
                 experts[path] = network.eval().requires_grad_(False)
             hashes[f'stair_height_{height:.3f}'] = hashlib.sha256(path.read_bytes()).hexdigest()
             model.stair_height_bank += ((height, experts[path]),)
-    if high_restart_router_path is not None and restart_router_path is None:
-        raise ValueError('The high-stance restart model requires the primary restart model')
-    for role, weight_file in (('restart_router', restart_router_path), ('high_restart_router', high_restart_router_path)):
+    if restart_router_path is None and (high_restart_router_path is not None or parked_restart_router_path is not None):
+        raise ValueError('Restart specializations require the primary restart model')
+    for role, weight_file in (('restart_router', restart_router_path), ('high_restart_router', high_restart_router_path),
+                              ('parked_restart_router', parked_restart_router_path)):
         if weight_file is None:
             continue
         path = Path(weight_file)
@@ -415,7 +453,9 @@ def load_manifest(path):
                                    moving_jump_path=paths.get('moving_jump'),
                                    keep_fast_moving_jump=settings.get('keep_fast_moving_jump', False),
                                    restart_router_path=paths.get('restart_router'),
-                                   high_restart_router_path=paths.get('high_restart_router'))
+                                   high_restart_router_path=paths.get('high_restart_router'),
+                                   parked_restart_router_path=paths.get('parked_restart_router'),
+                                   mid_stair_path=paths.get('mid_stair'), rising_stair_path=paths.get('rising_stair'))
     if hashes != manifest['sha256']:
         raise RuntimeError('The loaded policy does not match the validated candidate hashes')
     model.jump_min_forward = float(settings.get('jump_min_forward', 0.0))

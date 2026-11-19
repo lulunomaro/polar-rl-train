@@ -32,6 +32,8 @@ from forward_leap_env import Mod4v3ForwardLeapEnv, ensure_forward_leap_scene_xml
 
 DT = 0.02
 RADIUS = 0.0625
+RESTART_PROFILES = ('restart', 'restart_reverse', 'restart_wall')
+CLIMB_PROFILES = ('climb', 'restart', 'restart_reverse')
 _original_stair_scene = stair_arena.ensure_autonomous_stair_arena_xml
 
 
@@ -55,17 +57,26 @@ class StairFixture(Mod4v3AutonomousStairEnv):
 
     low_stance_focus = False
     high_slow_focus = False
+    mid_stance_focus = False
     restart_focus = False
 
     def start(self, profile='climb', height=0.28, speed=0.9, offset=0.0, yaw=0.0,
-              dr=0.0, rise=False, distance=1.35):
+              dr=0.0, rise=False, distance=1.35, wall_height=.50):
         self.profile = profile
         self.measure_substeps = getattr(self, "measure_substeps", False)
         self.request_height = float(height)
         self.rise = rise
         self.intent = speed
         self.steering = 0.0
-        self.restart_after_ticks = int(self.rng.integers(29, 58)) if profile == 'restart' else 0
+        self.cancel_after_ticks = 0
+        self.restart_after_ticks = 0
+        if profile in RESTART_PROFILES:
+            self.cancel_after_ticks = int(self.rng.integers(3, 11))
+            self.restart_after_ticks = self.cancel_after_ticks + int(self.rng.integers(31, 64))
+        self.restart_contact_tick = None
+        self.restart_x = None
+        self.restart_max_x = None
+        self.restart_backtrack = 0.0
         self.command_vx = 0.0
         self.command_tick = -1
         self.hit_tick = None
@@ -97,7 +108,8 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         self.last_pitch = 0.0
         self.wall_backup_m = 0.0
         self.max_hit_force = 0.0
-        step = () if profile == 'flat' else ((0.50,) if profile == 'wall' else (0.20,))
+        self.peak_forward_speed = 0.0
+        step = () if profile == 'flat' else ((wall_height,) if profile in ('wall', 'restart_wall') else (0.20,))
         st = self.reset_scenario(
             kind='flat' if profile == 'flat' else 'stair_1step', dr_scale=dr,
             step_heights=step, step_x1=distance, height_cmd=0.28 if rise else height,
@@ -112,10 +124,16 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             profile = 'climb' if p < 0.40 else (str(r.choice(['reverse', 'stop', 'turn', 'wall'])) if p < .80 else 'flat')
         else:
             profile = 'climb' if p < .82 else str(r.choice(['reverse', 'stop', 'wall', 'flat']))
-        if self.high_slow_focus and role == 'stair':
+        if self.mid_stance_focus:
+            height = float(r.choice([.345, .35, .355, .36, .36, .365, .37, .375]))
+            speed = float(r.choice([.81, .86, .90, .90, .90, .94, .98]))
+            yaw_limit = .075
+            if role == 'stair':
+                profile = 'climb' if p < .94 else 'flat'
+        elif self.high_slow_focus and role == 'stair':
             profile = 'climb' if p < .94 else 'flat'
             height = float(r.choice([.37, .40, .42, .42, .42]))
-            speed = float(r.choice([.42, .47, .47, .52, .60, .68]))
+            speed = float(r.choice([.42, .47, .47, .47, .52, .58]))
             yaw_limit = .07
         elif self.low_stance_focus and role == 'stair':
             height = float(r.choice([.28, .28, .30, .30, .32, .34, .37, .42]))
@@ -126,12 +144,22 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             speed = float(r.uniform(.50, 1.28))
             yaw_limit = .12
         if self.restart_focus:
-            profile = 'restart' if p < .60 else 'climb' if p < .82 else 'wall' if p < .95 else 'flat'
-            if role == 'router':
-                speed = float(r.choice([.47, .72, .90, .90]))
+            profile = ('restart' if p < .40 else 'restart_reverse' if p < .64 else
+                       'restart_wall' if p < .78 else 'climb' if p < .92 else 'flat')
+            if not self.mid_stance_focus:
+                height = float(r.choice([.28, .29, .31, .33, .34, .36, .40, .41, .42, .42]))
+            speed = float(r.choice([.77, .83, .88, .90, .90, .93, .98]))
+            yaw_limit = .085
+            return self.start(profile, height, speed, float(r.uniform(-.074, .074)),
+                              float(r.uniform(-yaw_limit, yaw_limit)), dr, rise=False,
+                              distance=float(r.uniform(1.16, 1.26)), wall_height=float(r.choice([.45, .50])))
+        if self.mid_stance_focus:
+            return self.start(profile, height, speed, float(r.uniform(-.075, .075)),
+                              float(r.uniform(-yaw_limit, yaw_limit)), dr, rise=p > .71,
+                              distance=float(r.uniform(1.16, 1.40)), wall_height=float(r.choice([.45, .50])))
         return self.start(profile, height, speed, float(r.uniform(-.08, .08)),
                           float(r.uniform(-yaw_limit, yaw_limit)), dr,
-                          rise=(p > (.78 if self.high_slow_focus else .27)), distance=float(r.uniform(1.16, 1.40)))
+                          rise=p > (.78 if self.high_slow_focus else .27), distance=float(r.uniform(1.16, 1.40)))
 
     def _current_commands(self):
         # This fixture applies the same 140 ms stick slew as the WASD player.
@@ -139,17 +167,18 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         cab_h = self.request_height
         if self.rise:
             cab_h = min(self.request_height, .28 + max(now - .26, 0) * .12)
-        vx_target = self.cmd_vx_base if now >= (.50 if self.rise else .32) else 0.0
+        drive_at = .40 if (self.mid_stance_focus or self.restart_focus) else (.50 if self.rise else .32)
+        vx_target = self.cmd_vx_base if now >= drive_at else 0.0
         wz = 0.0
         if self.profile in ('reverse', 'stop', 'turn') and self.hit_tick is not None and self.k - self.hit_tick >= 3:
             vx_target = -.55 if self.profile == 'reverse' else 0.0
             wz = .95 if self.profile == 'turn' else 0.0
         neutral_at_riser = False
-        if self.profile == 'restart' and self.hit_tick is not None:
+        if self.profile in RESTART_PROFILES and self.hit_tick is not None:
             since_contact = self.k - self.hit_tick
-            neutral_at_riser = 4 <= since_contact < self.restart_after_ticks
-            if neutral_at_riser:
-                vx_target = 0.
+            if self.cancel_after_ticks <= since_contact < self.restart_after_ticks:
+                vx_target = -min(self.cmd_vx_base, .85) if self.profile == 'restart_reverse' else 0.
+                neutral_at_riser = vx_target == 0.
         if self.command_tick != self.k:
             if neutral_at_riser:
                 self.command_vx = 0.
@@ -189,22 +218,28 @@ class StairFixture(Mod4v3AutonomousStairEnv):
                     tire = max(tire, force)
         return riser, tire, supports
 
+    def _driver_resumed(self):
+        return (self.profile in RESTART_PROFILES and self.hit_tick is not None
+                and self.k - self.hit_tick >= self.restart_after_ticks)
+
     def target(self):
         # Classification labels only. Policy sees proprioception and commands from the normal observation.
-        if self.profile not in ('climb', 'restart') or not self.intent_ok or self.recovered:
+        if self.profile not in CLIMB_PROFILES or not self.intent_ok or self.recovered:
             return False
         if self.held_top:
             return self.k - self.cleared_at < 15
         if self.hit_tick is None:
             return False
-        # A stale wall contact should not keep requesting climb in free space.
         edge = self.active_steps[0][0]
-        if self.profile == 'restart' and self.k - self.hit_tick >= self.restart_after_ticks:
-            since_request = self.k - self.hit_tick - self.restart_after_ticks
-            if since_request <= 32 and self.d.qpos[0] >= edge - .34:
-                return True
+        # Proximity alone cannot label renewed forward motion as a climb.
+        # Use new contact after the pause, or a riser still bearing load now.
+        onset = self.hit_tick
+        if self._driver_resumed():
+            onset = self.restart_contact_tick
+            if onset is None:
+                return bool(self.k == self.last_hit)
         return bool(self.k - self.last_hit <= 16 or (self.d.geom_xpos[self.tire_gids, 0].min() > edge - .14
-                    and self.k - self.hit_tick <= 90))
+                    and self.k - onset <= 90))
 
     def step(self, action, gate, raw_gate=None):
         if raw_gate is None:
@@ -215,15 +250,21 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         old_vx = self.body_vx
         old_z = self.d.geom_xpos[self.tire_gids, 2].min()
         before_target = self.target()
+        resumed = self._driver_resumed() and legal_before
+        if resumed and self.restart_x is None:
+            self.restart_x = self.restart_max_x = old_x
         # The frozen native environment still handles integration, motor limits, delay and fall checks.
         executed = self.delayed_act.copy() if self.action_delay > 0 and self.k > 0 else action
+        substep_speed = 0.0
         if self.measure_substeps:
             normal_step = mj.mj_step
             contacts = []
 
             def measured_step(m, d):
+                nonlocal substep_speed
                 normal_step(m, d)
                 contacts.append(self.sample_contact())
+                substep_speed = max(substep_speed, abs(float(d.qvel[0])))
 
             mj.mj_step = measured_step
             try:
@@ -241,18 +282,25 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         vx = self.body_vx
         pitch = abs(pitch_deg(self.d, self.env.base_id))
         self.p_peak = max(self.p_peak, pitch)
+        self.peak_forward_speed = max(self.peak_forward_speed, abs(vx), substep_speed)
         self.max_hit_force = max(self.max_hit_force, hit)
         self.support_force = supports
         if hit > 2.5 and not self.held_top:
             self.last_hit = self.k
             if self.hit_tick is None:
                 self.hit_tick, self.first_hit_x, self.max_x_after_hit = self.k, x, x
+        if resumed:
+            if hit > 2.5 and self.restart_contact_tick is None:
+                self.restart_contact_tick = self.k
+            if not self.held_top:
+                self.restart_max_x = max(self.restart_max_x, x)
+                self.restart_backtrack = max(self.restart_backtrack, self.restart_max_x - x)
         if tire > 2.5 and self.first_tire_hit is None:
             self.first_tire_hit = self.k * DT
         if gate > .0 and before_target:
             self.near_gate_max = max(self.near_gate_max, float(gate))
         if not before_target:
-            if not legal_before or self.profile in ('wall', 'flat'):
+            if not legal_before or self.profile in ('wall', 'restart_wall', 'flat'):
                 self.invalid_gate_max = max(self.invalid_gate_max, float(gate))
             if self.hit_tick is None:
                 self.prewall_gate_max = max(self.prewall_gate_max, float(gate))
@@ -280,10 +328,11 @@ class StairFixture(Mod4v3AutonomousStairEnv):
 
         action_delta = float(np.square(action - self.prev_exec).mean())
         self.prev_exec = executed.copy()
-        is_main = self.profile in ('climb', 'restart') and legal_before
+        is_main = self.profile in CLIMB_PROFILES and legal_before
         if is_main:
             wheel_z = float(self.d.geom_xpos[self.tire_gids, 2].min())
-            reward = 3.2 * min(.035, x - old_x)
+            progress_limit = .60 * DT if self.high_slow_focus else .035
+            reward = 3.2 * min(progress_limit, x - old_x)
             if self.hit_tick is None:
                 reward += .035 * math.exp(-9 * (vx - intent_before)**2)
                 reward -= .12 * float(raw_gate)
@@ -299,8 +348,13 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             reward += 1.0 if new_recovered else 0.0
             reward -= .003 * max(0., pitch - 15.)
             if self.high_slow_focus and self.hit_tick is not None:
-                reward -= .12 * max(0., abs(vx) - .78)**2
-                reward -= 3.0 * max(0., old_x - x)
+                # Score physical completion first and remove the gain from
+                # surging past the driving command during lift and capture.
+                excess_speed = max(0.0, max(abs(vx), substep_speed) - .60)
+                reward -= .18 * min(1.0, (excess_speed / .22) ** 2)
+                reward -= 3.0 * max(0.0, old_x - x)
+                if new_top and self.peak_forward_speed <= .60:
+                    reward += 2.0
         else:
             reward = .06 * math.exp(-7 * (vx - intent_before)**2) - .25 * float(raw_gate)
         reward -= .002 * min(action_delta, 20.)
@@ -314,7 +368,10 @@ class StairFixture(Mod4v3AutonomousStairEnv):
                     peak_riser_force=self.max_hit_force, peak_pitch_deg=self.p_peak,
                     prewall_gate_max=self.prewall_gate_max, invalid_gate_max=self.invalid_gate_max,
                     near_gate_max=self.near_gate_max, retreat_m=self.wall_backup_m,
-                    final_vx=vx, min_reverse_vx=self.min_reverse_vx)
+                    restart_backtrack_m=self.restart_backtrack if self.restart_x is not None else None,
+                    restart_contact=self.restart_contact_tick is not None,
+                    final_vx=vx, min_reverse_vx=self.min_reverse_vx,
+                    peak_forward_speed_m_s=self.peak_forward_speed)
         return st, reward, done, info
 
 
@@ -511,7 +568,7 @@ class LeapFixture(Mod4v3ForwardLeapEnv):
         if self.height_focus:
             # Reward new two-wheel apex rather than time spent above ground.
             clearance_gain = max(0., min(.38, self.window_peak_rel_rim) - min(.38, previous_clearance))
-            reward += 32. * clearance_gain
+            reward += 55. * clearance_gain
             reward -= 18. * (self.backtrack - previous_retreat)
             reward -= .24 * max(0., -vx - .02)
             if self.window_landed:

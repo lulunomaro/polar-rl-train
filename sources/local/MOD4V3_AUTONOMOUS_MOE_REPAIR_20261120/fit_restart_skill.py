@@ -14,11 +14,13 @@ from torch.nn import functional as F
 from restart_router import RestartSkillRouter, feature_rows
 
 
-def select_stops(records):
+def select_corrections(records, modes, min_height, max_height):
     """Keep a single corrective target per initial state and operator sequence."""
     selected = {}
     for row in records:
-        if row['mode'] != 'stop' or row['height_cmd_m'] > .34 or row['fell'] or not row.get('restart'):
+        height = row['height_cmd_m']
+        if (row['mode'] not in modes or not min_height <= height <= max_height
+                or row['fell'] or not row.get('restart')):
             continue
         wall = row.get('map_height_cm', 20) > 20
         if not wall and not row['admitted']:
@@ -33,7 +35,7 @@ def select_stops(records):
     return [row for _, row in selected.values()]
 
 
-def read_data(candidate_folders, replay_folders, *, stop_only=False):
+def read_data(candidate_folders, replay_folders, *, stop_only=False, high_restart=False):
     collected = []
     manifest = []
     for paired, folders in ((True, candidate_folders), (False, replay_folders)):
@@ -41,14 +43,17 @@ def read_data(candidate_folders, replay_folders, *, stop_only=False):
             index = folder / ('COLLECTION.json' if paired else 'WASD.json')
             records = json.loads(index.read_text('utf8'))['all_rollouts' if paired else 'results']
             positives = walls = frames = 0
-            if paired and stop_only:
-                records = select_stops(records)
+            if paired:
+                if stop_only:
+                    records = select_corrections(records, {'stop'}, .0, .34)
+                if high_restart:
+                    records = select_corrections(records, {'stop', 'reverse'}, .39, .43)
             for row in records:
                 restart = row.get('restart')
                 wall = paired and row.get('map_height_cm', 20) > 20
                 if paired and (not restart or row['fell'] or not (wall or row['admitted'])):
                     continue
-                background_modes = ('climb', 'flat', 'wall', 'reverse', 'turn', 'turn_w') if stop_only else ('climb', 'flat', 'wall')
+                background_modes = ('climb', 'flat', 'wall', 'reverse', 'turn', 'turn_w') if stop_only or high_restart else ('climb', 'flat', 'wall')
                 if not paired and (row['mode'] not in background_modes or row['fell']):
                     continue
                 with np.load(folder / (row['name'] + '.npz'), allow_pickle=False) as trajectory:
@@ -79,7 +84,7 @@ def read_data(candidate_folders, replay_folders, *, stop_only=False):
                 frames += int(take.sum())
             manifest.append({'source':str(index), 'sha256':hashlib.sha256(index.read_bytes()).hexdigest(),
                              'qualified_restarts':positives,'wall_restarts':walls,'frames':frames,
-                             'selected_rollouts': [row['name'] for row in records] if paired and stop_only else None})
+                             'selected_rollouts': [row['name'] for row in records] if paired and (stop_only or high_restart) else None})
     data = tuple(torch.from_numpy(np.concatenate(values)) for values in zip(*collected, strict=True))
     return data, manifest
 
@@ -132,12 +137,14 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--steps', type=int, default=2600)
     parser.add_argument('--device', choices=('cpu','cuda'), default='cpu')
-    parser.add_argument('--stop-only', action='store_true', help='Fit renewed W after a low-stance stop.')
+    focus = parser.add_mutually_exclusive_group()
+    focus.add_argument('--stop-only', action='store_true', help='Fit renewed W after a low-stance stop.')
+    focus.add_argument('--high-restart', action='store_true', help='Fit high-stance stops and reverse restarts.')
     args = parser.parse_args()
     torch.set_num_threads(1)
     torch.manual_seed(20261122)
     args.out.mkdir(parents=True, exist_ok=False)
-    data, rows = read_data(args.pairs, args.background, stop_only=args.stop_only)
+    data, rows = read_data(args.pairs, args.background, stop_only=args.stop_only, high_restart=args.high_restart)
     model, report = train(data,args.device,args.steps)
     report['sources'] = rows
     target = args.out / 'restart_skill.pt'

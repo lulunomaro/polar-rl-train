@@ -130,7 +130,10 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--workers', type=int, default=4)
     parser.add_argument('--trials', type=int, default=30)
-    parser.add_argument('--low-stop-focus', action='store_true')
+    focus = parser.add_mutually_exclusive_group()
+    focus.add_argument('--low-stop-focus', action='store_true')
+    focus.add_argument('--varied-stop-focus', action='store_true')
+    focus.add_argument('--high-restart-focus', action='store_true')
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     cases = restart_cases()
@@ -143,7 +146,30 @@ def main():
                          offset=offset, restart_delay_s=delay, speed=speed, map_height=level)
                  for h in (.28, .32) for i,(offset,delay,speed,level) in enumerate(
                      ((0.,.92,.90,20),(-.03,.67,.85,20),(.03,1.15,.94,20),(0.,.92,.90,50),(.03,.67,.85,45)))]
-    jobs = [(case, args.trials, args.out.resolve(), args.low_stop_focus) for case in cases]
+    if args.varied_stop_focus:
+        base = cases[0]
+        rng = np.random.default_rng(202611201)
+        cases = [replace(base, name=f'dagger_vary_h{round(h*1000):03}_{i:02}', target=h,
+                         offset=float(rng.uniform(-.069,.069)), speed=float(rng.uniform(.84,.97)),
+                         cancel_delay_s=float(rng.uniform(.055,.13)), restart_delay_s=float(rng.uniform(.61,1.22)),
+                         yaw=float(rng.uniform(-2.0,2.0)), map_height=20)
+                 for h in (.28, .295, .31, .325, .34) for i in range(4)]
+        cases += [replace(base, name=f'dagger_vary_wall_h{round(h*1000):03}_{height}', target=h,
+                          offset=float(rng.uniform(-.06,.06)), speed=float(rng.uniform(.82,.99)),
+                          cancel_delay_s=float(rng.uniform(.055,.13)), restart_delay_s=float(rng.uniform(.61,1.22)),
+                          yaw=float(rng.uniform(-2.5,2.5)), map_height=height)
+                  for h in (.28, .31, .34) for height in (45,50)]
+    if args.high_restart_focus:
+        focus_cases = [c for c in cases[:10] if c.target in (.40, .42)]
+        for c in focus_cases.copy():
+            focus_cases.extend(replace(c, name=c.name + f'_var{i}', offset=offset, speed=speed,
+                                       cancel_delay_s=cancel, restart_delay_s=resume, yaw=yaw)
+                               for i, (offset, speed, cancel, resume, yaw) in enumerate(
+                                   ((-.045, .86, .10, .76, -2.), (.045, .94, .12, 1.04, 2.))))
+        cases = focus_cases + [replace(c, map_height=height, name=f'{c.name}_wall{height}')
+                               for c in focus_cases[:4] for height in (45, 50)]
+    native_prefix = args.low_stop_focus or args.varied_stop_focus or args.high_restart_focus
+    jobs = [(case, args.trials, args.out.resolve(), native_prefix) for case in cases]
     with ProcessPoolExecutor(max_workers=args.workers, initializer=initialize,
                              initargs=(args.candidate.resolve(),)) as pool:
         rows = []

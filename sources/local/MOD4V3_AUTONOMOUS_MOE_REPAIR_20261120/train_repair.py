@@ -58,7 +58,8 @@ def parent_model(role, checkpoint=None, leap=False):
 
 
 def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_focus, stair_low_stance_focus,
-            stair_high_slow_focus, leap_moving_focus, stair_restart_focus, instant_moving_focus, jump_top_support):
+            stair_high_slow_focus, leap_moving_focus, stair_restart_focus, instant_moving_focus, jump_top_support,
+            stair_mid_stance_focus):
     try:
         env = LeapFixture(seed) if leap else JumpFixture(seed) if role == 'jump' else StairFixture(seed)
         if leap:
@@ -69,6 +70,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             env.require_top_support = jump_top_support
         if role != 'jump':
             env.restart_focus = stair_restart_focus
+            env.mid_stance_focus = stair_mid_stance_focus
         if role == 'stair':
             env.low_stance_focus = stair_low_stance_focus
             env.high_slow_focus = stair_high_slow_focus
@@ -111,14 +113,16 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
 class Fixtures:
     def __init__(self, role, count, seed, measure_substeps=False, leap=False, stance_dr=False,
                  leap_height_focus=False, stair_low_stance_focus=False, stair_high_slow_focus=False,
-                 leap_moving_focus=False, stair_restart_focus=False, instant_moving_focus=False, jump_top_support=False):
+                 leap_moving_focus=False, stair_restart_focus=False, instant_moving_focus=False, jump_top_support=False,
+                 stair_mid_stance_focus=False):
         self.pipes, self.workers = [], []
         ctx = mp.get_context('fork' if os.name != 'nt' else 'spawn')
         for index in range(count):
             leader, worker = ctx.Pipe()
             proc = ctx.Process(target=_worker, args=(worker, role, seed + 191 * index, measure_substeps, leap, stance_dr,
                                                      leap_height_focus, stair_low_stance_focus, stair_high_slow_focus,
-                                                     leap_moving_focus, stair_restart_focus, instant_moving_focus, jump_top_support),
+                                                     leap_moving_focus, stair_restart_focus, instant_moving_focus,
+                                                     jump_top_support, stair_mid_stance_focus),
                                daemon=True)
             proc.start()
             worker.close()
@@ -247,6 +251,10 @@ def summary(episodes):
             acc['direct_completions'] += int(ep['recovered'] and ep['backtrack_m'] <= .075)
             acc['backtrack_m'] += ep['backtrack_m']
             acc['invalid_gate_peak'] = max(acc['invalid_gate_peak'], ep['invalid_gate_max'])
+            if ep.get('restart_backtrack_m') is not None:
+                acc['resumed'] += 1
+                acc['renewed_contact'] += int(ep['restart_contact'])
+                acc['restart_backtrack_m'] += ep['restart_backtrack_m']
         else:
             acc['landed'] += int(ep['landed'])
             acc['clearance_m'] += ep['clearance_m']
@@ -452,6 +460,7 @@ def main():
     parser.add_argument('--leap-height-focus', action='store_true')
     parser.add_argument('--stair-low-stance-focus', action='store_true')
     parser.add_argument('--stair-high-slow-focus', action='store_true')
+    parser.add_argument('--stair-mid-stance-focus', action='store_true')
     parser.add_argument('--leap-moving-focus', action='store_true')
     parser.add_argument('--instant-moving-focus', action='store_true')
     parser.add_argument('--jump-top-support', action='store_true')
@@ -489,7 +498,8 @@ def main():
                    stance_dr=bool(args.stance_dr), leap_height_focus=args.leap_height_focus,
                    stair_low_stance_focus=args.stair_low_stance_focus, stair_high_slow_focus=args.stair_high_slow_focus,
                    leap_moving_focus=args.leap_moving_focus, stair_restart_focus=args.stair_restart_focus,
-                   instant_moving_focus=args.instant_moving_focus, jump_top_support=args.jump_top_support)
+                   instant_moving_focus=args.instant_moving_focus, jump_top_support=args.jump_top_support,
+                   stair_mid_stance_focus=args.stair_mid_stance_focus)
     try:
         device = torch.device('cpu' if args.cpu else 'cuda')
         model = parent_model(args.role, args.resume, args.leap).to(device)
@@ -521,7 +531,7 @@ def main():
                  'leap_height_focus': args.leap_height_focus, 'stair_low_stance_focus': args.stair_low_stance_focus,
                  'stair_high_slow_focus': args.stair_high_slow_focus, 'leap_moving_focus': args.leap_moving_focus,
                  'stair_restart_focus': args.stair_restart_focus, 'instant_moving_focus': args.instant_moving_focus,
-                 'jump_top_support': args.jump_top_support,
+                 'jump_top_support': args.jump_top_support, 'stair_mid_stance_focus': args.stair_mid_stance_focus,
                  'parent': sha(args.resume) if args.resume else sha(LEAP_PARENT) if args.leap else EXPECTED_SHA[
                      'jump' if args.role == 'jump' else 'stair']}
         save_json(out / 'STARTED.json', ident)

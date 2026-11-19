@@ -54,8 +54,9 @@ def initialize(candidate, height, speed, offsets, slow_expert):
             mj.mj_step = physical_step
         state = np.empty(mj.mj_stateSize(sim.m, _STATE))
         mj.mj_getState(sim.m, sim.d, state, _STATE)
+        restart_history = tuple(row.copy() for row in policy.restart_history)
         snapshots.append((offset, names, state, sim.cmd_vx, sim.cmd_wz, sim.prev_a.copy(), sim.steps,
-                          policy.history.buffer.clone(), policy.stair_mix))
+                          policy.history.buffer.clone(), policy.stair_mix, restart_history))
     _WORKER = (sim, policy, bias, bias.detach().clone(), snapshots, height, speed)
 
 
@@ -69,11 +70,13 @@ def score(coefficients):
     sim, policy, bias, original, snapshots, height, speed = _WORKER
     bias.copy_(original + bias.new_tensor(expanded(coefficients)))
     metrics = []
-    for offset, names, state, cv, cw, prev, steps, hist, mix in snapshots:
+    for offset, names, state, cv, cw, prev, steps, hist, mix, restart_history in snapshots:
         mj.mj_setState(sim.m, sim.d, state, _STATE)
         mj.mj_forward(sim.m, sim.d)
         sim.cmd_vx, sim.cmd_wz, sim.target_h, sim.prev_a, sim.steps = cv, cw, height, prev.copy(), steps
         policy.history.buffer, policy.stair_mix, policy.handoff_mix = hist.clone(), mix, 0.
+        policy.restart_history.clear()
+        policy.restart_history.extend(restart_history)
         trace = ContactTrace(sim, names)
         _, edge, _ = next(iter(trace.top.values()))
         peak_x = float(sim.d.qpos[0])
@@ -100,7 +103,8 @@ def score(coefficients):
                 failed = (sim.d.time < before or pitch > 45. or sim.d.qpos[2] < .13)
                 if failed:
                     break
-                good = (batch[:, 13:15].mean(0) >= 5.).all() and batch[-1, 10] > edge + .004
+                good = ((batch[:, 13:15].mean(0) >= 5.).all() and batch[-1, 10] > edge + .004
+                        and batch[-1, 1] > edge + .02)
                 consecutive = consecutive + 1 if good else 0
                 if consecutive >= 20:
                     supported = True
@@ -111,7 +115,9 @@ def score(coefficients):
         quality = 8.0 * supported - 19. * retreat - .055 * max(0., pitch - 12.)
         quality -= 5. * failed + .003 * (k + 1) + .4 * lateral
         if speed < .66:
-            quality -= 1.8 * max(0., peak_speed - .60)**2
+            excess = max(0., peak_speed - .60)
+            quality += 2.0 * (supported and excess == 0.)
+            quality -= 7.0 * excess**2
         metrics.append({'offset_m': offset, 'held': bool(supported), 'fell': bool(failed), 'backtrack_m': retreat,
                         'pitch_deg': pitch, 'postimpact_peak_speed_m_s': peak_speed, 'quality': float(quality)})
     vals = np.asarray([r['quality'] for r in metrics])
@@ -139,7 +145,7 @@ def main():
         for generation in range(args.generations):
             proposals = [center, *np.clip(rng.normal(center, spread, (18, 5)), -.65, .65)]
             for gains, (value, metrics) in zip(proposals, workers.map(score, proposals), strict=True):
-                results.append({'generation': generation, 'bias_delta': list(gains), 'score': value, 'metrics': metrics})
+                results.append({'generation': generation, 'bias_delta': [float(value) for value in gains], 'score': value, 'metrics': metrics})
             results.sort(key=lambda r: r['score'], reverse=True)
             top = np.array([r['bias_delta'] for r in results[:6]])
             center = top.mean(0)

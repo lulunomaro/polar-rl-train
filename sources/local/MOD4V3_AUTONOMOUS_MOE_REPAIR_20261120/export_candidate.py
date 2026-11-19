@@ -30,11 +30,17 @@ def main():
     config['label'] = args.label
     for item in args.set_model:
         role,sep,value = item.partition('=')
-        if not sep or role not in ('stair', 'router', 'high_router', 'slow_stair', 'jump', 'moving_jump', 'restart_router', 'high_restart_router'):
+        if not sep or role not in ('stair', 'router', 'high_router', 'slow_stair', 'mid_stair', 'rising_stair', 'jump', 'moving_jump', 'restart_router', 'high_restart_router', 'parked_restart_router', 'stair_height_bank'):
             parser.error(f'Invalid model assignment {item!r}')
         path = Path(value).resolve()
         paths[role] = path
         config['sha256'][role] = digest(path)
+        if role == 'stair_height_bank':
+            config['sha256'] = {key: value for key, value in config['sha256'].items()
+                                if not key.startswith('stair_height_') or key == role}
+            for point in json.loads(path.read_text(encoding='utf8')):
+                height = float(point['height_m'])
+                config['sha256'][f'stair_height_{height:.3f}'] = digest(path.parent / point['path'])
     for item in args.set:
         name,sep,value = item.partition('=')
         if not sep:

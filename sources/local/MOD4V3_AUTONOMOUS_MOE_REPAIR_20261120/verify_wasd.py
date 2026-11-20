@@ -39,6 +39,7 @@ class Case:
     jump_distance_m: float = .66
     drive_at_s: float = .40
     proving_lane: int | None = None
+    retained_height_at_reset: bool = False
 
 
 def cases(quick):
@@ -116,6 +117,8 @@ def load_case(sim, case):
     sim.load_map(meta, idx)
     sim.target_h = .28 if case.raise_while_moving else case.target
     sim.max_vx = case.speed
+    if case.retained_height_at_reset:
+        sim.reset_at_spawn(idx)
     return names
 
 

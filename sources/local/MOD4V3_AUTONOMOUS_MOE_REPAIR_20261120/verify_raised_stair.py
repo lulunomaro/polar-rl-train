@@ -94,6 +94,25 @@ def near_slow_cases():
     ]
 
 
+def raised_restart_cases():
+    poses = ((-.060, -3., .90, .06, .90), (-.036, 1.2, .87, .08, 1.09),
+             (-.015, 2.0, .89, .11, .84), (0., 0., .90, .10, 1.10),
+             (.023, -1.3, .92, .13, 1.22), (.036, 2.0, .91, .07, .97),
+             (.051, -2.7, .93, .09, 1.18), (.059, -3.4, .90, .09, 1.23))
+    stairs = [Case(f'raised_resume_{index}_step', target=.42, offset=x, yaw=yaw, speed=speed,
+                   mode='stop', cancel_delay_s=delay, restart_delay_s=pause, duration=9.)
+              for index, (x, yaw, speed, delay, pause) in enumerate(poses)]
+    walls = [replace(stairs[index], name=f'raised_resume_{index}_wall', map_height=50)
+             for index in (1, 6, 7)]
+    return stairs + walls
+
+
+def raised_reset_cases():
+    return [Case(f'raised_reset_g{gear}_x{offset:+03}', target=.42, speed=speed, offset=offset / 1000.,
+                 retained_height_at_reset=True, drive_at_s=1.45, duration=8.5)
+            for gear, speed in ((4, .50), (5, .90)) for offset in (-60, -30, 0, 30, 60)]
+
+
 def initialize(manifest):
     global sim
     policy, _, jump_prep = load_manifest(manifest)
@@ -133,6 +152,8 @@ def main():
     parser.add_argument('--slider', action='store_true')
     parser.add_argument('--proving-ground', action='store_true')
     parser.add_argument('--near-slow', action='store_true')
+    parser.add_argument('--raised-restart', action='store_true')
+    parser.add_argument('--raised-reset', action='store_true')
     options = parser.parse_args()
     matrix = raised_cases() + [
         Case(f'held_h42_{mm:+03}', target=.42, offset=mm / 1000.) for mm in (-60, -30, 0, 30, 60)
@@ -152,6 +173,10 @@ def main():
         matrix += proving_cases()
     if options.near_slow:
         matrix += near_slow_cases()
+    if options.raised_restart:
+        matrix += raised_restart_cases()
+    if options.raised_reset:
+        matrix += raised_reset_cases()
     if options.case:
         matrix = [case for case in matrix if case.name in options.case]
         if len(matrix) != len(options.case):

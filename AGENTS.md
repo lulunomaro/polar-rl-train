@@ -1,3 +1,7 @@
+## 2026-11-20 15:52 MOD4v3 WASD 高站姿复位与续爬 `29a94a50`
+
+实际窗口保留 0.420 m 指令时，复位后可自行升至约 0.408 m。20 cm 单阶复位起身回归在 0.50/0.90 m/s 两档各五点全部通过，零回退。抬头重按 W 原失败例双轮承载 0→1.74 秒，续爬留出 4/8。固定与行进抬高 30/30，驾驶接管 21/21 同拍 E1 归零，跳跃抽检 3/3。短助跑变化 5/8，仍有挡墙误开和全程超 0.60 m/s。见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/REPORT.md` 及 `evidence/r60_raised_restart/VALIDATION.json`。
+
 ## 2026-11-20 15:30 MOD4v3 WASD 0.42 m 近阶接手 `15e5f915`
 
 项目的 WASD 入口统一加载当前实验 `CANDIDATE.json`。距 20 cm 台阶沿约 38 cm 时，0.50 m/s 档的双轮连续承载从 0 到 2.22 秒，峰值俯仰 89.77°→12.59°，退回 53.04→3.10 cm。标准位置 0.50/0.90 m/s 档各五点全部通过。五个固定站高及行进抬到 0.42 m 共 30/30 登台，驾驶接管 21/21 同拍 E1 归零。短助跑变化组 5/8，停车后续爬仍有失败，整程限速 0.60 m/s 未达到。见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/REPORT.md` 和 `evidence/r59_raised_near/VALIDATION.json`。

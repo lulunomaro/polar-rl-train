@@ -74,6 +74,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.raised_slow_handoff_time = None
         self.restart_release_per_tick = 1.0
         self.high_restart_release_per_tick = 1.0
+        self.raised_restart_min_command = 0.0
         self.stair_mix = 0.0
         self.handoff_mix = 0.0
         self.handoff_gains = None
@@ -201,6 +202,26 @@ class RepairedPolicy(AutonomousThreeExpert):
             return router.evaluate(self.restart_history)
         context, probability = router.probability(self.restart_history)
         return context, probability, np.zeros(3, dtype=np.float32)
+
+    def high_restart_outputs(self):
+        context, probability, correction = self.restart_outputs(self.high_restart_router)
+        speed = self.stair_driver_speed
+        threshold = self.raised_restart_min_command
+        if not threshold or speed is None or speed < .70 or len(self.restart_history) < 20:
+            return context, probability, correction
+        commands = np.fromiter((row[0] for row in self.restart_history), dtype=np.float32)
+        command = float(commands[-1])
+        if command >= threshold + .10:
+            return context, probability, correction
+        neutral = np.flatnonzero(np.abs(commands) <= .06)
+        if (len(neutral) and self.restart_history[neutral[-1]][7] >= .10
+                and np.any(commands[:neutral[-1]] > .30)):
+            # A nose-up restart can replay the preceding impact before the
+            # driver has established forward drive. Use the last neutral frame
+            # to keep the same ramp even as pitch changes during the handoff.
+            ramp = float(np.clip((command - threshold) / .10, 0.0, 1.0))
+            return 1.0 - ramp * (1.0 - context), ramp * probability, correction
+        return context, probability, correction
 
     def parked_restart_outputs(self, height, baseline):
         """Use the learned low-stance restart gate after neutral forward release."""
@@ -393,10 +414,10 @@ class RepairedPolicy(AutonomousThreeExpert):
             if self.high_restart_router is not None:
                 tall = float(np.clip((height - .40) / .018, 0., 1.))
                 if tall == 1.0:
-                    resumed, restart_probability, restart_delta = self.restart_outputs(self.high_restart_router)
+                    resumed, restart_probability, restart_delta = self.high_restart_outputs()
                     restart_release = self.high_restart_release_per_tick
                 elif tall > 0.0:
-                    high_context, high_probability, high_delta = self.restart_outputs(self.high_restart_router)
+                    high_context, high_probability, high_delta = self.high_restart_outputs()
                     resumed += tall * (high_context - resumed)
                     restart_probability += tall * (high_probability - restart_probability)
                     restart_delta += tall * (high_delta - restart_delta)
@@ -818,6 +839,9 @@ def load_manifest(path):
         model.raised_slow_handoff_gains = gains
     model.restart_release_per_tick = float(settings.get('restart_release', model.stair_release_per_tick))
     model.high_restart_release_per_tick = float(settings.get('high_restart_release', model.restart_release_per_tick))
+    model.raised_restart_min_command = float(settings.get('raised_restart_min_command', 0.0))
+    if not 0.0 <= model.raised_restart_min_command <= .60:
+        raise ValueError('Raised-stance restart command threshold must be in [0, .60] m/s')
     model.set_handoff_gains(settings.get('handoff_gains'))
     model.set_handoff_gains(settings.get('low_handoff_gains'), low_stance=True)
     model.immediate_stair_stop = bool(settings.get('immediate_stair_stop', False))
@@ -871,25 +895,39 @@ def main():
                 self.suite_cb.current(4)
                 self.sub_cb.configure(values=play.STAIR_SCENES, state='readonly')
                 self.sub_var.set('20 cm 单阶')
-            return super().apply_suite_selection(initial=initial)
+            super().apply_suite_selection(initial=initial)
+            self.resume_raised_spawn()
 
-        def start_height_adjustment(self, previous_height):
-            # A reset waits for the driver. A stance-only command must also
-            # release that wait so the robot can rise before W is pressed.
-            if (self.waiting_for_input and not self.sim.paused
-                    and abs(self.sim.target_h - previous_height) > 1e-6):
+        def action_reset(self):
+            super().action_reset()
+            self.resume_raised_spawn()
+
+        def on_spawn_selected(self):
+            super().on_spawn_selected()
+            self.resume_raised_spawn()
+
+        def resume_raised_spawn(self):
+            # The spawn IK caps its starting pose below the raised target.
+            # Apply a retained high target while the driver is still neutral.
+            if self.sim.target_h >= .405:
+                self.start_height_adjustment()
+
+        def start_height_adjustment(self):
+            if self.waiting_for_input and not self.sim.paused:
                 self.waiting_for_input = False
                 self.deadline = time.perf_counter()
 
         def on_height_slider(self, value):
             previous_height = self.sim.target_h
             super().on_height_slider(value)
-            self.start_height_adjustment(previous_height)
+            if abs(self.sim.target_h - previous_height) > 1e-6:
+                self.start_height_adjustment()
 
         def set_height_preset(self, height):
             previous_height = self.sim.target_h
             super().set_height_preset(height)
-            self.start_height_adjustment(previous_height)
+            if abs(self.sim.target_h - previous_height) > 1e-6:
+                self.start_height_adjustment()
 
     try:
         StepPlayer(root, sim)

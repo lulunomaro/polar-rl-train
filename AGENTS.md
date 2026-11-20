@@ -1,3 +1,7 @@
+## 2026-11-20 18:20 MOD4v3 平地和 rough 驾驶候选对照
+
+独立实验 `sources/local/MOD4V3_E0_FLAT_ROUGH_REPAIR_20261120` 对 `c874` 与原 `010m` 同配方短训，均存档 29 PPO / 348 Adam。选择 `c874` 副本的 4 分钟权重 `b271cafb` 及站高渐进混合，0.32 m 以下复用原 E0，0.40 m 起完全用补训候选。独立 `flat60=60/60`，0.42 m 的全档速度 MAE 平地 0.438→0.206 m/s、L9 rough 0.405→0.192 m/s。两地形各 6 站高×前/后各 8 档，逐点数据存 `evidence/SPEED_GRID.csv`。R63 混合试验五点物理登台 4/5→1/5，中心首次碰阶至 E1 充分接手 13→118 ms，高姿直跳摔倒。交付独立 E0 WASD，`MOE_TRIAL` 为交接失败复现。默认 c874 及原资料哈希已核验。
+
 ## 2026-11-20 16:49 MOD4v3 0.42 m WASD 上阶回放与 R61 标签
 
 运行中的 R61 `c2f43b14` 已归档为 `11月20日最优moe模型`（`25c23188d`），独立入口 `Run_MOD4v3_R61_WASD.bat`。实验 WASD 入口采用 `f013f620`。短助跑把 E1 接手减缓，0.42 m 的 19 例 Tk 回放双轮承载由 14/19 到 19/19。原失败点双轮承载 1.86 s，峰值俯仰 15.01°，回退 2.37 cm。变化组 6/8，一例名义回放先倒溜 73.4 cm 再登台，0.47 m/s 命令档整程 ≤0.60 m/s 仍为 0/5。详见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/evidence/r63_raised_short/VALIDATION.json`。

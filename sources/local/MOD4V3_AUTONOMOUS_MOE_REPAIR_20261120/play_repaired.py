@@ -56,6 +56,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.high_moving_jump_history_frames = jump.HIST_LEN
         self.high_moving_jump_frames = jump.GATE_STEPS
         self.use_high_moving_jump = False
+        self.restoring_jump_height = False
         self.jump_min_forward = 0.0
         self.high_jump_min_rolling = 0.0
         self.high_jump_runup_frames = 0
@@ -75,6 +76,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         super().reset_history()
         self.restart_history.clear()
         self.use_high_moving_jump = False
+        self.restoring_jump_height = False
         self.stair_mix = 0.0
         self.handoff_mix = 0.0
 
@@ -294,7 +296,8 @@ class RepairedPolicy(AutonomousThreeExpert):
             action = expert(current, jump_history.flatten(1)).clamp(-jump.ACTION_CLIP, jump.ACTION_CLIP)
             return action[0].numpy(), {'e0':0.0, 'e1':0.0, 'e2':1.0, 'g_prob':0.0}
         current = stair.canonicalize_normal_obs(x)
-        h = stair.canonicalize_normal_obs(history.view(1, stair.HIST_LEN, stair.OBS_DIM)).flatten(1)
+        history_frames = history.view(1, stair.HIST_LEN, stair.OBS_DIM)
+        h = stair.canonicalize_normal_obs(history_frames).flatten(1)
         out = self.stair_outputs(current, h)
         if self.router_weights is None:
             probability = float(out['g_prob'].item())
@@ -307,9 +310,10 @@ class RepairedPolicy(AutonomousThreeExpert):
             if tall > 0.0:
                 high_probability = self.router_probability(self.high_router_weights, current, h)
                 probability += tall * (high_probability - probability)
-        # A high moving jump retains landing authority through the 0.4 s support window.
-        landing = self.use_high_moving_jump and any(
-            row[jump.JUMP_MODE_BIT_INDEX] > .5 for row in list(self.restart_history)[-20:])
+        # Rising back to the requested stance after a jump can look like
+        # a stair impact. Leave ordinary low-stance driving eligible for E1.
+        landing = ((self.restoring_jump_height or self.use_high_moving_jump)
+                   and bool((history_frames[0, -20:, jump.JUMP_MODE_BIT_INDEX] > .5).any()))
         permit = self.allow_stair and not landing
         release = self.stair_release_per_tick
         restart_delta = None
@@ -463,7 +467,9 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_prepare_frames = 0
         self.jump_waiting_for_roll = False
         self.jump_key_tick = None
-        self.jump_key_follows_reverse = False
+        self.jump_key_driving = None
+        self.jump_key_waits_for_rolling = False
+        self.jump_prepare_driving = False
         self.reset_reverse_heading()
         super().__init__(policy, sha, show_viewer=show_viewer)
 
@@ -496,7 +502,9 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_prepare_frames = 0
         self.jump_waiting_for_roll = False
         self.jump_key_tick = None
-        self.jump_key_follows_reverse = False
+        self.jump_key_driving = None
+        self.jump_key_waits_for_rolling = False
+        self.jump_prepare_driving = False
         return super().reset_at_spawn(spawn_idx)
 
     def request_jump(self):
@@ -504,7 +512,8 @@ class RepairedSimulation(AutonomousMapSimulation):
             return False
         # Hotkeys are received before the current tick's WASD keys reach step().
         self.jump_key_tick = self.steps
-        self.jump_key_follows_reverse = self.cmd_vx < -.08
+        self.jump_key_driving = None
+        self.jump_key_waits_for_rolling = self.cmd_vx < -.08
         return True
 
     def dispatch_jump_key(self, pressed):
@@ -514,21 +523,27 @@ class RepairedSimulation(AutonomousMapSimulation):
         if 's' in pressed or turning or self.steps - self.jump_key_tick >= 50:
             self.jump_key_tick = None
             return
-        if self.jump_key_follows_reverse:
-            if self.last_obs is None:
+        forward = 'w' in pressed
+        if self.jump_key_driving is None:
+            self.jump_key_driving = forward
+        elif self.jump_key_driving != forward:
+            self.jump_key_tick = None
+            return
+        if forward and (self.jump_key_waits_for_rolling or self.cmd_vx < .15):
+            if self.last_obs is None or self.cmd_vx < .15 or .625 * self.last_obs[20:22].min() < .40:
+                self.jump_key_waits_for_rolling = True
                 return
-            tread = .625 * self.last_obs[20:22]
-            if 'w' in pressed:
-                ready = self.cmd_vx >= .15 and float(tread.min()) >= .40
-            else:
-                ready = abs(self.cmd_vx) <= .045 and float(np.abs(tread).max()) <= .065
-            if not ready:
+        elif self.jump_key_waits_for_rolling:
+            if self.last_obs is None or abs(self.cmd_vx) > .045 or .625 * np.abs(self.last_obs[20:22]).max() > .065:
                 return
         self.jump_key_tick = None
-        self.begin_requested_jump()
+        self.begin_requested_jump(forward=forward)
 
-    def begin_requested_jump(self):
-        if self.unified.high_moving_jump is not None and self.target_h >= .32 and self.cmd_vx >= .15:
+    def begin_requested_jump(self, *, forward=None):
+        # Direct audit callers can use the command already held by the player.
+        if forward is None:
+            forward = self.cmd_vx >= .15
+        if forward and self.unified.high_moving_jump is not None and self.target_h >= .32:
             if self.unified.high_jump_runup_frames and not self.high_jump_rolling():
                 self.jump_waiting_for_roll = True
                 self.jump_pending = True
@@ -539,17 +554,20 @@ class RepairedSimulation(AutonomousMapSimulation):
         if self.jump_stance_prep and self.target_h > .305:
             self.jump_height = self.target_h if self.jump_height is None else self.jump_height
             self.jump_pending = True
+            self.jump_prepare_driving = forward
             self.jump_prepare_frames = 0
             self.jump_launch_gz = self.ground_z(*self.d.qpos[:2])  # Telemetry only.
             return True
-        return self.start_jump()
+        return self.start_jump(moving=forward)
 
-    def start_jump(self, *, high_moving=False):
+    def start_jump(self, *, high_moving=False, moving=None):
         if not super().request_jump():
             return False
         # Select once at the keypress from the driver's commanded speed. The mode and
         # history stay coherent through landing, even if W is released while in the air.
-        self.unified.use_moving_jump = self.unified.moving_jump is not None and abs(self.cmd_vx) >= .15
+        if moving is None:
+            moving = self.cmd_vx >= .15
+        self.unified.use_moving_jump = self.unified.moving_jump is not None and moving
         self.unified.use_high_moving_jump = high_moving
         if high_moving:
             self.jump_rem = self.unified.high_moving_jump_frames
@@ -575,8 +593,8 @@ class RepairedSimulation(AutonomousMapSimulation):
                 self.start_jump(high_moving=True)
             return
         if self.jump_pending:
-            # Explicit reverse cancels a queued launch while the wheels are on the ground.
-            if 's' in pressed or ('a' in pressed) != ('d' in pressed):
+            if ('s' in pressed or ('a' in pressed) != ('d' in pressed)
+                    or self.jump_prepare_driving and 'w' not in pressed):
                 self.jump_pending = False
                 return
             self.jump_height = max(.28, self.jump_height - .28 * CONTROL_DT)
@@ -584,7 +602,7 @@ class RepairedSimulation(AutonomousMapSimulation):
                 self.jump_prepare_frames += 1
                 if self.jump_prepare_frames >= 10:
                     self.jump_pending = False
-                    self.start_jump()
+                    self.start_jump(moving=self.jump_prepare_driving)
         elif self.jump_height is not None and not self.jump_rem:
             delta = float(np.clip(self.target_h - self.jump_height, -.12 * CONTROL_DT, .12 * CONTROL_DT))
             self.jump_height += delta
@@ -614,6 +632,7 @@ class RepairedSimulation(AutonomousMapSimulation):
         # Raw operator intent arrives before the command slew or history. It is independent of obstacle detection.
         self.dispatch_jump_key(pressed)
         self.update_jump_height(pressed)
+        self.unified.restoring_jump_height = self.jump_height is not None and not self.jump_pending and not self.jump_rem
         self.update_reverse_heading(forward, explicit_turn)
         self.unified.allow_stair = (forward > 0 and not explicit_turn and not self.jump_pending
                                     and self.jump_key_tick is None)

@@ -29,7 +29,13 @@ def run(sim, height, profile):
     mj.mj_step = collect
     try:
         for tick in range(225):
-            if 20 <= tick < key_tick or profile == 'reverse_held' and key_tick <= tick < 78:
+            if profile == 'w_from_rest':
+                keys = {'w'} if tick >= key_tick else set()
+            elif profile == 'w_tap_cancel':
+                keys = {'w'} if tick == key_tick else set()
+            elif profile == 'turn_during_runup':
+                keys = {'w'} if tick == key_tick else {'a'} if key_tick < tick < key_tick + 16 else set()
+            elif 20 <= tick < key_tick or profile == 'reverse_held' and key_tick <= tick < 78:
                 keys = {'s'}
             elif profile == 'forward_after_reverse' and tick >= key_tick:
                 keys = {'w'}
@@ -69,7 +75,8 @@ def main():
     policy, _, prepare = load_manifest(args.candidate)
     sim = RepairedSimulation(policy, policy.runtime_sha, show_viewer=False, jump_stance_prep=prepare)
     results = [run(sim, h, profile) for h in (.28,.42)
-               for profile in ('reverse_release', 'reverse_held', 'forward_after_reverse')]
+               for profile in ('reverse_release', 'reverse_held', 'forward_after_reverse',
+                               'w_from_rest', 'w_tap_cancel', 'turn_during_runup')]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps({'runtime_sha256':policy.runtime_sha, 'results':results}, indent=2)+'\n', encoding='utf8')
     for row in results:

@@ -33,6 +33,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.restart_router = None
         self.high_restart_router = None
         self.parked_restart_router = None
+        self.parked_recovery_router = None
         self.restart_history = deque(maxlen=RESTART_WINDOW)
         self.stair_height_bank = ()
         self.slow_stair = None
@@ -57,6 +58,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.low_handoff_gains = None
         self.immediate_stair_stop = False
         self.handoff_duration = .44
+        self.reverse_heading_gain = 0.0
 
     def reset_history(self):
         super().reset_history()
@@ -177,11 +179,19 @@ class RepairedPolicy(AutonomousThreeExpert):
         if any(float(row[0]) < -.10 for row in recent_commands):
             return baseline
         context, probability, _ = self.parked_restart_router.evaluate(self.restart_history)
-        contact_mix = float(np.clip(.5 + (probability - .76) / .10, 0., 1.))
         base_context, base_mix, base_delta = baseline
+        correction = (1. - weight) * base_delta
+        # Keep the established 0.28 m restart path. The recovery training covers
+        # higher parked approaches where the gate missed the second contact.
+        recovery_weight = float(np.clip((height - .292) / .006, 0., 1.))
+        if self.parked_recovery_router is not None and recovery_weight > 0.:
+            recovery_context, recovery_prob, residual = self.parked_recovery_router.evaluate(self.restart_history)
+            context += recovery_weight * (recovery_context - context)
+            probability += recovery_weight * (recovery_prob - probability)
+            correction += .6 * weight * recovery_weight * residual
+        contact_mix = float(np.clip(.5 + (probability - .76) / .10, 0., 1.))
         return (base_context + weight * (context - base_context),
-                base_mix + weight * (contact_mix - base_mix),
-                (1. - weight) * base_delta)
+                base_mix + weight * (contact_mix - base_mix), correction)
 
     @torch.inference_mode()
     def act(self, obs: np.ndarray):
@@ -283,7 +293,7 @@ def load_jump_expert(raw, base_state):
 def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fast_moving_jump=False,
                    stair_height_bank=None, high_router_path=None, slow_stair_path=None, moving_jump_path=None,
                    restart_router_path=None, high_restart_router_path=None, parked_restart_router_path=None,
-                   mid_stair_path=None, rising_stair_path=None):
+                   mid_stair_path=None, rising_stair_path=None, parked_recovery_router_path=None):
     torch.set_num_threads(1)
     parent, parent_sha = load_parent()
     model = RepairedPolicy()
@@ -340,12 +350,17 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
             model.stair_height_bank += ((height, experts[path]),)
     if restart_router_path is None and (high_restart_router_path is not None or parked_restart_router_path is not None):
         raise ValueError('Restart specializations require the primary restart model')
+    if parked_recovery_router_path is not None and parked_restart_router_path is None:
+        raise ValueError('Parked recovery requires the parked restart model')
     for role, weight_file in (('restart_router', restart_router_path), ('high_restart_router', high_restart_router_path),
-                              ('parked_restart_router', parked_restart_router_path)):
+                              ('parked_restart_router', parked_restart_router_path),
+                              ('parked_recovery_router', parked_recovery_router_path)):
         if weight_file is None:
             continue
         path = Path(weight_file)
         raw = torch.load(path, map_location='cpu', weights_only=True)
+        if role in ('parked_restart_router', 'parked_recovery_router') and not raw.get('restart_action'):
+            raise ValueError(f'{role} requires a restart skill checkpoint')
         network = RestartSkillRouter() if raw.get('restart_action') else RestartRouter()
         network.load_state_dict(raw['state_dict'], strict=True)
         setattr(model, role, network)
@@ -360,9 +375,33 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_height = None
         self.jump_pending = False
         self.jump_prepare_frames = 0
+        self.reset_reverse_heading()
         super().__init__(policy, sha, show_viewer=show_viewer)
 
+    def reset_reverse_heading(self):
+        self.reverse_heading_remaining = 0.
+        self.reverse_heading_error = 0.
+        self.reverse_heading_correction = 0.
+
+    def update_reverse_heading(self, forward, turning):
+        gain = self.unified.reverse_heading_gain
+        if not gain or turning or self.jump_pending or self.jump_rem or self.target_h < .415:
+            self.reset_reverse_heading()
+            return
+        if forward < 0 and self.unified.stair_mix > .25:
+            # Hold the direction at the driver's straight reverse command. The
+            # integrated yaw rate comes from the same gyro observation as the actor.
+            self.reverse_heading_error = 0.
+            self.reverse_heading_remaining = 3.4
+        elif self.reverse_heading_remaining > 0.:
+            self.reverse_heading_error -= 2. * float(self.last_obs[6]) * CONTROL_DT
+        self.reverse_heading_correction = float(np.clip(gain * self.reverse_heading_error, -.55, .55))
+        self.reverse_heading_remaining = max(0., self.reverse_heading_remaining - CONTROL_DT)
+        if self.reverse_heading_remaining == 0.:
+            self.reset_reverse_heading()
+
     def reset_at_spawn(self, spawn_idx=None):
+        self.reset_reverse_heading()
         self.jump_height = None
         self.jump_pending = False
         self.jump_prepare_frames = 0
@@ -408,6 +447,7 @@ class RepairedSimulation(AutonomousMapSimulation):
 
     def _observe(self, jump_requested):
         obs = super()._observe(jump_requested)
+        obs[2] += self.reverse_heading_correction
         if self.jump_height is not None:
             obs[3] = self.jump_height * 5.
         return obs
@@ -416,6 +456,7 @@ class RepairedSimulation(AutonomousMapSimulation):
         status = super().telemetry()
         status['source_sha256'] = {**SOURCE_SHA, **self.unified.provenance}
         status['jump_pending'] = self.jump_pending
+        status['reverse_heading_correction_rad_s'] = self.reverse_heading_correction
         status['effective_target_h'] = self.target_h if self.jump_height is None else self.jump_height
         return status
 
@@ -426,6 +467,7 @@ class RepairedSimulation(AutonomousMapSimulation):
         explicit_turn = ('a' in pressed) != ('d' in pressed)
         # Raw operator intent arrives before the command slew or history. It is independent of obstacle detection.
         self.update_jump_height(pressed)
+        self.update_reverse_heading(forward, explicit_turn)
         self.unified.allow_stair = forward > 0 and not explicit_turn and not self.jump_pending
         self.unified.stair_driver_speed = self.max_vx if self.unified.allow_stair else None
         stopping_stair = (
@@ -455,6 +497,7 @@ def load_manifest(path):
                                    restart_router_path=paths.get('restart_router'),
                                    high_restart_router_path=paths.get('high_restart_router'),
                                    parked_restart_router_path=paths.get('parked_restart_router'),
+                                   parked_recovery_router_path=paths.get('parked_recovery_router'),
                                    mid_stair_path=paths.get('mid_stair'), rising_stair_path=paths.get('rising_stair'))
     if hashes != manifest['sha256']:
         raise RuntimeError('The loaded policy does not match the validated candidate hashes')
@@ -467,6 +510,9 @@ def load_manifest(path):
     model.set_handoff_gains(settings.get('low_handoff_gains'), low_stance=True)
     model.immediate_stair_stop = bool(settings.get('immediate_stair_stop', False))
     model.handoff_duration = float(settings.get('handoff_duration', .44))
+    model.reverse_heading_gain = float(settings.get('reverse_heading_gain', 0.0))
+    if not np.isfinite(model.reverse_heading_gain) or model.reverse_heading_gain < 0.:
+        raise ValueError('Reverse heading gain must be finite and nonnegative')
     if not np.isfinite(model.handoff_duration) or model.handoff_duration <= 0.:
         raise ValueError('Handoff duration must be positive and finite')
     executable_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()

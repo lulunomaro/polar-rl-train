@@ -36,6 +36,7 @@ class Case:
     cancel_delay_s: float = .04
     restart_delay_s: float | None = None
     raise_at_s: float = .10
+    jump_distance_m: float = .66
 
 
 def cases(quick):
@@ -202,7 +203,7 @@ def run_case(sim, case, out, video=False, before_step=None):
                     restart = now
             if (case.mode == 'jump_idle' and k == 50 or case.mode == 'jump_moving' and k == 64
                     or case.mode == 'jump_step' and request is None and k >= 22 and
-                    list(trace.top.values())[0][1] - np.mean(sim.d.geom_xpos[sim.tire_gids, 0]) <= .66):
+                    list(trace.top.values())[0][1] - np.mean(sim.d.geom_xpos[sim.tire_gids, 0]) <= case.jump_distance_m):
                 if sim.request_jump():
                     request = now
             if before_step is not None:
@@ -315,7 +316,22 @@ def run_case(sim, case, out, video=False, before_step=None):
         flight = b[takeoff[0]:(land[0] if len(land) else len(b))] if len(takeoff) else b[:0]
         after = b[land[0]:] if len(land) else b[:0]
         dx = b[:, 1] - b[0, 1]
-        summary['jump'] = {'requested_at_s': request, 'first_air_s': float(flight[0, 0] - request) if len(flight) else None,
+        active = u[u[:, 6] > .5, 0]
+        major_flights = []
+        if len(active):
+            in_window = (b[:, 0] >= active[0] - dt * .1) & (b[:, 0] <= active[-1] + CONTROL_DT + dt * .1)
+            edges = np.flatnonzero(np.diff(np.r_[False, flight_mask & in_window, False]))
+            for start, end in zip(edges[::2], edges[1::2], strict=True):
+                if (end - start) * dt < .12:
+                    continue
+                samples = b[start:end]
+                major_flights.append({'takeoff_s': float(samples[0, 0] - request), 'duration_s': (end-start)*dt,
+                                      'clearance_m': float(samples[:, 9].max() - floor_z),
+                                      'takeoff_vx_m_s': float(samples[0, 4]),
+                                      'peak_pitch_deg': float(np.abs(samples[:, 7]).max())})
+        main_flight = max(major_flights, key=lambda row: row['clearance_m'], default=None)
+        summary['jump'] = {'requested_at_s': request, 'main_flight': main_flight,
+                           'major_flights': len(major_flights), 'first_air_s': float(flight[0, 0] - request) if len(flight) else None,
                            'first_landing_s': float(after[0, 0] - request) if len(after) else None,
                            'clearance_m': float(flight[:, 9].max() - floor_z) if len(flight) else 0.,
                            'air_peak_pitch_deg': float(np.abs(flight[:, 7]).max()) if len(flight) else None,

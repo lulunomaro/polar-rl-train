@@ -111,7 +111,7 @@ def pack(batch):
     weights = LOCAL / 'MOD4V3_AUTONOMOUS_MOE_ALL_MAPS_20261120/weights'
     batch_dir = HERE / 'evidence' / batch
     for optional in ('stair_anchor.pt', 'router_anchor.pt', 'router_negatives.pt', 'start_stair.pt',
-                     'start_jump.pt', 'start_router.pt', 'train_plan.json'):
+                     'start_jump.pt', 'start_router.pt', 'start_deployed_router.pt', 'train_plan.json'):
         if (batch_dir / optional).is_file():
             included.append(batch_dir / optional)
     target = archive(batch)
@@ -174,6 +174,8 @@ def launch(role, batch, seconds, iters, probe=False):
     parent_file = 'start_' + role + '.pt'
     if (batch_dir / parent_file).is_file():
         params.extend(('--resume', str(remote_batch_dir / parent_file)))
+    if role == 'stair' and (batch_dir / 'start_deployed_router.pt').is_file():
+        params.extend(('--deployed-stair-router', str(remote_batch_dir / 'start_deployed_router.pt')))
     if role == 'router' and (batch_dir / 'router_negatives.pt').is_file():
         params.extend(('--router-negatives', str(remote_batch_dir / 'router_negatives.pt')))
     if options:
@@ -207,6 +209,10 @@ def launch(role, batch, seconds, iters, probe=False):
             params.append('--jump-airborne-height-focus')
         if role == 'jump' and options.get('jump_loaded_push'):
             params.append('--jump-loaded-push')
+        if role == 'jump' and options.get('jump_launch_energy'):
+            params.append('--jump-launch-energy')
+        if role in ('stair', 'router') and options.get('stair_recovery_focus'):
+            params.append('--stair-recovery-focus')
         if role == 'router' and options.get('fit_router_encoder'):
             params.append('--fit-router-encoder')
         if role == 'jump' and options.get('leap_height_focus'):

@@ -68,7 +68,8 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             stair_high_slow_focus, leap_moving_focus, stair_restart_focus, instant_moving_focus, jump_top_support,
             stair_mid_stance_focus, touchdown_focus, high_takeoff_focus, sustained_high_jump, high_jump_apex_focus,
             parked_retake_focus, high_jump_impulse_focus, clean_jump_apex, min_landing_apex, varied_jump_runup,
-            wasd_restart_focus, direct_jump_landing, jump_lip_focus, jump_airborne_height_focus, jump_loaded_push):
+            wasd_restart_focus, direct_jump_landing, jump_lip_focus, jump_airborne_height_focus, jump_loaded_push,
+            stair_recovery_focus, jump_launch_energy):
     try:
         env = LeapFixture(seed) if leap else JumpFixture(seed) if role == 'jump' else StairFixture(seed)
         if leap:
@@ -89,10 +90,12 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             env.jump_lip_focus = jump_lip_focus
             env.jump_airborne_height_focus = jump_airborne_height_focus
             env.jump_loaded_push = jump_loaded_push
+            env.jump_launch_energy = jump_launch_energy
         if role != 'jump':
             env.restart_focus = stair_restart_focus
             env.parked_retake_focus = parked_retake_focus
             env.wasd_restart_focus = wasd_restart_focus
+            env.stair_recovery_focus = stair_recovery_focus
             env.mid_stance_focus = stair_mid_stance_focus
             env.low_stance_focus = stair_low_stance_focus
         if role == 'stair':
@@ -141,7 +144,8 @@ class Fixtures:
                  sustained_high_jump=False, high_jump_apex_focus=False, parked_retake_focus=False,
                  high_jump_impulse_focus=False, clean_jump_apex=False, min_landing_apex=0., varied_jump_runup=False,
                  wasd_restart_focus=False, direct_jump_landing=False, jump_lip_focus=False,
-                 jump_airborne_height_focus=False, jump_loaded_push=False):
+                 jump_airborne_height_focus=False, jump_loaded_push=False,
+                 stair_recovery_focus=False, jump_launch_energy=False):
         self.pipes, self.workers = [], []
         ctx = mp.get_context('fork' if os.name != 'nt' else 'spawn')
         for index in range(count):
@@ -153,7 +157,8 @@ class Fixtures:
                                                      sustained_high_jump, high_jump_apex_focus, parked_retake_focus,
                                                      high_jump_impulse_focus, clean_jump_apex, min_landing_apex,
                                                      varied_jump_runup, wasd_restart_focus, direct_jump_landing, jump_lip_focus,
-                                                     jump_airborne_height_focus, jump_loaded_push),
+                                                     jump_airborne_height_focus, jump_loaded_push,
+                                                     stair_recovery_focus, jump_launch_energy),
                                daemon=True)
             proc.start()
             worker.close()
@@ -216,11 +221,20 @@ def forward(model, role, obs, hist, permit, oracle=None):
         approach[:, 0] = torch.where(permit, approach[:, 0] * slow_scale, approach[:, 0])
         out['a_e0'] = model.moe.e0(approach)
     raw = out['g_prob']
-    effective = torch.where(permit, out['g_eff'] if oracle is None else oracle, 0.)
+    logits = out['g_logit'] if oracle is None else None
+    gate = out['g_eff'] if oracle is None else oracle
+    deployed_router = getattr(model, 'deployed_stair_router', None)
+    if deployed_router is not None:
+        with torch.no_grad():
+            norm, features = deployed_router.encoder(obs, hist)
+            raw = deployed_router.router.forward_logit(torch.cat((norm, features), dim=-1)).sigmoid().flatten()
+            gate = ((raw - .05) / .95).clamp_min(0.)
+        logits = None
+    effective = torch.where(permit, gate, 0.)
     mean = torch.lerp(out['a_e0'], out['a_stair'], effective[:, None]).clamp(-6., 6.)
     std = model.stair_log_std.exp().clamp(.012, .14).expand_as(mean)
     enabled = (effective > .045) & permit
-    return mean, std, enabled, effective, raw, out['g_logit'] if oracle is None else None
+    return mean, std, enabled, effective, raw, logits
 
 
 def balanced_gate(logits, labels, weights):
@@ -488,6 +502,7 @@ def main():
     parser.add_argument('--seed', type=int, default=20261120)
     parser.add_argument('--resume', type=Path)
     parser.add_argument('--stair-anchor', type=Path)
+    parser.add_argument('--deployed-stair-router', type=Path, help='Use this frozen recognition model for E1 PPO rollouts.')
     parser.add_argument('--anchor-steps', type=int, default=1500)
     parser.add_argument('--anchor-weight', type=float)
     parser.add_argument('--router-negatives', type=Path)
@@ -517,6 +532,8 @@ def main():
     parser.add_argument('--jump-lip-focus', action='store_true')
     parser.add_argument('--jump-airborne-height-focus', action='store_true')
     parser.add_argument('--jump-loaded-push', action='store_true')
+    parser.add_argument('--jump-launch-energy', action='store_true')
+    parser.add_argument('--stair-recovery-focus', action='store_true')
     parser.add_argument('--stair-restart-focus', action='store_true')
     parser.add_argument('--parked-retake-focus', action='store_true')
     parser.add_argument('--wasd-restart-focus', action='store_true')
@@ -547,6 +564,12 @@ def main():
         parser.error('--slow-approach-scale requires --stair-high-slow-focus and a scale in (0, 1]')
     if args.sustained_high_jump and not (args.high_takeoff_focus and args.instant_moving_focus and args.jump_top_support):
         parser.error('--sustained-high-jump requires the matched takeoff fixture with top-support measurement')
+    if args.jump_launch_energy and not (args.role == 'jump' and args.jump_airborne_height_focus):
+        parser.error('--jump-launch-energy requires the airborne height objective')
+    if args.deployed_stair_router and args.role != 'stair':
+        parser.error('--deployed-stair-router requires --role stair')
+    if args.stair_recovery_focus and not (args.role != 'jump' and args.wasd_restart_focus):
+        parser.error('--stair-recovery-focus requires the WASD stair fixture')
     if args.jump_loaded_push and not (args.jump_airborne_height_focus and args.high_jump_impulse_focus):
         parser.error('--jump-loaded-push requires airborne height and loaded impulse measurements')
     if args.jump_airborne_height_focus and not args.jump_lip_focus:
@@ -589,11 +612,16 @@ def main():
                    min_landing_apex=args.min_landing_apex, varied_jump_runup=args.varied_jump_runup,
                    wasd_restart_focus=args.wasd_restart_focus, direct_jump_landing=args.direct_jump_landing,
                    jump_lip_focus=args.jump_lip_focus, jump_airborne_height_focus=args.jump_airborne_height_focus,
-                   jump_loaded_push=args.jump_loaded_push)
+                   jump_loaded_push=args.jump_loaded_push, stair_recovery_focus=args.stair_recovery_focus,
+                   jump_launch_energy=args.jump_launch_energy)
     try:
         device = torch.device('cpu' if args.cpu else 'cuda')
         model = parent_model(args.role, args.resume, args.leap).to(device)
         model.slow_approach_scale = args.slow_approach_scale
+        if args.deployed_stair_router:
+            reference = parent_model('router', args.deployed_stair_router).moe.to(device).eval().requires_grad_(False)
+            # Keep the externally pinned router out of the trained expert state dict.
+            object.__setattr__(model, 'deployed_stair_router', reference)
         jump_ref = copy.deepcopy(model).requires_grad_(False).eval() if args.leap or args.instant_moving_focus else None
         if args.role == 'router':
             model.requires_grad_(False)
@@ -603,7 +631,7 @@ def main():
                 model.moe.encoder.requires_grad_(True)
                 params += list(model.moe.encoder.parameters())
         elif args.role == 'stair':
-            if anchor_on:
+            if anchor_on or args.deployed_stair_router:
                 model.moe.router.requires_grad_(False)
             params = [p for p in model.moe.parameters() if p.requires_grad] + [model.stair_log_std]
         else:
@@ -632,7 +660,9 @@ def main():
                  'direct_jump_landing': args.direct_jump_landing,
                  'jump_lip_focus': args.jump_lip_focus,
                  'jump_airborne_height_focus': args.jump_airborne_height_focus,
-                 'jump_loaded_push': args.jump_loaded_push,
+                 'jump_loaded_push': args.jump_loaded_push, 'jump_launch_energy': args.jump_launch_energy,
+                 'stair_recovery_focus': args.stair_recovery_focus,
+                 'deployed_stair_router_sha256': sha(args.deployed_stair_router) if args.deployed_stair_router else None,
                  'parent': sha(args.resume) if args.resume else sha(LEAP_PARENT) if args.leap else EXPECTED_SHA[
                      'jump' if args.role == 'jump' else 'stair']}
         save_json(out / 'STARTED.json', ident)

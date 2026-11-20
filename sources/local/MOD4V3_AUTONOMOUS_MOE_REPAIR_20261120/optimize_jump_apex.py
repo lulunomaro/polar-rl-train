@@ -64,9 +64,9 @@ def prepare(candidate, moving, high_direct, projection=None, joint_flight=False)
     CASES = profiles(moving, high_direct, joint_flight)
 
 
-def fit_apex_projection(candidate, joint_flight=False):
+def fit_apex_projection(candidate, high_direct, joint_flight=False, early_tuck=False):
     """Fit takeoff and tuck signals from the existing actor's hidden features."""
-    prepare(candidate, moving=True, high_direct=True, joint_flight=joint_flight)
+    prepare(candidate, moving=True, high_direct=high_direct, joint_flight=joint_flight)
     features = []
     targets = []
     weights = []
@@ -88,7 +88,13 @@ def fit_apex_projection(candidate, joint_flight=False):
             continue
         # Rise after liftoff, peak before the apex, and fade before landing.
         phase = np.asarray(times) - summary['requested_at_s'] - flight['takeoff_s']
-        target = np.minimum(np.clip((phase - .01) / .05, 0., 1.), np.clip((.22 - phase) / .08, 0., 1.))
+        if early_tuck:
+            # The measured rim apex follows the body apex. Start the retraction
+            # near the end of the extension and peak before the body descends.
+            target = np.minimum(np.clip((phase + .065) / .068, 0., 1.),
+                                np.clip((.145 - phase) / .075, 0., 1.))
+        else:
+            target = np.minimum(np.clip((phase - .01) / .05, 0., 1.), np.clip((.22 - phase) / .08, 0., 1.))
         if joint_flight:
             push = np.minimum(np.clip((phase + .14) / .07, 0., 1.), np.clip((-.008 - phase) / .045, 0., 1.))
             target = np.column_stack((target, push))
@@ -174,14 +180,17 @@ def main():
     parser.add_argument('--high-direct', action='store_true')
     parser.add_argument('--apex-tuck', action='store_true', help='Fit a flight-conditioned residual in the last layer.')
     parser.add_argument('--joint-flight', action='store_true', help='Fit the loaded push and preserve verified direct landing.')
+    parser.add_argument('--early-tuck', action='store_true', help='Fit retraction at the end of the loaded extension.')
     parser.add_argument('--workers',type=int,default=6)
     parser.add_argument('--generations',type=int,default=4)
     parser.add_argument('--samples', type=int, default=18)
     args=parser.parse_args()
+    if args.early_tuck and not args.joint_flight:
+        parser.error('--early-tuck requires --joint-flight')
     if args.joint_flight and not args.apex_tuck:
         parser.error('--joint-flight requires --apex-tuck')
-    if args.apex_tuck and not args.high_direct:
-        parser.error('--apex-tuck requires --high-direct')
+    if args.apex_tuck and not args.moving:
+        parser.error('--apex-tuck requires --moving')
     if args.high_direct and not args.moving:
         parser.error('--high-direct requires --moving')
     args.out.mkdir(parents=True,exist_ok=False)
@@ -193,7 +202,7 @@ def main():
     bias_key=weight_key.removesuffix('.weight')+'.bias'
     base={'weight':state[weight_key].clone(),'bias':state[bias_key].clone()}
     rng=np.random.default_rng(20261120 if args.moving else 20261121)
-    projection = fit_apex_projection(args.candidate, args.joint_flight) if args.apex_tuck else None
+    projection = fit_apex_projection(args.candidate, args.high_direct, args.joint_flight, args.early_tuck) if args.apex_tuck else None
     spread = np.array([.078, .074, .067, .14, .15, .12])
     bounds = np.array([.24, .24, .22, .44, .44, .36])
     minimum = np.array([.014, .014, .014, .025, .025, .025])
@@ -212,6 +221,11 @@ def main():
         for generation in range(args.generations):
             samples = rng.normal(mean, spread, (args.samples, len(spread)))
             params = [np.zeros(len(spread)), mean] + list(np.clip(samples, -bounds, bounds))
+            if generation == 0 and args.early_tuck:
+                for amount in (.25, .45, .65):
+                    earlier = np.zeros(len(spread))
+                    earlier[6:9] = (-amount, amount, 0.)
+                    params.append(earlier)
             for vector,(score,metrics) in zip(params,pool.map(candidate_score,params),strict=True):
                 ranked.append({'generation':generation,'params':vector.tolist(),'score':score,'measurements':metrics})
             ranked.sort(key=lambda row:row['score'],reverse=True)
@@ -221,6 +235,7 @@ def main():
             spread = np.maximum(minimum, .90 * elites.std(0))
             report = {'candidate': str(args.candidate), 'weight_source': str(src), 'moving': args.moving,
                       'high_direct': args.high_direct, 'apex_tuck': args.apex_tuck, 'joint_flight': args.joint_flight,
+                      'early_tuck': args.early_tuck,
                       'evaluated': len(ranked), 'scores': ranked}
             (args.out/'SEARCH.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
             print(generation,leader,flush=True)

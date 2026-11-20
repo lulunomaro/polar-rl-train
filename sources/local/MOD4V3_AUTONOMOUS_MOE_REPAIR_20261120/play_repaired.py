@@ -60,6 +60,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.jump_min_forward = 0.0
         self.high_jump_min_rolling = 0.0
         self.high_jump_runup_frames = 0
+        self.high_jump_after_stance_prep = False
         self.stair_gate_floor = stair.GATE_DEADZONE
         self.stair_release_per_tick = 1.0
         self.restart_release_per_tick = 1.0
@@ -543,7 +544,8 @@ class RepairedSimulation(AutonomousMapSimulation):
         # Direct audit callers can use the command already held by the player.
         if forward is None:
             forward = self.cmd_vx >= .15
-        if forward and self.unified.high_moving_jump is not None and self.target_h >= .32:
+        if (forward and self.unified.high_moving_jump is not None and self.target_h >= .32
+                and not self.unified.high_jump_after_stance_prep):
             if self.unified.high_jump_runup_frames and not self.high_jump_rolling():
                 self.jump_waiting_for_roll = True
                 self.jump_pending = True
@@ -602,7 +604,8 @@ class RepairedSimulation(AutonomousMapSimulation):
                 self.jump_prepare_frames += 1
                 if self.jump_prepare_frames >= 10:
                     self.jump_pending = False
-                    self.start_jump(moving=self.jump_prepare_driving)
+                    high_moving = self.jump_prepare_driving and self.unified.high_jump_after_stance_prep
+                    self.start_jump(moving=self.jump_prepare_driving, high_moving=high_moving)
         elif self.jump_height is not None and not self.jump_rem:
             delta = float(np.clip(self.target_h - self.jump_height, -.12 * CONTROL_DT, .12 * CONTROL_DT))
             self.jump_height += delta
@@ -681,6 +684,9 @@ def load_manifest(path):
         raise ValueError('Invalid mid-stance recovery strength')
     model.high_jump_min_rolling = float(settings.get('high_jump_min_rolling', 0.0))
     model.high_jump_runup_frames = int(settings.get('high_jump_runup_frames', 0))
+    model.high_jump_after_stance_prep = bool(settings.get('high_jump_after_stance_prep', False))
+    if model.high_jump_after_stance_prep and (model.high_moving_jump is None or not settings.get('jump_stance_prep')):
+        raise ValueError('High-stance prepared jumps need both the moving expert and stance preparation')
     if not (0. <= model.high_jump_min_rolling <= .8 and 0 <= model.high_jump_runup_frames <= 20):
         raise ValueError('Invalid moving jump run-up settings')
     model.stair_gate_floor = float(settings.get('gate_floor', stair.GATE_DEADZONE))

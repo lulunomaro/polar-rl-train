@@ -454,6 +454,7 @@ class JumpFixture(Mod4v3InstantJumpEnv):
     jump_airborne_height_focus = False
     jump_loaded_push = False
     jump_launch_energy = False
+    wasd_crouch_speed = 0.
     touchdown_focus = 0.
 
     def __init__(self, seed):
@@ -466,6 +467,9 @@ class JumpFixture(Mod4v3InstantJumpEnv):
         self.profile = profile
         self.drive_at_s = drive_at
         self.queued_jump_s = None
+        self.crouch_target = None
+        self.crouch_ticks = 0
+        self.crouch_pending = False
         self.top_support_ticks = 0
         self.longest_top_support_ticks = 0
         self.flight_pitch = 0.0
@@ -505,6 +509,8 @@ class JumpFixture(Mod4v3InstantJumpEnv):
             self.nom_geom_friction[self.step_gids] = [.9, .005, .0001]
         episode_seconds = (3.65 if near else 3.10) if self.high_takeoff_focus else (3.25 if near else 2.75)
         episode_seconds += max(0., drive_at - .40)
+        if self.wasd_crouch_speed:
+            episode_seconds = max(episode_seconds, 4.20 + max(0., drive_at - .40))
         packet = self.reset(dr_scale=dr, scenario_kind='move_step' if near else 'flat_stat' if speed == 0 else 'flat_move',
                             steps=[(edge, length, .20)] if near else [], step_trigger_dws=[(0, step_distance)] if near else [],
                             jump_times=() if near else (trigger,), v_cmd=speed, v_jump=speed, h_nom=height,
@@ -527,6 +533,10 @@ class JumpFixture(Mod4v3InstantJumpEnv):
         return bool(RADIUS * self.d.qvel[self.active_dadr[4:]].min() >= .57)
 
     def _trigger_jump_window(self, now):
+        if self.wasd_crouch_speed:
+            self.crouch_target = self.h_nom
+            self.crouch_pending = True
+            return
         if self.jump_airborne_height_focus and not self._high_jump_at_tread_speed():
             self.queued_jump_s = now
             return
@@ -546,6 +556,26 @@ class JumpFixture(Mod4v3InstantJumpEnv):
         return super()._update_triggers(now)
 
     def prepare_step_commands(self):
+        if self.wasd_crouch_speed:
+            now = float(self.d.time)
+            was_pending = self.crouch_pending
+            if self.crouch_pending and self.crouch_target <= .280001 and self.crouch_ticks == 9:
+                self.crouch_pending = False
+                super()._trigger_jump_window(now)
+            else:
+                self._update_triggers(now)
+            if self.crouch_pending:
+                self.crouch_target = max(.28, self.crouch_target - .28 * DT)
+                if self.crouch_target <= .280001:
+                    self.crouch_ticks += 1
+            elif self.crouch_target is not None and not self.jump_rem_steps:
+                self.crouch_target = min(self.h_nom, self.crouch_target + .12 * DT)
+            self.height_cmd = self.h_nom if self.crouch_target is None else self.crouch_target
+            goal = self.v_cmd_pre if now >= self.drive_at_s - 1.e-6 else 0.
+            if was_pending:
+                goal = min(goal, self.wasd_crouch_speed)
+            self.cmd_vx += (goal - self.cmd_vx) * DT / .14
+            return
         super().prepare_step_commands()
         if self.high_takeoff_focus:
             # The interactive player applies the selected stance before pressing W.
@@ -556,6 +586,15 @@ class JumpFixture(Mod4v3InstantJumpEnv):
     def sample(self, dr, role):
         r = self.rng
         p = r.random()
+        if self.wasd_crouch_speed:
+            profile = 'step' if p < .62 else 'moving'
+            height = float(r.uniform(.312, .42))
+            delay = float(r.uniform(.36, .56) if r.random() < .68 else r.uniform(.95, 1.50))
+            pose = (float(r.uniform(.33, .43)) if profile == 'step' else 0., 0.,
+                    math.radians(float(r.uniform(-3.5, 3.5))))
+            distance = float(r.uniform(.74, 1.02))
+            return self.start(profile, height, float(r.uniform(.83, .98)), dr, delay + float(r.uniform(.44, .95)),
+                              distance, pose, drive_at=delay)
         if self.high_takeoff_focus:
             step_fraction = .46 if self.jump_launch_energy else .56 if self.clean_jump_apex else .74
             profile = 'step' if p < step_fraction else 'moving'
@@ -630,7 +669,7 @@ class JumpFixture(Mod4v3InstantJumpEnv):
                         side = abs(contact.frame[2]) < .7
                         side_impact = side and normal > 50. and contact.pos[0] < edge + .01
                         face_hit |= side_impact
-                        if self.clean_jump_apex and active and side_impact and not self.main_flight_seen:
+                        if self.clean_jump_apex and (active or self.crouch_pending) and side_impact and not self.main_flight_seen:
                             self.preflight_face_hit = True
                         tire_gid = b if a == step_gid else a
                         if not side and tire_gid in tire_ids and contact.pos[0] > edge + .004 and contact.pos[2] >= top - .015:

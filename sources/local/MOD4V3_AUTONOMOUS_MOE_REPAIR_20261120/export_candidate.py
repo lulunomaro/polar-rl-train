@@ -30,7 +30,7 @@ def main():
     config['label'] = args.label
     for item in args.set_model:
         role,sep,value = item.partition('=')
-        if not sep or role not in ('stair', 'router', 'high_router', 'slow_stair', 'low_impact_stair', 'mid_stair', 'rising_stair', 'jump', 'moving_jump', 'high_moving_jump', 'restart_router', 'high_restart_router', 'parked_restart_router', 'parked_recovery_router', 'parked_mid_resume', 'parked_mid_recovery', 'stair_height_bank'):
+        if not sep or role not in ('stair', 'router', 'high_router', 'slow_stair', 'low_impact_stair', 'mid_stair', 'rising_stair', 'jump', 'moving_jump', 'high_moving_jump', 'direct_moving_jump', 'restart_router', 'high_restart_router', 'parked_restart_router', 'parked_recovery_router', 'parked_mid_resume', 'parked_mid_recovery', 'stair_height_bank'):
             parser.error(f'Invalid model assignment {item!r}')
         path = Path(value).resolve()
         paths[role] = path

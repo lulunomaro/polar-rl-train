@@ -226,7 +226,7 @@ def launch(role, batch, seconds, iters, probe=False):
         if role == 'jump' and options.get('leap_moving_focus'):
             params.append('--leap-moving-focus')
         for name in ('anchor_weight', 'anchor_steps', 'actor_lr', 'dr_0_updates', 'dr_partial_updates',
-                     'stance_dr', 'slow_approach_scale', 'touchdown_focus', 'min_landing_apex'):
+                     'stance_dr', 'slow_approach_scale', 'touchdown_focus', 'min_landing_apex', 'wasd_crouch_speed'):
             if name in options:
                 params.extend(('--' + name.replace('_', '-'), str(options[name])))
     if probe:
@@ -316,6 +316,7 @@ print(json.dumps(result))
                 state['downloaded'] = str(dst / name)
     (dst / 'STATUS.json').write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
     print(json.dumps({'host':host,'role':role, **state}), flush=True)
+    return state
 
 
 def main():

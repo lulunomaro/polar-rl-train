@@ -69,7 +69,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             stair_mid_stance_focus, touchdown_focus, high_takeoff_focus, sustained_high_jump, high_jump_apex_focus,
             parked_retake_focus, high_jump_impulse_focus, clean_jump_apex, min_landing_apex, varied_jump_runup,
             wasd_restart_focus, direct_jump_landing, jump_lip_focus, jump_airborne_height_focus, jump_loaded_push,
-            stair_recovery_focus, jump_launch_energy):
+            stair_recovery_focus, jump_launch_energy, wasd_crouch_speed):
     try:
         env = LeapFixture(seed) if leap else JumpFixture(seed) if role == 'jump' else StairFixture(seed)
         if leap:
@@ -91,6 +91,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             env.jump_airborne_height_focus = jump_airborne_height_focus
             env.jump_loaded_push = jump_loaded_push
             env.jump_launch_energy = jump_launch_energy
+            env.wasd_crouch_speed = wasd_crouch_speed
         if role != 'jump':
             env.restart_focus = stair_restart_focus
             env.parked_retake_focus = parked_retake_focus
@@ -145,7 +146,7 @@ class Fixtures:
                  high_jump_impulse_focus=False, clean_jump_apex=False, min_landing_apex=0., varied_jump_runup=False,
                  wasd_restart_focus=False, direct_jump_landing=False, jump_lip_focus=False,
                  jump_airborne_height_focus=False, jump_loaded_push=False,
-                 stair_recovery_focus=False, jump_launch_energy=False):
+                 stair_recovery_focus=False, jump_launch_energy=False, wasd_crouch_speed=0.):
         self.pipes, self.workers = [], []
         ctx = mp.get_context('fork' if os.name != 'nt' else 'spawn')
         for index in range(count):
@@ -158,7 +159,7 @@ class Fixtures:
                                                      high_jump_impulse_focus, clean_jump_apex, min_landing_apex,
                                                      varied_jump_runup, wasd_restart_focus, direct_jump_landing, jump_lip_focus,
                                                      jump_airborne_height_focus, jump_loaded_push,
-                                                     stair_recovery_focus, jump_launch_energy),
+                                                     stair_recovery_focus, jump_launch_energy, wasd_crouch_speed),
                                daemon=True)
             proc.start()
             worker.close()
@@ -533,6 +534,7 @@ def main():
     parser.add_argument('--jump-airborne-height-focus', action='store_true')
     parser.add_argument('--jump-loaded-push', action='store_true')
     parser.add_argument('--jump-launch-energy', action='store_true')
+    parser.add_argument('--wasd-crouch-speed', type=float, default=0.)
     parser.add_argument('--stair-recovery-focus', action='store_true')
     parser.add_argument('--stair-restart-focus', action='store_true')
     parser.add_argument('--parked-retake-focus', action='store_true')
@@ -564,6 +566,9 @@ def main():
         parser.error('--slow-approach-scale requires --stair-high-slow-focus and a scale in (0, 1]')
     if args.sustained_high_jump and not (args.high_takeoff_focus and args.instant_moving_focus and args.jump_top_support):
         parser.error('--sustained-high-jump requires the matched takeoff fixture with top-support measurement')
+    if args.wasd_crouch_speed and not (args.role == 'jump' and args.high_takeoff_focus
+                                       and 0. < args.wasd_crouch_speed <= 1.):
+        parser.error('--wasd-crouch-speed requires the high-stance takeoff fixture')
     if args.jump_launch_energy and not (args.role == 'jump' and args.jump_airborne_height_focus):
         parser.error('--jump-launch-energy requires the airborne height objective')
     if args.deployed_stair_router and args.role != 'stair':
@@ -613,7 +618,7 @@ def main():
                    wasd_restart_focus=args.wasd_restart_focus, direct_jump_landing=args.direct_jump_landing,
                    jump_lip_focus=args.jump_lip_focus, jump_airborne_height_focus=args.jump_airborne_height_focus,
                    jump_loaded_push=args.jump_loaded_push, stair_recovery_focus=args.stair_recovery_focus,
-                   jump_launch_energy=args.jump_launch_energy)
+                   jump_launch_energy=args.jump_launch_energy, wasd_crouch_speed=args.wasd_crouch_speed)
     try:
         device = torch.device('cpu' if args.cpu else 'cuda')
         model = parent_model(args.role, args.resume, args.leap).to(device)
@@ -661,7 +666,7 @@ def main():
                  'jump_lip_focus': args.jump_lip_focus,
                  'jump_airborne_height_focus': args.jump_airborne_height_focus,
                  'jump_loaded_push': args.jump_loaded_push, 'jump_launch_energy': args.jump_launch_energy,
-                 'stair_recovery_focus': args.stair_recovery_focus,
+                 'stair_recovery_focus': args.stair_recovery_focus, 'wasd_crouch_speed': args.wasd_crouch_speed,
                  'deployed_stair_router_sha256': sha(args.deployed_stair_router) if args.deployed_stair_router else None,
                  'parent': sha(args.resume) if args.resume else sha(LEAP_PARENT) if args.leap else EXPECTED_SHA[
                      'jump' if args.role == 'jump' else 'stair']}

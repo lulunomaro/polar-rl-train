@@ -61,6 +61,9 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.high_jump_min_rolling = 0.0
         self.high_jump_runup_frames = 0
         self.high_jump_after_stance_prep = False
+        self.direct_moving_jump = None
+        self.use_direct_moving_jump = False
+        self.jump_crouch_speed = 0.
         self.stair_gate_floor = stair.GATE_DEADZONE
         self.stair_release_per_tick = 1.0
         self.restart_release_per_tick = 1.0
@@ -75,6 +78,7 @@ class RepairedPolicy(AutonomousThreeExpert):
 
     def reset_history(self):
         super().reset_history()
+        self.use_direct_moving_jump = False
         self.restart_history.clear()
         self.use_high_moving_jump = False
         self.restoring_jump_height = False
@@ -279,7 +283,9 @@ class RepairedPolicy(AutonomousThreeExpert):
         if obs[jump.JUMP_MODE_BIT_INDEX] > 0.5:
             self.stair_mix = 0.0
             self.handoff_mix = 0.0
-            if self.use_high_moving_jump:
+            if self.use_direct_moving_jump:
+                expert, frames = self.direct_moving_jump, self.direct_moving_jump_history_frames
+            elif self.use_high_moving_jump:
                 expert, frames = self.high_moving_jump, self.high_moving_jump_history_frames
             elif self.use_moving_jump:
                 expert, frames = self.moving_jump, self.moving_jump_history_frames
@@ -382,7 +388,7 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
                    restart_router_path=None, high_restart_router_path=None, parked_restart_router_path=None,
                    mid_stair_path=None, rising_stair_path=None, parked_recovery_router_path=None,
                    high_moving_jump_path=None, low_impact_stair_path=None, parked_mid_resume_path=None,
-                   parked_mid_recovery_path=None):
+                   parked_mid_recovery_path=None, direct_moving_jump_path=None):
     torch.set_num_threads(1)
     parent, parent_sha = load_parent()
     model = RepairedPolicy()
@@ -395,13 +401,14 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
     for role, path in [('stair', stair_path), ('router', router_path), ('high_router', high_router_path),
                        ('slow_stair', slow_stair_path), ('mid_stair', mid_stair_path), ('rising_stair', rising_stair_path),
                        ('low_impact_stair', low_impact_stair_path),
-                       ('jump', jump_path), ('moving_jump', moving_jump_path), ('high_moving_jump', high_moving_jump_path)]:
+                       ('jump', jump_path), ('moving_jump', moving_jump_path), ('high_moving_jump', high_moving_jump_path),
+                       ('direct_moving_jump', direct_moving_jump_path)]:
         if path is None:
             continue
         path = Path(path)
         raw = torch.load(path, map_location='cpu', weights_only=True)
         hashes[role] = hashlib.sha256(path.read_bytes()).hexdigest()
-        if role in ('jump', 'moving_jump', 'high_moving_jump'):
+        if role in ('jump', 'moving_jump', 'high_moving_jump', 'direct_moving_jump'):
             expert, history_frames, request_frames = load_jump_expert(raw, base_state)
             setattr(model, role, expert)
             setattr(model, role + '_history_frames', history_frames)
@@ -471,6 +478,7 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_key_driving = None
         self.jump_key_waits_for_rolling = False
         self.jump_prepare_driving = False
+        self.direct_jump_requested = False
         self.reset_reverse_heading()
         super().__init__(policy, sha, show_viewer=show_viewer)
 
@@ -506,6 +514,7 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_key_driving = None
         self.jump_key_waits_for_rolling = False
         self.jump_prepare_driving = False
+        self.direct_jump_requested = False
         return super().reset_at_spawn(spawn_idx)
 
     def request_jump(self):
@@ -515,6 +524,13 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_key_tick = self.steps
         self.jump_key_driving = None
         self.jump_key_waits_for_rolling = self.cmd_vx < -.08
+        # A request while already rolling can use the trained immediate jump.
+        # Sample this at the keypress so waiting for W to build speed cannot change the choice.
+        self.direct_jump_requested = (
+            self.unified.direct_moving_jump is not None and .305 < self.target_h < .378
+            and self.cmd_vx >= .76 * self.max_vx and self.last_obs is not None
+            and .625 * float(self.last_obs[20:22].min()) >= .40
+        )
         return True
 
     def dispatch_jump_key(self, pressed):
@@ -544,15 +560,16 @@ class RepairedSimulation(AutonomousMapSimulation):
         # Direct audit callers can use the command already held by the player.
         if forward is None:
             forward = self.cmd_vx >= .15
-        if (forward and self.unified.high_moving_jump is not None and self.target_h >= .32
-                and not self.unified.high_jump_after_stance_prep):
+        direct = forward and self.direct_jump_requested
+        if direct or (forward and self.unified.high_moving_jump is not None and self.target_h >= .32
+                      and not self.unified.high_jump_after_stance_prep):
             if self.unified.high_jump_runup_frames and not self.high_jump_rolling():
                 self.jump_waiting_for_roll = True
                 self.jump_pending = True
                 self.jump_prepare_frames = 0
                 self.jump_launch_gz = self.ground_z(*self.d.qpos[:2])
                 return True
-            return self.start_jump(high_moving=True)
+            return self.start_jump(high_moving=True, direct=direct)
         if self.jump_stance_prep and self.target_h > .305:
             self.jump_height = self.target_h if self.jump_height is None else self.jump_height
             self.jump_pending = True
@@ -562,7 +579,7 @@ class RepairedSimulation(AutonomousMapSimulation):
             return True
         return self.start_jump(moving=forward)
 
-    def start_jump(self, *, high_moving=False, moving=None):
+    def start_jump(self, *, high_moving=False, moving=None, direct=False):
         if not super().request_jump():
             return False
         # Select once at the keypress from the driver's commanded speed. The mode and
@@ -571,7 +588,10 @@ class RepairedSimulation(AutonomousMapSimulation):
             moving = self.cmd_vx >= .15
         self.unified.use_moving_jump = self.unified.moving_jump is not None and moving
         self.unified.use_high_moving_jump = high_moving
-        if high_moving:
+        self.unified.use_direct_moving_jump = direct
+        if direct:
+            self.jump_rem = self.unified.direct_moving_jump_frames
+        elif high_moving:
             self.jump_rem = self.unified.high_moving_jump_frames
         else:
             self.jump_rem = self.unified.moving_jump_frames if self.unified.use_moving_jump else self.unified.jump_frames
@@ -592,7 +612,7 @@ class RepairedSimulation(AutonomousMapSimulation):
             self.jump_prepare_frames += 1
             if self.high_jump_rolling() or self.jump_prepare_frames >= self.unified.high_jump_runup_frames:
                 self.jump_waiting_for_roll = self.jump_pending = False
-                self.start_jump(high_moving=True)
+                self.start_jump(high_moving=True, direct=self.direct_jump_requested)
             return
         if self.jump_pending:
             if ('s' in pressed or ('a' in pressed) != ('d' in pressed)
@@ -633,6 +653,8 @@ class RepairedSimulation(AutonomousMapSimulation):
         forward = int('w' in pressed) - int('s' in pressed)
         explicit_turn = ('a' in pressed) != ('d' in pressed)
         # Raw operator intent arrives before the command slew or history. It is independent of obstacle detection.
+        crouching_forward = (self.jump_pending and not self.jump_waiting_for_roll
+                             and self.jump_prepare_driving and forward > 0 and not explicit_turn)
         self.dispatch_jump_key(pressed)
         self.update_jump_height(pressed)
         self.unified.restoring_jump_height = self.jump_height is not None and not self.jump_pending and not self.jump_rem
@@ -646,7 +668,15 @@ class RepairedSimulation(AutonomousMapSimulation):
         )
         if stopping_stair or forward * self.cmd_vx < 0:
             self.cmd_vx = 0.0
-        super().step(pressed)
+        if crouching_forward and self.unified.jump_crouch_speed > 0.:
+            driver_speed = self.max_vx
+            self.max_vx = min(driver_speed, self.unified.jump_crouch_speed)
+            try:
+                super().step(pressed)
+            finally:
+                self.max_vx = driver_speed
+        else:
+            super().step(pressed)
 
 
 def read_candidate(path):
@@ -672,7 +702,8 @@ def load_manifest(path):
                                    high_moving_jump_path=paths.get('high_moving_jump'),
                                    low_impact_stair_path=paths.get('low_impact_stair'),
                                    parked_mid_resume_path=paths.get('parked_mid_resume'),
-                                   parked_mid_recovery_path=paths.get('parked_mid_recovery'))
+                                   parked_mid_recovery_path=paths.get('parked_mid_recovery'),
+                                   direct_moving_jump_path=paths.get('direct_moving_jump'))
     if hashes != manifest['sha256']:
         raise RuntimeError('The loaded policy does not match the validated candidate hashes')
     model.jump_min_forward = float(settings.get('jump_min_forward', 0.0))
@@ -685,6 +716,9 @@ def load_manifest(path):
     model.high_jump_min_rolling = float(settings.get('high_jump_min_rolling', 0.0))
     model.high_jump_runup_frames = int(settings.get('high_jump_runup_frames', 0))
     model.high_jump_after_stance_prep = bool(settings.get('high_jump_after_stance_prep', False))
+    model.jump_crouch_speed = float(settings.get('jump_crouch_speed', 0.))
+    if not 0. <= model.jump_crouch_speed <= 1.:
+        raise ValueError('Invalid forward command during jump preparation')
     if model.high_jump_after_stance_prep and (model.high_moving_jump is None or not settings.get('jump_stance_prep')):
         raise ValueError('High-stance prepared jumps need both the moving expert and stance preparation')
     if not (0. <= model.high_jump_min_rolling <= .8 and 0 <= model.high_jump_runup_frames <= 20):

@@ -134,6 +134,11 @@ def main():
     focus.add_argument('--low-stop-focus', action='store_true')
     focus.add_argument('--varied-stop-focus', action='store_true')
     focus.add_argument('--high-restart-focus', action='store_true')
+    focus.add_argument('--paired-park-focus', action='store_true')
+    focus.add_argument('--edge-stance-park-focus', action='store_true',
+                       help='Renew forward motion at the 0.28 m and 0.34 m restart failure cases.')
+    focus.add_argument('--mid-reverse-tread-focus', action='store_true',
+                       help='Collect neutral-release states around .34 m with varied dwell and matched walls.')
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     cases = restart_cases()
@@ -168,7 +173,45 @@ def main():
                                    ((-.045, .86, .10, .76, -2.), (.045, .94, .12, 1.04, 2.))))
         cases = focus_cases + [replace(c, map_height=height, name=f'{c.name}_wall{height}')
                                for c in focus_cases[:4] for height in (45, 50)]
-    native_prefix = args.low_stop_focus or args.varied_stop_focus or args.high_restart_focus
+    if args.paired_park_focus:
+        template = restart_cases()[0]
+        # Match the driver inputs across the climbable step and the tall wall. Keep
+        # the original test offsets, waits and steering conditions held out.
+        cases = []
+        for height in (.28, .305, .325, .344):
+            for i, (offset, wait, speed, yaw) in enumerate(((-.067,.69,.867,1.1),(-.024,.96,.901,-1.4),
+                                                           (.018,1.13,.943,1.5),(.061,.87,.916,-1.0))):
+                key = f'park_pair_h{round(height * 1000):03}_{i}'
+                step = replace(template, name=key, target=height, offset=offset, speed=speed, yaw=yaw,
+                               cancel_delay_s=.09 if i % 2 else .13, restart_delay_s=wait)
+                cases.extend((step, replace(step, name=f'{key}_wall', map_height=45 if i % 2 else 50)))
+    if args.edge_stance_park_focus:
+        template = restart_cases()[0]
+        cases = []
+        approaches = ((-.082, .73, .859, -1.2), (-.018, 1.04, .931, 1.8),
+                      (.027, .86, .869, 2.2), (.071, 1.21, .949, -1.9))
+        for height in (.28, .34):
+            for index, (offset, wait, speed, yaw) in enumerate(approaches):
+                name = f'park_edge_h{round(1000 * height):03}_{index}'
+                step = replace(template, name=name, target=height, offset=offset, speed=speed, yaw=yaw,
+                               cancel_delay_s=.07 if index % 2 else .12, restart_delay_s=wait)
+                wall = replace(step, name=f'{name}_wall', map_height=45 if index % 2 else 50)
+                cases.extend((step, wall))
+    if args.mid_reverse_tread_focus:
+        template = restart_cases()[0]
+        cases = []
+        setups = ((-.067, .67, .88, .10, 1.4), (-.044, .84, .91, .10, 0.),
+                  (-.028, 1.16, .91, .13, -1.2), (.017, .79, .85, .09, 1.7),
+                  (.046, 1.13, .94, .11, 0.), (.067, .96, .97, .14, -1.8))
+        for height in (.332, .340, .348):
+            for index, (offset, wait, speed, cancel, yaw) in enumerate(setups):
+                name = f'mid_dwell_h{round(1000 * height)}_{index}'
+                step = replace(template, name=name, target=height, offset=offset, speed=speed, yaw=yaw,
+                               cancel_delay_s=cancel, restart_delay_s=wait)
+                cases.extend((step, replace(step, name=f'{name}_wall', map_height=(45, 50)[index % 2])))
+    if args.paired_park_focus or args.edge_stance_park_focus or args.mid_reverse_tread_focus:
+        (args.out / 'CASES.json').write_text(json.dumps([vars(case) for case in cases], indent=2)+'\n', encoding='utf8')
+    native_prefix = (args.low_stop_focus or args.varied_stop_focus or args.high_restart_focus or args.paired_park_focus)
     jobs = [(case, args.trials, args.out.resolve(), native_prefix) for case in cases]
     with ProcessPoolExecutor(max_workers=args.workers, initializer=initialize,
                              initargs=(args.candidate.resolve(),)) as pool:

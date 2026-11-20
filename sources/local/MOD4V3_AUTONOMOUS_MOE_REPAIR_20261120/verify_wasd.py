@@ -37,6 +37,7 @@ class Case:
     restart_delay_s: float | None = None
     raise_at_s: float = .10
     jump_distance_m: float = .66
+    drive_at_s: float = .40
 
 
 def cases(quick):
@@ -189,7 +190,7 @@ def run_case(sim, case, out, video=False, before_step=None):
     try:
         for k in range(round(case.duration / CONTROL_DT)):
             now = k * CONTROL_DT
-            keys = {'w'} if now >= .40 and case.mode != 'jump_idle' else set()
+            keys = {'w'} if now >= case.drive_at_s and case.mode != 'jump_idle' else set()
             if (case.raise_while_moving and now >= case.raise_at_s
                     and sim.target_h + 1e-8 < case.target):
                 keys.add('e')
@@ -202,7 +203,7 @@ def run_case(sim, case, out, video=False, before_step=None):
                 elif restart is None:
                     restart = now
             if (case.mode == 'jump_idle' and k == 50 or case.mode == 'jump_moving' and k == 64
-                    or case.mode == 'jump_step' and request is None and k >= 22 and
+                    or case.mode == 'jump_step' and request is None and now >= case.drive_at_s + .04 - 1.e-9 and
                     list(trace.top.values())[0][1] - np.mean(sim.d.geom_xpos[sim.tire_gids, 0]) <= case.jump_distance_m):
                 if sim.request_jump():
                     request = now
@@ -331,6 +332,8 @@ def run_case(sim, case, out, video=False, before_step=None):
                                       'peak_pitch_deg': float(np.abs(samples[:, 7]).max())})
         main_flight = max(major_flights, key=lambda row: row['clearance_m'], default=None)
         summary['jump'] = {'requested_at_s': request, 'main_flight': main_flight,
+                           'e2_first_at_s': float(active[0]) if len(active) else None,
+                           'e2_last_at_s': float(active[-1]) if len(active) else None,
                            'major_flights': len(major_flights), 'first_air_s': float(flight[0, 0] - request) if len(flight) else None,
                            'first_landing_s': float(after[0, 0] - request) if len(after) else None,
                            'clearance_m': float(flight[:, 9].max() - floor_z) if len(flight) else 0.,

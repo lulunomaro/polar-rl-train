@@ -34,9 +34,16 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def json_scalar(value):
+    if isinstance(value, np.generic):
+        return value.item()
+    raise TypeError(f'Object of type {type(value).__name__} is not JSON serializable')
+
+
 def save_json(path, data):
     tmp = path.with_suffix('.tmp')
-    tmp.write_text(json.dumps(data, indent=2, allow_nan=False) + '\n', encoding='utf-8', newline='\n')
+    tmp.write_text(json.dumps(data, indent=2, allow_nan=False, default=json_scalar) + '\n',
+                   encoding='utf-8', newline='\n')
     tmp.replace(path)
 
 
@@ -59,7 +66,9 @@ def parent_model(role, checkpoint=None, leap=False):
 
 def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_focus, stair_low_stance_focus,
             stair_high_slow_focus, leap_moving_focus, stair_restart_focus, instant_moving_focus, jump_top_support,
-            stair_mid_stance_focus):
+            stair_mid_stance_focus, touchdown_focus, high_takeoff_focus, sustained_high_jump, high_jump_apex_focus,
+            parked_retake_focus, high_jump_impulse_focus, clean_jump_apex, min_landing_apex, varied_jump_runup,
+            wasd_restart_focus, direct_jump_landing, jump_lip_focus, jump_airborne_height_focus, jump_loaded_push):
     try:
         env = LeapFixture(seed) if leap else JumpFixture(seed) if role == 'jump' else StairFixture(seed)
         if leap:
@@ -68,11 +77,25 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
         if not leap and role == 'jump':
             env.moving_focus = instant_moving_focus
             env.require_top_support = jump_top_support
+            env.touchdown_focus = touchdown_focus
+            env.high_takeoff_focus = high_takeoff_focus
+            env.sustained_high_jump = sustained_high_jump
+            env.high_jump_apex_focus = high_jump_apex_focus
+            env.high_jump_impulse_focus = high_jump_impulse_focus
+            env.clean_jump_apex = clean_jump_apex
+            env.min_landing_apex = min_landing_apex
+            env.varied_jump_runup = varied_jump_runup
+            env.direct_jump_landing = direct_jump_landing
+            env.jump_lip_focus = jump_lip_focus
+            env.jump_airborne_height_focus = jump_airborne_height_focus
+            env.jump_loaded_push = jump_loaded_push
         if role != 'jump':
             env.restart_focus = stair_restart_focus
+            env.parked_retake_focus = parked_retake_focus
+            env.wasd_restart_focus = wasd_restart_focus
             env.mid_stance_focus = stair_mid_stance_focus
-        if role == 'stair':
             env.low_stance_focus = stair_low_stance_focus
+        if role == 'stair':
             env.high_slow_focus = stair_high_slow_focus
         if leap:
             env.stance_dr = stance_dr
@@ -114,7 +137,11 @@ class Fixtures:
     def __init__(self, role, count, seed, measure_substeps=False, leap=False, stance_dr=False,
                  leap_height_focus=False, stair_low_stance_focus=False, stair_high_slow_focus=False,
                  leap_moving_focus=False, stair_restart_focus=False, instant_moving_focus=False, jump_top_support=False,
-                 stair_mid_stance_focus=False):
+                 stair_mid_stance_focus=False, touchdown_focus=0., high_takeoff_focus=False,
+                 sustained_high_jump=False, high_jump_apex_focus=False, parked_retake_focus=False,
+                 high_jump_impulse_focus=False, clean_jump_apex=False, min_landing_apex=0., varied_jump_runup=False,
+                 wasd_restart_focus=False, direct_jump_landing=False, jump_lip_focus=False,
+                 jump_airborne_height_focus=False, jump_loaded_push=False):
         self.pipes, self.workers = [], []
         ctx = mp.get_context('fork' if os.name != 'nt' else 'spawn')
         for index in range(count):
@@ -122,7 +149,11 @@ class Fixtures:
             proc = ctx.Process(target=_worker, args=(worker, role, seed + 191 * index, measure_substeps, leap, stance_dr,
                                                      leap_height_focus, stair_low_stance_focus, stair_high_slow_focus,
                                                      leap_moving_focus, stair_restart_focus, instant_moving_focus,
-                                                     jump_top_support, stair_mid_stance_focus),
+                                                     jump_top_support, stair_mid_stance_focus, touchdown_focus, high_takeoff_focus,
+                                                     sustained_high_jump, high_jump_apex_focus, parked_retake_focus,
+                                                     high_jump_impulse_focus, clean_jump_apex, min_landing_apex,
+                                                     varied_jump_runup, wasd_restart_focus, direct_jump_landing, jump_lip_focus,
+                                                     jump_airborne_height_focus, jump_loaded_push),
                                daemon=True)
             proc.start()
             worker.close()
@@ -179,6 +210,11 @@ def forward(model, role, obs, hist, permit, oracle=None):
         enabled = obs[:, 30] > .5
         return mean, std, enabled, enabled.float(), enabled.float(), None
     out = model.moe.compute_all_heads(obs, hist)
+    slow_scale = getattr(model, 'slow_approach_scale', 1.)
+    if slow_scale != 1.:
+        approach = obs.clone()
+        approach[:, 0] = torch.where(permit, approach[:, 0] * slow_scale, approach[:, 0])
+        out['a_e0'] = model.moe.e0(approach)
     raw = out['g_prob']
     effective = torch.where(permit, out['g_eff'] if oracle is None else oracle, 0.)
     mean = torch.lerp(out['a_e0'], out['a_stair'], effective[:, None]).clamp(-6., 6.)
@@ -261,9 +297,13 @@ def summary(episodes):
             acc['backtrack_m'] += ep['backtrack_m']
             if 'held_top_s' in ep:
                 acc['held_top_0p4'] += int(ep['held_top_s'] >= .40 and not ep['fell_reason'])
-            support_ok = ep.get('held_top_s', .40) >= .40
+            acc['preflight_face_hit'] += int(ep.get('preflight_face_hit', False))
+            if 'direct_held_top' in ep:
+                acc['direct_held_top'] += int(ep['direct_held_top'] and not ep['fell_reason'])
+            support_ok = ep.get('held_top_s', .40) >= .40 and ep.get('direct_held_top', True)
             acc['qualified'] += int(support_ok and ep['landed'] and not ep['fell_reason'] and ep['clearance_m'] >= .30
-                                     and ep['backtrack_m'] <= .07 and ep['landing_pitch_deg'] <= 16.0)
+                                     and ep['backtrack_m'] <= .07 and ep['landing_pitch_deg'] <= 16.0
+                                     and not ep.get('preflight_face_hit', False))
     return {k: dict(v) for k, v in stats.items()}
 
 
@@ -411,7 +451,7 @@ def train_iter(model, args, data, opt_actor, opt_critic, end, anchor=None, criti
                         with torch.no_grad():
                             base_action = jump_ref.act_deterministic(d['obs'][action_mask], selected_history(model, d['hist'][action_mask]))
                         reference = F.mse_loss(mean[action_mask], base_action)
-                        loss = loss + 3.0 * reference
+                        loss = loss + args.anchor_weight * reference
                         loss_sum['reference'] += float(reference.detach())
                 if anchor is not None:
                     ref_loss = stair_reference_loss(model, args.role, anchor)
@@ -460,16 +500,31 @@ def main():
     parser.add_argument('--leap-height-focus', action='store_true')
     parser.add_argument('--stair-low-stance-focus', action='store_true')
     parser.add_argument('--stair-high-slow-focus', action='store_true')
+    parser.add_argument('--slow-approach-scale', type=float, default=1.)
     parser.add_argument('--stair-mid-stance-focus', action='store_true')
     parser.add_argument('--leap-moving-focus', action='store_true')
     parser.add_argument('--instant-moving-focus', action='store_true')
     parser.add_argument('--jump-top-support', action='store_true')
+    parser.add_argument('--touchdown-focus', type=float, default=0.)
+    parser.add_argument('--high-takeoff-focus', action='store_true')
+    parser.add_argument('--sustained-high-jump', action='store_true')
+    parser.add_argument('--high-jump-apex-focus', action='store_true')
+    parser.add_argument('--high-jump-impulse-focus', action='store_true')
+    parser.add_argument('--clean-jump-apex', action='store_true')
+    parser.add_argument('--min-landing-apex', type=float, default=0.)
+    parser.add_argument('--varied-jump-runup', action='store_true')
+    parser.add_argument('--direct-jump-landing', action='store_true')
+    parser.add_argument('--jump-lip-focus', action='store_true')
+    parser.add_argument('--jump-airborne-height-focus', action='store_true')
+    parser.add_argument('--jump-loaded-push', action='store_true')
     parser.add_argument('--stair-restart-focus', action='store_true')
+    parser.add_argument('--parked-retake-focus', action='store_true')
+    parser.add_argument('--wasd-restart-focus', action='store_true')
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--probe', action='store_true')
     args = parser.parse_args()
     if args.anchor_weight is None:
-        args.anchor_weight = .6 if args.role == 'router' else 2.0
+        args.anchor_weight = {'router': .6, 'stair': 2., 'jump': 3.}[args.role]
     torch.manual_seed(args.seed)
     torch.set_num_threads(1)
     out = args.out.resolve()
@@ -488,6 +543,34 @@ def main():
         parser.error('Leap focus options require --leap')
     if args.instant_moving_focus and (args.role != 'jump' or args.leap):
         parser.error('--instant-moving-focus requires the instant jump expert')
+    if not 0. < args.slow_approach_scale <= 1. or (args.slow_approach_scale != 1. and not args.stair_high_slow_focus):
+        parser.error('--slow-approach-scale requires --stair-high-slow-focus and a scale in (0, 1]')
+    if args.sustained_high_jump and not (args.high_takeoff_focus and args.instant_moving_focus and args.jump_top_support):
+        parser.error('--sustained-high-jump requires the matched takeoff fixture with top-support measurement')
+    if args.jump_loaded_push and not (args.jump_airborne_height_focus and args.high_jump_impulse_focus):
+        parser.error('--jump-loaded-push requires airborne height and loaded impulse measurements')
+    if args.jump_airborne_height_focus and not args.jump_lip_focus:
+        parser.error('--jump-airborne-height-focus requires --jump-lip-focus')
+    if args.jump_lip_focus and not (args.role == 'jump' and args.direct_jump_landing and args.varied_jump_runup):
+        parser.error('--jump-lip-focus requires the varied direct jump landing fixture')
+    if args.parked_retake_focus and (args.role == 'jump' or not (args.stair_restart_focus and args.stair_low_stance_focus)):
+        parser.error('--parked-retake-focus requires the low-stance restart fixture')
+    if args.wasd_restart_focus and not args.parked_retake_focus:
+        parser.error('--wasd-restart-focus requires --parked-retake-focus')
+    if args.high_jump_impulse_focus and not args.high_jump_apex_focus:
+        parser.error('--high-jump-impulse-focus requires --high-jump-apex-focus')
+    if args.clean_jump_apex and not (args.high_jump_impulse_focus and args.sustained_high_jump):
+        parser.error('--clean-jump-apex requires the sustained flight and loaded stroke rewards')
+    if not 0. <= args.min_landing_apex <= .22 or args.min_landing_apex and not args.clean_jump_apex:
+        parser.error('--min-landing-apex must be in [0, .22] and positive values require --clean-jump-apex')
+    if args.direct_jump_landing and not (args.varied_jump_runup and args.jump_top_support):
+        parser.error('--direct-jump-landing requires varied run-up and top support measurement')
+    if args.varied_jump_runup and not (args.clean_jump_apex and args.min_landing_apex > 0.):
+        parser.error('--varied-jump-runup requires the clean jump credit and a main-flight clearance')
+    if args.high_jump_apex_focus and not args.sustained_high_jump:
+        parser.error('--high-jump-apex-focus requires sustained high jump')
+    if not np.isfinite(args.touchdown_focus) or args.touchdown_focus < 0. or (args.touchdown_focus and not args.instant_moving_focus):
+        parser.error('--touchdown-focus requires --instant-moving-focus and a nonnegative weight')
     if args.role == 'jump':
         (LeapFixture if args.leap else JumpFixture)(args.seed)
     else:
@@ -499,10 +582,18 @@ def main():
                    stair_low_stance_focus=args.stair_low_stance_focus, stair_high_slow_focus=args.stair_high_slow_focus,
                    leap_moving_focus=args.leap_moving_focus, stair_restart_focus=args.stair_restart_focus,
                    instant_moving_focus=args.instant_moving_focus, jump_top_support=args.jump_top_support,
-                   stair_mid_stance_focus=args.stair_mid_stance_focus)
+                   stair_mid_stance_focus=args.stair_mid_stance_focus, touchdown_focus=args.touchdown_focus,
+                   high_takeoff_focus=args.high_takeoff_focus, sustained_high_jump=args.sustained_high_jump,
+                   high_jump_apex_focus=args.high_jump_apex_focus, parked_retake_focus=args.parked_retake_focus,
+                   high_jump_impulse_focus=args.high_jump_impulse_focus, clean_jump_apex=args.clean_jump_apex,
+                   min_landing_apex=args.min_landing_apex, varied_jump_runup=args.varied_jump_runup,
+                   wasd_restart_focus=args.wasd_restart_focus, direct_jump_landing=args.direct_jump_landing,
+                   jump_lip_focus=args.jump_lip_focus, jump_airborne_height_focus=args.jump_airborne_height_focus,
+                   jump_loaded_push=args.jump_loaded_push)
     try:
         device = torch.device('cpu' if args.cpu else 'cuda')
         model = parent_model(args.role, args.resume, args.leap).to(device)
+        model.slow_approach_scale = args.slow_approach_scale
         jump_ref = copy.deepcopy(model).requires_grad_(False).eval() if args.leap or args.instant_moving_focus else None
         if args.role == 'router':
             model.requires_grad_(False)
@@ -529,9 +620,19 @@ def main():
                  'visible_device': os.environ.get('CUDA_VISIBLE_DEVICES', ''), 'pid': os.getpid(), 'started_epoch': time.time(),
                  'budget_seconds': args.seconds, 'actor_lr': actor_lr, 'anchor_weight': args.anchor_weight,
                  'leap_height_focus': args.leap_height_focus, 'stair_low_stance_focus': args.stair_low_stance_focus,
-                 'stair_high_slow_focus': args.stair_high_slow_focus, 'leap_moving_focus': args.leap_moving_focus,
+                 'stair_high_slow_focus': args.stair_high_slow_focus, 'slow_approach_scale': args.slow_approach_scale,
+                 'leap_moving_focus': args.leap_moving_focus, 'touchdown_focus': args.touchdown_focus,
                  'stair_restart_focus': args.stair_restart_focus, 'instant_moving_focus': args.instant_moving_focus,
                  'jump_top_support': args.jump_top_support, 'stair_mid_stance_focus': args.stair_mid_stance_focus,
+                 'high_takeoff_focus': args.high_takeoff_focus, 'sustained_high_jump': args.sustained_high_jump,
+                 'high_jump_apex_focus': args.high_jump_apex_focus, 'parked_retake_focus': args.parked_retake_focus,
+                 'high_jump_impulse_focus': args.high_jump_impulse_focus, 'clean_jump_apex': args.clean_jump_apex,
+                 'min_landing_apex': args.min_landing_apex, 'varied_jump_runup': args.varied_jump_runup,
+                 'wasd_restart_focus': args.wasd_restart_focus,
+                 'direct_jump_landing': args.direct_jump_landing,
+                 'jump_lip_focus': args.jump_lip_focus,
+                 'jump_airborne_height_focus': args.jump_airborne_height_focus,
+                 'jump_loaded_push': args.jump_loaded_push,
                  'parent': sha(args.resume) if args.resume else sha(LEAP_PARENT) if args.leap else EXPECTED_SHA[
                      'jump' if args.role == 'jump' else 'stair']}
         save_json(out / 'STARTED.json', ident)

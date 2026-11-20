@@ -179,15 +179,39 @@ def launch(role, batch, seconds, iters, probe=False):
     if options:
         if role in ('stair', 'router') and options.get('stair_restart_focus'):
             params.append('--stair-restart-focus')
+        if role in ('stair', 'router') and options.get('parked_retake_focus'):
+            params.append('--parked-retake-focus')
+        if role in ('stair', 'router') and options.get('wasd_restart_focus'):
+            params.append('--wasd-restart-focus')
         if role == 'jump' and options.get('instant_moving_focus'):
             params.append('--instant-moving-focus')
         if role == 'jump' and options.get('jump_top_support'):
             params.append('--jump-top-support')
+        if role == 'jump' and options.get('high_takeoff_focus'):
+            params.append('--high-takeoff-focus')
+        if role == 'jump' and options.get('sustained_high_jump'):
+            params.append('--sustained-high-jump')
+        if role == 'jump' and options.get('high_jump_apex_focus'):
+            params.append('--high-jump-apex-focus')
+        if role == 'jump' and options.get('high_jump_impulse_focus'):
+            params.append('--high-jump-impulse-focus')
+        if role == 'jump' and options.get('clean_jump_apex'):
+            params.append('--clean-jump-apex')
+        if role == 'jump' and options.get('varied_jump_runup'):
+            params.append('--varied-jump-runup')
+        if role == 'jump' and options.get('direct_jump_landing'):
+            params.append('--direct-jump-landing')
+        if role == 'jump' and options.get('jump_lip_focus'):
+            params.append('--jump-lip-focus')
+        if role == 'jump' and options.get('jump_airborne_height_focus'):
+            params.append('--jump-airborne-height-focus')
+        if role == 'jump' and options.get('jump_loaded_push'):
+            params.append('--jump-loaded-push')
         if role == 'router' and options.get('fit_router_encoder'):
             params.append('--fit-router-encoder')
         if role == 'jump' and options.get('leap_height_focus'):
             params.append('--leap-height-focus')
-        if role == 'stair' and options.get('stair_low_stance_focus'):
+        if role in ('stair', 'router') and options.get('stair_low_stance_focus'):
             params.append('--stair-low-stance-focus')
         if role in ('stair', 'router') and options.get('stair_mid_stance_focus'):
             params.append('--stair-mid-stance-focus')
@@ -195,7 +219,8 @@ def launch(role, batch, seconds, iters, probe=False):
             params.append('--stair-high-slow-focus')
         if role == 'jump' and options.get('leap_moving_focus'):
             params.append('--leap-moving-focus')
-        for name in ('anchor_weight', 'anchor_steps', 'actor_lr', 'dr_0_updates', 'dr_partial_updates', 'stance_dr'):
+        for name in ('anchor_weight', 'anchor_steps', 'actor_lr', 'dr_0_updates', 'dr_partial_updates',
+                     'stance_dr', 'slow_approach_scale', 'touchdown_focus', 'min_landing_apex'):
             if name in options:
                 params.extend(('--' + name.replace('_', '-'), str(options[name])))
     if probe:

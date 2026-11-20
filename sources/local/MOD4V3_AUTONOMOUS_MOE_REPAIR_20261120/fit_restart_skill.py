@@ -35,7 +35,7 @@ def select_corrections(records, modes, min_height, max_height):
     return [row for _, row in selected.values()]
 
 
-def read_data(candidate_folders, replay_folders, *, stop_only=False, high_restart=False):
+def read_data(candidate_folders, replay_folders, *, stop_only=False, high_restart=False, mid_stop=False):
     collected = []
     manifest = []
     for paired, folders in ((True, candidate_folders), (False, replay_folders)):
@@ -48,12 +48,14 @@ def read_data(candidate_folders, replay_folders, *, stop_only=False, high_restar
                     records = select_corrections(records, {'stop'}, .0, .34)
                 if high_restart:
                     records = select_corrections(records, {'stop', 'reverse'}, .39, .43)
+                if mid_stop:
+                    records = select_corrections(records, {'stop'}, .33, .35)
             for row in records:
                 restart = row.get('restart')
                 wall = paired and row.get('map_height_cm', 20) > 20
                 if paired and (not restart or row['fell'] or not (wall or row['admitted'])):
                     continue
-                background_modes = ('climb', 'flat', 'wall', 'reverse', 'turn', 'turn_w') if stop_only or high_restart else ('climb', 'flat', 'wall')
+                background_modes = ('climb', 'flat', 'wall', 'reverse', 'turn', 'turn_w') if stop_only or high_restart or mid_stop else ('climb', 'flat', 'wall')
                 if not paired and (row['mode'] not in background_modes or row['fell']):
                     continue
                 with np.load(folder / (row['name'] + '.npz'), allow_pickle=False) as trajectory:
@@ -84,7 +86,7 @@ def read_data(candidate_folders, replay_folders, *, stop_only=False, high_restar
                 frames += int(take.sum())
             manifest.append({'source':str(index), 'sha256':hashlib.sha256(index.read_bytes()).hexdigest(),
                              'qualified_restarts':positives,'wall_restarts':walls,'frames':frames,
-                             'selected_rollouts': [row['name'] for row in records] if paired and (stop_only or high_restart) else None})
+                             'selected_rollouts': [row['name'] for row in records] if paired and (stop_only or high_restart or mid_stop) else None})
     data = tuple(torch.from_numpy(np.concatenate(values)) for values in zip(*collected, strict=True))
     return data, manifest
 
@@ -140,11 +142,12 @@ def main():
     focus = parser.add_mutually_exclusive_group()
     focus.add_argument('--stop-only', action='store_true', help='Fit renewed W after a low-stance stop.')
     focus.add_argument('--high-restart', action='store_true', help='Fit high-stance stops and reverse restarts.')
+    focus.add_argument('--mid-stop', action='store_true', help='Fit paused mid-stance re-entry with paired tall walls.')
     args = parser.parse_args()
     torch.set_num_threads(1)
     torch.manual_seed(20261122)
     args.out.mkdir(parents=True, exist_ok=False)
-    data, rows = read_data(args.pairs, args.background, stop_only=args.stop_only, high_restart=args.high_restart)
+    data, rows = read_data(args.pairs, args.background, stop_only=args.stop_only, high_restart=args.high_restart, mid_stop=args.mid_stop)
     model, report = train(data,args.device,args.steps)
     report['sources'] = rows
     target = args.out / 'restart_skill.pt'

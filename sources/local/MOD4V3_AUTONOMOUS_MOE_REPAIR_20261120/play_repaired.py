@@ -34,10 +34,15 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.high_restart_router = None
         self.parked_restart_router = None
         self.parked_recovery_router = None
+        self.parked_mid_resume = None
+        self.parked_mid_recovery = None
+        self.parked_mid_recovery_strength = 0.
+        self.parked_resume_tread_cutoff = 0.
         self.restart_history = deque(maxlen=RESTART_WINDOW)
         self.stair_height_bank = ()
         self.slow_stair = None
         self.mid_stair = None
+        self.low_impact_stair = None
         self.rising_stair = None
         self.stair_driver_speed = None
         self.allow_stair = False
@@ -47,7 +52,13 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.moving_jump_frames = jump.GATE_STEPS
         self.moving_jump_history_frames = jump.HIST_LEN
         self.use_moving_jump = False
+        self.high_moving_jump = None
+        self.high_moving_jump_history_frames = jump.HIST_LEN
+        self.high_moving_jump_frames = jump.GATE_STEPS
+        self.use_high_moving_jump = False
         self.jump_min_forward = 0.0
+        self.high_jump_min_rolling = 0.0
+        self.high_jump_runup_frames = 0
         self.stair_gate_floor = stair.GATE_DEADZONE
         self.stair_release_per_tick = 1.0
         self.restart_release_per_tick = 1.0
@@ -63,6 +74,7 @@ class RepairedPolicy(AutonomousThreeExpert):
     def reset_history(self):
         super().reset_history()
         self.restart_history.clear()
+        self.use_high_moving_jump = False
         self.stair_mix = 0.0
         self.handoff_mix = 0.0
 
@@ -129,6 +141,11 @@ class RepairedPolicy(AutonomousThreeExpert):
     def stair_outputs(self, current, history):
         out = self.height_stair_outputs(current, history)
         requested_height = float(current[0, 3]) / 5.
+        if self.low_impact_stair is not None and self.allow_stair and requested_height < .35:
+            weight = float(np.clip((.35 - requested_height) / .04, 0., 1.))
+            lower = self.low_impact_stair.compute_all_heads(current, history)
+            for name in ('a_stair', 'h_virt', 'v_virt'):
+                out[name] = torch.lerp(out[name], lower[name], weight)
         if self.mid_stair is not None:
             # Keep the learned .36 m correction local to its training range.
             weight = float(np.clip((.009 - abs(requested_height - .36)) / .007, 0., 1.))
@@ -193,20 +210,81 @@ class RepairedPolicy(AutonomousThreeExpert):
         return (base_context + weight * (context - base_context),
                 base_mix + weight * (contact_mix - base_mix), correction)
 
+    def adjust_parked_resume(self, height, outputs, release):
+        """Recover forward loading after a genuine pause using the observed wheel history."""
+        context, mix, delta = outputs
+        cutoff = self.parked_resume_tread_cutoff
+        driver_speed = self.stair_driver_speed
+        if not cutoff or height >= .352 or driver_speed is None or driver_speed <= .1:
+            return context, mix, delta, release
+        history = np.asarray(self.restart_history)
+        vx_commands = history[:, 0]
+        if np.any(vx_commands[-104:] < -.10):
+            return context, mix, delta, release
+        neutral = np.flatnonzero(np.abs(vx_commands) <= .04)
+        if neutral.size == 0:
+            return context, mix, delta, release
+        stop = int(neutral[-1]) + 1
+        if (stop < 13 or np.any(np.abs(vx_commands[stop - 12:stop]) > .04)
+                or not np.any(vx_commands[:stop - 12] > .32)):
+            return context, mix, delta, release
+
+        rolling = history[stop - 7:stop, 20:22] * .625
+        elapsed_ticks = len(history) - stop
+        low = float(np.clip((.308 - height) / .024, 0., 1.))
+        drive_fraction = float(vx_commands[-1]) / driver_speed
+        if low > 0. and elapsed_ticks <= 18 and 0. < drive_fraction < .86:
+            wheel_speed = float(np.sqrt(np.mean(rolling ** 2)))
+            steady = float(np.clip((cutoff - wheel_speed) / .04, 0., 1.))
+            early = float(np.clip((.86 - drive_fraction) / .68, 0., 1.))
+            strength = low * steady * early
+            if strength > 0.:
+                # Preserve the original gate bit-for-bit when the residual has zero authority.
+                mix *= 1. - .5054901435 * strength
+                delta = delta + strength * np.array([.2985283467, -.7631071286, .4708167033], dtype=np.float32)
+
+        height_weight = max(0., 1. - abs(height - .34) / .012)
+        if self.parked_mid_resume is not None and 0 < elapsed_ticks < 95:
+            forward_loading = float(np.clip((float(rolling.mean()) - .025) / .075, 0., 1.))
+            weight = .414 * height_weight * forward_loading
+            if weight > 0.:
+                learned_context, probability, residual = self.parked_mid_resume.evaluate(self.restart_history)
+                contact = float(np.clip(.5 + (probability - .791) / .10, 0., 1.))
+                context += weight * (learned_context - context)
+                mix += weight * (contact - mix)
+                delta = delta + weight * (.75 * residual - delta)
+                release += weight / .414 * (.085 - release)
+        if self.parked_mid_recovery is not None and .328 < height < .352 and 0 < elapsed_ticks < 95:
+            # Use the weaker recovery head while the previous stop still leaves the wheels rolling back.
+            reverse_loading = float(np.clip((.025 - float(history[stop - 7:stop, 20:22].mean()) * .625) / .19, 0., 1.))
+            weight = self.parked_mid_recovery_strength * height_weight * reverse_loading
+            if weight > 0.:
+                learned_context, probability, residual = self.parked_mid_recovery.evaluate(self.restart_history)
+                contact = float(np.clip(.5 + (probability - .76) / .10, 0., 1.))
+                context += weight * (learned_context - context)
+                mix += weight * (contact - mix)
+                delta = delta + weight * (.75 * residual - delta)
+                release += weight * (.10 - release)
+        return context, mix, delta, release
+
     @torch.inference_mode()
     def act(self, obs: np.ndarray):
         x = torch.from_numpy(obs).reshape(1, stair.OBS_DIM)
         history = self.history.append(x)
-        if self.restart_router is not None or self.rising_stair is not None:
+        if self.restart_router is not None or self.rising_stair is not None or self.high_moving_jump is not None:
             self.restart_history.append(obs.copy())
         if obs[jump.JUMP_MODE_BIT_INDEX] > 0.5:
             self.stair_mix = 0.0
             self.handoff_mix = 0.0
-            expert = self.moving_jump if self.use_moving_jump else self.jump
-            frames = self.moving_jump_history_frames if self.use_moving_jump else self.jump_history_frames
+            if self.use_high_moving_jump:
+                expert, frames = self.high_moving_jump, self.high_moving_jump_history_frames
+            elif self.use_moving_jump:
+                expert, frames = self.moving_jump, self.moving_jump_history_frames
+            else:
+                expert, frames = self.jump, self.jump_history_frames
             jump_history = history.reshape(1, stair.HIST_LEN, stair.OBS_DIM)[:, -frames:]
             current = x
-            if not self.use_moving_jump and self.jump_min_forward > 0. and obs[0] >= 0.:
+            if not (self.use_high_moving_jump or self.use_moving_jump) and self.jump_min_forward > 0. and obs[0] >= 0.:
                 current = x.clone()
                 current[:, 0] = current[:, 0].clamp_min(self.jump_min_forward)
                 jump_history = jump_history.clone()
@@ -229,14 +307,18 @@ class RepairedPolicy(AutonomousThreeExpert):
             if tall > 0.0:
                 high_probability = self.router_probability(self.high_router_weights, current, h)
                 probability += tall * (high_probability - probability)
-        permit = self.allow_stair
+        # A high moving jump retains landing authority through the 0.4 s support window.
+        landing = self.use_high_moving_jump and any(
+            row[jump.JUMP_MODE_BIT_INDEX] > .5 for row in list(self.restart_history)[-20:])
+        permit = self.allow_stair and not landing
         release = self.stair_release_per_tick
         restart_delta = None
         if permit and self.restart_router is not None:
             height = float(current[0, 3]) / 5.
             baseline = self.restart_outputs(self.restart_router)
-            resumed, restart_probability, restart_delta = self.parked_restart_outputs(height, baseline)
-            restart_release = self.restart_release_per_tick
+            parked = self.parked_restart_outputs(height, baseline)
+            resumed, restart_probability, restart_delta, restart_release = self.adjust_parked_resume(
+                height, parked, self.restart_release_per_tick)
             if self.high_restart_router is not None:
                 tall = float(np.clip((height - .40) / .018, 0., 1.))
                 if tall == 1.0:
@@ -293,7 +375,9 @@ def load_jump_expert(raw, base_state):
 def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fast_moving_jump=False,
                    stair_height_bank=None, high_router_path=None, slow_stair_path=None, moving_jump_path=None,
                    restart_router_path=None, high_restart_router_path=None, parked_restart_router_path=None,
-                   mid_stair_path=None, rising_stair_path=None, parked_recovery_router_path=None):
+                   mid_stair_path=None, rising_stair_path=None, parked_recovery_router_path=None,
+                   high_moving_jump_path=None, low_impact_stair_path=None, parked_mid_resume_path=None,
+                   parked_mid_recovery_path=None):
     torch.set_num_threads(1)
     parent, parent_sha = load_parent()
     model = RepairedPolicy()
@@ -305,13 +389,14 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
         hashes['moving_jump'] = SOURCE_SHA['E2']
     for role, path in [('stair', stair_path), ('router', router_path), ('high_router', high_router_path),
                        ('slow_stair', slow_stair_path), ('mid_stair', mid_stair_path), ('rising_stair', rising_stair_path),
-                       ('jump', jump_path), ('moving_jump', moving_jump_path)]:
+                       ('low_impact_stair', low_impact_stair_path),
+                       ('jump', jump_path), ('moving_jump', moving_jump_path), ('high_moving_jump', high_moving_jump_path)]:
         if path is None:
             continue
         path = Path(path)
         raw = torch.load(path, map_location='cpu', weights_only=True)
         hashes[role] = hashlib.sha256(path.read_bytes()).hexdigest()
-        if role in ('jump', 'moving_jump'):
+        if role in ('jump', 'moving_jump', 'high_moving_jump'):
             expert, history_frames, request_frames = load_jump_expert(raw, base_state)
             setattr(model, role, expert)
             setattr(model, role + '_history_frames', history_frames)
@@ -320,7 +405,7 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
             weights = raw['moe_state_dict']
             same_locomotion(base_state, weights, 'e0.')
             same_locomotion(base_state, weights, 'e1_stair.loco_base.')
-            if role in ('router', 'high_router', 'slow_stair', 'mid_stair', 'rising_stair'):
+            if role in ('router', 'high_router', 'slow_stair', 'mid_stair', 'rising_stair', 'low_impact_stair'):
                 network = stair.AutonomousStairMoE()
                 network.load_state_dict(weights, strict=True)
                 setattr(model, role + '_weights' if role in ('router', 'high_router') else role, network)
@@ -354,12 +439,13 @@ def load_candidate(stair_path=None, router_path=None, jump_path=None, *, keep_fa
         raise ValueError('Parked recovery requires the parked restart model')
     for role, weight_file in (('restart_router', restart_router_path), ('high_restart_router', high_restart_router_path),
                               ('parked_restart_router', parked_restart_router_path),
-                              ('parked_recovery_router', parked_recovery_router_path)):
+                              ('parked_recovery_router', parked_recovery_router_path),
+                              ('parked_mid_resume', parked_mid_resume_path), ('parked_mid_recovery', parked_mid_recovery_path)):
         if weight_file is None:
             continue
         path = Path(weight_file)
         raw = torch.load(path, map_location='cpu', weights_only=True)
-        if role in ('parked_restart_router', 'parked_recovery_router') and not raw.get('restart_action'):
+        if role in ('parked_restart_router', 'parked_recovery_router', 'parked_mid_resume') and not raw.get('restart_action'):
             raise ValueError(f'{role} requires a restart skill checkpoint')
         network = RestartSkillRouter() if raw.get('restart_action') else RestartRouter()
         network.load_state_dict(raw['state_dict'], strict=True)
@@ -375,6 +461,9 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_height = None
         self.jump_pending = False
         self.jump_prepare_frames = 0
+        self.jump_waiting_for_roll = False
+        self.jump_key_tick = None
+        self.jump_key_follows_reverse = False
         self.reset_reverse_heading()
         super().__init__(policy, sha, show_viewer=show_viewer)
 
@@ -405,11 +494,48 @@ class RepairedSimulation(AutonomousMapSimulation):
         self.jump_height = None
         self.jump_pending = False
         self.jump_prepare_frames = 0
+        self.jump_waiting_for_roll = False
+        self.jump_key_tick = None
+        self.jump_key_follows_reverse = False
         return super().reset_at_spawn(spawn_idx)
 
     def request_jump(self):
-        if self.jump_pending or self.jump_rem:
+        if self.jump_key_tick is not None or self.jump_pending or self.jump_rem:
             return False
+        # Hotkeys are received before the current tick's WASD keys reach step().
+        self.jump_key_tick = self.steps
+        self.jump_key_follows_reverse = self.cmd_vx < -.08
+        return True
+
+    def dispatch_jump_key(self, pressed):
+        if self.jump_key_tick is None:
+            return
+        turning = ('a' in pressed) != ('d' in pressed)
+        if 's' in pressed or turning or self.steps - self.jump_key_tick >= 50:
+            self.jump_key_tick = None
+            return
+        if self.jump_key_follows_reverse:
+            if self.last_obs is None:
+                return
+            tread = .625 * self.last_obs[20:22]
+            if 'w' in pressed:
+                ready = self.cmd_vx >= .15 and float(tread.min()) >= .40
+            else:
+                ready = abs(self.cmd_vx) <= .045 and float(np.abs(tread).max()) <= .065
+            if not ready:
+                return
+        self.jump_key_tick = None
+        self.begin_requested_jump()
+
+    def begin_requested_jump(self):
+        if self.unified.high_moving_jump is not None and self.target_h >= .32 and self.cmd_vx >= .15:
+            if self.unified.high_jump_runup_frames and not self.high_jump_rolling():
+                self.jump_waiting_for_roll = True
+                self.jump_pending = True
+                self.jump_prepare_frames = 0
+                self.jump_launch_gz = self.ground_z(*self.d.qpos[:2])
+                return True
+            return self.start_jump(high_moving=True)
         if self.jump_stance_prep and self.target_h > .305:
             self.jump_height = self.target_h if self.jump_height is None else self.jump_height
             self.jump_pending = True
@@ -418,16 +544,36 @@ class RepairedSimulation(AutonomousMapSimulation):
             return True
         return self.start_jump()
 
-    def start_jump(self):
+    def start_jump(self, *, high_moving=False):
         if not super().request_jump():
             return False
         # Select once at the keypress from the driver's commanded speed. The mode and
         # history stay coherent through landing, even if W is released while in the air.
         self.unified.use_moving_jump = self.unified.moving_jump is not None and abs(self.cmd_vx) >= .15
-        self.jump_rem = self.unified.moving_jump_frames if self.unified.use_moving_jump else self.unified.jump_frames
+        self.unified.use_high_moving_jump = high_moving
+        if high_moving:
+            self.jump_rem = self.unified.high_moving_jump_frames
+        else:
+            self.jump_rem = self.unified.moving_jump_frames if self.unified.use_moving_jump else self.unified.jump_frames
         return True
 
+    def high_jump_rolling(self):
+        if self.last_obs is None:
+            return False
+        # obs[20:22] is wheel joint speed scaled by 0.1. Convert to tread speed.
+        rolling_speed = .625 * float(np.min(self.last_obs[20:22]))
+        return rolling_speed >= self.unified.high_jump_min_rolling
+
     def update_jump_height(self, pressed):
+        if self.jump_waiting_for_roll:
+            if 'w' not in pressed or 's' in pressed or ('a' in pressed) != ('d' in pressed):
+                self.jump_waiting_for_roll = self.jump_pending = False
+                return
+            self.jump_prepare_frames += 1
+            if self.high_jump_rolling() or self.jump_prepare_frames >= self.unified.high_jump_runup_frames:
+                self.jump_waiting_for_roll = self.jump_pending = False
+                self.start_jump(high_moving=True)
+            return
         if self.jump_pending:
             # Explicit reverse cancels a queued launch while the wheels are on the ground.
             if 's' in pressed or ('a' in pressed) != ('d' in pressed):
@@ -455,7 +601,7 @@ class RepairedSimulation(AutonomousMapSimulation):
     def telemetry(self):
         status = super().telemetry()
         status['source_sha256'] = {**SOURCE_SHA, **self.unified.provenance}
-        status['jump_pending'] = self.jump_pending
+        status['jump_pending'] = self.jump_pending or self.jump_key_tick is not None
         status['reverse_heading_correction_rad_s'] = self.reverse_heading_correction
         status['effective_target_h'] = self.target_h if self.jump_height is None else self.jump_height
         return status
@@ -466,9 +612,11 @@ class RepairedSimulation(AutonomousMapSimulation):
         forward = int('w' in pressed) - int('s' in pressed)
         explicit_turn = ('a' in pressed) != ('d' in pressed)
         # Raw operator intent arrives before the command slew or history. It is independent of obstacle detection.
+        self.dispatch_jump_key(pressed)
         self.update_jump_height(pressed)
         self.update_reverse_heading(forward, explicit_turn)
-        self.unified.allow_stair = forward > 0 and not explicit_turn and not self.jump_pending
+        self.unified.allow_stair = (forward > 0 and not explicit_turn and not self.jump_pending
+                                    and self.jump_key_tick is None)
         self.unified.stair_driver_speed = self.max_vx if self.unified.allow_stair else None
         stopping_stair = (
             self.unified.immediate_stair_stop and forward == 0 and self.cmd_vx > 0.0
@@ -498,10 +646,24 @@ def load_manifest(path):
                                    high_restart_router_path=paths.get('high_restart_router'),
                                    parked_restart_router_path=paths.get('parked_restart_router'),
                                    parked_recovery_router_path=paths.get('parked_recovery_router'),
-                                   mid_stair_path=paths.get('mid_stair'), rising_stair_path=paths.get('rising_stair'))
+                                   mid_stair_path=paths.get('mid_stair'), rising_stair_path=paths.get('rising_stair'),
+                                   high_moving_jump_path=paths.get('high_moving_jump'),
+                                   low_impact_stair_path=paths.get('low_impact_stair'),
+                                   parked_mid_resume_path=paths.get('parked_mid_resume'),
+                                   parked_mid_recovery_path=paths.get('parked_mid_recovery'))
     if hashes != manifest['sha256']:
         raise RuntimeError('The loaded policy does not match the validated candidate hashes')
     model.jump_min_forward = float(settings.get('jump_min_forward', 0.0))
+    model.parked_resume_tread_cutoff = float(settings.get('parked_resume_tread_cutoff', 0.))
+    if not 0. <= model.parked_resume_tread_cutoff <= .2:
+        raise ValueError('Invalid parked resume tread speed')
+    model.parked_mid_recovery_strength = float(settings.get('parked_mid_recovery_strength', 0.))
+    if not 0. <= model.parked_mid_recovery_strength <= 1.:
+        raise ValueError('Invalid mid-stance recovery strength')
+    model.high_jump_min_rolling = float(settings.get('high_jump_min_rolling', 0.0))
+    model.high_jump_runup_frames = int(settings.get('high_jump_runup_frames', 0))
+    if not (0. <= model.high_jump_min_rolling <= .8 and 0 <= model.high_jump_runup_frames <= 20):
+        raise ValueError('Invalid moving jump run-up settings')
     model.stair_gate_floor = float(settings.get('gate_floor', stair.GATE_DEADZONE))
     model.stair_release_per_tick = float(settings.get('gate_release', 1.0))
     model.restart_release_per_tick = float(settings.get('restart_release', model.stair_release_per_tick))

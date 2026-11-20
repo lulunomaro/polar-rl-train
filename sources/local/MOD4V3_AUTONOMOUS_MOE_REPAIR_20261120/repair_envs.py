@@ -59,20 +59,25 @@ class StairFixture(Mod4v3AutonomousStairEnv):
     high_slow_focus = False
     mid_stance_focus = False
     restart_focus = False
+    parked_retake_focus = False
+    wasd_restart_focus = False
 
     def start(self, profile='climb', height=0.28, speed=0.9, offset=0.0, yaw=0.0,
-              dr=0.0, rise=False, distance=1.35, wall_height=.50):
+              dr=0.0, rise=False, distance=1.35, wall_height=.50, drive_at=None):
         self.profile = profile
         self.measure_substeps = getattr(self, "measure_substeps", False)
         self.request_height = float(height)
+        self.drive_at_s = drive_at
         self.rise = rise
         self.intent = speed
         self.steering = 0.0
         self.cancel_after_ticks = 0
         self.restart_after_ticks = 0
         if profile in RESTART_PROFILES:
-            self.cancel_after_ticks = int(self.rng.integers(3, 11))
-            self.restart_after_ticks = self.cancel_after_ticks + int(self.rng.integers(31, 64))
+            cancel = (2, 15) if self.wasd_restart_focus else (3, 11)
+            pause = (17, 85) if self.wasd_restart_focus else (31, 64)
+            self.cancel_after_ticks = int(self.rng.integers(*cancel))
+            self.restart_after_ticks = self.cancel_after_ticks + int(self.rng.integers(*pause))
         self.restart_contact_tick = None
         self.restart_x = None
         self.restart_max_x = None
@@ -112,14 +117,36 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         step = () if profile == 'flat' else ((wall_height,) if profile in ('wall', 'restart_wall') else (0.20,))
         st = self.reset_scenario(
             kind='flat' if profile == 'flat' else 'stair_1step', dr_scale=dr,
-            step_heights=step, step_x1=distance, height_cmd=0.28 if rise else height,
-            cmd_vx=speed, start_x=offset, start_yaw=yaw, max_steps=410,
+            step_heights=step, step_x1=distance, height_cmd=0.28 if rise or self.wasd_restart_focus else height,
+            cmd_vx=speed, start_x=offset, start_yaw=yaw, max_steps=450 if self.wasd_restart_focus else 410,
         )
+        if self.wasd_restart_focus:
+            # The player starts at the standard pose and lets the policy reach the selected height.
+            # Keep vertical command, spawn height and the first observation independent.
+            self.d.qpos[2] = .282
+            mj.mj_forward(self.m, self.d)
+            st['obs'] = self._get_obs()
+            st['priv'] = self._get_priv()
+            self.hist_buf = np.repeat(st['obs'][None, :], self.hist_buf.shape[0], axis=0)
+            st['hist'] = self.hist_buf.reshape(-1).copy()
         return st
 
     def sample(self, dr, role):
         r = self.rng
         p = r.random()
+        if self.wasd_restart_focus:
+            if role == 'stair':
+                profile = ('restart' if p < .49 else 'restart_reverse' if p < .73 else
+                           'climb' if p < .93 else 'flat')
+                height = float(r.choice([.28, .28, .29, .31, .32, .33, .34, .34]))
+            else:
+                profile = ('restart' if p < .36 else 'restart_reverse' if p < .52 else
+                           'restart_wall' if p < .77 else 'climb' if p < .89 else 'flat')
+                height = float(r.choice([.28, .28, .31, .34, .36, .40, .42, .42]))
+            onset = .40 if r.random() < .55 else float(r.uniform(.65, 1.40))
+            return self.start(profile, height, float(r.uniform(.80, 1.00)), float(r.uniform(-.075, .075)),
+                              math.radians(float(r.uniform(-9., 9.))), dr, distance=1.20,
+                              wall_height=float(r.choice([.45, .50])), drive_at=onset)
         if role == 'router':
             profile = 'climb' if p < 0.40 else (str(r.choice(['reverse', 'stop', 'turn', 'wall'])) if p < .80 else 'flat')
         else:
@@ -143,6 +170,16 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             height = float(r.choice([.28, .32, .36, .38, .40, .42]))
             speed = float(r.uniform(.50, 1.28))
             yaw_limit = .12
+        if self.restart_focus and self.low_stance_focus:
+            if self.parked_retake_focus:
+                profile = 'restart' if p < .55 else 'climb' if p < .79 else 'restart_wall' if p < .94 else 'flat'
+            else:
+                profile = 'restart' if p < .72 else 'restart_wall' if p < .92 else 'flat'
+            height = float(r.choice([.28, .29, .30, .31, .32, .33, .34]))
+            speed = float(r.uniform(.83, .98))
+            return self.start(profile, height, speed, float(r.uniform(-.072, .072)),
+                              float(r.uniform(-.05, .05)), dr,
+                              distance=float(r.uniform(1.16, 1.25)), wall_height=float(r.choice([.45, .50])))
         if self.restart_focus:
             profile = ('restart' if p < .40 else 'restart_reverse' if p < .64 else
                        'restart_wall' if p < .78 else 'climb' if p < .92 else 'flat')
@@ -167,7 +204,9 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         cab_h = self.request_height
         if self.rise:
             cab_h = min(self.request_height, .28 + max(now - .26, 0) * .12)
-        drive_at = .40 if (self.mid_stance_focus or self.restart_focus) else (.50 if self.rise else .32)
+        drive_at = self.drive_at_s
+        if drive_at is None:
+            drive_at = .40 if (self.mid_stance_focus or self.restart_focus) else (.50 if self.rise else .32)
         vx_target = self.cmd_vx_base if now >= drive_at else 0.0
         wz = 0.0
         if self.profile in ('reverse', 'stop', 'turn') and self.hit_tick is not None and self.k - self.hit_tick >= 3:
@@ -316,6 +355,9 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             self.min_reverse_vx = min(self.min_reverse_vx, vx)
 
         on_top = bool((supports > 5.0).all())
+        if self.wasd_restart_focus and on_top:
+            edge = self.active_steps[0][0]
+            on_top = x > edge and float(self.d.geom_xpos[self.tire_gids, 0].min()) > edge
         self.ever_supported |= on_top
         self.support_ticks = self.support_ticks + 1 if on_top else 0
         new_top = self.support_ticks == 20 and not self.held_top
@@ -341,6 +383,11 @@ class StairFixture(Mod4v3AutonomousStairEnv):
                 reward -= .06 * max(0.0, .09 - vx)
                 reward -= .08 * max(0.0, -vx) + .65 * max(0.0, old_x - x)
                 reward -= .03 * min(2., hit / 500.)
+                if self.parked_retake_focus:
+                    # Reward renewed forward driving by removing the impulse-then-retreat strategy.
+                    # This block only runs when W is active, never during a driver-commanded reverse.
+                    reward -= 7. * max(0., old_x - x) + .11 * max(0., -vx)
+                    reward -= .006 * max(0., pitch - 18.)
             else:
                 reward += .05 * math.exp(-12 * (vx - self.intent)**2)
             reward += .04 if on_top else 0.0
@@ -380,12 +427,29 @@ class JumpFixture(Mod4v3InstantJumpEnv):
 
     moving_focus = False
     require_top_support = False
+    high_takeoff_focus = False
+    sustained_high_jump = False
+    high_jump_apex_focus = False
+    high_jump_impulse_focus = False
+    clean_jump_apex = False
+    min_landing_apex = 0.
+    varied_jump_runup = False
+    direct_jump_landing = False
+    jump_lip_focus = False
+    jump_airborne_height_focus = False
+    jump_loaded_push = False
+    touchdown_focus = 0.
 
     def __init__(self, seed):
+        self.queued_jump_s = None
         super().__init__(seed=seed, xml_path=ensure_instant_jump_scene_xml(HERE / 'runtime_cache/jump'))
+        self.wasd_spawn_q = None
 
-    def start(self, profile='stationary', height=.28, speed=0., dr=0., trigger=.90, step_distance=.50):
+    def start(self, profile='stationary', height=.28, speed=0., dr=0., trigger=.90, step_distance=.50,
+              pose=(0., 0., 0.), drive_at=.40):
         self.profile = profile
+        self.drive_at_s = drive_at
+        self.queued_jump_s = None
         self.top_support_ticks = 0
         self.longest_top_support_ticks = 0
         self.flight_pitch = 0.0
@@ -399,16 +463,104 @@ class JumpFixture(Mod4v3InstantJumpEnv):
         self.landing_vx = None
         self.first_air_t = None
         self.landed = False
+        self.clear_air_frames = 0
+        self.clear_air_peak = 0.
+        self.main_flight_seen = False
+        self.compressed_body_z = .32
+        self.push_vz = 0.
+        self.preflight_face_hit = False
+        self.window_best_crossing_x = None
+        self.lip_margin_m = None
+        self.lip_checked = False
+        self.first_dual_top_seen = False
+        self.direct_top_landing = False
         near = profile == 'step'
-        edge = speed * .75 + step_distance + .06
-        return self.reset(dr_scale=dr, scenario_kind='move_step' if near else 'flat_stat' if speed == 0 else 'flat_move',
-                          steps=[(edge, 4.5, .20)] if near else [], step_trigger_dws=[(0, step_distance)] if near else [],
-                          jump_times=() if near else (trigger,), v_cmd=speed, v_jump=speed, h_nom=height,
-                          max_episode_s=3.25 if near else 2.75)
+        edge = 1.20 if self.high_takeoff_focus else speed * .75 + step_distance + .06
+        length = 2.40 if self.high_takeoff_focus else 4.50
+        if self.high_takeoff_focus and self.wasd_spawn_q is None:
+            # Read the identical neutral reset geometry used by the WASD player.
+            sys.path.insert(0, str(LOCAL / 'MOD4V3_SERIAL_LQR_SKILL_TEACHER_20261116'))
+            from mod4_retarget import Mod4Retarget
+
+            ik = Mod4Retarget()
+            init_length = .28 - RADIUS
+            self.wasd_spawn_q = ik.fit(np.sqrt(init_length**2 + ik.lateral_offset**2), 0.)['qpos']
+            self.nom_geom_friction[self.step_gids] = [.9, .005, .0001]
+        episode_seconds = (3.65 if near else 3.10) if self.high_takeoff_focus else (3.25 if near else 2.75)
+        episode_seconds += max(0., drive_at - .40)
+        packet = self.reset(dr_scale=dr, scenario_kind='move_step' if near else 'flat_stat' if speed == 0 else 'flat_move',
+                            steps=[(edge, length, .20)] if near else [], step_trigger_dws=[(0, step_distance)] if near else [],
+                            jump_times=() if near else (trigger,), v_cmd=speed, v_jump=speed, h_nom=height,
+                            max_episode_s=episode_seconds, init_pose=pose)
+        if self.high_takeoff_focus:
+            self.d.qpos[2] = .282
+            self.d.qpos[7:] = self.wasd_spawn_q[7:]
+            mj.mj_forward(self.m, self.d)
+            packet = {'obs': self._compute_obs(), 'priv': self._compute_priv()}
+        return packet
+
+    def configure_steps(self, steps):
+        super().configure_steps(steps)
+        if self.high_takeoff_focus and steps:
+            gid = self.step_gids[0]
+            self.m.geom_size[gid, 1] = 1.30
+            self.m.geom_rbound[gid] = np.linalg.norm(self.m.geom_size[gid])
+
+    def _high_jump_at_tread_speed(self):
+        return bool(RADIUS * self.d.qvel[self.active_dadr[4:]].min() >= .57)
+
+    def _trigger_jump_window(self, now):
+        if self.jump_airborne_height_focus and not self._high_jump_at_tread_speed():
+            self.queued_jump_s = now
+            return
+        super()._trigger_jump_window(now)
+
+    def _update_triggers(self, now):
+        if self.queued_jump_s is not None:
+            # The request frame counts as the first of 13 control ticks in the WASD player.
+            if self._high_jump_at_tread_speed() or now >= self.queued_jump_s + 12 * DT - 1e-6:
+                self.queued_jump_s = None
+                super()._trigger_jump_window(now)
+                return True
+            return False
+        delay = .04 if self.jump_airborne_height_focus else .16
+        if self.varied_jump_runup and now < self.drive_at_s + delay - 1e-6:
+            return False
+        return super()._update_triggers(now)
+
+    def prepare_step_commands(self):
+        super().prepare_step_commands()
+        if self.high_takeoff_focus:
+            # The interactive player applies the selected stance before pressing W.
+            self.height_cmd = self.h_nom
+            if self.d.time < self.drive_at_s - 1.e-6:
+                self.cmd_vx = 0.
 
     def sample(self, dr, role):
         r = self.rng
         p = r.random()
+        if self.high_takeoff_focus:
+            step_fraction = .56 if self.clean_jump_apex else .74
+            profile = 'step' if p < step_fraction else 'moving'
+            height = float(r.choice([.32, .35, .36, .38, .40, .42, .42]))
+            if self.jump_lip_focus:
+                if profile == 'step' and r.random() < .60:
+                    delay = float(r.uniform(1.11, 1.57))
+                    distance = float(r.uniform(.64, .75))
+                    pose = (float(r.uniform(.44, .575)), 0., math.radians(float(r.uniform(-4., 4.))))
+                    return self.start(profile, height, float(r.uniform(.81, 1.0)), dr,
+                                      delay + .9, distance, pose, drive_at=delay)
+            if self.varied_jump_runup:
+                delay = float(r.uniform(.95, 1.55)) if r.random() < .52 else .40
+                speed = float(r.uniform(.76, 1.04))
+                pose = (float(r.uniform(.38, .53)) if profile == 'step' else 0., 0.,
+                        math.radians(float(r.uniform(-5., 5.))))
+                return self.start(profile, height, speed, dr, delay + float(r.uniform(.52, .98)),
+                                  float(r.uniform(.57, .74)), pose, drive_at=delay)
+            speed = float(r.uniform(.80, 1.00))
+            pose = (float(r.uniform(.42, .53)) if profile == 'step' else 0., 0., math.radians(float(r.uniform(-3., 3.))))
+            return self.start(profile, height, speed, dr, float(r.uniform(1.04, 1.42)),
+                              float(r.uniform(.58, .72)), pose)
         profile = 'stationary' if p < .58 else 'moving' if p < .78 else 'step'
         speed = 0.0 if profile == 'stationary' else float(r.uniform(.62, 1.20))
         h = float(r.choice([.28,.28,.28,.30,.34,.38,.40]))
@@ -424,38 +576,115 @@ class JumpFixture(Mod4v3InstantJumpEnv):
         if active and self.init_x is None:
             self.init_x = old_x
         old_clearance = self.clearance
+        had_face_hit = self.preflight_face_hit
         was_landed = self.landed
+        previous_compression, previous_push = self.compressed_body_z, self.push_vz
         strict_step = self.require_top_support and self.profile == 'step'
+        measure_flight = self.sustained_high_jump and self.init_x is not None
         had_hold = self.longest_top_support_ticks >= 20
-        if strict_step:
+        face_hit = short_hop = False
+        crossing_gain = 0.
+        lip_shortfall = 0.
+        if strict_step or measure_flight:
             normal_step = mj.mj_step
             load_sum = np.zeros(2)
             force = np.zeros(6)
-            edge, _, top = self.active_steps[0]
-            step_gid = self.step_gids[0]
+            edge, _, top = self.active_steps[0] if strict_step else (math.inf, 0., 0.)
+            step_gid = self.step_gids[0] if strict_step else None
+            tire_ids = set(self.tire_gids)
 
             def measured_step(model, data):
+                nonlocal face_hit, short_hop, crossing_gain, lip_shortfall
                 normal_step(model, data)
+                tire_loaded = ground_contact = False
                 for index in range(data.ncon):
                     contact = data.contact[index]
                     a, b = map(int, contact.geom)
-                    if step_gid not in (a, b) or abs(contact.frame[2]) < .7:
-                        continue
-                    tire_gid = b if a == step_gid else a
-                    if tire_gid not in self.tire_gids or contact.pos[0] <= edge + .004 or contact.pos[2] < top - .015:
+                    has_step = step_gid in (a, b)
+                    tire_contact = a in tire_ids or b in tire_ids
+                    if not (has_step or measure_flight and tire_contact):
                         continue
                     mj.mj_contactForce(model, data, index, force)
-                    load_sum[self.tire_gids.index(tire_gid)] += abs(force[0])
+                    normal = abs(force[0])
+                    tire_loaded |= tire_contact and normal > 2.
+                    ground_contact |= tire_contact and normal > 2. and abs(contact.frame[2]) >= .7
+                    if has_step:
+                        side = abs(contact.frame[2]) < .7
+                        side_impact = side and normal > 50. and contact.pos[0] < edge + .01
+                        face_hit |= side_impact
+                        if self.clean_jump_apex and active and side_impact and not self.main_flight_seen:
+                            self.preflight_face_hit = True
+                        tire_gid = b if a == step_gid else a
+                        if not side and tire_gid in tire_ids and contact.pos[0] > edge + .004 and contact.pos[2] >= top - .015:
+                            load_sum[self.tire_gids.index(tire_gid)] += normal
+                if not measure_flight or self.landed:
+                    return
+                if self.high_jump_impulse_focus and active and ground_contact and not self.main_flight_seen:
+                    age = float(data.time) - self.window_t0
+                    compression_end = .255 if self.jump_loaded_push else .225
+                    if .035 <= age < compression_end:
+                        # Count only a load-bearing compression at forward rolling speed.
+                        # A static or backward crouch is a poor seed for a moving jump.
+                        forward_loaded = not self.jump_loaded_push or data.qvel[0] > .25
+                        if forward_loaded:
+                            floor = .205 if self.jump_loaded_push else .22
+                            z = max(floor, float(data.qpos[2]) - self.window_g0)
+                            self.compressed_body_z = min(z, self.compressed_body_z)
+                    if .11 <= age < .36:
+                        push_cap = 2.35 if self.jump_loaded_push else 2.1
+                        self.push_vz = max(self.push_vz, min(push_cap, float(data.qvel[2])))
+                rim = float(data.geom_xpos[self.tire_gids, 2].min()) - RADIUS - self.window_g0
+                # Reward forward tire clearance while there is vertical margin over the near lip.
+                if (self.varied_jump_runup and strict_step and active and not tire_loaded
+                        and not self.preflight_face_hit and rim > top - self.window_g0 + .015):
+                    crossing = float(np.clip(data.geom_xpos[self.tire_gids, 0].min() - edge, -.30, .10))
+                    before = -.30 if self.window_best_crossing_x is None else self.window_best_crossing_x
+                    crossing_gain += max(0., crossing - before)
+                    self.window_best_crossing_x = max(before, crossing)
+                if self.jump_lip_focus and strict_step and active and self.main_flight_seen and not self.lip_checked:
+                    # Score the wheel that is furthest behind at the descending lip crossing.
+                    # Guide impacts and platform-supported wheel lift cannot earn flight credit.
+                    top_from_launch = top - self.window_g0
+                    if self.clearance > top_from_launch + .025 and (rim <= top_from_launch + .008 or ground_contact):
+                        self.lip_margin_m = float(data.geom_xpos[self.tire_gids, 0].min()) - edge
+                        lip_shortfall = float(np.clip(.04 - self.lip_margin_m, 0., .32))
+                        self.lip_checked = True
+                if active and rim > .018 and not tire_loaded:
+                    self.clear_air_frames += 1
+                    self.clear_air_peak = max(self.clear_air_peak, rim)
+                    # A brief leg retract at the start can leave both tires unloaded.
+                    # Do not close the jump window at the end of that small hop.
+                    if (self.clear_air_frames * model.opt.timestep >= .12 - 1.e-7
+                            and self.clear_air_peak >= self.min_landing_apex):
+                        if not self.main_flight_seen:
+                            self.first_air_t = max(0., 1000. * (float(data.time) - self.window_t0
+                                                                - (self.clear_air_frames - 1) * model.opt.timestep))
+                            self.main_flight_seen = True
+                        self.clearance = max(self.clearance, self.clear_air_peak)
+                        self.flight_pitch = max(self.flight_pitch, abs(pitch_deg(data, self.base_id)))
+                elif tire_loaded or rim <= .018:
+                    if self.main_flight_seen:
+                        self.landed = bool(ground_contact)
+                    else:
+                        short_hop |= self.clear_air_frames * model.opt.timestep >= .02
+                    self.clear_air_frames = 0
+                    self.clear_air_peak = 0.
 
             mj.mj_step = measured_step
             try:
                 st, native, done, info = super().step(action)
             finally:
                 mj.mj_step = normal_step
-            load_mean = load_sum * self.m.opt.timestep / DT
-            beyond_edge = (self.d.geom_xpos[self.tire_gids, 0] > edge + .004).all() and self.d.qpos[0] > edge + .02
-            self.top_support_ticks = self.top_support_ticks + 1 if (load_mean >= 5.).all() and beyond_edge else 0
-            self.longest_top_support_ticks = max(self.longest_top_support_ticks, self.top_support_ticks)
+            if strict_step:
+                load_mean = load_sum * self.m.opt.timestep / DT
+                beyond_edge = ((self.d.geom_xpos[self.tire_gids, 0] > edge + .004).all()
+                               and self.d.qpos[0] > edge + .02)
+                supported = (load_mean >= 5.).all() and beyond_edge
+                if supported and not self.first_dual_top_seen:
+                    self.first_dual_top_seen = True
+                    self.direct_top_landing = active and self.main_flight_seen and not self.preflight_face_hit
+                self.top_support_ticks = self.top_support_ticks + 1 if supported else 0
+                self.longest_top_support_ticks = max(self.longest_top_support_ticks, self.top_support_ticks)
         else:
             st, native, done, info = super().step(action)
         vx = self.body_vx
@@ -465,11 +694,15 @@ class JumpFixture(Mod4v3InstantJumpEnv):
             self.max_dx = max(self.max_dx, dx)
             self.min_vx = min(self.min_vx, vx)
             self.backtrack = max(self.backtrack, self.max_dx - dx, -dx)
-            self.clearance = max(self.clearance, self.window_peak_rel_rim)
-            self.flight_pitch = max(self.flight_pitch, self.window_max_air_pitch_deg)
-            if self.window_launched and self.first_air_t is None:
-                self.first_air_t = self.window_lift_latency_ms
-            self.landed |= self.window_landed
+            if not self.sustained_high_jump:
+                self.clearance = max(self.clearance, self.window_peak_rel_rim)
+                self.flight_pitch = max(self.flight_pitch, self.window_max_air_pitch_deg)
+                just_started_air = self.window_launched and self.first_air_t is None
+                if just_started_air:
+                    self.first_air_t = self.window_lift_latency_ms
+                self.landed |= self.window_landed
+            else:
+                just_started_air = old_clearance == 0. and self.clearance > 0.
             if self.landed:
                 self.landing_pitch = max(self.landing_pitch, pitch)
                 if not was_landed:
@@ -479,21 +712,91 @@ class JumpFixture(Mod4v3InstantJumpEnv):
             # Positive clearance is based on measured BOTH-wheel rim clearance, only while airborne.
             reward = .35 * native + 9.0 * max(0., self.clearance - old_clearance)
             reward -= .32 * backwards + .12 * drift + .22 * min(.30, self.backtrack)
+            if self.sustained_high_jump:
+                # Credit an apex only during an uninterrupted flight of at least 120 ms.
+                # Ground-truth contacts and the rim height are used solely in training.
+                gain = min(self.clearance, .37) - min(old_clearance, .37)
+                apex_weight = 66. if self.high_jump_apex_focus else 32.
+                if self.direct_jump_landing and strict_step:
+                    # Keep the 30 cm jump target, while giving a much greater value to a real landing.
+                    gain = min(self.clearance, .32) - min(old_clearance, .32)
+                    apex_weight = 48.
+                if self.jump_lip_focus:
+                    gain = min(self.clearance, .38) - min(old_clearance, .38)
+                    apex_weight = 58. if strict_step else 82.
+                if self.jump_airborne_height_focus:
+                    # Increase the value of an actual main-flight apex while retaining all lip and landing checks.
+                    floor, ceiling = .22, .345
+                    gain = float(np.clip(self.clearance, floor, ceiling) - np.clip(old_clearance, floor, ceiling))
+                    apex_weight = 130. if strict_step else 155.
+                if self.clean_jump_apex and self.preflight_face_hit:
+                    gain = 0.
+                reward = apex_weight * gain + .04 * float(np.clip(vx, 0., 1.3)) + 7. * crossing_gain
+                if self.jump_lip_focus:
+                    reward += 9. * crossing_gain - 22. * lip_shortfall
+                    reward -= .35 * backwards
+                if self.high_jump_impulse_focus and not self.preflight_face_hit:
+                    compression_weight = 15. if self.clean_jump_apex else 26.
+                    push_weight = 1.8
+                    if self.jump_loaded_push:
+                        # Reward progress toward the stance used by the 31 cm moving jump
+                        # before the sparse main-flight height and lip rewards arrive.
+                        compression_weight = 39.
+                        push_weight = 4.0
+                    reward += compression_weight * (previous_compression - self.compressed_body_z)
+                    reward += push_weight * (self.push_vz - previous_push)
+                if self.clean_jump_apex and self.preflight_face_hit and not had_face_hit:
+                    reward -= 7.0
+                    reward -= (39. if self.jump_loaded_push else 15.) * (.32 - previous_compression)
+                    if self.jump_loaded_push:
+                        reward -= 4.0 * previous_push
+                reward -= .45 * backwards + .32 * min(.40, self.backtrack)
+                reward -= .32 * float(short_hop) + .23 * float(face_hit)
+                if just_started_air:
+                    deadline_ms = 370. if self.clean_jump_apex else 400.
+                    reward += .85 * float(np.clip((deadline_ms - self.first_air_t) / 220., -.5, 1.))
             if self.moving_focus:
-                reward += 20. * (min(self.clearance, .375) - min(old_clearance, .375))
+                if not (self.direct_jump_landing and strict_step):
+                    reward += 20. * (min(self.clearance, .375) - min(old_clearance, .375))
                 reward -= .20 * backwards
+            if self.high_takeoff_focus:
+                if not self.sustained_high_jump and self.first_air_t is not None and just_started_air:
+                    reward += 1.6 * float(np.clip((300. - self.first_air_t) / 170., -.5, 1.))
+                if self.profile == 'step' and not self.landed:
+                    distance = self.active_steps[0][0] - float(self.d.geom_xpos[self.tire_gids, 0].max())
+                    if distance < .22:
+                        lip_clearance = self.last_world_rim_m - self.active_steps[0][2]
+                        reward -= .17 * float(np.clip(-lip_clearance / .16, 0., 1.25))
             reward -= .008 * max(0., pitch - 9.) if self.landed else .004 * max(0., pitch - 9.)
-            if self.landed and not was_landed:
+            if self.jump_airborne_height_focus and self.main_flight_seen and not self.landed:
+                reward -= .006 * max(0., pitch - 10.) ** 2
+            if self.touchdown_focus and self.landed:
+                pitch_rate = abs(float(self.d.qvel[4]))
+                reward -= self.touchdown_focus * (.008 * max(0., pitch - 7.) ** 2
+                                                   + .012 * max(0., pitch_rate - .6) ** 2)
+            if self.landed and not was_landed and not self.preflight_face_hit:
                 reward += 2.0 * np.clip((self.clearance - .23) / .12, 0., 1.)
                 reward -= .25 * abs(vx - (0.0 if self.profile == 'stationary' else self.cmd_vx))
             if strict_step:
-                if 0 < self.top_support_ticks <= 20 and self.landing_pitch < 15.:
-                    reward += .14
-                if not had_hold and self.longest_top_support_ticks >= 20 and self.backtrack <= .07:
-                    reward += 4.
+                correct_landing = not self.direct_jump_landing or self.direct_top_landing
+                if (correct_landing and 0 < self.top_support_ticks <= 20 and self.landing_pitch < 15.
+                        and (self.min_landing_apex == 0. or self.landed and not self.preflight_face_hit)):
+                    reward += .20 if self.direct_jump_landing else .14
+                if (correct_landing and not had_hold and self.longest_top_support_ticks >= 20
+                        and self.backtrack <= .07 and not self.preflight_face_hit):
+                    if self.direct_jump_landing:
+                        reward += 7.0 + 2.0 * float(np.clip((self.clearance - .25) / .08, 0., 1.))
+                    elif self.high_jump_apex_focus and self.landed:
+                        # Keep a real landing signal as the apex improves. Give no
+                        # completion bonus to a short bounce or a fall onto the platform.
+                        reward += 2.5 + 2.0 * float(np.clip((self.clearance - .23) / .08, 0., 1.))
+                    elif not self.sustained_high_jump or self.landed and self.clearance >= .28:
+                        reward += 4.
             if done and not info['fell_reason']:
-                support_ok = not strict_step or self.longest_top_support_ticks >= 20 and not info['slid_off_step']
-                if support_ok and self.landed and self.clearance >= self.target_clearance and self.backtrack <= .06 and self.landing_pitch <= 15.:
+                support_ok = not strict_step or (self.longest_top_support_ticks >= 20 and not info['slid_off_step']
+                                                 and (not self.direct_jump_landing or self.direct_top_landing))
+                if (support_ok and self.landed and self.clearance >= self.target_clearance and self.backtrack <= .06
+                        and self.landing_pitch <= 15. and not self.preflight_face_hit):
                     reward += .60
         else:
             reward = .15 * native
@@ -501,9 +804,15 @@ class JumpFixture(Mod4v3InstantJumpEnv):
             reward -= 2.0
         info.update(profile=self.profile, clearance_m=self.clearance, backtrack_m=self.backtrack,
                     air_pitch_deg=self.flight_pitch, landing_pitch_deg=self.landing_pitch, landed=self.landed,
-                    lift_ms=self.first_air_t, landing_vx=self.landing_vx, min_vx=self.min_vx)
+                    lift_ms=self.first_air_t, landing_vx=self.landing_vx, min_vx=self.min_vx,
+                    preflight_face_hit=self.preflight_face_hit, loaded_min_height_m=self.compressed_body_z,
+                    loaded_push_vz_m_s=self.push_vz)
         if strict_step:
             info['held_top_s'] = self.longest_top_support_ticks * DT
+            if self.direct_jump_landing:
+                info['direct_held_top'] = self.direct_top_landing and self.longest_top_support_ticks >= 20
+            if self.jump_lip_focus:
+                info['descending_lip_margin_m'] = self.lip_margin_m
         return st, float(reward), done, info
 
 

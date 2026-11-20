@@ -7,6 +7,9 @@ if not exist "%PYTHON%" (
   pause
   exit /b 1
 )
+set "OMP_NUM_THREADS=1"
+set "OPENBLAS_NUM_THREADS=1"
+set "MKL_NUM_THREADS=1"
 set "MUJOCO_GL=glfw"
 "%PYTHON%" -X utf8 -B "%REPAIR_DIR%play_repaired.py" --candidate "%REPAIR_DIR%CANDIDATE.json" %*
 if errorlevel 1 pause

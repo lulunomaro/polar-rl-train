@@ -70,6 +70,8 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.stair_release_per_tick = 1.0
         self.raised_short_approach_slew = False
         self.short_approach_active = False
+        self.raised_slow_handoff_gains = None
+        self.raised_slow_handoff_time = None
         self.restart_release_per_tick = 1.0
         self.high_restart_release_per_tick = 1.0
         self.stair_mix = 0.0
@@ -88,6 +90,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.restoring_jump_height = False
         self.stair_mix = 0.0
         self.short_approach_active = False
+        self.raised_slow_handoff_time = None
         self.handoff_mix = 0.0
 
     def set_handoff_gains(self, values, *, low_stance=False):
@@ -296,16 +299,50 @@ class RepairedPolicy(AutonomousThreeExpert):
                     and not np.any(recent_commands[:neutral[-1]] > .30)
                     and not np.any(recent_commands < -.08))
 
+    def support_raised_slow_handoff(self, obs, action, previous_mix):
+        gains = self.raised_slow_handoff_gains
+        if gains is None:
+            return action
+        speed = self.stair_driver_speed
+        if not self.stair_mix or speed is None or not .40 <= speed <= .62 or obs[3] <= 2.05:
+            self.raised_slow_handoff_time = None
+            return action
+        if not previous_mix:
+            # Require the first learned stair engagement after a fresh, slow run-up.
+            if len(self.restart_history) < 12:
+                self.raised_slow_handoff_time = None
+                return action
+            recent = np.asarray(self.restart_history, dtype=np.float32)
+            neutral = np.flatnonzero(np.abs(recent[:, 0]) <= .06)
+            rolling = .625 * float(recent[-12:-3, 20:22].mean())
+            fresh_runup = (len(neutral) > 0 and len(recent) - neutral[-1] <= 47
+                           and not np.any(recent[:neutral[-1], 0] > .30)
+                           and not np.any(recent[:, 0] < -.08) and .30 <= rolling < .67)
+            self.raised_slow_handoff_time = 0. if fresh_runup else None
+        elapsed = self.raised_slow_handoff_time
+        if elapsed is None or elapsed >= .52:
+            return action
+        # Ease foreleg support into the learned lift. The correction is symmetric
+        # and follows live E1 authority, so steering and braking still release it.
+        preload = max(0., 1. - elapsed / .16)
+        lift = min(elapsed / .12, (.52 - elapsed) / .36, 1.)
+        correction = self.stair_mix * (preload * gains[0] + lift * gains[1])
+        self.raised_slow_handoff_time += CONTROL_DT
+        action += correction[[0, 1, 0, 1, 2, 2]]
+        return np.clip(action, -stair.ACTION_CLIP, stair.ACTION_CLIP)
+
     @torch.inference_mode()
     def act(self, obs: np.ndarray):
         x = torch.from_numpy(obs).reshape(1, stair.OBS_DIM)
         history = self.history.append(x)
         if (self.restart_router is not None or self.rising_stair is not None
-                or self.high_moving_jump is not None or self.raised_short_approach_slew):
+                or self.high_moving_jump is not None or self.raised_short_approach_slew
+                or self.raised_slow_handoff_gains is not None):
             self.restart_history.append(obs.copy())
         if obs[jump.JUMP_MODE_BIT_INDEX] > 0.5:
             self.stair_mix = 0.0
             self.handoff_mix = 0.0
+            self.raised_slow_handoff_time = None
             if self.use_direct_moving_jump:
                 expert, frames = self.direct_moving_jump, self.direct_moving_jump_history_frames
             elif self.use_high_moving_jump:
@@ -402,6 +439,7 @@ class RepairedPolicy(AutonomousThreeExpert):
             action += g * authority * restart_delta[[0, 1, 0, 1, 2, 2]]
         action = self.handoff_action(obs, action, previous_mix, permit)
         action = np.clip(action, -stair.ACTION_CLIP, stair.ACTION_CLIP)
+        action = self.support_raised_slow_handoff(obs, action, previous_mix)
         return action, {'e0':1.0-g, 'e1':g, 'e2':0.0, 'g_prob':probability,
                                    'stair_permitted':float(permit), 'virtual_height':float(out['h_virt'].item()),
                                    'virtual_velocity':float(out['v_virt'].item())}
@@ -773,6 +811,11 @@ def load_manifest(path):
     model.stair_gate_floor = float(settings.get('gate_floor', stair.GATE_DEADZONE))
     model.stair_release_per_tick = float(settings.get('gate_release', 1.0))
     model.raised_short_approach_slew = bool(settings.get('raised_short_approach_slew', False))
+    if 'raised_slow_handoff_gains' in settings:
+        gains = np.asarray(settings['raised_slow_handoff_gains'], dtype=np.float64)
+        if gains.shape != (2, 3) or not np.isfinite(gains).all():
+            raise ValueError('Expected two finite foreleg, rear-leg and wheel gain triples')
+        model.raised_slow_handoff_gains = gains
     model.restart_release_per_tick = float(settings.get('restart_release', model.stair_release_per_tick))
     model.high_restart_release_per_tick = float(settings.get('high_restart_release', model.restart_release_per_tick))
     model.set_handoff_gains(settings.get('handoff_gains'))

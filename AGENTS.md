@@ -1,3 +1,7 @@
+## 2026-11-20 15:30 MOD4v3 WASD 0.42 m 近阶接手 `15e5f915`
+
+项目的 WASD 入口统一加载当前实验 `CANDIDATE.json`。距 20 cm 台阶沿约 38 cm 时，0.50 m/s 档的双轮连续承载从 0 到 2.22 秒，峰值俯仰 89.77°→12.59°，退回 53.04→3.10 cm。标准位置 0.50/0.90 m/s 档各五点全部通过。五个固定站高及行进抬到 0.42 m 共 30/30 登台，驾驶接管 21/21 同拍 E1 归零。短助跑变化组 5/8，停车后续爬仍有失败，整程限速 0.60 m/s 未达到。见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/REPORT.md` 和 `evidence/r59_raised_near/VALIDATION.json`。
+
 ## 2026-11-20 14:35 MOD4v3 WASD 高姿起步 `f2e1db6d`
 
 实际窗口已打开 20 cm 单阶。拖滑杆到 0.420 m 时实测车体原地升至 0.406 m。站稳直上在 0.50/0.90 m/s 两档各 5/5，两组零倒溜。0.90 m/s 档距阶沿 0.38 m 起步的双轮承载由零到 1.38 秒。变化姿态组 10/10，9 例零倒溜。0.50 m/s 档短助跑仍失败，正式 0.60 m/s 限速 0/5。详见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/REPORT.md` 和 `evidence/r58_high_stance`。

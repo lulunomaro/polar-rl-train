@@ -38,6 +38,7 @@ class Case:
     raise_at_s: float = .10
     jump_distance_m: float = .66
     drive_at_s: float = .40
+    proving_lane: int | None = None
 
 
 def cases(quick):
@@ -91,13 +92,18 @@ def restart_cases():
 
 
 def load_case(sim, case):
-    scene = '20 + 20 cm 连续双阶' if case.double else f'{case.map_height} cm 单阶'
-    meta = map_for(4, scene)
-    idx = 1 if case.mode == 'jump_step' else 0
+    if case.proving_lane is not None:
+        meta = map_for(0)
+        idx = case.proving_lane
+        names = {0: ['lane0_step1_20cm', 'lane0_step2_40cm'], 3: ['lane_stair200']}[idx]
+    else:
+        scene = '20 + 20 cm 连续双阶' if case.double else f'{case.map_height} cm 单阶'
+        meta = map_for(4, scene)
+        idx = 1 if case.mode == 'jump_step' else 0
+        names = ['step_1_20cm', 'step_2_40cm'] if case.double else [f'matrix_step_{case.map_height}cm']
     pose = meta['spawns'][idx]
     pose['yaw_deg'] = case.yaw
     pose['x'] += case.offset
-    names = ['step_1_20cm', 'step_2_40cm'] if case.double else [f'matrix_step_{case.map_height}cm']
     if case.mode in ('flat', 'jump_idle', 'jump_moving'):
         scene_xml = Path(meta['xml_path'])
         tree = ET.parse(scene_xml)

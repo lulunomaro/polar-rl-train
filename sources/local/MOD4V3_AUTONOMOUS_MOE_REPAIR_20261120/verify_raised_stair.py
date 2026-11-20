@@ -70,6 +70,30 @@ def slider_cases():
             for gear, speed in ((4, .50), (5, .90)) for mm in (-60, -30, 0, 30, 60)]
 
 
+def proving_cases():
+    return [
+        Case('proving_main_h42', target=.42, proving_lane=0, drive_at_s=1.7, duration=11.),
+        Case('proving_single_h42', target=.42, proving_lane=3, drive_at_s=1.7, duration=8.5),
+        Case('proving_single_h42_gear4', target=.42, proving_lane=3, speed=.50, drive_at_s=1.7, duration=8.5),
+        Case('proving_single_h42_close', target=.42, proving_lane=3, offset=.82, yaw=1.3,
+             speed=.50, drive_at_s=1.7, duration=8.5),
+    ]
+
+
+def near_slow_cases():
+    # Pose, timing and map variations for the 0.42 m low-speed handoff.
+    profiles = ((.765, -2.2, .50, 1.64, None), (.843, 2.6, .50, 1.81, None),
+                (.782, 2.8, .47, 1.92, None), (.805, 0., .48, 1.63, 3),
+                (.836, -1.6, .50, 1.86, 3), (.866, 3.4, .51, 1.68, 3),
+                (.892, -3.3, .50, 1.83, None), (.84, 0., .50, 1.74, None))
+    return [Case(f'near_slow_{i}', target=.42, speed=v, offset=x, yaw=yaw,
+                 proving_lane=lane, drive_at_s=start, duration=7.5)
+            for i, (x, yaw, v, start, lane) in enumerate(profiles)] + [
+        Case('near_slow_wall', target=.42, speed=.50, offset=.80, drive_at_s=1.72,
+             mode='wall', map_height=50, duration=6.5),
+    ]
+
+
 def initialize(manifest):
     global sim
     policy, _, jump_prep = load_manifest(manifest)
@@ -107,6 +131,8 @@ def main():
     parser.add_argument('--holdout', action='store_true')
     parser.add_argument('--manual', action='store_true')
     parser.add_argument('--slider', action='store_true')
+    parser.add_argument('--proving-ground', action='store_true')
+    parser.add_argument('--near-slow', action='store_true')
     options = parser.parse_args()
     matrix = raised_cases() + [
         Case(f'held_h42_{mm:+03}', target=.42, offset=mm / 1000.) for mm in (-60, -30, 0, 30, 60)
@@ -122,6 +148,10 @@ def main():
         matrix += manual_cases()
     if options.slider:
         matrix += slider_cases()
+    if options.proving_ground:
+        matrix += proving_cases()
+    if options.near_slow:
+        matrix += near_slow_cases()
     if options.case:
         matrix = [case for case in matrix if case.name in options.case]
         if len(matrix) != len(options.case):

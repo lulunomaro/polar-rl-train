@@ -1,3 +1,7 @@
+## 2026-11-20 16:49 MOD4v3 0.42 m WASD 上阶回放与 R61 标签
+
+运行中的 R61 `c2f43b14` 已归档为 `11月20日最优moe模型`（`25c23188d`），独立入口 `Run_MOD4v3_R61_WASD.bat`。实验 WASD 入口采用 `f013f620`。短助跑把 E1 接手减缓，0.42 m 的 19 例 Tk 回放双轮承载由 14/19 到 19/19。原失败点双轮承载 1.86 s，峰值俯仰 15.01°，回退 2.37 cm。变化组 6/8，一例名义回放先倒溜 73.4 cm 再登台，0.47 m/s 命令档整程 ≤0.60 m/s 仍为 0/5。详见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/evidence/r63_raised_short/VALIDATION.json`。
+
 ## 2026-11-20 15:52 MOD4v3 WASD 高站姿复位与续爬 `29a94a50`
 
 实际窗口保留 0.420 m 指令时，复位后可自行升至约 0.408 m。20 cm 单阶复位起身回归在 0.50/0.90 m/s 两档各五点全部通过，零回退。抬头重按 W 原失败例双轮承载 0→1.74 秒，续爬留出 4/8。固定与行进抬高 30/30，驾驶接管 21/21 同拍 E1 归零，跳跃抽检 3/3。短助跑变化 5/8，仍有挡墙误开和全程超 0.60 m/s。见 `sources/local/MOD4V3_AUTONOMOUS_MOE_REPAIR_20261120/REPORT.md` 及 `evidence/r60_raised_restart/VALIDATION.json`。

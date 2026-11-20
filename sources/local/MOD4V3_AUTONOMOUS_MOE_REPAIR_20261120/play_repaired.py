@@ -305,7 +305,10 @@ class RepairedPolicy(AutonomousThreeExpert):
 
     def short_high_approach(self, height, history_frames):
         speed = self.stair_driver_speed
-        if not self.raised_short_approach_slew or height <= .405 or speed is None or not .70 <= speed <= 1.10:
+        if not self.raised_short_approach_slew or height <= .405 or speed is None:
+            return False
+        slow = .40 <= speed <= .62
+        if not slow and not .70 <= speed <= 1.10:
             return False
         frames = history_frames[0]
         # Let a sharply skewed impact use the learned asymmetrical response immediately.
@@ -315,8 +318,10 @@ class RepairedPolicy(AutonomousThreeExpert):
         recent_commands = np.array([row[0] for row in self.restart_history])
         neutral = np.flatnonzero(np.abs(recent_commands) <= .06)
         # Preserve the existing restart response after a driver stop or reverse.
-        return bool(.54 <= roll_speed < .96 and len(neutral)
-                    and len(recent_commands) - neutral[-1] <= stair.HIST_LEN
+        min_rolling = .30 if slow else .54
+        max_runup_frames = 47 if slow else stair.HIST_LEN
+        return bool(min_rolling <= roll_speed < .96 and len(neutral)
+                    and len(recent_commands) - neutral[-1] <= max_runup_frames
                     and not np.any(recent_commands[:neutral[-1]] > .30)
                     and not np.any(recent_commands < -.08))
 
@@ -440,7 +445,14 @@ class RepairedPolicy(AutonomousThreeExpert):
                 # Ease in the stair expert while the short approach is still
                 # loading the wheels. Steering and braking still release it at once.
                 high = float(np.clip((height - .405) / .010, 0., 1.))
-                proposed = min(proposed, previous_mix + 1. - .58 * high)
+                speed = self.stair_driver_speed
+                max_rise = .42
+                if speed is not None and speed <= .62:
+                    # Slow the takeover when a one-sided impact is still turning the chassis.
+                    yaw_excess = abs(obs[6]) - .25 - .10 * abs(obs[5])
+                    yaw_weight = float(np.clip(yaw_excess / .025, 0., 1.))
+                    max_rise = .70 - .10 * yaw_weight
+                proposed = min(proposed, previous_mix + 1. - (1. - max_rise) * high)
                 release = min(release, 1. - .78 * high)
             self.stair_mix = max(proposed, previous_mix - release)
         else:
@@ -863,6 +875,7 @@ def main():
     args = argparse.ArgumentParser()
     args.add_argument('--candidate', type=Path)
     args.add_argument('--proving-ground', action='store_true', help='Open the all-maps home scene.')
+    args.add_argument('--status-file', type=Path, default=HERE / 'PLAYER_STATUS.json')
     args.add_argument('--stair-height-bank', type=Path)
     args.add_argument('--high-router', type=Path)
     for name in ('stair', 'router', 'jump'):
@@ -884,12 +897,17 @@ def main():
         stance_prep = cli.jump_stance_prep
     import tkinter as tk
     import play_autonomous_all_maps as play
-    play.STATUS_PATH = HERE / 'PLAYER_STATUS.json'
+    play.STATUS_PATH = cli.status_file
     play.ERROR_PATH = HERE / 'PLAYER_ERROR.txt'
     identity = getattr(model, 'runtime_sha', None) or hashlib.sha256(repr(hashes).encode()).hexdigest()
     root = tk.Tk()
     sim = RepairedSimulation(model, identity, show_viewer=True, jump_stance_prep=stance_prep)
     class StepPlayer(play.AutonomousPlayer):
+        # Keep the existing wait-for-input behavior after the neutral stance
+        # transition. This clock is only used by the desktop player.
+        stand_ready_at = None
+        stand_prepare_s = 1.45
+
         def apply_suite_selection(self, initial=False):
             if initial and cli.candidate and not cli.proving_ground:
                 self.suite_cb.current(4)
@@ -907,15 +925,51 @@ def main():
             self.resume_raised_spawn()
 
         def resume_raised_spawn(self):
+            self.stand_ready_at = None
             # The spawn IK caps its starting pose below the raised target.
-            # Apply a retained high target while the driver is still neutral.
             if self.sim.target_h >= .405:
                 self.start_height_adjustment()
 
         def start_height_adjustment(self):
-            if self.waiting_for_input and not self.sim.paused:
+            if self.sim.paused:
+                return
+            if self.waiting_for_input:
                 self.waiting_for_input = False
                 self.deadline = time.perf_counter()
+            elif self.stand_ready_at is None:
+                return
+            self.stand_ready_at = float(self.sim.d.time) + self.stand_prepare_s
+
+        def poll_keys(self):
+            down = set()
+            if self.is_console_foreground():
+                down = {key for key in play.MOTION_KEYS | self.hotkeys.keys()
+                        if self.user32.GetAsyncKeyState(play.VK_MAP[key]) & 0x8000}
+            new_keys = down - self.prev_vk_down
+            self.prev_vk_down = down
+            for key, action in self.hotkeys.items():
+                if key in new_keys:
+                    action()
+
+            pressed = down & play.MOTION_KEYS
+            if pressed & {'w', 's', 'a', 'd'}:
+                self.waiting_for_input = False
+                self.stand_ready_at = None
+            else:
+                height_dir = int('e' in pressed) - int('q' in pressed)
+                adjusting = (height_dir > 0 and self.sim.target_h < play.HEIGHT_MAX - 1e-6
+                             or height_dir < 0 and self.sim.target_h > play.HEIGHT_MIN + 1e-6)
+                if adjusting:
+                    self.start_height_adjustment()
+                elif self.stand_ready_at is not None and self.sim.d.time >= self.stand_ready_at:
+                    self.waiting_for_input = True
+                    self.stand_ready_at = None
+            return pressed
+
+        def action_jump(self):
+            super().action_jump()
+            if self.sim.jump_key_tick is not None:
+                self.stand_ready_at = None
 
         def on_height_slider(self, value):
             previous_height = self.sim.target_h

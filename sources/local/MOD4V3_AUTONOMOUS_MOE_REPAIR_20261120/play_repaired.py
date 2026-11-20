@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 
 import numpy as np
 import torch
@@ -67,6 +68,8 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.jump_crouch_speed = 0.
         self.stair_gate_floor = stair.GATE_DEADZONE
         self.stair_release_per_tick = 1.0
+        self.raised_short_approach_slew = False
+        self.short_approach_active = False
         self.restart_release_per_tick = 1.0
         self.high_restart_release_per_tick = 1.0
         self.stair_mix = 0.0
@@ -84,6 +87,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.use_high_moving_jump = False
         self.restoring_jump_height = False
         self.stair_mix = 0.0
+        self.short_approach_active = False
         self.handoff_mix = 0.0
 
     def set_handoff_gains(self, values, *, low_stance=False):
@@ -275,11 +279,29 @@ class RepairedPolicy(AutonomousThreeExpert):
                 release += weight * (.10 - release)
         return context, mix, delta, release
 
+    def short_high_approach(self, height, history_frames):
+        speed = self.stair_driver_speed
+        if not self.raised_short_approach_slew or height <= .405 or speed is None or not .70 <= speed <= 1.10:
+            return False
+        frames = history_frames[0]
+        # Let a sharply skewed impact use the learned asymmetrical response immediately.
+        if abs(float(frames[-1, 6])) >= .60:  # 1.2 rad/s with the gyro observation scale.
+            return False
+        roll_speed = .625 * float(frames[-12:-3, 20:22].mean())
+        recent_commands = np.array([row[0] for row in self.restart_history])
+        neutral = np.flatnonzero(np.abs(recent_commands) <= .06)
+        # Preserve the existing restart response after a driver stop or reverse.
+        return bool(.54 <= roll_speed < .96 and len(neutral)
+                    and len(recent_commands) - neutral[-1] <= stair.HIST_LEN
+                    and not np.any(recent_commands[:neutral[-1]] > .30)
+                    and not np.any(recent_commands < -.08))
+
     @torch.inference_mode()
     def act(self, obs: np.ndarray):
         x = torch.from_numpy(obs).reshape(1, stair.OBS_DIM)
         history = self.history.append(x)
-        if self.restart_router is not None or self.rising_stair is not None or self.high_moving_jump is not None:
+        if (self.restart_router is not None or self.rising_stair is not None
+                or self.high_moving_jump is not None or self.raised_short_approach_slew):
             self.restart_history.append(obs.copy())
         if obs[jump.JUMP_MODE_BIT_INDEX] > 0.5:
             self.stair_mix = 0.0
@@ -350,13 +372,27 @@ class RepairedPolicy(AutonomousThreeExpert):
         # A brief drop in confidence must not interrupt a committed lift. The
         # driver override still releases the stair branch on the current tick.
         previous_mix = self.stair_mix
-        self.stair_mix = max(proposed, previous_mix - release) if permit else 0.0
+        height = float(current[0, 3]) / 5.
+        if permit:
+            if previous_mix == 0. and proposed > 0.:
+                # A weak, gradual gate already spreads the handoff over several ticks.
+                self.short_approach_active = (proposed >= self.stair_gate_floor
+                                              and self.short_high_approach(height, history_frames))
+            if self.short_approach_active:
+                # Ease in the stair expert while the short approach is still
+                # loading the wheels. Steering and braking still release it at once.
+                high = float(np.clip((height - .405) / .010, 0., 1.))
+                proposed = min(proposed, previous_mix + 1. - .58 * high)
+                release = min(release, 1. - .78 * high)
+            self.stair_mix = max(proposed, previous_mix - release)
+        else:
+            self.short_approach_active = False
+            self.stair_mix = 0.0
         g = self.stair_mix
         approach = out['a_e0']
         if permit and self.raised_drive_symmetry:
             # Cancel the learned left/right bias under straight W at full extension.
             # Keep the live steering/gyro, leg state and previously executed action.
-            height = float(current[0, 3]) / 5.
             blend = .5 * float(np.clip((height - .405) / .010, 0., 1.))
             if blend > 0.:
                 mirrored = self.stair.e0(stair.mirror_obs_35(current))
@@ -736,6 +772,7 @@ def load_manifest(path):
         raise ValueError('Invalid moving jump run-up settings')
     model.stair_gate_floor = float(settings.get('gate_floor', stair.GATE_DEADZONE))
     model.stair_release_per_tick = float(settings.get('gate_release', 1.0))
+    model.raised_short_approach_slew = bool(settings.get('raised_short_approach_slew', False))
     model.restart_release_per_tick = float(settings.get('restart_release', model.stair_release_per_tick))
     model.high_restart_release_per_tick = float(settings.get('high_restart_release', model.restart_release_per_tick))
     model.set_handoff_gains(settings.get('handoff_gains'))
@@ -758,6 +795,7 @@ def load_manifest(path):
 def main():
     args = argparse.ArgumentParser()
     args.add_argument('--candidate', type=Path)
+    args.add_argument('--proving-ground', action='store_true', help='Open the all-maps home scene.')
     args.add_argument('--stair-height-bank', type=Path)
     args.add_argument('--high-router', type=Path)
     for name in ('stair', 'router', 'jump'):
@@ -786,15 +824,36 @@ def main():
     sim = RepairedSimulation(model, identity, show_viewer=True, jump_stance_prep=stance_prep)
     class StepPlayer(play.AutonomousPlayer):
         def apply_suite_selection(self, initial=False):
-            if initial and cli.candidate:
+            if initial and cli.candidate and not cli.proving_ground:
                 self.suite_cb.current(4)
                 self.sub_cb.configure(values=play.STAIR_SCENES, state='readonly')
                 self.sub_var.set('20 cm 单阶')
             return super().apply_suite_selection(initial=initial)
 
-    StepPlayer(root, sim)
-    root.title(f'MOD4v3 自动 MoE · 修复试验 · {identity[:8]}')
-    root.mainloop()
+        def start_height_adjustment(self, previous_height):
+            # A reset waits for the driver. A stance-only command must also
+            # release that wait so the robot can rise before W is pressed.
+            if (self.waiting_for_input and not self.sim.paused
+                    and abs(self.sim.target_h - previous_height) > 1e-6):
+                self.waiting_for_input = False
+                self.deadline = time.perf_counter()
+
+        def on_height_slider(self, value):
+            previous_height = self.sim.target_h
+            super().on_height_slider(value)
+            self.start_height_adjustment(previous_height)
+
+        def set_height_preset(self, height):
+            previous_height = self.sim.target_h
+            super().set_height_preset(height)
+            self.start_height_adjustment(previous_height)
+
+    try:
+        StepPlayer(root, sim)
+        root.title(f'MOD4v3 自动 MoE · 修复试验 · {identity[:8]}')
+        root.mainloop()
+    finally:
+        sim.close()
 
 
 if __name__ == '__main__':

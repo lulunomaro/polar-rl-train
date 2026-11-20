@@ -46,6 +46,30 @@ def holdout_cases():
             for idx, (offset, yaw, speed, drive) in enumerate(approaches)]
 
 
+def manual_cases():
+    # HUD key 4 sets .50 m/s. Test it and the normal .90 m/s gear after
+    # standing up with E, including a short run-up and a skewed approach.
+    matrix = [Case(f'gear4_x{mm:+03}', target=.42, speed=.50, offset=mm / 1000.,
+                   raise_while_moving=True, raise_at_s=0., drive_at_s=1.75, duration=9.)
+              for mm in (-60, -30, 0, 30, 60)]
+    for speed in (.50, .90):
+        gear = 4 if speed == .50 else 5
+        matrix += [Case(f'gear{gear}_yaw{yaw:+03}', target=.42, yaw=yaw, speed=speed,
+                        raise_while_moving=True, raise_at_s=0., drive_at_s=1.75, duration=9.)
+                   for yaw in (-20, -10, 10, 20)]
+        matrix += [Case(f'gear{gear}_near', target=.42, yaw=1.3, speed=speed, offset=.82,
+                        raise_while_moving=True, raise_at_s=0., drive_at_s=1.75, duration=9.)]
+    return matrix
+
+
+def slider_cases():
+    # The slider sends .42 immediately. The plant must settle while W is
+    # released, unlike the gradual E-key standing-up sequence.
+    return [Case(f'slider_gear{gear}_x{mm:+03}', target=.42, speed=speed, offset=mm / 1000.,
+                 drive_at_s=1.5 + (mm + 60) / 150., duration=8.5)
+            for gear, speed in ((4, .50), (5, .90)) for mm in (-60, -30, 0, 30, 60)]
+
+
 def initialize(manifest):
     global sim
     policy, _, jump_prep = load_manifest(manifest)
@@ -60,6 +84,11 @@ def run(item):
         physical = data['physical']
         controls = data['control']
     result['peak_horizontal_speed_m_s'] = float(np.linalg.norm(physical[:, 4:6], axis=1).max())
+    hit = result['steps'][0]['hit']
+    if hit is not None:
+        before = physical[np.searchsorted(physical[:, 0], hit['t']) - 1]
+        result['at_approach'] = dict(height_m=float(before[3]), vx_m_s=float(before[4]),
+                                     pitch_deg=float(before[7]), yaw_deg=float(before[8]))
     if case.map_height > 24:
         interest_start = max(result['steps'][0]['hit']['t'] if result['steps'][0]['hit'] else 0.,
                              (result.get('restart') or {}).get('t', 0.)) + 1.
@@ -76,6 +105,8 @@ def main():
     parser.add_argument('--workers', type=int, default=2)
     parser.add_argument('--slow', action='store_true')
     parser.add_argument('--holdout', action='store_true')
+    parser.add_argument('--manual', action='store_true')
+    parser.add_argument('--slider', action='store_true')
     options = parser.parse_args()
     matrix = raised_cases() + [
         Case(f'held_h42_{mm:+03}', target=.42, offset=mm / 1000.) for mm in (-60, -30, 0, 30, 60)
@@ -87,6 +118,10 @@ def main():
                    for case in raised_cases() if case.mode in ('stop', 'reverse') and case.map_height == 20]
     if options.holdout:
         matrix += holdout_cases()
+    if options.manual:
+        matrix += manual_cases()
+    if options.slider:
+        matrix += slider_cases()
     if options.case:
         matrix = [case for case in matrix if case.name in options.case]
         if len(matrix) != len(options.case):

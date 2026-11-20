@@ -46,6 +46,7 @@ class RepairedPolicy(AutonomousThreeExpert):
         self.rising_stair = None
         self.stair_driver_speed = None
         self.allow_stair = False
+        self.raised_drive_symmetry = False
         self.jump_frames = jump.GATE_STEPS
         self.jump_history_frames = jump.HIST_LEN
         self.moving_jump = None
@@ -351,7 +352,16 @@ class RepairedPolicy(AutonomousThreeExpert):
         previous_mix = self.stair_mix
         self.stair_mix = max(proposed, previous_mix - release) if permit else 0.0
         g = self.stair_mix
-        action = torch.lerp(out['a_e0'], out['a_stair'], g)[0].numpy()
+        approach = out['a_e0']
+        if permit and self.raised_drive_symmetry:
+            # Cancel the learned left/right bias under straight W at full extension.
+            # Keep the live steering/gyro, leg state and previously executed action.
+            height = float(current[0, 3]) / 5.
+            blend = .5 * float(np.clip((height - .405) / .010, 0., 1.))
+            if blend > 0.:
+                mirrored = self.stair.e0(stair.mirror_obs_35(current))
+                approach = torch.lerp(approach, stair.mirror_action_6(mirrored), blend)
+        action = torch.lerp(approach, out['a_stair'], g)[0].numpy()
         if restart_delta is not None:
             action += g * authority * restart_delta[[0, 1, 0, 1, 2, 2]]
         action = self.handoff_action(obs, action, previous_mix, permit)
@@ -706,6 +716,7 @@ def load_manifest(path):
                                    direct_moving_jump_path=paths.get('direct_moving_jump'))
     if hashes != manifest['sha256']:
         raise RuntimeError('The loaded policy does not match the validated candidate hashes')
+    model.raised_drive_symmetry = bool(settings.get('raised_drive_symmetry', False))
     model.jump_min_forward = float(settings.get('jump_min_forward', 0.0))
     model.parked_resume_tread_cutoff = float(settings.get('parked_resume_tread_cutoff', 0.))
     if not 0. <= model.parked_resume_tread_cutoff <= .2:

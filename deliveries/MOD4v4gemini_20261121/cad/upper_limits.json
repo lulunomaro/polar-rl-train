@@ -1,0 +1,90 @@
+{
+  "reference": "SCUT-aligned forward-zero convention: gimbal_yaw_joint=0 faces chassis +X; fold & pitch relative to horizontal deployed pose",
+  "source_step_sha256": "dd5bc4a76ba7a3995d4719d50b2406b996899335fa3eb76737cbe35854a8e989",
+  "joint_entries": {
+    "gimbal_yaw_joint": {
+      "limits_deg": null,
+      "basis": "continuous rotation confirmed by the team"
+    },
+    "gimbal_fold_joint": {
+      "limits_deg": [
+        -32.0,
+        54.5
+      ],
+      "basis": "STEP solids: the UWB arm touches the pitch support at approximately +54.85 deg. The +54.5 deg simulation ceiling retains approximately 0.20 mm CAD clearance."
+    },
+    "gimbal_pitch_joint": {
+      "limits_deg": [
+        -54.0,
+        55.0
+      ],
+      "basis": "STEP sweep including the lens guard and yaw cover"
+    }
+  },
+  "coupled_clearance": [
+    {
+      "name": "gimbal_chassis_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 1.27,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -23.0,
+        200.0
+      ],
+      "basis": "Keep the head over chassis covers through full yaw travel"
+    },
+    {
+      "name": "gimbal_cover_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 0.605,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -20.8,
+        200.0
+      ],
+      "basis": "Clearance between the lens guard and the yaw cover"
+    },
+    {
+      "name": "gimbal_rear_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 1.85,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -180.0,
+        49.5
+      ],
+      "basis": "Clearance between the pitch brackets and the rear electronics enclosure"
+    }
+  ],
+  "physical_limits": "No angular limit mates found in the saved assembly. These are simulation travel limits for the reopened STEP geometry.",
+  "stow_pose_deg": {
+    "gimbal_yaw_joint": -149.69051810886117,
+    "gimbal_fold_joint": 54.5,
+    "gimbal_pitch_joint": -53.75
+  },
+  "stow_ground_pose": {
+    "mjcf_keyframe": "guide_ground_stow",
+    "base_position_m": [
+      0.0,
+      0.0,
+      0.1404672946253659
+    ],
+    "base_orientation_wxyz": [
+      0.999999592723351,
+      0.0,
+      0.0009025259730774958,
+      0.0
+    ],
+    "base_pitch_rad": 0.0018050521912068675,
+    "symmetric_hip_front_rear_rad": [
+      2.3590158188897554,
+      0.6081220207983732
+    ],
+    "gas_eye_to_eye_mm": 200.0,
+    "target_height_mm": 250.0
+  },
+  "cad_raw_yaw_to_forward_offset_deg": 149.69051810886117
+}

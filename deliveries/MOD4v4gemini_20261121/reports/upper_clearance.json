@@ -1,0 +1,188 @@
+{
+  "step_sha256": "dd5bc4a76ba7a3995d4719d50b2406b996899335fa3eb76737cbe35854a8e989",
+  "mjcf_sha256": "21dde3d17f1adcf342966390be190167902a92d5b6bc971f08531f2f935d45e7",
+  "source": "Reopened STEP triangles placed by the repaired rigid-body transforms; zero-pose mesh contact pairs are the baseline",
+  "angles": {
+    "gimbal_yaw_joint": {
+      "limits_deg": null,
+      "basis": "continuous rotation confirmed by the team"
+    },
+    "gimbal_fold_joint": {
+      "limits_deg": [
+        -32.0,
+        54.5
+      ],
+      "basis": "STEP solids: the UWB arm touches the pitch support at approximately +54.85 deg. The +54.5 deg simulation ceiling retains approximately 0.20 mm CAD clearance."
+    },
+    "gimbal_pitch_joint": {
+      "limits_deg": [
+        -54.0,
+        55.0
+      ],
+      "basis": "STEP sweep including the lens guard and yaw cover"
+    }
+  },
+  "combined_limits": [
+    {
+      "name": "gimbal_chassis_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 1.27,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -23.0,
+        200.0
+      ],
+      "basis": "Keep the head over chassis covers through full yaw travel"
+    },
+    {
+      "name": "gimbal_cover_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 0.605,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -20.8,
+        200.0
+      ],
+      "basis": "Clearance between the lens guard and the yaw cover"
+    },
+    {
+      "name": "gimbal_rear_clearance",
+      "coefficients": {
+        "gimbal_fold_joint": 1.85,
+        "gimbal_pitch_joint": 1.0
+      },
+      "range_deg": [
+        -180.0,
+        49.5
+      ],
+      "basis": "Clearance between the pitch brackets and the rear electronics enclosure"
+    }
+  ],
+  "stow_pose_deg": {
+    "gimbal_yaw_joint": 0.0,
+    "gimbal_fold_joint": 54.5,
+    "gimbal_pitch_joint": -53.75
+  },
+  "physical_limits": "No angular limit mates found in the saved assembly. These are simulation travel limits for the reopened STEP geometry.",
+  "scan_resolution_deg": {
+    "fold_pitch": 1,
+    "yaw": 6,
+    "stow_yaw": 1,
+    "default_to_stow_path": 0.25,
+    "expanded_fold": 0.5
+  },
+  "step_mesh_sweep": {
+    "new_intersecting_pairs_in_accepted_samples": 0,
+    "stow_yaw_circle": {
+      "samples": 360,
+      "new_intersecting_samples": 0,
+      "examples": []
+    },
+    "default_to_stow_path": {
+      "samples": 217,
+      "new_intersecting_samples": 0,
+      "examples": []
+    },
+    "previous_full_grid_kept": {
+      "fold_pitch_grid_including_yaw_zero": {
+        "samples": 3891,
+        "new_intersecting_samples": 0,
+        "examples": []
+      },
+      "chassis_yaw_grid": {
+        "samples": 7611,
+        "new_intersecting_samples": 0,
+        "examples": []
+      }
+    },
+    "expanded_region_grid": {
+      "samples": 19440,
+      "new_intersecting_samples": 0,
+      "fold_step_deg": 0.5,
+      "yaw_step_deg": 6
+    },
+    "scope": "The upper moving groups and their clearance to the fixed chassis. For interference with the folded legs, see stow_geometry.json.",
+    "new_fold_range_at_yaw_zero": {
+      "samples": 187,
+      "new_intersecting_samples": 0
+    }
+  },
+  "physx": {
+    "fixed_tendon_limits": [
+      [
+        -3.1415927410125732,
+        0.8639379739761353
+      ],
+      [
+        -0.40142571926116943,
+        3.4906585216522217
+      ],
+      [
+        -0.36302849650382996,
+        3.4906585216522217
+      ]
+    ],
+    "endpoints_fold_pitch": [
+      {
+        "requested_deg": [
+          -32,
+          19
+        ],
+        "actual_deg": [
+          -31.99630355834961,
+          18.988037109375
+        ]
+      },
+      {
+        "requested_deg": [
+          54.5,
+          -53.75
+        ],
+        "actual_deg": [
+          54.499996185302734,
+          -53.76094436645508
+        ]
+      },
+      {
+        "requested_deg": [
+          -10,
+          55
+        ],
+        "actual_deg": [
+          -9.995512962341309,
+          54.99053192138672
+        ]
+      },
+      {
+        "requested_deg": [
+          0,
+          48
+        ],
+        "actual_deg": [
+          0.004646536894142628,
+          47.99085998535156
+        ]
+      }
+    ],
+    "combined": {
+      "gimbal_chassis_clearance": {
+        "before_deg": -28.019999618595374,
+        "after_deg": 33.5771777212898
+      },
+      "gimbal_cover_clearance": {
+        "before_deg": -21.64000015253374,
+        "after_deg": -10.747082522018115
+      },
+      "gimbal_rear_clearance": {
+        "before_deg": 52.50000163170033,
+        "after_deg": 48.78240753061893
+      }
+    },
+    "uwb_mimic_before_after_deg": [
+      1.9999989172902086,
+      0.004057132366987574
+    ]
+  }
+}

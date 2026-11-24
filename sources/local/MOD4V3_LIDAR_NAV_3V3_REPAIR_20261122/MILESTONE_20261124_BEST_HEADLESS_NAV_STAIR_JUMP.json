@@ -1,0 +1,43 @@
+{
+  "milestone_title": "不带头目前11月24日最牛逼的全自动上台阶和跳跃模型",
+  "designated_at": "2026-11-24T22:59:00+08:00",
+  "robot_configuration": "MOD4v3_HW300N60_R3 (headless / without MOD4v4 gimbal head, 400Hz physics, 100Hz leg PD, 400Hz wheel, [-6,6] motor contract)",
+  "sensor_stack": "Livox Mid-360 3D LiDAR (.pcd prior + 2.5D multi-layer Nav + live point-cloud stair/hurdle/dynamic-obstacle fusion & ROS2 FAST-LIO2 bridge)",
+  "workspace": "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122",
+  "launchers": [
+    "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/Run_MOD4v3_LiDAR_Nav_3v3_5v5_WASD.bat",
+    "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/Run_MOD4v3_Mid360_PCD_Nav_WASD.bat"
+  ],
+  "frozen_weights": {
+    "stair_expert": {
+      "path": "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/weights/E_stair_nav4d_candidate.pt",
+      "sha256": "0a8d2d6bb0cf1b7222d420903b9aec46e072b4d73dddb8c155df139ec74fd35b"
+    },
+    "jump_expert": {
+      "path": "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/weights/E_jump_unified_candidate.pt",
+      "sha256": "253bc6d078a18f9a724f88b794d3ebd98788ac7b0daad46d1aa7fa0a4113ede7"
+    },
+    "cruise_e0": {
+      "path": "sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/weights/e0.pt",
+      "sha256": "b271cafbb8f3c926b05637ede96fe505ec9e7e1be7300d9230212832220faddb"
+    }
+  },
+  "verified_metrics": {
+    "single200_stairs": "59/59 (100%, including h=0.28..0.42m self-raise)",
+    "rmul2027_3v3_stairs": "58/58 (100%)",
+    "highspeed_2p4_to_3p0_stairs": "23/23 (100%)",
+    "flat60_cruise_zero_false_stairs": "60/60 (0 false triggers)",
+    "flat_jump_all_regimes": "56/56 groups, 112/112 replays, 0 flips",
+    "rmul_bridge_hurdle_270x352_manual_jump": "20/24 overall, 18/18 (100%, 0 flips) for d_press>=0.90m, mean clearance 44.37cm",
+    "solid_380mm_platform_manual_jump": "20/24 overall, 18/18 (100%, 0 flips) for d_press>=1.00m, mean clearance 46.95cm",
+    "mid360_pcd_prior_mae_mm": {
+      "suite_rmul2027": 1.21,
+      "suite_rmuc2027": 1.61
+    },
+    "mid360_dynamic_enemy_avoidance": "PASS (0 false stair triggers, live A* replan detour + 200mm highland climb)"
+  },
+  "git_tags": [
+    "不带头11月24日最牛逼全自动上台阶和跳跃",
+    "best-20261124-headless-autostair-jump-nav4d"
+  ]
+}

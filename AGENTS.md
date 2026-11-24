@@ -1,3 +1,9 @@
+## 2026-11-24 22:59 里程碑标定：`不带头11月24日最牛逼全自动上台阶和跳跃` (`MOD4v3` 无云台头正式基线)
+
+人类正式标定当前不带云台头的 `MOD4v3` (`MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122`) 为 **不带头目前 11 月 24 日最牛逼的全自动上台阶和跳跃版本**，已在 Git 打标归档并推送远端：
+- **Git 标签**：`不带头11月24日最牛逼全自动上台阶和跳跃` / `best-20261124-headless-autostair-jump-nav4d`
+- **锁定权重**：上阶专家 `E_stair_nav4d_candidate.pt` (`0a8d2d6b`) + 感知引导手动大跳专家 `E_jump_unified_candidate.pt` (`253bc6d0`) + `SymmetricE0` (`b271cafb` / `c874a1af`) + `Livox Mid-360` 全赛场 `.pcd/2.5D` 先验图与实时点云检测融合栈（详见 `MILESTONE_20261124_BEST_HEADLESS_NAV_STAIR_JUMP.json`）。
+
 ## 2026-11-24 10:45 MOD4v3 × Livox Mid-360 预先建图(.pcd/2.5D)、实时点云台阶/动态避障、全速域自主上阶与380mm/橙头横梁感知引导手动大跳正式归档
 
 独立工作区 `sources/local/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122` 全程在远端 `host72` (`RTX 4090`) 完成 4096 并行 `mujoco_warp` GPU PPO 训练、400 Hz 物理验收与 `1x` 视频渲染（本机零仿真显存占用，历史中间检查点 `58,585` 文件已 SHA-256 校验归档至 `host72`，`6,586` 受保护文件 `0` 改动）：

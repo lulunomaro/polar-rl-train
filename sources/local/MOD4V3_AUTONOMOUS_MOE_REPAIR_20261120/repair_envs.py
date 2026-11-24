@@ -62,6 +62,7 @@ class StairFixture(Mod4v3AutonomousStairEnv):
     parked_retake_focus = False
     wasd_restart_focus = False
     stair_recovery_focus = False
+    low_impact_focus = False
 
     def start(self, profile='climb', height=0.28, speed=0.9, offset=0.0, yaw=0.0,
               dr=0.0, rise=False, distance=1.35, wall_height=.50, drive_at=None):
@@ -137,8 +138,12 @@ class StairFixture(Mod4v3AutonomousStairEnv):
         p = r.random()
         if self.stair_recovery_focus:
             tall = role == 'stair' or r.random() < .43
-            height = float(r.uniform(.394, .42) if tall else r.uniform(.276, .357))
-            speed = float(r.uniform(.42, .57) if tall else r.uniform(.81, .98))
+            if role == 'router' and self.mid_stance_focus:
+                height = float(r.uniform(.307, .376))
+                speed = float(r.uniform(.79, .99))
+            else:
+                height = float(r.uniform(.394, .42) if tall else r.uniform(.276, .357))
+                speed = float(r.uniform(.42, .57) if tall else r.uniform(.81, .98))
             if role == 'stair':
                 profile = 'restart' if p < .55 else 'climb' if p < .84 else 'restart_reverse' if p < .95 else 'flat'
             else:
@@ -149,6 +154,13 @@ class StairFixture(Mod4v3AutonomousStairEnv):
             return self.start(profile, height, speed, float(r.uniform(-.075, .075)),
                               math.radians(float(r.uniform(-5., 5.))), dr, distance=1.20,
                               wall_height=float(r.choice([.45, .50])), drive_at=delay)
+        if self.low_impact_focus:
+            profile = ('climb' if p < .55 else 'restart' if p < .86 else
+                       'restart_reverse' if p < .95 else 'flat')
+            height = float(r.choice([.28, .28, .28, .28, .29, .30, .32, .34]))
+            return self.start(profile, height, float(r.uniform(.83, .97)), float(r.uniform(-.072, .072)),
+                              math.radians(float(r.uniform(-4., 4.))), dr, distance=1.20,
+                              drive_at=float(r.uniform(.38, .56)))
         if self.wasd_restart_focus:
             if role == 'stair':
                 profile = ('restart' if p < .49 else 'restart_reverse' if p < .73 else
@@ -403,20 +415,26 @@ class StairFixture(Mod4v3AutonomousStairEnv):
                     # This block only runs when W is active, never during a driver-commanded reverse.
                     reward -= 7. * max(0., old_x - x) + .11 * max(0., -vx)
                     reward -= .006 * max(0., pitch - 18.)
+                if self.low_impact_focus and self.k - self.hit_tick < 25:
+                    # Penalize retreat during the first guide/step interaction while the driver holds W.
+                    reward -= 10. * max(0., old_x - x) + .16 * max(0., -vx)
+                    reward -= .009 * max(0., pitch - 16.)
             else:
                 reward += .05 * math.exp(-12 * (vx - self.intent)**2)
             reward += .04 if on_top else 0.0
             reward += 4.5 if new_top else 0.0
             reward += 1.0 if new_recovered else 0.0
             reward -= .003 * max(0., pitch - 15.)
-            if self.high_slow_focus and self.hit_tick is not None:
-                # Score physical completion first and remove the gain from
-                # surging past the driving command during lift and capture.
+            if self.high_slow_focus:
+                # The evaluation speed limit covers approach, lift and capture.
+                # Reward tracking the driver's target before contact as well.
                 excess_speed = max(0.0, max(abs(vx), substep_speed) - .60)
                 reward -= .18 * min(1.0, (excess_speed / .22) ** 2)
-                reward -= 3.0 * max(0.0, old_x - x)
-                if new_top and self.peak_forward_speed <= .60:
-                    reward += 2.0
+                reward += .045 * math.exp(-((vx - intent_before) / .16) ** 2)
+                if self.hit_tick is not None:
+                    reward -= 3.0 * max(0.0, old_x - x)
+                    if new_top and self.peak_forward_speed <= .60:
+                        reward += 2.0
         else:
             reward = .06 * math.exp(-7 * (vx - intent_before)**2) - .25 * float(raw_gate)
         reward -= .002 * min(action_delta, 20.)
@@ -455,6 +473,7 @@ class JumpFixture(Mod4v3InstantJumpEnv):
     jump_loaded_push = False
     jump_launch_energy = False
     wasd_crouch_speed = 0.
+    direct_mid_focus = False
     touchdown_focus = 0.
 
     def __init__(self, seed):
@@ -595,6 +614,15 @@ class JumpFixture(Mod4v3InstantJumpEnv):
             distance = float(r.uniform(.74, 1.02))
             return self.start(profile, height, float(r.uniform(.83, .98)), dr, delay + float(r.uniform(.44, .95)),
                               distance, pose, drive_at=delay)
+        if self.direct_mid_focus:
+            profile = 'step' if p < .55 else 'moving'
+            height = float(r.uniform(.309, .376))
+            delay = float(r.uniform(.36, .55) if r.random() < .72 else r.uniform(.95, 1.42))
+            pose = (float(r.uniform(.32, .44)) if profile == 'step' else 0., 0.,
+                    math.radians(float(r.uniform(-3.5, 3.5))))
+            return self.start(profile, height, float(r.uniform(.83, .99)), dr,
+                              delay + float(r.uniform(.36, .70)), float(r.uniform(.59, .87)), pose,
+                              drive_at=delay)
         if self.high_takeoff_focus:
             step_fraction = .46 if self.jump_launch_energy else .56 if self.clean_jump_apex else .74
             profile = 'step' if p < step_fraction else 'moving'

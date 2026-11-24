@@ -1,0 +1,55 @@
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Program Files\Python313\Lib\concurrent\futures\process.py", line 254, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+  File "C:\Program Files\Python313\Lib\concurrent\futures\process.py", line 203, in _process_chunk
+    return [fn(*args) for args in chunk]
+            ~~^^^^^^^
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\eval_stair_nav4d.py", line 89, in worker
+    result,trace=run_case(case,checkpoint)
+                 ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\eval_stair_nav4d.py", line 49, in run_case
+    sim.load_scene(case['course'],height=case['height'])
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\nav4d_runtime.py", line 101, in load_scene
+    meta=stage_scene(course)
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\nav_maps.py", line 26, in stage_scene
+    meta=donor.build_player_scene(course)
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_MANUAL_FSM_STAIR_UNIFIED_20261122\play_manual_fsm_wasd.py", line 161, in build_player_scene
+    meta = metadata(course_key, cache)
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_MANUAL_FSM_STAIR_UNIFIED_20261122\fsm_maps.py", line 93, in metadata
+    tree = ET.parse(meta['xml_path'])
+  File "C:\Program Files\Python313\Lib\xml\etree\ElementTree.py", line 1223, in parse
+    tree.parse(source, parser)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\xml\etree\ElementTree.py", line 577, in parse
+    self._root = parser._parse_whole(source)
+                 ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+xml.etree.ElementTree.ParseError: no element found: line 1, column 0
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\eval_stair_nav4d.py", line 114, in <module>
+    evaluate(a.checkpoint,a.profile,a.workers,a.out)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\claude2\fangzhen\_mod4v2_src_20261106\sources\local\MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122\eval_stair_nav4d.py", line 99, in evaluate
+    with ProcessPoolExecutor(max_workers=workers) as pool:rows=list(pool.map(worker,tasks))
+                                                               ~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\process.py", line 620, in _chain_from_iterable_of_lists
+    for element in iterable:
+                   ^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\_base.py", line 625, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\_base.py", line 318, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\_base.py", line 402, in __get_result
+    raise self._exception
+xml.etree.ElementTree.ParseError: no element found: line 1, column 0

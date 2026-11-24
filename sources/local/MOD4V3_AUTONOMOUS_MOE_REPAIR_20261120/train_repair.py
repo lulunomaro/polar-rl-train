@@ -69,7 +69,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             stair_mid_stance_focus, touchdown_focus, high_takeoff_focus, sustained_high_jump, high_jump_apex_focus,
             parked_retake_focus, high_jump_impulse_focus, clean_jump_apex, min_landing_apex, varied_jump_runup,
             wasd_restart_focus, direct_jump_landing, jump_lip_focus, jump_airborne_height_focus, jump_loaded_push,
-            stair_recovery_focus, jump_launch_energy, wasd_crouch_speed):
+            stair_recovery_focus, jump_launch_energy, wasd_crouch_speed, low_impact_focus, direct_mid_focus):
     try:
         env = LeapFixture(seed) if leap else JumpFixture(seed) if role == 'jump' else StairFixture(seed)
         if leap:
@@ -92,6 +92,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             env.jump_loaded_push = jump_loaded_push
             env.jump_launch_energy = jump_launch_energy
             env.wasd_crouch_speed = wasd_crouch_speed
+            env.direct_mid_focus = direct_mid_focus
         if role != 'jump':
             env.restart_focus = stair_restart_focus
             env.parked_retake_focus = parked_retake_focus
@@ -101,6 +102,7 @@ def _worker(pipe, role, seed, measure_substeps, leap, stance_dr, leap_height_foc
             env.low_stance_focus = stair_low_stance_focus
         if role == 'stair':
             env.high_slow_focus = stair_high_slow_focus
+            env.low_impact_focus = low_impact_focus
         if leap:
             env.stance_dr = stance_dr
         if role != 'jump':
@@ -146,7 +148,8 @@ class Fixtures:
                  high_jump_impulse_focus=False, clean_jump_apex=False, min_landing_apex=0., varied_jump_runup=False,
                  wasd_restart_focus=False, direct_jump_landing=False, jump_lip_focus=False,
                  jump_airborne_height_focus=False, jump_loaded_push=False,
-                 stair_recovery_focus=False, jump_launch_energy=False, wasd_crouch_speed=0.):
+                 stair_recovery_focus=False, jump_launch_energy=False, wasd_crouch_speed=0.,
+                 low_impact_focus=False, direct_mid_focus=False):
         self.pipes, self.workers = [], []
         ctx = mp.get_context('fork' if os.name != 'nt' else 'spawn')
         for index in range(count):
@@ -159,7 +162,8 @@ class Fixtures:
                                                      high_jump_impulse_focus, clean_jump_apex, min_landing_apex,
                                                      varied_jump_runup, wasd_restart_focus, direct_jump_landing, jump_lip_focus,
                                                      jump_airborne_height_focus, jump_loaded_push,
-                                                     stair_recovery_focus, jump_launch_energy, wasd_crouch_speed),
+                                                     stair_recovery_focus, jump_launch_energy, wasd_crouch_speed,
+                                                     low_impact_focus, direct_mid_focus),
                                daemon=True)
             proc.start()
             worker.close()
@@ -539,6 +543,8 @@ def main():
     parser.add_argument('--stair-restart-focus', action='store_true')
     parser.add_argument('--parked-retake-focus', action='store_true')
     parser.add_argument('--wasd-restart-focus', action='store_true')
+    parser.add_argument('--low-impact-focus', action='store_true')
+    parser.add_argument('--direct-mid-focus', action='store_true')
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--probe', action='store_true')
     args = parser.parse_args()
@@ -591,6 +597,11 @@ def main():
         parser.error('--clean-jump-apex requires the sustained flight and loaded stroke rewards')
     if not 0. <= args.min_landing_apex <= .22 or args.min_landing_apex and not args.clean_jump_apex:
         parser.error('--min-landing-apex must be in [0, .22] and positive values require --clean-jump-apex')
+    if args.direct_mid_focus and not (args.role == 'jump' and args.direct_jump_landing and
+                                          args.high_takeoff_focus and not args.wasd_crouch_speed):
+        parser.error('Mid-stance direct jumps require the direct takeoff profile')
+    if args.low_impact_focus and not (args.role == 'stair' and args.wasd_restart_focus):
+        parser.error('Low impact training requires the matched WASD stair profile')
     if args.direct_jump_landing and not (args.varied_jump_runup and args.jump_top_support):
         parser.error('--direct-jump-landing requires varied run-up and top support measurement')
     if args.varied_jump_runup and not (args.clean_jump_apex and args.min_landing_apex > 0.):
@@ -616,6 +627,7 @@ def main():
                    high_jump_impulse_focus=args.high_jump_impulse_focus, clean_jump_apex=args.clean_jump_apex,
                    min_landing_apex=args.min_landing_apex, varied_jump_runup=args.varied_jump_runup,
                    wasd_restart_focus=args.wasd_restart_focus, direct_jump_landing=args.direct_jump_landing,
+                   low_impact_focus=args.low_impact_focus, direct_mid_focus=args.direct_mid_focus,
                    jump_lip_focus=args.jump_lip_focus, jump_airborne_height_focus=args.jump_airborne_height_focus,
                    jump_loaded_push=args.jump_loaded_push, stair_recovery_focus=args.stair_recovery_focus,
                    jump_launch_energy=args.jump_launch_energy, wasd_crouch_speed=args.wasd_crouch_speed)
@@ -659,6 +671,7 @@ def main():
                  'jump_top_support': args.jump_top_support, 'stair_mid_stance_focus': args.stair_mid_stance_focus,
                  'high_takeoff_focus': args.high_takeoff_focus, 'sustained_high_jump': args.sustained_high_jump,
                  'high_jump_apex_focus': args.high_jump_apex_focus, 'parked_retake_focus': args.parked_retake_focus,
+                 'low_impact_focus': args.low_impact_focus, 'direct_mid_focus': args.direct_mid_focus,
                  'high_jump_impulse_focus': args.high_jump_impulse_focus, 'clean_jump_apex': args.clean_jump_apex,
                  'min_landing_apex': args.min_landing_apex, 'varied_jump_runup': args.varied_jump_runup,
                  'wasd_restart_focus': args.wasd_restart_focus,

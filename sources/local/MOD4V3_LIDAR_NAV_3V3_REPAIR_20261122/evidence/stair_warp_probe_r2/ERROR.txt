@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/train_nav4d_stair_warp.py", line 60, in main
+    run_ppo(
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/train_generalized_ppo.py", line 116, in run_ppo
+    obs, hist_flat, reward, done = env.step(mean_act)
+                                   ^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/stair_warp_gpu.py", line 765, in step
+    e0_act = self.e0(self.obs)
+             ^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/envs/mod4/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/manual_fsm_model.py", line 104, in forward
+    x = self.observation(obs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/manual_fsm_model.py", line 76, in observation
+    i,u=bracket(obs[...,0].abs(),speeds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lc01/Zonglin Li/zonglin2/tasks/MOD4V3_LIDAR_NAV_3V3_REPAIR_20261122/manual_fsm_model.py", line 64, in bracket
+    value = value.clamp(grid[0], grid[-1]).contiguous()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but got min is on cpu, different from other tensors on cuda:0 (when checking argument in method wrapper_CUDA_clamp_Tensor)

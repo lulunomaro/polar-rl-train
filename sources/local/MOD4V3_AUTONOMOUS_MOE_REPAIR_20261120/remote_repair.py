@@ -221,6 +221,10 @@ def launch(role, batch, seconds, iters, probe=False):
             params.append('--stair-low-stance-focus')
         if role in ('stair', 'router') and options.get('stair_mid_stance_focus'):
             params.append('--stair-mid-stance-focus')
+        if role == 'stair' and options.get('low_impact_focus'):
+            params.append('--low-impact-focus')
+        if role == 'jump' and options.get('direct_mid_focus'):
+            params.append('--direct-mid-focus')
         if role == 'stair' and options.get('stair_high_slow_focus'):
             params.append('--stair-high-slow-focus')
         if role == 'jump' and options.get('leap_moving_focus'):
